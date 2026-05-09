@@ -67,7 +67,7 @@ jobs:
             echo "|----------|--------|-------|"
             echo "| 🍎 macOS (.app + dmg) | ⚠️ Beta | ARM64 + Intel |"
             echo "| 🍎 macOS (CLI) | ⚠️ Beta | Per-arch tar.gz |"
-            echo "| 🐧 Linux | ⚠️ Beta | tar.gz / .deb |"
+            echo "| 🐧 Linux | ⚠️ Beta | x64 + ARM64 (tar.gz / .deb) |"
             echo "| 🪟 Windows | ⚠️ Beta | CI-built |"
           } > RELEASE_NOTES.md
 
@@ -85,16 +85,18 @@ jobs:
           mkdir -p dist
           (cd publish/win-x64 && zip -r "../../dist/${PRODUCT_NAME}-${VERSION_TAG}-win-x64.zip" .)
 
-      # ---------------- LINUX ----------------
+      # ---------------- LINUX (x64 + arm64) ----------------
       - name: Build Linux
         run: |
-          dotnet publish Jellyfin2Samsung-CrossOS/Jellyfin2Samsung.csproj \
-            -c Release -r linux-x64 -p:SelfContained=true \
-            -o publish/linux-x64
-
           mkdir -p dist
-          tar -czf "dist/${PRODUCT_NAME}-${VERSION_TAG}-linux-x64.tar.gz" \
-            -C publish/linux-x64 .
+          for ARCH in x64 arm64; do
+            dotnet publish Jellyfin2Samsung-CrossOS/Jellyfin2Samsung.csproj \
+              -c Release -r linux-$ARCH -p:SelfContained=true \
+              -o publish/linux-$ARCH
+
+            tar -czf "dist/${PRODUCT_NAME}-${VERSION_TAG}-linux-$ARCH.tar.gz" \
+              -C publish/linux-$ARCH .
+          done
 
       # ---------------- LINUX ICON ----------------
       - name: Linux icon
@@ -104,33 +106,39 @@ jobs:
           rsvg-convert -w 256 -h 256 \
             jellyfin-tizen-logo.svg -o jellyfin.png
 
-      # ---------------- DEB ----------------
+      # ---------------- DEB (x64 + arm64) ----------------
       - name: Build .deb
         run: |
           sudo apt-get install -y dpkg-dev
 
-          PKG=deb
-          mkdir -p $PKG/opt/jellyfin2samsung \
-                   $PKG/usr/share/{applications,icons/hicolor/256x256/apps}
+          for ARCH in x64 arm64; do
+            case $ARCH in
+              x64)   DEB_ARCH=amd64 ;;
+              arm64) DEB_ARCH=arm64 ;;
+            esac
 
-          cp -R publish/linux-x64/. $PKG/opt/jellyfin2samsung/
-          chmod +x $PKG/opt/jellyfin2samsung/Jellyfin2Samsung
+            PKG=deb-$ARCH
+            mkdir -p $PKG/opt/jellyfin2samsung \
+                     $PKG/usr/share/{applications,icons/hicolor/256x256/apps}
 
-          # 🔥 quick+dirty: allow writes where your app writes
-          mkdir -p \
-            $PKG/opt/jellyfin2samsung/Logs \
-            $PKG/opt/jellyfin2samsung/Downloads \
-            $PKG/opt/jellyfin2samsung/Assets/TizenSDB \
-            $PKG/opt/jellyfin2samsung/Assets/Certificate
-          chmod -R 777 \
-            $PKG/opt/jellyfin2samsung/Logs \
-            $PKG/opt/jellyfin2samsung/Downloads \
-            $PKG/opt/jellyfin2samsung/Assets/TizenSDB \
-            $PKG/opt/jellyfin2samsung/Assets/Certificate
+            cp -R publish/linux-$ARCH/. $PKG/opt/jellyfin2samsung/
+            chmod +x $PKG/opt/jellyfin2samsung/Jellyfin2Samsung
 
-          cp jellyfin.png $PKG/usr/share/icons/hicolor/256x256/apps/jellyfin2samsung.png
+            # 🔥 quick+dirty: allow writes where your app writes
+            mkdir -p \
+              $PKG/opt/jellyfin2samsung/Logs \
+              $PKG/opt/jellyfin2samsung/Downloads \
+              $PKG/opt/jellyfin2samsung/Assets/TizenSDB \
+              $PKG/opt/jellyfin2samsung/Assets/Certificate
+            chmod -R 777 \
+              $PKG/opt/jellyfin2samsung/Logs \
+              $PKG/opt/jellyfin2samsung/Downloads \
+              $PKG/opt/jellyfin2samsung/Assets/TizenSDB \
+              $PKG/opt/jellyfin2samsung/Assets/Certificate
 
-          cat > $PKG/usr/share/applications/jellyfin2samsung.desktop <<EOF
+            cp jellyfin.png $PKG/usr/share/icons/hicolor/256x256/apps/jellyfin2samsung.png
+
+            cat > $PKG/usr/share/applications/jellyfin2samsung.desktop <<EOF
           [Desktop Entry]
           Name=Jellyfin2Samsung
           Exec=/opt/jellyfin2samsung/Jellyfin2Samsung
@@ -139,17 +147,18 @@ jobs:
           Categories=Utility;
           EOF
 
-          mkdir -p $PKG/DEBIAN
-          cat > $PKG/DEBIAN/control <<EOF
+            mkdir -p $PKG/DEBIAN
+            cat > $PKG/DEBIAN/control <<EOF
           Package: jellyfin2samsung
           Version: ${VERSION}
-          Architecture: amd64
+          Architecture: ${DEB_ARCH}
           Maintainer: MadeByPatrick
           Description: Jellyfin2Samsung
           EOF
 
-          dpkg-deb --build $PKG
-          mv $PKG.deb dist/${PRODUCT_NAME}-${VERSION_TAG}-linux-x64.deb
+            dpkg-deb --build $PKG
+            mv $PKG.deb dist/${PRODUCT_NAME}-${VERSION_TAG}-linux-$ARCH.deb
+          done
 
       # ---------------- RELEASE (UPDATE SAME TAG EVERY COMMIT) ----------------
       - uses: softprops/action-gh-release@v2
