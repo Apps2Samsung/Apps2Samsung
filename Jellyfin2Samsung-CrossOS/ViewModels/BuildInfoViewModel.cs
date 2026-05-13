@@ -136,6 +136,7 @@ namespace Jellyfin2Samsung.ViewModels
                 { "Club Info Board", Constants.PreviewImages.ClubInfoBoard },
                 { "Doom", Constants.PreviewImages.Doom },
                 { "TransportTycoonDeluxe", Constants.PreviewImages.TTD },
+                { "Nuvio", Constants.PreviewImages.Nuvio }
             };
 
             // Exceptions inside JellyfinVersions that should NOT use Jellyfin image

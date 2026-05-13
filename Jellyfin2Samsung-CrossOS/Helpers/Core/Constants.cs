@@ -32,6 +32,7 @@ namespace Jellyfin2Samsung.Helpers.Core
             public const string Doom = "https://iili.io/fyofVqu.png";
             public const string TTD = "https://iili.io/qFBP2vn.png";
             public const string Litefin = "https://iili.io/qerI0la.png";
+            public const string Nuvio = "https://nuvioapp.space/assets/newss/Screenshot%202026-04-05%20at%203.17.41%E2%80%AFPM.png";
         }
 
         /// <summary>
