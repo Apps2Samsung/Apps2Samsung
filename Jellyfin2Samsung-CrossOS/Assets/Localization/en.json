@@ -31,7 +31,7 @@
   "lblLanguage": "Language",
   "lblCustomWgt": "WGT File",
   "lblSettings": "Application settings",
-  "lblDeletePrevious": "Remove old Jellyfin",
+  "lblDeletePrevious": "Remove old version",
   "IpWindowTitle": "Enter TV IP",
   "IpWindowDescription": "Please enter the device's IP address:",
   "InvalidDeviceIp": "Invalid device IP or device not found.",
