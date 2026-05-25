@@ -90,7 +90,7 @@
   "lblTryOverwrite": "Overwrite existing version",
   "lblUseServerScripts": "Download Jellyfin plugins",
   "lblEnableDevLogs": "Enable TV Debug",
-  "lblOpenDebugWindow": "Open TV Console",
+  "lblOpenDebugWindow": "Open TV Log",
   "lblStartLog": "Start",
   "lblStopLog": "Stop",
   "lblSaveLogs": "Save",
