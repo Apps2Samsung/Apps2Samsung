@@ -9,6 +9,7 @@ using Jellyfin2Samsung.Helpers.Core;
 using Jellyfin2Samsung.Helpers.Tizen.Devices;
 using Jellyfin2Samsung.Interfaces;
 using Jellyfin2Samsung.Models;
+using Jellyfin2Samsung.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -36,6 +37,7 @@ namespace Jellyfin2Samsung.ViewModels
         private readonly PackageHelper _packageHelper;
         private readonly JellyfinConfigViewModel _settingsViewModel;
         private readonly AddLatestRelease _addLatestRelease;
+        private readonly ProviderManifestService _providerManifestService;
         private CancellationTokenSource? _samsungLoginCts;
         private CancellationTokenSource? _initializationCts;
 
@@ -121,6 +123,7 @@ namespace Jellyfin2Samsung.ViewModels
             _settingsViewModel = settingsViewModel;
 
             _addLatestRelease = new AddLatestRelease(httpClient);
+            _providerManifestService = new ProviderManifestService(httpClient);
 
             _localizationService.LanguageChanged += OnLanguageChanged;
             _themeService.ThemeChanged += OnThemeChanged;
@@ -616,20 +619,20 @@ namespace Jellyfin2Samsung.ViewModels
             try
             {
                 var list = new List<GitHubRelease>();
-                async Task fetch(string url, string prefix, string name, int take = 1)
+                var manifest = await _providerManifestService.GetAsync();
+                foreach (var provider in manifest.Providers)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var release = await _addLatestRelease.GetReleasesAsync(url, prefix, name, take);
+                    if (string.IsNullOrWhiteSpace(provider.Url))
+                        continue;
+                    var release = await _addLatestRelease.GetReleasesAsync(
+                        provider.Url,
+                        provider.Prefix,
+                        provider.DisplayName,
+                        provider.Take);
                     if (release.Count > 0)
                         list.AddRange(release);
                 }
-                await fetch(AppSettings.Default.ReleasesUrl, "Jellyfin - ", string.Empty, 5);
-                await fetch(AppSettings.Default.MoonfinRelease, string.Empty, "Moonfin", 1);
-                await fetch(AppSettings.Default.LiteFinRelease, string.Empty, "Litefin", 1);
-                await fetch(AppSettings.Default.JellyfinAvRelease, string.Empty, "Jellyfin - AVPlay", 1);
-                await fetch(AppSettings.Default.JellyfinAvRelease, string.Empty, "Jellyfin - AVPlay - 10.10z SmartHub", 1);
-                await fetch(AppSettings.Default.JellyfinLegacy, string.Empty, "Jellyfin - Legacy", 1);
-                await fetch(AppSettings.Default.CommunityRelease, string.Empty, "Tizen Community", 1);
                 cancellationToken.ThrowIfCancellationRequested();
                 Releases.Clear();
                 foreach (var r in list)

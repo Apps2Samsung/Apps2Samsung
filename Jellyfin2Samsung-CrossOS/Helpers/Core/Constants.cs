@@ -18,24 +18,6 @@ namespace Jellyfin2Samsung.Helpers.Core
         }
 
         /// <summary>
-        /// preview image URLS for different apps.
-        /// </summary>
-        public static class PreviewImages
-        {
-            public const string Jellyfin = "https://jellyfin.org/assets/images/10.8-home-4a73a92bf90d1eeffa5081201ca9c7bb.png";
-            public const string Moonfin = "https://iili.io/fs8W4Re.png";
-            public const string Moonlight = "https://iili.io/fsvn6mJ.png";
-            public const string Fireplace = "https://raw.githubusercontent.com/thonythony/fireplace/refs/heads/master/icon.jpg";
-            public const string TVApp = "https://iili.io/fsvaHsn.png";
-            public const string Twitch = "https://iili.io/fsvUNu2.md.gif";
-            public const string ClubInfoBoard = "https://iili.io/fsviHQV.png";
-            public const string Doom = "https://iili.io/fyofVqu.png";
-            public const string TTD = "https://iili.io/qFBP2vn.png";
-            public const string Litefin = "https://iili.io/qerI0la.png";
-            public const string Nuvio = "https://nuvioapp.space/assets/newss/Screenshot%202026-04-05%20at%203.17.41%E2%80%AFPM.png";
-        }
-
-        /// <summary>
         /// Tizen installation error codes returned by the SDB tool.
         /// </summary>
         public static class TizenErrorCodes
