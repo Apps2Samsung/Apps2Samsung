@@ -4,6 +4,7 @@ using Jellyfin2Samsung.Helpers.Jellyfin.Plugins.KefinTweaks;
 using Jellyfin2Samsung.Interfaces;
 using Jellyfin2Samsung.Models;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -30,7 +31,25 @@ namespace Jellyfin2Samsung.Helpers.Jellyfin.Plugins
             _apiClient = apiClient;
         }
 
-        public PluginMatrixEntry? FindPluginEntry(JellyfinPluginInfo plugin)
+        // Single source of truth for which matrix entries have a transpilable patch implementation.
+        // Used by ResolvePatch (instance) and IsSupported (static, called from the config UI).
+        private static readonly Dictionary<string, Func<IJellyfinPluginPatch>> PatchFactories =
+            new(StringComparer.Ordinal)
+            {
+                ["EditorsChoice"]        = () => new EditorsChoicePatch(),
+                ["Jellyfin Enhanced"]    = () => new JellyfinEnhancedPatch(),
+                ["Media Bar"]            = () => new MediaBarPatch(),
+                ["Home Screen Sections"] = () => new HomeScreenSectionsPatch(),
+                ["KefinTweaks"]          = () => new KefinTweaksPatch(),
+            };
+
+        public PluginMatrixEntry? FindPluginEntry(JellyfinPluginInfo? plugin)
+            => FindMatrixEntry(plugin);
+
+        public IJellyfinPluginPatch? ResolvePatch(PluginMatrixEntry entry)
+            => PatchFactories.TryGetValue(entry.Name, out var factory) ? factory() : null;
+
+        public static PluginMatrixEntry? FindMatrixEntry(JellyfinPluginInfo? plugin)
         {
             if (plugin?.Name == null) return null;
 
@@ -40,17 +59,10 @@ namespace Jellyfin2Samsung.Helpers.Jellyfin.Plugins
                 pluginName.Contains(entry.Name, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        public IJellyfinPluginPatch? ResolvePatch(PluginMatrixEntry entry)
+        public static bool IsSupported(JellyfinPluginInfo? plugin)
         {
-            return entry.Name switch
-            {
-                "EditorsChoice" => new EditorsChoicePatch(),
-                "Jellyfin Enhanced" => new JellyfinEnhancedPatch(),
-                "Media Bar" => new MediaBarPatch(),
-                "Home Screen Sections" => new HomeScreenSectionsPatch(),
-                "KefinTweaks" => new KefinTweaksPatch(),
-                _ => null
-            };
+            var entry = FindMatrixEntry(plugin);
+            return entry != null && PatchFactories.ContainsKey(entry.Name);
         }
 
         public bool TryClassifyServerAsset(string url, out ServerAssetKind kind)

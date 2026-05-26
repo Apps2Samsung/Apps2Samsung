@@ -7,6 +7,7 @@ namespace Jellyfin2Samsung.Models
     {
         public string Name { get; set; }
         public string Id { get; set; }
+        public string? Version { get; set; }
     }
 
     public class PluginMatrixEntry

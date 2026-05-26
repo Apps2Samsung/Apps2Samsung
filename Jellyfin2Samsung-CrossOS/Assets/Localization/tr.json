@@ -136,6 +136,9 @@
   "lblMainSettings": "Uygulama Ayarları",
   "lblRefreshUsers": "Kullanıcıları Yenile",
   "lblUserSelectionHint": "Seçilen kullanıcılar kurulum sırasında yapılandırılacak",
+  "lblInstalledPlugins": "Server plugins",
+  "lblInstalledPluginsHint": "Supported plugins will be transpiled and patched into the TV build. Untick any you don't want.",
+  "lblPluginUnsupported": "Unsupported",
   "subnetMismatch": "Cihazlar farklı alt ağlarda (ağda) bulunmaktadır.",
   "UpdateAvailable": "Güncelleme mevcut",
   "UpdateCurrentVersion": "Mevcut sürüm:",
@@ -151,5 +154,7 @@
   "UpdateCheckFailed": "Güncelleme kontrolü başarısız",
   "IncompatiblePackage": "Paket sürümü cihazla uyumlu değil.",
   "IncompatiblePackageDetailed": "Paket sürümü {0}, Tizen OS {1} ile uyumlu değil",
-  "lblMdnsWarning": "Uyarı: Bir mDNS ana bilgisayar adı (.local) kullanıyorsunuz. Samsung TV'ler .local adreslerini güvenilir şekilde çözümleyemez, bu da sunucunun TV'nizde \"undefined\" olarak görünmesine neden olabilir — özellikle ağ kesintilerinden sonra. Kararlı bir bağlantı için bunun yerine doğrudan bir IP adresi (ör. 192.168.1.100) kullanın."
+  "lblMdnsWarning": "Uyarı: Bir mDNS ana bilgisayar adı (.local) kullanıyorsunuz. Samsung TV'ler .local adreslerini güvenilir şekilde çözümleyemez, bu da sunucunun TV'nizde \"undefined\" olarak görünmesine neden olabilir — özellikle ağ kesintilerinden sonra. Kararlı bir bağlantı için bunun yerine doğrudan bir IP adresi (ör. 192.168.1.100) kullanın.",
+  "lblOpenLogsFolder": "Open Logs Folder",
+  "lblJellyfinOnlyNotice": "These settings apply ONLY to the official Jellyfin client — they are not supported for Jellyfin forks or other apps."
 }

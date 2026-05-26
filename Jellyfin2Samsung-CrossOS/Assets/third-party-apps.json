@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 2,
+  "previewImages": {
+    "jellyfin": "https://jellyfin.org/assets/images/10.8-home-4a73a92bf90d1eeffa5081201ca9c7bb.png"
+  },
+  "providers": [
+    {
+      "id": "jellyfin-tizen-builds",
+      "url": "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases",
+      "prefix": "Jellyfin - ",
+      "displayName": "",
+      "take": 5
+    },
+    {
+      "id": "moonfin",
+      "url": "https://api.github.com/repos/Moonfin-Client/Smart-TV/releases",
+      "prefix": "",
+      "displayName": "Moonfin",
+      "take": 1,
+      "buildInfo": {
+        "name": "Moonfin",
+        "description": "Moonfin is optimized for the viewing experience on Samsung Smart TVs.",
+        "previewImage": "https://iili.io/fs8W4Re.png"
+      }
+    },
+    {
+      "id": "litefin",
+      "url": "https://api.github.com/repos/MoazSalem/litefin/releases",
+      "prefix": "",
+      "displayName": "Litefin",
+      "take": 1,
+      "buildInfo": {
+        "name": "Litefin",
+        "description": "Litefin is designed to provide a premium media browsing and playback experience, even on legacy hardware.",
+        "previewImage": "https://iili.io/qerI0la.png"
+      }
+    },
+    {
+      "id": "jellyfin-avplay",
+      "url": "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases",
+      "prefix": "",
+      "displayName": "Jellyfin - AVPlay",
+      "take": 1,
+      "buildInfo": {
+        "name": "AVPlay",
+        "description": "Includes AVPlay video player patches for better Samsung TV compatibility"
+      }
+    },
+    {
+      "id": "jellyfin-avplay-smarthub",
+      "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases",
+      "prefix": "",
+      "displayName": "Jellyfin - AVPlay - 10.10z SmartHub",
+      "take": 1,
+      "buildInfo": {
+        "name": "AVPlay 10.10.z - SmartHub",
+        "description": "Includes AVPlay video player patches for better Samsung TV compatibility for 10.10.z SmartHub variant"
+      }
+    },
+    {
+      "id": "jellyfin-legacy",
+      "url": "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases/tags/2024-10-27-1821",
+      "prefix": "",
+      "displayName": "Jellyfin - Legacy",
+      "take": 1,
+      "buildInfo": {
+        "name": "Legacy",
+        "description": "Containing 10.8.z build for older model TVs"
+      }
+    },
+    {
+      "id": "tizen-community",
+      "url": "https://api.github.com/repos/PatrickSt1991/tizen-community-packages/releases",
+      "prefix": "",
+      "displayName": "Tizen Community",
+      "take": 1
+    }
+  ],
+  "communityApps": [
+    { "matchName": "Moonlight", "previewImage": "https://iili.io/fsvn6mJ.png" },
+    { "matchName": "Fireplace", "previewImage": "https://raw.githubusercontent.com/thonythony/fireplace/refs/heads/master/icon.jpg" },
+    { "matchName": "TVApp", "previewImage": "https://iili.io/fsvaHsn.png" },
+    { "matchName": "Twitch", "previewImage": "https://iili.io/fsvUNu2.md.gif" },
+    { "matchName": "Club Info Board", "previewImage": "https://iili.io/fsviHQV.png" },
+    { "matchName": "Doom", "previewImage": "https://iili.io/fyofVqu.png" },
+    { "matchName": "TransportTycoonDeluxe", "previewImage": "https://iili.io/qFBP2vn.png" },
+    { "matchName": "Nuvio", "previewImage": "https://nuvioapp.space/assets/newss/Screenshot%202026-04-05%20at%203.17.41%E2%80%AFPM.png" }
+  ]
+}

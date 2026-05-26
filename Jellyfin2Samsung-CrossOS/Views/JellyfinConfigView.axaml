@@ -8,7 +8,7 @@
         x:Class="Jellyfin2Samsung.JellyfinConfigView"
         x:DataType="viewModels:JellyfinConfigViewModel"
         Title="Settings"
-        Width="715"
+        Width="730"
         Height="850">
 
 	<Window.Styles>
@@ -79,7 +79,7 @@
 
 				<!-- TAB 1: Main Settings (Application Settings) -->
 				<TabItem Header="{Binding LblTabMainSettings}">
-					<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,12,0">
+					<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,0">
 						<StackPanel Spacing="16">
 
 							<!-- Application Settings Section -->
@@ -249,14 +249,52 @@
 								</Grid>
 							</StackPanel>
 
+							<Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4"/>
+
+							<!-- Diagnostics Section -->
+							<StackPanel Spacing="12">
+								<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+									<TextBlock Grid.Column="0"
+											   Text="{Binding LblOpenLogsFolder}"
+											   Classes="label"
+											   VerticalAlignment="Center"/>
+									<Button Grid.Column="1"
+											Classes="secondary"
+											Command="{Binding OpenLogsFolderCommand}"
+											Padding="10,6">
+										<StackPanel Orientation="Horizontal" Spacing="6">
+											<fa:SymbolIcon Symbol="Folder" Width="16" Height="16"/>
+											<TextBlock Text="{Binding LblOpenLogsFolder}"/>
+										</StackPanel>
+									</Button>
+								</Grid>
+							</StackPanel>
+
 						</StackPanel>
 					</ScrollViewer>
 				</TabItem>
 
 				<!-- TAB 2: Server & Auto-Login -->
 				<TabItem Header="{Binding LblTabServer}">
-					<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,12,0">
+					<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,0">
 						<StackPanel Spacing="16">
+
+							<!-- Jellyfin-only notice -->
+							<Border Background="#FFF3CD"
+									CornerRadius="4"
+									Padding="10,8"
+									BorderBrush="#FFE69C"
+									BorderThickness="1">
+								<StackPanel Orientation="Horizontal" Spacing="8">
+									<fa:SymbolIcon Symbol="Important" Width="16" Height="16" Foreground="#856404" VerticalAlignment="Center"/>
+									<TextBlock Text="{Binding LblJellyfinOnlyNotice}"
+											   Foreground="#856404"
+											   FontSize="12"
+											   FontWeight="SemiBold"
+											   TextWrapping="Wrap"
+											   VerticalAlignment="Center"/>
+								</StackPanel>
+							</Border>
 
 							<!-- Server Settings Section -->
 							<StackPanel Spacing="12">
@@ -524,6 +562,64 @@
 											   FontStyle="Italic"
 											   Margin="180,0,0,0"/>
 								</StackPanel>
+
+								<!-- Installed Plugins Inventory -->
+								<StackPanel Spacing="8" IsVisible="{Binding IsAuthenticated}">
+									<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+										<TextBlock Grid.Column="0"
+												   Text="{Binding LblInstalledPlugins}"
+												   Classes="label"
+												   VerticalAlignment="Top"
+												   Margin="0,8,0,0"/>
+										<Border Grid.Column="1"
+												Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+												BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+												BorderThickness="1"
+												CornerRadius="4"
+												Padding="4"
+												MinHeight="40"
+												MaxHeight="160">
+											<ScrollViewer VerticalScrollBarVisibility="Auto">
+												<StackPanel>
+													<ItemsControl ItemsSource="{Binding InstalledPlugins}">
+														<ItemsControl.ItemTemplate>
+															<DataTemplate>
+																<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Margin="2,3">
+																	<CheckBox Grid.Column="0"
+																		  IsChecked="{Binding IsSelected}"
+																		  IsEnabled="{Binding IsSupported}"
+																		  VerticalAlignment="Center"/>
+																	<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+																		<TextBlock Text="{Binding Name}"/>
+																		<TextBlock Text="{Binding Version, StringFormat='(v{0})'}"
+																			   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+																			   FontSize="11"
+																			   IsVisible="{Binding HasVersion}"/>
+																	</StackPanel>
+																	<Border Grid.Column="2"
+																			Background="#7F8C8D"
+																			CornerRadius="3"
+																			Padding="6,1"
+																			VerticalAlignment="Center"
+																			IsVisible="{Binding !IsSupported}">
+																		<TextBlock Text="{Binding $parent[ItemsControl].DataContext.LblPluginUnsupported}"
+																			   Foreground="White"
+																			   FontSize="10"/>
+																	</Border>
+																</Grid>
+															</DataTemplate>
+														</ItemsControl.ItemTemplate>
+													</ItemsControl>
+												</StackPanel>
+											</ScrollViewer>
+										</Border>
+									</Grid>
+									<TextBlock Text="{Binding LblInstalledPluginsHint}"
+											   FontSize="11"
+											   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+											   FontStyle="Italic"
+											   Margin="180,0,0,0"/>
+								</StackPanel>
 							</StackPanel>
 
 							<Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4"/>
@@ -590,8 +686,27 @@
 
 				<!-- TAB 3: Playback (Browser Settings) -->
 				<TabItem Header="{Binding LblTabPlayback}">
-					<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,12,0">
-						<StackPanel Spacing="12" IsEnabled="{Binding IsAuthenticated}">
+					<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,0">
+						<StackPanel Spacing="12">
+
+							<!-- Jellyfin-only notice -->
+							<Border Background="#FFF3CD"
+									CornerRadius="4"
+									Padding="10,8"
+									BorderBrush="#FFE69C"
+									BorderThickness="1">
+								<StackPanel Orientation="Horizontal" Spacing="8">
+									<fa:SymbolIcon Symbol="Important" Width="16" Height="16" Foreground="#856404" VerticalAlignment="Center"/>
+									<TextBlock Text="{Binding LblJellyfinOnlyNotice}"
+											   Foreground="#856404"
+											   FontSize="12"
+											   FontWeight="SemiBold"
+											   TextWrapping="Wrap"
+											   VerticalAlignment="Center"/>
+								</StackPanel>
+							</Border>
+
+							<StackPanel Spacing="12" IsEnabled="{Binding IsAuthenticated}">
 							<TextBlock Text="{Binding LblBrowserSettings}"
 									   FontSize="15"
 									   FontWeight="SemiBold"
@@ -669,14 +784,33 @@
 										  SelectedItem="{Binding SelectedSubtitleMode}"
 										  Classes="clean"/>
 							</Grid>
+							</StackPanel>
 						</StackPanel>
 					</ScrollViewer>
 				</TabItem>
 
 				<!-- TAB 4: CSS Style -->
 				<TabItem Header="{Binding LblTabCss}">
-					<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,12,0">
+					<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,0">
 						<StackPanel Spacing="12">
+
+							<!-- Jellyfin-only notice -->
+							<Border Background="#FFF3CD"
+									CornerRadius="4"
+									Padding="10,8"
+									BorderBrush="#FFE69C"
+									BorderThickness="1">
+								<StackPanel Orientation="Horizontal" Spacing="8">
+									<fa:SymbolIcon Symbol="Important" Width="16" Height="16" Foreground="#856404" VerticalAlignment="Center"/>
+									<TextBlock Text="{Binding LblJellyfinOnlyNotice}"
+											   Foreground="#856404"
+											   FontSize="12"
+											   FontWeight="SemiBold"
+											   TextWrapping="Wrap"
+											   VerticalAlignment="Center"/>
+								</StackPanel>
+							</Border>
+
 							<TextBlock Text="{Binding LblCssSettings}"
 									   FontSize="15"
 									   FontWeight="SemiBold"

@@ -68,6 +68,7 @@ namespace Jellyfin2Samsung.Helpers
         public string AuthorEndpoint_V3 { get; set; } = "https://svdca.samsungqbe.com/apis/v3/authors";
         public bool TryOverwrite { get; set; } = true;
         public bool UseServerScripts { get; set; } = false;
+        public string DisabledPluginIds { get; set; } = "";  // CSV of plugin Ids the user opted out of patching
         public bool OpenAfterInstall { get; set; } = false;
         public bool EnableDevLogs { get; set; } = false;
         public bool KeepWGTFile { get; set; } = false;
@@ -83,16 +84,10 @@ namespace Jellyfin2Samsung.Helpers
         public DateTime? LastUpdateCheck { get; set; } = null;
 
         // ----- Application-scoped settings (readonly at runtime) -----
-        public string ReleasesUrl { get; set; } = "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases";
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
-        public string AppVersion { get; set; } = "v2.2.1.0";
+        public string AppVersion { get; set; } = "v2.3.0.1";
         public string TizenSdb { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-sdb/releases";
-        public string JellyfinAvRelease { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases";
         public string JellyfinAvReleaseFork { get; set; } = "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases";
-        public string JellyfinLegacy { get; set; } = "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases/tags/2024-10-27-1821";
-        public string CommunityRelease { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-community-packages/releases";
-        public string MoonfinRelease { get; set; } = "https://api.github.com/repos/Moonfin-Client/Smart-TV/releases";
-        public string LiteFinRelease { get; set; } = "https://api.github.com/repos/MoazSalem/litefin/releases";
         public string ReleaseInfo { get; set; } = "https://raw.githubusercontent.com/jeppevinkel/jellyfin-tizen-builds/refs/heads/master/README.md";
         public string CommunityInfo { get; set; } = "https://raw.githubusercontent.com/PatrickSt1991/tizen-community-packages/refs/heads/main/README.md";
         public AppSettings() { }

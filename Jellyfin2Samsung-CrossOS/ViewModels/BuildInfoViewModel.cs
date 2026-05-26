@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Jellyfin2Samsung.Helpers;
 using Jellyfin2Samsung.Helpers.Core;
 using Jellyfin2Samsung.Models;
+using Jellyfin2Samsung.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -28,7 +29,9 @@ namespace Jellyfin2Samsung.ViewModels
         private ProviderOption? selectedProviderOption;
 
         private static readonly HttpClient _http = new();
+        private static readonly ProviderManifestService _manifestService = new(_http);
         private readonly Dictionary<string, Bitmap?> _bitmapCache = new(StringComparer.OrdinalIgnoreCase);
+        private ProviderManifest _manifest = new();
 
         private bool _isLoading;
         private int _rebuildVersion;
@@ -63,6 +66,8 @@ namespace Jellyfin2Samsung.ViewModels
             {
                 _isLoading = true;
 
+                _manifest = await _manifestService.GetAsync();
+
                 var jellyfinMd = await _http.GetStringAsync(AppSettings.Default.ReleaseInfo);
                 var communityMd = await _http.GetStringAsync(AppSettings.Default.CommunityInfo);
 
@@ -71,35 +76,17 @@ namespace Jellyfin2Samsung.ViewModels
 
                 ParseVersionsTable(jellyfinMd, JellyfinVersions);
 
-                JellyfinVersions.Add(new BuildVersion
+                foreach (var provider in _manifest.Providers)
                 {
-                    FileName = "Moonfin",
-                    Description = "Moonfin is optimized for the viewing experience on Samsung Smart TVs."
-                });
+                    if (provider.BuildInfo is null || string.IsNullOrWhiteSpace(provider.BuildInfo.Name))
+                        continue;
 
-                JellyfinVersions.Add(new BuildVersion
-                {
-                    FileName = "Litefin",
-                    Description = "Litefin is designed to provide a premium media browsing and playback experience, even on legacy hardware."
-                });
-
-                JellyfinVersions.Add(new BuildVersion
-                {
-                    FileName = "Legacy",
-                    Description = "Containing 10.8.z build for older model TVs"
-                });
-
-                JellyfinVersions.Add(new BuildVersion
-                {
-                    FileName = "AVPlay",
-                    Description = "Includes AVPlay video player patches for better Samsung TV compatibility"
-                });
-
-                JellyfinVersions.Add(new BuildVersion
-                {
-                    FileName = "AVPlay 10.10.z - SmartHub",
-                    Description = "Includes AVPlay video player patches for better Samsung TV compatibility for 10.10.z SmartHub variant"
-                });
+                    JellyfinVersions.Add(new BuildVersion
+                    {
+                        FileName = provider.BuildInfo.Name,
+                        Description = provider.BuildInfo.Description
+                    });
+                }
 
                 ParseApplicationsTable(communityMd, CommunityApps);
             }
@@ -126,26 +113,21 @@ namespace Jellyfin2Samsung.ViewModels
             if (version != Volatile.Read(ref _rebuildVersion))
                 return;
 
-            // Map ONLY the apps that truly need unique thumbnails
-            var communityPreviewUrls = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                { "Moonlight", Constants.PreviewImages.Moonlight },
-                { "Fireplace", Constants.PreviewImages.Fireplace },
-                { "TVApp", Constants.PreviewImages.TVApp },
-                { "Twitch", Constants.PreviewImages.Twitch },
-                { "Club Info Board", Constants.PreviewImages.ClubInfoBoard },
-                { "Doom", Constants.PreviewImages.Doom },
-                { "TransportTycoonDeluxe", Constants.PreviewImages.TTD },
-            };
+            // Built from the loaded manifest — single source of truth for preview URLs.
+            var communityPreviewUrls = _manifest.CommunityApps
+                .Where(c => !string.IsNullOrWhiteSpace(c.MatchName) && !string.IsNullOrWhiteSpace(c.PreviewImage))
+                .ToDictionary(c => c.MatchName, c => c.PreviewImage, StringComparer.OrdinalIgnoreCase);
 
-            // Exceptions inside JellyfinVersions that should NOT use Jellyfin image
-            var jellyfinOverrides = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                { "Moonfin", Constants.PreviewImages.Moonfin },
-                { "Litefin", Constants.PreviewImages.Litefin },
-            };
+            // Provider-level preview overrides keyed by buildInfo.name (e.g. "Moonfin", "Litefin").
+            var jellyfinOverrides = _manifest.Providers
+                .Where(p => p.BuildInfo is { } bi
+                            && !string.IsNullOrWhiteSpace(bi.Name)
+                            && !string.IsNullOrWhiteSpace(bi.PreviewImage))
+                .ToDictionary(p => p.BuildInfo!.Name, p => p.BuildInfo!.PreviewImage!, StringComparer.OrdinalIgnoreCase);
 
-            var jellyfinBitmap = await LoadBitmapAsync(Constants.PreviewImages.Jellyfin);
+            var jellyfinBitmap = string.IsNullOrWhiteSpace(_manifest.PreviewImages.Jellyfin)
+                ? null
+                : await LoadBitmapAsync(_manifest.PreviewImages.Jellyfin);
 
             // Build locally (don’t mutate ObservableCollection from background thread)
             var built = new List<ProviderOption>();

@@ -4,23 +4,23 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <title>Install Jellyfin on Samsung TV (All Tizen Versions) — One-Click Setup</title>
-  <meta name="description" content="Easily install Jellyfin on your Samsung Smart TV — fully compatible with all Tizen versions. Free and open source." />
-  <meta name="keywords" content="Jellyfin Samsung TV, Jellyfin Tizen, install Jellyfin, Jellyfin app for Samsung, Jellyfin2Samsung, Patrick Stel" />
-  <link rel="canonical" href="https://patrickst1991.github.io/Samsung-Jellyfin-Installer/" />
+  <title>Samsung Jellyfin Installer — Cross-platform installer for Jellyfin &amp; Tizen apps</title>
+  <meta name="description" content="Cross-platform (Windows, macOS, Linux) one-click installer that side-loads Jellyfin and a curated library of community Tizen apps onto Samsung Smart TVs. Free and open source." />
+  <meta name="keywords" content="Jellyfin Samsung TV, Jellyfin Tizen, install Jellyfin, Samsung TV sideload, Moonfin, Litefin, AVPlay, Tizen community apps, Jellyfin2Samsung, Patrick Stel" />
+  <link rel="canonical" href="https://jellyfin2samsung.github.io/Samsung-Jellyfin-Installer/" />
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Install Jellyfin on Samsung TV — One-Click Setup" />
-  <meta property="og:description" content="Quickly install Jellyfin on your Samsung Smart TV. Fully compatible with all Tizen versions." />
-  <meta property="og:image" content="https://github.com/PatrickSt1991/Samsung-Jellyfin-Installer/raw/master/.github/jellyfin-tizen-logo.png" />
-  <meta property="og:url" content="https://patrickst1991.github.io/Samsung-Jellyfin-Installer/" />
+  <meta property="og:title" content="Samsung Jellyfin Installer — Cross-platform Tizen app installer" />
+  <meta property="og:description" content="Side-load Jellyfin, Moonfin, Litefin, AVPlay builds and community Tizen apps onto your Samsung TV. Runs on Windows, macOS and Linux." />
+  <meta property="og:image" content="https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/raw/master/.github/jellyfin-tizen-logo.png" />
+  <meta property="og:url" content="https://jellyfin2samsung.github.io/Samsung-Jellyfin-Installer/" />
   <meta property="og:type" content="website" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Install Jellyfin on Samsung TV — One-Click Setup">
-  <meta name="twitter:description" content="One-click install of Jellyfin on your Samsung TV — works with all Tizen versions!">
-  <meta name="twitter:image" content="https://github.com/PatrickSt1991/Samsung-Jellyfin-Installer/raw/master/.github/jellyfin-tizen-logo.png">
+  <meta name="twitter:title" content="Samsung Jellyfin Installer — Cross-platform Tizen app installer">
+  <meta name="twitter:description" content="Side-load Jellyfin, Moonfin, Litefin, AVPlay and community Tizen apps onto Samsung TVs from Windows, macOS or Linux.">
+  <meta name="twitter:image" content="https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/raw/master/.github/jellyfin-tizen-logo.png">
 
   <!-- Favicon -->
   <link rel="icon" href="/favicon.ico">
@@ -30,16 +30,17 @@
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "Jellyfin2Samsung",
-    "operatingSystem": "Tizen",
-    "applicationCategory": "MediaApplication",
+    "name": "Samsung Jellyfin Installer",
+    "alternateName": "Jellyfin2Samsung",
+    "operatingSystem": "Windows, macOS, Linux",
+    "applicationCategory": "UtilitiesApplication",
     "author": {
       "@type": "Person",
       "name": "Patrick Stel"
     },
-    "description": "One-click install of Jellyfin on Samsung TV — fully compatible with all Tizen versions.",
-    "url": "https://patrickst1991.github.io/Samsung-Jellyfin-Installer/",
-    "image": "https://github.com/PatrickSt1991/Samsung-Jellyfin-Installer/raw/master/.github/jellyfin-tizen-logo.png"
+    "description": "Cross-platform desktop installer that side-loads Jellyfin and community Tizen apps onto Samsung Smart TVs.",
+    "url": "https://jellyfin2samsung.github.io/Samsung-Jellyfin-Installer/",
+    "image": "https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/raw/master/.github/jellyfin-tizen-logo.png"
   }
   </script>
 
@@ -71,6 +72,7 @@
     }
     h1 { font-size: 2.2rem; margin: .5em 0 .2em; }
     h2 { color: #a0a8d5; font-weight: 500; margin: 0 0 1.2em; }
+    h3 { color: #c5cbf0; font-size: 1.05rem; font-weight: 600; margin: 1.6em 0 .6em; letter-spacing: .02em; text-transform: uppercase; }
     .btn {
       display: inline-block;
       padding: 10px 18px;
@@ -85,12 +87,35 @@
     .btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
     .meta { margin: 1em 0; color: #96a0c3; }
     .chip {
+      display: inline-block;
       border: 1px dashed rgba(255,255,255,0.2);
       border-radius: 999px;
       padding: 3px 10px;
-      margin: 0 4px;
+      margin: 4px 4px;
       font-size: .9em;
     }
+    .chip.solid {
+      border: 1px solid rgba(124,140,255,0.4);
+      background: rgba(124,140,255,0.08);
+      color: #c5cbf0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      text-align: left;
+      margin: 8px 0 4px;
+    }
+    .card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: .9em;
+      line-height: 1.4;
+    }
+    .card strong { color: #eef1ff; display: block; margin-bottom: 2px; }
+    .card span { color: #96a0c3; }
     /* Responsive video container */
     .video-wrapper {
       position: relative;
@@ -111,13 +136,13 @@
 </head>
 <body>
   <main>
-    <img class="logo" src="https://github.com/PatrickSt1991/Samsung-Jellyfin-Installer/raw/master/.github/jellyfin-tizen-logo.svg" alt="Jellyfin for Samsung Tizen">
+    <img class="logo" src="https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/raw/master/.github/jellyfin-tizen-logo.svg" alt="Jellyfin for Samsung Tizen">
     <h1>Samsung Jellyfin Installer</h1>
-    <h2>One-click install of Jellyfin on your Samsung TV <br/> fully compatible with all Tizen versions</h2>
+    <h2>Cross-platform installer for Jellyfin and community Tizen apps on Samsung Smart TVs</h2>
 
     <!-- Responsive YouTube Embed -->
     <div class="video-wrapper">
-      <iframe src="https://www.youtube.com/embed/_8mSV5pW-ic" 
+      <iframe src="https://www.youtube.com/embed/_8mSV5pW-ic"
         title="How to Install Jellyfin on Samsung TV"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen>
@@ -125,26 +150,51 @@
     </div>
 
     <div class="meta">
+      <span class="chip solid">🪟 Windows</span>
+      <span class="chip solid">🍎 macOS</span>
+      <span class="chip solid">🐧 Linux</span>
+      <br/>
       <span class="chip">Latest version: <strong id="latestVersion">checking…</strong></span>
       <span class="chip">Released on <strong id="releaseDate">—</strong></span>
     </div>
 
     <p>
       <a id="downloadBtn" class="btn" href="#" target="_blank" rel="noopener">⬇️ Download</a>
-      <a class="btn" href="https://github.com/PatrickSt1991/Samsung-Jellyfin-Installer" target="_blank" rel="noopener">🧰 Source Code</a>
+      <a class="btn" href="https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer" target="_blank" rel="noopener">🧰 Source Code</a>
     </p>
+
+    <h3>Apps you can install</h3>
+    <div class="grid">
+      <div class="card"><strong>Jellyfin</strong><span>Multiple Tizen builds (10.10.z, 10.11.z, SmartHub, OSA, GrayFix, OblongIcon and more) — picks the latest 5 releases automatically.</span></div>
+      <div class="card"><strong>Jellyfin AVPlay</strong><span>AVPlay video player patches for better Samsung TV compatibility, including a SmartHub variant.</span></div>
+      <div class="card"><strong>Jellyfin Legacy</strong><span>10.8.z build kept around for older Tizen models.</span></div>
+      <div class="card"><strong>Moonfin</strong><span>Jellyfin fork optimised for the viewing experience on Samsung Smart TVs.</span></div>
+      <div class="card"><strong>Litefin</strong><span>Lightweight Jellyfin client designed to run on legacy hardware.</span></div>
+      <div class="card"><strong>Tizen Community Pack</strong><span>Moonlight, Fireplace, TVApp, Twitch, Club Info Board, Doom, Transport Tycoon Deluxe, Nuvio…</span></div>
+      <div class="card"><strong>Custom WGT</strong><span>Bring your own .wgt — useful for builds you maintain yourself.</span></div>
+    </div>
+
+    <h3>What it does for you</h3>
+    <div class="grid">
+      <div class="card"><strong>🔎 Auto TV discovery</strong><span>Scans your network and lists Samsung TVs ready to receive an install.</span></div>
+      <div class="card"><strong>🔐 Tizen certificate handling</strong><span>Generates and manages the developer certificate, including the Samsung account login flow.</span></div>
+      <div class="card"><strong>🧩 Plugin patching</strong><span>Optional fixes such as the YouTube plugin patch baked right into the install step.</span></div>
+      <div class="card"><strong>🎨 Jellyfin themes</strong><span>One-click apply for popular community themes (Obsidian, Solaris, Nebula, Ember, Void).</span></div>
+      <div class="card"><strong>👥 Multi-user config</strong><span>Push Jellyfin preferences for one or many users in a single shot.</span></div>
+      <div class="card"><strong>🌍 Localised UI</strong><span>Multiple languages with full RTL support.</span></div>
+    </div>
 
     <div style="background:rgba(124,140,255,0.1);border:1px solid rgba(124,140,255,0.3);border-radius:12px;padding:20px;margin:2em 0;text-align:left">
       <p style="margin:0;color:#eef1ff;font-size:.95em">
         📺 <strong>Got an older Samsung TV?</strong><br/>
         <span style="color:#a0a8d5">If your TV runs Orsay OS (pre-2015 models), you'll need the </span>
-        <a href="https://github.com/PatrickSt1991/Jellyfin-Orsay-Installer/releases" 
-           target="_blank" rel="noopener" 
+        <a href="https://github.com/Jellyfin2Samsung/Jellyfin-Orsay-Installer/releases"
+           target="_blank" rel="noopener"
            style="color:#61dafb;font-weight:600;text-decoration:none;border-bottom:2px solid rgba(97,218,251,0.3)">Jellyfin Orsay Installer</a>
         <span style="color:#a0a8d5"> instead.</span>
       </p>
     </div>
-    
+
     <p style="color:#96a0c3;font-size:.9em">
       © <span id="year"></span> Patrick Stel — Hosted on GitHub Pages
     </p>
@@ -152,7 +202,7 @@
 
   <script>
   (async function(){
-    const owner='PatrickSt1991', repo='Samsung-Jellyfin-Installer';
+    const owner='Jellyfin2Samsung', repo='Samsung-Jellyfin-Installer';
     const els={
       ver:document.getElementById('latestVersion'),
       date:document.getElementById('releaseDate'),

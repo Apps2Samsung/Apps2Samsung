@@ -136,6 +136,9 @@
   "lblMainSettings": "Programindstillinger",
   "lblRefreshUsers": "Opdater brugere",
   "lblUserSelectionHint": "Valgte brugere konfigureres under installationen",
+  "lblInstalledPlugins": "Server plugins",
+  "lblInstalledPluginsHint": "Supported plugins will be transpiled and patched into the TV build. Untick any you don't want.",
+  "lblPluginUnsupported": "Unsupported",
   "subnetMismatch": "Enhederne er i forskellige undernetværk (netværk)",
   "UpdateAvailable": "Opdatering tilgængelig",
   "UpdateCurrentVersion": "Nuværende version:",
@@ -151,5 +154,7 @@
   "UpdateCheckFailed": "Kunne ikke tjekke for opdateringer",
   "IncompatiblePackage": "Pakkeversionen er ikke kompatibel med enheden.",
   "IncompatiblePackageDetailed": "Pakkeversion {0} er ikke kompatibel med Tizen OS {1}",
-  "lblMdnsWarning": "Advarsel: Du bruger et mDNS-hostnavn (.local). Samsung TV'er kan ikke pålideligt opløse .local-adresser, hvilket kan få serveren til at vises som \"undefined\" på dit TV — især efter netværksafbrydelser. Brug en direkte IP-adresse (f.eks. 192.168.1.100) i stedet for en stabil forbindelse."
+  "lblMdnsWarning": "Advarsel: Du bruger et mDNS-hostnavn (.local). Samsung TV'er kan ikke pålideligt opløse .local-adresser, hvilket kan få serveren til at vises som \"undefined\" på dit TV — især efter netværksafbrydelser. Brug en direkte IP-adresse (f.eks. 192.168.1.100) i stedet for en stabil forbindelse.",
+  "lblOpenLogsFolder": "Open Logs Folder",
+  "lblJellyfinOnlyNotice": "These settings apply ONLY to the official Jellyfin client — they are not supported for Jellyfin forks or other apps."
 }

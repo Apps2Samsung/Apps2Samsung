@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using Jellyfin2Samsung.Helpers;
 using Jellyfin2Samsung.Helpers.API;
 using Jellyfin2Samsung.Helpers.Core;
+using Jellyfin2Samsung.Helpers.Jellyfin.Plugins;
 using Jellyfin2Samsung.Helpers.Tizen.Certificate;
 using Jellyfin2Samsung.Interfaces;
 using Jellyfin2Samsung.Models;
@@ -15,8 +16,10 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Jellyfin2Samsung.ViewModels
@@ -196,6 +199,7 @@ namespace Jellyfin2Samsung.ViewModels
         public ObservableCollection<ExistingCertificates> AvailableCertificates { get; } = new();
         public ObservableCollection<JellyfinUser> AvailableJellyfinUsers { get; } = new();
         public ObservableCollection<JellyfinUser> SelectedJellyfinUsers { get; }
+        public ObservableCollection<InstalledPluginItem> InstalledPlugins { get; } = new();
         public ObservableCollection<NetworkInterfaceOption> NetworkInterfaces { get; } = new();
         // ========== End Main Settings Properties ==========
 
@@ -283,6 +287,9 @@ namespace Jellyfin2Samsung.ViewModels
         public string LblSelectUsers => _localizationService.GetString("lblSelectUsers");
         public string LblRefreshUsers => _localizationService.GetString("lblRefreshUsers");
         public string LblUserSelectionHint => _localizationService.GetString("lblUserSelectionHint");
+        public string LblInstalledPlugins => _localizationService.GetString("lblInstalledPlugins");
+        public string LblInstalledPluginsHint => _localizationService.GetString("lblInstalledPluginsHint");
+        public string LblPluginUnsupported => _localizationService.GetString("lblPluginUnsupported");
         public string LblValidateStream => _localizationService.GetString("lblValidateStream");
 
         // New Tab and UI labels
@@ -319,6 +326,8 @@ namespace Jellyfin2Samsung.ViewModels
         public string LblSettingsHeader => _localizationService.GetString("lblSettings");
         public string LblGitHubToken => _localizationService.GetString("lblGitHubToken");
         public string LblGitHubTokenHint => _localizationService.GetString("lblGitHubTokenHint");
+        public string LblOpenLogsFolder => _localizationService.GetString("lblOpenLogsFolder");
+        public string LblJellyfinOnlyNotice => _localizationService.GetString("lblJellyfinOnlyNotice");
         public char GitHubTokenPasswordChar => ShowGitHubToken ? '\0' : '*';
 
         public bool CanLogin => ServerValidated &&
@@ -420,6 +429,9 @@ namespace Jellyfin2Samsung.ViewModels
             OnPropertyChanged(nameof(LblSelectUsers));
             OnPropertyChanged(nameof(LblRefreshUsers));
             OnPropertyChanged(nameof(LblUserSelectionHint));
+            OnPropertyChanged(nameof(LblInstalledPlugins));
+            OnPropertyChanged(nameof(LblInstalledPluginsHint));
+            OnPropertyChanged(nameof(LblPluginUnsupported));
             OnPropertyChanged(nameof(LblValidateStream));
             // New tab and UI labels
             OnPropertyChanged(nameof(LblTabServer));
@@ -451,6 +463,8 @@ namespace Jellyfin2Samsung.ViewModels
             OnPropertyChanged(nameof(LblSettingsHeader));
             OnPropertyChanged(nameof(LblGitHubToken));
             OnPropertyChanged(nameof(LblGitHubTokenHint));
+            OnPropertyChanged(nameof(LblOpenLogsFolder));
+            OnPropertyChanged(nameof(LblJellyfinOnlyNotice));
         }
 
         partial void OnAudioLanguagePreferenceChanged(string? value)
@@ -637,6 +651,8 @@ namespace Jellyfin2Samsung.ViewModels
                 {
                     await LoadJellyfinUsersAsync();
                 }
+
+                await LoadInstalledPluginsAsync();
             }
             else
             {
@@ -644,6 +660,62 @@ namespace Jellyfin2Samsung.ViewModels
                 IsJellyfinAdmin = false;
                 AuthenticationStatus = error ?? "Failed";
             }
+        }
+
+        /// <summary>
+        /// Pulls the server's installed-plugin list, marks each as supported (we have a patch)
+        /// or unsupported, and pre-selects everything that wasn't previously opted out.
+        /// </summary>
+        private async Task LoadInstalledPluginsAsync()
+        {
+            try
+            {
+                var serverUrl = UrlHelper.NormalizeServerUrl(AppSettings.Default.JellyfinFullUrl);
+                var plugins = await _jellyfinApiClient.GetInstalledPluginsAsync(serverUrl);
+
+                var disabled = (AppSettings.Default.DisabledPluginIds ?? "")
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    foreach (var existing in InstalledPlugins)
+                        existing.PropertyChanged -= OnInstalledPluginChanged;
+                    InstalledPlugins.Clear();
+
+                    foreach (var p in plugins.OrderBy(p => p.Name))
+                    {
+                        var supported = PluginManager.IsSupported(p);
+                        var item = new InstalledPluginItem
+                        {
+                            Id = p.Id ?? "",
+                            Name = p.Name ?? "",
+                            Version = p.Version,
+                            IsSupported = supported,
+                            // Default supported plugins to selected; respect a previous opt-out.
+                            IsSelected = supported && !disabled.Contains(p.Id ?? "")
+                        };
+                        item.PropertyChanged += OnInstalledPluginChanged;
+                        InstalledPlugins.Add(item);
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[LoadInstalledPlugins] Error: {ex}");
+            }
+        }
+
+        private void OnInstalledPluginChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(InstalledPluginItem.IsSelected)) return;
+
+            var disabledIds = InstalledPlugins
+                .Where(p => p.IsSupported && !p.IsSelected && !string.IsNullOrEmpty(p.Id))
+                .Select(p => p.Id);
+
+            AppSettings.Default.DisabledPluginIds = string.Join(",", disabledIds);
+            AppSettings.Default.Save();
         }
 
         /// <summary>
@@ -699,6 +771,11 @@ namespace Jellyfin2Samsung.ViewModels
             // Clear user collections
             AvailableJellyfinUsers.Clear();
             SelectedJellyfinUsers.Clear();
+
+            // Clear plugin inventory
+            foreach (var p in InstalledPlugins)
+                p.PropertyChanged -= OnInstalledPluginChanged;
+            InstalledPlugins.Clear();
 
             // Notify command state changed
             LogoutCommand.NotifyCanExecuteChanged();
@@ -1137,6 +1214,56 @@ namespace Jellyfin2Samsung.ViewModels
         }
 
         [RelayCommand]
+        private void OpenLogsFolder()
+        {
+            try
+            {
+                var logFolder = Path.Combine(AppContext.BaseDirectory, "Logs");
+                Directory.CreateDirectory(logFolder);
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "explorer.exe",
+                        Arguments = $"\"{logFolder}\"",
+                        UseShellExecute = true
+                    });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "open",
+                        Arguments = $"\"{logFolder}\"",
+                        UseShellExecute = false
+                    });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "xdg-open",
+                        Arguments = $"\"{logFolder}\"",
+                        UseShellExecute = false
+                    });
+                }
+                else
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = logFolder,
+                        UseShellExecute = true
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"Failed to open Logs folder: {ex}");
+            }
+        }
+
+        [RelayCommand]
         private void OpenJellyThemesRepo()
         {
             try
@@ -1262,6 +1389,8 @@ namespace Jellyfin2Samsung.ViewModels
                 {
                     _ = LoadJellyfinUsersAsync();
                 }
+
+                _ = LoadInstalledPluginsAsync();
             }
 
             SelectedTheme = AppSettings.Default.SelectedTheme ?? "dark";
