@@ -330,9 +330,10 @@ namespace Jellyfin2Samsung.ViewModels
         public string LblJellyfinOnlyNotice => _localizationService.GetString("lblJellyfinOnlyNotice");
         public char GitHubTokenPasswordChar => ShowGitHubToken ? '\0' : '*';
 
+        // Password intentionally not required: Jellyfin allows passwordless accounts.
+        // The server is the source of truth and rejects a blank password for protected accounts.
         public bool CanLogin => ServerValidated &&
-                                !string.IsNullOrWhiteSpace(JellyfinUsername) &&
-                                !string.IsNullOrWhiteSpace(JellyfinPassword);
+                                !string.IsNullOrWhiteSpace(JellyfinUsername);
 
         public bool CanValidateCss => !string.IsNullOrWhiteSpace(CustomCss) && !IsValidatingCss;
         public string TvIp => AppSettings.Default.TvIp;
@@ -620,9 +621,11 @@ namespace Jellyfin2Samsung.ViewModels
         [RelayCommand]
         private async Task AuthenticateAsync()
         {
-            if (string.IsNullOrWhiteSpace(JellyfinUsername) || string.IsNullOrWhiteSpace(JellyfinPassword))
+            // Only the username is required. A blank password is valid for passwordless
+            // Jellyfin accounts; the server rejects it for password-protected accounts.
+            if (string.IsNullOrWhiteSpace(JellyfinUsername))
             {
-                AuthenticationStatus = "Enter username and password";
+                AuthenticationStatus = "Enter username";
                 return;
             }
 
