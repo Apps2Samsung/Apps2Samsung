@@ -94,11 +94,11 @@ namespace Jellyfin2Samsung.Helpers.Core
             public const string TizenSdbLinuxX64Pattern = "TizenSdb*_linux-x64";
             public const string TizenSdbLinuxArm64Pattern = "TizenSdb*_linux-arm64";
             public const string TizenSdbMacOsPattern = "TizenSdb*_macos-x64";
-            public const string TizenSdbMacOsArm64Pattern = "TizenSdb*_linux-arm64";
+            public const string TizenSdbMacOsArm64Pattern = "TizenSdb*_macos-arm64";
             public const string WindowsExtension = ".exe";
             public const string LinuxX64Suffix = "_linux-x64";
             public const string LinuxArm64Suffix = "_linux-arm64";
-            public const string MacX64Suffix = "_macos-x65";
+            public const string MacX64Suffix = "_macos-x64";
             public const string MacArm64Suffix = "_macos-arm64";
             public const string EsbuildWindows = "win-x64";
             public const string EsbuildLinux = "linux-x64";
@@ -243,6 +243,9 @@ namespace Jellyfin2Samsung.Helpers.Core
             public const string UpdateApplyingMessage = "UpdateApplyingMessage";
             public const string UpdateError = "UpdateError";
             public const string UpdateCheckFailed = "UpdateCheckFailed";
+            public const string UpdateInstallerManagedWindows = "UpdateInstallerManagedWindows";
+            public const string UpdateInstallerManagedLinux = "UpdateInstallerManagedLinux";
+            public const string UpdateInstallerManagedMac = "UpdateInstallerManagedMac";
         }
 
         /// <summary>

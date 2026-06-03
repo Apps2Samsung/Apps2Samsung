@@ -48,6 +48,13 @@ namespace Jellyfin2Samsung.Models
         public DateTime? PublishedAt { get; set; }
 
         /// <summary>
+        /// Whether an automatic (in-place) update can be applied for this installation.
+        /// False when the app is managed by an OS installer/package manager
+        /// (MSI, .deb, macOS .app bundle), where the user should update via that channel instead.
+        /// </summary>
+        public bool SupportsAutomaticUpdate { get; set; } = true;
+
+        /// <summary>
         /// Error message if the check failed.
         /// </summary>
         public string? ErrorMessage { get; set; }

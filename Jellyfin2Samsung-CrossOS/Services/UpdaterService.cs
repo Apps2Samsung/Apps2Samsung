@@ -4,6 +4,7 @@ using Jellyfin2Samsung.Interfaces;
 using Jellyfin2Samsung.Models;
 using System;
 using System.Diagnostics;
+using System.Formats.Tar;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -45,6 +46,8 @@ namespace Jellyfin2Samsung.Services
                 var atomResult = await CheckViaAtomFeedAsync(cancellationToken);
                 if (atomResult.IsSuccess && atomResult.IsUpdateAvailable)
                 {
+                    atomResult.SupportsAutomaticUpdate = IsAutomaticUpdateSupported();
+
                     // Get download URL from API (only if update available)
                     await EnrichWithDownloadUrlAsync(atomResult, cancellationToken);
                 }
@@ -174,14 +177,15 @@ namespace Jellyfin2Samsung.Services
                     }
                 }
 
-                // Fallback: try to find any zip file
+                // Fallback: try to find any supported archive (zip or tar.gz)
                 foreach (var asset in assets.EnumerateArray())
                 {
                     if (!asset.TryGetProperty("name", out var nameElement))
                         continue;
 
                     var name = nameElement.GetString() ?? string.Empty;
-                    if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                    if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
+                        name.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase))
                     {
                         if (asset.TryGetProperty("browser_download_url", out var urlElement))
                         {
@@ -200,14 +204,19 @@ namespace Jellyfin2Samsung.Services
 
         private static string GetPlatformSuffix()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return "win";
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                return "linux";
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return "osx";
+            // Must match the release asset naming scheme:
+            //   Jellyfin2Samsung-v<version>-<platform>-<arch>.<ext>
+            // e.g. "win-x64", "linux-arm64", "macos-x64"
+            var arch = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
 
-            return "win"; // Default fallback
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return $"win-{arch}";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                return $"linux-{arch}";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return $"macos-{arch}";
+
+            return $"win-{arch}"; // Default fallback
         }
 
         /// <inheritdoc />
@@ -268,14 +277,19 @@ namespace Jellyfin2Samsung.Services
                     Directory.Delete(updateDir, true);
                 Directory.CreateDirectory(updateDir);
 
-                // Extract update
+                // Extract update. Windows ships .zip, Linux/macOS ship .tar.gz.
                 if (downloadedFilePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
                 {
                     ZipFile.ExtractToDirectory(downloadedFilePath, updateDir);
                 }
+                else if (downloadedFilePath.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase) ||
+                         downloadedFilePath.EndsWith(".tgz", StringComparison.OrdinalIgnoreCase))
+                {
+                    await ExtractTarGzAsync(downloadedFilePath, updateDir, cancellationToken);
+                }
                 else
                 {
-                    throw new NotSupportedException("Only ZIP archives are supported for automatic updates.");
+                    throw new NotSupportedException("Only ZIP and TAR.GZ archives are supported for automatic updates.");
                 }
 
                 // Find the actual application directory (might be in a subfolder)
@@ -298,6 +312,14 @@ namespace Jellyfin2Samsung.Services
                 Trace.WriteLine($"Failed to apply update: {ex}");
                 throw;
             }
+        }
+
+        private static async Task ExtractTarGzAsync(string archivePath, string destinationDir, CancellationToken cancellationToken)
+        {
+            await using var fileStream = File.OpenRead(archivePath);
+            await using var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress);
+            // TarFile preserves Unix file permissions (e.g. the executable bit) on extraction.
+            await TarFile.ExtractToDirectoryAsync(gzipStream, destinationDir, overwriteFiles: true, cancellationToken);
         }
 
         private string? FindApplicationDirectory(string extractedDir)
@@ -429,6 +451,54 @@ rm -- ""$0""
             }
 
             Process.Start(startInfo);
+        }
+
+        /// <inheritdoc />
+        public bool IsAutomaticUpdateSupported()
+        {
+            var appDir = AppContext.BaseDirectory;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // MSI installs into Program Files, which requires elevation to overwrite.
+                var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+                if (IsUnderDirectory(appDir, programFiles) || IsUnderDirectory(appDir, programFilesX86))
+                    return false;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                // .deb installs land under package-manager-owned locations.
+                if (IsUnderDirectory(appDir, "/usr") || IsUnderDirectory(appDir, "/opt"))
+                    return false;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                // Running from inside a .app bundle: the flat-folder replace logic does not apply.
+                if (appDir.Contains(".app/Contents/", StringComparison.OrdinalIgnoreCase))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static bool IsUnderDirectory(string path, string? baseDir)
+        {
+            if (string.IsNullOrEmpty(baseDir))
+                return false;
+
+            var fullPath = Path.GetFullPath(path);
+            var fullBase = Path.GetFullPath(baseDir);
+
+            // Match on a directory boundary so "/usr" doesn't match "/usrequest".
+            if (!fullBase.EndsWith(Path.DirectorySeparatorChar))
+                fullBase += Path.DirectorySeparatorChar;
+
+            var comparison = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+
+            return fullPath.StartsWith(fullBase, comparison);
         }
 
         /// <inheritdoc />

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Jellyfin2Samsung.Interfaces;
 using Jellyfin2Samsung.Models;
 using System;
+using System.Runtime.InteropServices;
 
 namespace Jellyfin2Samsung.ViewModels
 {
@@ -26,7 +27,15 @@ namespace Jellyfin2Samsung.ViewModels
         private DateTime? publishedAt;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowRateLimitNote))]
+        [NotifyCanExecuteChangedFor(nameof(SelectAutomaticCommand))]
         private bool hasDownloadUrl;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowInstallerManagedNote))]
+        [NotifyPropertyChangedFor(nameof(ShowRateLimitNote))]
+        [NotifyCanExecuteChangedFor(nameof(SelectAutomaticCommand))]
+        private bool automaticUpdateSupported = true;
 
         [ObservableProperty]
         private bool isDownloading;
@@ -58,6 +67,27 @@ namespace Jellyfin2Samsung.ViewModels
         public string SkipButtonText => L("UpdateSkip");
         public string DownloadingText => L("UpdateDownloading");
 
+        // Note shown when the install is managed by an OS installer/package manager,
+        // so the automatic in-place update is hidden and the user is pointed at the right channel.
+        public bool ShowInstallerManagedNote => !AutomaticUpdateSupported;
+        public string InstallerManagedNote => L(InstallerManagedNoteKey);
+
+        // Note shown when automatic update is supported in principle but no download URL
+        // was resolved (e.g. GitHub API rate limited).
+        public bool ShowRateLimitNote => AutomaticUpdateSupported && !HasDownloadUrl;
+
+        private static string InstallerManagedNoteKey
+        {
+            get
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    return "UpdateInstallerManagedWindows";
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    return "UpdateInstallerManagedMac";
+                return "UpdateInstallerManagedLinux";
+            }
+        }
+
         public UpdateDialogViewModel(ILocalizationService localizationService)
         {
             _localizationService = localizationService;
@@ -71,6 +101,7 @@ namespace Jellyfin2Samsung.ViewModels
             ReleaseNotes = updateInfo.ReleaseNotes;
             PublishedAt = updateInfo.PublishedAt;
             HasDownloadUrl = !string.IsNullOrEmpty(updateInfo.DownloadUrl);
+            AutomaticUpdateSupported = updateInfo.SupportsAutomaticUpdate;
         }
 
         [RelayCommand]
@@ -101,7 +132,7 @@ namespace Jellyfin2Samsung.ViewModels
             RequestClose?.Invoke(this, EventArgs.Empty);
         }
 
-        private bool CanSelectAutomatic() => HasDownloadUrl && !IsDownloading;
+        private bool CanSelectAutomatic() => HasDownloadUrl && AutomaticUpdateSupported && !IsDownloading;
 
         public void UpdateDownloadProgress(int progress, string status)
         {

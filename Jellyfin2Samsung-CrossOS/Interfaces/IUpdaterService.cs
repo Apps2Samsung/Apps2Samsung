@@ -44,6 +44,14 @@ namespace Jellyfin2Samsung.Interfaces
         void OpenReleasesPage();
 
         /// <summary>
+        /// Determines whether automatic (in-place) updates are supported for the current installation.
+        /// Returns false when the app runs from a location managed by an OS installer
+        /// (e.g. an MSI under Program Files, a .deb under /usr or /opt, or a macOS .app bundle),
+        /// where overwriting files would require elevation or conflict with the package manager.
+        /// </summary>
+        bool IsAutomaticUpdateSupported();
+
+        /// <summary>
         /// Gets the URL of the GitHub releases page.
         /// </summary>
         string ReleasesPageUrl { get; }

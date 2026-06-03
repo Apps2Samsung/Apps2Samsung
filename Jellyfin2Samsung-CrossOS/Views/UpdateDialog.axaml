@@ -172,6 +172,7 @@
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
                             Command="{Binding SelectAutomaticCommand}"
+                            IsVisible="{Binding AutomaticUpdateSupported}"
                             IsEnabled="{Binding HasDownloadUrl}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <PathIcon Data="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"
@@ -198,13 +199,25 @@
                 </Button>
             </StackPanel>
 
-            <!-- Tooltip for disabled automatic button -->
+            <!-- Tooltip for disabled automatic button (rate limited) -->
             <TextBlock Text="(Automatic download unavailable - GitHub API rate limited)"
                        FontSize="11"
                        FontStyle="Italic"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                        HorizontalAlignment="Center"
-                       IsVisible="{Binding !HasDownloadUrl}"/>
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       IsVisible="{Binding ShowRateLimitNote}"/>
+
+            <!-- Note for installer/package-manager managed installs (automatic update hidden) -->
+            <TextBlock Text="{Binding InstallerManagedNote}"
+                       FontSize="11"
+                       FontStyle="Italic"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       IsVisible="{Binding ShowInstallerManagedNote}"/>
 
         </StackPanel>
     </Border>

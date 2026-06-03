@@ -343,6 +343,13 @@ namespace Jellyfin2Samsung.ViewModels
 
         private async Task PerformAutomaticUpdateAsync(Models.UpdateCheckResult updateResult)
         {
+            // Installer/package-manager managed installs must update via their own channel.
+            if (!updateResult.SupportsAutomaticUpdate || !_updaterService.IsAutomaticUpdateSupported())
+            {
+                _updaterService.OpenReleasesPage();
+                return;
+            }
+
             if (string.IsNullOrEmpty(updateResult.DownloadUrl))
             {
                 await _updateDialogService.ShowUpdateErrorAsync(L("UpdateError"));
