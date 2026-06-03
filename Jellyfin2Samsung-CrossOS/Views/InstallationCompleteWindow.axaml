@@ -59,6 +59,18 @@
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                        FontSize="14"/>
 
+			<!-- Ko-fi QR Code -->
+			<Border Background="White"
+			        CornerRadius="6"
+			        Padding="8"
+			        HorizontalAlignment="Center">
+				<Image Source="avares://Jellyfin2Samsung/Assets/ko-fi-qr.webp"
+				       Width="160"
+				       Height="160"
+				       Stretch="Uniform"
+				       ToolTip.Tip="{Binding Validation}"/>
+			</Border>
+
 			<!-- Action Buttons -->
 			<StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Center"
