@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Jellyfin2Samsung.Helpers.API
@@ -76,6 +77,27 @@ namespace Jellyfin2Samsung.Helpers.API
             {
                 Trace.WriteLine("Failed to fetch /System/Info/Public: " + ex);
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Quick reachability probe used before baking an address into auto-login credentials.
+        /// The Jellyfin web client probes each stored server address with a 20s timeout on
+        /// startup, so any address we inject that the TV can't actually reach adds ~20s to
+        /// every cold boot. We only ship addresses that answer within a short budget.
+        /// </summary>
+        public async Task<bool> IsAddressReachableAsync(string serverUrl, TimeSpan timeout)
+        {
+            try
+            {
+                using var cts = new CancellationTokenSource(timeout);
+                string url = UrlHelper.CombineUrl(serverUrl, "/System/Info/Public");
+                using var resp = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cts.Token);
+                return resp.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
             }
         }
 

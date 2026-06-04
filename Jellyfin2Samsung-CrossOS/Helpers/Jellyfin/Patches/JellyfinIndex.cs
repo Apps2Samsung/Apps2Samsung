@@ -77,12 +77,15 @@ namespace Jellyfin2Samsung.Helpers.Jellyfin.Patches
                 servers.Add(serverUrl);
 
             // Add LocalAddress (IP-based) as fallback when the primary URL uses mDNS (.local)
-            // Samsung TVs (Tizen) cannot reliably resolve mDNS hostnames, especially after network disruptions
+            // Samsung TVs (Tizen) cannot reliably resolve mDNS hostnames, especially after network disruptions.
+            // Only add it if it actually responds: a dead entry here makes the server-select path
+            // stall ~20s on the web client's startup probe (fetchWithTimeout: 20000ms).
             var localAddress = UrlHelper.NormalizeServerUrl(AppSettings.Default.JellyfinServerLocalAddress);
             if (!string.IsNullOrEmpty(localAddress) &&
                 localAddress != serverUrl &&
                 UrlHelper.IsValidHttpUrl(localAddress) &&
-                !servers.Any(s => s?.GetValue<string>() == localAddress))
+                !servers.Any(s => s?.GetValue<string>() == localAddress) &&
+                await _apiClient.IsAddressReachableAsync(localAddress, System.TimeSpan.FromSeconds(3)))
             {
                 servers.Add(localAddress);
                 Trace.WriteLine($"[UpdateServerAddress] Added LocalAddress fallback: {localAddress}");
@@ -144,6 +147,20 @@ namespace Jellyfin2Samsung.Helpers.Jellyfin.Patches
 
             var html = await File.ReadAllTextAsync(indexPath);
 
+            // Only ship a LocalAddress if it's actually reachable AND distinct from the URL we
+            // authenticated against. localAddress is the server's self-reported LAN IP from
+            // /System/Info/Public and may be on a different subnet/VLAN, behind a reverse proxy,
+            // or a Docker bridge IP. The web client probes each address with a 20s timeout on
+            // startup, so an unreachable LocalAddress adds ~20s to every cold boot.
+            bool localReachable = false;
+            if (!string.IsNullOrEmpty(localAddress) &&
+                UrlHelper.IsValidHttpUrl(localAddress) &&
+                !string.Equals(UrlHelper.NormalizeServerUrl(localAddress), serverUrl, System.StringComparison.OrdinalIgnoreCase))
+            {
+                localReachable = await _apiClient.IsAddressReachableAsync(localAddress, System.TimeSpan.FromSeconds(3));
+                Trace.WriteLine($"[InjectAutoLogin] LocalAddress {localAddress} reachable: {localReachable}");
+            }
+
             // Create the credentials object that Jellyfin web expects
             // Using the REAL server ID (GUID) from /System/Info/Public to prevent ServerMismatch
             var credentialsScript = new StringBuilder();
@@ -163,10 +180,18 @@ namespace Jellyfin2Samsung.Helpers.Jellyfin.Patches
             credentialsScript.AppendLine("      Servers: [{");
             credentialsScript.AppendLine("        Name: serverName || serverUrl,");
             credentialsScript.AppendLine("        ManualAddress: serverUrl,");
-            credentialsScript.AppendLine("        LocalAddress: localAddress || serverUrl,");
+            // serverUrl is the address the installer just authenticated against -> known good.
+            // Default LocalAddress to it too unless we verified a distinct LAN IP is reachable,
+            // so the client can never stall 20s probing a dead address.
+            credentialsScript.AppendLine(localReachable
+                ? "        LocalAddress: localAddress || serverUrl,"
+                : "        LocalAddress: serverUrl,");
             credentialsScript.AppendLine("        Id: serverId,");
             credentialsScript.AppendLine("        UserId: userId,");
             credentialsScript.AppendLine("        AccessToken: accessToken,");
+            // ConnectionMode: Local=0, Remote=1, Manual=2. Point at the verified URL so the
+            // web client tries it first and connects immediately instead of probing modes.
+            credentialsScript.AppendLine("        LastConnectionMode: 2,");
             credentialsScript.AppendLine("        DateLastAccessed: new Date().getTime()");
             credentialsScript.AppendLine("      }]");
             credentialsScript.AppendLine("    };");
