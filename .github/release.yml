@@ -1,0 +1,32 @@
+# Configuration for GitHub's auto-generated release notes
+# (used by the generate-notes API call in the release workflows).
+# PRs are grouped by label; unlabeled PRs land under "Other changes".
+changelog:
+  exclude:
+    labels:
+      - skip-changelog   # add this label to hide a PR from release notes
+      - release          # the beta → master release PRs themselves
+    authors:
+      - dependabot
+  categories:
+    - title: 🚀 New features
+      labels:
+        - feature
+        - enhancement
+    - title: 🐛 Bug fixes
+      labels:
+        - bug
+        - fix
+    - title: 🌍 Translations
+      labels:
+        - translations
+        - l10n
+    - title: 🧰 Maintenance & CI
+      labels:
+        - chore
+        - ci
+        - dependencies
+        - documentation
+    - title: 🔀 Other changes
+      labels:
+        - "*"

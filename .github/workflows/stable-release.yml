@@ -101,24 +101,32 @@ jobs:
           fi
 
       # ---------------- CHANGELOG (from last stable tag) ----------------
+      # PR-based notes via GitHub's generate-notes API (categorised by
+      # .github/release.yml) instead of a raw `git log` dump.
       - name: Generate changelog
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           LAST_STABLE=$(git tag \
             | grep -E '^v[0-9]+(\.[0-9]+){1,3}$' \
+            | grep -vx "$VERSION_TAG" \
             | sort -V \
             | tail -n 1)
 
-          if [ -z "$LAST_STABLE" ]; then
-            RANGE="HEAD"
-          else
-            RANGE="$LAST_STABLE..HEAD"
+          ARGS=(-f tag_name="$VERSION_TAG" -f target_commitish="$GITHUB_SHA")
+          if [ -n "$LAST_STABLE" ]; then
+            ARGS+=(-f previous_tag_name="$LAST_STABLE")
           fi
 
-          {
-            echo "## ✅ What's New & Improved"
-            git log $RANGE --pretty=format:"- %s"
-          } > CHANGELOG.md
+          if gh api "repos/${GITHUB_REPOSITORY}/releases/generate-notes" "${ARGS[@]}" --jq .body > CHANGELOG.md; then
+            echo "Generated PR-based notes (since ${LAST_STABLE:-the beginning})"
+          else
+            # Fallback: filtered commit log (no [skip ci] noise, no dupes)
+            echo "## ✅ What's New & Improved" > CHANGELOG.md
+            git log ${LAST_STABLE:+$LAST_STABLE..HEAD} --pretty=format:"- %s" \
+              | grep -iv '\[skip ci\]' | awk '!seen[$0]++' >> CHANGELOG.md
+          fi
 
       # ---------------- RELEASE NOTES ----------------
       - name: Prepare release notes
