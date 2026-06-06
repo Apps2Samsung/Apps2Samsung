@@ -299,8 +299,13 @@ namespace Jellyfin2Samsung.Services
                     throw new InvalidOperationException("Could not find application files in the update package.");
                 }
 
+                // The update may ship a different executable name than the one
+                // currently running (rebrand) — relaunch whatever the package contains.
+                var newExeName = FindExecutableName(extractedAppDir)
+                    ?? throw new InvalidOperationException("Could not find the application executable in the update package.");
+
                 // Create update script
-                var scriptPath = CreateUpdateScript(extractedAppDir, appDir, backupDir);
+                var scriptPath = CreateUpdateScript(extractedAppDir, appDir, backupDir, newExeName);
 
                 // Launch the update script and exit
                 LaunchUpdateScript(scriptPath);
@@ -322,26 +327,41 @@ namespace Jellyfin2Samsung.Services
             await TarFile.ExtractToDirectoryAsync(gzipStream, destinationDir, overwriteFiles: true, cancellationToken);
         }
 
+        /// <summary>
+        /// Executable base names this updater recognises, newest first.
+        /// The project was rebranded from Jellyfin2Samsung to Apps2Samsung —
+        /// accepting both keeps automatic updates working across the rename.
+        /// </summary>
+        private static readonly string[] ExeBaseNameCandidates = { "Apps2Samsung", "Jellyfin2Samsung" };
+
+        private static string? FindExecutableName(string directory)
+        {
+            var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            foreach (var baseName in ExeBaseNameCandidates)
+            {
+                var exeName = isWindows ? $"{baseName}.exe" : baseName;
+                if (File.Exists(Path.Combine(directory, exeName)))
+                    return exeName;
+            }
+            return null;
+        }
+
         private string? FindApplicationDirectory(string extractedDir)
         {
             // Check if the main executable is directly in the extracted directory
-            var exeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? "Jellyfin2Samsung.exe"
-                : "Jellyfin2Samsung";
-
-            if (File.Exists(Path.Combine(extractedDir, exeName)))
+            if (FindExecutableName(extractedDir) != null)
                 return extractedDir;
 
             // Check subdirectories
             foreach (var subDir in Directory.GetDirectories(extractedDir))
             {
-                if (File.Exists(Path.Combine(subDir, exeName)))
+                if (FindExecutableName(subDir) != null)
                     return subDir;
 
                 // Check one level deeper
                 foreach (var subSubDir in Directory.GetDirectories(subDir))
                 {
-                    if (File.Exists(Path.Combine(subSubDir, exeName)))
+                    if (FindExecutableName(subSubDir) != null)
                         return subSubDir;
                 }
             }
@@ -349,13 +369,19 @@ namespace Jellyfin2Samsung.Services
             return null;
         }
 
-        private string CreateUpdateScript(string sourceDir, string targetDir, string backupDir)
+        private string CreateUpdateScript(string sourceDir, string targetDir, string backupDir, string exeName)
         {
             var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             var scriptExtension = isWindows ? ".bat" : ".sh";
             var scriptPath = Path.Combine(Path.GetTempPath(), $"jellyfin2samsung_update{scriptExtension}");
 
-            var exeName = isWindows ? "Jellyfin2Samsung.exe" : "Jellyfin2Samsung";
+            // When the executable name changes across the update (rebrand), remove
+            // the leftover binaries of the previous name so the user doesn't end up
+            // with two executables side by side. A full backup is taken first.
+            var newBaseName = Path.GetFileNameWithoutExtension(exeName);
+            var staleBaseNames = ExeBaseNameCandidates
+                .Where(b => !b.Equals(newBaseName, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
             var processId = Environment.ProcessId;
 
             string scriptContent;
@@ -379,6 +405,9 @@ xcopy ""{targetDir}\*"" ""{backupDir}\"" /E /H /Y /Q
 
 echo Installing update...
 xcopy ""{sourceDir}\*"" ""{targetDir}\"" /E /H /Y /Q
+
+echo Removing old binaries...
+{string.Join("\r\n", staleBaseNames.Select(b => $@"del /q ""{Path.Combine(targetDir, b)}.*"" 2>nul"))}
 
 echo Starting application...
 start """" ""{Path.Combine(targetDir, exeName)}""
@@ -405,6 +434,10 @@ cp -r ""{targetDir}/""* ""{backupDir}/""
 
 echo ""Installing update...""
 cp -rf ""{sourceDir}/""* ""{targetDir}/""
+
+echo ""Removing old binaries...""
+{string.Join("\n", staleBaseNames.Select(b => $@"rm -f ""{Path.Combine(targetDir, b)}"" ""{Path.Combine(targetDir, b)}.""*"))}
+
 chmod +x ""{Path.Combine(targetDir, exeName)}""
 
 echo ""Starting application...""
