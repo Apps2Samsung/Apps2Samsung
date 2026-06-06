@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 
-namespace Jellyfin2Samsung.Extensions
+namespace Apps2Samsung.Extensions
 {
     public sealed class FileTraceListener : TraceListener
     {

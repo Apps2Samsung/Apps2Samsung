@@ -1,16 +1,16 @@
-﻿using Jellyfin2Samsung.Helpers.API;
-using Jellyfin2Samsung.Helpers.Core;
-using Jellyfin2Samsung.Helpers.Jellyfin.CSS;
-using Jellyfin2Samsung.Helpers.Jellyfin.Diagnostic;
-using Jellyfin2Samsung.Helpers.Jellyfin.Fixes;
-using Jellyfin2Samsung.Helpers.Jellyfin.Patches;
-using Jellyfin2Samsung.Helpers.Jellyfin.Plugins;
-using Jellyfin2Samsung.Models;
+﻿using Apps2Samsung.Helpers.API;
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Helpers.Jellyfin.CSS;
+using Apps2Samsung.Helpers.Jellyfin.Diagnostic;
+using Apps2Samsung.Helpers.Jellyfin.Fixes;
+using Apps2Samsung.Helpers.Jellyfin.Patches;
+using Apps2Samsung.Helpers.Jellyfin.Plugins;
+using Apps2Samsung.Models;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Helpers.Jellyfin
+namespace Apps2Samsung.Helpers.Jellyfin
 {
     public class JellyfinPackagePatcher
     {

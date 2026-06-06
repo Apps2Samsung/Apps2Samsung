@@ -2,10 +2,10 @@
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Jellyfin2Samsung.Helpers;
-using Jellyfin2Samsung.Helpers.Core;
-using Jellyfin2Samsung.Models;
-using Jellyfin2Samsung.Services;
+using Apps2Samsung.Helpers;
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Models;
+using Apps2Samsung.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,7 +16,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.ViewModels
+namespace Apps2Samsung.ViewModels
 {
     public partial class BuildInfoViewModel : ViewModelBase
     {

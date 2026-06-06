@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 
-namespace Jellyfin2Samsung.Models
+namespace Apps2Samsung.Models
 {
     public class GitHubRelease
     {

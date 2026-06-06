@@ -1,9 +1,9 @@
-﻿using Jellyfin2Samsung.Helpers.Core;
+﻿using Apps2Samsung.Helpers.Core;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Helpers.Jellyfin.Diagnostic
+namespace Apps2Samsung.Helpers.Jellyfin.Diagnostic
 {
     public class JellyfinDiagnostic
     {

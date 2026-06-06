@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Jellyfin2Samsung.Helpers.Core
+namespace Apps2Samsung.Helpers.Core
 {
     /// <summary>
     /// Centralized regex patterns used throughout the application.

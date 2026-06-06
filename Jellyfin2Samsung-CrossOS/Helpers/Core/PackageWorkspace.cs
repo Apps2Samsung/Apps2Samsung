@@ -2,7 +2,7 @@
 using System.IO;
 using System.IO.Compression;
 
-namespace Jellyfin2Samsung.Helpers.Core
+namespace Apps2Samsung.Helpers.Core
 {
     public sealed class PackageWorkspace : IDisposable
     {

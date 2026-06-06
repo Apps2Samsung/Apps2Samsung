@@ -1,4 +1,4 @@
-namespace Jellyfin2Samsung.Helpers.Jellyfin.Fixes
+namespace Apps2Samsung.Helpers.Jellyfin.Fixes
 {
     /// <summary>
     /// Maps ISO 639 language codes to search keywords for DuckDuckGo Lite trailer search.

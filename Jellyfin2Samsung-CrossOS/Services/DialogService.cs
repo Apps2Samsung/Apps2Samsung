@@ -4,12 +4,12 @@ using Avalonia.Layout;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Avalonia.Styling;
-using Jellyfin2Samsung.Helpers;
-using Jellyfin2Samsung.Interfaces;
+using Apps2Samsung.Helpers;
+using Apps2Samsung.Interfaces;
 using System;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Services
+namespace Apps2Samsung.Services
 {
     public class DialogService : IDialogService
     {
@@ -59,7 +59,7 @@ namespace Jellyfin2Samsung.Services
             };
 
             // Apply FluentTheme
-            dialog.Styles.Add(new StyleInclude(new Uri("avares://Jellyfin2Samsung"))
+            dialog.Styles.Add(new StyleInclude(new Uri("avares://Apps2Samsung"))
             {
                 Source = new Uri("avares://Avalonia.Themes.Fluent/FluentTheme.xaml")
             });

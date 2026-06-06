@@ -1,6 +1,6 @@
-﻿using Jellyfin2Samsung.Helpers.API;
-using Jellyfin2Samsung.Helpers.Core;
-using Jellyfin2Samsung.Helpers.Jellyfin.Plugins;
+﻿using Apps2Samsung.Helpers.API;
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Helpers.Jellyfin.Plugins;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Helpers.Jellyfin.Patches
+namespace Apps2Samsung.Helpers.Jellyfin.Patches
 {
     public class JellyfinIndex(
         HttpClient http,

@@ -1,7 +1,7 @@
-using Jellyfin2Samsung.Helpers;
-using Jellyfin2Samsung.Helpers.Core;
-using Jellyfin2Samsung.Interfaces;
-using Jellyfin2Samsung.Models;
+using Apps2Samsung.Helpers;
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
 using System;
 using System.Diagnostics;
 using System.Formats.Tar;
@@ -15,7 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Jellyfin2Samsung.Services
+namespace Apps2Samsung.Services
 {
     /// <summary>
     /// Service for checking and applying application updates via GitHub.
@@ -205,7 +205,7 @@ namespace Jellyfin2Samsung.Services
         private static string GetPlatformSuffix()
         {
             // Must match the release asset naming scheme:
-            //   Jellyfin2Samsung-v<version>-<platform>-<arch>.<ext>
+            //   Apps2Samsung-v<version>-<platform>-<arch>.<ext>
             // e.g. "win-x64", "linux-arm64", "macos-x64"
             var arch = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
 
@@ -225,7 +225,7 @@ namespace Jellyfin2Samsung.Services
             IProgress<int>? progress = null,
             CancellationToken cancellationToken = default)
         {
-            var tempDir = Path.Combine(Path.GetTempPath(), "Jellyfin2Samsung_Update");
+            var tempDir = Path.Combine(Path.GetTempPath(), "Apps2Samsung_Update");
             Directory.CreateDirectory(tempDir);
 
             var fileName = Path.GetFileName(new Uri(downloadUrl).LocalPath);
@@ -269,8 +269,8 @@ namespace Jellyfin2Samsung.Services
             try
             {
                 var appDir = AppContext.BaseDirectory;
-                var updateDir = Path.Combine(Path.GetTempPath(), "Jellyfin2Samsung_Update", "extracted");
-                var backupDir = Path.Combine(Path.GetTempPath(), "Jellyfin2Samsung_Update", "backup");
+                var updateDir = Path.Combine(Path.GetTempPath(), "Apps2Samsung_Update", "extracted");
+                var backupDir = Path.Combine(Path.GetTempPath(), "Apps2Samsung_Update", "backup");
 
                 // Clean extraction directory
                 if (Directory.Exists(updateDir))
@@ -329,7 +329,7 @@ namespace Jellyfin2Samsung.Services
 
         /// <summary>
         /// Executable base names this updater recognises, newest first.
-        /// The project was rebranded from Jellyfin2Samsung to Apps2Samsung —
+        /// The project was rebranded from Apps2Samsung to Apps2Samsung —
         /// accepting both keeps automatic updates working across the rename.
         /// </summary>
         private static readonly string[] ExeBaseNameCandidates = { "Apps2Samsung", "Jellyfin2Samsung" };
@@ -373,7 +373,7 @@ namespace Jellyfin2Samsung.Services
         {
             var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             var scriptExtension = isWindows ? ".bat" : ".sh";
-            var scriptPath = Path.Combine(Path.GetTempPath(), $"jellyfin2samsung_update{scriptExtension}");
+            var scriptPath = Path.Combine(Path.GetTempPath(), $"apps2samsung_update{scriptExtension}");
 
             // When the executable name changes across the update (rebrand), remove
             // the leftover binaries of the previous name so the user doesn't end up
@@ -414,7 +414,7 @@ start """" ""{Path.Combine(targetDir, exeName)}""
 
 echo Cleaning up...
 timeout /t 2 /nobreak > nul
-rmdir /s /q ""{Path.Combine(Path.GetTempPath(), "Jellyfin2Samsung_Update")}""
+rmdir /s /q ""{Path.Combine(Path.GetTempPath(), "Apps2Samsung_Update")}""
 
 del ""%~f0""
 ";
@@ -445,7 +445,7 @@ nohup ""{Path.Combine(targetDir, exeName)}"" &
 
 echo ""Cleaning up...""
 sleep 2
-rm -rf ""{Path.Combine(Path.GetTempPath(), "Jellyfin2Samsung_Update")}""
+rm -rf ""{Path.Combine(Path.GetTempPath(), "Apps2Samsung_Update")}""
 rm -- ""$0""
 ";
             }

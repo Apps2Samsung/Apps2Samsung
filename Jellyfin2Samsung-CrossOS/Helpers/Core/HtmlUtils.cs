@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Jellyfin2Samsung.Helpers.Core
+namespace Apps2Samsung.Helpers.Core
 {
     public static class HtmlUtils
     {

@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>Jellyfin2Samsung</string>
+    <string>Apps2Samsung</string>
     <key>CFBundleDisplayName</key>
-    <string>Jellyfin2Samsung</string>
+    <string>Apps2Samsung</string>
     <key>CFBundleIdentifier</key>
-    <string>com.madebypatrick.jellyfin2samsung</string>
+    <string>com.madebypatrick.apps2samsung</string>
     <key>CFBundleVersion</key>
     <string>1.8.0-beta</string>
     <key>CFBundlePackageType</key>
@@ -15,7 +15,7 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleExecutable</key>
-    <string>Jellyfin2Samsung</string>
+    <string>Apps2Samsung</string>
     <key>CFBundleIconFile</key>
     <string>jelly2sams.icns</string>
     <key>LSMinimumSystemVersion</key>

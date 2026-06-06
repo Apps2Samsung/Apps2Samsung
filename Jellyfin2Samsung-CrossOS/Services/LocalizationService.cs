@@ -1,6 +1,6 @@
 ﻿using Avalonia.Platform;
-using Jellyfin2Samsung.Helpers;
-using Jellyfin2Samsung.Interfaces;
+using Apps2Samsung.Helpers;
+using Apps2Samsung.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -8,12 +8,12 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 
-namespace Jellyfin2Samsung.Services
+namespace Apps2Samsung.Services
 {
     public class LocalizationService : ILocalizationService
     {
         private const string DefaultLanguage = "en";
-        private const string LocalizationFolderUri = "avares://Jellyfin2Samsung/Assets/Localization/";
+        private const string LocalizationFolderUri = "avares://Apps2Samsung/Assets/Localization/";
 
         private Dictionary<string, string> _currentStrings = new();
         private readonly Dictionary<string, Dictionary<string, string>> _allStrings = new();

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Jellyfin2Samsung.Helpers.Tizen.Certificate
+namespace Apps2Samsung.Helpers.Tizen.Certificate
 {
     public class CipherUtil
     {

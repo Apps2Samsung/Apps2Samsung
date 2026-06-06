@@ -1,4 +1,4 @@
-using Jellyfin2Samsung.Models;
+using Apps2Samsung.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Helpers.Core
+namespace Apps2Samsung.Helpers.Core
 {
     public class AddLatestRelease
     {

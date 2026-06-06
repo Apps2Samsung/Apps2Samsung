@@ -1,8 +1,8 @@
 using Avalonia;
 using Avalonia.Platform;
-using Jellyfin2Samsung.Helpers;
-using Jellyfin2Samsung.Helpers.Core;
-using Jellyfin2Samsung.Models;
+using Apps2Samsung.Helpers;
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Models;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -10,7 +10,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Services
+namespace Apps2Samsung.Services
 {
     public class ProviderManifestService
     {
@@ -18,7 +18,7 @@ namespace Jellyfin2Samsung.Services
             "https://raw.githubusercontent.com/Apps2Samsung/Apps2Samsung/main/third-party-apps.json";
 
         private static readonly Uri BundledUri =
-            new("avares://Jellyfin2Samsung/Assets/third-party-apps.json");
+            new("avares://Apps2Samsung/Assets/third-party-apps.json");
 
         private static readonly string CachePath =
             Path.Combine(AppSettings.FolderPath, "third-party-apps.cache.json");

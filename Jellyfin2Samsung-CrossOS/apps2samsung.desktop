@@ -1,0 +1,11 @@
+﻿[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Apps2Samsung
+Comment=Install any app on Samsung TVs, projectors and smart monitors
+Icon=jelly2sams
+Terminal=false
+Categories=Utility;Network;
+StartupNotify=true
+MimeType=application/x-apps2samsung;
+Exec=start-apps2samsung.sh

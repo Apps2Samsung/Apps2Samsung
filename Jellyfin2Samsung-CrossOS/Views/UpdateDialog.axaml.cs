@@ -1,13 +1,13 @@
 using Avalonia.Controls;
 using Avalonia.Styling;
-using Jellyfin2Samsung.Helpers;
-using Jellyfin2Samsung.Interfaces;
-using Jellyfin2Samsung.Models;
-using Jellyfin2Samsung.ViewModels;
+using Apps2Samsung.Helpers;
+using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
+using Apps2Samsung.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Views;
+namespace Apps2Samsung.Views;
 
 public partial class UpdateDialog : Window
 {

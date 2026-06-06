@@ -1,10 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Threading;
-using Jellyfin2Samsung.ViewModels;
+using Apps2Samsung.ViewModels;
 using System;
 using System.ComponentModel;
 
-namespace Jellyfin2Samsung.Views;
+namespace Apps2Samsung.Views;
 
 public partial class TvLogsWindow : Window
 {

@@ -1,8 +1,8 @@
-﻿using Jellyfin2Samsung.Models;
+﻿using Apps2Samsung.Models;
 using System;
 using System.Collections.Generic;
 
-namespace Jellyfin2Samsung.Helpers.Jellyfin.Plugins
+namespace Apps2Samsung.Helpers.Jellyfin.Plugins
 {
     public static class PluginMatrix
     {

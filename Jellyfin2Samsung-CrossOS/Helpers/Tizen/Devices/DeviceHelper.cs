@@ -1,12 +1,12 @@
-﻿using Jellyfin2Samsung.Helpers.API;
-using Jellyfin2Samsung.Interfaces;
-using Jellyfin2Samsung.Models;
+﻿using Apps2Samsung.Helpers.API;
+using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Helpers.Tizen.Devices
+namespace Apps2Samsung.Helpers.Tizen.Devices
 {
     public class DeviceHelper
     {

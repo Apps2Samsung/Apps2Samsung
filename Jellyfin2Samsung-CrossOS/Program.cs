@@ -1,10 +1,10 @@
 ﻿using Avalonia;
-using Jellyfin2Samsung.Extensions;
+using Apps2Samsung.Extensions;
 using System;
 using System.Diagnostics;
 using System.IO;
 
-namespace Jellyfin2Samsung
+namespace Apps2Samsung
 {
     internal sealed class Program
     {

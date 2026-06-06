@@ -2,13 +2,13 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
-using Jellyfin2Samsung.Interfaces;
-using Jellyfin2Samsung.Models;
-using Jellyfin2Samsung.Views;
+using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
+using Apps2Samsung.Views;
 using System;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Services
+namespace Apps2Samsung.Services
 {
     /// <summary>
     /// Service for showing update-related dialogs.

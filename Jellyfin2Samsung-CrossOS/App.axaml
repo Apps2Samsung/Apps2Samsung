@@ -1,7 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="Jellyfin2Samsung.App"
-             xmlns:local="using:Jellyfin2Samsung"
+             x:Class="Apps2Samsung.App"
+             xmlns:local="using:Apps2Samsung"
              RequestedThemeVariant="Default">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
@@ -12,7 +12,7 @@
     <Application.Styles>
         <FluentTheme />
 		<Style Selector="Window">
-			<Setter Property="Icon" Value="avares://Jellyfin2Samsung/Assets/jelly2sams.ico" />
+			<Setter Property="Icon" Value="avares://Apps2Samsung/Assets/jelly2sams.ico" />
 		</Style>
     </Application.Styles>
 </Application>

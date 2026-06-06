@@ -1,5 +1,5 @@
 ﻿using Avalonia.Platform.Storage;
-using Jellyfin2Samsung.Models;
+using Apps2Samsung.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Helpers.Core
+namespace Apps2Samsung.Helpers.Core
 {
     public class FileHelper
     {

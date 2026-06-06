@@ -1,5 +1,5 @@
-using Jellyfin2Samsung.Helpers.Core;
-using Jellyfin2Samsung.Models;
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace Jellyfin2Samsung.Services
+namespace Apps2Samsung.Services
 {
     public class SamsungLoginService
     {

@@ -1,9 +1,9 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="Jellyfin2Samsung.Views.MainWindow"
+        x:Class="Apps2Samsung.Views.MainWindow"
 		x:DataType="viewModels:MainWindowViewModel"
-        xmlns:viewModels="clr-namespace:Jellyfin2Samsung.ViewModels"
-		xmlns:helpers="clr-namespace:Jellyfin2Samsung.Helpers.Converters"
+        xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+		xmlns:helpers="clr-namespace:Apps2Samsung.Helpers.Converters"
 		xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
         Width="580"
         Height="410"
@@ -18,9 +18,9 @@
 	<Window.Styles>
 		<StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>
 		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
-		<StyleInclude Source="avares://Jellyfin2Samsung/Styles/Buttons.axaml"/>
-		<StyleInclude Source="avares://Jellyfin2Samsung/Styles/TextBlocks.axaml"/>
-		<StyleInclude Source="avares://Jellyfin2Samsung/Styles/ComboBoxes.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/TextBlocks.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/ComboBoxes.axaml"/>
 	</Window.Styles>
 
 	<Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
@@ -40,7 +40,7 @@
                     CornerRadius="8">
 				<StackPanel Spacing="12" HorizontalAlignment="Center">
 					<TextBlock
-                               Text="Jellyfin Installer for Samsung (Tizen)"
+                               Text="App Installer for Samsung (Tizen)"
 								HorizontalAlignment="Center"
 								Foreground="White"
 								FontWeight="Medium"/>

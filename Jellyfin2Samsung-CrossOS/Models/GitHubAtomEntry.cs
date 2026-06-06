@@ -1,6 +1,6 @@
 using System;
 
-namespace Jellyfin2Samsung.Models
+namespace Apps2Samsung.Models
 {
     /// <summary>
     /// Represents a release entry parsed from the GitHub Atom feed.

@@ -1,11 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Jellyfin2Samsung.Interfaces;
-using Jellyfin2Samsung.Models;
+using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
 using System;
 using System.Runtime.InteropServices;
 
-namespace Jellyfin2Samsung.ViewModels
+namespace Apps2Samsung.ViewModels
 {
     public partial class UpdateDialogViewModel : ViewModelBase
     {

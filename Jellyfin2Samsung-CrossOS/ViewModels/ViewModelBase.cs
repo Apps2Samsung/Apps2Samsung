@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace Jellyfin2Samsung.ViewModels
+namespace Apps2Samsung.ViewModels
 {
     public class ViewModelBase : ObservableObject
     {

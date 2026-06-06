@@ -1,10 +1,10 @@
-﻿using Jellyfin2Samsung.Extensions;
-using Jellyfin2Samsung.Models;
+﻿using Apps2Samsung.Extensions;
+using Apps2Samsung.Models;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Interfaces
+namespace Apps2Samsung.Interfaces
 {
     public interface ITizenInstallerService
     {

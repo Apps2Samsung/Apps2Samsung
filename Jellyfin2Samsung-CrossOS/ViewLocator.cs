@@ -1,9 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using Jellyfin2Samsung.ViewModels;
+using Apps2Samsung.ViewModels;
 using System;
 
-namespace Jellyfin2Samsung
+namespace Apps2Samsung
 {
     public class ViewLocator : IDataTemplate
     {

@@ -1,8 +1,8 @@
 ﻿using Avalonia.Controls.ApplicationLifetimes;
-using Jellyfin2Samsung.Extensions;
-using Jellyfin2Samsung.Interfaces;
-using Jellyfin2Samsung.Models;
-using Jellyfin2Samsung.ViewModels;
+using Apps2Samsung.Extensions;
+using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
+using Apps2Samsung.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Helpers.Core
+namespace Apps2Samsung.Helpers.Core
 {
     public class PackageHelper(
         ITizenInstallerService tizenInstaller,
