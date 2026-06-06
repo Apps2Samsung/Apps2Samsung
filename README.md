@@ -98,7 +98,7 @@ Want to help translate **Apps2Samsung**? Community translations are always appre
 
 You can contribute here:
 
-- [Transifex](https://app.transifex.com/madebypatrick/jellyfin2samsung)
+- [Transifex](https://app.transifex.com/madebypatrick/apps2samsung)
 - [Crowdin](https://crowdin.com/project/jellyfin2samsung)
 
 You can help by translating missing strings, improving existing translations, or reviewing your language.
