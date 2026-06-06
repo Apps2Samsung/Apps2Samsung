@@ -3,6 +3,8 @@ name: Beta Pre-Release
 on:
   push:
     branches: [beta]
+    paths-ignore:
+      - 'README.md'
 
 permissions:
   contents: write
