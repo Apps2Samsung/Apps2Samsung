@@ -179,6 +179,7 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.VERSION_TAG }}
+          target_commitish: ${{ github.sha }}
           name: ${{ env.VERSION_TAG }}
           prerelease: true
           overwrite_files: true

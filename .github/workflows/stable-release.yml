@@ -249,6 +249,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.VERSION_TAG }}
+          target_commitish: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.event.pull_request.merge_commit_sha }}
           name: ${{ env.VERSION_TAG }}
           prerelease: false
           overwrite_files: true
