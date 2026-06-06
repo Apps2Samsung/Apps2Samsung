@@ -24,7 +24,7 @@
 
   <!-- Favicon -->
   <link rel="icon" href="/favicon.ico">
-  <meta name="theme-color" content="#0a120f">
+  <meta name="theme-color" content="#16202B">
 
   <!-- Structured Data -->
   <script type="application/ld+json">
@@ -48,8 +48,8 @@
   <style>
     body {
       font-family: system-ui, -apple-system, sans-serif;
-      background: #0a120f;
-      color: #edf5f1;
+      background: #16202B;
+      color: #ECF0F5;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -72,21 +72,21 @@
       margin-bottom: 12px;
     }
     h1 { font-size: 2.2rem; margin: .5em 0 .2em; }
-    h2 { color: #9ab8ac; font-weight: 500; margin: 0 0 1.2em; }
-    h3 { color: #bcd9cd; font-size: 1.05rem; font-weight: 600; margin: 1.6em 0 .6em; letter-spacing: .02em; text-transform: uppercase; }
+    h2 { color: #91A7BD; font-weight: 500; margin: 0 0 1.2em; }
+    h3 { color: #B9C9DA; font-size: 1.05rem; font-weight: 600; margin: 1.6em 0 .6em; letter-spacing: .02em; text-transform: uppercase; }
     .btn {
       display: inline-block;
       padding: 10px 18px;
       margin: 6px;
       border-radius: 999px;
       text-decoration: none;
-      color: #0a120f;
-      background: linear-gradient(90deg,#10b981,#2dd4bf);
+      color: #ffffff;
+      background: linear-gradient(90deg,#2563EB,#3B82F6);
       font-weight: 600;
       transition: transform 0.15s ease;
     }
     .btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
-    .meta { margin: 1em 0; color: #8aa89b; }
+    .meta { margin: 1em 0; color: #8296AC; }
     .chip {
       display: inline-block;
       border: 1px dashed rgba(255,255,255,0.2);
@@ -96,16 +96,16 @@
       font-size: .9em;
     }
     .chip.solid {
-      border: 1px solid rgba(16,185,129,0.4);
-      background: rgba(16,185,129,0.08);
-      color: #bcd9cd;
+      border: 1px solid rgba(37,99,235,0.45);
+      background: rgba(37,99,235,0.10);
+      color: #B9C9DA;
     }
     /* highlight the visitor's detected OS */
     .chip.detected {
-      border: 1px solid rgba(45,212,191,0.7);
-      background: rgba(45,212,191,0.15);
-      color: #edf5f1;
-      box-shadow: 0 0 0 1px rgba(45,212,191,0.25);
+      border: 1px solid rgba(34,197,94,0.7);
+      background: rgba(34,197,94,0.15);
+      color: #ECF0F5;
+      box-shadow: 0 0 0 1px rgba(34,197,94,0.25);
     }
     .grid {
       display: grid;
@@ -122,8 +122,8 @@
       font-size: .9em;
       line-height: 1.4;
     }
-    .card strong { color: #edf5f1; display: block; margin-bottom: 2px; }
-    .card span { color: #8aa89b; }
+    .card strong { color: #ECF0F5; display: block; margin-bottom: 2px; }
+    .card span { color: #8296AC; }
     /* download list rows */
     .dl-grid {
       display: grid;
@@ -133,8 +133,8 @@
       margin: 8px 0 4px;
     }
     .dl-grid .card.detected {
-      border: 1px solid rgba(45,212,191,0.5);
-      background: rgba(45,212,191,0.06);
+      border: 1px solid rgba(34,197,94,0.5);
+      background: rgba(34,197,94,0.06);
     }
     .dlrow {
       display: flex;
@@ -146,16 +146,16 @@
       border-top: 1px solid rgba(255,255,255,0.06);
     }
     .dlrow:first-of-type { border-top: 0; padding-top: 0; }
-    .dlrow .arch { color: #bcd9cd; font-weight: 600; min-width: 92px; }
+    .dlrow .arch { color: #B9C9DA; font-weight: 600; min-width: 92px; }
     .dlrow a {
-      color: #2dd4bf;
+      color: #4ADE80;
       text-decoration: none;
-      border-bottom: 1px solid rgba(45,212,191,0.3);
+      border-bottom: 1px solid rgba(74,222,128,0.3);
       font-size: .92em;
     }
-    .dlrow a:hover { border-bottom-color: #2dd4bf; }
-    .dlrow .sz { color: #5f7a6e; font-size: .8em; }
-    .note { color: #5f7a6e; font-size: .8em; margin-top: 6px; }
+    .dlrow a:hover { border-bottom-color: #4ADE80; }
+    .dlrow .sz { color: #64748B; font-size: .8em; }
+    .note { color: #64748B; font-size: .8em; margin-top: 6px; }
     /* Responsive video container */
     .video-wrapper {
       position: relative;
@@ -233,11 +233,11 @@
     <p class="note" style="margin:2em 0 0">
       Orsay-based TVs (pre-2015 models) are no longer supported. The unmaintained
       <a href="https://github.com/Apps2Samsung/Jellyfin-Orsay-Installer/releases"
-         target="_blank" rel="noopener" style="color:#2dd4bf">legacy Orsay installer</a>
+         target="_blank" rel="noopener" style="color:#4ADE80">legacy Orsay installer</a>
       remains available as-is.
     </p>
 
-    <p style="color:#8aa89b;font-size:.9em">
+    <p style="color:#8296AC;font-size:.9em">
       © <span id="year"></span> Patrick Stel — Hosted on GitHub Pages
     </p>
   </main>
@@ -370,7 +370,7 @@
         }
         html+='</div>';
       }
-      els.all.innerHTML = html || `<div class="card"><span>No platform builds found — <a href="${releasesUrl()}" style="color:#2dd4bf">see the release page</a>.</span></div>`;
+      els.all.innerHTML = html || `<div class="card"><span>No platform builds found — <a href="${releasesUrl()}" style="color:#4ADE80">see the release page</a>.</span></div>`;
 
       // Note when the architecture is only a best guess (Safari/Firefox on Mac).
       if(os==='macos' && !sure){
@@ -381,7 +381,7 @@
       els.date.textContent='n/a';
       els.dl.href=releasesUrl();
       els.label.textContent='View downloads on GitHub';
-      els.all.innerHTML=`<div class="card"><span>Couldn\u2019t load builds right now — <a href="${releasesUrl()}" style="color:#2dd4bf">open the latest release</a>.</span></div>`;
+      els.all.innerHTML=`<div class="card"><span>Couldn\u2019t load builds right now — <a href="${releasesUrl()}" style="color:#4ADE80">open the latest release</a>.</span></div>`;
     }
 
     document.getElementById('year').textContent=new Date().getFullYear();
