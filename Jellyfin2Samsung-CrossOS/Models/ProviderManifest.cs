@@ -22,6 +22,11 @@ namespace Apps2Samsung.Models
         public string Prefix { get; set; } = "";
         public string DisplayName { get; set; } = "";
         public int Take { get; set; } = 1;
+        /// <summary>
+        /// When true, every .wgt asset of the fetched release becomes its own
+        /// entry in the release list (used for the community package bundle).
+        /// </summary>
+        public bool ExpandAssets { get; set; }
         public ProviderBuildInfo? BuildInfo { get; set; }
     }
 

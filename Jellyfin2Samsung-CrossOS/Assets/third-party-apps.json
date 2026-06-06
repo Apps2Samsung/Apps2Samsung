@@ -73,19 +73,50 @@
       "url": "https://api.github.com/repos/PatrickSt1991/tizen-community-packages/releases",
       "prefix": "",
       "displayName": "Tizen Community",
-      "take": 1
+      "take": 1,
+      "expandAssets": true
     }
   ],
   "communityApps": [
-    { "matchName": "Moonlight", "previewImage": "https://iili.io/fsvn6mJ.png" },
-    { "matchName": "Fireplace", "previewImage": "https://raw.githubusercontent.com/thonythony/fireplace/refs/heads/master/icon.jpg" },
-    { "matchName": "TVApp", "previewImage": "https://iili.io/fsvaHsn.png" },
-    { "matchName": "Twitch", "previewImage": "https://iili.io/fsvUNu2.md.gif" },
-    { "matchName": "Club Info Board", "previewImage": "https://iili.io/fsviHQV.png" },
-    { "matchName": "Doom", "previewImage": "https://iili.io/fyofVqu.png" },
-    { "matchName": "TransportTycoonDeluxe", "previewImage": "https://iili.io/qFBP2vn.png" },
-    { "matchName": "Nuvio", "previewImage": "https://nuvioapp.space/assets/newss/Screenshot%202026-04-05%20at%203.17.41%E2%80%AFPM.png" },
-    { "matchName": "VLC-Tizen-tv", "previewImage": "https://iili.io/CfGNeqb.png" },
-    { "matchName": "Flixor-Tizen", "previewImage": "https://iili.io/CfGjV44.webp" }
+    {
+      "matchName": "Moonlight",
+      "previewImage": "https://iili.io/fsvn6mJ.png"
+    },
+    {
+      "matchName": "Fireplace",
+      "previewImage": "https://raw.githubusercontent.com/thonythony/fireplace/refs/heads/master/icon.jpg"
+    },
+    {
+      "matchName": "TVApp",
+      "previewImage": "https://iili.io/fsvaHsn.png"
+    },
+    {
+      "matchName": "Twitch",
+      "previewImage": "https://iili.io/fsvUNu2.md.gif"
+    },
+    {
+      "matchName": "Club Info Board",
+      "previewImage": "https://iili.io/fsviHQV.png"
+    },
+    {
+      "matchName": "Doom",
+      "previewImage": "https://iili.io/fyofVqu.png"
+    },
+    {
+      "matchName": "TransportTycoonDeluxe",
+      "previewImage": "https://iili.io/qFBP2vn.png"
+    },
+    {
+      "matchName": "Nuvio",
+      "previewImage": "https://nuvioapp.space/assets/newss/Screenshot%202026-04-05%20at%203.17.41%E2%80%AFPM.png"
+    },
+    {
+      "matchName": "VLC-Tizen-tv",
+      "previewImage": "https://iili.io/CfGNeqb.png"
+    },
+    {
+      "matchName": "Flixor-Tizen",
+      "previewImage": "https://iili.io/CfGjV44.webp"
+    }
   ]
 }

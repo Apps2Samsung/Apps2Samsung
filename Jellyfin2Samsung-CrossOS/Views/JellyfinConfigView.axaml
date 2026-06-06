@@ -226,6 +226,17 @@
 												  VerticalAlignment="Center"/>
 								</Grid>
 
+								<!-- Show all Jellyfin versions -->
+								<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+									<TextBlock Grid.Column="0"
+											   Text="{Binding LblShowAllJellyfinVersions}"
+											   Classes="label"
+											   VerticalAlignment="Center"/>
+									<ToggleSwitch Grid.Column="1"
+												  IsChecked="{Binding ShowAllJellyfinVersions}"
+												  VerticalAlignment="Center"/>
+								</Grid>
+
 								<!-- RTL Reading -->
 								<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
 									<TextBlock Grid.Column="0"

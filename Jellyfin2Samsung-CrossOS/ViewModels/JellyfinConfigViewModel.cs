@@ -175,6 +175,9 @@ namespace Apps2Samsung.ViewModels
         private bool forceSamsungLogin;
 
         [ObservableProperty]
+        private bool showAllJellyfinVersions;
+
+        [ObservableProperty]
         private bool rtlReading;
 
         [ObservableProperty]
@@ -321,6 +324,7 @@ namespace Apps2Samsung.ViewModels
         public string LblRememberIp => _localizationService.GetString("lblRememberIp");
         public string LblDeletePrevious => _localizationService.GetString("lblDeletePrevious");
         public string LblForceLogin => _localizationService.GetString("lblForceLogin");
+        public string LblShowAllJellyfinVersions => _localizationService.GetString("lblShowAllJellyfinVersions");
         public string LblRTL => _localizationService.GetString("lblRTL");
         public string LblKeepWGTFile => _localizationService.GetString("lblKeepWGTFile");
         public string LblSettingsHeader => _localizationService.GetString("lblSettings");
@@ -459,6 +463,7 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblRememberIp));
             OnPropertyChanged(nameof(LblDeletePrevious));
             OnPropertyChanged(nameof(LblForceLogin));
+            OnPropertyChanged(nameof(LblShowAllJellyfinVersions));
             OnPropertyChanged(nameof(LblRTL));
             OnPropertyChanged(nameof(LblKeepWGTFile));
             OnPropertyChanged(nameof(LblSettingsHeader));
@@ -1480,6 +1485,7 @@ namespace Apps2Samsung.ViewModels
 
             DeletePreviousInstall = AppSettings.Default.DeletePreviousInstall;
             ForceSamsungLogin = AppSettings.Default.ForceSamsungLogin;
+            ShowAllJellyfinVersions = AppSettings.Default.ShowAllJellyfinVersions;
             RtlReading = AppSettings.Default.RTLReading;
             LocalIP = AppSettings.Default.LocalIp ?? string.Empty;
             TryOverwrite = AppSettings.Default.TryOverwrite;
@@ -1628,6 +1634,12 @@ namespace Apps2Samsung.ViewModels
         partial void OnForceSamsungLoginChanged(bool value)
         {
             AppSettings.Default.ForceSamsungLogin = value;
+            AppSettings.Default.Save();
+        }
+
+        partial void OnShowAllJellyfinVersionsChanged(bool value)
+        {
+            AppSettings.Default.ShowAllJellyfinVersions = value;
             AppSettings.Default.Save();
         }
 

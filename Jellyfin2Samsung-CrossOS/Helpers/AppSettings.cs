@@ -37,6 +37,7 @@ namespace Apps2Samsung.Helpers
         public string UserCustomIP { get; set; } = "";
         public string SavedNetworkInterfaceName { get; set; } = "";
         public bool ForceSamsungLogin { get; set; } = false;
+        public bool ShowAllJellyfinVersions { get; set; } = false;
         public bool RTLReading { get; set; } = false;
         public string JellyfinIP { get; set; } = "";
         public string JellyfinBasePath { get; set; } = "";
@@ -85,7 +86,7 @@ namespace Apps2Samsung.Helpers
 
         // ----- Application-scoped settings (readonly at runtime) -----
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
-        public string AppVersion { get; set; } = "v2.4.0";
+        public string AppVersion { get; set; } = "v2.5.0";
         public string TizenSdb { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-sdb/releases";
         public string JellyfinAvReleaseFork { get; set; } = "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases";
         public string ReleaseInfo { get; set; } = "https://raw.githubusercontent.com/jeppevinkel/jellyfin-tizen-builds/refs/heads/master/README.md";

@@ -530,14 +530,19 @@ namespace Apps2Samsung.ViewModels
         }
 
         [RelayCommand(CanExecute = nameof(CanOpenSettings))]
-        private void OpenSettings()
+        private async Task OpenSettings()
         {
+            var showAllBefore = AppSettings.Default.ShowAllJellyfinVersions;
             var settingsWindow = new JellyfinConfigView(_settingsViewModel);
 
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                settingsWindow.ShowDialog(desktop.MainWindow);
+                await settingsWindow.ShowDialog(desktop.MainWindow);
             }
+
+            // Reflect a changed version-list preference without an app restart.
+            if (AppSettings.Default.ShowAllJellyfinVersions != showAllBefore)
+                await LoadReleasesAsync();
         }
         [RelayCommand]
         private async Task ShowBuildInfoAsync()
@@ -632,13 +637,40 @@ namespace Apps2Samsung.ViewModels
                     cancellationToken.ThrowIfCancellationRequested();
                     if (string.IsNullOrWhiteSpace(provider.Url))
                         continue;
+
+                    // Multi-version providers (Jellyfin history) collapse to just
+                    // the latest release unless the user opted into the full list.
+                    var take = provider.Take;
+                    if (take > 1 && !AppSettings.Default.ShowAllJellyfinVersions)
+                        take = 1;
+
                     var release = await _addLatestRelease.GetReleasesAsync(
                         provider.Url,
                         provider.Prefix,
                         provider.DisplayName,
-                        provider.Take);
-                    if (release.Count > 0)
+                        take);
+                    if (release.Count == 0)
+                        continue;
+
+                    if (provider.ExpandAssets)
+                    {
+                        // One entry per .wgt so community apps show up as
+                        // first-class items instead of a single bundle entry.
+                        foreach (var r in release)
+                            foreach (var asset in r.Assets)
+                                list.Add(new GitHubRelease
+                                {
+                                    Name = Path.GetFileNameWithoutExtension(asset.FileName),
+                                    TagName = r.TagName,
+                                    PublishedAt = r.PublishedAt,
+                                    Url = r.Url,
+                                    Assets = new List<Asset> { asset }
+                                });
+                    }
+                    else
+                    {
                         list.AddRange(release);
+                    }
                 }
                 cancellationToken.ThrowIfCancellationRequested();
                 Releases.Clear();

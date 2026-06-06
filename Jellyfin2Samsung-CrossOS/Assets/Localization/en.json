@@ -45,6 +45,7 @@
   "CheckingTizenSdb": "Checking Tizen SDB...",
   "InitializationFailed": "Initialization failed...",
   "lblForceLogin": "Force Samsung certificate",
+  "lblShowAllJellyfinVersions": "Show all Jellyfin versions",
   "DeveloperModeRequired": "Samsung TV is not in developer mode...",
   "DeveloperIPMismatch": "Samsung Developer mode IP doesn't match this devices local IP, do you wish to continue?",
   "DeveloperIPReversed": "IP is in reversed order on the TV, please re-enable developer mode and type your local IP in reversed order. (ex: 192.168.1.2 → 2.1.168.192)",
