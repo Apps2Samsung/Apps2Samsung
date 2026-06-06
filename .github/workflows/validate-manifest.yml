@@ -1,0 +1,120 @@
+name: Validate app manifest
+
+# Guards third-party-apps.json — the catalog the desktop app loads at runtime.
+# Invalid JSON here means every user's Release dropdown goes empty (see #369).
+# On push, a broken manifest gets an automatic repair attempt + fix PR.
+
+on:
+  push:
+    branches: [main, beta]
+    paths:
+      - 'third-party-apps.json'
+      - 'Jellyfin2Samsung-CrossOS/Assets/third-party-apps.json'
+      - '.github/workflows/validate-manifest.yml'
+  pull_request:
+    paths:
+      - 'third-party-apps.json'
+      - 'Jellyfin2Samsung-CrossOS/Assets/third-party-apps.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Find manifest files on this branch
+        id: files
+        shell: bash
+        run: |
+          files=""
+          for f in third-party-apps.json Jellyfin2Samsung-CrossOS/Assets/third-party-apps.json; do
+            [ -f "$f" ] && files="$files $f"
+          done
+          if [ -z "$files" ]; then
+            echo "::error::No third-party-apps.json found on this branch"
+            exit 1
+          fi
+          echo "files=$files" >> "$GITHUB_OUTPUT"
+
+      - name: Validate (syntax + shape)
+        id: validate
+        shell: bash
+        run: |
+          broken=""
+          for f in ${{ steps.files.outputs.files }}; do
+            echo "::group::Validating $f"
+            if python3 -m json.tool "$f" > /dev/null 2> err.txt; then
+              echo "✓ syntax OK"
+              if jq -e '(.providers | type == "array" and length > 0)' "$f" > /dev/null; then
+                echo "✓ shape OK ($(jq '.providers | length' "$f") providers)"
+              else
+                echo "::error file=$f::'providers' missing or empty — the app would show no packages"
+                broken="$broken $f"
+              fi
+            else
+              echo "::error file=$f::invalid JSON — $(cat err.txt)"
+              broken="$broken $f"
+            fi
+            echo "::endgroup::"
+          done
+          echo "broken=$broken" >> "$GITHUB_OUTPUT"
+          [ -z "${broken// /}" ] || exit 1
+
+      - name: Attempt automatic repair + open fix PR
+        # Only on direct pushes — PRs just get the red check above.
+        if: failure() && github.event_name == 'push'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          repaired=false
+          for f in ${{ steps.validate.outputs.broken }}; do
+            echo "Attempting repair of $f"
+            if ! npx --yes jsonrepair "$f" > "$f.repaired"; then
+              echo "::warning::jsonrepair could not process $f"
+              rm -f "$f.repaired"; continue
+            fi
+            # The repair must produce valid JSON with the expected shape,
+            # otherwise we refuse it — never auto-commit garbage.
+            if python3 -m json.tool "$f.repaired" > /dev/null \
+               && jq -e '(.providers | type == "array" and length > 0)' "$f.repaired" > /dev/null; then
+              mv "$f.repaired" "$f"
+              repaired=true
+              echo "✓ repaired $f"
+            else
+              echo "::warning::repair output for $f failed re-validation — discarded"
+              rm -f "$f.repaired"
+            fi
+          done
+
+          if [ "$repaired" = false ]; then
+            echo "::error::Automatic repair failed — fix third-party-apps.json manually"
+            exit 1
+          fi
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          BRANCH="fix/manifest-json-${GITHUB_REF_NAME}"
+          git checkout -B "$BRANCH"
+          git add -A
+          git commit -m "fix: repair malformed third-party-apps.json (auto)"
+          git push -f origin "$BRANCH"
+
+          gh pr create --base "$GITHUB_REF_NAME" --head "$BRANCH" \
+            --title "Repair malformed third-party-apps.json (${GITHUB_REF_NAME})" \
+            --body "The manifest pushed to \`${GITHUB_REF_NAME}\` is invalid JSON — with it live, the app's Release dropdown goes empty for users (see #369).
+
+          This PR contains an automatic repair (\`jsonrepair\`), re-validated for syntax and shape. **Review the diff carefully before merging** — automated repairs fix delimiters, but can't know intent.
+
+          Triggering run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            || echo "Fix PR already open — branch force-updated with the new repair"
