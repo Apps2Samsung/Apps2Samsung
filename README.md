@@ -31,7 +31,7 @@
 
 | Channel    | Version                                                             | Notes                        |
 |------------|---------------------------------------------------------------------|------------------------------|
-| **Stable** | [v2.3.1.1](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.3.1.1)                                        | Recommended for most users   |
+| **Stable** | [v2.3.1.1](https://github.com/Apps2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.3.1.1)                                        | Recommended for most users   |
 | **Beta**   | [N/A](#)                                            | Includes new features        |
 
 <!-- versions:end -->
