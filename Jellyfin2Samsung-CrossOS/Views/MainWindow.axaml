@@ -40,7 +40,7 @@
                     CornerRadius="8">
 				<StackPanel Spacing="12" HorizontalAlignment="Center">
 					<TextBlock
-                               Text="Jellyfin Installer for Samsung (Tizen)"
+                               Text="App Installer for Samsung (Tizen)"
 								HorizontalAlignment="Center"
 								Foreground="White"
 								FontWeight="Medium"/>
