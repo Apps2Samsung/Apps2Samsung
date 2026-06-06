@@ -24,8 +24,8 @@ namespace Jellyfin2Samsung.Services
     public class UpdaterService : IUpdaterService
     {
         private readonly HttpClient _httpClient;
-        private const string RepoOwner = "Jellyfin2Samsung";
-        private const string RepoName = "Samsung-Jellyfin-Installer";
+        private const string RepoOwner = "Apps2Samsung";
+        private const string RepoName = "Apps2Samsung";
         private const string AtomFeedUrl = $"https://github.com/{RepoOwner}/{RepoName}/releases.atom";
         private const string ReleasesApiUrl = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/latest";
 

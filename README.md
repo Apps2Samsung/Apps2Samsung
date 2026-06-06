@@ -1,11 +1,13 @@
-# Jellyfin2Samsung
+# Apps2Samsung
+
+*Install any app on your Samsung TV.*
 
 <p align="center">
   <img src=".github/jellyfin-tizen-logo.svg" width="220" />
 </p>
 <p align="center">
-  <img src="https://img.shields.io/github/v/release/Jellyfin2Samsung/Samsung-Jellyfin-Installer?label=stable&style=for-the-badge" />
-  <img src="https://img.shields.io/github/v/release/Jellyfin2Samsung/Samsung-Jellyfin-Installer?include_prereleases&label=beta&style=for-the-badge" />
+  <img src="https://img.shields.io/github/v/release/Apps2Samsung/Apps2Samsung?label=stable&style=for-the-badge" />
+  <img src="https://img.shields.io/github/v/release/Apps2Samsung/Apps2Samsung?include_prereleases&label=beta&style=for-the-badge" />
   <img src="https://img.shields.io/badge/Tizen-TV-blue?style=for-the-badge" />
   <img src="https://img.shields.io/badge/OS-Windows%20%7C%20Linux%20%7C%20macOS-brightgreen?style=for-the-badge" />
   <a href="https://discord.gg/7mga3zh8Cv">
@@ -14,7 +16,8 @@
 </p>
 
 <p align="center">
-  <b>Jellyfin 2 Samsung</b> is a small cross-platform tool that helps you install <a href="https://jellyfin.org">Jellyfin</a> on <b>Samsung Smart TVs running Tizen OS</b>.
+  <b>Apps2Samsung</b> is a small cross-platform tool that side-loads <b>any app</b> onto <b>Samsung devices running Tizen OS</b> — Smart TVs, projectors and smart monitors —
+  <a href="https://jellyfin.org">Jellyfin</a>, Moonlight, Moonfin, Litefin and the whole <a href="https://github.com/Apps2Samsung/tizen-community-packages">community catalog</a>, or your own <code>.wgt</code>.
   <br/>
   It handles device detection, certificates, and installation so you don’t have to fight with Tizen Studio or manual sideloading.
   <br/><br/>
@@ -31,24 +34,24 @@
 
 | Channel    | Version                                                             | Notes                        |
 |------------|---------------------------------------------------------------------|------------------------------|
-| **Stable** | [v2.3.1.1](https://github.com/Apps2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.3.1.1)                                        | Recommended for most users   |
+| **Stable** | [v2.3.1.1](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v2.3.1.1)                                        | Recommended for most users   |
 | **Beta**   | [N/A](#)                                            | Includes new features        |
 
 <!-- versions:end -->
 
-👉 All releases: https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases
+👉 All releases: https://github.com/Apps2Samsung/Apps2Samsung/releases
 
 ---
 
 ## 🚀 How It Works (Short Version)
 
-Before you begin, ensure your Samsung TV is in Developer Mode. This is required to install applications like Jellyfin.
+Before you begin, ensure your Samsung TV is in Developer Mode. This is required to install apps on it.
 
-👉 [How to enable Developer Mode on your TV](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/wiki/FAQ#-how-to-enable-developer-mode-on-your-tv)
+👉 [How to enable Developer Mode on your TV](https://github.com/Apps2Samsung/Apps2Samsung/wiki/FAQ#-how-to-enable-developer-mode-on-your-tv)
 
 1. Run the tool on your computer
 2. Select your Samsung TV
-3. Pick a Jellyfin version
+3. Pick an app (Jellyfin, the community catalog, or a custom `.wgt`)
 4. Install
 
 That’s it. No manual certificate handling required in most cases.
@@ -56,7 +59,7 @@ That’s it. No manual certificate handling required in most cases.
 🎥 Full walkthrough:  
 https://www.youtube.com/watch?v=_8mSV5pW-ic
 
-**NixOS:** Clone the [`Samsung2Jellyfin` branch](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer.git) and run `nix-shell` — the shell environment will automatically build and launch the tool.
+**NixOS:** Clone the repository and run `nix-shell` — the shell environment will automatically build and launch the tool.
 
 ---
 
@@ -70,21 +73,14 @@ All detailed documentation lives in the wiki:
 - 🔮 [Alternative Install Methods](../../wiki/Alternatives)
 - 🗑️ [Uninstall / Remove](../../wiki/Remove)
 
----
-
-## ⚠️ Older Samsung TVs (Orsay OS)
-
-Samsung TVs running **Orsay OS** are not supported.
-
-Use this installer instead:  
-https://github.com/PatrickSt1991/Jellyfin-Orsay-Installer
+> Orsay-based TVs (pre-2015 models) are no longer supported.
 
 ---
 
 ## 📦 Community Packages
 
 Community-shared and older `.wgt` builds can be found here:  
-https://github.com/PatrickSt1991/tizen-community-packages
+https://github.com/Apps2Samsung/tizen-community-packages
 
 ---
 
@@ -98,7 +94,7 @@ Contributions of all kinds are welcome — whether it’s bug reports, feature r
 
 ## 🌍 Translations
 
-Want to help translate **Jellyfin2Samsung**? Community translations are always appreciated.
+Want to help translate **Apps2Samsung**? Community translations are always appreciated.
 
 You can contribute here:
 
@@ -123,8 +119,8 @@ If this tool helped you, consider supporting its development:
 
 This project is made possible by the people who contribute their time, knowledge, and feedback.
 
-<a href="https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Jellyfin2Samsung/Samsung-Jellyfin-Installer" />
+<a href="https://github.com/Apps2Samsung/Apps2Samsung/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Apps2Samsung/Apps2Samsung" />
 </a>
 
 Special thanks to:
@@ -134,4 +130,3 @@ Special thanks to:
   https://github.com/Moonfin-Client/Smart-TV
 - **@MoazSalem** — for the Litefin client and related work  
   https://github.com/MoazSalem/litefin/
-

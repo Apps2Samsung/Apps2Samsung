@@ -8,7 +8,7 @@
         Width="580"
         Height="410"
         WindowStartupLocation="CenterScreen"
-        Title="Jellyfin2Samsung">
+        Title="Apps2Samsung">
 	<Window.Resources>
 		<helpers:TvLogStatusToBrushConverter x:Key="TvLogStatusToBrushConverter"/>
 		<helpers:StringEqualsConverter x:Key="StringEquals"/>

@@ -7,7 +7,7 @@ assignees: PatrickSt1991
 ---
 
 **Have you checked the wiki?**
-[Samsung Jellyfin Installer Wiki](https://github.com/PatrickSt1991/Samsung-Jellyfin-Installer/wiki/FAQ)
+[Apps2Samsung Wiki](https://github.com/Apps2Samsung/Apps2Samsung/wiki/FAQ)
 
 **Have you included the log files in this issue?**
 - Yes  

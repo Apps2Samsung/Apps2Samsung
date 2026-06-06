@@ -15,7 +15,7 @@ namespace Jellyfin2Samsung.Services
     public class ProviderManifestService
     {
         private const string RemoteUrl =
-            "https://raw.githubusercontent.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/main/third-party-apps.json";
+            "https://raw.githubusercontent.com/Apps2Samsung/Apps2Samsung/main/third-party-apps.json";
 
         private static readonly Uri BundledUri =
             new("avares://Jellyfin2Samsung/Assets/third-party-apps.json");

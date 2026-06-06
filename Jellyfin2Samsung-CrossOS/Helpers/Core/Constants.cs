@@ -184,11 +184,11 @@ namespace Jellyfin2Samsung.Helpers.Core
         /// </summary>
         public static class Updater
         {
-            public const string RepoOwner = "Jellyfin2Samsung";
-            public const string RepoName = "Samsung-Jellyfin-Installer";
-            public const string AtomFeedUrl = "https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases.atom";
-            public const string ReleasesPageUrl = "https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases";
-            public const string LatestReleaseApiUrl = "https://api.github.com/repos/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/latest";
+            public const string RepoOwner = "Apps2Samsung";
+            public const string RepoName = "Apps2Samsung";
+            public const string AtomFeedUrl = "https://github.com/Apps2Samsung/Apps2Samsung/releases.atom";
+            public const string ReleasesPageUrl = "https://github.com/Apps2Samsung/Apps2Samsung/releases";
+            public const string LatestReleaseApiUrl = "https://api.github.com/repos/Apps2Samsung/Apps2Samsung/releases/latest";
             public const int UpdateCheckTimeoutSeconds = 10;
         }
 
