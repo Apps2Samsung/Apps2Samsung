@@ -1,9 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Jellyfin2Samsung.Interfaces;
+using Apps2Samsung.Interfaces;
 using System;
 
-namespace Jellyfin2Samsung.ViewModels
+namespace Apps2Samsung.ViewModels
 {
     public partial class IpInputDialogViewModel : ObservableObject
     {

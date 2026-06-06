@@ -1,11 +1,11 @@
 using Fleck;
-using Jellyfin2Samsung.Helpers.Core;
-using Jellyfin2Samsung.Models;
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Models;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Services
+namespace Apps2Samsung.Services
 {
     public class TvLogService
     {

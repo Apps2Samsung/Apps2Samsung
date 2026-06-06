@@ -6,24 +6,24 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <AssemblyName>Jellyfin2Samsung</AssemblyName>
+    <AssemblyName>Apps2Samsung</AssemblyName>
 	<PublishSingleFile>true</PublishSingleFile>
 	<SelfContained>true</SelfContained>
 	<!-- Windows icon -->
     <ApplicationIcon>Assets\jelly2sams.ico</ApplicationIcon>
 	<!-- macOS bundle info -->
-	<CFBundleName>Jellyfin2Samsung</CFBundleName>
-	<CFBundleDisplayName>Jellyfin to Samsung TV</CFBundleDisplayName>
-	<CFBundleIdentifier>com.yourcompany.jellyfin2samsung</CFBundleIdentifier>
+	<CFBundleName>Apps2Samsung</CFBundleName>
+	<CFBundleDisplayName>Apps2Samsung</CFBundleDisplayName>
+	<CFBundleIdentifier>com.madebypatrick.apps2samsung</CFBundleIdentifier>
 	<CFBundleVersion>1.0.0</CFBundleVersion>
 	<CFBundlePackageType>APPL</CFBundlePackageType>
 	<CFBundleSignature>????</CFBundleSignature>
-	<CFBundleExecutable>Jellyfin2Samsung</CFBundleExecutable>
+	<CFBundleExecutable>Apps2Samsung</CFBundleExecutable>
 	<CFBundleIconFile>jelly2sams.icns</CFBundleIconFile>
 	<!-- Linux desktop entry info -->
 	<LinuxDesktopFile>true</LinuxDesktopFile>
-	<LinuxDesktopFileName>jellyfin2samsung.desktop</LinuxDesktopFileName>
-	<PackageId>Jellyfin2Samsung</PackageId>
+	<LinuxDesktopFileName>apps2samsung.desktop</LinuxDesktopFileName>
+	<PackageId>Apps2Samsung</PackageId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
 	<DefineConstants>DEBUG;TRACE</DefineConstants>

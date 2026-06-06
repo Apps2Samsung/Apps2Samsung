@@ -1,5 +1,5 @@
-﻿using Jellyfin2Samsung.Helpers.Core;
-using Jellyfin2Samsung.Interfaces;
+﻿using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Helpers.Jellyfin.Plugins.KefinTweaks
+namespace Apps2Samsung.Helpers.Jellyfin.Plugins.KefinTweaks
 {
     public sealed class KefinTweaksPatch : IJellyfinPluginPatch
     {

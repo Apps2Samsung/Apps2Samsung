@@ -3,24 +3,24 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
-using Jellyfin2Samsung.Extensions;
-using Jellyfin2Samsung.Helpers;
-using Jellyfin2Samsung.Helpers.API;
-using Jellyfin2Samsung.Helpers.Core;
-using Jellyfin2Samsung.Helpers.Jellyfin;
-using Jellyfin2Samsung.Helpers.Jellyfin.Plugins;
-using Jellyfin2Samsung.Helpers.Tizen.Certificate;
-using Jellyfin2Samsung.Helpers.Tizen.Devices;
-using Jellyfin2Samsung.Interfaces;
-using Jellyfin2Samsung.Services;
-using Jellyfin2Samsung.ViewModels;
-using Jellyfin2Samsung.Views;
+using Apps2Samsung.Extensions;
+using Apps2Samsung.Helpers;
+using Apps2Samsung.Helpers.API;
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Helpers.Jellyfin;
+using Apps2Samsung.Helpers.Jellyfin.Plugins;
+using Apps2Samsung.Helpers.Tizen.Certificate;
+using Apps2Samsung.Helpers.Tizen.Devices;
+using Apps2Samsung.Interfaces;
+using Apps2Samsung.Services;
+using Apps2Samsung.ViewModels;
+using Apps2Samsung.Views;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
 using System.Net.Http;
 
-namespace Jellyfin2Samsung
+namespace Apps2Samsung
 {
     public partial class App : Application
     {

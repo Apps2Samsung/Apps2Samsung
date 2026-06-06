@@ -1,10 +1,10 @@
-﻿using Jellyfin2Samsung.Models;
+﻿using Apps2Samsung.Models;
 using System;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Jellyfin2Samsung.Helpers
+namespace Apps2Samsung.Helpers
 {
     public class AppSettings
     {

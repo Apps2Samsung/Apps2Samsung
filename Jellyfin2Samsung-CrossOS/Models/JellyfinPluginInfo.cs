@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Jellyfin2Samsung.Models
+namespace Apps2Samsung.Models
 {
     public class JellyfinPluginInfo
     {

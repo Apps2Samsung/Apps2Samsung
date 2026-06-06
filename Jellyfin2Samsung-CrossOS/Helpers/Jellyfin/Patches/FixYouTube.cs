@@ -1,4 +1,4 @@
-using Jellyfin2Samsung.Helpers.Core;
+using Apps2Samsung.Helpers.Core;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Jellyfin2Samsung.Helpers.Jellyfin.Fixes
+namespace Apps2Samsung.Helpers.Jellyfin.Fixes
 {
     public class FixYouTube
     {

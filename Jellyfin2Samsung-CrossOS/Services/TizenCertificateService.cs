@@ -1,8 +1,8 @@
-using Jellyfin2Samsung.Extensions;
-using Jellyfin2Samsung.Helpers;
-using Jellyfin2Samsung.Helpers.Core;
-using Jellyfin2Samsung.Helpers.Tizen.Certificate;
-using Jellyfin2Samsung.Interfaces;
+using Apps2Samsung.Extensions;
+using Apps2Samsung.Helpers;
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Helpers.Tizen.Certificate;
+using Apps2Samsung.Interfaces;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
@@ -20,7 +20,7 @@ using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Services
+namespace Apps2Samsung.Services
 {
     public class TizenCertificateService : ITizenCertificateService
     {

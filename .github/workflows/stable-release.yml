@@ -21,7 +21,7 @@ permissions:
   contents: write
 
 env:
-  PRODUCT_NAME: Jellyfin2Samsung
+  PRODUCT_NAME: Apps2Samsung
   PROJECT_DIR: Jellyfin2Samsung-CrossOS
   CONFIGURATION: Release
 
@@ -151,7 +151,7 @@ jobs:
       # ---------------- WINDOWS ----------------
       - name: Build Windows
         run: |
-          dotnet publish ${PROJECT_DIR}/Jellyfin2Samsung.csproj \
+          dotnet publish ${PROJECT_DIR}/Apps2Samsung.csproj \
             -c $CONFIGURATION -r win-x64 -p:SelfContained=true \
             -o publish/win-x64
 
@@ -163,7 +163,7 @@ jobs:
         run: |
           mkdir -p dist
           for ARCH in x64 arm64; do
-            dotnet publish ${PROJECT_DIR}/Jellyfin2Samsung.csproj \
+            dotnet publish ${PROJECT_DIR}/Apps2Samsung.csproj \
               -c $CONFIGURATION -r linux-$ARCH -p:SelfContained=true \
               -o publish/linux-$ARCH
 
@@ -191,42 +191,45 @@ jobs:
             esac
 
             PKG=deb-$ARCH
-            mkdir -p $PKG/opt/jellyfin2samsung \
+            mkdir -p $PKG/opt/apps2samsung \
                      $PKG/usr/share/{applications,icons/hicolor/256x256/apps}
 
-            cp -R publish/linux-$ARCH/. $PKG/opt/jellyfin2samsung/
-            chmod +x $PKG/opt/jellyfin2samsung/Jellyfin2Samsung
+            cp -R publish/linux-$ARCH/. $PKG/opt/apps2samsung/
+            chmod +x $PKG/opt/apps2samsung/Apps2Samsung
 
             # 🔥 quick+dirty: allow writes where your app writes
             mkdir -p \
-              $PKG/opt/jellyfin2samsung/Logs \
-              $PKG/opt/jellyfin2samsung/Downloads \
-              $PKG/opt/jellyfin2samsung/Assets/TizenSDB \
-              $PKG/opt/jellyfin2samsung/Assets/Certificate
+              $PKG/opt/apps2samsung/Logs \
+              $PKG/opt/apps2samsung/Downloads \
+              $PKG/opt/apps2samsung/Assets/TizenSDB \
+              $PKG/opt/apps2samsung/Assets/Certificate
             chmod -R 777 \
-              $PKG/opt/jellyfin2samsung/Logs \
-              $PKG/opt/jellyfin2samsung/Downloads \
-              $PKG/opt/jellyfin2samsung/Assets/TizenSDB \
-              $PKG/opt/jellyfin2samsung/Assets/Certificate
+              $PKG/opt/apps2samsung/Logs \
+              $PKG/opt/apps2samsung/Downloads \
+              $PKG/opt/apps2samsung/Assets/TizenSDB \
+              $PKG/opt/apps2samsung/Assets/Certificate
 
-            cp jellyfin.png $PKG/usr/share/icons/hicolor/256x256/apps/jellyfin2samsung.png
+            cp jellyfin.png $PKG/usr/share/icons/hicolor/256x256/apps/apps2samsung.png
 
-            cat > $PKG/usr/share/applications/jellyfin2samsung.desktop <<EOF
+            cat > $PKG/usr/share/applications/apps2samsung.desktop <<EOF
           [Desktop Entry]
-          Name=Jellyfin2Samsung
-          Exec=/opt/jellyfin2samsung/Jellyfin2Samsung
-          Icon=jellyfin2samsung
+          Name=Apps2Samsung
+          Exec=/opt/apps2samsung/Apps2Samsung
+          Icon=apps2samsung
           Type=Application
           Categories=Utility;
           EOF
 
             mkdir -p $PKG/DEBIAN
             cat > $PKG/DEBIAN/control <<EOF
-          Package: jellyfin2samsung
+          Package: apps2samsung
+          Conflicts: jellyfin2samsung
+          Replaces: jellyfin2samsung
+          Provides: jellyfin2samsung
           Version: ${VERSION}
           Architecture: ${DEB_ARCH}
           Maintainer: MadeByPatrick
-          Description: Jellyfin2Samsung
+          Description: Apps2Samsung
           EOF
 
             dpkg-deb --build $PKG
@@ -278,7 +281,7 @@ jobs:
       # ---------------- ARM64 ----------------
       - name: macOS ARM64 publish
         run: |
-          dotnet publish ${PROJECT_DIR}/Jellyfin2Samsung.csproj \
+          dotnet publish ${PROJECT_DIR}/Apps2Samsung.csproj \
             -c $CONFIGURATION -r osx-arm64 -p:SelfContained=true \
             -o publish/osx-arm64
 
@@ -287,10 +290,10 @@ jobs:
             dist/${PRODUCT_NAME}-${{ needs.stable-release.outputs.VERSION_TAG }}-macos-arm64.tar.gz \
             -C publish/osx-arm64 .
 
-          APP=Jellyfin2Samsung-arm64.app/Contents
+          APP=Apps2Samsung-arm64.app/Contents
           mkdir -p $APP/MacOS $APP/Resources
           cp -R publish/osx-arm64/* $APP/MacOS/
-          chmod +x $APP/MacOS/Jellyfin2Samsung
+          chmod +x $APP/MacOS/Apps2Samsung
           cp jellyfin.icns $APP/Resources/
 
           cat > $APP/Info.plist <<EOF
@@ -299,9 +302,9 @@ jobs:
             "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
-            <key>CFBundleName</key><string>Jellyfin2Samsung</string>
-            <key>CFBundleExecutable</key><string>Jellyfin2Samsung</string>
-            <key>CFBundleIdentifier</key><string>org.madebypatrick.jellyfin2samsung</string>
+            <key>CFBundleName</key><string>Apps2Samsung</string>
+            <key>CFBundleExecutable</key><string>Apps2Samsung</string>
+            <key>CFBundleIdentifier</key><string>org.madebypatrick.apps2samsung</string>
             <key>CFBundleVersion</key><string>${{ needs.stable-release.outputs.VERSION }}</string>
             <key>CFBundleShortVersionString</key><string>${{ needs.stable-release.outputs.VERSION }}</string>
             <key>CFBundlePackageType</key><string>APPL</string>
@@ -312,14 +315,14 @@ jobs:
           </plist>
           EOF
 
-          codesign --deep --force --sign - Jellyfin2Samsung-arm64.app
+          codesign --deep --force --sign - Apps2Samsung-arm64.app
 
           rm -rf dmg-arm64
           mkdir -p dmg-arm64
-          cp -R Jellyfin2Samsung-arm64.app dmg-arm64/Jellyfin2Samsung.app
+          cp -R Apps2Samsung-arm64.app dmg-arm64/Apps2Samsung.app
           ln -s /Applications dmg-arm64/Applications
           hdiutil create \
-            -volname Jellyfin2Samsung \
+            -volname Apps2Samsung \
             -srcfolder dmg-arm64 \
             -format UDZO \
             dist/${PRODUCT_NAME}-${{ needs.stable-release.outputs.VERSION_TAG }}-macos-arm64.dmg
@@ -327,7 +330,7 @@ jobs:
       # ---------------- INTEL ----------------
       - name: macOS Intel publish
         run: |
-          dotnet publish ${PROJECT_DIR}/Jellyfin2Samsung.csproj \
+          dotnet publish ${PROJECT_DIR}/Apps2Samsung.csproj \
             -c $CONFIGURATION -r osx-x64 -p:SelfContained=true \
             -o publish/osx-x64
 
@@ -335,10 +338,10 @@ jobs:
             dist/${PRODUCT_NAME}-${{ needs.stable-release.outputs.VERSION_TAG }}-macos-x64.tar.gz \
             -C publish/osx-x64 .
 
-          APP=Jellyfin2Samsung-x64.app/Contents
+          APP=Apps2Samsung-x64.app/Contents
           mkdir -p $APP/MacOS $APP/Resources
           cp -R publish/osx-x64/* $APP/MacOS/
-          chmod +x $APP/MacOS/Jellyfin2Samsung
+          chmod +x $APP/MacOS/Apps2Samsung
           cp jellyfin.icns $APP/Resources/
 
           cat > $APP/Info.plist <<EOF
@@ -347,9 +350,9 @@ jobs:
             "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
-            <key>CFBundleName</key><string>Jellyfin2Samsung</string>
-            <key>CFBundleExecutable</key><string>Jellyfin2Samsung</string>
-            <key>CFBundleIdentifier</key><string>org.madebypatrick.jellyfin2samsung</string>
+            <key>CFBundleName</key><string>Apps2Samsung</string>
+            <key>CFBundleExecutable</key><string>Apps2Samsung</string>
+            <key>CFBundleIdentifier</key><string>org.madebypatrick.apps2samsung</string>
             <key>CFBundleVersion</key><string>${{ needs.stable-release.outputs.VERSION }}</string>
             <key>CFBundleShortVersionString</key><string>${{ needs.stable-release.outputs.VERSION }}</string>
             <key>CFBundlePackageType</key><string>APPL</string>
@@ -360,14 +363,14 @@ jobs:
           </plist>
           EOF
 
-          codesign --deep --force --sign - Jellyfin2Samsung-x64.app
+          codesign --deep --force --sign - Apps2Samsung-x64.app
 
           rm -rf dmg-x64
           mkdir -p dmg-x64
-          cp -R Jellyfin2Samsung-x64.app dmg-x64/Jellyfin2Samsung.app
+          cp -R Apps2Samsung-x64.app dmg-x64/Apps2Samsung.app
           ln -s /Applications dmg-x64/Applications
           hdiutil create \
-            -volname Jellyfin2Samsung \
+            -volname Apps2Samsung \
             -srcfolder dmg-x64 \
             -format UDZO \
             dist/${PRODUCT_NAME}-${{ needs.stable-release.outputs.VERSION_TAG }}-macos-x64.dmg

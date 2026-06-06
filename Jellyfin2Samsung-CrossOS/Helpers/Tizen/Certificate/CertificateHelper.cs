@@ -1,4 +1,4 @@
-﻿using Jellyfin2Samsung.Models;
+﻿using Apps2Samsung.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +9,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Helpers.Tizen.Certificate
+namespace Apps2Samsung.Helpers.Tizen.Certificate
 {
     public class CertificateHelper
     {

@@ -1,8 +1,8 @@
-﻿using Jellyfin2Samsung.Helpers.API;
-using Jellyfin2Samsung.Helpers.Core;
-using Jellyfin2Samsung.Helpers.Jellyfin.Plugins.KefinTweaks;
-using Jellyfin2Samsung.Interfaces;
-using Jellyfin2Samsung.Models;
+﻿using Apps2Samsung.Helpers.API;
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Helpers.Jellyfin.Plugins.KefinTweaks;
+using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,7 +12,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Helpers.Jellyfin.Plugins
+namespace Apps2Samsung.Helpers.Jellyfin.Plugins
 {
     /// <summary>
     /// Responsible for:

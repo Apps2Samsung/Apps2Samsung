@@ -1,6 +1,6 @@
 using System;
 
-namespace Jellyfin2Samsung.Helpers.Core
+namespace Apps2Samsung.Helpers.Core
 {
     /// <summary>
     /// Provides URL manipulation utilities.

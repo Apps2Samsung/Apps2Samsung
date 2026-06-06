@@ -1,10 +1,10 @@
 using Avalonia;
 using Avalonia.Styling;
-using Jellyfin2Samsung.Helpers;
-using Jellyfin2Samsung.Interfaces;
+using Apps2Samsung.Helpers;
+using Apps2Samsung.Interfaces;
 using System;
 
-namespace Jellyfin2Samsung.Services
+namespace Apps2Samsung.Services
 {
     public class ThemeService : IThemeService
     {

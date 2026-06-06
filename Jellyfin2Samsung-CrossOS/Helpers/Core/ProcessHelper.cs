@@ -1,4 +1,4 @@
-﻿using Jellyfin2Samsung.Models;
+﻿using Apps2Samsung.Models;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Helpers.Core
+namespace Apps2Samsung.Helpers.Core
 {
     public class ProcessHelper
     {

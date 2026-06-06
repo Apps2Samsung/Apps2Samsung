@@ -1,10 +1,10 @@
-using Jellyfin2Samsung.Extensions;
-using Jellyfin2Samsung.Helpers;
-using Jellyfin2Samsung.Helpers.API;
-using Jellyfin2Samsung.Helpers.Core;
-using Jellyfin2Samsung.Helpers.Jellyfin;
-using Jellyfin2Samsung.Interfaces;
-using Jellyfin2Samsung.Models;
+using Apps2Samsung.Extensions;
+using Apps2Samsung.Helpers;
+using Apps2Samsung.Helpers.API;
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Helpers.Jellyfin;
+using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,7 +15,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Services
+namespace Apps2Samsung.Services
 {
     public class TizenInstallerService : ITizenInstallerService
     {

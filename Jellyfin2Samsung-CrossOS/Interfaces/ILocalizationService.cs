@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Jellyfin2Samsung.Interfaces
+namespace Apps2Samsung.Interfaces
 {
     public interface ILocalizationService
     {

@@ -1,11 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Jellyfin2Samsung.Interfaces;
+using Apps2Samsung.Interfaces;
 using System;
 using System.Diagnostics;
 
 
-namespace Jellyfin2Samsung.ViewModels
+namespace Apps2Samsung.ViewModels
 {
     public partial class InstallationCompleteViewModel : ObservableObject
     {

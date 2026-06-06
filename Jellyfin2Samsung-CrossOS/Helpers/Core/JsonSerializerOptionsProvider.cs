@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Jellyfin2Samsung.Helpers.Core
+namespace Apps2Samsung.Helpers.Core
 {
     /// <summary>
     /// Provides centralized, pre-configured JsonSerializerOptions for consistent JSON serialization

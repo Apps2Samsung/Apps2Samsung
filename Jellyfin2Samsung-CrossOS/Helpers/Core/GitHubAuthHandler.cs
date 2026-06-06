@@ -7,7 +7,7 @@ using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Helpers.Core
+namespace Apps2Samsung.Helpers.Core
 {
     public class GitHubAuthHandler : DelegatingHandler
     {

@@ -1,8 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:viewModels="clr-namespace:Jellyfin2Samsung.ViewModels"
-        xmlns:helpers="clr-namespace:Jellyfin2Samsung.Helpers.Converters"
-        x:Class="Jellyfin2Samsung.Views.TvLogsWindow"
+        xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+        xmlns:helpers="clr-namespace:Apps2Samsung.Helpers.Converters"
+        x:Class="Apps2Samsung.Views.TvLogsWindow"
         x:DataType="viewModels:TvLogsViewModel"
         Width="900"
         Height="650"
@@ -22,9 +22,9 @@
 	<Window.Styles>
 		<StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>
 		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
-		<StyleInclude Source="avares://Jellyfin2Samsung/Styles/Buttons.axaml"/>
-		<StyleInclude Source="avares://Jellyfin2Samsung/Styles/TextBlocks.axaml"/>
-		<StyleInclude Source="avares://Jellyfin2Samsung/Styles/ComboBoxes.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/TextBlocks.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/ComboBoxes.axaml"/>
 
 		<!-- Pulsing animation while listening -->
 		<Style Selector="Border.listening">

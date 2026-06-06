@@ -1,8 +1,8 @@
 using Avalonia.Controls;
-using Jellyfin2Samsung.ViewModels;
+using Apps2Samsung.ViewModels;
 using System;
 
-namespace Jellyfin2Samsung;
+namespace Apps2Samsung;
 
 public partial class InstallationCompleteWindow : Window
 {

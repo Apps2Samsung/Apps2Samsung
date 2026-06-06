@@ -1,6 +1,6 @@
-using Jellyfin2Samsung.Helpers.Core;
-using Jellyfin2Samsung.Interfaces;
-using Jellyfin2Samsung.Models;
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
 using System;
 using System.IO;
 using System.Net;
@@ -9,7 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Helpers.API
+namespace Apps2Samsung.Helpers.API
 {
     public class TizenApiClient
     {

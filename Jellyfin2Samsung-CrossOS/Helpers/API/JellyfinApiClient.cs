@@ -1,5 +1,5 @@
-using Jellyfin2Samsung.Helpers.Core;
-using Jellyfin2Samsung.Models;
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,7 +10,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Helpers.API
+namespace Apps2Samsung.Helpers.API
 {
     public class JellyfinApiClient
     {

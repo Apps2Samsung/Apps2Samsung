@@ -1,6 +1,6 @@
-﻿using Jellyfin2Samsung.Interfaces;
+﻿using Apps2Samsung.Interfaces;
 
-namespace Jellyfin2Samsung.Extensions
+namespace Apps2Samsung.Extensions
 {
     public static class LocalizationExtensions
     {

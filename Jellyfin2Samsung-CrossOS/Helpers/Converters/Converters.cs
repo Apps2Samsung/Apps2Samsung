@@ -1,10 +1,10 @@
 ﻿using Avalonia.Data.Converters;
 using Avalonia.Media;
-using Jellyfin2Samsung.Models;
+using Apps2Samsung.Models;
 using System;
 using System.Globalization;
 
-namespace Jellyfin2Samsung.Helpers.Converters
+namespace Apps2Samsung.Helpers.Converters
 {
     public class TvLogStatusToBrushConverter : IValueConverter
     {

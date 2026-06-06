@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace Jellyfin2Samsung.Models
+namespace Apps2Samsung.Models
 {
     public partial class BuildVersion : ObservableObject
     {

@@ -1,4 +1,4 @@
-﻿namespace Jellyfin2Samsung.Extensions
+﻿namespace Apps2Samsung.Extensions
 {
     public delegate void ProgressCallback(string message);
 }

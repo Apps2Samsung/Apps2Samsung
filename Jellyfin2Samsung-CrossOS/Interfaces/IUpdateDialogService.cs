@@ -1,7 +1,7 @@
-using Jellyfin2Samsung.Models;
+using Apps2Samsung.Models;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Interfaces
+namespace Apps2Samsung.Interfaces
 {
     /// <summary>
     /// Represents the user's choice in the update dialog.

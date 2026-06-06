@@ -1,7 +1,7 @@
 using Avalonia.Controls;
-using Jellyfin2Samsung.ViewModels;
+using Apps2Samsung.ViewModels;
 
-namespace Jellyfin2Samsung.Views
+namespace Apps2Samsung.Views
 {
     public partial class BuildInfoWindow : Window
     {

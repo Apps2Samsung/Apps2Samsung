@@ -1,7 +1,7 @@
-﻿using Jellyfin2Samsung.Helpers.Jellyfin.Plugins;
+﻿using Apps2Samsung.Helpers.Jellyfin.Plugins;
 using System.Threading.Tasks;
 
-namespace Jellyfin2Samsung.Interfaces
+namespace Apps2Samsung.Interfaces
 {
     public interface IJellyfinPluginPatch
     {

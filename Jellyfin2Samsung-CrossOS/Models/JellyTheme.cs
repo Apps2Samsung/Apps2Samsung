@@ -1,4 +1,4 @@
-namespace Jellyfin2Samsung.Models
+namespace Apps2Samsung.Models
 {
     /// <summary>
     /// Represents a JellyTheme CSS theme with its metadata.

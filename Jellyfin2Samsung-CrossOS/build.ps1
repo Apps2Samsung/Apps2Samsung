@@ -20,8 +20,8 @@ switch -Regex ($betaAnswer.Trim().ToLower()) {
 $ChannelSuffix = $(if ($IsBeta) { "-beta" } else { "" })
 
 # ---- Names & paths ----
-$ProjectName = "Jellyfin2Samsung"   # executable name produced by dotnet publish
-$ProductName = "Jellyfin2Samsung"          # artifact prefix
+$ProjectName = "Apps2Samsung"   # executable name produced by dotnet publish
+$ProductName = "Apps2Samsung"          # artifact prefix
 $OutputRoot  = Join-Path $PSScriptRoot "publish"
 $DistDir     = $OutputRoot
 
@@ -76,8 +76,8 @@ function Setup-LinuxPortable() {
     Write-Host "Setting up Linux package..." -ForegroundColor Green
     Ensure-Dir $out
 
-    if (Test-Path (Join-Path $PSScriptRoot "jellyfin2samsung.desktop")) {
-        Copy-Item (Join-Path $PSScriptRoot "jellyfin2samsung.desktop") $out -Force
+    if (Test-Path (Join-Path $PSScriptRoot "apps2samsung.desktop")) {
+        Copy-Item (Join-Path $PSScriptRoot "apps2samsung.desktop") $out -Force
     }
     if (Test-Path (Join-Path $PSScriptRoot "Assets\jelly2sams.png")) {
         Copy-Item (Join-Path $PSScriptRoot "Assets\jelly2sams.png") $out -Force
