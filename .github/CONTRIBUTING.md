@@ -1,6 +1,6 @@
 # Contributing Guidelines
 
-First off—thank you for your interest in contributing to **Samsung‑Jellyfin‑Installer**! This project exists thanks to community support and we welcome improvements, big or small. Whether you'd like to report a bug, suggest a feature, or contribute code, your help is appreciated.
+First off—thank you for your interest in contributing to **Apps2Samsung**! This project exists thanks to community support and we welcome improvements, big or small. Whether you'd like to report a bug, suggest a feature, or contribute code, your help is appreciated.
 
 ---
 
@@ -54,7 +54,7 @@ We welcome pull requests! Please:
 1. Fork the repository.  
 2. Clone your fork locally:  
    ```bash
-   git clone https://github.com/your-username/Samsung-Jellyfin-Installer.git
+   git clone https://github.com/your-username/Apps2Samsung.git
    ```  
 3. Open the solution in Visual Studio or your preferred IDE. Ensure you have:
    - Microsoft Edge WebView2 Runtime  
@@ -82,7 +82,7 @@ We welcome pull requests! Please:
 ### Staying Up to Date
 - Periodically sync with upstream:
   ```bash
-  git remote add upstream https://github.com/PatrickSt1991/Samsung-Jellyfin-Installer.git
+  git remote add upstream https://github.com/Apps2Samsung/Apps2Samsung.git
   git fetch upstream
   git rebase upstream/beta
   ```
@@ -97,7 +97,7 @@ This repository is licensed under the **MIT License**. By contributing, you agre
 
 ## 6. Code of Conduct
 
-Please abide by our [Code of Conduct](https://github.com/PatrickSt1991/Samsung-Jellyfin-Installer/blob/master/CODE_OF_CONDUCT.md). Maintain a respectful, welcoming environment for all contributors.
+Please abide by our [Code of Conduct](https://github.com/Apps2Samsung/Apps2Samsung/blob/beta/.github/CODE_OF_CONDUCT.md). Maintain a respectful, welcoming environment for all contributors.
 
 ---
 
@@ -108,4 +108,4 @@ Please abide by our [Code of Conduct](https://github.com/PatrickSt1991/Samsung-J
 - **Wiki**: for documentation  
 - **[Sponsor Page / ko-fi](https://ko-fi.com/patrickst)**: if you'd like to support the project financially  
 
-Thanks again for your contributions—together, we can make installation smoother and more reliable for Jellyfin users on Samsung Tizen TVs!  
+Thanks again for your contributions—together, we can make app installation smoother and more reliable on Samsung Tizen TVs!  

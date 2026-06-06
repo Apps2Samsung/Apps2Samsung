@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in **Samsung‑Jellyfin‑Installer**, please report it via the [GitHub Issues](https://github.com/PatrickSt1991/Samsung-Jellyfin-Installer/issues) page.  
+If you discover a security vulnerability in **Apps2Samsung**, please report it via the [GitHub Issues](https://github.com/Apps2Samsung/Apps2Samsung/issues) page.  
 
 Include as much information as possible:
 - Version of the installer you are using

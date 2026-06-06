@@ -182,7 +182,7 @@ namespace Jellyfin2Samsung.Helpers.Core
                 Platform.Windows =>
                     $"Windows:\n" +
                     $"  netstat -ano | findstr {port}\n\n" +
-                    $"  New-NetFirewallRule -DisplayName \"Jellyfin2Samsung Logs\" \\\n" +
+                    $"  New-NetFirewallRule -DisplayName \"Apps2Samsung Logs\" \\\n" +
                     $"    -Direction Inbound -Protocol TCP -LocalPort {port} -Action Allow\n",
 
                 Platform.Linux =>
@@ -191,7 +191,7 @@ namespace Jellyfin2Samsung.Helpers.Core
                 Platform.MacOS =>
                     "macOS:\n" +
                     "  System Settings -> Network -> Firewall -> Options\n" +
-                    "  Allow incoming connections for Jellyfin2Samsung\n",
+                    "  Allow incoming connections for Apps2Samsung\n",
 
                 _ => "Ensure your firewall allows inbound TCP connections.\n"
             };
