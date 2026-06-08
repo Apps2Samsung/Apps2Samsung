@@ -9,8 +9,20 @@ namespace Apps2Samsung.Helpers
     public class AppSettings
     {
         private const string FileName = "settings.json";
+
+        // Shipped assets and regenerable caches live next to the binary (inside the .app bundle on macOS).
         public static readonly string FolderPath = AppContext.BaseDirectory;
-        public static readonly string FilePath = Path.Combine(FolderPath, FileName);
+
+        // User settings live in the per-user OS data directory so they survive app updates that
+        // replace the install folder/bundle (e.g. a macOS .dmg reinstall).
+        //   Windows: %APPDATA%\Apps2Samsung   macOS/Linux: ~/.config/Apps2Samsung
+        public static readonly string DataFolderPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create),
+            "Apps2Samsung");
+        public static readonly string FilePath = Path.Combine(DataFolderPath, FileName);
+
+        // Pre-2.5.1 location: next to the binary. Used once to migrate existing users' settings.
+        private static readonly string LegacyFilePath = Path.Combine(FolderPath, FileName);
         public static readonly string TizenSdbPath = Path.Combine(FolderPath, "Assets", "TizenSDB");
         public static readonly string CertificatePath = Path.Combine(FolderPath, "Assets", "Certificate");
         public static readonly string ProfilePath = Path.Combine(FolderPath, "Assets", "TizenProfile");
@@ -134,6 +146,20 @@ namespace Apps2Samsung.Helpers
         {
             try
             {
+                // One-time migration: if no settings exist in the new per-user location but a
+                // legacy file sits next to the binary, adopt it and persist to the new location.
+                if (!File.Exists(FilePath) && File.Exists(LegacyFilePath))
+                {
+                    var legacyJson = File.ReadAllText(LegacyFilePath);
+                    var legacy = JsonSerializer.Deserialize<AppSettings>(legacyJson);
+                    if (legacy != null)
+                    {
+                        _instance = legacy;
+                        legacy.Save();
+                        return _instance;
+                    }
+                }
+
                 if (File.Exists(FilePath))
                 {
                     var json = File.ReadAllText(FilePath);
