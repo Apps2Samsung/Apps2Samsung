@@ -1,0 +1,215 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+             xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+             mc:Ignorable="d"
+             x:Class="Apps2Samsung.Views.AppSettingsView"
+             x:DataType="viewModels:AppSettingsViewModel">
+
+	<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,0">
+		<StackPanel Spacing="16">
+
+			<!-- Application Settings Section -->
+			<StackPanel Spacing="12">
+				<TextBlock Text="{Binding LblMainSettings}"
+						   FontSize="15"
+						   FontWeight="SemiBold"
+						   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+
+				<!-- Language Section -->
+				<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+					<TextBlock Grid.Column="0"
+							   Text="{Binding LblLanguage}"
+							   Classes="label"
+							   VerticalAlignment="Center"/>
+					<ComboBox Grid.Column="1"
+							  Classes="clean"
+							  ItemsSource="{Binding AvailableLanguages}"
+							  SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+							  HorizontalAlignment="Stretch">
+						<ComboBox.ItemTemplate>
+							<DataTemplate>
+								<TextBlock Text="{Binding Name}"/>
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+				</Grid>
+
+				<!-- Certificate Section -->
+				<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+					<TextBlock Grid.Column="0"
+							   Text="{Binding LblCertificate}"
+							   Classes="label"
+							   VerticalAlignment="Center"/>
+					<ComboBox Grid.Column="1"
+							  Classes="clean"
+							  ItemsSource="{Binding AvailableCertificates}"
+							  SelectedItem="{Binding SelectedCertificateObject, Mode=TwoWay}"
+							  HorizontalAlignment="Stretch">
+						<ComboBox.ItemTemplate>
+							<DataTemplate>
+								<TextBlock Text="{Binding Name}"/>
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+				</Grid>
+
+				<!-- Local Device IP -->
+				<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+					<TextBlock Grid.Column="0"
+							   Text="{Binding LblLocalIP}"
+							   Classes="label"
+							   VerticalAlignment="Center"/>
+
+					<ComboBox Grid.Column="1"
+							  Classes="clean"
+							  ItemsSource="{Binding NetworkInterfaces}"
+							  SelectedItem="{Binding SelectedNetworkInterface, Mode=TwoWay}"
+							  DisplayMemberBinding="{Binding DisplayText}"
+							  HorizontalAlignment="Stretch"/>
+				</Grid>
+
+				<!-- GitHub Token (PAT) -->
+				<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+					<TextBlock Grid.Column="0"
+							   Text="{Binding LblGitHubToken}"
+							   Classes="label"
+							   VerticalAlignment="Center"/>
+					<Grid Grid.Column="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+						<TextBox Grid.Column="0"
+								 Text="{Binding GitHubToken}"
+								 PasswordChar="{Binding GitHubTokenPasswordChar}"
+								 Watermark="ghp_xxxxxxxxxxxxxxxxxxxx"
+								 Classes="clean"
+								 HorizontalAlignment="Stretch"/>
+						<ToggleButton Grid.Column="1"
+									  IsChecked="{Binding ShowGitHubToken}"
+									  VerticalAlignment="Center"
+									  Width="36"
+									  Height="36"
+									  CornerRadius="4"
+									  Padding="0"
+									  ToolTip.Tip="Show/Hide token">
+							<Panel>
+								<fa:SymbolIcon Symbol="View" Width="16" Height="16" IsVisible="{Binding !ShowGitHubToken}"/>
+								<fa:SymbolIcon Symbol="Cancel" Width="16" Height="16" IsVisible="{Binding ShowGitHubToken}"/>
+							</Panel>
+						</ToggleButton>
+					</Grid>
+				</Grid>
+				<TextBlock Text="{Binding LblGitHubTokenHint}"
+						   FontSize="11"
+						   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+						   FontStyle="Italic"
+						   TextWrapping="Wrap"
+						   Margin="180,0,0,0"/>
+
+			</StackPanel>
+
+			<Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4"/>
+
+			<!-- Installation Options Section -->
+			<StackPanel Spacing="12">
+				<!-- Override Existing App -->
+				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+					<TextBlock Grid.Column="0"
+							   Text="{Binding LblTryOverwrite}"
+							   Classes="label"
+							   VerticalAlignment="Center"/>
+					<ToggleSwitch Grid.Column="1"
+								  IsChecked="{Binding TryOverwrite}"
+								  VerticalAlignment="Center"/>
+				</Grid>
+
+				<!-- Launch On Install -->
+				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+					<TextBlock Grid.Column="0"
+							   Text="{Binding LblLaunchOnInstall}"
+							   Classes="label"
+							   VerticalAlignment="Center"/>
+					<ToggleSwitch Grid.Column="1"
+								  IsChecked="{Binding OpenAfterInstall}"
+								  VerticalAlignment="Center"/>
+				</Grid>
+
+				<!-- Delete Previous -->
+				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+					<TextBlock Grid.Column="0"
+							   Text="{Binding LblDeletePrevious}"
+							   Classes="label"
+							   VerticalAlignment="Center"/>
+					<ToggleSwitch Grid.Column="1"
+								  IsChecked="{Binding DeletePreviousInstall}"
+								  VerticalAlignment="Center"/>
+				</Grid>
+				<!-- Force Login -->
+				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+					<TextBlock Grid.Column="0"
+							   Text="{Binding LblForceLogin}"
+							   Classes="label"
+							   VerticalAlignment="Center"/>
+					<ToggleSwitch Grid.Column="1"
+								  IsChecked="{Binding ForceSamsungLogin}"
+								  VerticalAlignment="Center"/>
+				</Grid>
+
+				<!-- Show all Jellyfin versions -->
+				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+					<TextBlock Grid.Column="0"
+							   Text="{Binding LblShowAllJellyfinVersions}"
+							   Classes="label"
+							   VerticalAlignment="Center"/>
+					<ToggleSwitch Grid.Column="1"
+								  IsChecked="{Binding ShowAllJellyfinVersions}"
+								  VerticalAlignment="Center"/>
+				</Grid>
+
+				<!-- RTL Reading -->
+				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+					<TextBlock Grid.Column="0"
+							   Text="{Binding LblRTL}"
+							   Classes="label"
+							   VerticalAlignment="Center"/>
+					<ToggleSwitch Grid.Column="1"
+								  IsChecked="{Binding RtlReading}"
+								  VerticalAlignment="Center"/>
+				</Grid>
+
+				<!-- Keep WGT File -->
+				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+					<TextBlock Grid.Column="0"
+							   Text="{Binding LblKeepWGTFile}"
+							   Classes="label"
+							   VerticalAlignment="Center"/>
+					<ToggleSwitch Grid.Column="1"
+								  IsChecked="{Binding KeepWGTFile}"
+								  VerticalAlignment="Center"/>
+				</Grid>
+			</StackPanel>
+
+			<Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4"/>
+
+			<!-- Diagnostics Section -->
+			<StackPanel Spacing="12">
+				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+					<TextBlock Grid.Column="0"
+							   Text="{Binding LblOpenLogsFolder}"
+							   Classes="label"
+							   VerticalAlignment="Center"/>
+					<Button Grid.Column="1"
+							Classes="secondary"
+							Command="{Binding OpenLogsFolderCommand}"
+							Padding="10,6">
+						<StackPanel Orientation="Horizontal" Spacing="6">
+							<fa:SymbolIcon Symbol="Folder" Width="16" Height="16"/>
+							<TextBlock Text="{Binding LblOpenLogsFolder}"/>
+						</StackPanel>
+					</Button>
+				</Grid>
+			</StackPanel>
+
+		</StackPanel>
+	</ScrollViewer>
+</UserControl>

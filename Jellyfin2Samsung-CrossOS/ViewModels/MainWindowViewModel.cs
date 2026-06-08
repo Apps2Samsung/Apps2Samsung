@@ -35,7 +35,7 @@ namespace Apps2Samsung.ViewModels
         private readonly DeviceHelper _deviceHelper;
         private readonly TizenApiClient _tizenApiClient;
         private readonly PackageHelper _packageHelper;
-        private readonly JellyfinConfigViewModel _settingsViewModel;
+        private readonly SettingsWindowViewModel _settingsViewModel;
         private readonly AddLatestRelease _addLatestRelease;
         private readonly ProviderManifestService _providerManifestService;
         private CancellationTokenSource? _samsungLoginCts;
@@ -106,7 +106,7 @@ namespace Apps2Samsung.ViewModels
             TizenApiClient tizenApiClient,
             PackageHelper packageHelper,
             FileHelper fileHelper,
-            JellyfinConfigViewModel settingsViewModel
+            SettingsWindowViewModel settingsViewModel
         )
         {
             _tizenInstaller = tizenInstaller;
@@ -533,7 +533,7 @@ namespace Apps2Samsung.ViewModels
         private async Task OpenSettings()
         {
             var showAllBefore = AppSettings.Default.ShowAllJellyfinVersions;
-            var settingsWindow = new JellyfinConfigView(_settingsViewModel);
+            var settingsWindow = new Apps2Samsung.Views.SettingsWindow(_settingsViewModel);
 
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {

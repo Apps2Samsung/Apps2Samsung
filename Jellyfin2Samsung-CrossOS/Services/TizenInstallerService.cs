@@ -22,7 +22,7 @@ namespace Apps2Samsung.Services
         private readonly HttpClient _httpClient;
         private readonly IDialogService _dialogService;
         private readonly AppSettings _appSettings;
-        private readonly JellyfinPackagePatcher _jellyfinWebPackagePatcher;
+        private readonly IEnumerable<IPackagePatcher> _packagePatchers;
         private readonly ProcessHelper _processHelper;
 
         public string? TizenSdbPath { get; private set; }
@@ -32,14 +32,14 @@ namespace Apps2Samsung.Services
             HttpClient httpClient,
             IDialogService dialogService,
             AppSettings appSettings,
-            JellyfinPackagePatcher jellyfinWebPackagePatcher,
+            IEnumerable<IPackagePatcher> packagePatchers,
             JellyfinApiClient jellyfinApiClient,
             ProcessHelper processHelper)
         {
             _httpClient = httpClient;
             _dialogService = dialogService;
             _appSettings = appSettings;
-            _jellyfinWebPackagePatcher = jellyfinWebPackagePatcher;
+            _packagePatchers = packagePatchers;
             _processHelper = processHelper;
         }
 
@@ -267,11 +267,12 @@ namespace Apps2Samsung.Services
                 if (!certificateResult.Success)
                     return certificateResult.InstallResult;
 
-                // Step 5: Apply Jellyfin configuration if needed
-                if (packageUrl.Contains(Constants.AppIdentifiers.JellyfinAppName, StringComparison.OrdinalIgnoreCase))
+                // Step 5: Apply app-specific configuration to the package, if any patcher matches.
+                var patcher = _packagePatchers.FirstOrDefault(p => p.CanHandle(packageUrl));
+                if (patcher != null)
                 {
-                    Trace.WriteLine("Applying Jellyfin Configuration");
-                    await ApplyConfigurationAsync(packageUrl, progress);
+                    Trace.WriteLine($"Applying configuration via {patcher.GetType().Name}");
+                    await patcher.ApplyAsync(packageUrl);
                 }
 
                 // Step 6: Resign package if needed
@@ -515,25 +516,6 @@ namespace Apps2Samsung.Services
                 DistributorP12 = distributorp12,
                 P12Password = p12Password
             };
-        }
-
-        #endregion
-
-        #region Configuration Application
-
-        private async Task ApplyConfigurationAsync(string packageUrl, ProgressCallback? progress)
-        {
-            if (string.IsNullOrEmpty(_appSettings.JellyfinIP))
-                return;
-
-            var name = Path.GetFileName(packageUrl);
-            var isJellyfinPackage = name.Contains("jellyfin", StringComparison.OrdinalIgnoreCase);
-
-            if (!isJellyfinPackage)
-                return;
-
-            // Apply server settings via JS injection
-            await _jellyfinWebPackagePatcher.ApplyJellyfinConfigAsync(packageUrl);
         }
 
         #endregion

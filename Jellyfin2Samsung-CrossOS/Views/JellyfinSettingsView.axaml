@@ -1,0 +1,712 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+             xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+             mc:Ignorable="d"
+             x:Class="Apps2Samsung.Views.JellyfinSettingsView"
+             x:DataType="viewModels:JellyfinSettingsViewModel">
+
+	<TabControl Padding="0">
+
+		<!-- TAB: Server & Auto-Login -->
+		<TabItem Header="{Binding LblTabServer}">
+			<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,0">
+				<StackPanel Spacing="16">
+
+					<!-- Jellyfin-only notice -->
+					<Border Background="#FFF3CD"
+							CornerRadius="4"
+							Padding="10,8"
+							BorderBrush="#FFE69C"
+							BorderThickness="1">
+						<StackPanel Orientation="Horizontal" Spacing="8">
+							<fa:SymbolIcon Symbol="Important" Width="16" Height="16" Foreground="#856404" VerticalAlignment="Center"/>
+							<TextBlock Text="{Binding LblJellyfinOnlyNotice}"
+									   Foreground="#856404"
+									   FontSize="12"
+									   FontWeight="SemiBold"
+									   TextWrapping="Wrap"
+									   VerticalAlignment="Center"/>
+						</StackPanel>
+					</Border>
+
+					<!-- Server Settings Section -->
+					<StackPanel Spacing="12">
+						<TextBlock Text="{Binding LblServerSettings}"
+								   FontSize="15"
+								   FontWeight="SemiBold"
+								   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+
+						<!-- Server Input Mode Selection -->
+						<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+							<TextBlock Grid.Column="0" Text="{Binding LblServerInputMode}" Classes="label" VerticalAlignment="Center"/>
+							<ComboBox Grid.Column="1"
+									  ItemsSource="{Binding AvailableServerInputModes}"
+									  SelectedItem="{Binding SelectedServerInputMode}"
+									  Classes="clean"
+									  HorizontalAlignment="Stretch"/>
+						</Grid>
+
+						<!-- Server IP:Port Mode -->
+						<Grid ColumnDefinitions="180,*" ColumnSpacing="12"
+							  IsVisible="{Binding IsServerIpPortMode}">
+							<TextBlock Grid.Column="0"
+									   Text="{Binding ServerIP}"
+									   Classes="label"
+									   VerticalAlignment="Center"/>
+							<Grid Grid.Column="1">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="Auto" />
+									<ColumnDefinition Width="Auto" />
+									<ColumnDefinition Width="*" />
+									<ColumnDefinition Width="Auto" />
+									<ColumnDefinition Width="Auto" />
+								</Grid.ColumnDefinitions>
+
+								<ComboBox Grid.Column="0"
+										  SelectedItem="{Binding SelectedJellyfinProtocol, Mode=TwoWay}"
+										  Classes="clean">
+									<x:String>http</x:String>
+									<x:String>https</x:String>
+								</ComboBox>
+
+								<TextBlock Grid.Column="1"
+										   Text="://"
+										   VerticalAlignment="Center"/>
+
+								<TextBox Grid.Column="2"
+										Text="{Binding JellyfinServerIp}"
+										Classes="clean"
+										HorizontalAlignment="Stretch"/>
+
+								<TextBlock Grid.Column="3"
+										   Text=":"
+										   VerticalAlignment="Center"/>
+
+								<AutoCompleteBox Grid.Column="4"
+										   ItemsSource="{Binding JellyfinPorts}"
+										   Text="{Binding SelectedJellyfinPort, Mode=TwoWay}"
+										   Classes="clean" />
+							</Grid>
+						</Grid>
+
+						<!-- Server IP:Port:BasePath Mode -->
+						<Grid ColumnDefinitions="180,*" ColumnSpacing="12"
+							  IsVisible="{Binding IsServerIpPortBasePathMode}">
+							<TextBlock Grid.Column="0"
+									   Text="{Binding ServerIP}"
+									   Classes="label"
+									   VerticalAlignment="Center"/>
+							<Grid Grid.Column="1">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="Auto" />
+									<ColumnDefinition Width="Auto" />
+									<ColumnDefinition Width="*" />
+									<ColumnDefinition Width="Auto" />
+									<ColumnDefinition Width="Auto" />
+									<ColumnDefinition Width="Auto" />
+								</Grid.ColumnDefinitions>
+
+								<ComboBox Grid.Column="0"
+										  SelectedItem="{Binding SelectedJellyfinProtocol, Mode=TwoWay}"
+										  Classes="clean">
+									<x:String>http</x:String>
+									<x:String>https</x:String>
+								</ComboBox>
+
+								<TextBlock Grid.Column="1"
+										   Text="://"
+										   VerticalAlignment="Center"/>
+
+								<TextBox Grid.Column="2"
+										Text="{Binding JellyfinServerIp}"
+										Classes="clean"
+										Watermark="192.168.1.100"
+										HorizontalAlignment="Stretch"/>
+
+								<TextBlock Grid.Column="3"
+										   Text=":"
+										   VerticalAlignment="Center"/>
+
+								<AutoCompleteBox Grid.Column="4"
+										   ItemsSource="{Binding JellyfinPorts}"
+										   Text="{Binding SelectedJellyfinPort, Mode=TwoWay}"
+										   Classes="clean" />
+
+								<TextBox Grid.Column="5"
+										 Text="{Binding JellyfinBasePath}"
+										 Watermark="/jellyfin"
+										 Classes="clean"
+										 MinWidth="80"/>
+							</Grid>
+						</Grid>
+
+						<!-- Server Full URL Mode -->
+						<Grid ColumnDefinitions="180,*" ColumnSpacing="12"
+							  IsVisible="{Binding IsServerFullUrlMode}">
+							<TextBlock Grid.Column="0"
+									   Text="{Binding LblServerUrl}"
+									   Classes="label"
+									   VerticalAlignment="Center"/>
+							<TextBox Grid.Column="1"
+									 Text="{Binding JellyfinFullUrlInput}"
+									 Watermark="https://example.com:8096/jellyfin"
+									 Classes="clean"
+									 HorizontalAlignment="Stretch"/>
+						</Grid>
+
+						<!-- Base Path hint moved to Full URL watermark -->
+
+						<!-- Server Connection Status (auto-validates) -->
+						<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+							<TextBlock Grid.Column="0"
+									   Text="{Binding LblConnectionStatus}"
+									   Classes="label"
+									   VerticalAlignment="Center"/>
+							<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+								<Border Background="{Binding ServerStatusColor}"
+										CornerRadius="4"
+										Padding="8,4">
+									<TextBlock Text="{Binding ServerConnectionStatus}"
+											   Foreground="White"
+											   FontSize="12"/>
+								</Border>
+								<Button Classes="secondary"
+										Content="{Binding LblTestServer}"
+										Command="{Binding TestServerCommand}"
+										IsEnabled="{Binding ServerIpSet}"
+										Padding="8,4"
+										FontSize="12"/>
+							</StackPanel>
+						</Grid>
+
+						<!-- mDNS (.local) Warning -->
+						<Border IsVisible="{Binding ShowMdnsWarning}"
+								Background="#FFF3CD"
+								CornerRadius="4"
+								Padding="10,8"
+								Margin="0,4,0,0">
+							<TextBlock Text="{Binding LblMdnsWarning}"
+									   Foreground="#856404"
+									   FontSize="12"
+									   TextWrapping="Wrap"/>
+						</Border>
+
+					</StackPanel>
+
+					<Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4"/>
+
+					<!-- Auto-Login Settings Section -->
+					<StackPanel Spacing="12">
+						<TextBlock Text="{Binding LblAutoLoginSettings}"
+								   FontSize="15"
+								   FontWeight="SemiBold"
+								   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+
+						<!-- Username -->
+						<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+							<TextBlock Grid.Column="0"
+									   Text="{Binding LblJellyfinUsername}"
+									   Classes="label"
+									   VerticalAlignment="Center"/>
+							<TextBox Grid.Column="1"
+									 Text="{Binding JellyfinUsername}"
+									 Watermark="Jellyfin username"
+									 Classes="clean"
+									 HorizontalAlignment="Stretch"/>
+						</Grid>
+
+						<!-- Password -->
+						<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+							<TextBlock Grid.Column="0"
+									   Text="{Binding LblJellyfinPassword}"
+									   Classes="label"
+									   VerticalAlignment="Center"/>
+							<TextBox Grid.Column="1"
+									 Text="{Binding JellyfinPassword}"
+									 PasswordChar="*"
+									 Watermark="Jellyfin password"
+									 Classes="clean"
+									 HorizontalAlignment="Stretch"/>
+						</Grid>
+
+						<!-- Authentication Status & Button -->
+						<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+							<TextBlock Grid.Column="0"
+									   Text="{Binding LblConnectionStatus}"
+									   Classes="label"
+									   VerticalAlignment="Center"/>
+							<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+								<Border Background="{Binding AuthStatusColor}"
+										CornerRadius="4"
+										Padding="8,4">
+									<TextBlock Text="{Binding AuthenticationStatus}"
+											   Foreground="White"
+											   FontSize="12"/>
+								</Border>
+								<Button Classes="primary"
+										Content="{Binding LblAuthenticate}"
+										Command="{Binding AuthenticateCommand}"
+										IsEnabled="{Binding CanLogin}"
+										Padding="8,4"
+										FontSize="12"/>
+								<Button Classes="secondary"
+										Content="{Binding LblLogout}"
+										Command="{Binding LogoutCommand}"
+										Padding="8,4"
+										FontSize="12"/>
+								<Button Classes="secondary"
+										Content="{Binding LblRefreshUsers}"
+										Command="{Binding RefreshUsersCommand}"
+										IsVisible="{Binding IsJellyfinAdmin}"
+										Padding="8,4"
+										FontSize="12"/>
+							</StackPanel>
+						</Grid>
+
+						<!-- User Selection (Admin only) -->
+						<StackPanel Spacing="8" IsVisible="{Binding IsJellyfinAdmin}">
+							<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+								<TextBlock Grid.Column="0"
+										   Text="{Binding LblSelectUsers}"
+										   Classes="label"
+										   VerticalAlignment="Top"
+										   Margin="0,8,0,0"/>
+								<ListBox Grid.Column="1"
+										 ItemsSource="{Binding AvailableJellyfinUsers}"
+										 SelectedItems="{Binding SelectedJellyfinUsers}"
+										 SelectionMode="Multiple"
+										 MaxHeight="120"
+										 Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+										 BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+										 BorderThickness="1"
+										 CornerRadius="4"
+										 Padding="4">
+									<ListBox.ItemTemplate>
+										<DataTemplate>
+											<TextBlock Text="{Binding Name}"
+													   Padding="4,2"/>
+										</DataTemplate>
+									</ListBox.ItemTemplate>
+								</ListBox>
+							</Grid>
+							<TextBlock Text="{Binding LblUserSelectionHint}"
+									   FontSize="11"
+									   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+									   FontStyle="Italic"
+									   Margin="180,0,0,0"/>
+						</StackPanel>
+
+						<!-- Installed Plugins Inventory -->
+						<StackPanel Spacing="8" IsVisible="{Binding IsAuthenticated}">
+							<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+								<TextBlock Grid.Column="0"
+										   Text="{Binding LblInstalledPlugins}"
+										   Classes="label"
+										   VerticalAlignment="Top"
+										   Margin="0,8,0,0"/>
+								<Border Grid.Column="1"
+										Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+										BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+										BorderThickness="1"
+										CornerRadius="4"
+										Padding="4"
+										MinHeight="40"
+										MaxHeight="160">
+									<ScrollViewer VerticalScrollBarVisibility="Auto">
+										<StackPanel>
+											<ItemsControl ItemsSource="{Binding InstalledPlugins}">
+												<ItemsControl.ItemTemplate>
+													<DataTemplate>
+														<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Margin="2,3">
+															<CheckBox Grid.Column="0"
+																  IsChecked="{Binding IsSelected}"
+																  IsEnabled="{Binding IsSupported}"
+																  VerticalAlignment="Center"/>
+															<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+																<TextBlock Text="{Binding Name}"/>
+																<TextBlock Text="{Binding Version, StringFormat='(v{0})'}"
+																	   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+																	   FontSize="11"
+																	   IsVisible="{Binding HasVersion}"/>
+															</StackPanel>
+															<Border Grid.Column="2"
+																	Background="#7F8C8D"
+																	CornerRadius="3"
+																	Padding="6,1"
+																	VerticalAlignment="Center"
+																	IsVisible="{Binding !IsSupported}">
+																<TextBlock Text="{Binding $parent[ItemsControl].DataContext.LblPluginUnsupported}"
+																	   Foreground="White"
+																	   FontSize="10"/>
+															</Border>
+														</Grid>
+													</DataTemplate>
+												</ItemsControl.ItemTemplate>
+											</ItemsControl>
+										</StackPanel>
+									</ScrollViewer>
+								</Border>
+							</Grid>
+							<TextBlock Text="{Binding LblInstalledPluginsHint}"
+									   FontSize="11"
+									   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+									   FontStyle="Italic"
+									   Margin="180,0,0,0"/>
+						</StackPanel>
+					</StackPanel>
+
+					<Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4"/>
+
+					<!-- Advanced Settings Section -->
+					<StackPanel Spacing="12">
+						<TextBlock Text="{Binding LblAdvancedSettings}"
+								   FontSize="15"
+								   FontWeight="SemiBold"
+								   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+
+						<!-- Dev Logs -->
+						<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+							<TextBlock Grid.Column="0"
+									   Text="{Binding LblEnableDevLogs}"
+									   Classes="label"
+									   VerticalAlignment="Center"/>
+							<Grid Grid.Column="1" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+								<Button Grid.Column="0"
+										Classes="secondary"
+										HorizontalAlignment="Stretch"
+										Command="{Binding OpenDebugWindowCommand}"
+										IsEnabled="{Binding CanOpenDebugWindow}">
+									<StackPanel Orientation="Horizontal" Spacing="6">
+										<fa:SymbolIcon Symbol="Document" Width="16" Height="16" />
+										<TextBlock Text="{Binding lblOpenDebugWindow}" />
+									</StackPanel>
+								</Button>
+								<ToggleSwitch Grid.Column="1"
+											  IsChecked="{Binding EnableDevLogs, Mode=TwoWay}"
+											  IsEnabled="{Binding ServerIpSet}"/>
+							</Grid>
+						</Grid>
+
+						<!-- Use Server Scripts -->
+						<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+							<TextBlock Grid.Column="0"
+									   Text="{Binding LblUseServerScripts}"
+									   Classes="label"
+									   VerticalAlignment="Center"/>
+							<ToggleSwitch Grid.Column="1"
+										  IsChecked="{Binding UseServerScripts}"
+										  IsEnabled="{Binding ServerIpSet}"/>
+						</Grid>
+
+						<!-- Fix YouTube 153 -->
+						<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+							<TextBlock Grid.Column="0"
+									   Text="{Binding lblFixYouTube153}"
+									   Classes="label"
+									   VerticalAlignment="Center"/>
+							<ToggleSwitch Grid.Column="1"
+									IsEnabled="{Binding ServerIpSet}"
+									IsChecked="{Binding PatchYoutubePlugin}"/>
+						</Grid>
+
+						<!-- Spacer -->
+						<Border Height="24"/>
+					</StackPanel>
+
+				</StackPanel>
+			</ScrollViewer>
+		</TabItem>
+
+		<!-- TAB: Playback (Browser Settings) -->
+		<TabItem Header="{Binding LblTabPlayback}">
+			<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,0">
+				<StackPanel Spacing="12">
+
+					<!-- Jellyfin-only notice -->
+					<Border Background="#FFF3CD"
+							CornerRadius="4"
+							Padding="10,8"
+							BorderBrush="#FFE69C"
+							BorderThickness="1">
+						<StackPanel Orientation="Horizontal" Spacing="8">
+							<fa:SymbolIcon Symbol="Important" Width="16" Height="16" Foreground="#856404" VerticalAlignment="Center"/>
+							<TextBlock Text="{Binding LblJellyfinOnlyNotice}"
+									   Foreground="#856404"
+									   FontSize="12"
+									   FontWeight="SemiBold"
+									   TextWrapping="Wrap"
+									   VerticalAlignment="Center"/>
+						</StackPanel>
+					</Border>
+
+					<StackPanel Spacing="12" IsEnabled="{Binding IsAuthenticated}">
+					<TextBlock Text="{Binding LblBrowserSettings}"
+							   FontSize="15"
+							   FontWeight="SemiBold"
+							   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+
+					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+						<TextBlock Grid.Column="0" Text="{Binding LblEnableBackdrops}" Classes="label" VerticalAlignment="Center"/>
+						<ToggleSwitch Grid.Column="1" IsChecked="{Binding EnableBackdrops}"/>
+					</Grid>
+
+					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+						<TextBlock Grid.Column="0" Text="{Binding LblEnableThemeSongs}" Classes="label" VerticalAlignment="Center"/>
+						<ToggleSwitch Grid.Column="1" IsChecked="{Binding EnableThemeSongs}"/>
+					</Grid>
+
+					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+						<TextBlock Grid.Column="0" Text="{Binding LblEnableThemeVideos}" Classes="label" VerticalAlignment="Center"/>
+						<ToggleSwitch Grid.Column="1" IsChecked="{Binding EnableThemeVideos}"/>
+					</Grid>
+
+					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+						<TextBlock Grid.Column="0" Text="{Binding LblBackdropScreensaver}" Classes="label" VerticalAlignment="Center"/>
+						<ToggleSwitch Grid.Column="1" IsChecked="{Binding BackdropScreensaver}"/>
+					</Grid>
+
+					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+						<TextBlock Grid.Column="0" Text="{Binding LblDetailsBanner}" Classes="label" VerticalAlignment="Center"/>
+						<ToggleSwitch Grid.Column="1" IsChecked="{Binding DetailsBanner}"/>
+					</Grid>
+
+					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+						<TextBlock Grid.Column="0" Text="{Binding LblCinemaMode}" Classes="label" VerticalAlignment="Center"/>
+						<ToggleSwitch Grid.Column="1" IsChecked="{Binding CinemaMode}"/>
+					</Grid>
+
+					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+						<TextBlock Grid.Column="0" Text="{Binding LblNextUpEnabled}" Classes="label" VerticalAlignment="Center"/>
+						<ToggleSwitch Grid.Column="1" IsChecked="{Binding NextUpEnabled}"/>
+					</Grid>
+
+					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+						<TextBlock Grid.Column="0" Text="{Binding LblEnableExternalVideoPlayers}" Classes="label" VerticalAlignment="Center"/>
+						<ToggleSwitch Grid.Column="1" IsChecked="{Binding EnableExternalVideoPlayers}"/>
+					</Grid>
+
+					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+						<TextBlock Grid.Column="0" Text="{Binding LblSkipIntros}" Classes="label" VerticalAlignment="Center"/>
+						<ToggleSwitch Grid.Column="1" IsChecked="{Binding SkipIntros}"/>
+					</Grid>
+
+					<Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4"/>
+
+					<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+						<TextBlock Grid.Column="0" Text="{Binding LblAudioLanguagePreference}" Classes="label" VerticalAlignment="Center"/>
+						<TextBox Grid.Column="1" Text="{Binding AudioLanguagePreference}" Classes="clean"/>
+					</Grid>
+
+					<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+						<TextBlock Grid.Column="0" Text="{Binding LblSubtitleLanguagePreference}" Classes="label" VerticalAlignment="Center"/>
+						<TextBox Grid.Column="1" Text="{Binding SubtitleLanguagePreference}" Classes="clean"/>
+					</Grid>
+
+					<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+						<TextBlock Grid.Column="0" Text="{Binding Theme}" Classes="label" VerticalAlignment="Center"/>
+						<ComboBox Grid.Column="1"
+								  ItemsSource="{Binding AvailableThemes}"
+								  SelectedItem="{Binding SelectedTheme}"
+								  Classes="clean"/>
+					</Grid>
+
+					<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+						<TextBlock Grid.Column="0" Text="{Binding LblSubtitleMode}" Classes="label" VerticalAlignment="Center"/>
+						<ComboBox Grid.Column="1"
+								  ItemsSource="{Binding AvailableSubtitleModes}"
+								  SelectedItem="{Binding SelectedSubtitleMode}"
+								  Classes="clean"/>
+					</Grid>
+					</StackPanel>
+				</StackPanel>
+			</ScrollViewer>
+		</TabItem>
+
+		<!-- TAB: CSS Style -->
+		<TabItem Header="{Binding LblTabCss}">
+			<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,0">
+				<StackPanel Spacing="12">
+
+					<!-- Jellyfin-only notice -->
+					<Border Background="#FFF3CD"
+							CornerRadius="4"
+							Padding="10,8"
+							BorderBrush="#FFE69C"
+							BorderThickness="1">
+						<StackPanel Orientation="Horizontal" Spacing="8">
+							<fa:SymbolIcon Symbol="Important" Width="16" Height="16" Foreground="#856404" VerticalAlignment="Center"/>
+							<TextBlock Text="{Binding LblJellyfinOnlyNotice}"
+									   Foreground="#856404"
+									   FontSize="12"
+									   FontWeight="SemiBold"
+									   TextWrapping="Wrap"
+									   VerticalAlignment="Center"/>
+						</StackPanel>
+					</Border>
+
+					<TextBlock Text="{Binding LblCssSettings}"
+							   FontSize="15"
+							   FontWeight="SemiBold"
+							   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+
+					<!-- CSS Hint -->
+					<TextBlock Text="{Binding LblCssHint}"
+							   FontSize="12"
+							   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+							   TextWrapping="Wrap"/>
+
+					<!-- Custom CSS TextBox -->
+					<TextBlock Text="{Binding LblCustomCss}"
+							   Classes="label"
+							   Margin="0,8,0,4"/>
+					<TextBox Text="{Binding CustomCss}"
+							 AcceptsReturn="True"
+							 TextWrapping="Wrap"
+							 MinHeight="200"
+							 MaxHeight="400"
+							 Watermark="@import url('https://cdn.jsdelivr.net/...');"
+							 Classes="clean"
+							 FontFamily="Consolas, Monaco, monospace"
+							 FontSize="12"/>
+
+					<!-- Validation, Clear Buttons and Status -->
+					<Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="8" Margin="0,12,0,0">
+
+						<!-- Validate -->
+						<Button Grid.Column="0"
+								Classes="secondary"
+								Content="{Binding LblValidateCss}"
+								Command="{Binding ValidateCssCommand}"
+								IsEnabled="{Binding CanValidateCss}"
+								Padding="8,4"
+								FontSize="12"/>
+
+						<!-- Clear -->
+						<Button Grid.Column="1"
+								Classes="secondary"
+								Content="{Binding LblClearCss}"
+								Command="{Binding ClearCssCommand}"
+								IsEnabled="{Binding CanClearCss}"
+								Padding="8,4"
+								FontSize="12"/>
+
+						<!-- Status -->
+						<TextBlock Grid.Column="3"
+								   Text="{Binding CssValidationStatus}"
+								   Foreground="{Binding CssValidationColor}"
+								   VerticalAlignment="Center"
+								   FontWeight="SemiBold"/>
+					</Grid>
+
+					<Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,16,0,8"/>
+
+					<!-- JellyThemes Section -->
+					<StackPanel Spacing="8">
+						<Grid ColumnDefinitions="*,Auto">
+							<TextBlock Grid.Column="0"
+									   Text="{Binding LblJellyThemes}"
+									   FontSize="15"
+									   FontWeight="SemiBold"
+									   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+							<Button Grid.Column="1"
+									Classes="secondary"
+									Command="{Binding OpenJellyThemesRepoCommand}"
+									Padding="6,2"
+									FontSize="11">
+								<StackPanel Orientation="Horizontal" Spacing="4">
+									<fa:SymbolIcon Symbol="Link" Width="12" Height="12"/>
+									<TextBlock Text="GitHub JellyThemes"/>
+								</StackPanel>
+							</Button>
+						</Grid>
+
+						<TextBlock Text="{Binding LblJellyThemesHint}"
+								   FontSize="12"
+								   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+								   TextWrapping="Wrap"/>
+
+						<!-- Theme Buttons -->
+						<ItemsControl ItemsSource="{Binding JellyThemes}" Margin="0,8,0,0">
+							<ItemsControl.ItemsPanel>
+								<ItemsPanelTemplate>
+									<WrapPanel Orientation="Horizontal"/>
+								</ItemsPanelTemplate>
+							</ItemsControl.ItemsPanel>
+							<ItemsControl.ItemTemplate>
+								<DataTemplate>
+									<Button Command="{Binding $parent[ItemsControl].((viewModels:JellyfinSettingsViewModel)DataContext).InsertThemeCommand}"
+											CommandParameter="{Binding}"
+											Margin="0,0,8,8"
+											Padding="12,8"
+											CornerRadius="6"
+											Background="{Binding HexColor}"
+											Foreground="White"
+											FontWeight="SemiBold"
+											Cursor="Hand">
+										<Button.Styles>
+											<Style Selector="Button:pointerover">
+												<Setter Property="Opacity" Value="0.85"/>
+											</Style>
+										</Button.Styles>
+										<StackPanel Orientation="Horizontal" Spacing="6">
+											<TextBlock Text="{Binding Icon}" FontSize="14"/>
+											<TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+										</StackPanel>
+									</Button>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+						<!-- Theme Preview -->
+						<Border
+							Margin="0,12,0,0"
+							Padding="10"
+							Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+							BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+							BorderThickness="1"
+							CornerRadius="6"
+							IsVisible="{Binding HasSelectedJellyTheme}">
+
+							<StackPanel Spacing="8" HorizontalAlignment="Center">
+								<TextBlock
+									Text="{Binding SelectedJellyTheme.Name, FallbackValue=''}"
+									FontSize="14"
+									FontWeight="SemiBold"
+									HorizontalAlignment="Center"
+									Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+
+								<Button Command="{Binding OpenThemeReadmeCommand}"
+										CommandParameter="{Binding SelectedJellyTheme}"
+										Background="Transparent"
+										BorderThickness="0"
+										Padding="0"
+										HorizontalAlignment="Center"
+										Cursor="Hand">
+									<Button.Styles>
+										<Style Selector="Button:pointerover">
+											<Setter Property="Opacity" Value="0.85"/>
+										</Style>
+									</Button.Styles>
+									<Image
+										Source="{Binding SelectedJellyThemePreview}"
+										Stretch="Uniform"
+										MaxHeight="240"/>
+								</Button>
+
+								<TextBlock
+									Text="Theme preview"
+									FontSize="11"
+									HorizontalAlignment="Center"
+									Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+							</StackPanel>
+						</Border>
+
+					</StackPanel>
+				</StackPanel>
+			</ScrollViewer>
+		</TabItem>
+
+	</TabControl>
+</UserControl>

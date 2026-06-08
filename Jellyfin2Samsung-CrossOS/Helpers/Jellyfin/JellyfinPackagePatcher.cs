@@ -5,14 +5,17 @@ using Apps2Samsung.Helpers.Jellyfin.Diagnostic;
 using Apps2Samsung.Helpers.Jellyfin.Fixes;
 using Apps2Samsung.Helpers.Jellyfin.Patches;
 using Apps2Samsung.Helpers.Jellyfin.Plugins;
+using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using System;
 using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Apps2Samsung.Helpers.Jellyfin
 {
-    public class JellyfinPackagePatcher
+    public class JellyfinPackagePatcher : IPackagePatcher
     {
         private readonly JellyfinIndex _indexHtml;
         private readonly JellyfinDiagnostic _diagnostic;
@@ -28,6 +31,19 @@ namespace Apps2Samsung.Helpers.Jellyfin
             _diagnostic = new JellyfinDiagnostic();
             _youTube = new FixYouTube();
             _customCss = new CustomCss();
+        }
+
+        public bool CanHandle(string packagePath)
+            => Path.GetFileName(packagePath)
+                   .Contains(Constants.AppIdentifiers.JellyfinAppName, StringComparison.OrdinalIgnoreCase);
+
+        public Task<InstallResult> ApplyAsync(string packagePath)
+        {
+            // No server configured → nothing to inject (preserves prior install behavior).
+            if (string.IsNullOrEmpty(AppSettings.Default.JellyfinIP))
+                return Task.FromResult(InstallResult.SuccessResult());
+
+            return ApplyJellyfinConfigAsync(packagePath);
         }
 
         public async Task<InstallResult> ApplyJellyfinConfigAsync(string packagePath)

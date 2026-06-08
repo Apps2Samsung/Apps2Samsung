@@ -78,6 +78,7 @@ namespace Apps2Samsung.Helpers
         public bool DarkMode { get; set; } = false;
         public string GitHubToken { get; set; } = "";
         public string LocalYoutubeServer { get; set; } = string.Empty;
+        public string TvAppChannelsJson { get; set; } = "";  // JSON array of {name,url} for TVApp
 
         // ----- Updater settings -----
         public bool CheckForUpdatesOnStartup { get; set; } = true;
@@ -86,7 +87,7 @@ namespace Apps2Samsung.Helpers
 
         // ----- Application-scoped settings (readonly at runtime) -----
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
-        public string AppVersion { get; set; } = "v2.5.0";
+        public string AppVersion { get; set; } = "v2.5.1";
         public string TizenSdb { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-sdb/releases";
         public string JellyfinAvReleaseFork { get; set; } = "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases";
         public string ReleaseInfo { get; set; } = "https://raw.githubusercontent.com/jeppevinkel/jellyfin-tizen-builds/refs/heads/master/README.md";

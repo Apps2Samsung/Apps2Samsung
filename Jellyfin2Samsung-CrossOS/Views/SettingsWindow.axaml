@@ -1,0 +1,103 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+        xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+        mc:Ignorable="d"
+        x:Class="Apps2Samsung.Views.SettingsWindow"
+        x:DataType="viewModels:SettingsWindowViewModel"
+        Title="Settings"
+        Width="880"
+        Height="850">
+
+	<Window.Styles>
+		<StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>
+		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/TextBlocks.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/ComboBoxes.axaml"/>
+	</Window.Styles>
+
+	<Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+	Padding="16"
+	CornerRadius="8"
+	Margin="6"
+	BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+	BorderThickness="1">
+
+		<Border.Effect>
+			<DropShadowEffect BlurRadius="15" OffsetX="2" OffsetY="2" Color="#00000020" Opacity="0.15"/>
+		</Border.Effect>
+
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="*"/>
+			</Grid.RowDefinitions>
+
+			<!-- Header -->
+			<Border Grid.Row="0"
+                    Background="#2C3E50"
+                    CornerRadius="8"
+                    Padding="24,16"
+                    Margin="0,0,0,14">
+				<Grid>
+					<TextBlock Text="{Binding Application.LblSettingsHeader}"
+							   Foreground="White"
+							   FontSize="18"
+							   FontWeight="Medium"
+							   HorizontalAlignment="Center"
+							   VerticalAlignment="Center"/>
+					<ToggleButton IsChecked="{Binding Application.DarkMode}"
+								  HorizontalAlignment="Right"
+								  VerticalAlignment="Center"
+								  Background="Transparent"
+								  BorderThickness="0"
+								  Width="40"
+								  Height="40"
+								  CornerRadius="20"
+								  Padding="0">
+						<ToggleButton.Styles>
+							<Style Selector="ToggleButton:checked">
+								<Setter Property="Background" Value="Transparent"/>
+							</Style>
+							<Style Selector="ToggleButton:pointerover">
+								<Setter Property="Background" Value="#40FFFFFF"/>
+							</Style>
+						</ToggleButton.Styles>
+						<Panel>
+							<TextBlock Text="&#x2600;" FontSize="18" Foreground="White" IsVisible="{Binding Application.DarkMode}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+							<TextBlock Text="&#x1F319;" FontSize="16" Foreground="White" IsVisible="{Binding !Application.DarkMode}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+						</Panel>
+					</ToggleButton>
+				</Grid>
+			</Border>
+
+			<!-- Body: app picker (left) + selected section content (right) -->
+			<Grid Grid.Row="1" ColumnDefinitions="200,*" ColumnSpacing="14">
+
+				<ListBox Grid.Column="0"
+						 ItemsSource="{Binding Sections}"
+						 SelectedItem="{Binding SelectedSection}"
+						 Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+						 BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+						 BorderThickness="1"
+						 CornerRadius="6"
+						 Padding="4">
+					<ListBox.ItemTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding DisplayName}"
+									   Padding="6,8"
+									   FontSize="14"/>
+						</DataTemplate>
+					</ListBox.ItemTemplate>
+				</ListBox>
+
+				<ContentControl Grid.Column="1"
+								Content="{Binding SelectedSection.Content}"/>
+
+			</Grid>
+		</Grid>
+	</Border>
+</Window>
