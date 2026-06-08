@@ -76,6 +76,14 @@ namespace Apps2Samsung.ViewModels
 
         private void OnChannelsChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
+            // A Move keeps the same instance (it's in both Old/New items); only its
+            // position changed, so just persist the new order without touching subscriptions.
+            if (e.Action == NotifyCollectionChangedAction.Move)
+            {
+                Save();
+                return;
+            }
+
             if (e.NewItems != null)
                 foreach (TvAppChannel channel in e.NewItems)
                     channel.PropertyChanged += OnChannelPropertyChanged;
@@ -107,6 +115,29 @@ namespace Apps2Samsung.ViewModels
         {
             if (channel != null)
                 Channels.Remove(channel);
+        }
+
+        // Channels play on the TV in this list's order, so let the user arrange it.
+        [RelayCommand]
+        private void MoveChannelUp(TvAppChannel? channel)
+        {
+            if (channel == null)
+                return;
+
+            var index = Channels.IndexOf(channel);
+            if (index > 0)
+                Channels.Move(index, index - 1);
+        }
+
+        [RelayCommand]
+        private void MoveChannelDown(TvAppChannel? channel)
+        {
+            if (channel == null)
+                return;
+
+            var index = Channels.IndexOf(channel);
+            if (index >= 0 && index < Channels.Count - 1)
+                Channels.Move(index, index + 1);
         }
 
         private void OnLanguageChanged(object? sender, EventArgs e)

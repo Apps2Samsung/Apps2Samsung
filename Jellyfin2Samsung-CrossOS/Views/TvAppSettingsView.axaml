@@ -51,16 +51,33 @@
 			<ItemsControl ItemsSource="{Binding Channels}" IsVisible="{Binding HasChannels}">
 				<ItemsControl.ItemTemplate>
 					<DataTemplate x:DataType="models:TvAppChannel">
-						<Grid ColumnDefinitions="*,2*,Auto" ColumnSpacing="8" Margin="0,0,0,8">
-							<TextBox Grid.Column="0"
+						<Grid ColumnDefinitions="Auto,*,2*,Auto" ColumnSpacing="8" Margin="0,0,0,8">
+							<!-- Reorder (channels play on the TV in this order) -->
+							<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+								<Button Classes="secondary"
+										Command="{Binding $parent[ItemsControl].((viewModels:TvAppSettingsViewModel)DataContext).MoveChannelUpCommand}"
+										CommandParameter="{Binding}"
+										Padding="6,6"
+										ToolTip.Tip="Move up">
+									<fa:SymbolIcon Symbol="ChevronUp" Width="14" Height="14"/>
+								</Button>
+								<Button Classes="secondary"
+										Command="{Binding $parent[ItemsControl].((viewModels:TvAppSettingsViewModel)DataContext).MoveChannelDownCommand}"
+										CommandParameter="{Binding}"
+										Padding="6,6"
+										ToolTip.Tip="Move down">
+									<fa:SymbolIcon Symbol="ChevronDown" Width="14" Height="14"/>
+								</Button>
+							</StackPanel>
+							<TextBox Grid.Column="1"
 									 Text="{Binding Name}"
 									 Watermark="{Binding $parent[ItemsControl].((viewModels:TvAppSettingsViewModel)DataContext).LblChannelName}"
 									 Classes="clean"/>
-							<TextBox Grid.Column="1"
+							<TextBox Grid.Column="2"
 									 Text="{Binding Url}"
 									 Watermark="{Binding $parent[ItemsControl].((viewModels:TvAppSettingsViewModel)DataContext).LblChannelUrl}"
 									 Classes="clean"/>
-							<Button Grid.Column="2"
+							<Button Grid.Column="3"
 									Classes="secondary"
 									Command="{Binding $parent[ItemsControl].((viewModels:TvAppSettingsViewModel)DataContext).RemoveChannelCommand}"
 									CommandParameter="{Binding}"
