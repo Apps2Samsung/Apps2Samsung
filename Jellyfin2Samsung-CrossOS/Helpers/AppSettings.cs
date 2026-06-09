@@ -9,8 +9,20 @@ namespace Apps2Samsung.Helpers
     public class AppSettings
     {
         private const string FileName = "settings.json";
+
+        // Shipped assets and regenerable caches live next to the binary (inside the .app bundle on macOS).
         public static readonly string FolderPath = AppContext.BaseDirectory;
-        public static readonly string FilePath = Path.Combine(FolderPath, FileName);
+
+        // User settings live in the per-user OS data directory so they survive app updates that
+        // replace the install folder/bundle (e.g. a macOS .dmg reinstall).
+        //   Windows: %APPDATA%\Apps2Samsung   macOS/Linux: ~/.config/Apps2Samsung
+        public static readonly string DataFolderPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create),
+            "Apps2Samsung");
+        public static readonly string FilePath = Path.Combine(DataFolderPath, FileName);
+
+        // Pre-2.5.1 location: next to the binary. Used once to migrate existing users' settings.
+        private static readonly string LegacyFilePath = Path.Combine(FolderPath, FileName);
         public static readonly string TizenSdbPath = Path.Combine(FolderPath, "Assets", "TizenSDB");
         public static readonly string CertificatePath = Path.Combine(FolderPath, "Assets", "Certificate");
         public static readonly string ProfilePath = Path.Combine(FolderPath, "Assets", "TizenProfile");
@@ -78,6 +90,7 @@ namespace Apps2Samsung.Helpers
         public bool DarkMode { get; set; } = false;
         public string GitHubToken { get; set; } = "";
         public string LocalYoutubeServer { get; set; } = string.Empty;
+        public string TvAppChannelsJson { get; set; } = "";  // JSON array of {name,url} for TVApp
 
         // ----- Updater settings -----
         public bool CheckForUpdatesOnStartup { get; set; } = true;
@@ -86,7 +99,7 @@ namespace Apps2Samsung.Helpers
 
         // ----- Application-scoped settings (readonly at runtime) -----
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
-        public string AppVersion { get; set; } = "v2.5.0";
+        public string AppVersion { get; set; } = "v2.5.1";
         public string TizenSdb { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-sdb/releases";
         public string JellyfinAvReleaseFork { get; set; } = "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases";
         public string ReleaseInfo { get; set; } = "https://raw.githubusercontent.com/jeppevinkel/jellyfin-tizen-builds/refs/heads/master/README.md";
@@ -133,6 +146,20 @@ namespace Apps2Samsung.Helpers
         {
             try
             {
+                // One-time migration: if no settings exist in the new per-user location but a
+                // legacy file sits next to the binary, adopt it and persist to the new location.
+                if (!File.Exists(FilePath) && File.Exists(LegacyFilePath))
+                {
+                    var legacyJson = File.ReadAllText(LegacyFilePath);
+                    var legacy = JsonSerializer.Deserialize<AppSettings>(legacyJson);
+                    if (legacy != null)
+                    {
+                        _instance = legacy;
+                        legacy.Save();
+                        return _instance;
+                    }
+                }
+
                 if (File.Exists(FilePath))
                 {
                     var json = File.ReadAllText(FilePath);

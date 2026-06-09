@@ -94,6 +94,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "chore: update version table in README [skip ci]"
+            git commit -m "chore: update version table in README"
             git push
           fi

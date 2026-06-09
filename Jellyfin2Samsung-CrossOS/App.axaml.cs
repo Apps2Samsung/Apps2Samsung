@@ -99,6 +99,10 @@ namespace Apps2Samsung
             services.AddSingleton<PluginManager>();
             services.AddSingleton<JellyfinPackagePatcher>();
 
+            // Per-app package patchers (edit the .wgt before signing/install).
+            services.AddSingleton<IPackagePatcher>(sp => sp.GetRequiredService<JellyfinPackagePatcher>());
+            services.AddSingleton<IPackagePatcher, Apps2Samsung.Helpers.TvApp.TvAppPackagePatcher>();
+
             // --------------------
             // Helpers
             // --------------------
@@ -116,7 +120,14 @@ namespace Apps2Samsung
             services.AddTransient<InstallationCompleteViewModel>();
             services.AddTransient<InstallingWindowViewModel>();
             services.AddTransient<TvLogsViewModel>();
-            services.AddSingleton<JellyfinConfigViewModel>();
+            services.AddSingleton<AppSettingsViewModel>();
+            services.AddSingleton<JellyfinSettingsViewModel>();
+            services.AddSingleton<TvAppSettingsViewModel>();
+            services.AddSingleton<SettingsWindowViewModel>();
+
+            // App-specific settings sections (each app registers one provider).
+            services.AddSingleton<IAppSettingsProvider, JellyfinSettingsProvider>();
+            services.AddSingleton<IAppSettingsProvider, TvAppSettingsProvider>();
 
             // --------------------
             // Views
@@ -142,8 +153,8 @@ namespace Apps2Samsung
 
             services.AddTransient(provider =>
             {
-                var vm = provider.GetRequiredService<JellyfinConfigViewModel>();
-                return new JellyfinConfigView(vm);
+                var vm = provider.GetRequiredService<SettingsWindowViewModel>();
+                return new Apps2Samsung.Views.SettingsWindow(vm);
             });
 
             services.AddTransient(provider =>

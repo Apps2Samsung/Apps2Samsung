@@ -1,0 +1,107 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+             xmlns:models="clr-namespace:Apps2Samsung.Models"
+             xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+             mc:Ignorable="d"
+             x:Class="Apps2Samsung.Views.TvAppSettingsView"
+             x:DataType="viewModels:TvAppSettingsViewModel">
+
+	<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,0">
+		<StackPanel Spacing="16">
+
+			<!-- TVApp-only notice -->
+			<Border Background="#FFF3CD"
+					CornerRadius="4"
+					Padding="10,8"
+					BorderBrush="#FFE69C"
+					BorderThickness="1">
+				<StackPanel Orientation="Horizontal" Spacing="8">
+					<fa:SymbolIcon Symbol="Important" Width="16" Height="16" Foreground="#856404" VerticalAlignment="Center"/>
+					<TextBlock Text="{Binding LblTvAppOnlyNotice}"
+							   Foreground="#856404"
+							   FontSize="12"
+							   FontWeight="SemiBold"
+							   TextWrapping="Wrap"
+							   VerticalAlignment="Center"/>
+				</StackPanel>
+			</Border>
+
+			<StackPanel Spacing="8">
+				<TextBlock Text="{Binding LblTvAppSettings}"
+						   FontSize="15"
+						   FontWeight="SemiBold"
+						   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+				<TextBlock Text="{Binding LblTvAppHint}"
+						   FontSize="12"
+						   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+						   TextWrapping="Wrap"/>
+			</StackPanel>
+
+			<!-- Empty state -->
+			<TextBlock Text="{Binding LblNoChannels}"
+					   FontSize="12"
+					   FontStyle="Italic"
+					   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+					   IsVisible="{Binding !HasChannels}"/>
+
+			<!-- Channel rows -->
+			<ItemsControl ItemsSource="{Binding Channels}" IsVisible="{Binding HasChannels}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate x:DataType="models:TvAppChannel">
+						<Grid ColumnDefinitions="Auto,*,2*,Auto" ColumnSpacing="8" Margin="0,0,0,8">
+							<!-- Reorder (channels play on the TV in this order) -->
+							<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+								<Button Classes="secondary"
+										Command="{Binding $parent[ItemsControl].((viewModels:TvAppSettingsViewModel)DataContext).MoveChannelUpCommand}"
+										CommandParameter="{Binding}"
+										Padding="6,6"
+										ToolTip.Tip="Move up">
+									<fa:SymbolIcon Symbol="ChevronUp" Width="14" Height="14"/>
+								</Button>
+								<Button Classes="secondary"
+										Command="{Binding $parent[ItemsControl].((viewModels:TvAppSettingsViewModel)DataContext).MoveChannelDownCommand}"
+										CommandParameter="{Binding}"
+										Padding="6,6"
+										ToolTip.Tip="Move down">
+									<fa:SymbolIcon Symbol="ChevronDown" Width="14" Height="14"/>
+								</Button>
+							</StackPanel>
+							<TextBox Grid.Column="1"
+									 Text="{Binding Name}"
+									 Watermark="{Binding $parent[ItemsControl].((viewModels:TvAppSettingsViewModel)DataContext).LblChannelName}"
+									 Classes="clean"/>
+							<TextBox Grid.Column="2"
+									 Text="{Binding Url}"
+									 Watermark="{Binding $parent[ItemsControl].((viewModels:TvAppSettingsViewModel)DataContext).LblChannelUrl}"
+									 Classes="clean"/>
+							<Button Grid.Column="3"
+									Classes="secondary"
+									Command="{Binding $parent[ItemsControl].((viewModels:TvAppSettingsViewModel)DataContext).RemoveChannelCommand}"
+									CommandParameter="{Binding}"
+									Padding="8,6"
+									VerticalAlignment="Center"
+									ToolTip.Tip="Remove">
+								<fa:SymbolIcon Symbol="Delete" Width="16" Height="16"/>
+							</Button>
+						</Grid>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+
+			<!-- Add channel -->
+			<Button Classes="primary"
+					Command="{Binding AddChannelCommand}"
+					HorizontalAlignment="Left"
+					Padding="12,6">
+				<StackPanel Orientation="Horizontal" Spacing="6">
+					<fa:SymbolIcon Symbol="Add" Width="16" Height="16"/>
+					<TextBlock Text="{Binding LblAddChannel}"/>
+				</StackPanel>
+			</Button>
+
+		</StackPanel>
+	</ScrollViewer>
+</UserControl>

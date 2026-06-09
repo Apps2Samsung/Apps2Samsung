@@ -160,5 +160,12 @@
   "IncompatiblePackageDetailed": "Package version {0} not compatible with Tizen OS {1}",
   "lblMdnsWarning": "Warning: You are using an mDNS hostname (.local). Samsung TVs cannot reliably resolve .local addresses, which may cause the server to appear as \"undefined\" on your TV — especially after network interruptions. Use a direct IP address (e.g. 192.168.1.100) instead for a stable connection.",
   "lblOpenLogsFolder": "Open Logs Folder",
-  "lblJellyfinOnlyNotice": "These settings apply ONLY to the official Jellyfin client — they are not supported for Jellyfin forks or other apps."
+  "lblJellyfinOnlyNotice": "These settings apply ONLY to the official Jellyfin client — they are not supported for Jellyfin forks or other apps.",
+  "lblTvAppSettings": "Channels",
+  "lblTvAppHint": "Add your channel name and m3u8 link. These are written into TVApp before installation.",
+  "lblChannelName": "Channel name",
+  "lblChannelUrl": "m3u8 URL",
+  "lblAddChannel": "Add channel",
+  "lblNoChannels": "No channels yet. Click \"Add channel\" to create one.",
+  "lblTvAppOnlyNotice": "These settings apply ONLY to TVApp — they are written into the package before installation."
 }

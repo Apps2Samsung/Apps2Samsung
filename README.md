@@ -34,8 +34,8 @@
 
 | Channel    | Version                                                             | Notes                        |
 |------------|---------------------------------------------------------------------|------------------------------|
-| **Stable** | [v2.4.0](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v2.4.0)                                        | Recommended for most users   |
-| **Beta**   | [v2.5.0-beta](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v2.5.0-beta)                                            | Includes new features        |
+| **Stable** | [v2.5.0](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v2.5.0)                                        | Recommended for most users   |
+| **Beta**   | [v2.5.1-beta](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v2.5.1-beta)                                            | Includes new features        |
 
 <!-- versions:end -->
 
