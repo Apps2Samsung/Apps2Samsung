@@ -255,7 +255,7 @@ namespace Apps2Samsung.ViewModels
                 token.ThrowIfCancellationRequested();
 
                 SetStatus("ScanningNetwork");
-                await LoadDevicesAsync(token);
+                //await LoadDevicesAsync(token);
                 CustomWgtPath = AppSettings.Default.CustomWgtPath ?? "";
             }
             catch (OperationCanceledException)
@@ -673,6 +673,8 @@ namespace Apps2Samsung.ViewModels
                     }
                 }
                 cancellationToken.ThrowIfCancellationRequested();
+                // Show every app alphabetically (A-Z, 0-9) regardless of manifest/fetch order.
+                list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
                 Releases.Clear();
                 foreach (var r in list)
                     Releases.Add(r);
