@@ -90,6 +90,16 @@ namespace Apps2Samsung.ViewModels
             _ = LoadAsync();
         }
 
+        private static void SortByName(ObservableCollection<BuildVersion> collection)
+        {
+            var sorted = collection
+                .OrderBy(b => b.FileName, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            collection.Clear();
+            foreach (var item in sorted)
+                collection.Add(item);
+        }
+
         private void QueueRebuild()
         {
             // Start a rebuild, but only the latest one is allowed to apply results
@@ -126,6 +136,10 @@ namespace Apps2Samsung.ViewModels
                 }
 
                 ParseApplicationsTable(communityMd, CommunityApps);
+
+                // Sort both tables A-Z / 0-9, matching the release list ordering.
+                SortByName(JellyfinVersions);
+                SortByName(CommunityApps);
             }
             catch (Exception ex)
             {
