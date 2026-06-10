@@ -399,8 +399,10 @@ namespace Apps2Samsung.ViewModels
 
             try
             {
-                // Only load releases and devices if they haven't been loaded yet
-                if (!Releases.Any())
+                // Only load releases and devices if they haven't been loaded yet.
+                // Note: Releases always contains the "Custom WGT File" entry, so we
+                // check for *real* provider releases, not just any entry.
+                if (!HasRealReleases)
                 {
                     await LoadReleasesAsync(token);
                     token.ThrowIfCancellationRequested();
@@ -625,8 +627,30 @@ namespace Apps2Samsung.ViewModels
         }
 
 
+        // True once the release list holds something other than the always-present
+        // "Custom WGT File" entry — i.e. providers actually loaded.
+        private bool HasRealReleases =>
+            Releases.Any(r => r.Name != Constants.AppIdentifiers.CustomWgtFile);
+
+        /// <summary>
+        /// Safety net: reload the release list if it never populated (e.g. the
+        /// initial load was cancelled by the update check or a re-init race).
+        /// Runs uncancellable so a pending init cancel can't kill it again.
+        /// </summary>
+        public async Task EnsureReleasesLoadedAsync()
+        {
+            if (IsLoading || HasRealReleases)
+                return;
+
+            await LoadReleasesAsync();
+        }
+
         private async Task LoadReleasesAsync(CancellationToken cancellationToken = default)
         {
+            // Guard against concurrent loads (init vs. the recovery/refresh paths).
+            if (IsLoading)
+                return;
+
             IsLoading = true;
             try
             {
