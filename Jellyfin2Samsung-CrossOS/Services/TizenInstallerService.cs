@@ -255,6 +255,17 @@ namespace Apps2Samsung.Services
                     }
                 }
 
+                // Step 3b: Older TVs (below Tizen 4.0) can't install a bundled background
+                // <tizen:service> component — the whole package is rejected with a generic
+                // install failed[118] (see #400). Only on those TVs, strip the service so
+                // the main app still installs. Newer TVs keep the package untouched.
+                var serviceSupport = new Version(Constants.TizenVersions.ServiceComponentSupport);
+                if (deviceInfo.TizenVersion < serviceSupport && await FileHelper.WgtContainsService(packageUrl))
+                {
+                    if (await FileHelper.StripWgtServiceComponent(packageUrl))
+                        Trace.WriteLine($"Device Tizen {deviceInfo.TizenVersion} < {serviceSupport}: removed bundled background service so the package can install");
+                }
+
                 // Step 4: Handle certificate selection/generation
                 var certificateResult = await HandleCertificateAsync(
                     tvIpAddress,
@@ -577,11 +588,9 @@ namespace Apps2Samsung.Services
                 return InstallResult.FailureResult(certMessage);
             }
 
-            // Plain install failed[118]: a generic rejection. For a fresh install this is
-            // usually NOT an app-id conflict (those surface as 118012 / 118,-12, handled
-            // above). The common cause on older Samsung TVs is a bundled background
-            // <tizen:service> component the TV can't install — strip it and retry before
-            // anything else, so the main app still installs.
+            // Handle package ID conflict error. Note: a service-component incompatibility
+            // (the common cause on older TVs) is already handled before install in Step 3b,
+            // so reaching here generally means a genuine id/config conflict.
             if (installResults.Output.Contains(Constants.TizenErrorCodes.InstallFailed118))
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
@@ -589,20 +598,12 @@ namespace Apps2Samsung.Services
                 if (_appSettings.TryOverwrite)
                 {
                     _appSettings.TryOverwrite = false;
-
-                    if (await FileHelper.StripWgtServiceComponent(packageUrl))
-                    {
-                        Trace.WriteLine("install failed[118]: package bundles a background service the TV can't install — removed it and retrying");
-                        return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted);
-                    }
-
-                    // No service to remove — fall back to the legacy app-id rewrite.
                     await FileHelper.ModifyWgtPackageId(packageUrl);
                     return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted);
                 }
 
                 _appSettings.TryOverwrite = false;
-                return InstallResult.FailureResult($"Installation failed: {Constants.LocalizationKeys.IncompatiblePackage.Localized()}");
+                return InstallResult.FailureResult($"Installation failed: {Constants.LocalizationKeys.ModifyConfigRequired.Localized()}");
             }
 
             // Handle generic failure
