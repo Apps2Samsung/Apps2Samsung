@@ -69,10 +69,22 @@ jobs:
           fi
 
       - name: Prepare release notes
+        shell: bash
         run: |
           DATE=$(date +'%Y-%m-%d')
+
+          # Tidy GitHub's generated notes: drop the HTML comment + the redundant
+          # "What's Changed" heading, and shorten each
+          # "* <title> by @user in <url>/pull/N" line to "- <title> (#N)".
+          sed -E \
+            -e '/^<!--/d' \
+            -e "/^## What's Changed[[:space:]]*$/d" \
+            -e 's~^\* (.*) by @[^ ]+ in https?://github.com/[^ ]+/pull/([0-9]+)[[:space:]]*$~- \1 (#\2)~' \
+            CHANGELOG.md | cat -s > CHANGELOG.clean.md
+          mv CHANGELOG.clean.md CHANGELOG.md
+
           {
-            echo "## 📦 [${VERSION_TAG}] – ${DATE}"
+            echo "## 📦 ${VERSION_TAG} — ${DATE}"
             echo ""
             cat CHANGELOG.md
             echo ""
