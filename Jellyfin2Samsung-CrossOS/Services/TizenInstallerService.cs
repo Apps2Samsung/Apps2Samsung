@@ -577,7 +577,11 @@ namespace Apps2Samsung.Services
                 return InstallResult.FailureResult(certMessage);
             }
 
-            // Handle package ID conflict error
+            // Plain install failed[118]: a generic rejection. For a fresh install this is
+            // usually NOT an app-id conflict (those surface as 118012 / 118,-12, handled
+            // above). The common cause on older Samsung TVs is a bundled background
+            // <tizen:service> component the TV can't install — strip it and retry before
+            // anything else, so the main app still installs.
             if (installResults.Output.Contains(Constants.TizenErrorCodes.InstallFailed118))
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
@@ -585,12 +589,20 @@ namespace Apps2Samsung.Services
                 if (_appSettings.TryOverwrite)
                 {
                     _appSettings.TryOverwrite = false;
+
+                    if (await FileHelper.StripWgtServiceComponent(packageUrl))
+                    {
+                        Trace.WriteLine("install failed[118]: package bundles a background service the TV can't install — removed it and retrying");
+                        return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted);
+                    }
+
+                    // No service to remove — fall back to the legacy app-id rewrite.
                     await FileHelper.ModifyWgtPackageId(packageUrl);
                     return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted);
                 }
 
                 _appSettings.TryOverwrite = false;
-                return InstallResult.FailureResult($"Installation failed: {Constants.LocalizationKeys.ModifyConfigRequired.Localized()}");
+                return InstallResult.FailureResult($"Installation failed: {Constants.LocalizationKeys.IncompatiblePackage.Localized()}");
             }
 
             // Handle generic failure
