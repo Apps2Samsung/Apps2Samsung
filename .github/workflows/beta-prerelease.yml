@@ -54,6 +54,15 @@ jobs:
         run: |
           LAST_TAG=$(git tag --sort=-creatordate | grep beta | grep -vx "$VERSION_TAG" | head -n 1)
 
+          # The rolling beta tag is reused across pushes, but action-gh-release
+          # won't re-point an existing tag — so it stays pinned at the commit it
+          # was first created on, and generate-notes computes the PR range against
+          # that stale point (notes lag behind merged PRs, see #399). Force-move the
+          # tag to the current commit first so the notes reflect everything merged
+          # since the previous beta tag.
+          git tag -f "$VERSION_TAG" "$GITHUB_SHA"
+          git push -f origin "refs/tags/$VERSION_TAG"
+
           ARGS=(-f tag_name="$VERSION_TAG" -f target_commitish="$GITHUB_SHA")
           if [ -n "$LAST_TAG" ]; then
             ARGS+=(-f previous_tag_name="$LAST_TAG")
