@@ -1,4 +1,3 @@
-using Avalonia.Platform;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
@@ -26,10 +25,6 @@ namespace Apps2Samsung.Helpers.TvApp
         private static readonly Regex ChannelsArrayRegex =
             new(@"var\s+channels\s*=\s*\[.*?\];", RegexOptions.Singleline | RegexOptions.Compiled);
 
-        // Captures the icon filename from config.xml's <icon src="..."/>.
-        private static readonly Regex IconSrcRegex =
-            new(@"<icon\b[^>]*\bsrc\s*=\s*""([^""]+)""", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
         private static readonly JsonSerializerOptions ReadOptions = new() { PropertyNameCaseInsensitive = true };
 
         public bool CanHandle(string packagePath)
@@ -52,7 +47,7 @@ namespace Apps2Samsung.Helpers.TvApp
                 await PatchChannelsAsync(ws, channels);
 
             if (useOblongIcon)
-                await ApplyOblongIconAsync(ws);
+                await WgtIconPatcher.SwapLauncherIconAsync(ws, OblongIconUri, "noun-live-tv-3548799.png");
 
             ws.Repack();
             return InstallResult.SuccessResult();
@@ -83,47 +78,6 @@ namespace Apps2Samsung.Helpers.TvApp
 
             await File.WriteAllTextAsync(mainJsPath, js);
             Trace.WriteLine($"[TvApp] Injected {channels.Count} channel(s) into {MainJsRelativePath}.");
-        }
-
-        private static async Task ApplyOblongIconAsync(PackageWorkspace ws)
-        {
-            // The launcher icon is whatever config.xml's <icon src> points at; overwrite that file
-            // so we don't need to touch config.xml (the package is re-signed after patching anyway).
-            var iconFile = ResolveIconFileName(ws) ?? "noun-live-tv-3548799.png";
-            var iconPath = Path.Combine(ws.Root, iconFile.Replace('/', Path.DirectorySeparatorChar));
-
-            try
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(iconPath)!);
-
-                await using var asset = AssetLoader.Open(OblongIconUri);
-                await using var dest = File.Create(iconPath);
-                await asset.CopyToAsync(dest);
-
-                Trace.WriteLine($"[TvApp] Swapped launcher icon ({iconFile}) for the oblong variant.");
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"[TvApp] Failed to apply oblong icon: {ex.Message}");
-            }
-        }
-
-        private static string? ResolveIconFileName(PackageWorkspace ws)
-        {
-            var configPath = Path.Combine(ws.Root, "config.xml");
-            if (!File.Exists(configPath))
-                return null;
-
-            try
-            {
-                var match = IconSrcRegex.Match(File.ReadAllText(configPath));
-                return match.Success ? match.Groups[1].Value : null;
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"[TvApp] Failed to read config.xml icon src: {ex.Message}");
-                return null;
-            }
         }
 
         private static List<TvAppChannel> LoadConfiguredChannels()

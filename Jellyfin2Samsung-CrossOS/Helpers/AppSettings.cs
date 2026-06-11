@@ -92,6 +92,7 @@ namespace Apps2Samsung.Helpers
         public string LocalYoutubeServer { get; set; } = string.Empty;
         public string TvAppChannelsJson { get; set; } = "";  // JSON array of {name,url} for TVApp
         public bool TvAppUseOblongIcon { get; set; } = false;  // swap TVApp's icon for the 16:9 Tizen 5.5 variant
+        public bool LitefinUseOblongIcon { get; set; } = false;  // swap Litefin's icon for the 16:9 Tizen 5.5 variant
 
         // ----- Updater settings -----
         public bool CheckForUpdatesOnStartup { get; set; } = true;
@@ -106,7 +107,7 @@ namespace Apps2Samsung.Helpers
         [JsonIgnore]
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
         [JsonIgnore]
-        public string AppVersion { get; set; } = "v2.5.3";
+        public string AppVersion { get; set; } = "v2.5.4";
         [JsonIgnore]
         public string TizenSdb { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-sdb/releases";
         [JsonIgnore]

@@ -170,6 +170,8 @@
   "lblTvAppOnlyNotice": "These settings apply ONLY to TVApp — they are written into the package before installation.",
   "lblTvAppOblongIcon": "Oblong icon (Tizen 5.5 TVs)",
   "lblTvAppOblongIconHint": "Use the wide 16:9 launcher icon. Enable this for older Tizen 5.5 TVs that show a stretched or cropped square icon.",
+  "lblLitefinSettings": "Litefin",
+  "lblLitefinOnlyNotice": "These settings apply ONLY to Litefin — they are written into the package before installation.",
   "catalogTitle": "App Catalog",
   "catalogSubtitle": "Everything you can install on your Samsung device",
   "catalogJellyfinBuilds": "Jellyfin builds",
