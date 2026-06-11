@@ -98,11 +98,21 @@ namespace Apps2Samsung.Helpers
         public DateTime? LastUpdateCheck { get; set; } = null;
 
         // ----- Application-scoped settings (readonly at runtime) -----
+        // [JsonIgnore] so these always reflect the shipped code defaults. If they were
+        // serialized, a preserved settings.json would freeze them at the value first
+        // written — e.g. an upgraded user would keep seeing their old AppVersion and
+        // stale endpoint URLs after an update.
+        [JsonIgnore]
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
+        [JsonIgnore]
         public string AppVersion { get; set; } = "v2.5.3";
+        [JsonIgnore]
         public string TizenSdb { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-sdb/releases";
+        [JsonIgnore]
         public string JellyfinAvReleaseFork { get; set; } = "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases";
+        [JsonIgnore]
         public string ReleaseInfo { get; set; } = "https://raw.githubusercontent.com/jeppevinkel/jellyfin-tizen-builds/refs/heads/master/README.md";
+        [JsonIgnore]
         public string CommunityInfo { get; set; } = "https://raw.githubusercontent.com/PatrickSt1991/tizen-community-packages/refs/heads/main/README.md";
         public AppSettings() { }
 
