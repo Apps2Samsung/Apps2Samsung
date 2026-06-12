@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -462,37 +463,31 @@ namespace Apps2Samsung.Services
 
             string authorp12, distributorp12, p12Password;
 
-            // Determine if Samsung login is needed
-            bool needsSamsungLogin = string.IsNullOrEmpty(selectedCertificate) ||
-                                     selectedCertificate == Constants.AppIdentifiers.Jelly2SamsDefault ||
-                                     (deviceInfo.Duid != certDuid && selectedCertificate != Constants.AppIdentifiers.JellyfinAppName) ||
-                                     _appSettings.ForceSamsungLogin;
+            var jelly2SamsDir = Path.Combine(AppSettings.CertificatePath, Constants.AppIdentifiers.Jelly2Sams);
+            bool hasAuthor = HasUsableAuthorCert(jelly2SamsDir);
 
-            if (needsSamsungLogin)
+            // A full Samsung profile (fresh keypair + new author cert) is only needed on first run,
+            // when no real cert is selected, when the author cert is missing/expired, or when forced.
+            bool needsFullProfile = string.IsNullOrEmpty(selectedCertificate) ||
+                                    selectedCertificate == Constants.AppIdentifiers.Jelly2SamsDefault ||
+                                    !hasAuthor ||
+                                    _appSettings.ForceSamsungLogin;
+
+            // Author cert exists but this TV's DUID isn't what the distributor cert was made for:
+            // regenerate ONLY the distributor (reusing the author keypair) so the author identity
+            // stays byte-identical and apps already installed on other TVs remain overwritable.
+            bool needsDistributorOnly = !needsFullProfile &&
+                                        deviceInfo.Duid != certDuid &&
+                                        selectedCertificate != Constants.AppIdentifiers.JellyfinAppName;
+
+            if (needsFullProfile || needsDistributorOnly)
             {
                 progress?.Invoke(Constants.LocalizationKeys.SamsungLogin.Localized());
                 onSamsungLoginStarted?.Invoke();
 
                 SamsungAuth auth = await SamsungLoginService.PerformSamsungLoginAsync(cancellationToken);
 
-                if (!string.IsNullOrEmpty(auth.access_token))
-                {
-                    progress?.Invoke(Constants.LocalizationKeys.CreatingCertificateProfile.Localized());
-
-                    var certificateService = new TizenCertificateService(_httpClient, _dialogService);
-                    (authorp12, distributorp12, p12Password) = await certificateService.GenerateProfileAsync(
-                        duid: deviceInfo.Duid,
-                        accessToken: auth.access_token,
-                        userId: auth.userId,
-                        userEmail: auth.inputEmailID,
-                        outputPath: Path.Combine(AppSettings.CertificatePath, Constants.AppIdentifiers.Jelly2Sams),
-                        progress);
-
-                    PackageCertificate = Constants.AppIdentifiers.Jelly2Sams;
-                    _appSettings.Certificate = PackageCertificate;
-                    _appSettings.Save();
-                }
-                else
+                if (string.IsNullOrEmpty(auth.access_token))
                 {
                     await _dialogService.ShowErrorAsync("Failed to authenticate with Samsung account.");
                     return new CertificateResult
@@ -501,6 +496,44 @@ namespace Apps2Samsung.Services
                         InstallResult = InstallResult.FailureResult("Auth failed.")
                     };
                 }
+
+                progress?.Invoke(Constants.LocalizationKeys.CreatingCertificateProfile.Localized());
+                var certificateService = new TizenCertificateService(_httpClient, _dialogService);
+
+                if (needsFullProfile)
+                {
+                    (authorp12, distributorp12, p12Password) = await certificateService.GenerateProfileAsync(
+                        duid: deviceInfo.Duid,
+                        accessToken: auth.access_token,
+                        userId: auth.userId,
+                        userEmail: auth.inputEmailID,
+                        outputPath: jelly2SamsDir,
+                        progress);
+                }
+                else
+                {
+                    // Reuse the existing author cert; only the distributor cert is regenerated.
+                    distributorp12 = await certificateService.RegenerateDistributorAsync(
+                        certDir: jelly2SamsDir,
+                        duid: deviceInfo.Duid,
+                        accessToken: auth.access_token,
+                        userId: auth.userId,
+                        userEmail: auth.inputEmailID,
+                        progress);
+                    authorp12 = Path.Combine(jelly2SamsDir, Constants.Certificate.AuthorFileName);
+                    p12Password = (await File.ReadAllTextAsync(
+                        Path.Combine(jelly2SamsDir, Constants.Certificate.PasswordFileName))).Trim();
+                }
+
+                PackageCertificate = Constants.AppIdentifiers.Jelly2Sams;
+                _appSettings.Certificate = PackageCertificate;
+                _appSettings.ChosenCertificates = new ExistingCertificates
+                {
+                    Name = Constants.AppIdentifiers.Jelly2Sams,
+                    Duid = deviceInfo.Duid,
+                    File = authorp12
+                };
+                _appSettings.Save();
             }
             else
             {
@@ -530,6 +563,28 @@ namespace Apps2Samsung.Services
                 DistributorP12 = distributorp12,
                 P12Password = p12Password
             };
+        }
+
+        // True when a generated author cert exists and is still valid — i.e. we can keep that
+        // author identity and only regenerate the distributor cert for a new TV.
+        private static bool HasUsableAuthorCert(string certDir)
+        {
+            try
+            {
+                var authorP12 = Path.Combine(certDir, Constants.Certificate.AuthorFileName);
+                var passwordFile = Path.Combine(certDir, Constants.Certificate.PasswordFileName);
+                if (!File.Exists(authorP12) || !File.Exists(passwordFile))
+                    return false;
+
+                var password = File.ReadAllText(passwordFile).Trim();
+                using var cert = new X509Certificate2(authorP12, password, X509KeyStorageFlags.Exportable);
+                return cert.NotAfter.Date >= DateTime.Today;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Cert] Author cert check failed for '{certDir}': {ex.Message}");
+                return false;
+            }
         }
 
         #endregion
