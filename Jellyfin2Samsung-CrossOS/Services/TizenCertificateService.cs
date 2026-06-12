@@ -84,6 +84,64 @@ namespace Apps2Samsung.Services
             return (authorp12, distributorp12, p12Plain);
         }
 
+        public async Task<string> RegenerateDistributorAsync(
+            string certDir,
+            string duid,
+            string accessToken,
+            string userId,
+            string userEmail,
+            ProgressCallback? progress = null)
+        {
+            if (string.IsNullOrEmpty(certDir))
+                throw new ArgumentException("Certificate directory cannot be empty", nameof(certDir));
+
+            var authorP12 = Path.Combine(certDir, "author.p12");
+            var passwordFile = Path.Combine(certDir, "password.txt");
+            if (!File.Exists(authorP12) || !File.Exists(passwordFile))
+                throw new FileNotFoundException(
+                    "Existing author certificate not found; cannot regenerate distributor only.", authorP12);
+
+            var password = (await File.ReadAllTextAsync(passwordFile)).Trim();
+
+            // Reuse the existing author keypair so the author identity stays byte-identical —
+            // only the device-bound distributor cert changes for the new DUID.
+            var keyPair = LoadKeyPairFromP12(authorP12, password);
+
+            progress?.Invoke("CreateDistributorCSR".Localized());
+            var distributorCsrData = GenerateDistributorCsr(keyPair, duid, userEmail);
+            await File.WriteAllBytesAsync(Path.Combine(certDir, "distributor.csr"), distributorCsrData);
+
+            progress?.Invoke("PostDistributorCSR".Localized());
+            var (profileXmlBytes, signedDistributorCsrBytes) =
+                await PostDistributorCsrAsync(accessToken, userId, distributorCsrData, duid);
+            if (profileXmlBytes != null)
+                await File.WriteAllBytesAsync(Path.Combine(certDir, "device-profile.xml"), profileXmlBytes);
+            await File.WriteAllBytesAsync(Path.Combine(certDir, "signed_distributor.cer"), signedDistributorCsrBytes);
+
+            await CheckCertificateExistenceAsync(Path.Combine(AppSettings.ProfilePath, "ca"));
+
+            progress?.Invoke("ExportPfxCertificates".Localized());
+            // author.p12 / signed_author.cer / password.txt are intentionally left untouched.
+            return await ExportPfxWithCaChainAsync(
+                signedDistributorCsrBytes, keyPair.Private, password, certDir,
+                Path.Combine(AppSettings.ProfilePath, "ca"), "distributor", "vd_tizen_dev_public2.crt");
+        }
+
+        /// <summary>Loads the keypair (public + private) from a PKCS#12 file's first key entry.</summary>
+        private static AsymmetricCipherKeyPair LoadKeyPairFromP12(string p12Path, string password)
+        {
+            using var fs = File.OpenRead(p12Path);
+            var store = new Pkcs12StoreBuilder().Build();
+            store.Load(fs, password.ToCharArray());
+
+            var alias = store.Aliases.Cast<string>().FirstOrDefault(store.IsKeyEntry)
+                ?? throw new InvalidOperationException($"No private key entry found in '{p12Path}'.");
+
+            var privateKey = store.GetKey(alias).Key;
+            var publicKey = store.GetCertificate(alias).Certificate.GetPublicKey();
+            return new AsymmetricCipherKeyPair(publicKey, privateKey);
+        }
+
         private static AsymmetricCipherKeyPair GenerateKeyPair()
         {
             var keyGen = new RsaKeyPairGenerator();
