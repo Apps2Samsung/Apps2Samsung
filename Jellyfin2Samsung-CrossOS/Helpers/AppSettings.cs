@@ -101,6 +101,7 @@ namespace Apps2Samsung.Helpers
         public string TvAppChannelsJson { get; set; } = "";  // JSON array of {name,url} for TVApp
         public bool TvAppUseOblongIcon { get; set; } = false;  // swap TVApp's icon for the 16:9 Tizen 5.5 variant
         public bool LitefinUseOblongIcon { get; set; } = false;  // swap Litefin's icon for the 16:9 Tizen 5.5 variant
+        public string ManualDuids { get; set; } = "";  // extra Tizen DUIDs to pre-authorize in the distributor cert (one per line / comma-separated)
 
         // ----- Updater settings -----
         public bool CheckForUpdatesOnStartup { get; set; } = true;

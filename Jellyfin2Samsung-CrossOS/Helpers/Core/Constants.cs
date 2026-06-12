@@ -158,6 +158,9 @@ namespace Apps2Samsung.Helpers.Core
             public const string CsrSubjectDistributorTemplate = "CN=TizenSDK, OU=, O=, L=, ST=, C=, emailAddress={0}";
             public const string SigningAlgorithm = "SHA256withRSA";
             public const int RsaKeySize = 2048;
+            // Max device IDs a single Samsung distributor certificate can cover. (Conservative
+            // cap; verify against Samsung if you hit it — extra DUIDs beyond this are dropped.)
+            public const int MaxDistributorDuids = 10;
         }
 
         /// <summary>
@@ -221,6 +224,7 @@ namespace Apps2Samsung.Helpers.Core
             public const string AuthorMismatch = "AuthorMismatch";
             public const string CertificateMismatch = "certificateMismatch";
             public const string ModifyConfigRequired = "modiyConfigRequired";
+            public const string DuidLimitReached = "duidLimitReached";
             public const string FailedTizenSdb = "FailedTizenSdb";
             public const string CheckingTizenSdb = "CheckingTizenSdb";
             public const string ScanningNetwork = "ScanningNetwork";

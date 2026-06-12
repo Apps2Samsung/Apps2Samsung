@@ -36,7 +36,7 @@ namespace Apps2Samsung.Services
         }
 
         public async Task<(string authorP12, string distributorP12, string passwordP12)> GenerateProfileAsync(
-            string duid,
+            IReadOnlyCollection<string> duids,
             string accessToken,
             string userId,
             string userEmail,
@@ -63,7 +63,7 @@ namespace Apps2Samsung.Services
             await File.WriteAllBytesAsync(Path.Combine(outputPath, "author.csr"), authorCsrData);
 
             progress?.Invoke("CreateDistributorCSR".Localized());
-            var distributorCsrData = GenerateDistributorCsr(keyPair, duid, userEmail);
+            var distributorCsrData = GenerateDistributorCsr(keyPair, duids, userEmail);
             await File.WriteAllBytesAsync(Path.Combine(outputPath, "distributor.csr"), distributorCsrData);
 
             progress?.Invoke("PostAuthorCSR".Localized());
@@ -71,7 +71,7 @@ namespace Apps2Samsung.Services
             await File.WriteAllBytesAsync(Path.Combine(outputPath, "signed_author.cer"), signedAuthorCsrBytes);
 
             progress?.Invoke("PostDistributorCSR".Localized());
-            var (profileXmlBytes, signedDistributorCsrBytes) = await PostDistributorCsrAsync(accessToken, userId, distributorCsrData, duid);
+            var (profileXmlBytes, signedDistributorCsrBytes) = await PostDistributorCsrAsync(accessToken, userId, distributorCsrData);
             if (profileXmlBytes != null)
                 await File.WriteAllBytesAsync(Path.Combine(outputPath, "device-profile.xml"), profileXmlBytes);
             await File.WriteAllBytesAsync(Path.Combine(outputPath, "signed_distributor.cer"), signedDistributorCsrBytes);
@@ -86,7 +86,7 @@ namespace Apps2Samsung.Services
 
         public async Task<string> RegenerateDistributorAsync(
             string certDir,
-            string duid,
+            IReadOnlyCollection<string> duids,
             string accessToken,
             string userId,
             string userEmail,
@@ -108,12 +108,12 @@ namespace Apps2Samsung.Services
             var keyPair = LoadKeyPairFromP12(authorP12, password);
 
             progress?.Invoke("CreateDistributorCSR".Localized());
-            var distributorCsrData = GenerateDistributorCsr(keyPair, duid, userEmail);
+            var distributorCsrData = GenerateDistributorCsr(keyPair, duids, userEmail);
             await File.WriteAllBytesAsync(Path.Combine(certDir, "distributor.csr"), distributorCsrData);
 
             progress?.Invoke("PostDistributorCSR".Localized());
             var (profileXmlBytes, signedDistributorCsrBytes) =
-                await PostDistributorCsrAsync(accessToken, userId, distributorCsrData, duid);
+                await PostDistributorCsrAsync(accessToken, userId, distributorCsrData);
             if (profileXmlBytes != null)
                 await File.WriteAllBytesAsync(Path.Combine(certDir, "device-profile.xml"), profileXmlBytes);
             await File.WriteAllBytesAsync(Path.Combine(certDir, "signed_distributor.cer"), signedDistributorCsrBytes);
@@ -166,16 +166,20 @@ namespace Apps2Samsung.Services
 
         }
 
-        private static byte[] GenerateDistributorCsr(AsymmetricCipherKeyPair keyPair, string duid, string userEmail)
+        private static byte[] GenerateDistributorCsr(AsymmetricCipherKeyPair keyPair, IEnumerable<string> duids, string userEmail)
         {
             var subject = new X509Name(
                 new ArrayList { X509Name.CN, X509Name.OU, X509Name.O, X509Name.L, X509Name.ST, X509Name.C, X509Name.EmailAddress },
                 new ArrayList { "TizenSDK", "", "", "", "", "", userEmail });
-            var generalNames = new GeneralNames(new[]
+
+            // One device-id SAN entry per DUID lets a single distributor cert cover several TVs.
+            var names = new List<GeneralName>
             {
-                new GeneralName(GeneralName.UniformResourceIdentifier, "URN:tizen:packageid="),
-                new GeneralName(GeneralName.UniformResourceIdentifier, $"URN:tizen:deviceid={duid}")
-            });
+                new GeneralName(GeneralName.UniformResourceIdentifier, "URN:tizen:packageid=")
+            };
+            foreach (var duid in duids)
+                names.Add(new GeneralName(GeneralName.UniformResourceIdentifier, $"URN:tizen:deviceid={duid}"));
+            var generalNames = new GeneralNames(names.ToArray());
 
             var extensions = new X509Extensions(new Dictionary<DerObjectIdentifier, Org.BouncyCastle.Asn1.X509.X509Extension>
             {
@@ -224,7 +228,7 @@ namespace Apps2Samsung.Services
             return await response.Content.ReadAsByteArrayAsync();
         }
 
-        private async Task<(byte[] profileXml, byte[] distributorCert)> PostDistributorCsrAsync(string accessToken, string userId, byte[] csrBytes, string duid)
+        private async Task<(byte[] profileXml, byte[] distributorCert)> PostDistributorCsrAsync(string accessToken, string userId, byte[] csrBytes)
         {
             var certificateHelper = new CertificateHelper();
 

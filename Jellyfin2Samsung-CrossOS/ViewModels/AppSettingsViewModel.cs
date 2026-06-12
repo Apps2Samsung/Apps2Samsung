@@ -70,6 +70,9 @@ namespace Apps2Samsung.ViewModels
         private bool showGitHubToken = false;
 
         [ObservableProperty]
+        private string manualDuids = string.Empty;
+
+        [ObservableProperty]
         private NetworkInterfaceOption? selectedNetworkInterface;
 
         public ObservableCollection<LanguageOption> AvailableLanguages { get; }
@@ -95,6 +98,8 @@ namespace Apps2Samsung.ViewModels
         public string LblSettingsHeader => _localizationService.GetString("lblSettings");
         public string LblGitHubToken => _localizationService.GetString("lblGitHubToken");
         public string LblGitHubTokenHint => _localizationService.GetString("lblGitHubTokenHint");
+        public string LblManualDuids => _localizationService.GetString("lblManualDuids");
+        public string LblManualDuidsHint => _localizationService.GetString("lblManualDuidsHint");
         public string LblOpenLogsFolder => _localizationService.GetString("lblOpenLogsFolder");
 
         public AppSettingsViewModel(
@@ -154,6 +159,8 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblSettingsHeader));
             OnPropertyChanged(nameof(LblGitHubToken));
             OnPropertyChanged(nameof(LblGitHubTokenHint));
+            OnPropertyChanged(nameof(LblManualDuids));
+            OnPropertyChanged(nameof(LblManualDuidsHint));
             OnPropertyChanged(nameof(LblOpenLogsFolder));
         }
 
@@ -176,6 +183,7 @@ namespace Apps2Samsung.ViewModels
             KeepWGTFile = AppSettings.Default.KeepWGTFile;
             DarkMode = AppSettings.Default.DarkMode;
             GitHubToken = AppSettings.Default.GitHubToken ?? string.Empty;
+            ManualDuids = AppSettings.Default.ManualDuids ?? string.Empty;
         }
 
         private async System.Threading.Tasks.Task LoadNetworkInterfacesAsync()
@@ -401,6 +409,12 @@ namespace Apps2Samsung.ViewModels
         partial void OnDarkModeChanged(bool value)
         {
             _themeService.SetTheme(value);
+        }
+
+        partial void OnManualDuidsChanged(string value)
+        {
+            AppSettings.Default.ManualDuids = value;
+            AppSettings.Default.Save();
         }
 
         partial void OnGitHubTokenChanged(string value)

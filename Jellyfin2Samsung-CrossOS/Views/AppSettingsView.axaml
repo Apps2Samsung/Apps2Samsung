@@ -106,6 +106,29 @@
 						   TextWrapping="Wrap"
 						   Margin="180,0,0,0"/>
 
+				<!-- Extra TV device IDs (DUIDs) -->
+				<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+					<TextBlock Grid.Column="0"
+							   Text="{Binding LblManualDuids}"
+							   Classes="label"
+							   VerticalAlignment="Top"
+							   Margin="0,6,0,0"/>
+					<TextBox Grid.Column="1"
+							 Text="{Binding ManualDuids}"
+							 AcceptsReturn="True"
+							 TextWrapping="Wrap"
+							 MinHeight="60"
+							 Watermark="One DUID per line"
+							 Classes="clean"
+							 HorizontalAlignment="Stretch"/>
+				</Grid>
+				<TextBlock Text="{Binding LblManualDuidsHint}"
+						   FontSize="11"
+						   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+						   FontStyle="Italic"
+						   TextWrapping="Wrap"
+						   Margin="180,0,0,0"/>
+
 			</StackPanel>
 
 			<Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4"/>

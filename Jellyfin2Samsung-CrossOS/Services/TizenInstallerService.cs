@@ -3,6 +3,7 @@ using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.API;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Helpers.Jellyfin;
+using Apps2Samsung.Helpers.Tizen.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using System;
@@ -479,12 +480,23 @@ namespace Apps2Samsung.Services
                                     _appSettings.ForceSamsungLogin ||
                                     (!isBundledJellyfin && !hasAuthor);
 
-            // Generated author cert exists but this TV's DUID isn't what the distributor cert was
-            // made for: regenerate ONLY the distributor (reusing the author keypair) so the author
-            // identity stays byte-identical and apps already installed on other TVs stay overwritable.
+            // DUIDs the user manually pre-authorized + DUIDs already covered by the current
+            // distributor cert. One distributor cert can cover several TVs (multiple device-id
+            // SAN entries), so we only regenerate when a needed DUID isn't covered yet.
+            var manualDuids = ParseDuids(_appSettings.ManualDuids);
+            var coveredDuids = (hasAuthor && !isBundledJellyfin)
+                ? GetCoveredDuids(jelly2SamsDir)
+                : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            bool duidsCovered = coveredDuids.Contains(deviceInfo.Duid) &&
+                                manualDuids.All(coveredDuids.Contains);
+
+            // Generated author cert exists but the distributor cert doesn't yet cover this TV (or a
+            // newly-added manual DUID): regenerate ONLY the distributor (reusing the author keypair)
+            // so the author identity stays byte-identical and apps on other TVs stay overwritable.
             bool needsDistributorOnly = !needsFullProfile &&
                                         !isBundledJellyfin &&
-                                        deviceInfo.Duid != certDuid;
+                                        !duidsCovered;
 
             if (needsFullProfile || needsDistributorOnly)
             {
@@ -506,10 +518,14 @@ namespace Apps2Samsung.Services
                 progress?.Invoke(Constants.LocalizationKeys.CreatingCertificateProfile.Localized());
                 var certificateService = new TizenCertificateService(_httpClient, _dialogService);
 
+                // Union of DUIDs the (re)generated distributor cert should cover: this TV first,
+                // then manual entries, then already-covered ones — capped at Samsung's per-cert limit.
+                var duids = BuildDistributorDuids(deviceInfo.Duid, manualDuids, coveredDuids, progress);
+
                 if (needsFullProfile)
                 {
                     (authorp12, distributorp12, p12Password) = await certificateService.GenerateProfileAsync(
-                        duid: deviceInfo.Duid,
+                        duids: duids,
                         accessToken: auth.access_token,
                         userId: auth.userId,
                         userEmail: auth.inputEmailID,
@@ -521,7 +537,7 @@ namespace Apps2Samsung.Services
                     // Reuse the existing author cert; only the distributor cert is regenerated.
                     distributorp12 = await certificateService.RegenerateDistributorAsync(
                         certDir: jelly2SamsDir,
-                        duid: deviceInfo.Duid,
+                        duids: duids,
                         accessToken: auth.access_token,
                         userId: auth.userId,
                         userEmail: auth.inputEmailID,
@@ -591,6 +607,67 @@ namespace Apps2Samsung.Services
                 Trace.WriteLine($"[Cert] Author cert check failed for '{certDir}': {ex.Message}");
                 return false;
             }
+        }
+
+        // Parses a user-entered list of DUIDs (one per line / comma / space separated).
+        private static HashSet<string> ParseDuids(string? raw)
+        {
+            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(raw))
+                return set;
+
+            foreach (var part in raw.Split(new[] { '\n', '\r', ',', ';', ' ', '\t' },
+                         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                set.Add(part);
+
+            return set;
+        }
+
+        // DUIDs already covered by the distributor cert in certDir (empty if missing/unreadable).
+        private static HashSet<string> GetCoveredDuids(string certDir)
+        {
+            try
+            {
+                var passwordFile = Path.Combine(certDir, Constants.Certificate.PasswordFileName);
+                if (!File.Exists(passwordFile))
+                    return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                var password = File.ReadAllText(passwordFile).Trim();
+                var distributor = Path.Combine(certDir, Constants.Certificate.DistributorFileName);
+                return new CertificateHelper().GetCertificateDuids(distributor, password);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Cert] Could not read covered DUIDs from '{certDir}': {ex.Message}");
+                return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
+        // The DUID set a (re)generated distributor cert should cover: this TV first, then manual
+        // entries, then already-covered ones — capped at Samsung's per-cert limit (extras dropped).
+        private static IReadOnlyCollection<string> BuildDistributorDuids(
+            string currentDuid, HashSet<string> manual, HashSet<string> covered, ProgressCallback? progress)
+        {
+            var ordered = new List<string>();
+            void Add(string d)
+            {
+                if (!string.IsNullOrWhiteSpace(d) && !ordered.Contains(d, StringComparer.OrdinalIgnoreCase))
+                    ordered.Add(d.Trim());
+            }
+
+            Add(currentDuid);
+            foreach (var d in manual) Add(d);
+            foreach (var d in covered) Add(d);
+
+            int max = Constants.Certificate.MaxDistributorDuids;
+            if (ordered.Count > max)
+            {
+                progress?.Invoke(string.Format(Constants.LocalizationKeys.DuidLimitReached.Localized(), max));
+                Trace.WriteLine($"[Cert] DUID count {ordered.Count} exceeds limit {max}; dropping extras.");
+                ordered = ordered.Take(max).ToList();
+            }
+
+            return ordered;
         }
 
         #endregion
