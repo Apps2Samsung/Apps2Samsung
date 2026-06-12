@@ -466,19 +466,25 @@ namespace Apps2Samsung.Services
             var jelly2SamsDir = Path.Combine(AppSettings.CertificatePath, Constants.AppIdentifiers.Jelly2Sams);
             bool hasAuthor = HasUsableAuthorCert(jelly2SamsDir);
 
+            // Older Tizen TVs use the shipped "Jellyfin" certificate (set just above) — it's always
+            // present and never regenerated, so it bypasses all Samsung-login / regeneration logic
+            // and is just reused from disk (unless the user forces a fresh login).
+            bool isBundledJellyfin = selectedCertificate == Constants.AppIdentifiers.JellyfinAppName;
+
             // A full Samsung profile (fresh keypair + new author cert) is only needed on first run,
-            // when no real cert is selected, when the author cert is missing/expired, or when forced.
+            // when no real cert is selected, when the generated author cert is missing/expired, or
+            // when forced. The bundled "Jellyfin" cert never needs one.
             bool needsFullProfile = string.IsNullOrEmpty(selectedCertificate) ||
                                     selectedCertificate == Constants.AppIdentifiers.Jelly2SamsDefault ||
-                                    !hasAuthor ||
-                                    _appSettings.ForceSamsungLogin;
+                                    _appSettings.ForceSamsungLogin ||
+                                    (!isBundledJellyfin && !hasAuthor);
 
-            // Author cert exists but this TV's DUID isn't what the distributor cert was made for:
-            // regenerate ONLY the distributor (reusing the author keypair) so the author identity
-            // stays byte-identical and apps already installed on other TVs remain overwritable.
+            // Generated author cert exists but this TV's DUID isn't what the distributor cert was
+            // made for: regenerate ONLY the distributor (reusing the author keypair) so the author
+            // identity stays byte-identical and apps already installed on other TVs stay overwritable.
             bool needsDistributorOnly = !needsFullProfile &&
-                                        deviceInfo.Duid != certDuid &&
-                                        selectedCertificate != Constants.AppIdentifiers.JellyfinAppName;
+                                        !isBundledJellyfin &&
+                                        deviceInfo.Duid != certDuid;
 
             if (needsFullProfile || needsDistributorOnly)
             {
