@@ -1,16 +1,24 @@
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Apps2Samsung.Helpers;
+using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Helpers.Tizen.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Services;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace Apps2Samsung.ViewModels
 {
@@ -26,6 +34,8 @@ namespace Apps2Samsung.ViewModels
         private readonly CertificateHelper _certificateHelper;
         private readonly INetworkService _networkService;
         private readonly IThemeService _themeService;
+        private readonly FileHelper _fileHelper;
+        private readonly ProviderManifestService _providerManifestService;
 
         [ObservableProperty]
         private LanguageOption? selectedLanguage;
@@ -78,6 +88,7 @@ namespace Apps2Samsung.ViewModels
         public ObservableCollection<LanguageOption> AvailableLanguages { get; }
         public ObservableCollection<ExistingCertificates> AvailableCertificates { get; } = new();
         public ObservableCollection<NetworkInterfaceOption> NetworkInterfaces { get; } = new();
+        public ObservableCollection<AppIconEntry> AppIcons { get; } = new();
 
         public char GitHubTokenPasswordChar => ShowGitHubToken ? '\0' : '*';
 
@@ -101,17 +112,27 @@ namespace Apps2Samsung.ViewModels
         public string LblManualDuids => _localizationService.GetString("lblManualDuids");
         public string LblManualDuidsHint => _localizationService.GetString("lblManualDuidsHint");
         public string LblOpenLogsFolder => _localizationService.GetString("lblOpenLogsFolder");
+        public string LblAppIcons => _localizationService.GetString("lblAppIcons");
+        public string LblAppIconsHint => _localizationService.GetString("lblAppIconsHint");
+        public string LblIconOblong => _localizationService.GetString("lblIconOblong");
+        public string LblIconCustom => _localizationService.GetString("lblIconCustom");
+        public string LblIconReset => _localizationService.GetString("lblIconReset");
+        public string LblIconDefault => _localizationService.GetString("lblIconDefault");
 
         public AppSettingsViewModel(
             ILocalizationService localizationService,
             CertificateHelper certificateHelper,
             INetworkService networkService,
-            IThemeService themeService)
+            IThemeService themeService,
+            FileHelper fileHelper,
+            HttpClient httpClient)
         {
             _localizationService = localizationService;
             _certificateHelper = certificateHelper;
             _networkService = networkService;
             _themeService = themeService;
+            _fileHelper = fileHelper;
+            _providerManifestService = new ProviderManifestService(httpClient);
 
             _localizationService.LanguageChanged += OnLanguageChanged;
             _themeService.ThemeChanged += OnThemeChanged;
@@ -129,6 +150,7 @@ namespace Apps2Samsung.ViewModels
             InitializeMainSettings();
             _ = LoadNetworkInterfacesAsync();
             _ = InitializeCertificatesAsync();
+            _ = LoadAppIconsAsync();
         }
 
         private void OnLanguageChanged(object? sender, EventArgs e)
@@ -162,6 +184,15 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblManualDuids));
             OnPropertyChanged(nameof(LblManualDuidsHint));
             OnPropertyChanged(nameof(LblOpenLogsFolder));
+            OnPropertyChanged(nameof(LblAppIcons));
+            OnPropertyChanged(nameof(LblAppIconsHint));
+            OnPropertyChanged(nameof(LblIconOblong));
+            OnPropertyChanged(nameof(LblIconCustom));
+            OnPropertyChanged(nameof(LblIconReset));
+            OnPropertyChanged(nameof(LblIconDefault));
+
+            foreach (var entry in AppIcons)
+                RefreshSummary(entry);
         }
 
         private void InitializeMainSettings()
@@ -426,6 +457,151 @@ namespace Apps2Samsung.ViewModels
         partial void OnShowGitHubTokenChanged(bool value)
         {
             OnPropertyChanged(nameof(GitHubTokenPasswordChar));
+        }
+
+        // ----- App icons (per-app launcher icon: default / bundled oblong / custom PNG) -----
+
+        private async System.Threading.Tasks.Task LoadAppIconsAsync()
+        {
+            try
+            {
+                var manifest = await _providerManifestService.GetAsync();
+
+                var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var entries = new List<AppIconEntry>();
+
+                void Add(string display, string key)
+                {
+                    key = key?.Trim() ?? string.Empty;
+                    if (string.IsNullOrEmpty(key) || !seen.Add(key))
+                        return;
+
+                    entries.Add(new AppIconEntry
+                    {
+                        DisplayName = string.IsNullOrWhiteSpace(display) ? key : display.Trim(),
+                        Key = key,
+                        HasOblong = HasBundledOblong(key),
+                    });
+                }
+
+                foreach (var provider in manifest.Providers)
+                {
+                    if (provider.ExpandAssets)
+                        continue; // the community bundle expands into CommunityApps below
+
+                    // All Jellyfin builds share the "Jellyfin" file-name root, so collapse the
+                    // variants (AVPlay, Legacy, …) into a single entry that matches any of them.
+                    if (string.IsNullOrWhiteSpace(provider.DisplayName) ||
+                        provider.DisplayName.StartsWith("Jellyfin", StringComparison.OrdinalIgnoreCase))
+                        Add("Jellyfin", "Jellyfin");
+                    else
+                        Add(provider.DisplayName, provider.DisplayName);
+                }
+
+                foreach (var community in manifest.CommunityApps)
+                    Add(community.MatchName, community.MatchName);
+
+                var map = LoadIconMap();
+                foreach (var entry in entries)
+                {
+                    entry.Value = map.TryGetValue(entry.Key, out var v) ? v : string.Empty;
+                    RefreshSummary(entry);
+                }
+
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    AppIcons.Clear();
+                    foreach (var entry in entries)
+                        AppIcons.Add(entry);
+                });
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[AppIcons] Failed to build the app-icon list: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
+        private void UseOblongIcon(AppIconEntry? entry)
+        {
+            if (entry != null)
+                SetIcon(entry, AppIconEntry.OblongValue);
+        }
+
+        [RelayCommand]
+        private async System.Threading.Tasks.Task BrowseCustomIconAsync(AppIconEntry? entry)
+        {
+            if (entry == null)
+                return;
+
+            var storageProvider = GetActiveStorageProvider();
+            if (storageProvider == null)
+                return;
+
+            var path = await _fileHelper.BrowseImageFileAsync(storageProvider);
+            if (!string.IsNullOrEmpty(path))
+                SetIcon(entry, path);
+        }
+
+        [RelayCommand]
+        private void ResetIcon(AppIconEntry? entry)
+        {
+            if (entry != null)
+                SetIcon(entry, string.Empty);
+        }
+
+        private void SetIcon(AppIconEntry entry, string value)
+        {
+            entry.Value = value;
+            RefreshSummary(entry);
+
+            var map = LoadIconMap();
+            if (string.IsNullOrEmpty(value))
+                map.Remove(entry.Key);
+            else
+                map[entry.Key] = value;
+
+            AppSettings.Default.CustomAppIconsJson = JsonSerializer.Serialize(map);
+            AppSettings.Default.Save();
+        }
+
+        private void RefreshSummary(AppIconEntry entry)
+        {
+            entry.Summary = entry.IsDefault
+                ? LblIconDefault
+                : entry.IsOblong
+                    ? LblIconOblong
+                    : Path.GetFileName(entry.Value);
+        }
+
+        private static bool HasBundledOblong(string key)
+            => key.IndexOf("tvapp", StringComparison.OrdinalIgnoreCase) >= 0
+            || key.IndexOf("litefin", StringComparison.OrdinalIgnoreCase) >= 0;
+
+        private static Dictionary<string, string> LoadIconMap()
+        {
+            var json = AppSettings.Default.CustomAppIconsJson;
+            if (string.IsNullOrWhiteSpace(json))
+                return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            try
+            {
+                return JsonSerializer.Deserialize<Dictionary<string, string>>(json) is { } parsed
+                    ? new Dictionary<string, string>(parsed, StringComparer.OrdinalIgnoreCase)
+                    : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
+        private static IStorageProvider? GetActiveStorageProvider()
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                return (desktop.Windows.FirstOrDefault(w => w.IsActive) ?? desktop.MainWindow)?.StorageProvider;
+
+            return null;
         }
 
         public void Dispose()

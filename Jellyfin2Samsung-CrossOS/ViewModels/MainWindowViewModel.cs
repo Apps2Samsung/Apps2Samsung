@@ -77,11 +77,6 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private bool darkMode;
 
-        [ObservableProperty]
-        private string customIconPath = string.Empty;
-
-        public bool HasCustomIcon => !string.IsNullOrEmpty(CustomIconPath);
-
         private string _currentStatusKey = string.Empty;
 
         private string? _downloadedPackagePath;
@@ -94,9 +89,6 @@ namespace Apps2Samsung.ViewModels
         public string DownloadAndInstall => _localizationService.GetString("DownloadAndInstall");
         public string lblCustomWgt => _localizationService.GetString("lblCustomWgt");
         public string SelectWGT => _localizationService.GetString("SelectWGT");
-        public string LblCustomIcon => _localizationService.GetString("lblCustomIcon");
-        public string LblCustomIconHint => _localizationService.GetString("lblCustomIconHint");
-        public string LblBrowse => _localizationService.GetString("lblBrowse");
         public static string FooterText =>
             $"{AppSettings.Default.AppVersion} " +
             $"- Copyright (c) {DateTime.Now.Year} - MIT License - Patrick Stel";
@@ -174,9 +166,6 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(StatusBar));
             OnPropertyChanged(nameof(lblCustomWgt));
             OnPropertyChanged(nameof(SelectWGT));
-            OnPropertyChanged(nameof(LblCustomIcon));
-            OnPropertyChanged(nameof(LblCustomIconHint));
-            OnPropertyChanged(nameof(LblBrowse));
         }
 
         partial void OnSelectedReleaseChanged(GitHubRelease? value)
@@ -194,93 +183,9 @@ namespace Apps2Samsung.ViewModels
 
         partial void OnSelectedAssetChanged(Asset? value)
         {
-            RefreshCustomIcon();
             RefreshCanExecuteChanged();
         }
 
-        partial void OnCustomIconPathChanged(string value)
-        {
-            OnPropertyChanged(nameof(HasCustomIcon));
-            ClearCustomIconCommand.NotifyCanExecuteChanged();
-        }
-
-        // ----- Custom per-app launcher icon -----
-
-        // App key for the currently-selected app (from its asset file name), or empty.
-        private string CurrentAppTitle =>
-            SelectedAsset != null && !string.IsNullOrEmpty(SelectedAsset.FileName)
-                ? FileHelper.AppTitleFromPackage(SelectedAsset.FileName)
-                : string.Empty;
-
-        private void RefreshCustomIcon()
-        {
-            var title = CurrentAppTitle;
-            CustomIconPath = string.IsNullOrEmpty(title)
-                ? string.Empty
-                : (LoadCustomIconMap().TryGetValue(title, out var path) ? path : string.Empty);
-            BrowseCustomIconCommand.NotifyCanExecuteChanged();
-        }
-
-        private bool CanBrowseCustomIcon() => !string.IsNullOrEmpty(CurrentAppTitle);
-
-        [RelayCommand(CanExecute = nameof(CanBrowseCustomIcon))]
-        private async Task BrowseCustomIconAsync()
-        {
-            var title = CurrentAppTitle;
-            if (string.IsNullOrEmpty(title))
-                return;
-
-            var mainWindow = Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-                ? desktop.MainWindow : null;
-            if (mainWindow?.StorageProvider == null)
-                return;
-
-            var path = await _fileHelper.BrowseImageFileAsync(mainWindow.StorageProvider);
-            if (string.IsNullOrEmpty(path))
-                return;
-
-            var map = LoadCustomIconMap();
-            map[title] = path;
-            SaveCustomIconMap(map);
-            CustomIconPath = path;
-        }
-
-        [RelayCommand(CanExecute = nameof(HasCustomIcon))]
-        private void ClearCustomIcon()
-        {
-            var title = CurrentAppTitle;
-            if (string.IsNullOrEmpty(title))
-                return;
-
-            var map = LoadCustomIconMap();
-            if (map.Remove(title))
-                SaveCustomIconMap(map);
-            CustomIconPath = string.Empty;
-        }
-
-        private static Dictionary<string, string> LoadCustomIconMap()
-        {
-            var json = AppSettings.Default.CustomAppIconsJson;
-            if (string.IsNullOrWhiteSpace(json))
-                return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            try
-            {
-                return System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json)
-                       is { } parsed
-                    ? new Dictionary<string, string>(parsed, StringComparer.OrdinalIgnoreCase)
-                    : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            }
-            catch
-            {
-                return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            }
-        }
-
-        private static void SaveCustomIconMap(Dictionary<string, string> map)
-        {
-            AppSettings.Default.CustomAppIconsJson = System.Text.Json.JsonSerializer.Serialize(map);
-            AppSettings.Default.Save();
-        }
         partial void OnCustomWgtPathChanged(string value)
         {
             AppSettings.Default.CustomWgtPath = value;
@@ -353,7 +258,7 @@ namespace Apps2Samsung.ViewModels
                 token.ThrowIfCancellationRequested();
 
                 SetStatus("ScanningNetwork");
-                await LoadDevicesAsync(token);
+                //await LoadDevicesAsync(token);
                 CustomWgtPath = AppSettings.Default.CustomWgtPath ?? "";
             }
             catch (OperationCanceledException)
@@ -509,7 +414,7 @@ namespace Apps2Samsung.ViewModels
                 if (!AvailableDevices.Any(d => d.IpAddress != L("lblOther")))
                 {
                     SetStatus("ScanningNetwork");
-                    await LoadDevicesAsync(token);
+                    //await LoadDevicesAsync(token);
                 }
 
                 CustomWgtPath = AppSettings.Default.CustomWgtPath ?? "";

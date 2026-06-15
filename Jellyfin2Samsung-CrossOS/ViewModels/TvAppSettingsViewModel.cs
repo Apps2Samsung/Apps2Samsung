@@ -29,9 +29,6 @@ namespace Apps2Samsung.ViewModels
 
         public bool HasChannels => Channels.Count > 0;
 
-        [ObservableProperty]
-        private bool useOblongIcon;
-
         public string LblTvAppSettings => _localizationService.GetString("lblTvAppSettings");
         public string LblTvAppHint => _localizationService.GetString("lblTvAppHint");
         public string LblTvAppOnlyNotice => _localizationService.GetString("lblTvAppOnlyNotice");
@@ -39,25 +36,14 @@ namespace Apps2Samsung.ViewModels
         public string LblChannelUrl => _localizationService.GetString("lblChannelUrl");
         public string LblAddChannel => _localizationService.GetString("lblAddChannel");
         public string LblNoChannels => _localizationService.GetString("lblNoChannels");
-        public string LblOblongIcon => _localizationService.GetString("lblTvAppOblongIcon");
-        public string LblOblongIconHint => _localizationService.GetString("lblTvAppOblongIconHint");
 
         public TvAppSettingsViewModel(ILocalizationService localizationService)
         {
             _localizationService = localizationService;
             _localizationService.LanguageChanged += OnLanguageChanged;
 
-            // Set the backing field directly so initialization doesn't trigger a save.
-            useOblongIcon = AppSettings.Default.TvAppUseOblongIcon;
-
             LoadChannels();
             Channels.CollectionChanged += OnChannelsChanged;
-        }
-
-        partial void OnUseOblongIconChanged(bool value)
-        {
-            AppSettings.Default.TvAppUseOblongIcon = value;
-            AppSettings.Default.Save();
         }
 
         private void LoadChannels()
@@ -164,8 +150,6 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblChannelUrl));
             OnPropertyChanged(nameof(LblAddChannel));
             OnPropertyChanged(nameof(LblNoChannels));
-            OnPropertyChanged(nameof(LblOblongIcon));
-            OnPropertyChanged(nameof(LblOblongIconHint));
         }
 
         public void Dispose()

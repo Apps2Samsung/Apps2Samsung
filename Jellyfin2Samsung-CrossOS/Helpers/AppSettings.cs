@@ -1,5 +1,6 @@
 ﻿using Apps2Samsung.Models;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -99,10 +100,10 @@ namespace Apps2Samsung.Helpers
         public string GitHubToken { get; set; } = "";
         public string LocalYoutubeServer { get; set; } = string.Empty;
         public string TvAppChannelsJson { get; set; } = "";  // JSON array of {name,url} for TVApp
-        public bool TvAppUseOblongIcon { get; set; } = false;  // swap TVApp's icon for the 16:9 Tizen 5.5 variant
-        public bool LitefinUseOblongIcon { get; set; } = false;  // swap Litefin's icon for the 16:9 Tizen 5.5 variant
+        public bool TvAppUseOblongIcon { get; set; } = false;  // legacy: migrated into CustomAppIconsJson ("oblong")
+        public bool LitefinUseOblongIcon { get; set; } = false;  // legacy: migrated into CustomAppIconsJson ("oblong")
         public string ManualDuids { get; set; } = "";  // extra Tizen DUIDs to pre-authorize in the distributor cert (one per line / comma-separated)
-        public string CustomAppIconsJson { get; set; } = "";  // JSON map { appTitle -> custom launcher icon PNG path } applied to the wgt at install
+        public string CustomAppIconsJson { get; set; } = "";  // JSON map { appKey -> "oblong" | custom launcher PNG path } applied to the wgt at install
 
         // ----- Updater settings -----
         public bool CheckForUpdatesOnStartup { get; set; } = true;
@@ -197,7 +198,44 @@ namespace Apps2Samsung.Helpers
                 // ignore load errors
             }
 
-            return _instance ??= new AppSettings();
+            _instance ??= new AppSettings();
+            MigrateOblongToCustomIcons(_instance);
+            return _instance;
+        }
+
+        /// <summary>
+        /// One-time fold of the old per-app oblong-icon toggles into the unified
+        /// <see cref="CustomAppIconsJson"/> map (value <c>"oblong"</c>), then clears the legacy
+        /// flags. Keeps a user's existing oblong choice working after the settings were unified.
+        /// </summary>
+        private static void MigrateOblongToCustomIcons(AppSettings s)
+        {
+            if (!s.TvAppUseOblongIcon && !s.LitefinUseOblongIcon)
+                return;
+
+            try
+            {
+                var map = string.IsNullOrWhiteSpace(s.CustomAppIconsJson)
+                    ? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                    : new Dictionary<string, string>(
+                        JsonSerializer.Deserialize<Dictionary<string, string>>(s.CustomAppIconsJson)
+                            ?? new Dictionary<string, string>(),
+                        StringComparer.OrdinalIgnoreCase);
+
+                if (s.TvAppUseOblongIcon && !map.ContainsKey("TVApp"))
+                    map["TVApp"] = "oblong";
+                if (s.LitefinUseOblongIcon && !map.ContainsKey("Litefin"))
+                    map["Litefin"] = "oblong";
+
+                s.CustomAppIconsJson = JsonSerializer.Serialize(map);
+                s.TvAppUseOblongIcon = false;
+                s.LitefinUseOblongIcon = false;
+                s.Save();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"Oblong→CustomIcons migration failed: {ex.Message}");
+            }
         }
 
         /// <summary>

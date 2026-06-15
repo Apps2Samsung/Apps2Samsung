@@ -29,26 +29,6 @@
 				</StackPanel>
 			</Border>
 
-			<!-- Icon style -->
-			<StackPanel Spacing="4">
-				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-					<TextBlock Grid.Column="0"
-							   Text="{Binding LblOblongIcon}"
-							   Classes="label"
-							   VerticalAlignment="Center"/>
-					<ToggleSwitch Grid.Column="1"
-								  IsChecked="{Binding UseOblongIcon}"
-								  VerticalAlignment="Center"/>
-				</Grid>
-				<TextBlock Text="{Binding LblOblongIconHint}"
-						   FontSize="11"
-						   FontStyle="Italic"
-						   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-						   TextWrapping="Wrap"/>
-			</StackPanel>
-
-			<Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4"/>
-
 			<StackPanel Spacing="8">
 				<TextBlock Text="{Binding LblTvAppSettings}"
 						   FontSize="15"

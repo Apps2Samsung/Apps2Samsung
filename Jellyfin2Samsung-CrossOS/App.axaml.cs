@@ -102,8 +102,8 @@ namespace Apps2Samsung
             // Per-app package patchers (edit the .wgt before signing/install).
             services.AddSingleton<IPackagePatcher>(sp => sp.GetRequiredService<JellyfinPackagePatcher>());
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Helpers.TvApp.TvAppPackagePatcher>();
-            services.AddSingleton<IPackagePatcher, Apps2Samsung.Helpers.Litefin.LitefinPackagePatcher>();
-            // Registered last so a user's custom icon overrides any app-specific (e.g. oblong) icon.
+            // Registered last so the user's chosen icon (custom PNG or the bundled oblong tile)
+            // overrides the package's default and composes with the app-specific patchers above.
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Helpers.CustomIconPackagePatcher>();
 
             // --------------------
@@ -126,13 +126,11 @@ namespace Apps2Samsung
             services.AddSingleton<AppSettingsViewModel>();
             services.AddSingleton<JellyfinSettingsViewModel>();
             services.AddSingleton<TvAppSettingsViewModel>();
-            services.AddSingleton<LitefinSettingsViewModel>();
             services.AddSingleton<SettingsWindowViewModel>();
 
             // App-specific settings sections (each app registers one provider).
             services.AddSingleton<IAppSettingsProvider, JellyfinSettingsProvider>();
             services.AddSingleton<IAppSettingsProvider, TvAppSettingsProvider>();
-            services.AddSingleton<IAppSettingsProvider, LitefinSettingsProvider>();
 
             // --------------------
             // Views

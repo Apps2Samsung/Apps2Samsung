@@ -5,47 +5,84 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Apps2Samsung.Helpers
 {
     /// <summary>
-    /// App-agnostic patcher: if the user picked a custom launcher icon for the app being installed
-    /// (keyed by app title in <see cref="AppSettings.CustomAppIconsJson"/>), swap it into the wgt.
-    /// Runs last in the patcher pipeline so a custom icon overrides any built-in (e.g. oblong) one.
+    /// App-agnostic icon patcher. The user's per-app launcher-icon choice lives in
+    /// <see cref="AppSettings.CustomAppIconsJson"/> as a map <c>{ appKey -> value }</c>, where value is
+    /// either the sentinel <c>"oblong"</c> (use the app's bundled 16:9 tile) or a custom PNG file path.
+    /// An entry applies to a package when its key is contained in the package file name (case-insensitive).
+    /// Registered last in the patcher pipeline so a chosen icon overrides the package's default.
     /// </summary>
     public class CustomIconPackagePatcher : IPackagePatcher
     {
+        private const string OblongValue = "oblong";
+
+        // Apps that ship a bundled 16:9 "oblong" tile, keyed by a token found in their package file name.
+        private static readonly (string Token, Uri Asset, string Fallback)[] OblongAssets =
+        {
+            ("tvapp", new Uri("avares://Apps2Samsung/Assets/TvApp/oblong-icon.png"), "noun-live-tv-3548799.png"),
+            ("litefin", new Uri("avares://Apps2Samsung/Assets/Litefin/oblong-icon.png"), "icon.png"),
+        };
+
         private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-        public bool CanHandle(string packagePath) => ResolveIconPath(packagePath) != null;
+        public bool CanHandle(string packagePath) => Resolve(packagePath) != null;
 
         public async Task<InstallResult> ApplyAsync(string packagePath)
         {
-            var iconPath = ResolveIconPath(packagePath);
-            if (iconPath == null)
+            var choice = Resolve(packagePath);
+            if (choice == null)
                 return InstallResult.SuccessResult();
 
             using var ws = PackageWorkspace.Extract(packagePath);
-            await WgtIconPatcher.SwapLauncherIconAsync(ws, iconPath);
+
+            if (choice.Value.IsOblong)
+                await WgtIconPatcher.SwapLauncherIconAsync(ws, choice.Value.Asset!, choice.Value.Fallback!);
+            else
+                await WgtIconPatcher.SwapLauncherIconAsync(ws, choice.Value.Path!);
+
             ws.Repack();
 
-            Trace.WriteLine($"[CustomIcon] Applied custom icon '{iconPath}' to {Path.GetFileName(packagePath)}.");
+            Trace.WriteLine($"[CustomIcon] Applied {(choice.Value.IsOblong ? "oblong" : choice.Value.Path)} icon to {Path.GetFileName(packagePath)}.");
             return InstallResult.SuccessResult();
         }
 
-        // The custom icon configured for this package's app title, if it exists on disk.
-        private static string? ResolveIconPath(string packagePath)
+        // The icon action configured for this package (first map entry whose key matches the file name), or null.
+        private static (bool IsOblong, Uri? Asset, string? Fallback, string? Path)? Resolve(string packagePath)
         {
             var map = LoadMap();
             if (map.Count == 0)
                 return null;
 
-            var appTitle = FileHelper.AppTitleFromPackage(packagePath);
-            return map.TryGetValue(appTitle, out var path) && !string.IsNullOrWhiteSpace(path) && File.Exists(path)
-                ? path
-                : null;
+            var fileName = System.IO.Path.GetFileName(packagePath);
+
+            foreach (var (key, value) in map)
+            {
+                if (string.IsNullOrWhiteSpace(value) ||
+                    fileName.IndexOf(key, StringComparison.OrdinalIgnoreCase) < 0)
+                    continue;
+
+                if (string.Equals(value, OblongValue, StringComparison.OrdinalIgnoreCase))
+                {
+                    var bundled = OblongAssets.FirstOrDefault(
+                        a => fileName.IndexOf(a.Token, StringComparison.OrdinalIgnoreCase) >= 0);
+                    if (bundled.Asset != null)
+                        return (true, bundled.Asset, bundled.Fallback, null);
+
+                    // "oblong" chosen but this app ships no bundled tile — leave the package as-is.
+                    continue;
+                }
+
+                if (File.Exists(value))
+                    return (false, null, null, value);
+            }
+
+            return null;
         }
 
         private static Dictionary<string, string> LoadMap()
