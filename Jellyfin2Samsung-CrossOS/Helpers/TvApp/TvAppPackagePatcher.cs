@@ -13,13 +13,13 @@ namespace Apps2Samsung.Helpers.TvApp
 {
     /// <summary>
     /// Applies the user's TVApp (KaashDev/TVapp) configuration to the package before install:
-    ///  - rewrites the placeholder <c>var channels = [...]</c> array in <c>js/main.js</c>, and
-    ///  - optionally swaps the launcher icon for a 16:9 "oblong" variant (older Tizen 5.5 TVs).
+    /// rewrites the placeholder <c>var channels = [...]</c> array in <c>js/main.js</c>.
+    /// (The launcher icon — including the 16:9 "oblong" tile — is handled by
+    /// <see cref="CustomIconPackagePatcher"/>.)
     /// </summary>
     public class TvAppPackagePatcher : IPackagePatcher
     {
         private const string MainJsRelativePath = "js/main.js";
-        private static readonly Uri OblongIconUri = new("avares://Apps2Samsung/Assets/TvApp/oblong-icon.png");
 
         // Matches `var channels = [ ... ];` (smallest span, across newlines).
         private static readonly Regex ChannelsArrayRegex =
@@ -33,23 +33,17 @@ namespace Apps2Samsung.Helpers.TvApp
         public async Task<InstallResult> ApplyAsync(string packagePath)
         {
             var channels = LoadConfiguredChannels();
-            var useOblongIcon = AppSettings.Default.TvAppUseOblongIcon;
 
-            if (channels.Count == 0 && !useOblongIcon)
+            if (channels.Count == 0)
             {
-                Trace.WriteLine("[TvApp] Nothing configured; leaving package unchanged.");
+                Trace.WriteLine("[TvApp] No channels configured; leaving package unchanged.");
                 return InstallResult.SuccessResult();
             }
 
             using var ws = PackageWorkspace.Extract(packagePath);
-
-            if (channels.Count > 0)
-                await PatchChannelsAsync(ws, channels);
-
-            if (useOblongIcon)
-                await WgtIconPatcher.SwapLauncherIconAsync(ws, OblongIconUri, "noun-live-tv-3548799.png");
-
+            await PatchChannelsAsync(ws, channels);
             ws.Repack();
+
             return InstallResult.SuccessResult();
         }
 

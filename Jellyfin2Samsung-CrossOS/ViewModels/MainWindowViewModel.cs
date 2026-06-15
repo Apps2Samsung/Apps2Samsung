@@ -185,6 +185,7 @@ namespace Apps2Samsung.ViewModels
         {
             RefreshCanExecuteChanged();
         }
+
         partial void OnCustomWgtPathChanged(string value)
         {
             AppSettings.Default.CustomWgtPath = value;

@@ -40,6 +40,7 @@ namespace Apps2Samsung.ViewModels
         private readonly ILocalizationService _localizationService;
 
         public AppSettingsViewModel Application { get; }
+        public AppIconsViewModel AppIcons { get; }
 
         public ObservableCollection<SettingsSection> Sections { get; }
 
@@ -48,15 +49,18 @@ namespace Apps2Samsung.ViewModels
 
         public SettingsWindowViewModel(
             AppSettingsViewModel application,
+            AppIconsViewModel appIcons,
             IEnumerable<IAppSettingsProvider> providers,
             ILocalizationService localizationService)
         {
             Application = application;
+            AppIcons = appIcons;
             _localizationService = localizationService;
 
             Sections = new ObservableCollection<SettingsSection>
             {
-                new SettingsSection(() => Application.LblTabMainSettings, application)
+                new SettingsSection(() => Application.LblTabMainSettings, application),
+                new SettingsSection(() => AppIcons.LblAppIcons, appIcons)
             };
 
             foreach (var provider in providers.OrderBy(p => p.SortOrder))

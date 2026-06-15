@@ -280,9 +280,10 @@ namespace Apps2Samsung.Services
                 if (!certificateResult.Success)
                     return certificateResult.InstallResult;
 
-                // Step 5: Apply app-specific configuration to the package, if any patcher matches.
-                var patcher = _packagePatchers.FirstOrDefault(p => p.CanHandle(packageUrl));
-                if (patcher != null)
+                // Step 5: Apply package configuration. Every matching patcher runs, in registration
+                // order, so app-specific patchers (channels/oblong) compose with the generic
+                // custom-icon patcher (registered last, so it overrides built-in icons).
+                foreach (var patcher in _packagePatchers.Where(p => p.CanHandle(packageUrl)))
                 {
                     Trace.WriteLine($"Applying configuration via {patcher.GetType().Name}");
                     await patcher.ApplyAsync(packageUrl);
