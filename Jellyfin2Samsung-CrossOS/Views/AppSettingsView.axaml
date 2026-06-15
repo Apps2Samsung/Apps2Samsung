@@ -219,32 +219,31 @@
 			<StackPanel Spacing="8">
 				<TextBlock Text="{Binding LblAppIcons}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
 				<TextBlock Text="{Binding LblAppIconsHint}" FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" TextWrapping="Wrap"/>
-				<ItemsControl ItemsSource="{Binding AppIcons}">
-					<ItemsControl.ItemTemplate>
+				<ComboBox ItemsSource="{Binding AppIcons}"
+					  SelectedItem="{Binding SelectedAppIcon}"
+					  HorizontalAlignment="Left"
+					  MinWidth="320">
+					<ComboBox.ItemTemplate>
 						<DataTemplate x:DataType="models:AppIconEntry">
-							<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,0,0,10">
-								<StackPanel Grid.Column="0" VerticalAlignment="Center">
-									<TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"/>
-									<TextBlock Text="{Binding Summary}" FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" TextTrimming="CharacterEllipsis"/>
-								</StackPanel>
-								<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-									<Button Classes="secondary" IsVisible="{Binding HasOblong}" Padding="10,6"
-										Command="{Binding $parent[ItemsControl].((viewModels:AppSettingsViewModel)DataContext).UseOblongIconCommand}" CommandParameter="{Binding}">
-										<TextBlock Text="{Binding $parent[ItemsControl].((viewModels:AppSettingsViewModel)DataContext).LblIconOblong}"/>
-									</Button>
-									<Button Classes="secondary" Padding="10,6"
-										Command="{Binding $parent[ItemsControl].((viewModels:AppSettingsViewModel)DataContext).BrowseCustomIconCommand}" CommandParameter="{Binding}">
-										<TextBlock Text="{Binding $parent[ItemsControl].((viewModels:AppSettingsViewModel)DataContext).LblIconCustom}"/>
-									</Button>
-									<Button Classes="secondary" IsVisible="{Binding !IsDefault}" Padding="10,6"
-										Command="{Binding $parent[ItemsControl].((viewModels:AppSettingsViewModel)DataContext).ResetIconCommand}" CommandParameter="{Binding}">
-										<TextBlock Text="{Binding $parent[ItemsControl].((viewModels:AppSettingsViewModel)DataContext).LblIconReset}"/>
-									</Button>
-								</StackPanel>
-							</Grid>
+							<TextBlock Text="{Binding DisplayName}"/>
 						</DataTemplate>
-					</ItemsControl.ItemTemplate>
-				</ItemsControl>
+					</ComboBox.ItemTemplate>
+				</ComboBox>
+
+				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding HasSelectedAppIcon}">
+					<TextBlock Grid.Column="0" Text="{Binding SelectedAppIcon.Summary}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+					<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+						<Button Classes="secondary" Padding="10,6" IsVisible="{Binding SelectedAppIcon.HasOblong}" Command="{Binding UseOblongIconCommand}">
+							<TextBlock Text="{Binding LblIconOblong}"/>
+						</Button>
+						<Button Classes="secondary" Padding="10,6" Command="{Binding BrowseCustomIconCommand}">
+							<TextBlock Text="{Binding LblIconCustom}"/>
+						</Button>
+						<Button Classes="secondary" Padding="10,6" IsVisible="{Binding !SelectedAppIcon.IsDefault}" Command="{Binding ResetIconCommand}">
+							<TextBlock Text="{Binding LblIconReset}"/>
+						</Button>
+					</StackPanel>
+				</Grid>
 			</StackPanel>
 
 			<Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4"/>

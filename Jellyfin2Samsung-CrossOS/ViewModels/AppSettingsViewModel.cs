@@ -90,6 +90,19 @@ namespace Apps2Samsung.ViewModels
         public ObservableCollection<NetworkInterfaceOption> NetworkInterfaces { get; } = new();
         public ObservableCollection<AppIconEntry> AppIcons { get; } = new();
 
+        [ObservableProperty]
+        private AppIconEntry? selectedAppIcon;
+
+        public bool HasSelectedAppIcon => SelectedAppIcon != null;
+
+        partial void OnSelectedAppIconChanged(AppIconEntry? value)
+        {
+            OnPropertyChanged(nameof(HasSelectedAppIcon));
+            UseOblongIconCommand.NotifyCanExecuteChanged();
+            BrowseCustomIconCommand.NotifyCanExecuteChanged();
+            ResetIconCommand.NotifyCanExecuteChanged();
+        }
+
         public char GitHubTokenPasswordChar => ShowGitHubToken ? '\0' : '*';
 
         // Localized labels
@@ -521,16 +534,17 @@ namespace Apps2Samsung.ViewModels
             }
         }
 
-        [RelayCommand]
-        private void UseOblongIcon(AppIconEntry? entry)
+        [RelayCommand(CanExecute = nameof(HasSelectedAppIcon))]
+        private void UseOblongIcon()
         {
-            if (entry != null)
-                SetIcon(entry, AppIconEntry.OblongValue);
+            if (SelectedAppIcon != null)
+                SetIcon(SelectedAppIcon, AppIconEntry.OblongValue);
         }
 
-        [RelayCommand]
-        private async System.Threading.Tasks.Task BrowseCustomIconAsync(AppIconEntry? entry)
+        [RelayCommand(CanExecute = nameof(HasSelectedAppIcon))]
+        private async System.Threading.Tasks.Task BrowseCustomIconAsync()
         {
+            var entry = SelectedAppIcon;
             if (entry == null)
                 return;
 
@@ -543,11 +557,11 @@ namespace Apps2Samsung.ViewModels
                 SetIcon(entry, path);
         }
 
-        [RelayCommand]
-        private void ResetIcon(AppIconEntry? entry)
+        [RelayCommand(CanExecute = nameof(HasSelectedAppIcon))]
+        private void ResetIcon()
         {
-            if (entry != null)
-                SetIcon(entry, string.Empty);
+            if (SelectedAppIcon != null)
+                SetIcon(SelectedAppIcon, string.Empty);
         }
 
         private void SetIcon(AppIconEntry entry, string value)
