@@ -258,7 +258,7 @@ namespace Apps2Samsung.ViewModels
                 token.ThrowIfCancellationRequested();
 
                 SetStatus("ScanningNetwork");
-                //await LoadDevicesAsync(token);
+                await LoadDevicesAsync(token);
                 CustomWgtPath = AppSettings.Default.CustomWgtPath ?? "";
             }
             catch (OperationCanceledException)
@@ -414,7 +414,7 @@ namespace Apps2Samsung.ViewModels
                 if (!AvailableDevices.Any(d => d.IpAddress != L("lblOther")))
                 {
                     SetStatus("ScanningNetwork");
-                    //await LoadDevicesAsync(token);
+                    await LoadDevicesAsync(token);
                 }
 
                 CustomWgtPath = AppSettings.Default.CustomWgtPath ?? "";
