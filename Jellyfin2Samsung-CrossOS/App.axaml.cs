@@ -124,6 +124,7 @@ namespace Apps2Samsung
             services.AddTransient<InstallingWindowViewModel>();
             services.AddTransient<TvLogsViewModel>();
             services.AddSingleton<AppSettingsViewModel>();
+            services.AddSingleton<AppIconsViewModel>();
             services.AddSingleton<JellyfinSettingsViewModel>();
             services.AddSingleton<TvAppSettingsViewModel>();
             services.AddSingleton<SettingsWindowViewModel>();
