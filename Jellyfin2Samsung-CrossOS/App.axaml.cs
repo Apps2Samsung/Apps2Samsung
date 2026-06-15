@@ -103,6 +103,8 @@ namespace Apps2Samsung
             services.AddSingleton<IPackagePatcher>(sp => sp.GetRequiredService<JellyfinPackagePatcher>());
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Helpers.TvApp.TvAppPackagePatcher>();
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Helpers.Litefin.LitefinPackagePatcher>();
+            // Registered last so a user's custom icon overrides any app-specific (e.g. oblong) icon.
+            services.AddSingleton<IPackagePatcher, Apps2Samsung.Helpers.CustomIconPackagePatcher>();
 
             // --------------------
             // Helpers

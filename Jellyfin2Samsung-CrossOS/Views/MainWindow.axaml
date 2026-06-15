@@ -94,6 +94,37 @@
 						<fa:SymbolIcon Symbol="Help" Width="20" Height="20"/>
 					</Button>
 				</Grid>
+				<!-- Custom launcher icon (optional, remembered per app) -->
+				<Grid ColumnDefinitions="100,*,Auto" ColumnSpacing="8"
+					  IsVisible="{Binding SelectedRelease, Converter={StaticResource StringNotEquals}, ConverterParameter=Custom WGT File}">
+					<TextBlock Classes="label"
+							   Text="{Binding LblCustomIcon}"
+							   VerticalAlignment="Center"
+							   Grid.Column="0"
+							   ToolTip.Tip="{Binding LblCustomIconHint}"/>
+
+					<TextBox Grid.Column="1"
+							 Classes="clean"
+							 Text="{Binding CustomIconPath}"
+							 IsReadOnly="True"
+							 HorizontalAlignment="Stretch"
+							 Watermark="{Binding LblCustomIconHint}"/>
+
+					<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+						<Button Classes="icon"
+								Command="{Binding BrowseCustomIconCommand}"
+								ToolTip.Tip="{Binding LblBrowse}">
+							<fa:SymbolIcon Symbol="Folder" Width="20" Height="20"/>
+						</Button>
+						<Button Classes="icon"
+								Command="{Binding ClearCustomIconCommand}"
+								IsVisible="{Binding HasCustomIcon}"
+								ToolTip.Tip="Clear">
+							<fa:SymbolIcon Symbol="Delete" Width="20" Height="20"/>
+						</Button>
+					</StackPanel>
+				</Grid>
+
 				<!-- Custom WGT File -->
 				<Grid ColumnDefinitions="100,*,40" ColumnSpacing="8" IsVisible="{Binding SelectedRelease, Converter={StaticResource StringEquals}, ConverterParameter=Custom WGT File, FallbackValue=False}">
 					<TextBlock Classes="label"

@@ -23,7 +23,15 @@ namespace Apps2Samsung.Helpers.Core
         /// Overwrites the package's launcher icon with the bundled asset at <paramref name="assetUri"/>.
         /// </summary>
         /// <param name="fallbackIconFile">Icon path to use if config.xml has no &lt;icon src&gt;.</param>
-        public static async Task SwapLauncherIconAsync(PackageWorkspace ws, Uri assetUri, string fallbackIconFile = "icon.png")
+        /// <summary>Swaps the launcher icon with a bundled <c>avares://</c> asset.</summary>
+        public static Task SwapLauncherIconAsync(PackageWorkspace ws, Uri assetUri, string fallbackIconFile = "icon.png")
+            => WriteIconAsync(ws, () => AssetLoader.Open(assetUri), assetUri.ToString(), fallbackIconFile);
+
+        /// <summary>Swaps the launcher icon with a user-supplied image file (e.g. a custom PNG).</summary>
+        public static Task SwapLauncherIconAsync(PackageWorkspace ws, string imageFilePath, string fallbackIconFile = "icon.png")
+            => WriteIconAsync(ws, () => File.OpenRead(imageFilePath), imageFilePath, fallbackIconFile);
+
+        private static async Task WriteIconAsync(PackageWorkspace ws, Func<Stream> openSource, string sourceLabel, string fallbackIconFile)
         {
             var iconFile = ResolveIconFileName(ws) ?? fallbackIconFile;
             var iconPath = Path.Combine(ws.Root, iconFile.Replace('/', Path.DirectorySeparatorChar));
@@ -32,11 +40,11 @@ namespace Apps2Samsung.Helpers.Core
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(iconPath)!);
 
-                await using var asset = AssetLoader.Open(assetUri);
+                await using var source = openSource();
                 await using var dest = File.Create(iconPath);
-                await asset.CopyToAsync(dest);
+                await source.CopyToAsync(dest);
 
-                Trace.WriteLine($"[WgtIcon] Swapped launcher icon ({iconFile}) for {assetUri}.");
+                Trace.WriteLine($"[WgtIcon] Swapped launcher icon ({iconFile}) for {sourceLabel}.");
             }
             catch (Exception ex)
             {
