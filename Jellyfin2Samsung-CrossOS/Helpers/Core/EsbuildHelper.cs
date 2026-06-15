@@ -22,6 +22,36 @@ namespace Apps2Samsung.Helpers.Core
         }
 
         /// <summary>
+        /// Ensures the esbuild binary has the executable bit set on Unix-like systems.
+        /// The bundled binaries are shipped non-executable and CopyToOutputDirectory does
+        /// not preserve the bit, so it must be set before the binary can be launched.
+        /// </summary>
+        private static void EnsureExecutable(string path)
+        {
+            // The OperatingSystem.IsWindows() term is what the platform-compatibility analyzer
+            // recognizes to prove the Unix-only File.*UnixFileMode calls below are unreachable
+            // on Windows; RequiresExecutablePermissions() carries the same intent for readers.
+            if (OperatingSystem.IsWindows() || !PlatformService.RequiresExecutablePermissions())
+                return;
+
+            try
+            {
+                const UnixFileMode executable =
+                    UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
+                    UnixFileMode.GroupRead | UnixFileMode.GroupExecute |
+                    UnixFileMode.OtherRead | UnixFileMode.OtherExecute;
+
+                if (File.GetUnixFileMode(path) != executable)
+                    File.SetUnixFileMode(path, executable);
+            }
+            catch (Exception ex)
+            {
+                // Non-fatal: if this fails the process launch below will fall back to original JS.
+                Trace.WriteLine($"Failed to set executable bit on esbuild: {ex}");
+            }
+        }
+
+        /// <summary>
         /// Transpiles ES2015+ JavaScript to ES5 using esbuild.
         /// If esbuild is missing or fails, returns the original JS.
         /// </summary>
@@ -35,6 +65,8 @@ namespace Apps2Samsung.Helpers.Core
                     Trace.WriteLine($"esbuild binary not found, skipping transpile for {relPathForLog ?? "unknown"}");
                     return js;
                 }
+
+                EnsureExecutable(esbuildPath);
 
                 string tempRoot = Path.Combine(Path.GetTempPath(), Constants.Esbuild.TempFolderName);
                 Directory.CreateDirectory(tempRoot);

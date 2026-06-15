@@ -106,7 +106,8 @@ namespace Apps2Samsung.Helpers.Core
             public const string MacArm64Suffix = "_macos-arm64";
             public const string EsbuildWindows = "win-x64";
             public const string EsbuildLinux = "linux-x64";
-            public const string EsbuildMacOs = "osx-universal";
+            public const string EsbuildMacOsX64 = "macos-x64";
+            public const string EsbuildMacOsArm64 = "macos-arm64";
             public const string EsbuildExecutable = "esbuild";
             public const string EsbuildExecutableWindows = "esbuild.exe";
         }

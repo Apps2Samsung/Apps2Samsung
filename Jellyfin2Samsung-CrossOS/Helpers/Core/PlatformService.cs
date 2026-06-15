@@ -137,7 +137,9 @@ namespace Apps2Samsung.Helpers.Core
                     Constants.PlatformBinaries.EsbuildLinux,
                     Constants.PlatformBinaries.EsbuildExecutable),
                 Platform.MacOS => Path.Combine(
-                    Constants.PlatformBinaries.EsbuildMacOs,
+                    IsArm64
+                        ? Constants.PlatformBinaries.EsbuildMacOsArm64
+                        : Constants.PlatformBinaries.EsbuildMacOsX64,
                     Constants.PlatformBinaries.EsbuildExecutable),
                 _ => null
             };
