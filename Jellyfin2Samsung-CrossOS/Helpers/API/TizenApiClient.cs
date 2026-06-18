@@ -2,6 +2,7 @@ using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -34,6 +35,17 @@ namespace Apps2Samsung.Helpers.API
                 response.EnsureSuccessStatusCode();
 
                 string jsonContent = await response.Content.ReadAsStringAsync();
+
+                // Non-Samsung devices also listen on 8001 and may answer with an HTML page
+                // (a router/NAS admin UI, etc.). Skip those quietly instead of trying to parse
+                // markup as JSON — otherwise every such host throws and pops an error dialog.
+                var trimmed = jsonContent.TrimStart();
+                if (trimmed.Length == 0 || (trimmed[0] != '{' && trimmed[0] != '['))
+                {
+                    Trace.WriteLine($"[TizenApi] {device.IpAddress}:{Constants.Ports.SamsungTvApiPort} did not return JSON; not a Samsung TV API.");
+                    return CreateFallbackDevice(device);
+                }
+
                 var jsonObject = JsonNode.Parse(jsonContent);
 
                 var logFilePath = Path.Combine(AppContext.BaseDirectory, "Logs", $"debug_tv_api_{DateTime.Now:yyyy-MM-dd_HH-mm-ss-fff}.log");
@@ -58,18 +70,15 @@ namespace Apps2Samsung.Helpers.API
             }
             catch (HttpRequestException ex)
             {
-                await _dialogService.ShowErrorAsync(
-                    $"Error connecting to Samsung TV at {device.IpAddress}: {ex.Message}");
+                Trace.WriteLine($"[TizenApi] Error connecting to {device.IpAddress}: {ex.Message}");
             }
             catch (JsonException ex)
             {
-                await _dialogService.ShowErrorAsync(
-                    $"Error parsing JSON response: {ex.Message}");
+                Trace.WriteLine($"[TizenApi] {device.IpAddress} returned a non-JSON response: {ex.Message}");
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync(
-                    $"Unexpected error: {ex.Message}");
+                Trace.WriteLine($"[TizenApi] Unexpected error probing {device.IpAddress}: {ex.Message}");
             }
 
             return CreateFallbackDevice(device);

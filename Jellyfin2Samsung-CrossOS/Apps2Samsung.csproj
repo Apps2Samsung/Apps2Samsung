@@ -101,6 +101,9 @@
 	  <AvaloniaResource Update="Assets\esbuild\macos-x64\esbuild">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </AvaloniaResource>
+	  <AvaloniaResource Update="Assets\esbuild\macos-arm64\esbuild">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </AvaloniaResource>
 	  <AvaloniaResource Update="Assets\esbuild\win-x64\esbuild.exe">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </AvaloniaResource>
