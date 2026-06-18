@@ -8,5 +8,20 @@
 		<Setter Property="CornerRadius" Value="4"/>
 		<Setter Property="Padding" Value="12,8"/>
 		<Setter Property="FontSize" Value="14"/>
+		<!-- Long lists (the Release catalog) need a usable scrollbar. -->
+		<Setter Property="MaxDropDownHeight" Value="360"/>
+		<Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+	</Style>
+
+	<!-- Keep the dropdown's scrollbar from fading out into a near-invisible overlay,
+	     and let the wheel scroll the list (Fluent auto-hide hides the track and makes
+	     the popup feel unscrollable). -->
+	<Style Selector="ComboBox.clean /template/ ScrollViewer">
+		<Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+		<Setter Property="AllowAutoHide" Value="False"/>
+	</Style>
+	<Style Selector="ComboBox.clean /template/ ScrollViewer ScrollBar">
+		<Setter Property="AllowAutoHide" Value="False"/>
+		<Setter Property="Width" Value="12"/>
 	</Style>
 </Styles>
