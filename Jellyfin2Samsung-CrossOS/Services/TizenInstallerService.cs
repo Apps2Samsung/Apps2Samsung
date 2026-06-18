@@ -324,7 +324,15 @@ namespace Apps2Samsung.Services
             {
                 progress?.Invoke($"Installation error: {ex}");
                 _appSettings.TryOverwrite = false;
-                return InstallResult.FailureResult(ex.Message);
+
+                // Surface the innermost cause too — outer messages like "The SSL connection could
+                // not be established, see inner exception" are useless on their own (e.g. an old
+                // Windows 7 TLS stack rejecting GitHub's certificate chain).
+                var baseEx = ex.GetBaseException();
+                var detail = baseEx.Message != ex.Message
+                    ? $"{ex.Message} ({baseEx.Message})"
+                    : ex.Message;
+                return InstallResult.FailureResult(detail);
             }
             finally
             {
