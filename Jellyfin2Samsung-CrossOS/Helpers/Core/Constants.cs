@@ -31,6 +31,8 @@ namespace Apps2Samsung.Helpers.Core
             public const string ResignFailed = "Re-sign failed";
             public const string Failed = "failed";
             public const string NotInstalled = "failed[132]";
+            public const string TransportConnectionLost = "transport connection";
+            public const string ConnectionResetByPeer = "connection reset by peer";
         }
 
         /// <summary>
@@ -220,6 +222,8 @@ namespace Apps2Samsung.Helpers.Core
             public const string PackageAndSign = "packageAndSign";
             public const string InstallingPackage = "InstallingPackage";
             public const string InstallationFailed = "InstallationFailed";
+            public const string ConnectionInterrupted = "connectionInterrupted";
+            public const string VpnDetected = "vpnDetectedWarning";
             public const string InstallationSuccessful = "InstallationSuccessful";
             public const string InsufficientSpace = "insufficientSpace";
             public const string AuthorMismatch = "AuthorMismatch";

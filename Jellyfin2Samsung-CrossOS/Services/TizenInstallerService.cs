@@ -189,19 +189,90 @@ namespace Apps2Samsung.Services
             var fileName = UrlHelper.GetFileNameFromUrl(downloadUrl);
             var localPath = Path.Combine(AppSettings.DownloadPath, fileName);
 
+            // Reuse a cached copy only if it's actually a valid archive. A previous download
+            // that was interrupted (network drop, VPN reset, app quit) can leave a truncated
+            // .wgt here; returning it blindly makes the patcher fail later with "End of Central
+            // Directory record could not be found". If the cached file is corrupt, drop it and
+            // re-download.
             if (File.Exists(localPath))
-                return localPath;
+            {
+                if (IsValidZipArchive(localPath))
+                    return localPath;
+
+                Trace.WriteLine($"[Download] Cached package is corrupt, re-downloading: {localPath}");
+                TryDelete(localPath);
+            }
 
             Directory.CreateDirectory(AppSettings.DownloadPath);
 
-            using var response = await _httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
-            response.EnsureSuccessStatusCode();
+            // Download to a temp file and only promote it to the final path once the transfer
+            // completes and validates, so an interrupted download never poisons the cache.
+            var tempPath = localPath + ".part";
+            TryDelete(tempPath);
 
-            await using var contentStream = await response.Content.ReadAsStreamAsync();
-            await using var fileStream = new FileStream(localPath, FileMode.Create, FileAccess.Write, FileShare.None);
-            await contentStream.CopyToAsync(fileStream);
+            try
+            {
+                using var response = await _httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
+                response.EnsureSuccessStatusCode();
 
-            return localPath;
+                await using (var contentStream = await response.Content.ReadAsStreamAsync())
+                await using (var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    await contentStream.CopyToAsync(fileStream);
+                }
+
+                // If the server advertised a size, make sure we got all of it.
+                var expected = response.Content.Headers.ContentLength;
+                var actual = new FileInfo(tempPath).Length;
+                if (expected.HasValue && actual != expected.Value)
+                    throw new IOException($"Download incomplete: received {actual} of {expected.Value} bytes.");
+
+                // .wgt is a zip — if the trailer isn't there, the file is truncated/corrupt.
+                if (!IsValidZipArchive(tempPath))
+                    throw new InvalidDataException("Downloaded package is not a valid .wgt archive (corrupt or incomplete).");
+
+                File.Move(tempPath, localPath, overwrite: true);
+                return localPath;
+            }
+            catch
+            {
+                TryDelete(tempPath);
+                throw;
+            }
+        }
+
+        // A .wgt is a zip archive. Opening it and reading the entry table forces the zip
+        // reader to locate the End-of-Central-Directory record, so a truncated/empty file
+        // fails here instead of deep inside the patcher.
+        private static bool IsValidZipArchive(string path)
+        {
+            try
+            {
+                // 22 bytes is the minimum size of an empty zip (the EOCD record alone),
+                // so anything smaller can't be a real package.
+                if (new FileInfo(path).Length < 22)
+                    return false;
+
+                using var archive = System.IO.Compression.ZipFile.OpenRead(path);
+                return archive.Entries.Count > 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static void TryDelete(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                    File.Delete(path);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Download] Could not delete '{path}': {ex.Message}");
+            }
         }
 
         #endregion
@@ -692,6 +763,20 @@ namespace Apps2Samsung.Services
             Action? onSamsungLoginStarted)
         {
             var installResults = await InstallPackageOnDeviceAsync(tvIpAddress, packageUrl, sdkToolPath);
+
+            // Transport / connection failure (e.g. "Unable to read data from the transport
+            // connection: Connection reset by peer"). Environmental — a VPN/proxy/firewall on
+            // the host capturing the route to the TV, or an unstable Wi-Fi link — not a packaging
+            // problem, so retrying or overwriting can't help. Fail fast with an actionable hint
+            // instead of looping a re-sign+re-push over the same broken route.
+            if (installResults.Output.Contains(Constants.TizenErrorCodes.TransportConnectionLost, StringComparison.OrdinalIgnoreCase) ||
+                installResults.Output.Contains(Constants.TizenErrorCodes.ConnectionResetByPeer, StringComparison.OrdinalIgnoreCase))
+            {
+                _appSettings.TryOverwrite = false;
+                progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
+                Trace.WriteLine($"[Install] Transport connection lost to {tvIpAddress}: {installResults.Output}");
+                return InstallResult.FailureResult(Constants.LocalizationKeys.ConnectionInterrupted.Localized());
+            }
 
             // Handle insufficient space error
             if (installResults.Output.Contains(Constants.TizenErrorCodes.DownloadFailed116))

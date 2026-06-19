@@ -77,6 +77,21 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private bool darkMode;
 
+        [ObservableProperty]
+        private string vpnWarning = string.Empty;
+
+        public bool HasVpnWarning => !string.IsNullOrEmpty(VpnWarning);
+
+        partial void OnVpnWarningChanged(string value) => OnPropertyChanged(nameof(HasVpnWarning));
+
+        private void RefreshVpnWarning()
+        {
+            var adapter = _networkService.GetActiveVpnAdapterName();
+            VpnWarning = string.IsNullOrEmpty(adapter)
+                ? string.Empty
+                : string.Format(L("vpnDetectedWarning"), adapter);
+        }
+
         private string _currentStatusKey = string.Empty;
 
         private string? _downloadedPackagePath;
@@ -136,6 +151,7 @@ namespace Apps2Samsung.ViewModels
         private void OnLanguageChanged(object? sender, EventArgs e)
         {
             RefreshLocalizedProperties();
+            RefreshVpnWarning();
 
             if (!string.IsNullOrEmpty(_currentStatusKey))
                 StatusBar = L(_currentStatusKey);
@@ -758,6 +774,7 @@ namespace Apps2Samsung.ViewModels
         {
             IsLoadingDevices = true;
             AvailableDevices.Clear();
+            RefreshVpnWarning();
 
             try
             {

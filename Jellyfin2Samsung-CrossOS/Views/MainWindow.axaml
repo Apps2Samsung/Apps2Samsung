@@ -47,6 +47,16 @@
 				</StackPanel>
 			</Border>
 
+			<!-- VPN / tunnel adapter warning -->
+			<Border Background="#FFF3CD" CornerRadius="6" Padding="12,10"
+			        BorderBrush="#FFE69C" BorderThickness="1"
+			        IsVisible="{Binding HasVpnWarning}">
+				<StackPanel Orientation="Horizontal" Spacing="10">
+					<fa:SymbolIcon Symbol="Important" Width="18" Height="18" Foreground="#856404" VerticalAlignment="Top"/>
+					<TextBlock Text="{Binding VpnWarning}" Foreground="#856404" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
+				</StackPanel>
+			</Border>
+
 			<!-- Form fields - side by side layout -->
 			<StackPanel Spacing="18">
 

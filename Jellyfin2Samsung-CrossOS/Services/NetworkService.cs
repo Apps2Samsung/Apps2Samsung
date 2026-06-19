@@ -199,6 +199,7 @@ namespace Apps2Samsung.Services
                 .SelectMany(ni => ni.GetIPProperties().UnicastAddresses)
                 .Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork)
                 .Where(ua => !IPAddress.IsLoopback(ua.Address))
+                .Where(ua => IsScannableAddress(ua.Address))
                 .Where(ua => ua.IPv4Mask != null && !ua.IPv4Mask.Equals(IPAddress.Any))
                 .Select(ua => (Address: ua.Address, Mask: ua.IPv4Mask))
                 .ToList();
@@ -258,6 +259,110 @@ namespace Apps2Samsung.Services
 
             for (uint i = netInt + 1; i < broadInt; i++)
                 yield return UIntToIp(i);
+        }
+
+        // Ranges that can appear as a local interface but are never a real home LAN the TV
+        // lives on. Scanning them (typically a VPN / tunnel / "secure DNS" adapter sitting on
+        // 198.18.0.0/15 or CGNAT) wastes minutes probing phantom hosts and can divert the
+        // install route onto the tunnel, causing "connection reset by peer" mid-push.
+        // NOTE: the user-supplied custom IP bypasses this (added after the filter), so a
+        // deliberate TV address in an unusual range is still scanned.
+        private static readonly (uint Network, uint Mask)[] NonScannableRanges = BuildNonScannableRanges();
+
+        private static (uint, uint)[] BuildNonScannableRanges()
+        {
+            (uint, uint) R(string net, string mask) =>
+                (IpToUInt(IPAddress.Parse(net)), IpToUInt(IPAddress.Parse(mask)));
+
+            return new[]
+            {
+                R("169.254.0.0",  "255.255.0.0"),   // link-local / APIPA
+                R("100.64.0.0",   "255.192.0.0"),   // CGNAT (Tailscale, Cloudflare WARP, some ISPs)
+                R("198.18.0.0",   "255.254.0.0"),   // RFC 2544 benchmarking (VPN/proxy adapters)
+                R("192.0.2.0",    "255.255.255.0"), // TEST-NET-1
+                R("198.51.100.0", "255.255.255.0"), // TEST-NET-2
+                R("203.0.113.0",  "255.255.255.0"), // TEST-NET-3
+            };
+        }
+
+        private static bool IsScannableAddress(IPAddress ip)
+        {
+            uint addr = IpToUInt(ip);
+            foreach (var (network, mask) in NonScannableRanges)
+            {
+                if ((addr & mask) == (network & mask))
+                    return false;
+            }
+            return true;
+        }
+
+        // IPv4 ranges only an overlay/VPN hands out, used to spot an active tunnel adapter.
+        private static readonly (uint Network, uint Mask)[] VpnRanges =
+        {
+            (IpToUInt(IPAddress.Parse("100.64.0.0")), IpToUInt(IPAddress.Parse("255.192.0.0"))),   // CGNAT (Tailscale, WARP)
+            (IpToUInt(IPAddress.Parse("198.18.0.0")), IpToUInt(IPAddress.Parse("255.254.0.0"))),   // RFC 2544 (VPN/proxy)
+            (IpToUInt(IPAddress.Parse("25.0.0.0")),   IpToUInt(IPAddress.Parse("255.0.0.0"))),     // Hamachi
+        };
+
+        // Adapter name/description fragments that identify a known VPN / tunnel product.
+        private static readonly string[] VpnNameTokens =
+        {
+            "vpn", "wireguard", "wintun", "tap-windows", "openvpn", "tailscale", "zerotier",
+            "hamachi", "nordlynx", "mullvad", "proton", "expressvpn", "surfshark", "cloudflare warp",
+        };
+
+        private static bool IsVpnRange(IPAddress ip)
+        {
+            uint addr = IpToUInt(ip);
+            foreach (var (network, mask) in VpnRanges)
+            {
+                if ((addr & mask) == (network & mask))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Best-effort detection of an active VPN / tunnel adapter, so the UI can warn the user
+        /// before they blame the app for a TV that "won't be found". Returns the adapter's
+        /// description (or name) when one looks like a VPN, otherwise null. Heuristic only.
+        /// </summary>
+        public string? GetActiveVpnAdapterName()
+        {
+            try
+            {
+                foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (ni.OperationalStatus != OperationalStatus.Up ||
+                        ni.NetworkInterfaceType == NetworkInterfaceType.Loopback)
+                        continue;
+
+                    static string Describe(NetworkInterface n) =>
+                        string.IsNullOrWhiteSpace(n.Description) ? n.Name : n.Description;
+
+                    // 1) Adapter type that is inherently a tunnel / dial-up VPN.
+                    if (ni.NetworkInterfaceType == NetworkInterfaceType.Tunnel ||
+                        ni.NetworkInterfaceType == NetworkInterfaceType.Ppp)
+                        return Describe(ni);
+
+                    // 2) Name/description matches a known VPN / tunnel product.
+                    var text = $"{ni.Name} {ni.Description}";
+                    if (VpnNameTokens.Any(t => text.Contains(t, StringComparison.OrdinalIgnoreCase)))
+                        return Describe(ni);
+
+                    // 3) An IPv4 in a range only a VPN/overlay hands out.
+                    if (ni.GetIPProperties().UnicastAddresses
+                        .Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork)
+                        .Any(ua => IsVpnRange(ua.Address)))
+                        return Describe(ni);
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[VPN] detection failed: {ex.Message}");
+            }
+
+            return null;
         }
 
         private static uint IpToUInt(IPAddress ip)
