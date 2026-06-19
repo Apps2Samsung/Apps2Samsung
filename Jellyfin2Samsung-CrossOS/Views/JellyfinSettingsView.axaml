@@ -12,7 +12,7 @@
 
 		<!-- TAB: Server & Auto-Login -->
 		<TabItem Header="{Binding LblTabServer}">
-			<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,0">
+			<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,16">
 				<StackPanel Spacing="16">
 
 					<!-- Jellyfin-only notice -->

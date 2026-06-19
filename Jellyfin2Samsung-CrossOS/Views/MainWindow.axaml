@@ -6,7 +6,7 @@
 		xmlns:helpers="clr-namespace:Apps2Samsung.Helpers.Converters"
 		xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
         Width="580"
-        Height="410"
+        SizeToContent="Height"
         WindowStartupLocation="CenterScreen"
         Title="Apps2Samsung">
 	<Window.Resources>
@@ -51,10 +51,10 @@
 			<Border Background="#FFF3CD" CornerRadius="6" Padding="12,10"
 			        BorderBrush="#FFE69C" BorderThickness="1"
 			        IsVisible="{Binding HasVpnWarning}">
-				<StackPanel Orientation="Horizontal" Spacing="10">
-					<fa:SymbolIcon Symbol="Important" Width="18" Height="18" Foreground="#856404" VerticalAlignment="Top"/>
-					<TextBlock Text="{Binding VpnWarning}" Foreground="#856404" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
-				</StackPanel>
+				<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+					<fa:SymbolIcon Grid.Column="0" Symbol="Important" Width="18" Height="18" Foreground="#856404" VerticalAlignment="Top"/>
+					<TextBlock Grid.Column="1" Text="{Binding VpnWarning}" Foreground="#856404" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
+				</Grid>
 			</Border>
 
 			<!-- Form fields - side by side layout -->

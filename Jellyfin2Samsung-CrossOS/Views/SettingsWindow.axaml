@@ -9,7 +9,9 @@
         x:DataType="viewModels:SettingsWindowViewModel"
         Title="Settings"
         Width="880"
-        Height="850">
+        Height="680"
+        MinHeight="420"
+        WindowStartupLocation="CenterScreen">
 
 	<Window.Styles>
 		<StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>
@@ -17,6 +19,17 @@
 		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
 		<StyleInclude Source="avares://Apps2Samsung/Styles/TextBlocks.axaml"/>
 		<StyleInclude Source="avares://Apps2Samsung/Styles/ComboBoxes.axaml"/>
+
+		<!-- Keep section scrollbars visible (the Fluent default fades to a near-invisible
+		     overlay, making long settings lists look unscrollable / the last row "clipped"). -->
+		<Style Selector="ScrollViewer">
+			<Setter Property="AllowAutoHide" Value="False"/>
+			<Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+			<!-- Horizontal disabled so content is measured at the real (wrapped) width; with
+			     horizontal scroll enabled the ScrollViewer under-measures the vertical extent and
+			     the last row becomes unreachable. -->
+			<Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+		</Style>
 	</Window.Styles>
 
 	<Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
@@ -95,7 +108,9 @@
 				</ListBox>
 
 				<ContentControl Grid.Column="1"
-								Content="{Binding SelectedSection.Content}"/>
+								Content="{Binding SelectedSection.Content}"
+								HorizontalContentAlignment="Stretch"
+								VerticalContentAlignment="Stretch"/>
 
 			</Grid>
 		</Grid>

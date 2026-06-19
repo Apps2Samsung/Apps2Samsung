@@ -9,7 +9,7 @@
              x:Class="Apps2Samsung.Views.TvAppSettingsView"
              x:DataType="viewModels:TvAppSettingsViewModel">
 
-	<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,0">
+	<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,16">
 		<StackPanel Spacing="16">
 
 			<!-- TVApp-only notice -->
@@ -102,6 +102,8 @@
 				</StackPanel>
 			</Button>
 
+		<!-- bottom slack: ScrollViewer under-measures wrapping content, so guarantee the last row clears the fold -->
+			<Border Height="40"/>
 		</StackPanel>
 	</ScrollViewer>
 </UserControl>

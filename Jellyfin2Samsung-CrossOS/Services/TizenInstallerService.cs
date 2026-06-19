@@ -184,19 +184,20 @@ namespace Apps2Samsung.Services
             }
         }
 
-        public async Task<string> DownloadPackageAsync(string downloadUrl)
+        // <paramref name="validateWgt"/>: the download is a .wgt (a zip) and should be verified
+        // as a valid archive. Off for non-archive downloads like the raw Tizen SDB binary.
+        public async Task<string> DownloadPackageAsync(string downloadUrl, bool validateWgt = false)
         {
             var fileName = UrlHelper.GetFileNameFromUrl(downloadUrl);
             var localPath = Path.Combine(AppSettings.DownloadPath, fileName);
 
-            // Reuse a cached copy only if it's actually a valid archive. A previous download
-            // that was interrupted (network drop, VPN reset, app quit) can leave a truncated
-            // .wgt here; returning it blindly makes the patcher fail later with "End of Central
-            // Directory record could not be found". If the cached file is corrupt, drop it and
-            // re-download.
+            // Reuse a cached copy. For a .wgt, only if it's actually a valid archive: a previous
+            // download that was interrupted (network drop, VPN reset, app quit) can leave a
+            // truncated file here, and returning it blindly makes the patcher fail later with
+            // "End of Central Directory record could not be found". If corrupt, drop and re-download.
             if (File.Exists(localPath))
             {
-                if (IsValidZipArchive(localPath))
+                if (!validateWgt || IsValidZipArchive(localPath))
                     return localPath;
 
                 Trace.WriteLine($"[Download] Cached package is corrupt, re-downloading: {localPath}");
@@ -228,7 +229,7 @@ namespace Apps2Samsung.Services
                     throw new IOException($"Download incomplete: received {actual} of {expected.Value} bytes.");
 
                 // .wgt is a zip — if the trailer isn't there, the file is truncated/corrupt.
-                if (!IsValidZipArchive(tempPath))
+                if (validateWgt && !IsValidZipArchive(tempPath))
                     throw new InvalidDataException("Downloaded package is not a valid .wgt archive (corrupt or incomplete).");
 
                 File.Move(tempPath, localPath, overwrite: true);

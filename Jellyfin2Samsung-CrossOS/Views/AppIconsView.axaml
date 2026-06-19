@@ -9,7 +9,7 @@
              x:Class="Apps2Samsung.Views.AppIconsView"
              x:DataType="viewModels:AppIconsViewModel">
 
-	<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,0">
+	<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,16">
 		<StackPanel Spacing="12">
 
 			<TextBlock Text="{Binding LblAppIcons}"
@@ -56,6 +56,8 @@
 				</StackPanel>
 			</Grid>
 
+		<!-- bottom slack: ScrollViewer under-measures wrapping content, so guarantee the last row clears the fold -->
+			<Border Height="40"/>
 		</StackPanel>
 	</ScrollViewer>
 </UserControl>

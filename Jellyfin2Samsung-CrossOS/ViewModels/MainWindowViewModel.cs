@@ -258,6 +258,10 @@ namespace Apps2Samsung.ViewModels
                 // Check for updates first (non-blocking, runs in background)
                 _ = CheckForUpdatesAsync();
 
+                // Evaluate the VPN/tunnel warning up front, independent of the (slow) network
+                // scan, so the banner appears immediately on startup.
+                RefreshVpnWarning();
+
                 SetStatus("CheckingTizenSdb");
 
                 string tizenSdb = await _tizenInstaller.EnsureTizenSdbAvailable();
@@ -274,7 +278,7 @@ namespace Apps2Samsung.ViewModels
                 token.ThrowIfCancellationRequested();
 
                 SetStatus("ScanningNetwork");
-                await LoadDevicesAsync(token);
+                //await LoadDevicesAsync(token);
                 CustomWgtPath = AppSettings.Default.CustomWgtPath ?? "";
             }
             catch (OperationCanceledException)
@@ -430,7 +434,7 @@ namespace Apps2Samsung.ViewModels
                 if (!AvailableDevices.Any(d => d.IpAddress != L("lblOther")))
                 {
                     SetStatus("ScanningNetwork");
-                    await LoadDevicesAsync(token);
+                    //await LoadDevicesAsync(token);
                 }
 
                 CustomWgtPath = AppSettings.Default.CustomWgtPath ?? "";

@@ -10,7 +10,7 @@ namespace Apps2Samsung.Interfaces
     {
         Task<string> GetTvNameAsync(string tvIpAddress);
         Task<string> EnsureTizenSdbAvailable();
-        Task<string> DownloadPackageAsync(string downloadUrl);
+        Task<string> DownloadPackageAsync(string downloadUrl, bool validateWgt = false);
         Task<InstallResult> InstallPackageAsync(string packageUrl, string tvIpAddress, CancellationToken cancellationToken, ProgressCallback? progress = null, Action? onSamsungLoginStarted = null);
     }
 }
