@@ -17,5 +17,6 @@ namespace Apps2Samsung.Interfaces
         Task<string?> GetManufacturerFromIp(string ipAddress);
         bool IsDifferentSubnet(string ip1, string ip2);
         Task<IReadOnlyList<NetworkInterfaceOption>> GetNetworkInterfaceOptionsAsync();
+        string? GetActiveVpnAdapterName();
     }
 }
