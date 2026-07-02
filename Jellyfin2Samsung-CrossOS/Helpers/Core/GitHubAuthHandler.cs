@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Security;
+using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,8 +24,26 @@ namespace Apps2Samsung.Helpers.Core
         {
             var handler = new HttpClientHandler();
 
+            // Explicitly offer modern TLS. Legacy stacks — notably Windows 7 — default to
+            // TLS 1.0/1.1, which GitHub and Samsung now refuse at the handshake, surfacing as
+            // "The SSL connection could not be established". Requesting 1.2/1.3 lets those TVs
+            // negotiate TLS 1.2 (the highest Windows 7 SChannel supports when it's enabled).
+            try
+            {
+                handler.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13;
+            }
+            catch
+            {
+                try { handler.SslProtocols = SslProtocols.Tls12; } catch { /* fall back to OS default */ }
+            }
 
-            if (!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS())
+            // Accept chain/name validation issues for the specific hosts we talk to on platforms
+            // whose trust store / TLS stack is unreliable: Linux (no unified store integration for
+            // these) and legacy Windows (7/8 — stale root certificates). Scoped to our known hosts,
+            // and only where the OS is already outside the supported set. Modern Windows/macOS keep
+            // full validation.
+            var legacyWindows = OperatingSystem.IsWindows() && !OperatingSystem.IsWindowsVersionAtLeast(10);
+            if ((!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS()) || legacyWindows)
             {
                 handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
                 {
@@ -34,9 +53,11 @@ namespace Apps2Samsung.Helpers.Core
                     var host = message.RequestUri?.Host ?? string.Empty;
                     if (host.EndsWith("samsung.com", StringComparison.OrdinalIgnoreCase) ||
                         host.EndsWith("samsungqbe.com", StringComparison.OrdinalIgnoreCase) ||
-                        host.EndsWith("tizen.org", StringComparison.OrdinalIgnoreCase))
+                        host.EndsWith("tizen.org", StringComparison.OrdinalIgnoreCase) ||
+                        host.EndsWith("github.com", StringComparison.OrdinalIgnoreCase) ||
+                        host.EndsWith("githubusercontent.com", StringComparison.OrdinalIgnoreCase))
                     {
-                        Trace.TraceWarning($"[SSL] Accepting Samsung cert with validation issue on Linux: {host} ({errors})");
+                        Trace.TraceWarning($"[SSL] Accepting cert with validation issue for {host} ({errors})");
                         return true;
                     }
 
