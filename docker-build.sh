@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Build Jellyfin2Samsung from source inside the .NET 8 SDK container.
+# Build Apps2Samsung from source inside the .NET 8 SDK container.
 # No host dotnet install needed. Output is owned by the current user.
 #
 # Usage:
@@ -10,8 +10,8 @@
 set -euo pipefail
 
 IMAGE="mcr.microsoft.com/dotnet/sdk:8.0"
-PROJECT="Jellyfin2Samsung-CrossOS/Jellyfin2Samsung.csproj"
-BIN="Jellyfin2Samsung-CrossOS/bin/Release/net8.0/linux-x64/publish/Jellyfin2Samsung"
+PROJECT="Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj"
+BIN="Jellyfin2Samsung-CrossOS/bin/Release/net8.0/linux-x64/publish/Apps2Samsung"
 
 # Repo root = dir this script lives in.
 cd "$(dirname "$(readlink -f "$0")")"
