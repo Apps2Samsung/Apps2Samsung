@@ -105,8 +105,10 @@
 									  IsReadOnly="True"
 									  ColumnWidth="*">
 								<DataGrid.Columns>
-									<DataGridTextColumn Header="{Binding LblColFileName}" Width="200"
+									<DataGridTextColumn Header="{Binding LblColFileName}" Width="180"
 														Binding="{Binding FileName}" />
+									<DataGridTextColumn Header="{Binding LblColVersion}" Width="130"
+														Binding="{Binding Version}" />
 									<DataGridTemplateColumn Header="{Binding LblColDescription}" Width="*">
 										<DataGridTemplateColumn.CellTemplate>
 											<DataTemplate>
@@ -137,8 +139,10 @@
 									  IsReadOnly="True"
 									  ColumnWidth="*">
 								<DataGrid.Columns>
-									<DataGridTextColumn Header="{Binding LblColApplication}" Width="200"
+									<DataGridTextColumn Header="{Binding LblColApplication}" Width="180"
 														Binding="{Binding FileName}" />
+									<DataGridTextColumn Header="{Binding LblColVersion}" Width="130"
+														Binding="{Binding Version}" />
 									<DataGridTemplateColumn Header="{Binding LblColDescription}" Width="*">
 										<DataGridTemplateColumn.CellTemplate>
 											<DataTemplate>
