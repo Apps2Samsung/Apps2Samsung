@@ -52,7 +52,10 @@ namespace Apps2Samsung.Helpers
         public static AppSettings Default => _instance ??= Load();
 
         // ----- User-scoped settings -----
-        public string Language { get; set; } = "en";
+        // Empty = no choice made yet → on first run the app auto-detects the OS
+        // language (falling back to English) and then persists the result here.
+        // Existing installs already have a concrete value, so they're never changed.
+        public string Language { get; set; } = "";
         public string Certificate { get; set; } = "Jelly2Sams";
         public bool DeletePreviousInstall { get; set; } = false;
         public string UserCustomIP { get; set; } = "";
