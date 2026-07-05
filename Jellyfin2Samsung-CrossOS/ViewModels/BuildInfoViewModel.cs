@@ -15,6 +15,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,8 +31,52 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private ProviderOption? selectedProviderOption;
 
+        // Selected row in each table — selecting one drives the preview panel
+        // (so the user no longer has to use the dropdown above the preview).
+        [ObservableProperty]
+        private BuildVersion? selectedJellyfinVersion;
+
+        [ObservableProperty]
+        private BuildVersion? selectedCommunityApp;
+
+        partial void OnSelectedJellyfinVersionChanged(BuildVersion? value)
+        {
+            if (value is null) return;
+            SelectedCommunityApp = null;   // one active selection across both tables
+            SelectPreviewFor(value.FileName);
+        }
+
+        partial void OnSelectedCommunityAppChanged(BuildVersion? value)
+        {
+            if (value is null) return;
+            SelectedJellyfinVersion = null;
+            SelectPreviewFor(value.FileName);
+        }
+
+        // Point the preview at the ProviderOption matching the picked row.
+        // ProviderOptions.DisplayName is built from the same names shown in the
+        // tables, so an exact match works; fall back to a contains match.
+        private void SelectPreviewFor(string name)
+        {
+            name = (name ?? string.Empty).Trim();
+            if (name.Length == 0) return;
+
+            var match = ProviderOptions.FirstOrDefault(o =>
+                            string.Equals(o.DisplayName, name, StringComparison.OrdinalIgnoreCase))
+                     ?? ProviderOptions.FirstOrDefault(o =>
+                            name.Contains(o.DisplayName, StringComparison.OrdinalIgnoreCase)
+                            || o.DisplayName.Contains(name, StringComparison.OrdinalIgnoreCase));
+
+            if (match is not null)
+                SelectedProviderOption = match;
+        }
+
         private static readonly HttpClient _http = new();
         private static readonly ProviderManifestService _manifestService = new(_http);
+
+        // GitHub's API requires a User-Agent (and benefits from the auth token);
+        // the DI client has both. Fall back to the bare client if unavailable.
+        private readonly HttpClient _apiHttp = App.Services.GetService<HttpClient>() ?? _http;
         private readonly Dictionary<string, Bitmap?> _bitmapCache = new(StringComparer.OrdinalIgnoreCase);
         private ProviderManifest _manifest = new();
 
@@ -52,6 +97,7 @@ namespace Apps2Samsung.ViewModels
         public string LblColFileName => L("catalogColFileName");
         public string LblColDescription => L("catalogColDescription");
         public string LblColApplication => L("catalogColApplication");
+        public string LblColVersion => L("catalogColVersion");
         public string LblNoPreview => L("catalogNoPreview");
         public string LblNoThumbnail => L("catalogNoThumbnail");
         public string LblClose => L("btn_Close");
@@ -66,6 +112,7 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblColFileName));
             OnPropertyChanged(nameof(LblColDescription));
             OnPropertyChanged(nameof(LblColApplication));
+            OnPropertyChanged(nameof(LblColVersion));
             OnPropertyChanged(nameof(LblNoPreview));
             OnPropertyChanged(nameof(LblNoThumbnail));
             OnPropertyChanged(nameof(LblClose));
@@ -121,7 +168,15 @@ namespace Apps2Samsung.ViewModels
                 JellyfinVersions.Clear();
                 CommunityApps.Clear();
 
+                // Core Jellyfin builds come from one upstream release; tag their rows
+                // with that provider's URL so they all get its release version.
+                var coreUrl = _manifest.Providers
+                    .FirstOrDefault(p => p.Url?.Contains("jellyfin-tizen-builds", StringComparison.OrdinalIgnoreCase) == true)
+                    ?.Url ?? string.Empty;
+
                 ParseVersionsTable(jellyfinMd, JellyfinVersions);
+                foreach (var v in JellyfinVersions)
+                    v.RepoUrl = coreUrl;
 
                 foreach (var provider in _manifest.Providers)
                 {
@@ -131,7 +186,8 @@ namespace Apps2Samsung.ViewModels
                     JellyfinVersions.Add(new BuildVersion
                     {
                         FileName = provider.BuildInfo.Name,
-                        Description = provider.BuildInfo.Description
+                        Description = provider.BuildInfo.Description,
+                        RepoUrl = provider.Url ?? string.Empty
                     });
                 }
 
@@ -149,6 +205,10 @@ namespace Apps2Samsung.ViewModels
             {
                 _isLoading = false;
             }
+
+            // Community versions come from the README; Jellyfin + forks are fetched
+            // from their GitHub release (the same source the installer uses).
+            await ApplyProviderVersionsAsync();
 
             // Do a single authoritative rebuild after load finishes
             var version = Interlocked.Increment(ref _rebuildVersion);
@@ -246,6 +306,53 @@ namespace Apps2Samsung.ViewModels
             });
         }
 
+        // Fetch each distinct provider URL's latest release tag once and apply it
+        // to every row from that provider (core builds share one release tag).
+        private async Task ApplyProviderVersionsAsync()
+        {
+            var urls = JellyfinVersions
+                .Select(v => v.RepoUrl)
+                .Where(u => !string.IsNullOrWhiteSpace(u))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            foreach (var url in urls)
+            {
+                var tag = await GetLatestReleaseTagAsync(url);
+                if (string.IsNullOrWhiteSpace(tag))
+                    continue;
+
+                foreach (var v in JellyfinVersions)
+                    if (string.Equals(v.RepoUrl, url, StringComparison.OrdinalIgnoreCase))
+                        v.Version = tag;
+            }
+        }
+
+        private async Task<string> GetLatestReleaseTagAsync(string url)
+        {
+            try
+            {
+                var json = (await _apiHttp.GetStringAsync(url)).TrimStart();
+
+                // A releases endpoint returns an array; a pinned .../releases/tags/<tag>
+                // endpoint returns a single object.
+                if (json.StartsWith("["))
+                {
+                    var list = JsonSerializer.Deserialize<List<GitHubRelease>>(json, JsonSerializerOptionsProvider.Default);
+                    var first = list?.FirstOrDefault();
+                    return first?.TagName ?? first?.Name ?? string.Empty;
+                }
+
+                var single = JsonSerializer.Deserialize<GitHubRelease>(json, JsonSerializerOptionsProvider.Default);
+                return single?.TagName ?? single?.Name ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"Failed to fetch release tag from {url}: {ex.Message}");
+                return string.Empty;
+            }
+        }
+
         private async Task<Bitmap?> LoadBitmapAsync(string url)
         {
             if (_bitmapCache.TryGetValue(url, out var cached))
@@ -308,38 +415,73 @@ namespace Apps2Samsung.ViewModels
             }
         }
 
+        // Header-driven so the README's column order/count can change (e.g. adding a
+        // Version column) without breaking parsing. Columns are located by header text.
         private void ParseApplicationsTable(string md, ObservableCollection<BuildVersion> target)
         {
-            var match = RegexPatterns.BuildInfo.ApplicationsTable.Match(md);
-            if (!match.Success) return;
+            var lines = md.Replace("\r\n", "\n").Split('\n');
 
-            var table = match.Groups["table"].Value;
-            var rows = RegexPatterns.BuildInfo.TableRow3Columns.Matches(table);
-
-            bool headerSkipped = false;
-
-            foreach (System.Text.RegularExpressions.Match row in rows)
+            int headerIdx = -1;
+            for (int i = 0; i < lines.Length; i++)
             {
-                var col1 = row.Groups[1].Value.Trim();
-                var col2 = row.Groups[2].Value.Trim();
-                var col3 = row.Groups[3].Value.Trim();
-
-                if (!headerSkipped && col1.Contains("Application", StringComparison.OrdinalIgnoreCase))
+                var l = lines[i].TrimStart();
+                if (l.StartsWith("|")
+                    && l.Contains("Application", StringComparison.OrdinalIgnoreCase)
+                    && l.Contains("Description", StringComparison.OrdinalIgnoreCase))
                 {
-                    headerSkipped = true;
-                    continue;
+                    headerIdx = i;
+                    break;
                 }
+            }
+            if (headerIdx < 0) return;
 
-                if (col1.StartsWith("-"))
-                    continue;
+            var headers = SplitTableRow(lines[headerIdx]);
+            int nameCol = FindColumn(headers, "Application");
+            int descCol = FindColumn(headers, "Description");
+            int verCol = FindColumn(headers, "Version");
+            if (nameCol < 0 || descCol < 0) return;
+
+            for (int i = headerIdx + 1; i < lines.Length; i++)
+            {
+                if (!lines[i].TrimStart().StartsWith("|"))
+                    break; // table ended
+
+                var cells = SplitTableRow(lines[i]);
+                if (cells.Count == 0) continue;
+
+                // Skip the |---|---| separator row.
+                if (cells.All(c => c.Trim().Trim('-', ':', ' ').Length == 0)) continue;
+
+                var name = nameCol < cells.Count ? CleanText(cells[nameCol]) : string.Empty;
+                if (string.IsNullOrWhiteSpace(name)) continue;
 
                 target.Add(new BuildVersion
                 {
-                    FileName = CleanText(col1),
-                    Description = CleanText(col2)
+                    FileName = name,
+                    Description = descCol < cells.Count ? CleanText(cells[descCol]) : string.Empty,
+                    Version = verCol >= 0 && verCol < cells.Count ? CleanVersion(cells[verCol]) : string.Empty
                 });
             }
         }
+
+        private static List<string> SplitTableRow(string row)
+        {
+            row = row.Trim();
+            if (row.StartsWith("|")) row = row[1..];
+            if (row.EndsWith("|")) row = row[..^1];
+            return row.Split('|').ToList();
+        }
+
+        private static int FindColumn(List<string> headers, string name)
+        {
+            for (int i = 0; i < headers.Count; i++)
+                if (headers[i].Contains(name, StringComparison.OrdinalIgnoreCase))
+                    return i;
+            return -1;
+        }
+
+        // README version cells are wrapped in `backticks`; strip those (plus bold/emoji).
+        private static string CleanVersion(string cell) => CleanText(cell).Trim('`', ' ');
 
         [RelayCommand]
         private void Close()

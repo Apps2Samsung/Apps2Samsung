@@ -170,5 +170,6 @@
   "catalogColDescription": "Omschrijving",
   "catalogColApplication": "Applicatie",
   "catalogNoPreview": "Geen voorbeeld beschikbaar",
-  "catalogNoThumbnail": "Deze app heeft nog geen thumbnail."
+  "catalogNoThumbnail": "Deze app heeft nog geen thumbnail.",
+  "catalogColVersion": "Versie"
 }
