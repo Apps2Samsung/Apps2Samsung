@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml.Styling;
@@ -6,8 +6,12 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Extensions;
 using System;
 using System.Threading.Tasks;
+using System.IO;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Apps2Samsung.Services
 {
@@ -166,14 +170,110 @@ namespace Apps2Samsung.Services
         public async Task ShowErrorAsync(string message)
         {
             var window = GetMainWindow();
-            var dialog = CreateStyledDialog("Error", new TextBlock
+            Control contentControl;
+            
+            var logIndex = message.IndexOf("\n[Log written to:");
+            if (logIndex >= 0)
             {
-                Text = message,
-                TextWrapping = TextWrapping.Wrap,
-                Foreground = Brushes.Red,
-                FontSize = 14,
-                Margin = new Thickness(0, 5, 0, 0)
-            });
+                var mainMessage = message.Substring(0, logIndex).Trim();
+                var logMessage = message.Substring(logIndex).Trim();
+
+                var stackPanel = new StackPanel { Spacing = 5, Orientation = Orientation.Vertical };
+                
+                stackPanel.Children.Add(new TextBlock
+                {
+                    Text = mainMessage,
+                    TextWrapping = TextWrapping.Wrap,
+                    Foreground = Brushes.Red,
+                    FontSize = 14,
+                    Margin = new Thickness(0, 5, 0, 0)
+                });
+
+                var buttonContent = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Spacing = 6
+                };
+                buttonContent.Children.Add(new FluentAvalonia.UI.Controls.SymbolIcon 
+                { 
+                    Symbol = FluentAvalonia.UI.Controls.Symbol.Folder, 
+                    Width = 16, 
+                    Height = 16 
+                });
+                buttonContent.Children.Add(new TextBlock 
+                { 
+                    Text = "lblOpenLogsFolder".Localized(),
+                    FontWeight = FontWeight.Bold
+                });
+
+                var openLogsButton = new Button
+                {
+                    Content = buttonContent,
+                    Background = new SolidColorBrush(Color.Parse("#2C3E50")),
+                    Foreground = Brushes.White,
+                    Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
+                    CornerRadius = new CornerRadius(6),
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(0, 15, 0, 15),
+                    Padding = new Thickness(10, 6)
+                };
+
+                openLogsButton.Click += (_, _) =>
+                {
+                    try
+                    {
+                        var logFolder = Path.Combine(AppContext.BaseDirectory, "Logs");
+                        Directory.CreateDirectory(logFolder);
+
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        {
+                            Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = $"\"{logFolder}\"", UseShellExecute = true });
+                        }
+                        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                        {
+                            Process.Start(new ProcessStartInfo { FileName = "open", Arguments = $"\"{logFolder}\"", UseShellExecute = false });
+                        }
+                        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                        {
+                            Process.Start(new ProcessStartInfo { FileName = "xdg-open", Arguments = $"\"{logFolder}\"", UseShellExecute = false });
+                        }
+                        else
+                        {
+                            Process.Start(new ProcessStartInfo { FileName = logFolder, UseShellExecute = true });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.WriteLine($"Failed to open Logs folder: {ex}");
+                    }
+                };
+
+                stackPanel.Children.Add(openLogsButton);
+                
+                stackPanel.Children.Add(new TextBlock
+                {
+                    Text = logMessage,
+                    TextWrapping = TextWrapping.Wrap,
+                    Foreground = Brushes.Red,
+                    FontSize = 14,
+                    Margin = new Thickness(0, 5, 0, 0)
+                });
+
+                contentControl = stackPanel;
+            }
+            else
+            {
+                contentControl = new TextBlock
+                {
+                    Text = message,
+                    TextWrapping = TextWrapping.Wrap,
+                    Foreground = Brushes.Red,
+                    FontSize = 14,
+                    Margin = new Thickness(0, 5, 0, 0)
+                };
+            }
+
+            var dialog = CreateStyledDialog("Error", contentControl);
 
             if (window != null)
                 await dialog.ShowDialog(window);
