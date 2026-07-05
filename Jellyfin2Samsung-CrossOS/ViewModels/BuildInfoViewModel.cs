@@ -30,6 +30,46 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private ProviderOption? selectedProviderOption;
 
+        // Selected row in each table — selecting one drives the preview panel
+        // (so the user no longer has to use the dropdown above the preview).
+        [ObservableProperty]
+        private BuildVersion? selectedJellyfinVersion;
+
+        [ObservableProperty]
+        private BuildVersion? selectedCommunityApp;
+
+        partial void OnSelectedJellyfinVersionChanged(BuildVersion? value)
+        {
+            if (value is null) return;
+            SelectedCommunityApp = null;   // one active selection across both tables
+            SelectPreviewFor(value.FileName);
+        }
+
+        partial void OnSelectedCommunityAppChanged(BuildVersion? value)
+        {
+            if (value is null) return;
+            SelectedJellyfinVersion = null;
+            SelectPreviewFor(value.FileName);
+        }
+
+        // Point the preview at the ProviderOption matching the picked row.
+        // ProviderOptions.DisplayName is built from the same names shown in the
+        // tables, so an exact match works; fall back to a contains match.
+        private void SelectPreviewFor(string name)
+        {
+            name = (name ?? string.Empty).Trim();
+            if (name.Length == 0) return;
+
+            var match = ProviderOptions.FirstOrDefault(o =>
+                            string.Equals(o.DisplayName, name, StringComparison.OrdinalIgnoreCase))
+                     ?? ProviderOptions.FirstOrDefault(o =>
+                            name.Contains(o.DisplayName, StringComparison.OrdinalIgnoreCase)
+                            || o.DisplayName.Contains(name, StringComparison.OrdinalIgnoreCase));
+
+            if (match is not null)
+                SelectedProviderOption = match;
+        }
+
         private static readonly HttpClient _http = new();
         private static readonly ProviderManifestService _manifestService = new(_http);
         private readonly Dictionary<string, Bitmap?> _bitmapCache = new(StringComparer.OrdinalIgnoreCase);

@@ -99,6 +99,7 @@
 								ClipToBounds="True"
 								Height="220">
 							<DataGrid ItemsSource="{Binding JellyfinVersions}"
+										  SelectedItem="{Binding SelectedJellyfinVersion, Mode=TwoWay}"
 									  AutoGenerateColumns="False"
 									  HeadersVisibility="Column"
 									  IsReadOnly="True"
@@ -130,6 +131,7 @@
 								ClipToBounds="True"
 								Height="280">
 							<DataGrid ItemsSource="{Binding CommunityApps}"
+										  SelectedItem="{Binding SelectedCommunityApp, Mode=TwoWay}"
 									  AutoGenerateColumns="False"
 									  HeadersVisibility="Column"
 									  IsReadOnly="True"
