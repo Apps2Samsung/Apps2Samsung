@@ -61,7 +61,8 @@ namespace Apps2Samsung.Services
                 TryLoadLanguage(DefaultLanguage);
             }
 
-            var systemLang = CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
+            // Prefer the OS *display* language (CurrentUICulture) for detection.
+            var systemLang = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
             var configLang = AppSettings.Default.Language;
 
             var initialLang =
@@ -72,6 +73,16 @@ namespace Apps2Samsung.Services
                         : DefaultLanguage;
 
             SetLanguage(initialLang);
+
+            // First run (no stored language): commit the detected language so the
+            // settings dropdown reflects it and it stays stable across launches
+            // (detect-once, not "follow the OS forever"). Existing installs already
+            // have a value, so this never overrides an explicit choice.
+            if (string.IsNullOrWhiteSpace(configLang) && !string.IsNullOrWhiteSpace(_currentLanguage))
+            {
+                AppSettings.Default.Language = _currentLanguage;
+                AppSettings.Default.Save();
+            }
         }
 
         private void TryLoadLanguage(string lang)

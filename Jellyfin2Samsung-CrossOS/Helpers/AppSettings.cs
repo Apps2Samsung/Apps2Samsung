@@ -52,7 +52,10 @@ namespace Apps2Samsung.Helpers
         public static AppSettings Default => _instance ??= Load();
 
         // ----- User-scoped settings -----
-        public string Language { get; set; } = "en";
+        // Empty = no choice made yet → on first run the app auto-detects the OS
+        // language (falling back to English) and then persists the result here.
+        // Existing installs already have a concrete value, so they're never changed.
+        public string Language { get; set; } = "";
         public string Certificate { get; set; } = "Jelly2Sams";
         public bool DeletePreviousInstall { get; set; } = false;
         public string UserCustomIP { get; set; } = "";
@@ -118,7 +121,7 @@ namespace Apps2Samsung.Helpers
         [JsonIgnore]
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
         [JsonIgnore]
-        public string AppVersion { get; set; } = "v2.5.7";
+        public string AppVersion { get; set; } = "v2.6.0";
         [JsonIgnore]
         public string TizenSdb { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-sdb/releases";
         [JsonIgnore]

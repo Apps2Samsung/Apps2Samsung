@@ -199,5 +199,6 @@
   "catalogColDescription": "Description",
   "catalogColApplication": "Application",
   "catalogNoPreview": "No preview available",
-  "catalogNoThumbnail": "This app has no thumbnail yet."
+  "catalogNoThumbnail": "This app has no thumbnail yet.",
+  "catalogColVersion": "Version"
 }

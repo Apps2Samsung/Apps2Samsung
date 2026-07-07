@@ -99,13 +99,16 @@
 								ClipToBounds="True"
 								Height="220">
 							<DataGrid ItemsSource="{Binding JellyfinVersions}"
+										  SelectedItem="{Binding SelectedJellyfinVersion, Mode=TwoWay}"
 									  AutoGenerateColumns="False"
 									  HeadersVisibility="Column"
 									  IsReadOnly="True"
 									  ColumnWidth="*">
 								<DataGrid.Columns>
-									<DataGridTextColumn Header="{Binding LblColFileName}" Width="200"
+									<DataGridTextColumn Header="{Binding LblColFileName}" Width="180"
 														Binding="{Binding FileName}" />
+									<DataGridTextColumn Header="{Binding LblColVersion}" Width="130"
+														Binding="{Binding Version}" />
 									<DataGridTemplateColumn Header="{Binding LblColDescription}" Width="*">
 										<DataGridTemplateColumn.CellTemplate>
 											<DataTemplate>
@@ -130,13 +133,16 @@
 								ClipToBounds="True"
 								Height="280">
 							<DataGrid ItemsSource="{Binding CommunityApps}"
+										  SelectedItem="{Binding SelectedCommunityApp, Mode=TwoWay}"
 									  AutoGenerateColumns="False"
 									  HeadersVisibility="Column"
 									  IsReadOnly="True"
 									  ColumnWidth="*">
 								<DataGrid.Columns>
-									<DataGridTextColumn Header="{Binding LblColApplication}" Width="200"
+									<DataGridTextColumn Header="{Binding LblColApplication}" Width="180"
 														Binding="{Binding FileName}" />
+									<DataGridTextColumn Header="{Binding LblColVersion}" Width="130"
+														Binding="{Binding Version}" />
 									<DataGridTemplateColumn Header="{Binding LblColDescription}" Width="*">
 										<DataGridTemplateColumn.CellTemplate>
 											<DataTemplate>
