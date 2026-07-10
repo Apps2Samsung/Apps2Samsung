@@ -108,7 +108,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       # ---------------- WINDOWS ----------------
       - name: Build Windows
@@ -220,7 +220,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       # ---------------- ICON ----------------
       # ---------------- ICON ----------------
