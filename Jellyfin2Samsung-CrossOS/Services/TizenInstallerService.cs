@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace Apps2Samsung.Services
 {
-    public class TizenInstallerService : ITizenInstallerService
+    public class TizenInstallerService : ITizenInstallerService, ITvNameResolver
     {
         private readonly HttpClient _httpClient;
         private readonly IDialogService _dialogService;

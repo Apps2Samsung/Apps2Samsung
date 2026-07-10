@@ -1,5 +1,3 @@
-﻿using Apps2Samsung.Helpers;
-using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using System;
@@ -7,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading;
@@ -17,13 +14,36 @@ namespace Apps2Samsung.Services
 {
     public class NetworkService : INetworkService
     {
-        private readonly ITizenInstallerService _tizenInstaller;
-        private static readonly HttpClient _httpClient = new HttpClient();
+        // Tizen developer-mode debug port (SDB) and the Samsung TV REST API port.
+        private const int TizenDevPort = 26101;
+        private const int SamsungTvApiPort = 8001;
+        // Per-host connect timeout while scanning a subnet.
+        private const int NetworkScanTimeoutMs = 1000;
 
-        public NetworkService(ITizenInstallerService tizenInstaller)
+        private readonly ITvNameResolver? _tvNameResolver;
+        private readonly IMacVendorLookup? _macVendorLookup;
+        private readonly Func<string?>? _customIpProvider;
+
+        /// <param name="tvNameResolver">Resolves a found TV's friendly name (SDB-backed). Optional.</param>
+        /// <param name="macVendorLookup">Enriches a found device with its manufacturer. Optional; desktop-only in practice.</param>
+        /// <param name="customIpProvider">Supplies a user-configured extra IP to fold into the scan. Optional.</param>
+        public NetworkService(
+            ITvNameResolver? tvNameResolver = null,
+            IMacVendorLookup? macVendorLookup = null,
+            Func<string?>? customIpProvider = null)
         {
-            _tizenInstaller = tizenInstaller;
+            _tvNameResolver = tvNameResolver;
+            _macVendorLookup = macVendorLookup;
+            _customIpProvider = customIpProvider;
         }
+
+        private string? CustomIp => _customIpProvider?.Invoke();
+
+        private Task<string?> GetManufacturerFromIp(string ip) =>
+            _macVendorLookup is null ? Task.FromResult<string?>(null) : _macVendorLookup.GetManufacturerFromIpAsync(ip);
+
+        private Task<string> GetTvNameAsync(string ip) =>
+            _tvNameResolver is null ? Task.FromResult(string.Empty) : _tvNameResolver.GetTvNameAsync(ip);
 
         public async Task<IEnumerable<NetworkDevice>> GetLocalTizenAddresses(CancellationToken cancellationToken = default, bool virtualScan = false)
         {
@@ -34,13 +54,13 @@ namespace Apps2Samsung.Services
         {
             try
             {
-                using var cts = new CancellationTokenSource(Constants.Defaults.NetworkScanTimeoutMs);
+                using var cts = new CancellationTokenSource(NetworkScanTimeoutMs);
                 using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
                     cts.Token, cancellationToken);
 
-                if (await IsPortOpenAsync(ip, Constants.Ports.TizenDevPort, linkedCts.Token))
+                if (await IsPortOpenAsync(ip, TizenDevPort, linkedCts.Token))
                 {
-                    if (await IsPortOpenAsync(ip, Constants.Ports.SamsungTvApiPort, linkedCts.Token))
+                    if (await IsPortOpenAsync(ip, SamsungTvApiPort, linkedCts.Token))
                     {
                         var manufacturer = await GetManufacturerFromIp(ip);
                         var device = new NetworkDevice
@@ -50,7 +70,7 @@ namespace Apps2Samsung.Services
                         };
 
                         if (manufacturer?.Contains("Samsung", StringComparison.OrdinalIgnoreCase) == true)
-                            device.DeviceName = await _tizenInstaller.GetTvNameAsync(ip);
+                            device.DeviceName = await GetTvNameAsync(ip);
 
                         return device;
                     }
@@ -87,10 +107,10 @@ namespace Apps2Samsung.Services
                     {
                         try
                         {
-                            using var cts = new CancellationTokenSource(Constants.Defaults.NetworkScanTimeoutMs);
+                            using var cts = new CancellationTokenSource(NetworkScanTimeoutMs);
                             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
                                 cts.Token, cancellationToken);
-                            if (await IsPortOpenAsync(ip, Constants.Ports.TizenDevPort, linkedCts.Token))
+                            if (await IsPortOpenAsync(ip, TizenDevPort, linkedCts.Token))
                             {
                                 var manufacturer = await GetManufacturerFromIp(ip);
                                 var device = new NetworkDevice
@@ -104,14 +124,14 @@ namespace Apps2Samsung.Services
                                 }
                                 if (manufacturer?.Contains("Samsung", StringComparison.OrdinalIgnoreCase) == true)
                                 {
-                                    device.DeviceName = await _tizenInstaller.GetTvNameAsync(ip);
+                                    device.DeviceName = await GetTvNameAsync(ip);
                                 }
                             }
                             // Debug port closed, but the TV REST API (8001) answers: the TV is
                             // there but not ready (Developer Mode not fully active). Surface it as
                             // "not ready" so the user gets an actionable hint instead of "no devices".
                             // DeviceHelper enriches it via /api/v2/ (name, developerMode, developerIP).
-                            else if (await IsPortOpenAsync(ip, Constants.Ports.SamsungTvApiPort, linkedCts.Token))
+                            else if (await IsPortOpenAsync(ip, SamsungTvApiPort, linkedCts.Token))
                             {
                                 var device = new NetworkDevice
                                 {
@@ -127,7 +147,7 @@ namespace Apps2Samsung.Services
                         catch { /* Ignore scan failures */ }
                     })));
 
-            Trace.WriteLine($"Scan complete! Found {foundDevices.Count} device(s) (debug port {Constants.Ports.TizenDevPort} or REST API {Constants.Ports.SamsungTvApiPort}).");
+            Trace.WriteLine($"Scan complete! Found {foundDevices.Count} device(s) (debug port {TizenDevPort} or REST API {SamsungTvApiPort}).");
             return foundDevices;
         }
         public IEnumerable<IPAddress> GetRelevantLocalIPs(bool virtualScan = false)
@@ -146,13 +166,14 @@ namespace Apps2Samsung.Services
                 .ToList();
 
             var additionalIps = Enumerable.Empty<string>();
-            if (!string.IsNullOrEmpty(AppSettings.Default.UserCustomIP))
+            var customIp = CustomIp;
+            if (!string.IsNullOrEmpty(customIp))
             {
                 try
                 {
                     // Validate it's a valid IP by parsing, then use the string
-                    IPAddress.Parse(AppSettings.Default.UserCustomIP);
-                    additionalIps = new[] { AppSettings.Default.UserCustomIP };
+                    IPAddress.Parse(customIp);
+                    additionalIps = new[] { customIp };
                 }
                 catch (FormatException)
                 {
@@ -204,8 +225,9 @@ namespace Apps2Samsung.Services
                 .Select(ua => (Address: ua.Address, Mask: ua.IPv4Mask))
                 .ToList();
 
-            if (!string.IsNullOrEmpty(AppSettings.Default.UserCustomIP) &&
-                IPAddress.TryParse(AppSettings.Default.UserCustomIP, out var customIp))
+            var customIpStr = CustomIp;
+            if (!string.IsNullOrEmpty(customIpStr) &&
+                IPAddress.TryParse(customIpStr, out var customIp))
             {
                 // Reuse the mask from a local interface whose network contains the custom IP;
                 // otherwise fall back to /24 so we still scan the right /24 segment.
@@ -390,62 +412,6 @@ namespace Apps2Samsung.Services
                 ?.IPv4Mask;
         }
 
-        public async Task<string?> GetManufacturerFromIp(string ipAddress)
-        {
-            string? macAddress = await GetMacAddressFromIp(ipAddress);
-            return string.IsNullOrEmpty(macAddress)
-                ? null
-                : await GetManufacturerFromMac(macAddress);
-        }
-
-        private static async Task<string?> GetMacAddressFromIp(string ipAddress)
-        {
-            string arpArgs = PlatformService.GetArpArguments(ipAddress);
-
-            try
-            {
-                using var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "arp",
-                        Arguments = arpArgs,
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        CreateNoWindow = true
-                    }
-                };
-
-                process.Start();
-                string output = await process.StandardOutput.ReadToEndAsync();
-                await process.WaitForExitAsync();
-
-                var match = RegexPatterns.Network.MacAddress.Match(output);
-                return match.Success ? match.Value : null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private static async Task<string?> GetManufacturerFromMac(string macAddress)
-        {
-            try
-            {
-                string oui = macAddress
-                    .Replace(":", "")
-                    .Replace("-", "")
-                    .Substring(0, 6)
-                    .ToUpper();
-
-                return await _httpClient.GetStringAsync($"https://api.macvendors.com/{oui}");
-            }
-            catch
-            {
-                return null;
-            }
-        }
         public string GetLocalIPAddress()
         {
             using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
