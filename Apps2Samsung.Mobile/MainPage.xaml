@@ -24,6 +24,12 @@
                 Clicked="OnScanClicked"
                 HorizontalOptions="Fill" />
 
+            <Button
+                x:Name="LoginBtn"
+                Text="Sign in to Samsung"
+                Clicked="OnLoginClicked"
+                HorizontalOptions="Fill" />
+
             <ActivityIndicator
                 x:Name="Busy"
                 IsRunning="False"
