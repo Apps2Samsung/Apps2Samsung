@@ -77,4 +77,10 @@
 		<ProjectReference Include="..\Apps2Samsung.Core\Apps2Samsung.Core.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<!-- The SDB engine, in-process. Resolves the net10.0-android asset, which carries the
+		     Android-specific cert/socket branches. Backs InProcessSdbEngine (this head's ISdbEngine). -->
+		<PackageReference Include="TizenSdb.Core" Version="1.1.0" />
+	</ItemGroup>
+
 </Project>
