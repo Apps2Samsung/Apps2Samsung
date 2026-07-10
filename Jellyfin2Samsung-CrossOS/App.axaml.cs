@@ -68,7 +68,15 @@ namespace Apps2Samsung
             services.AddSingleton(settings);
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<ILocalizationService, LocalizationService>();
-            services.AddSingleton<INetworkService, NetworkService>();
+            services.AddSingleton<IMacVendorLookup, ArpMacVendorLookup>();
+            // The TV-name lookup is SDB-backed and lives on the installer; expose it under the
+            // Core-side abstraction so NetworkService needn't know the full installer interface.
+            services.AddSingleton<ITvNameResolver>(sp =>
+                (TizenInstallerService)sp.GetRequiredService<ITizenInstallerService>());
+            services.AddSingleton<INetworkService>(sp => new NetworkService(
+                sp.GetRequiredService<ITvNameResolver>(),
+                sp.GetRequiredService<IMacVendorLookup>(),
+                () => AppSettings.Default.UserCustomIP));
             services.AddSingleton<ITizenCertificateService>(sp => new TizenCertificateService(
                 sp.GetRequiredService<HttpClient>(),
                 new CertificateEndpoints(
