@@ -26,6 +26,7 @@ namespace Apps2Samsung.Services
         private readonly AppSettings _appSettings;
         private readonly IEnumerable<IPackagePatcher> _packagePatchers;
         private readonly ProcessHelper _processHelper;
+        private readonly ISdbEngine _sdb;
 
         public string? TizenSdbPath { get; private set; }
         public string? PackageCertificate { get; set; }
@@ -36,13 +37,15 @@ namespace Apps2Samsung.Services
             AppSettings appSettings,
             IEnumerable<IPackagePatcher> packagePatchers,
             JellyfinApiClient jellyfinApiClient,
-            ProcessHelper processHelper)
+            ProcessHelper processHelper,
+            ISdbEngine sdb)
         {
             _httpClient = httpClient;
             _dialogService = dialogService;
             _appSettings = appSettings;
             _packagePatchers = packagePatchers;
             _processHelper = processHelper;
+            _sdb = sdb;
         }
 
         #region TizenSdb Management
@@ -409,7 +412,7 @@ namespace Apps2Samsung.Services
             finally
             {
                 if (!string.IsNullOrEmpty(tvIpAddress))
-                    await _processHelper.RunCommandAsync(TizenSdbPath!, $"disconnect {tvIpAddress}");
+                    await _sdb.DisconnectAsync(tvIpAddress);
             }
         }
 
@@ -875,7 +878,7 @@ namespace Apps2Samsung.Services
                     string tvAppId = await GetInstalledAppId(tvIpAddress, GetPackageAppTitle(packageUrl));
                     _ = Task.Run(async () =>
                     {
-                        await _processHelper.RunCommandAsync(TizenSdbPath!, $"launch {tvIpAddress} \"{tvAppId}\"");
+                        await _sdb.LaunchAsync(tvIpAddress, tvAppId);
                     });
                 }
 
@@ -901,13 +904,13 @@ namespace Apps2Samsung.Services
 
         public async Task<string> GetTvNameAsync(string tvIpAddress)
         {
-            var output = await _processHelper.RunCommandAsync(TizenSdbPath!, $"devices {tvIpAddress}");
+            var output = await _sdb.DevicesAsync(tvIpAddress);
             return output.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? string.Empty;
         }
 
         private async Task<(string tizenOs, string sdkToolPath)> FetchCapabilitiesAsync(string tvIpAddress)
         {
-            var output = await _processHelper.RunCommandAsync(TizenSdbPath!, $"capability {tvIpAddress}");
+            var output = await _sdb.CapabilityAsync(tvIpAddress);
 
             var versionMatch = RegexPatterns.TizenCapability.PlatformVersion.Match(output.Output);
             string tizenOs = versionMatch.Success ? versionMatch.Groups[1].Value.Trim() : string.Empty;
@@ -920,13 +923,13 @@ namespace Apps2Samsung.Services
 
         private async Task<string> GetTvDuidAsync(string tvIpAddress)
         {
-            var output = await _processHelper.RunCommandAsync(TizenSdbPath!, $"duid {tvIpAddress}");
+            var output = await _sdb.DuidAsync(tvIpAddress);
             return output.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? string.Empty;
         }
 
         private async Task<bool> GetTvDiagnoseAsync(string tvIpAddress)
         {
-            var output = await _processHelper.RunCommandAsync(TizenSdbPath!, $"diagnose {tvIpAddress}");
+            var output = await _sdb.DiagnoseAsync(tvIpAddress);
             var match = RegexPatterns.TizenCapability.AppUninstallFailed.Match(output.Output);
             return !match.Success;
         }
@@ -941,7 +944,7 @@ namespace Apps2Samsung.Services
 
         private async Task<(bool isInstalled, string? appId)> CheckForInstalledApp(string tvIpAddress, string packageUrl)
         {
-            var result = await _processHelper.RunCommandAsync(TizenSdbPath!, $"apps {tvIpAddress}");
+            var result = await _sdb.AppsAsync(tvIpAddress);
             var output = result?.Output ?? string.Empty;
 
             // Read what the WGT *claims* its app id is (best effort fallback for "no listing" cases)
@@ -981,7 +984,7 @@ namespace Apps2Samsung.Services
 
         private async Task<string> GetInstalledAppId(string tvIpAddress, string appTitle)
         {
-            var output = await _processHelper.RunCommandAsync(TizenSdbPath!, $"apps {tvIpAddress}");
+            var output = await _sdb.AppsAsync(tvIpAddress);
             string appsOutput = output.Output ?? string.Empty;
 
             var blockRegex = RegexPatterns.TizenApp.CreateAppBlockByTitleRegex(appTitle);
@@ -1002,30 +1005,22 @@ namespace Apps2Samsung.Services
 
         private async Task<ProcessResult> ResignPackageAsync(string packagePath, string authorP12, string distributorP12, string certPass)
         {
-            return await _processHelper.RunCommandAsync(
-                TizenSdbPath!,
-                $"resign \"{packagePath}\" \"{authorP12}\" \"{distributorP12}\" {certPass}");
+            return await _sdb.ResignAsync(packagePath, authorP12, distributorP12, certPass);
         }
 
         private async Task<ProcessResult> InstallPackageOnDeviceAsync(string tvIpAddress, string packagePath, string sdkToolPath)
         {
-            return await _processHelper.RunCommandAsync(
-                TizenSdbPath!,
-                $"install {tvIpAddress} \"{packagePath}\" {sdkToolPath}");
+            return await _sdb.InstallAsync(tvIpAddress, packagePath, sdkToolPath);
         }
 
         private async Task<ProcessResult> UninstallPackageAsync(string tvIpAddress, string packageId)
         {
-            return await _processHelper.RunCommandAsync(
-                TizenSdbPath!,
-                $"uninstall {tvIpAddress} {packageId}");
+            return await _sdb.UninstallAsync(tvIpAddress, packageId);
         }
 
         private async Task AllowPermitInstall(string tvIpAddress, string deviceXml, string sdkToolPath)
         {
-            await _processHelper.RunCommandAsync(
-                TizenSdbPath!,
-                $"permit-install {tvIpAddress} \"{deviceXml}\" {sdkToolPath}");
+            await _sdb.PermitInstallAsync(tvIpAddress, deviceXml, sdkToolPath);
         }
 
         #endregion
