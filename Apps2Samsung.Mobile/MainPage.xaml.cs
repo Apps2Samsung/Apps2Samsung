@@ -7,11 +7,13 @@ namespace Apps2Samsung.Mobile;
 public partial class MainPage : ContentPage
 {
 	private readonly INetworkService _networkService;
+	private readonly ISamsungLoginService _loginService;
 
-	public MainPage(INetworkService networkService)
+	public MainPage(INetworkService networkService, ISamsungLoginService loginService)
 	{
 		InitializeComponent();
 		_networkService = networkService;
+		_loginService = loginService;
 	}
 
 	private async void OnScanClicked(object? sender, EventArgs e)
@@ -47,6 +49,32 @@ public partial class MainPage : ContentPage
 		{
 			Busy.IsRunning = Busy.IsVisible = false;
 			ScanBtn.IsEnabled = true;
+		}
+	}
+
+	private async void OnLoginClicked(object? sender, EventArgs e)
+	{
+		LoginBtn.IsEnabled = false;
+		ResultsLabel.Text = "Opening Samsung sign-in…";
+
+		try
+		{
+			var auth = await _loginService.LoginAsync();
+			var email = string.IsNullOrWhiteSpace(auth.inputEmailID) ? "(no email in token)" : auth.inputEmailID;
+			var haveToken = !string.IsNullOrWhiteSpace(auth.access_token);
+			ResultsLabel.Text = $"Signed in as {email}\nUser id: {auth.userId}\nAccess token: {(haveToken ? "received ✓" : "missing ✗")}";
+		}
+		catch (TaskCanceledException)
+		{
+			ResultsLabel.Text = "Sign-in cancelled.";
+		}
+		catch (Exception ex)
+		{
+			ResultsLabel.Text = $"Sign-in failed: {ex.Message}";
+		}
+		finally
+		{
+			LoginBtn.IsEnabled = true;
 		}
 	}
 }

@@ -33,6 +33,10 @@ public static class MauiProgram
 		SdbTcpDevice.KeyDirectory = FileSystem.AppDataDirectory;
 		builder.Services.AddSingleton<ISdbEngine, InProcessSdbEngine>();
 
+		// Samsung account OAuth (WebView + in-app loopback listener) — provides the token bundle
+		// the certificate provisioning needs.
+		builder.Services.AddSingleton<ISamsungLoginService, SamsungLoginService>();
+
 		builder.Services.AddSingleton<MainPage>();
 
 #if DEBUG
