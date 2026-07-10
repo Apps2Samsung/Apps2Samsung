@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Apps2Samsung.Mobile.MainPage"
+             Title="Apps2Samsung">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="30,40"
+            Spacing="20">
+
+            <Label
+                Text="Apps2Samsung"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level1" />
+
+            <Label
+                Text="Scan the local network for Samsung Tizen TVs (debug port 26101 / REST 8001). This exercises the shared Apps2Samsung.Core scanner running on the Android head."
+                Style="{StaticResource SubHeadline}" />
+
+            <Button
+                x:Name="ScanBtn"
+                Text="Scan for TVs"
+                Clicked="OnScanClicked"
+                HorizontalOptions="Fill" />
+
+            <ActivityIndicator
+                x:Name="Busy"
+                IsRunning="False"
+                IsVisible="False"
+                HorizontalOptions="Center" />
+
+            <Label
+                x:Name="ResultsLabel"
+                Text=""
+                SemanticProperties.HeadingLevel="Level2" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
