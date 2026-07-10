@@ -108,4 +108,8 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </AvaloniaResource>
 	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Apps2Samsung.Core\Apps2Samsung.Core.csproj" />
+	</ItemGroup>
 </Project>
