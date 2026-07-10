@@ -69,7 +69,12 @@ namespace Apps2Samsung
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<ILocalizationService, LocalizationService>();
             services.AddSingleton<INetworkService, NetworkService>();
-            services.AddSingleton<ITizenCertificateService, TizenCertificateService>();
+            services.AddSingleton<ITizenCertificateService>(sp => new TizenCertificateService(
+                sp.GetRequiredService<HttpClient>(),
+                new CertificateEndpoints(
+                    AppSettings.Default.AuthorEndpoint_V3,
+                    AppSettings.Default.DistributorsEndpoint_V1,
+                    AppSettings.Default.DistributorsEndpoint_V3)));
             services.AddSingleton<ITizenInstallerService, TizenInstallerService>();
             services.AddSingleton<IThemeService, ThemeService>();
             services.AddSingleton<IUpdaterService, UpdaterService>();
