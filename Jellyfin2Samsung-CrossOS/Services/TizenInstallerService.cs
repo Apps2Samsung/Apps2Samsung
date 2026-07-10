@@ -597,7 +597,15 @@ namespace Apps2Samsung.Services
                 }
 
                 progress?.Invoke(Constants.LocalizationKeys.CreatingCertificateProfile.Localized());
-                var certificateService = new TizenCertificateService(_httpClient, _dialogService);
+                var certificateService = new TizenCertificateService(
+                    _httpClient,
+                    new CertificateEndpoints(
+                        _appSettings.AuthorEndpoint_V3,
+                        _appSettings.DistributorsEndpoint_V1,
+                        _appSettings.DistributorsEndpoint_V3));
+                var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
+                // Core emits progress as localization keys; localize them here at the boundary.
+                ProgressCallback? certProgress = progress is null ? null : new ProgressCallback(k => progress(k.Localized()));
 
                 // Union of DUIDs the (re)generated distributor cert should cover: this TV first,
                 // then manual entries, then already-covered ones — capped at Samsung's per-cert limit.
@@ -611,7 +619,8 @@ namespace Apps2Samsung.Services
                         userId: auth.userId,
                         userEmail: auth.inputEmailID,
                         outputPath: jelly2SamsDir,
-                        progress);
+                        caPath: caPath,
+                        certProgress);
                 }
                 else
                 {
@@ -622,7 +631,8 @@ namespace Apps2Samsung.Services
                         accessToken: auth.access_token,
                         userId: auth.userId,
                         userEmail: auth.inputEmailID,
-                        progress);
+                        caPath: caPath,
+                        certProgress);
                     authorp12 = Path.Combine(jelly2SamsDir, Constants.Certificate.AuthorFileName);
                     p12Password = (await File.ReadAllTextAsync(
                         Path.Combine(jelly2SamsDir, Constants.Certificate.PasswordFileName))).Trim();

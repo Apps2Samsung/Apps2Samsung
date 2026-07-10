@@ -1,6 +1,4 @@
 using Apps2Samsung.Extensions;
-using Apps2Samsung.Helpers;
-using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Helpers.Tizen.Certificate;
 using Apps2Samsung.Interfaces;
 using Org.BouncyCastle.Asn1;
@@ -25,14 +23,14 @@ namespace Apps2Samsung.Services
     public class TizenCertificateService : ITizenCertificateService
     {
         private readonly HttpClient _httpClient;
-        private readonly IDialogService _dialogService;
+        private readonly CertificateEndpoints _endpoints;
 
         public TizenCertificateService(
             HttpClient httpClient,
-            IDialogService dialogService)
+            CertificateEndpoints endpoints)
         {
             _httpClient = httpClient;
-            _dialogService = dialogService;
+            _endpoints = endpoints;
         }
 
         public async Task<(string authorP12, string distributorP12, string passwordP12)> GenerateProfileAsync(
@@ -41,6 +39,7 @@ namespace Apps2Samsung.Services
             string userId,
             string userEmail,
             string outputPath,
+            string caPath,
             ProgressCallback? progress = null)
         {
             if (string.IsNullOrEmpty(outputPath))
@@ -50,37 +49,37 @@ namespace Apps2Samsung.Services
 
             Directory.CreateDirectory(outputPath);
 
-            progress?.Invoke("GenPassword".Localized());
+            progress?.Invoke("GenPassword");
             string p12Plain = cipherUtil.GenerateRandomPassword();
             string p12Encrypted = cipherUtil.GetEncryptedString(p12Plain);
             await File.WriteAllTextAsync(Path.Combine(outputPath, "password.txt"), p12Plain);
 
-            progress?.Invoke("GenKeyPair".Localized());
+            progress?.Invoke("GenKeyPair");
             var keyPair = GenerateKeyPair();
 
-            progress?.Invoke("CreateAuthorCsr".Localized());
+            progress?.Invoke("CreateAuthorCsr");
             var authorCsrData = GenerateAuthorCsr(keyPair);
             await File.WriteAllBytesAsync(Path.Combine(outputPath, "author.csr"), authorCsrData);
 
-            progress?.Invoke("CreateDistributorCSR".Localized());
+            progress?.Invoke("CreateDistributorCSR");
             var distributorCsrData = GenerateDistributorCsr(keyPair, duids, userEmail);
             await File.WriteAllBytesAsync(Path.Combine(outputPath, "distributor.csr"), distributorCsrData);
 
-            progress?.Invoke("PostAuthorCSR".Localized());
+            progress?.Invoke("PostAuthorCSR");
             var signedAuthorCsrBytes = await PostAuthorCsrAsync(authorCsrData, accessToken, userId);
             await File.WriteAllBytesAsync(Path.Combine(outputPath, "signed_author.cer"), signedAuthorCsrBytes);
 
-            progress?.Invoke("PostDistributorCSR".Localized());
+            progress?.Invoke("PostDistributorCSR");
             var (profileXmlBytes, signedDistributorCsrBytes) = await PostDistributorCsrAsync(accessToken, userId, distributorCsrData);
             if (profileXmlBytes != null)
                 await File.WriteAllBytesAsync(Path.Combine(outputPath, "device-profile.xml"), profileXmlBytes);
             await File.WriteAllBytesAsync(Path.Combine(outputPath, "signed_distributor.cer"), signedDistributorCsrBytes);
 
-            await CheckCertificateExistenceAsync(Path.Combine(AppSettings.ProfilePath, "ca"));
+            await CheckCertificateExistenceAsync(caPath);
 
-            progress?.Invoke("ExportPfxCertificates".Localized());
-            string authorp12 = await ExportPfxWithCaChainAsync(signedAuthorCsrBytes, keyPair.Private, p12Plain, outputPath, Path.Combine(AppSettings.ProfilePath, "ca"), "author", "vd_tizen_dev_author_ca.cer");
-            string distributorp12 = await ExportPfxWithCaChainAsync(signedDistributorCsrBytes, keyPair.Private, p12Plain, outputPath, Path.Combine(AppSettings.ProfilePath, "ca"), "distributor", "vd_tizen_dev_public2.crt");
+            progress?.Invoke("ExportPfxCertificates");
+            string authorp12 = await ExportPfxWithCaChainAsync(signedAuthorCsrBytes, keyPair.Private, p12Plain, outputPath, caPath, "author", "vd_tizen_dev_author_ca.cer");
+            string distributorp12 = await ExportPfxWithCaChainAsync(signedDistributorCsrBytes, keyPair.Private, p12Plain, outputPath, caPath, "distributor", "vd_tizen_dev_public2.crt");
             return (authorp12, distributorp12, p12Plain);
         }
 
@@ -90,6 +89,7 @@ namespace Apps2Samsung.Services
             string accessToken,
             string userId,
             string userEmail,
+            string caPath,
             ProgressCallback? progress = null)
         {
             if (string.IsNullOrEmpty(certDir))
@@ -107,24 +107,24 @@ namespace Apps2Samsung.Services
             // only the device-bound distributor cert changes for the new DUID.
             var keyPair = LoadKeyPairFromP12(authorP12, password);
 
-            progress?.Invoke("CreateDistributorCSR".Localized());
+            progress?.Invoke("CreateDistributorCSR");
             var distributorCsrData = GenerateDistributorCsr(keyPair, duids, userEmail);
             await File.WriteAllBytesAsync(Path.Combine(certDir, "distributor.csr"), distributorCsrData);
 
-            progress?.Invoke("PostDistributorCSR".Localized());
+            progress?.Invoke("PostDistributorCSR");
             var (profileXmlBytes, signedDistributorCsrBytes) =
                 await PostDistributorCsrAsync(accessToken, userId, distributorCsrData);
             if (profileXmlBytes != null)
                 await File.WriteAllBytesAsync(Path.Combine(certDir, "device-profile.xml"), profileXmlBytes);
             await File.WriteAllBytesAsync(Path.Combine(certDir, "signed_distributor.cer"), signedDistributorCsrBytes);
 
-            await CheckCertificateExistenceAsync(Path.Combine(AppSettings.ProfilePath, "ca"));
+            await CheckCertificateExistenceAsync(caPath);
 
-            progress?.Invoke("ExportPfxCertificates".Localized());
+            progress?.Invoke("ExportPfxCertificates");
             // author.p12 / signed_author.cer / password.txt are intentionally left untouched.
             return await ExportPfxWithCaChainAsync(
                 signedDistributorCsrBytes, keyPair.Private, password, certDir,
-                Path.Combine(AppSettings.ProfilePath, "ca"), "distributor", "vd_tizen_dev_public2.crt");
+                caPath, "distributor", "vd_tizen_dev_public2.crt");
         }
 
         /// <summary>Loads the keypair (public + private) from a PKCS#12 file's first key entry.</summary>
@@ -199,7 +199,7 @@ namespace Apps2Samsung.Services
 
         }
 
-        private async Task CheckCertificateExistenceAsync(string caPath)
+        private static Task CheckCertificateExistenceAsync(string caPath)
         {
             string[] requiredFiles = { "vd_tizen_dev_author_ca.cer", "vd_tizen_dev_public2.crt" };
 
@@ -207,14 +207,16 @@ namespace Apps2Samsung.Services
             {
                 string target = Path.Combine(caPath, file);
                 if (!File.Exists(target))
-                    await _dialogService.ShowErrorAsync($"Missing CA file: {file}");
+                    // Core can't show UI; surface it so the host head reports it.
+                    throw new FileNotFoundException($"Missing CA file: {file}", target);
             }
+            return Task.CompletedTask;
         }
 
         // Simplified Http Post for Author CSR
         private async Task<byte[]> PostAuthorCsrAsync(byte[] csrData, string accessToken, string userId)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, AppSettings.Default.AuthorEndpoint_V3);
+            var request = new HttpRequestMessage(HttpMethod.Post, _endpoints.AuthorV3);
             var content = new MultipartFormDataContent
             {
                 { new StringContent(accessToken), "access_token" },
@@ -242,7 +244,7 @@ namespace Apps2Samsung.Services
                 { new ByteArrayContent(csrBytes), "csr", "distributor.csr" }
             };
 
-            var v1Request = new HttpRequestMessage(HttpMethod.Post, AppSettings.Default.DistributorsEndpoint_V1);
+            var v1Request = new HttpRequestMessage(HttpMethod.Post, _endpoints.DistributorsV1);
             v1Request.Content = v1Content;
             var v1Response = await _httpClient.SendAsync(v1Request);
 
@@ -264,7 +266,7 @@ namespace Apps2Samsung.Services
                 { new ByteArrayContent(csrBytes), "csr", "distributor.csr" }
             };
 
-            var v3Request = new HttpRequestMessage(HttpMethod.Post, AppSettings.Default.DistributorsEndpoint_V3);
+            var v3Request = new HttpRequestMessage(HttpMethod.Post, _endpoints.DistributorsV3);
             v3Request.Content = v3Content;
             var v3Response = await _httpClient.SendAsync(v3Request);
 
@@ -359,7 +361,7 @@ namespace Apps2Samsung.Services
             }
 
             // --- Optional sanity check ---
-            if (PlatformService.IsWindows)
+            if (OperatingSystem.IsWindows())
             {
                 try
                 {
@@ -384,10 +386,6 @@ namespace Apps2Samsung.Services
             }
 
             return target;
-        }
-        private static X509KeyStorageFlags GetX509KeyStorageFlags()
-        {
-            return PlatformService.GetX509KeyStorageFlags();
         }
     }
 }
