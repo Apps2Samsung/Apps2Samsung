@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Portable shared core for the desktop (Avalonia) and mobile (MAUI) heads.
+         net10.0 only: a plain net10 library is consumable by both a net10 desktop
+         app and a net10-android MAUI app, and its IL runs on MonoVM at runtime on
+         Android (proven by the tizen-sdb probe). Multi-targeting -android here would
+         force the desktop CI runners to install the Android workload just to restore. -->
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Apps2Samsung</RootNamespace>
+    <AssemblyName>Apps2Samsung.Core</AssemblyName>
+  </PropertyGroup>
+</Project>
