@@ -338,7 +338,14 @@ namespace Apps2Samsung.Services
             var caBcCert = parser.ReadCertificate(candidateDot.RawData);
 
             // --- Build PKCS#12 deterministically with BC (alias + order) ---
-            var store = new Pkcs12StoreBuilder().Build();
+            // Encrypt BOTH the key and the certificate bags with 3DES. BouncyCastle's default
+            // cert-bag cipher is legacy 40-bit RC2, which Windows reads but Android/MonoVM (and
+            // OpenSSL-3 hosts) reject — surfacing as a misleading "certificate cannot be read with
+            // the provided password" when the resigner loads the .p12. 3DES is read everywhere.
+            var store = new Pkcs12StoreBuilder()
+                .SetKeyAlgorithm(PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc)
+                .SetCertAlgorithm(PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc)
+                .Build();
 
             var keyEntry = new AsymmetricKeyEntry(privateKey);
             var leafEntry = new X509CertificateEntry(leafBc);
