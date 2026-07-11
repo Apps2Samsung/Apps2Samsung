@@ -190,16 +190,14 @@ namespace Apps2Samsung.Services
             try
             {
                 using var client = new TcpClient();
-                var connectTask = client.ConnectAsync(ip, port, ct);
-                var timeoutTask = Task.Delay(Timeout.Infinite, ct);
-
-                var completedTask = await Task.WhenAny(connectTask.AsTask(), timeoutTask);
-                if (completedTask == connectTask.AsTask())
-                {
-                    await connectTask; // Ensure connection succeeded
-                    return true;
-                }
-                return false;
+                // ConnectAsync honours the caller's cancellation token (a linked timeout CTS), so a
+                // closed/filtered port cancels to false. It returns a ValueTask — await it EXACTLY
+                // once. The previous code called .AsTask() on the ValueTask twice (plus a trailing
+                // await), which on Android/MonoVM faults ("a ValueTask may be consumed only once")
+                // and made every probe return false — so no TV was ever detected despite the
+                // connects actually happening. Desktop's runtime tolerated the double-consumption.
+                await client.ConnectAsync(ip, port, ct);
+                return true;
             }
             catch
             {
