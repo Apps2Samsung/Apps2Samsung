@@ -49,11 +49,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<!-- App Icon: the Apps2Samsung logo on a white tile. -->
+		<MauiIcon Include="Resources\AppIcon\appicon.png" Color="#FFFFFF" />
 
-		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+		<!-- Splash Screen: logo centered on white. -->
+		<MauiSplashScreen Include="Resources\Splash\a2s_splash.png" Color="#FFFFFF" BaseSize="120,120" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
