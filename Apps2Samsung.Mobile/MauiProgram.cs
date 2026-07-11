@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Services;
+using Apps2Samsung.Mobile.Pages;
 using Apps2Samsung.Mobile.Services;
 using Microsoft.Extensions.Logging;
 using TizenSdb.SdbClient;
@@ -54,7 +55,10 @@ public static class MauiProgram
 		// Install: download a .wgt and push it to the TV (resign -> [permit] -> install).
 		builder.Services.AddSingleton<WgtInstaller>();
 
-		builder.Services.AddSingleton<MainPage>();
+		// Session (holds the Samsung sign-in for the app's lifetime) + pages.
+		builder.Services.AddSingleton<SessionState>();
+		builder.Services.AddSingleton<DevicesPage>();
+		builder.Services.AddTransient<InstallPage>();
 
 #if DEBUG
 		builder.Logging.AddDebug();
