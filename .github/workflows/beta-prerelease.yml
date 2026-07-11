@@ -5,6 +5,8 @@ on:
     branches: [beta]
     paths-ignore:
       - 'README.md'
+  # Allow running the beta release manually (e.g. when a merge didn't fire the push trigger).
+  workflow_dispatch:
 
 permissions:
   contents: write
