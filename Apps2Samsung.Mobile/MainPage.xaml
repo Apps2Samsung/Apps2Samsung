@@ -30,6 +30,12 @@
                 Clicked="OnLoginClicked"
                 HorizontalOptions="Fill" />
 
+            <Button
+                x:Name="ProvisionBtn"
+                Text="Provision certificate"
+                Clicked="OnProvisionClicked"
+                HorizontalOptions="Fill" />
+
             <ActivityIndicator
                 x:Name="Busy"
                 IsRunning="False"
