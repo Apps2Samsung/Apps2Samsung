@@ -45,25 +45,34 @@ public partial class InstallerPage : ContentPage
 		_initialized = true;
 
 		await MobileSettings.InitAsync();
-		await LoadCatalogAsync();
+		var catalog = await LoadCatalogAsync();
 		await ScanAsync();
+
+		// A catalog problem is more actionable than the scan result, so let it have the last word.
+		if (catalog is null)
+			SetStatus("Couldn't load the app list. Check your connection and reopen.");
+		else if (catalog.Releases.Count == 0)
+			SetStatus("No apps loaded — you're offline or GitHub rate-limited. Add a GitHub token in Settings.");
+		else if (catalog.Failed > 0)
+			SetStatus($"Ready — but {catalog.Failed} of {catalog.Total} app sources failed (likely GitHub rate limit). Add a GitHub token in Settings.");
 	}
 
-	private async Task LoadCatalogAsync()
+	private async Task<CatalogService.CatalogResult?> LoadCatalogAsync()
 	{
 		SetStatus("Loading apps…");
 		try
 		{
-			_releases = await _catalog.LoadReleasesAsync();
+			var result = await _catalog.LoadReleasesAsync();
+			_releases = result.Releases;
 			AppPicker.ItemsSource = _releases.Select(r => r.Name).ToList();
 			if (_releases.Count > 0)
 				AppPicker.SelectedIndex = 0; // triggers OnAppChanged → populates versions
-			else
-				SetStatus("Couldn't load the app list (offline?). Check your connection and reopen.");
+			return result;
 		}
 		catch (Exception ex)
 		{
 			SetStatus($"Couldn't load the app list: {ex.Message}");
+			return null;
 		}
 	}
 

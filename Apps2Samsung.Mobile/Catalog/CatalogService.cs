@@ -28,31 +28,31 @@ public sealed class CatalogService
 
 	public CatalogService(HttpClient http) => _http = http;
 
+	/// <summary>The catalog plus how many providers failed to load (e.g. GitHub rate limit).</summary>
+	public sealed record CatalogResult(IReadOnlyList<GitHubRelease> Releases, int Failed, int Total);
+
 	/// <summary>Loads the catalog and returns the selectable releases, sorted by name.</summary>
-	public async Task<IReadOnlyList<GitHubRelease>> LoadReleasesAsync()
+	public async Task<CatalogResult> LoadReleasesAsync()
 	{
 		var manifest = await GetManifestAsync();
-		var list = new List<GitHubRelease>();
+		var providers = manifest.Providers.Where(p => !string.IsNullOrWhiteSpace(p.Url)).ToList();
 
-		foreach (var provider in manifest.Providers)
+		// Fetch every provider concurrently — one slow/failing source no longer blocks the rest.
+		var tasks = providers.Select(async provider =>
 		{
-			if (string.IsNullOrWhiteSpace(provider.Url))
-				continue;
-
 			var take = provider.Take;
 			if (take > 1 && !MobileSettings.ShowAllJellyfinVersions)
 				take = 1; // collapse Jellyfin history to latest unless opted in
 
-			var releases = await GetReleasesAsync(provider.Url, provider.Prefix, provider.DisplayName, take);
-			if (releases.Count == 0)
-				continue;
+			var (releases, ok) = await GetReleasesAsync(provider.Url, provider.Prefix, provider.DisplayName, take);
 
+			var entries = new List<GitHubRelease>();
 			if (provider.ExpandAssets)
 			{
 				// One release entry per .wgt asset (Tizen Community bundle).
 				foreach (var r in releases)
 					foreach (var asset in r.Assets)
-						list.Add(new GitHubRelease
+						entries.Add(new GitHubRelease
 						{
 							Name = Path.GetFileNameWithoutExtension(asset.FileName),
 							TagName = r.TagName,
@@ -63,12 +63,18 @@ public sealed class CatalogService
 			}
 			else
 			{
-				list.AddRange(releases);
+				entries.AddRange(releases);
 			}
-		}
+
+			return (Entries: entries, Ok: ok);
+		}).ToList();
+
+		var results = await Task.WhenAll(tasks);
+		var list = results.SelectMany(r => r.Entries).ToList();
+		var failed = results.Count(r => !r.Ok);
 
 		list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
-		return list;
+		return new CatalogResult(list, failed, providers.Count);
 	}
 
 	private async Task<ProviderManifest> GetManifestAsync()
@@ -119,8 +125,9 @@ public sealed class CatalogService
 
 	// Ported from the desktop AddLatestRelease: handles both the /releases (list) and
 	// /releases/tags/<tag> (single) response shapes, keeps only .wgt/.tpk assets, truncates to
-	// `take`, and applies the display name/prefix.
-	private async Task<List<GitHubRelease>> GetReleasesAsync(string url, string prefix, string displayName, int take)
+	// `take`, and applies the display name/prefix. Returns Ok=false when the HTTP call itself
+	// failed (network / GitHub rate limit) so the caller can distinguish that from "no assets".
+	private async Task<(List<GitHubRelease> Releases, bool Ok)> GetReleasesAsync(string url, string prefix, string displayName, int take)
 	{
 		if (take < 1) take = 1;
 
@@ -151,18 +158,18 @@ public sealed class CatalogService
 
 			releases = releases.Where(r => r.Assets.Count > 0).ToList();
 			if (releases.Count == 0)
-				return new();
+				return (new(), true); // reached GitHub fine, just nothing installable
 
 			var result = releases.Count > take ? releases.GetRange(0, take) : releases;
 			foreach (var r in result)
 				r.Name = string.IsNullOrWhiteSpace(displayName) ? $"{prefix}{r.Name}" : displayName;
 
-			return result;
+			return (result, true);
 		}
 		catch (Exception ex)
 		{
 			System.Diagnostics.Trace.WriteLine($"Failed to fetch releases from {url}: {ex}");
-			return new();
+			return (new(), false);
 		}
 	}
 

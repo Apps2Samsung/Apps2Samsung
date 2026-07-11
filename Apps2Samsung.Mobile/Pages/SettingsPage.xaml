@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Apps2Samsung.Mobile.Pages.SettingsPage"
              Title="Settings"
+             NavigationPage.HasNavigationBar="False"
              BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
 
     <ContentPage.Resources>
@@ -28,10 +29,15 @@
                 BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
             <VerticalStackLayout Spacing="14">
 
-                <!-- Header banner -->
-                <Border BackgroundColor="#2C3E50" Padding="24,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
-                    <Label Text="Application settings" TextColor="White" FontAttributes="Bold"
-                           HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                <!-- Header banner with a back affordance -->
+                <Border BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+                    <Grid ColumnDefinitions="44,*,44" VerticalOptions="Center">
+                        <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
+                                BackgroundColor="Transparent" BorderWidth="0" Padding="0"
+                                WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
+                        <Label Grid.Column="1" Text="Application settings" TextColor="White" FontAttributes="Bold"
+                               VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                    </Grid>
                 </Border>
 
                 <!-- GitHub Token -->
