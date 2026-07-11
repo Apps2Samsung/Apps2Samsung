@@ -37,6 +37,14 @@ public static class MauiProgram
 		// the certificate provisioning needs.
 		builder.Services.AddSingleton<ISamsungLoginService, SamsungLoginService>();
 
+		// Certificate provisioning: a plain HttpClient for the Samsung REST calls, the shared cert
+		// service against Samsung's production endpoints, and the mobile provisioner that ties in
+		// the DUID lookup + bundled CA files.
+		builder.Services.AddSingleton(new HttpClient());
+		builder.Services.AddSingleton<ITizenCertificateService>(sp =>
+			new TizenCertificateService(sp.GetRequiredService<HttpClient>(), CertificateEndpoints.Default));
+		builder.Services.AddSingleton<CertificateProvisioner>();
+
 		builder.Services.AddSingleton<MainPage>();
 
 #if DEBUG
