@@ -55,10 +55,9 @@ public static class MauiProgram
 		// Install: download a .wgt and push it to the TV (resign -> [permit] -> install).
 		builder.Services.AddSingleton<WgtInstaller>();
 
-		// Session (holds the Samsung sign-in for the app's lifetime) + pages.
+		// Session (holds the Samsung sign-in for the app's lifetime) + the installer page.
 		builder.Services.AddSingleton<SessionState>();
-		builder.Services.AddSingleton<DevicesPage>();
-		builder.Services.AddTransient<InstallPage>();
+		builder.Services.AddSingleton<InstallerPage>();
 
 #if DEBUG
 		builder.Logging.AddDebug();

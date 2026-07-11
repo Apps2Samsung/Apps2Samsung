@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Apps2Samsung.Mobile.Pages.InstallerPage"
+             Title="Apps2Samsung"
+             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+
+    <ScrollView>
+        <!-- Card container, mirroring the desktop's single-card layout. -->
+        <Border Margin="12" Padding="16" StrokeThickness="1"
+                StrokeShape="RoundRectangle 8"
+                Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
+                BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
+            <VerticalStackLayout Spacing="14">
+
+                <!-- Header banner -->
+                <Border BackgroundColor="#2C3E50" Padding="24,20" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+                    <Label Text="App Installer for Samsung (Tizen)"
+                           TextColor="White" FontAttributes="Bold"
+                           HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                </Border>
+
+                <!-- App -->
+                <Grid ColumnDefinitions="80,*" ColumnSpacing="8" VerticalOptions="Center">
+                    <Label Grid.Column="0" Text="App" VerticalOptions="Center" FontSize="14" FontAttributes="Bold" />
+                    <Picker Grid.Column="1" x:Name="AppPicker" />
+                </Grid>
+
+                <!-- TV selection + refresh -->
+                <Grid ColumnDefinitions="80,*,44" ColumnSpacing="8">
+                    <Label Grid.Column="0" Text="TV" VerticalOptions="Center" FontSize="14" FontAttributes="Bold" />
+                    <Picker Grid.Column="1" x:Name="TvPicker" Title="Scan to find TVs" />
+                    <Button Grid.Column="2" x:Name="RefreshBtn" Text="⟳" FontSize="18"
+                            Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="22"
+                            Clicked="OnRefreshClicked" />
+                </Grid>
+
+                <!-- Status bar -->
+                <Border BackgroundColor="#2C3E50" Padding="16" StrokeThickness="0" StrokeShape="RoundRectangle 6">
+                    <Label x:Name="StatusLabel" Text="Ready."
+                           TextColor="White" HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center" LineBreakMode="WordWrap" />
+                </Border>
+
+                <!-- Action -->
+                <Button x:Name="InstallBtn" Text="Download &amp; Install"
+                        Clicked="OnInstallClicked" HorizontalOptions="Fill" />
+
+                <Label Text="Apps2Samsung · made by Patrick"
+                       HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
+
+            </VerticalStackLayout>
+        </Border>
+    </ScrollView>
+
+</ContentPage>
