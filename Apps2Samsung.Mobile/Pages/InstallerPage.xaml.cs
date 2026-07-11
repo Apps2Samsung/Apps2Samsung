@@ -39,6 +39,9 @@ public partial class InstallerPage : ContentPage
 
 		// Shows the app version (ApplicationDisplayVersion), so it stays in sync with the build.
 		VersionLabel.Text = $"v{AppInfo.Current.VersionString}";
+
+		var ip = NetworkInfo.GetLocalIPv4();
+		PhoneIpLabel.Text = ip is null ? "📱 This phone: offline" : $"📱 This phone: {ip}";
 	}
 
 	protected override async void OnAppearing()
@@ -180,6 +183,7 @@ public partial class InstallerPage : ContentPage
 			await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus);
 
 			SetStatus($"✓ Installed {appName}. Open the TV's Apps list to launch it.");
+			await Navigation.PushModalAsync(new InstallCompletePage(appName));
 		}
 		catch (TaskCanceledException)
 		{
