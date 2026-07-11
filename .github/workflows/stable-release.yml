@@ -156,6 +156,7 @@ jobs:
             echo "| 🍎 macOS (CLI) | ✅ Stable | Per-arch tar.gz |"
             echo "| 🐧 Linux | ✅ Stable | x64 + ARM64 (tar.gz / .deb) |"
             echo "| 🪟 Windows | ✅ Stable | CI-built |"
+            echo "| 🤖 Android (.apk) | ✅ Stable | Sideload; phone as installer head |"
             echo ""
             echo "---"
             echo ""
@@ -398,6 +399,77 @@ jobs:
       # ---------------- UPLOAD MACOS ASSETS TO SAME STABLE RELEASE ----------------
       - name: Upload macOS assets to GitHub Release
         uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.stable-release.outputs.VERSION_TAG }}
+          name: ${{ needs.stable-release.outputs.VERSION_TAG }}
+          prerelease: false
+          overwrite_files: true
+          files: dist/*
+
+# ======================================================
+# ANDROID (.apk — the mobile installer head)
+# ======================================================
+  android-apk:
+    runs-on: ubuntu-latest
+    needs: stable-release
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
+      # Stable APKs should use a persistent signing key so users can update in place. Set the
+      # ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS secrets; without
+      # them we fall back to an ephemeral key (installable, but breaks in-place updates).
+      - name: Prepare Android signing key
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$PWD/a2s.keystore"
+            echo "KS_PASS=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+            echo "KS_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
+            echo "Using signing key from repo secrets."
+          else
+            keytool -genkeypair -v -keystore "$PWD/a2s.keystore" \
+              -alias a2s -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass apps2samsung -keypass apps2samsung \
+              -dname "CN=Apps2Samsung, O=MadeByPatrick, C=NL"
+            echo "KS_PASS=apps2samsung" >> "$GITHUB_ENV"
+            echo "KS_ALIAS=a2s" >> "$GITHUB_ENV"
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret set — signed the APK with an ephemeral key (in-place updates will fail)."
+          fi
+
+      - name: Build APK
+        run: |
+          dotnet publish Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj \
+            -c Release -f net10.0-android \
+            -p:ApplicationDisplayVersion=${{ needs.stable-release.outputs.VERSION }} \
+            -p:ApplicationVersion=${{ github.run_number }} \
+            -p:AndroidKeyStore=true \
+            -p:AndroidSigningKeyStore="$PWD/a2s.keystore" \
+            -p:AndroidSigningKeyAlias="$KS_ALIAS" \
+            -p:AndroidSigningStorePass="$KS_PASS" \
+            -p:AndroidSigningKeyPass="$KS_PASS" \
+            -o publish/android
+
+          mkdir -p dist
+          APK=$(ls publish/android/*-Signed.apk 2>/dev/null | head -n1)
+          [ -z "$APK" ] && APK=$(ls publish/android/*.apk 2>/dev/null | head -n1)
+          if [ -z "$APK" ]; then
+            echo "❌ No APK produced"; exit 1
+          fi
+          cp "$APK" "dist/${PRODUCT_NAME}-${{ needs.stable-release.outputs.VERSION_TAG }}-android.apk"
+
+      - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.stable-release.outputs.VERSION_TAG }}
           name: ${{ needs.stable-release.outputs.VERSION_TAG }}

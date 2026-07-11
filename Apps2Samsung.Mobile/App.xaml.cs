@@ -13,6 +13,6 @@ public partial class App : Application
 	{
 		// Resolve the first page from the DI container so its Core services are injected.
 		var services = IPlatformApplication.Current!.Services;
-		return new Window(new NavigationPage(services.GetRequiredService<MainPage>()));
+		return new Window(new NavigationPage(services.GetRequiredService<Pages.InstallerPage>()));
 	}
 }

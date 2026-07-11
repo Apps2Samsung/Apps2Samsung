@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Apps2Samsung.Mobile.Pages.InstallerPage"
+             Title="Apps2Samsung"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+
+    <ScrollView>
+        <!-- Single card, mirroring the desktop window. -->
+        <Border Margin="12" Padding="16" StrokeThickness="1"
+                StrokeShape="RoundRectangle 8"
+                Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
+                BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
+            <VerticalStackLayout Spacing="14">
+
+                <!-- Brand: logo + name (the desktop's title bar) -->
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="8" Padding="0,2">
+                    <Image Source="a2s_logo.png" HeightRequest="30" WidthRequest="30" VerticalOptions="Center" />
+                    <Label Text="Apps2Samsung" FontSize="19" FontAttributes="Bold" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+
+                <!-- Header banner -->
+                <Border BackgroundColor="#2C3E50" Padding="24,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+                    <Label Text="App Installer for Samsung (Tizen)"
+                           TextColor="White" FontAttributes="Bold"
+                           HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                </Border>
+
+                <!-- App / Release -->
+                <Grid ColumnDefinitions="80,*" ColumnSpacing="10" VerticalOptions="Center">
+                    <Label Grid.Column="0" Text="App" VerticalOptions="Center" FontSize="14" FontAttributes="Bold" />
+                    <Border Grid.Column="1" Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                            Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
+                        <Picker x:Name="AppPicker" Title="Select an app" BackgroundColor="Transparent"
+                                SelectedIndexChanged="OnAppChanged" />
+                    </Border>
+                </Grid>
+
+                <!-- Version -->
+                <Grid ColumnDefinitions="80,*" ColumnSpacing="10" VerticalOptions="Center">
+                    <Label Grid.Column="0" Text="Version" VerticalOptions="Center" FontSize="14" FontAttributes="Bold" />
+                    <Border Grid.Column="1" Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                            Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
+                        <Picker x:Name="VersionPicker" BackgroundColor="Transparent" />
+                    </Border>
+                </Grid>
+
+                <!-- TV selection + refresh -->
+                <Grid ColumnDefinitions="80,*,44" ColumnSpacing="10">
+                    <Label Grid.Column="0" Text="Select TV" VerticalOptions="Center" FontSize="14" FontAttributes="Bold" />
+                    <Border Grid.Column="1" Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                            Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
+                        <Picker x:Name="TvPicker" Title="Scan to find TVs" BackgroundColor="Transparent" />
+                    </Border>
+                    <Button Grid.Column="2" x:Name="RefreshBtn" Text="⟳" FontSize="18"
+                            BackgroundColor="Transparent" BorderWidth="1"
+                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                            Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="22"
+                            Clicked="OnRefreshClicked" />
+                </Grid>
+
+                <!-- Status bar -->
+                <Border BackgroundColor="#2C3E50" Padding="16" StrokeThickness="0" StrokeShape="RoundRectangle 6">
+                    <Label x:Name="StatusLabel" Text="Ready for use…"
+                           TextColor="White" HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center" LineBreakMode="WordWrap" />
+                </Border>
+
+                <!-- Action -->
+                <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
+                    <Button Grid.Column="0" x:Name="InstallBtn" Text="Download &amp; Install"
+                            Clicked="OnInstallClicked" HorizontalOptions="Fill" />
+                    <Button Grid.Column="1" x:Name="SettingsBtn" Text="⚙" FontSize="18"
+                            BackgroundColor="Transparent" BorderWidth="1"
+                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                            Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="22"
+                            Clicked="OnSettingsClicked" />
+                </Grid>
+
+                <Label Text="MIT License · Patrick Stel"
+                       HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
+                <Label x:Name="VersionLabel"
+                       HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
+
+            </VerticalStackLayout>
+        </Border>
+    </ScrollView>
+
+</ContentPage>
