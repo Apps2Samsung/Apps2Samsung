@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Services;
+using Apps2Samsung.Mobile.Catalog;
 using Apps2Samsung.Mobile.Pages;
 using Apps2Samsung.Mobile.Services;
 using Microsoft.Extensions.Logging;
@@ -54,6 +55,9 @@ public static class MauiProgram
 
 		// Install: download a .wgt and push it to the TV (resign -> [permit] -> install).
 		builder.Services.AddSingleton<WgtInstaller>();
+
+		// App catalog (App/Version dropdowns) — reuses the shared HttpClient for GitHub calls.
+		builder.Services.AddSingleton<CatalogService>();
 
 		// Session (holds the Samsung sign-in for the app's lifetime) + the installer page.
 		builder.Services.AddSingleton<SessionState>();

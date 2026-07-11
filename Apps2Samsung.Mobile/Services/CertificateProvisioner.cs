@@ -1,3 +1,4 @@
+using System.Linq;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
@@ -39,9 +40,17 @@ public sealed class CertificateProvisioner
 		var caPath = await MaterializeCaAsync();
 		var profileDir = Path.Combine(FileSystem.AppDataDirectory, "TizenProfile");
 
+		// The target TV's DUID, plus any extra DUIDs the user pre-authorized in settings, so one
+		// certificate can cover several TVs.
+		var duids = new[] { duid }
+			.Concat(MobileSettings.ParseDuids())
+			.Where(d => !string.IsNullOrWhiteSpace(d))
+			.Distinct(StringComparer.OrdinalIgnoreCase)
+			.ToArray();
+
 		ProgressCallback? cb = progress is null ? null : new ProgressCallback(progress);
 		var (authorP12, distributorP12, password) = await _certService.GenerateProfileAsync(
-			duids: new[] { duid },
+			duids: duids,
 			accessToken: auth.access_token,
 			userId: auth.userId,
 			userEmail: auth.inputEmailID,

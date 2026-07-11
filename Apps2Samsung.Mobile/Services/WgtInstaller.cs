@@ -1,4 +1,7 @@
+using System.IO.Compression;
 using System.Linq;
+using System.Net.Http.Headers;
+using System.Xml.Linq;
 using Apps2Samsung.Interfaces;
 using Microsoft.Maui.Storage;
 
@@ -37,7 +40,13 @@ public sealed class WgtInstaller
 			name = "package.wgt";
 		var dest = Path.Combine(FileSystem.CacheDirectory, name);
 
-		using var resp = await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+		using var req = new HttpRequestMessage(HttpMethod.Get, url);
+		req.Headers.UserAgent.ParseAdd("Apps2Samsung-Mobile");
+		var token = MobileSettings.GitHubToken;
+		if (!string.IsNullOrWhiteSpace(token) && new Uri(url).Host.Contains("github", StringComparison.OrdinalIgnoreCase))
+			req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+		using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
 		resp.EnsureSuccessStatusCode();
 		await using (var src = await resp.Content.ReadAsStreamAsync())
 		await using (var dst = File.Create(dest))
@@ -52,6 +61,16 @@ public sealed class WgtInstaller
 		var cap = await _sdb.CapabilityAsync(tvIp);
 		var sdkToolPath = ParseCapability(cap.Output, "sdk_toolpath") ?? DefaultSdkToolPath;
 		Version.TryParse(ParseCapability(cap.Output, "platform_version"), out var version);
+
+		// The Tizen app/package ids live in the package's config.xml; needed to remove an old
+		// version before install and/or launch the app afterwards.
+		var (appId, packageId) = ReadPackageIds(wgtPath);
+
+		if (MobileSettings.DeletePreviousInstall && !string.IsNullOrWhiteSpace(packageId))
+		{
+			progress?.Invoke("Removing old version…");
+			try { await _sdb.UninstallAsync(tvIp, packageId!); } catch { /* nothing to remove */ }
+		}
 
 		// Older TVs (<= 4.0) need the distributor device profile pushed before install; newer TVs
 		// carry the authorization in the re-signed package itself.
@@ -73,7 +92,42 @@ public sealed class WgtInstaller
 		if (install.ExitCode != 0)
 			throw new InvalidOperationException($"Install failed: {Detail(install.Error, install.Output)}");
 
+		if (MobileSettings.OpenAfterInstall && !string.IsNullOrWhiteSpace(appId))
+		{
+			progress?.Invoke("Launching on TV…");
+			try { await _sdb.LaunchAsync(tvIp, appId!); } catch { /* launch is best-effort */ }
+		}
+
 		return install.Output;
+	}
+
+	// Reads the Tizen application id and package id from the package's config.xml. A .wgt is a zip;
+	// its root config.xml carries <tizen:application id="<pkg>.<app>" package="<pkg>" .../>.
+	private static (string? AppId, string? PackageId) ReadPackageIds(string wgtPath)
+	{
+		try
+		{
+			using var zip = ZipFile.OpenRead(wgtPath);
+			var entry = zip.GetEntry("config.xml");
+			if (entry is null)
+				return (null, null);
+
+			using var stream = entry.Open();
+			var doc = XDocument.Load(stream);
+			XNamespace tizen = "http://tizen.org/ns/widgets";
+			var app = doc.Descendants(tizen + "application").FirstOrDefault();
+			if (app is null)
+				return (null, null);
+
+			var appId = app.Attribute("id")?.Value;
+			var packageId = app.Attribute("package")?.Value
+				?? appId?.Split('.').FirstOrDefault();
+			return (appId, packageId);
+		}
+		catch
+		{
+			return (null, null);
+		}
 	}
 
 	// Pulls a "  key: value" line out of the capability report.

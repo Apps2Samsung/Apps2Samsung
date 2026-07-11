@@ -1,50 +1,95 @@
 using System.Collections.Generic;
 using System.Linq;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Mobile.Catalog;
 using Apps2Samsung.Mobile.Services;
+using Microsoft.Maui.Storage;
 
 namespace Apps2Samsung.Mobile.Pages;
 
 public partial class InstallerPage : ContentPage
 {
-	// App catalog (hardcoded for now; a real catalog/picker is a later step).
-	private static readonly (string Name, string Url)[] Apps =
-	{
-		("Jellyfin", "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/latest/download/Jellyfin.wgt"),
-	};
-
 	private readonly INetworkService _networkService;
 	private readonly ISamsungLoginService _loginService;
 	private readonly CertificateProvisioner _certProvisioner;
 	private readonly WgtInstaller _installer;
+	private readonly CatalogService _catalog;
 	private readonly SessionState _session;
 
 	// Parallel to TvPicker items: the IP for each listed (debug-ready) TV.
 	private readonly List<string> _tvIps = new();
-	private bool _scannedOnce;
+	// The catalog releases backing AppPicker; the selected release's assets back VersionPicker.
+	private IReadOnlyList<GitHubRelease> _releases = new List<GitHubRelease>();
+	private List<Asset> _versions = new();
+
+	private bool _initialized;
 
 	public InstallerPage(INetworkService networkService, ISamsungLoginService loginService,
-		CertificateProvisioner certProvisioner, WgtInstaller installer, SessionState session)
+		CertificateProvisioner certProvisioner, WgtInstaller installer, CatalogService catalog,
+		SessionState session)
 	{
 		InitializeComponent();
 		_networkService = networkService;
 		_loginService = loginService;
 		_certProvisioner = certProvisioner;
 		_installer = installer;
+		_catalog = catalog;
 		_session = session;
-
-		AppPicker.ItemsSource = Apps.Select(a => a.Name).ToList();
-		AppPicker.SelectedIndex = 0;
 	}
 
 	protected override async void OnAppearing()
 	{
 		base.OnAppearing();
-		if (!_scannedOnce)
-			await ScanAsync();
+		if (_initialized)
+			return;
+		_initialized = true;
+
+		await MobileSettings.InitAsync();
+		await LoadCatalogAsync();
+		await ScanAsync();
+	}
+
+	private async Task LoadCatalogAsync()
+	{
+		SetStatus("Loading apps…");
+		try
+		{
+			_releases = await _catalog.LoadReleasesAsync();
+			AppPicker.ItemsSource = _releases.Select(r => r.Name).ToList();
+			if (_releases.Count > 0)
+				AppPicker.SelectedIndex = 0; // triggers OnAppChanged → populates versions
+			else
+				SetStatus("Couldn't load the app list (offline?). Check your connection and reopen.");
+		}
+		catch (Exception ex)
+		{
+			SetStatus($"Couldn't load the app list: {ex.Message}");
+		}
+	}
+
+	private void OnAppChanged(object? sender, EventArgs e)
+	{
+		var i = AppPicker.SelectedIndex;
+		if (i < 0 || i >= _releases.Count)
+		{
+			_versions = new();
+			VersionPicker.ItemsSource = null;
+			return;
+		}
+
+		_versions = _releases[i].Assets;
+		VersionPicker.ItemsSource = _versions.Select(a => a.DisplayText).ToList();
+		if (_versions.Count > 0)
+		{
+			var def = _versions.FindIndex(a => a.IsDefault);
+			VersionPicker.SelectedIndex = def >= 0 ? def : 0;
+		}
 	}
 
 	private async void OnRefreshClicked(object? sender, EventArgs e) => await ScanAsync();
+
+	private async void OnSettingsClicked(object? sender, EventArgs e) =>
+		await Navigation.PushAsync(new SettingsPage());
 
 	private async Task ScanAsync()
 	{
@@ -65,8 +110,7 @@ public partial class InstallerPage : ContentPage
 			foreach (var d in devices)
 			{
 				_tvIps.Add(d.IpAddress);
-				var name = string.IsNullOrWhiteSpace(d.DeviceName) ? "Samsung TV" : d.DeviceName!;
-				labels.Add($"{name} — {d.IpAddress}");
+				labels.Add(d.DisplayText);
 			}
 
 			TvPicker.ItemsSource = labels;
@@ -78,8 +122,7 @@ public partial class InstallerPage : ContentPage
 
 			SetStatus(_tvIps.Count == 0
 				? "No debug-ready TVs found. Enable Developer Mode on the TV, then refresh."
-				: $"Found {_tvIps.Count} TV(s). Pick one and install.");
-			_scannedOnce = true;
+				: "Ready for use…");
 		}
 		catch (Exception ex)
 		{
@@ -98,17 +141,19 @@ public partial class InstallerPage : ContentPage
 			SetStatus("Select a TV first (tap refresh to scan).");
 			return;
 		}
-		if (AppPicker.SelectedIndex < 0)
+		if (VersionPicker.SelectedIndex < 0 || VersionPicker.SelectedIndex >= _versions.Count)
 		{
-			SetStatus("Select an app first.");
+			SetStatus("Select an app and version first.");
 			return;
 		}
 
 		var tvIp = _tvIps[TvPicker.SelectedIndex];
-		var url = Apps[AppPicker.SelectedIndex].Url;
+		var appName = AppPicker.SelectedItem as string ?? "app";
+		var asset = _versions[VersionPicker.SelectedIndex];
 
 		InstallBtn.IsEnabled = false;
 		RefreshBtn.IsEnabled = false;
+		string? wgtPath = null;
 		try
 		{
 			if (!_session.IsSignedIn)
@@ -118,10 +163,10 @@ public partial class InstallerPage : ContentPage
 			}
 
 			var cert = await _certProvisioner.ProvisionAsync(tvIp, _session.Auth!, SetStatus);
-			var wgtPath = await _installer.DownloadAsync(url, SetStatus);
+			wgtPath = await _installer.DownloadAsync(asset.DownloadUrl, SetStatus);
 			await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus);
 
-			SetStatus($"✓ Installed {Apps[AppPicker.SelectedIndex].Name}. Open the TV's Apps list to launch it.");
+			SetStatus($"✓ Installed {appName}. Open the TV's Apps list to launch it.");
 		}
 		catch (TaskCanceledException)
 		{
@@ -133,6 +178,10 @@ public partial class InstallerPage : ContentPage
 		}
 		finally
 		{
+			// Clean up the downloaded package unless the user opted to keep it.
+			if (wgtPath is not null && !MobileSettings.KeepWgtFile)
+				try { File.Delete(wgtPath); } catch { /* best-effort */ }
+
 			InstallBtn.IsEnabled = true;
 			RefreshBtn.IsEnabled = true;
 		}
