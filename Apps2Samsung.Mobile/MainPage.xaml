@@ -36,6 +36,18 @@
                 Clicked="OnProvisionClicked"
                 HorizontalOptions="Fill" />
 
+            <Entry
+                x:Name="WgtUrlEntry"
+                Text="https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/latest/download/Jellyfin.wgt"
+                Placeholder=".wgt URL"
+                Keyboard="Url" />
+
+            <Button
+                x:Name="InstallBtn"
+                Text="Download &amp; install"
+                Clicked="OnInstallClicked"
+                HorizontalOptions="Fill" />
+
             <ActivityIndicator
                 x:Name="Busy"
                 IsRunning="False"

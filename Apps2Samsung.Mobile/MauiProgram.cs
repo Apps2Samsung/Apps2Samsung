@@ -51,6 +51,9 @@ public static class MauiProgram
 			new TizenCertificateService(sp.GetRequiredService<HttpClient>(), CertificateEndpoints.Default));
 		builder.Services.AddSingleton<CertificateProvisioner>();
 
+		// Install: download a .wgt and push it to the TV (resign -> [permit] -> install).
+		builder.Services.AddSingleton<WgtInstaller>();
+
 		builder.Services.AddSingleton<MainPage>();
 
 #if DEBUG

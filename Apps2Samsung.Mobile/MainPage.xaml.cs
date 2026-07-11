@@ -11,17 +11,20 @@ public partial class MainPage : ContentPage
 	private readonly INetworkService _networkService;
 	private readonly ISamsungLoginService _loginService;
 	private readonly CertificateProvisioner _certProvisioner;
+	private readonly WgtInstaller _installer;
 
-	// Held between the smoke steps: sign in, scan (pick first debug-ready TV), then provision.
+	// Held between the smoke steps: sign in, scan (pick first debug-ready TV), provision, then install.
 	private SamsungAuth? _auth;
 	private string? _readyTvIp;
+	private CertificateProvisioner.Result? _cert;
 
-	public MainPage(INetworkService networkService, ISamsungLoginService loginService, CertificateProvisioner certProvisioner)
+	public MainPage(INetworkService networkService, ISamsungLoginService loginService, CertificateProvisioner certProvisioner, WgtInstaller installer)
 	{
 		InitializeComponent();
 		_networkService = networkService;
 		_loginService = loginService;
 		_certProvisioner = certProvisioner;
+		_installer = installer;
 	}
 
 	private async void OnScanClicked(object? sender, EventArgs e)
@@ -111,6 +114,7 @@ public partial class MainPage : ContentPage
 				_auth,
 				step => MainThread.BeginInvokeOnMainThread(() => ResultsLabel.Text = $"Provisioning: {step}"));
 
+			_cert = result;
 			ResultsLabel.Text =
 				$"Certificate ready for {_readyTvIp}\nDUID: {result.Duid}\n" +
 				$"Author: {Path.GetFileName(result.AuthorP12)}\nDistributor: {Path.GetFileName(result.DistributorP12)}\n" +
@@ -124,6 +128,48 @@ public partial class MainPage : ContentPage
 		{
 			Busy.IsRunning = Busy.IsVisible = false;
 			ProvisionBtn.IsEnabled = true;
+		}
+	}
+
+	private async void OnInstallClicked(object? sender, EventArgs e)
+	{
+		if (_cert is null)
+		{
+			ResultsLabel.Text = "Provision a certificate first.";
+			return;
+		}
+		if (string.IsNullOrEmpty(_readyTvIp))
+		{
+			ResultsLabel.Text = "Scan first and make sure a debug-ready TV was found.";
+			return;
+		}
+		var url = WgtUrlEntry.Text?.Trim();
+		if (string.IsNullOrEmpty(url))
+		{
+			ResultsLabel.Text = "Enter a .wgt URL to install.";
+			return;
+		}
+
+		InstallBtn.IsEnabled = false;
+		Busy.IsRunning = Busy.IsVisible = true;
+
+		try
+		{
+			void Report(string step) => MainThread.BeginInvokeOnMainThread(() => ResultsLabel.Text = step);
+
+			var wgtPath = await _installer.DownloadAsync(url, Report);
+			var output = await _installer.InstallAsync(_readyTvIp, wgtPath, _cert, Report);
+
+			ResultsLabel.Text = $"Installed {Path.GetFileName(wgtPath)} on {_readyTvIp} ✓\n\n{output.Trim()}";
+		}
+		catch (Exception ex)
+		{
+			ResultsLabel.Text = $"Install failed: {ex.Message}";
+		}
+		finally
+		{
+			Busy.IsRunning = Busy.IsVisible = false;
+			InstallBtn.IsEnabled = true;
 		}
 	}
 }
