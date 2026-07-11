@@ -85,6 +85,8 @@
 
                 <Label Text="MIT License · Patrick Stel"
                        HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
+                <Label x:Name="VersionLabel"
+                       HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
 
             </VerticalStackLayout>
         </Border>

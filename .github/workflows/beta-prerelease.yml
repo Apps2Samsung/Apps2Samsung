@@ -104,6 +104,7 @@ jobs:
             echo "| 🍎 macOS (CLI) | ⚠️ Beta | Per-arch tar.gz |"
             echo "| 🐧 Linux | ⚠️ Beta | x64 + ARM64 (tar.gz / .deb) |"
             echo "| 🪟 Windows | ⚠️ Beta | CI-built |"
+            echo "| 🤖 Android (.apk) | ⚠️ Beta | Sideload; phone as installer head |"
           } > RELEASE_NOTES.md
 
       - uses: actions/setup-dotnet@v4
@@ -342,6 +343,79 @@ jobs:
             -srcfolder dmg-x64 \
             -format UDZO \
             dist/${PRODUCT_NAME}-${{ needs.beta-release.outputs.VERSION_TAG }}-macos-x64.dmg
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.beta-release.outputs.VERSION_TAG }}
+          name: ${{ needs.beta-release.outputs.VERSION_TAG }}
+          prerelease: true
+          overwrite_files: true
+          files: dist/*
+
+# ======================================================
+# ANDROID (.apk — the mobile installer head)
+# ======================================================
+  android-apk:
+    runs-on: ubuntu-latest
+    needs: beta-release
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
+      # A signing key is required for an installable Release APK. Prefer repo secrets
+      # (stable key across builds); otherwise generate an ephemeral key so the APK is at
+      # least installable — a fresh key means users must uninstall before updating, so set
+      # ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS for a
+      # persistent signing identity.
+      - name: Prepare Android signing key
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$PWD/a2s.keystore"
+            echo "KS_PASS=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+            echo "KS_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
+            echo "Using signing key from repo secrets."
+          else
+            keytool -genkeypair -v -keystore "$PWD/a2s.keystore" \
+              -alias a2s -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass apps2samsung -keypass apps2samsung \
+              -dname "CN=Apps2Samsung, O=MadeByPatrick, C=NL"
+            echo "KS_PASS=apps2samsung" >> "$GITHUB_ENV"
+            echo "KS_ALIAS=a2s" >> "$GITHUB_ENV"
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret set — signed the APK with an ephemeral key."
+          fi
+
+      - name: Build APK
+        run: |
+          dotnet publish Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj \
+            -c Release -f net10.0-android \
+            -p:ApplicationDisplayVersion=${{ needs.beta-release.outputs.VERSION }} \
+            -p:ApplicationVersion=${{ github.run_number }} \
+            -p:AndroidKeyStore=true \
+            -p:AndroidSigningKeyStore="$PWD/a2s.keystore" \
+            -p:AndroidSigningKeyAlias="$KS_ALIAS" \
+            -p:AndroidSigningStorePass="$KS_PASS" \
+            -p:AndroidSigningKeyPass="$KS_PASS" \
+            -o publish/android
+
+          mkdir -p dist
+          APK=$(ls publish/android/*-Signed.apk 2>/dev/null | head -n1)
+          [ -z "$APK" ] && APK=$(ls publish/android/*.apk 2>/dev/null | head -n1)
+          if [ -z "$APK" ]; then
+            echo "❌ No APK produced"; exit 1
+          fi
+          cp "$APK" "dist/${PRODUCT_NAME}-${{ needs.beta-release.outputs.VERSION_TAG }}-android.apk"
 
       - uses: softprops/action-gh-release@v2
         with:

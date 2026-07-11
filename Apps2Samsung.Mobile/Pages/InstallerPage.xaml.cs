@@ -3,6 +3,7 @@ using System.Linq;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Mobile.Catalog;
 using Apps2Samsung.Mobile.Services;
+using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Storage;
 
 namespace Apps2Samsung.Mobile.Pages;
@@ -35,6 +36,9 @@ public partial class InstallerPage : ContentPage
 		_installer = installer;
 		_catalog = catalog;
 		_session = session;
+
+		// Shows the app version (ApplicationDisplayVersion), so it stays in sync with the build.
+		VersionLabel.Text = $"v{AppInfo.Current.VersionString}";
 	}
 
 	protected override async void OnAppearing()
