@@ -27,6 +27,10 @@
                            HorizontalOptions="Center" HorizontalTextAlignment="Center" />
                 </Border>
 
+                <!-- This phone's LAN IP (handy for confirming you're on the TV's network). -->
+                <Label x:Name="PhoneIpLabel" FontSize="12" Opacity="0.6"
+                       HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+
                 <!-- App / Release -->
                 <Grid ColumnDefinitions="80,*" ColumnSpacing="10" VerticalOptions="Center">
                     <Label Grid.Column="0" Text="App" VerticalOptions="Center" FontSize="14" FontAttributes="Bold" />
