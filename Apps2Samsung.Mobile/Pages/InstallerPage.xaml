@@ -42,14 +42,20 @@
                     </Border>
                 </Grid>
 
-                <!-- Version -->
-                <Grid ColumnDefinitions="80,*" ColumnSpacing="10" VerticalOptions="Center">
+                <!-- Version + catalog ("?") -->
+                <Grid ColumnDefinitions="80,*,44" ColumnSpacing="8" VerticalOptions="Center">
                     <Label Grid.Column="0" Text="Version" VerticalOptions="Center" FontSize="14" FontAttributes="Bold" />
                     <Border Grid.Column="1" Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
                             Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
                             BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
                         <Picker x:Name="VersionPicker" BackgroundColor="Transparent" />
                     </Border>
+                    <Button Grid.Column="2" Text="?" FontSize="18" FontAttributes="Bold"
+                            BackgroundColor="Transparent" BorderWidth="1"
+                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                            Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="22"
+                            Clicked="OnCatalogClicked" />
                 </Grid>
 
                 <!-- TV selection + refresh -->

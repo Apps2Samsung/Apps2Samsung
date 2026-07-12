@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Apps2Samsung.Mobile.Pages.BuildInfoPage"
+             Title="App catalog"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+
+    <ContentPage.Resources>
+        <!-- One app card: preview thumbnail + name/version/description. -->
+        <DataTemplate x:Key="RowTemplate">
+            <Border Padding="10" Margin="0,0,0,8" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 6"
+                    Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#242424}">
+                <Grid ColumnDefinitions="84,*" ColumnSpacing="10">
+                    <Border Grid.Column="0" BackgroundColor="{AppThemeBinding Light=#F2F4F6, Dark=#1A1A1A}"
+                            StrokeThickness="0" StrokeShape="RoundRectangle 4" HeightRequest="60">
+                        <Image Source="{Binding Preview}" Aspect="AspectFit" />
+                    </Border>
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                        <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="15" />
+                        <Label Text="{Binding Version}" FontSize="12" TextColor="#2C3E50"
+                               IsVisible="{Binding HasVersion}" />
+                        <Label Text="{Binding Description}" FontSize="12" Opacity="0.7" LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <Border Margin="12" Padding="16" StrokeThickness="1"
+                StrokeShape="RoundRectangle 8"
+                Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
+                BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
+            <VerticalStackLayout Spacing="14">
+
+                <!-- Header banner with a back affordance -->
+                <Border BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+                    <Grid ColumnDefinitions="44,*,44" VerticalOptions="Center">
+                        <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
+                                BackgroundColor="Transparent" BorderWidth="0" Padding="0"
+                                WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
+                        <Label Grid.Column="1" Text="App catalog" TextColor="White" FontAttributes="Bold"
+                               VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                    </Grid>
+                </Border>
+
+                <Label x:Name="StatusLabel" Text="Loading…" HorizontalOptions="Center" Opacity="0.7" />
+                <ActivityIndicator x:Name="Busy" IsRunning="True" HorizontalOptions="Center" Color="#2C3E50" />
+
+                <!-- Jellyfin builds -->
+                <Label x:Name="JellyfinHeader" Text="Jellyfin builds" FontAttributes="Bold" FontSize="14" IsVisible="False" />
+                <VerticalStackLayout x:Name="JellyfinList" Spacing="0"
+                                     BindableLayout.ItemTemplate="{StaticResource RowTemplate}" />
+
+                <!-- Community apps -->
+                <Label x:Name="CommunityHeader" Text="Community apps" FontAttributes="Bold" FontSize="14" IsVisible="False" />
+                <VerticalStackLayout x:Name="CommunityList" Spacing="0"
+                                     BindableLayout.ItemTemplate="{StaticResource RowTemplate}" />
+
+            </VerticalStackLayout>
+        </Border>
+    </ScrollView>
+
+</ContentPage>

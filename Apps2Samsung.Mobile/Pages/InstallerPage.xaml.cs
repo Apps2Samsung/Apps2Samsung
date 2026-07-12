@@ -203,6 +203,9 @@ public partial class InstallerPage : ContentPage
 	private async void OnSettingsClicked(object? sender, EventArgs e) =>
 		await Navigation.PushAsync(new SettingsPage());
 
+	private async void OnCatalogClicked(object? sender, EventArgs e) =>
+		await Navigation.PushAsync(new BuildInfoPage(_catalog));
+
 	private async Task ScanAsync()
 	{
 		RefreshBtn.IsEnabled = false;
