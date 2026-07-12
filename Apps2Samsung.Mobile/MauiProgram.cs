@@ -3,6 +3,7 @@ using Apps2Samsung.Services;
 using Apps2Samsung.Mobile.Catalog;
 using Apps2Samsung.Mobile.Pages;
 using Apps2Samsung.Mobile.Services;
+using Apps2Samsung.Update;
 using Microsoft.Extensions.Logging;
 using TizenSdb.SdbClient;
 
@@ -56,6 +57,9 @@ public static class MauiProgram
 
 		// App catalog (App/Version dropdowns) — reuses the shared HttpClient for GitHub calls.
 		builder.Services.AddSingleton<CatalogService>();
+
+		// Self-update check (shared Core logic) — matches the .apk asset on the latest release.
+		builder.Services.AddSingleton(sp => new GitHubUpdateChecker(sp.GetRequiredService<HttpClient>()));
 
 		// Session (holds the Samsung sign-in for the app's lifetime) + the installer page.
 		builder.Services.AddSingleton<SessionState>();

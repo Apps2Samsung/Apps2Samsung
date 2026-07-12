@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using Apps2Samsung.Mobile.Services;
 
 namespace Apps2Samsung.Mobile.Pages;
@@ -5,6 +8,9 @@ namespace Apps2Samsung.Mobile.Pages;
 public partial class SettingsPage : ContentPage
 {
 	private bool _loaded;
+	private readonly List<ChannelRow> _channelRows = new();
+
+	private sealed record ChannelRow(View Container, Entry Name, Entry Url);
 
 	public SettingsPage()
 	{
@@ -23,6 +29,12 @@ public partial class SettingsPage : ContentPage
 		OpenAfterSwitch.IsToggled = MobileSettings.OpenAfterInstall;
 		KeepWgtSwitch.IsToggled = MobileSettings.KeepWgtFile;
 		ShowAllJfSwitch.IsToggled = MobileSettings.ShowAllJellyfinVersions;
+
+		ChannelsContainer.Children.Clear();
+		_channelRows.Clear();
+		foreach (var channel in MobileSettings.GetTvAppChannels())
+			AddChannelRow(channel.Name, channel.Url);
+
 		_loaded = true;
 	}
 
@@ -55,5 +67,70 @@ public partial class SettingsPage : ContentPage
 		MobileSettings.OpenAfterInstall = OpenAfterSwitch.IsToggled;
 		MobileSettings.KeepWgtFile = KeepWgtSwitch.IsToggled;
 		MobileSettings.ShowAllJellyfinVersions = ShowAllJfSwitch.IsToggled;
+	}
+
+	private void OnAddChannel(object? sender, EventArgs e) => AddChannelRow(string.Empty, string.Empty);
+
+	private void AddChannelRow(string name, string url)
+	{
+		var nameEntry = new Entry { Text = name, Placeholder = "Name", BackgroundColor = Colors.Transparent };
+		var urlEntry = new Entry { Text = url, Placeholder = "https://…/stream.m3u8", BackgroundColor = Colors.Transparent };
+		var removeBtn = new Button
+		{
+			Text = "✕",
+			FontSize = 14,
+			Padding = 0,
+			WidthRequest = 40,
+			HeightRequest = 40,
+			CornerRadius = 6,
+			BackgroundColor = Colors.Transparent,
+			BorderWidth = 1,
+			BorderColor = Color.FromArgb("#CDD3D8"),
+			TextColor = Color.FromArgb("#B00020"),
+		};
+
+		var grid = new Grid
+		{
+			ColumnSpacing = 8,
+			ColumnDefinitions =
+			{
+				new ColumnDefinition(GridLength.Star),
+				new ColumnDefinition(GridLength.Star),
+				new ColumnDefinition(new GridLength(40)),
+			},
+		};
+		Grid.SetColumn(nameEntry, 0);
+		Grid.SetColumn(urlEntry, 1);
+		Grid.SetColumn(removeBtn, 2);
+		grid.Children.Add(nameEntry);
+		grid.Children.Add(urlEntry);
+		grid.Children.Add(removeBtn);
+
+		var row = new ChannelRow(grid, nameEntry, urlEntry);
+		nameEntry.Unfocused += (_, _) => SaveChannels();
+		urlEntry.Unfocused += (_, _) => SaveChannels();
+		removeBtn.Clicked += (_, _) =>
+		{
+			ChannelsContainer.Children.Remove(grid);
+			_channelRows.Remove(row);
+			SaveChannels();
+		};
+
+		_channelRows.Add(row);
+		ChannelsContainer.Children.Add(grid);
+	}
+
+	private void SaveChannels()
+	{
+		if (!_loaded)
+			return;
+
+		// Persist as the {name,url} JSON shape the Core injector expects; skip blank rows.
+		var channels = _channelRows
+			.Select(r => new { name = r.Name.Text ?? string.Empty, url = r.Url.Text ?? string.Empty })
+			.Where(c => !string.IsNullOrWhiteSpace(c.name) || !string.IsNullOrWhiteSpace(c.url))
+			.ToList();
+
+		MobileSettings.TvAppChannelsJson = JsonSerializer.Serialize(channels);
 	}
 }

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Xml.Linq;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Packaging;
 using Microsoft.Maui.Storage;
 
 namespace Apps2Samsung.Mobile.Services;
@@ -80,6 +81,18 @@ public sealed class WgtInstaller
 			var profileXml = Path.Combine(cert.ProfileDir, "device-profile.xml");
 			var target = version < IntermediateVersion ? HomeDeveloperPath : sdkToolPath;
 			await _sdb.PermitInstallAsync(tvIp, profileXml, target);
+		}
+
+		// Apply per-app modifications before signing — e.g. inject the user's TVApp channels
+		// (m3u8 URLs) into a TVApp package's js/main.js. Shared logic lives in Core.
+		if (TvAppChannelInjector.AppliesTo(wgtPath))
+		{
+			var channels = MobileSettings.GetTvAppChannels();
+			if (channels.Count > 0)
+			{
+				progress?.Invoke("Applying TVApp channels…");
+				await TvAppChannelInjector.InjectChannelsAsync(wgtPath, channels);
+			}
 		}
 
 		progress?.Invoke("Re-signing package…");
