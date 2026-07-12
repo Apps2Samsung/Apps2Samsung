@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
 using Apps2Samsung.Mobile.Catalog;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Update;

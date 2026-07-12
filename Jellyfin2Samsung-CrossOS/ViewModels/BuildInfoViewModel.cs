@@ -2,6 +2,7 @@
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Apps2Samsung.Catalog;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
@@ -77,6 +78,8 @@ namespace Apps2Samsung.ViewModels
         // GitHub's API requires a User-Agent (and benefits from the auth token);
         // the DI client has both. Fall back to the bare client if unavailable.
         private readonly HttpClient _apiHttp = App.Services.GetService<HttpClient>() ?? _http;
+        // Shared parsing / release-tag helper (Apps2Samsung.Core) — single source with the mobile head.
+        private readonly BuildInfoService _buildInfo = new(App.Services.GetService<HttpClient>() ?? _http);
         private readonly Dictionary<string, Bitmap?> _bitmapCache = new(StringComparer.OrdinalIgnoreCase);
         private ProviderManifest _manifest = new();
 
@@ -174,7 +177,8 @@ namespace Apps2Samsung.ViewModels
                     .FirstOrDefault(p => p.Url?.Contains("jellyfin-tizen-builds", StringComparison.OrdinalIgnoreCase) == true)
                     ?.Url ?? string.Empty;
 
-                ParseVersionsTable(jellyfinMd, JellyfinVersions);
+                foreach (var item in BuildInfoService.ParseVersionsTable(jellyfinMd))
+                    JellyfinVersions.Add(new BuildVersion { FileName = item.Name, Description = item.Description });
                 foreach (var v in JellyfinVersions)
                     v.RepoUrl = coreUrl;
 
@@ -191,7 +195,8 @@ namespace Apps2Samsung.ViewModels
                     });
                 }
 
-                ParseApplicationsTable(communityMd, CommunityApps);
+                foreach (var item in BuildInfoService.ParseApplicationsTable(communityMd))
+                    CommunityApps.Add(new BuildVersion { FileName = item.Name, Description = item.Description, Version = item.Version });
 
                 // Sort both tables A-Z / 0-9, matching the release list ordering.
                 SortByName(JellyfinVersions);
@@ -318,38 +323,13 @@ namespace Apps2Samsung.ViewModels
 
             foreach (var url in urls)
             {
-                var tag = await GetLatestReleaseTagAsync(url);
+                var tag = await _buildInfo.GetLatestReleaseTagAsync(url);
                 if (string.IsNullOrWhiteSpace(tag))
                     continue;
 
                 foreach (var v in JellyfinVersions)
                     if (string.Equals(v.RepoUrl, url, StringComparison.OrdinalIgnoreCase))
                         v.Version = tag;
-            }
-        }
-
-        private async Task<string> GetLatestReleaseTagAsync(string url)
-        {
-            try
-            {
-                var json = (await _apiHttp.GetStringAsync(url)).TrimStart();
-
-                // A releases endpoint returns an array; a pinned .../releases/tags/<tag>
-                // endpoint returns a single object.
-                if (json.StartsWith("["))
-                {
-                    var list = JsonSerializer.Deserialize<List<GitHubRelease>>(json, JsonSerializerOptionsProvider.Default);
-                    var first = list?.FirstOrDefault();
-                    return first?.TagName ?? first?.Name ?? string.Empty;
-                }
-
-                var single = JsonSerializer.Deserialize<GitHubRelease>(json, JsonSerializerOptionsProvider.Default);
-                return single?.TagName ?? single?.Name ?? string.Empty;
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"Failed to fetch release tag from {url}: {ex.Message}");
-                return string.Empty;
             }
         }
 
@@ -373,115 +353,6 @@ namespace Apps2Samsung.ViewModels
                 return null;
             }
         }
-
-        // -------- your existing parsing methods (unchanged) --------
-
-        private static string CleanText(string input)
-        {
-            var text = RegexPatterns.BuildInfo.MarkdownBold.Replace(input, "$1");
-            text = RegexPatterns.BuildInfo.EmojiRange.Replace(text, "");
-            return text.Trim();
-        }
-
-        private void ParseVersionsTable(string md, ObservableCollection<BuildVersion> target)
-        {
-            var match = RegexPatterns.BuildInfo.VersionsTable.Match(md);
-            if (!match.Success) return;
-
-            var table = match.Groups["table"].Value;
-            var rows = RegexPatterns.BuildInfo.TableRow2Columns.Matches(table);
-
-            bool headerSkipped = false;
-
-            foreach (System.Text.RegularExpressions.Match row in rows)
-            {
-                var col1 = row.Groups[1].Value.Trim();
-                var col2 = row.Groups[2].Value.Trim();
-
-                if (!headerSkipped && col1.Equals("File name", StringComparison.OrdinalIgnoreCase))
-                {
-                    headerSkipped = true;
-                    continue;
-                }
-
-                if (col1.StartsWith("-"))
-                    continue;
-
-                target.Add(new BuildVersion
-                {
-                    FileName = CleanText(col1),
-                    Description = CleanText(col2)
-                });
-            }
-        }
-
-        // Header-driven so the README's column order/count can change (e.g. adding a
-        // Version column) without breaking parsing. Columns are located by header text.
-        private void ParseApplicationsTable(string md, ObservableCollection<BuildVersion> target)
-        {
-            var lines = md.Replace("\r\n", "\n").Split('\n');
-
-            int headerIdx = -1;
-            for (int i = 0; i < lines.Length; i++)
-            {
-                var l = lines[i].TrimStart();
-                if (l.StartsWith("|")
-                    && l.Contains("Application", StringComparison.OrdinalIgnoreCase)
-                    && l.Contains("Description", StringComparison.OrdinalIgnoreCase))
-                {
-                    headerIdx = i;
-                    break;
-                }
-            }
-            if (headerIdx < 0) return;
-
-            var headers = SplitTableRow(lines[headerIdx]);
-            int nameCol = FindColumn(headers, "Application");
-            int descCol = FindColumn(headers, "Description");
-            int verCol = FindColumn(headers, "Version");
-            if (nameCol < 0 || descCol < 0) return;
-
-            for (int i = headerIdx + 1; i < lines.Length; i++)
-            {
-                if (!lines[i].TrimStart().StartsWith("|"))
-                    break; // table ended
-
-                var cells = SplitTableRow(lines[i]);
-                if (cells.Count == 0) continue;
-
-                // Skip the |---|---| separator row.
-                if (cells.All(c => c.Trim().Trim('-', ':', ' ').Length == 0)) continue;
-
-                var name = nameCol < cells.Count ? CleanText(cells[nameCol]) : string.Empty;
-                if (string.IsNullOrWhiteSpace(name)) continue;
-
-                target.Add(new BuildVersion
-                {
-                    FileName = name,
-                    Description = descCol < cells.Count ? CleanText(cells[descCol]) : string.Empty,
-                    Version = verCol >= 0 && verCol < cells.Count ? CleanVersion(cells[verCol]) : string.Empty
-                });
-            }
-        }
-
-        private static List<string> SplitTableRow(string row)
-        {
-            row = row.Trim();
-            if (row.StartsWith("|")) row = row[1..];
-            if (row.EndsWith("|")) row = row[..^1];
-            return row.Split('|').ToList();
-        }
-
-        private static int FindColumn(List<string> headers, string name)
-        {
-            for (int i = 0; i < headers.Count; i++)
-                if (headers[i].Contains(name, StringComparison.OrdinalIgnoreCase))
-                    return i;
-            return -1;
-        }
-
-        // README version cells are wrapped in `backticks`; strip those (plus bold/emoji).
-        private static string CleanVersion(string cell) => CleanText(cell).Trim('`', ' ');
 
         [RelayCommand]
         private void Close()

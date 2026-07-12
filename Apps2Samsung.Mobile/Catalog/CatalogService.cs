@@ -1,15 +1,18 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Models;
 using Apps2Samsung.Mobile.Services;
 using Microsoft.Maui.Storage;
 
 namespace Apps2Samsung.Mobile.Catalog;
 
 /// <summary>
-/// Builds the App/Version catalog exactly like the desktop: loads the provider manifest
-/// (remote → local cache → bundled fallback), then fetches each provider's GitHub releases and
-/// flattens them into a sorted list of selectable releases. The GitHub PAT (if set in settings)
-/// and a User-Agent are attached per-request for GitHub hosts to dodge API rate limits.
+/// Builds the App/Version catalog, mirroring the desktop. Loads the provider manifest
+/// (remote → local cache → bundled fallback), then fetches each provider's GitHub releases via the
+/// shared Core <see cref="AddLatestRelease"/> (which carries a User-Agent + the settings PAT to
+/// dodge rate limits) and flattens them into a sorted list of selectable releases. Models and the
+/// fetcher live in Apps2Samsung.Core — this class is just the mobile-side loader/orchestration.
 /// </summary>
 public sealed class CatalogService
 {
@@ -18,15 +21,15 @@ public sealed class CatalogService
 	private const string BundledAsset = "third-party-apps.json";
 	private const string CacheFileName = "third-party-apps.cache.json";
 
-	private static readonly JsonSerializerOptions Json = new()
-	{
-		PropertyNameCaseInsensitive = true,
-		PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-	};
-
 	private readonly HttpClient _http;
+	private readonly AddLatestRelease _releases;
 
-	public CatalogService(HttpClient http) => _http = http;
+	public CatalogService(HttpClient http)
+	{
+		_http = http;
+		// Mobile has no auth handler on its HttpClient, so supply the PAT here.
+		_releases = new AddLatestRelease(http, () => MobileSettings.GitHubToken);
+	}
 
 	/// <summary>The catalog plus how many providers failed to load (e.g. GitHub rate limit).</summary>
 	public sealed record CatalogResult(IReadOnlyList<GitHubRelease> Releases, int Failed, int Total);
@@ -44,7 +47,8 @@ public sealed class CatalogService
 			if (take > 1 && !MobileSettings.ShowAllJellyfinVersions)
 				take = 1; // collapse Jellyfin history to latest unless opted in
 
-			var (releases, ok) = await GetReleasesAsync(provider.Url, provider.Prefix, provider.DisplayName, take);
+			var (releases, ok) = await _releases.GetReleasesWithStatusAsync(
+				provider.Url, provider.Prefix, provider.DisplayName, take);
 
 			var entries = new List<GitHubRelease>();
 			if (provider.ExpandAssets)
@@ -88,7 +92,7 @@ public sealed class CatalogService
 			using var resp = await _http.SendAsync(req);
 			resp.EnsureSuccessStatusCode();
 			var json = await resp.Content.ReadAsStringAsync();
-			var manifest = JsonSerializer.Deserialize<ProviderManifest>(json, Json);
+			var manifest = JsonSerializer.Deserialize<ProviderManifest>(json, JsonSerializerOptionsProvider.Default);
 			if (manifest is { Providers.Count: > 0 })
 			{
 				try { File.WriteAllText(cachePath, json); } catch { /* cache is best-effort */ }
@@ -102,7 +106,8 @@ public sealed class CatalogService
 		{
 			if (File.Exists(cachePath))
 			{
-				var manifest = JsonSerializer.Deserialize<ProviderManifest>(File.ReadAllText(cachePath), Json);
+				var manifest = JsonSerializer.Deserialize<ProviderManifest>(
+					File.ReadAllText(cachePath), JsonSerializerOptionsProvider.Default);
 				if (manifest is { Providers.Count: > 0 })
 					return manifest;
 			}
@@ -114,7 +119,8 @@ public sealed class CatalogService
 		{
 			using var src = await FileSystem.OpenAppPackageFileAsync(BundledAsset);
 			using var reader = new StreamReader(src);
-			var manifest = JsonSerializer.Deserialize<ProviderManifest>(await reader.ReadToEndAsync(), Json);
+			var manifest = JsonSerializer.Deserialize<ProviderManifest>(
+				await reader.ReadToEndAsync(), JsonSerializerOptionsProvider.Default);
 			if (manifest is not null)
 				return manifest;
 		}
@@ -123,70 +129,16 @@ public sealed class CatalogService
 		return new ProviderManifest();
 	}
 
-	// Ported from the desktop AddLatestRelease: handles both the /releases (list) and
-	// /releases/tags/<tag> (single) response shapes, keeps only .wgt/.tpk assets, truncates to
-	// `take`, and applies the display name/prefix. Returns Ok=false when the HTTP call itself
-	// failed (network / GitHub rate limit) so the caller can distinguish that from "no assets".
-	private async Task<(List<GitHubRelease> Releases, bool Ok)> GetReleasesAsync(string url, string prefix, string displayName, int take)
-	{
-		if (take < 1) take = 1;
-
-		try
-		{
-			using var req = NewGet(url);
-			using var resp = await _http.SendAsync(req);
-			resp.EnsureSuccessStatusCode();
-			var json = await resp.Content.ReadAsStringAsync();
-
-			List<GitHubRelease> releases;
-			try
-			{
-				releases = JsonSerializer.Deserialize<List<GitHubRelease>>(json, Json) ?? new();
-			}
-			catch (JsonException)
-			{
-				var single = JsonSerializer.Deserialize<GitHubRelease>(json, Json);
-				releases = single is null ? new() : new() { single };
-			}
-
-			foreach (var r in releases)
-				r.Assets = r.Assets
-					.Where(a => !string.IsNullOrWhiteSpace(a.FileName)
-						&& (a.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase)
-							|| a.FileName.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase)))
-					.ToList();
-
-			releases = releases.Where(r => r.Assets.Count > 0).ToList();
-			if (releases.Count == 0)
-				return (new(), true); // reached GitHub fine, just nothing installable
-
-			var result = releases.Count > take ? releases.GetRange(0, take) : releases;
-			foreach (var r in result)
-				r.Name = string.IsNullOrWhiteSpace(displayName) ? $"{prefix}{r.Name}" : displayName;
-
-			return (result, true);
-		}
-		catch (Exception ex)
-		{
-			System.Diagnostics.Trace.WriteLine($"Failed to fetch releases from {url}: {ex}");
-			return (new(), false);
-		}
-	}
-
-	// A GET request carrying a User-Agent (GitHub rejects UA-less requests) and, for GitHub hosts
-	// only, the PAT — never leaking the token to non-GitHub hosts on the shared HttpClient.
+	// A GET carrying a User-Agent and, for GitHub hosts, the PAT.
 	private static HttpRequestMessage NewGet(string url)
 	{
 		var req = new HttpRequestMessage(HttpMethod.Get, url);
-		req.Headers.UserAgent.ParseAdd("Apps2Samsung-Mobile");
+		req.Headers.UserAgent.ParseAdd("Apps2Samsung");
 
 		var token = MobileSettings.GitHubToken;
-		if (!string.IsNullOrWhiteSpace(token) && IsGitHubHost(new Uri(url).Host))
+		if (!string.IsNullOrWhiteSpace(token) && new Uri(url).Host.Contains("github", StringComparison.OrdinalIgnoreCase))
 			req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
 		return req;
 	}
-
-	private static bool IsGitHubHost(string host) =>
-		host.Contains("github", StringComparison.OrdinalIgnoreCase);
 }
