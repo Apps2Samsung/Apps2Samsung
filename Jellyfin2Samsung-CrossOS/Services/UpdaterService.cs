@@ -2,6 +2,7 @@ using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Update;
 using System;
 using System.Diagnostics;
 using System.Formats.Tar;
@@ -24,10 +25,9 @@ namespace Apps2Samsung.Services
     public class UpdaterService : IUpdaterService
     {
         private readonly HttpClient _httpClient;
+        private readonly GitHubUpdateChecker _checker;
         private const string RepoOwner = "Apps2Samsung";
         private const string RepoName = "Apps2Samsung";
-        private const string AtomFeedUrl = $"https://github.com/{RepoOwner}/{RepoName}/releases.atom";
-        private const string ReleasesApiUrl = $"https://api.github.com/repos/{RepoOwner}/{RepoName}/releases/latest";
 
         public string ReleasesPageUrl => $"https://github.com/{RepoOwner}/{RepoName}/releases";
         public string CurrentVersion => AppSettings.Default.AppVersion;
@@ -35,171 +35,29 @@ namespace Apps2Samsung.Services
         public UpdaterService(HttpClient httpClient)
         {
             _httpClient = httpClient;
+            _checker = new GitHubUpdateChecker(httpClient, RepoOwner, RepoName);
         }
 
         /// <inheritdoc />
         public async Task<UpdateCheckResult> CheckForUpdateAsync(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                // First try Atom feed (no rate limit)
-                var atomResult = await CheckViaAtomFeedAsync(cancellationToken);
-                if (atomResult.IsSuccess && atomResult.IsUpdateAvailable)
-                {
-                    atomResult.SupportsAutomaticUpdate = IsAutomaticUpdateSupported();
+            // The portable check (Atom feed + version compare + asset resolution) lives in Core;
+            // the desktop supplies its platform-specific asset matcher and automatic-update capability.
+            var platformSuffix = GetPlatformSuffix();
+            var result = await _checker.CheckForUpdateAsync(
+                CurrentVersion,
+                includePrereleases: false,
+                assetMatcher: name => name.Contains(platformSuffix, StringComparison.OrdinalIgnoreCase) &&
+                    (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
+                     name.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase)),
+                assetFallbackMatcher: name => name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
+                    name.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase),
+                cancellationToken: cancellationToken);
 
-                    // Get download URL from API (only if update available)
-                    await EnrichWithDownloadUrlAsync(atomResult, cancellationToken);
-                }
-                return atomResult;
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"Update check failed: {ex}");
-                return UpdateCheckResult.Failed($"Failed to check for updates: {ex.Message}", CurrentVersion);
-            }
-        }
+            if (result.IsSuccess && result.IsUpdateAvailable)
+                result.SupportsAutomaticUpdate = IsAutomaticUpdateSupported();
 
-        private async Task<UpdateCheckResult> CheckViaAtomFeedAsync(CancellationToken cancellationToken)
-        {
-            try
-            {
-                using var request = new HttpRequestMessage(HttpMethod.Get, AtomFeedUrl);
-                request.Headers.Accept.ParseAdd("application/atom+xml");
-
-                using var response = await _httpClient.SendAsync(request, cancellationToken);
-                response.EnsureSuccessStatusCode();
-
-                var atomXml = await response.Content.ReadAsStringAsync(cancellationToken);
-                var latestEntry = ParseAtomFeed(atomXml);
-
-                if (latestEntry == null)
-                {
-                    return UpdateCheckResult.NoUpdateAvailable(CurrentVersion);
-                }
-
-                var latestVersion = latestEntry.TagName;
-                var isUpdateAvailable = IsVersionGreater(latestVersion, CurrentVersion);
-
-                return new UpdateCheckResult
-                {
-                    IsUpdateAvailable = isUpdateAvailable,
-                    CurrentVersion = CurrentVersion,
-                    LatestVersion = latestVersion,
-                    ReleaseTitle = latestEntry.Title,
-                    ReleaseNotes = HtmlUtils.StripHtml(HtmlUtils.RemoveMarkdownTable(latestEntry.Content)),
-                    ReleasesPageUrl = latestEntry.Link,
-                    PublishedAt = latestEntry.Updated
-                };
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"Atom feed check failed: {ex}");
-                return UpdateCheckResult.Failed($"Failed to parse release feed: {ex.Message}", CurrentVersion);
-            }
-        }
-
-        private GitHubAtomEntry? ParseAtomFeed(string atomXml)
-        {
-            try
-            {
-                var doc = XDocument.Parse(atomXml);
-                XNamespace atom = "http://www.w3.org/2005/Atom";
-
-                // Get all entries and filter out beta/pre-releases
-                var entry = doc.Descendants(atom + "entry").FirstOrDefault(e =>
-                {
-                    var title = e.Element(atom + "title")?.Value ?? string.Empty;
-
-                    // Filter out entries with beta
-                    return !title.Contains("beta", StringComparison.OrdinalIgnoreCase);
-                });
-
-                if (entry == null)
-                    return null;
-
-                return new GitHubAtomEntry
-                {
-                    Id = entry.Element(atom + "id")?.Value ?? string.Empty,
-                    Title = entry.Element(atom + "title")?.Value ?? string.Empty,
-                    Updated = DateTime.TryParse(entry.Element(atom + "updated")?.Value, out var updated) ? updated : null,
-                    Link = entry.Element(atom + "link")?.Attribute("href")?.Value ?? string.Empty,
-                    Content = entry.Element(atom + "content")?.Value ?? string.Empty,
-                    AuthorName = entry.Element(atom + "author")?.Element(atom + "name")?.Value ?? string.Empty
-                };
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"Failed to parse Atom feed: {ex}");
-                return null;
-            }
-        }
-
-        private async Task EnrichWithDownloadUrlAsync(UpdateCheckResult result, CancellationToken cancellationToken)
-        {
-            try
-            {
-                using var request = new HttpRequestMessage(HttpMethod.Get, ReleasesApiUrl);
-                using var response = await _httpClient.SendAsync(request, cancellationToken);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    // API rate limited or error - user can still use manual download
-                    Trace.WriteLine($"GitHub API returned {response.StatusCode}, download URL unavailable");
-                    return;
-                }
-
-                var json = await response.Content.ReadAsStringAsync(cancellationToken);
-                using var doc = JsonDocument.Parse(json);
-                var root = doc.RootElement;
-
-                if (!root.TryGetProperty("assets", out var assets))
-                    return;
-
-                var platformSuffix = GetPlatformSuffix();
-                foreach (var asset in assets.EnumerateArray())
-                {
-                    if (!asset.TryGetProperty("name", out var nameElement))
-                        continue;
-
-                    var name = nameElement.GetString() ?? string.Empty;
-
-                    // Match platform-specific archive
-                    if (name.Contains(platformSuffix, StringComparison.OrdinalIgnoreCase) &&
-                        (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
-                         name.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase)))
-                    {
-                        if (asset.TryGetProperty("browser_download_url", out var urlElement))
-                        {
-                            result.DownloadUrl = urlElement.GetString();
-                            return;
-                        }
-                    }
-                }
-
-                // Fallback: try to find any supported archive (zip or tar.gz)
-                foreach (var asset in assets.EnumerateArray())
-                {
-                    if (!asset.TryGetProperty("name", out var nameElement))
-                        continue;
-
-                    var name = nameElement.GetString() ?? string.Empty;
-                    if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
-                        name.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (asset.TryGetProperty("browser_download_url", out var urlElement))
-                        {
-                            result.DownloadUrl = urlElement.GetString();
-                            return;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"Failed to get download URL: {ex}");
-                // Not critical - user can still download manually
-            }
+            return result;
         }
 
         private static string GetPlatformSuffix()
@@ -552,36 +410,5 @@ rm -- ""$0""
             }
         }
 
-        private static bool IsVersionGreater(string latestVersion, string currentVersion)
-        {
-            // Clean version strings
-            var latestClean = CleanVersionString(latestVersion);
-            var currentClean = CleanVersionString(currentVersion);
-
-            if (Version.TryParse(latestClean, out var latest) &&
-                Version.TryParse(currentClean, out var current))
-            {
-                return latest > current;
-            }
-
-            // Fallback to string comparison
-            return string.Compare(latestClean, currentClean, StringComparison.OrdinalIgnoreCase) > 0;
-        }
-
-        private static string CleanVersionString(string version)
-        {
-            if (string.IsNullOrEmpty(version))
-                return "0.0.0";
-
-            // Remove 'v' prefix
-            var cleaned = version.TrimStart('v', 'V');
-
-            // Remove suffixes like -beta, -alpha, -rc
-            var dashIndex = cleaned.IndexOf('-');
-            if (dashIndex > 0)
-                cleaned = cleaned.Substring(0, dashIndex);
-
-            return cleaned;
-        }
     }
 }
