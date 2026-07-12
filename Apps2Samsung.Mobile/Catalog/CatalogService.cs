@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
+using Apps2Samsung.Catalog;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Models;
 using Apps2Samsung.Mobile.Services;
@@ -23,12 +24,21 @@ public sealed class CatalogService
 
 	private readonly HttpClient _http;
 	private readonly AddLatestRelease _releases;
+	private readonly BuildInfoService _buildInfo;
 
 	public CatalogService(HttpClient http)
 	{
 		_http = http;
 		// Mobile has no auth handler on its HttpClient, so supply the PAT here.
 		_releases = new AddLatestRelease(http, () => MobileSettings.GitHubToken);
+		_buildInfo = new BuildInfoService(http, () => MobileSettings.GitHubToken);
+	}
+
+	/// <summary>Loads the "app preview + versions" catalog for the info view (the "?" button).</summary>
+	public async Task<BuildInfoResult> LoadBuildInfoAsync()
+	{
+		var manifest = await GetManifestAsync();
+		return await _buildInfo.LoadAsync(manifest);
 	}
 
 	/// <summary>The catalog plus how many providers failed to load (e.g. GitHub rate limit).</summary>
