@@ -359,7 +359,11 @@ jobs:
 # ======================================================
   android-apk:
     runs-on: ubuntu-latest
-    needs: beta-release
+    # Serialize the release-asset uploads: run after macos-app so the two jobs don't
+    # delete+overwrite the same release concurrently (which triggered GitHub 5xx "Server
+    # Error"s). Still runs even if macos-app fails, as long as the release itself was created.
+    needs: [beta-release, macos-app]
+    if: ${{ always() && needs.beta-release.result == 'success' }}
 
     steps:
       - uses: actions/checkout@v4
