@@ -1,5 +1,4 @@
 using Apps2Samsung.Models;
-using System.Threading.Tasks;
 
 namespace Apps2Samsung.Interfaces
 {

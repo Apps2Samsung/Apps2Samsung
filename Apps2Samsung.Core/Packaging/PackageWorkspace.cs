@@ -1,9 +1,12 @@
-﻿using System;
-using System.IO;
 using System.IO.Compression;
 
 namespace Apps2Samsung.Helpers.Core
 {
+    /// <summary>
+    /// Extract-edit-repack helper for a <c>.wgt</c> package (a zip). Extracts to a temp dir next
+    /// to the package, lets callers edit files under <see cref="Root"/>, then repacks in place.
+    /// Portable (System.IO.Compression only) — shared by the desktop and mobile heads.
+    /// </summary>
     public sealed class PackageWorkspace : IDisposable
     {
         public string Root { get; }
