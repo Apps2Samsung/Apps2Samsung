@@ -10,6 +10,9 @@ namespace Apps2Samsung.Mobile.Pages;
 
 public partial class InstallerPage : ContentPage
 {
+	// Synthetic App-picker entry for installing a local .wgt (mirrors the desktop's option).
+	private const string CustomWgtLabel = "📁 Custom WGT file…";
+
 	private readonly INetworkService _networkService;
 	private readonly ISamsungLoginService _loginService;
 	private readonly CertificateProvisioner _certProvisioner;
@@ -22,8 +25,13 @@ public partial class InstallerPage : ContentPage
 	// The catalog releases backing AppPicker; the selected release's assets back VersionPicker.
 	private IReadOnlyList<GitHubRelease> _releases = new List<GitHubRelease>();
 	private List<Asset> _versions = new();
+	// A cache copy of a user-picked .wgt (custom install); null until picked.
+	private string? _customWgtPath;
 
 	private bool _initialized;
+	private bool _uiReady;
+
+	private bool CustomSelected => (AppPicker.SelectedItem as string) == CustomWgtLabel;
 
 	public InstallerPage(INetworkService networkService, ISamsungLoginService loginService,
 		CertificateProvisioner certProvisioner, WgtInstaller installer, CatalogService catalog,
@@ -56,10 +64,11 @@ public partial class InstallerPage : ContentPage
 		await ScanAsync();
 
 		// A catalog problem is more actionable than the scan result, so let it have the last word.
+		// (The "Custom WGT file" entry is always available, so an empty catalog isn't a dead end.)
 		if (catalog is null)
-			SetStatus("Couldn't load the app list. Check your connection and reopen.");
+			SetStatus("Couldn't load the app list — you can still install a custom .wgt.");
 		else if (catalog.Releases.Count == 0)
-			SetStatus("No apps loaded — you're offline or GitHub rate-limited. Add a GitHub token in Settings.");
+			SetStatus("No apps loaded (offline or GitHub rate-limited). Add a token in Settings, or install a custom .wgt.");
 		else if (catalog.Failed > 0)
 			SetStatus($"Ready — but {catalog.Failed} of {catalog.Total} app sources failed (likely GitHub rate limit). Add a GitHub token in Settings.");
 	}
@@ -67,24 +76,41 @@ public partial class InstallerPage : ContentPage
 	private async Task<CatalogService.CatalogResult?> LoadCatalogAsync()
 	{
 		SetStatus("Loading apps…");
+		CatalogService.CatalogResult? result = null;
 		try
 		{
-			var result = await _catalog.LoadReleasesAsync();
+			result = await _catalog.LoadReleasesAsync();
 			_releases = result.Releases;
-			AppPicker.ItemsSource = _releases.Select(r => r.Name).ToList();
-			if (_releases.Count > 0)
-				AppPicker.SelectedIndex = 0; // triggers OnAppChanged → populates versions
-			return result;
 		}
 		catch (Exception ex)
 		{
 			SetStatus($"Couldn't load the app list: {ex.Message}");
-			return null;
+			_releases = new List<GitHubRelease>();
 		}
+
+		// Real apps first, then the always-present "Custom WGT file" entry.
+		var items = _releases.Select(r => r.Name).ToList();
+		items.Add(CustomWgtLabel);
+		AppPicker.ItemsSource = items;
+		AppPicker.SelectedIndex = _releases.Count > 0 ? 0 : items.Count - 1;
+
+		_uiReady = true;
+		return result;
 	}
 
-	private void OnAppChanged(object? sender, EventArgs e)
+	private async void OnAppChanged(object? sender, EventArgs e)
 	{
+		if (CustomSelected)
+		{
+			_versions = new();
+			VersionPicker.ItemsSource = null;
+			_customWgtPath = null;
+			// Prompt for a file when the user picks this (not during the initial default selection).
+			if (_uiReady)
+				await PickCustomWgtAsync();
+			return;
+		}
+
 		var i = AppPicker.SelectedIndex;
 		if (i < 0 || i >= _releases.Count)
 		{
@@ -99,6 +125,42 @@ public partial class InstallerPage : ContentPage
 		{
 			var def = _versions.FindIndex(a => a.IsDefault);
 			VersionPicker.SelectedIndex = def >= 0 ? def : 0;
+		}
+	}
+
+	// Lets the user pick a local .wgt; copies it into the cache so re-signing/cleanup never touches
+	// their original file. Returns true if a valid file was selected.
+	private async Task<bool> PickCustomWgtAsync()
+	{
+		try
+		{
+			var result = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "Select a .wgt package" });
+			if (result is null)
+			{
+				SetStatus("No file selected.");
+				return false;
+			}
+			if (!result.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase))
+			{
+				SetStatus("Please choose a .wgt file.");
+				return false;
+			}
+
+			var dest = Path.Combine(FileSystem.CacheDirectory, result.FileName);
+			using (var src = await result.OpenReadAsync())
+			using (var dst = File.Create(dest))
+				await src.CopyToAsync(dst);
+
+			_customWgtPath = dest;
+			VersionPicker.ItemsSource = new List<string> { result.FileName };
+			VersionPicker.SelectedIndex = 0;
+			SetStatus($"Custom package ready: {result.FileName}");
+			return true;
+		}
+		catch (Exception ex)
+		{
+			SetStatus($"Couldn't read the file: {ex.Message}");
+			return false;
 		}
 	}
 
@@ -157,15 +219,25 @@ public partial class InstallerPage : ContentPage
 			SetStatus("Select a TV first (tap refresh to scan).");
 			return;
 		}
-		if (VersionPicker.SelectedIndex < 0 || VersionPicker.SelectedIndex >= _versions.Count)
+
+		var custom = CustomSelected;
+		if (custom)
+		{
+			// If they chose the custom entry but haven't picked a file yet, prompt now.
+			if (_customWgtPath is null && !await PickCustomWgtAsync())
+				return;
+		}
+		else if (VersionPicker.SelectedIndex < 0 || VersionPicker.SelectedIndex >= _versions.Count)
 		{
 			SetStatus("Select an app and version first.");
 			return;
 		}
 
 		var tvIp = _tvIps[TvPicker.SelectedIndex];
-		var appName = AppPicker.SelectedItem as string ?? "app";
-		var asset = _versions[VersionPicker.SelectedIndex];
+		var asset = custom ? null : _versions[VersionPicker.SelectedIndex];
+		var appName = custom
+			? Path.GetFileNameWithoutExtension(_customWgtPath!)
+			: (AppPicker.SelectedItem as string ?? "app");
 
 		InstallBtn.IsEnabled = false;
 		RefreshBtn.IsEnabled = false;
@@ -179,7 +251,7 @@ public partial class InstallerPage : ContentPage
 			}
 
 			var cert = await _certProvisioner.ProvisionAsync(tvIp, _session.Auth!, SetStatus);
-			wgtPath = await _installer.DownloadAsync(asset.DownloadUrl, SetStatus);
+			wgtPath = custom ? _customWgtPath! : await _installer.DownloadAsync(asset!.DownloadUrl, SetStatus);
 			await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus);
 
 			SetStatus($"✓ Installed {appName}. Open the TV's Apps list to launch it.");
@@ -195,9 +267,14 @@ public partial class InstallerPage : ContentPage
 		}
 		finally
 		{
-			// Clean up the downloaded package unless the user opted to keep it.
+			// Clean up the staged package unless the user opted to keep it. For a custom install
+			// this is the cache copy, never the user's original file.
 			if (wgtPath is not null && !MobileSettings.KeepWgtFile)
+			{
 				try { File.Delete(wgtPath); } catch { /* best-effort */ }
+				if (custom)
+					_customWgtPath = null; // force a re-pick next time (the copy is gone)
+			}
 
 			InstallBtn.IsEnabled = true;
 			RefreshBtn.IsEnabled = true;
