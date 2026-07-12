@@ -94,6 +94,19 @@
 
                 <BoxView Style="{StaticResource Divider}" />
 
+                <!-- TVApp channels (m3u8) -->
+                <Label Text="TVApp channels" FontAttributes="Bold" FontSize="14" />
+                <Label Style="{StaticResource Hint}"
+                       Text="Name + stream URL (m3u8) pairs, written into the TVApp package's channel list when you install it. Order is the play order." />
+                <VerticalStackLayout x:Name="ChannelsContainer" Spacing="8" />
+                <Button Text="➕ Add channel" HorizontalOptions="Start"
+                        BackgroundColor="Transparent" BorderWidth="1"
+                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                        Padding="14,8" Clicked="OnAddChannel" />
+
+                <BoxView Style="{StaticResource Divider}" />
+
                 <!-- Certificate note (mobile provisions automatically) -->
                 <Label Text="Certificate" FontAttributes="Bold" FontSize="14" />
                 <Label Style="{StaticResource Hint}"

@@ -1,3 +1,4 @@
+using Apps2Samsung.Packaging;
 using Microsoft.Maui.Storage;
 
 namespace Apps2Samsung.Mobile.Services;
@@ -15,6 +16,7 @@ public static class MobileSettings
 	private const string KeyKeepWgt = "keep_wgt_file";
 	private const string KeyShowAllJf = "show_all_jellyfin_versions";
 	private const string KeyManualDuids = "manual_duids";
+	private const string KeyTvAppChannels = "tvapp_channels_json";
 	private const string KeyGitHubToken = "github_token"; // SecureStorage
 
 	/// <summary>Uninstall the previous version before installing (desktop: "Remove old version").</summary>
@@ -77,6 +79,17 @@ public static class MobileSettings
 		}
 		catch { /* secure storage unavailable — keep the in-memory value for this run */ }
 	}
+
+	/// <summary>Persisted TVApp channels as a JSON array of {name,url} (empty when unset).</summary>
+	public static string TvAppChannelsJson
+	{
+		get => Preferences.Get(KeyTvAppChannels, string.Empty);
+		set => Preferences.Set(KeyTvAppChannels, value ?? string.Empty);
+	}
+
+	/// <summary>The configured TVApp channels, injected into a TVApp wgt at install time.</summary>
+	public static IReadOnlyList<TvChannel> GetTvAppChannels() =>
+		TvAppChannelInjector.ParseChannelsJson(TvAppChannelsJson);
 
 	/// <summary>Splits <see cref="ManualDuids"/> into individual DUIDs.</summary>
 	public static string[] ParseDuids() =>

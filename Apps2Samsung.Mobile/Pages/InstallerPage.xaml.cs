@@ -3,6 +3,7 @@ using System.Linq;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Mobile.Catalog;
 using Apps2Samsung.Mobile.Services;
+using Apps2Samsung.Update;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Storage;
 
@@ -18,6 +19,7 @@ public partial class InstallerPage : ContentPage
 	private readonly CertificateProvisioner _certProvisioner;
 	private readonly WgtInstaller _installer;
 	private readonly CatalogService _catalog;
+	private readonly GitHubUpdateChecker _updateChecker;
 	private readonly SessionState _session;
 
 	// Parallel to TvPicker items: the IP for each listed (debug-ready) TV.
@@ -35,7 +37,7 @@ public partial class InstallerPage : ContentPage
 
 	public InstallerPage(INetworkService networkService, ISamsungLoginService loginService,
 		CertificateProvisioner certProvisioner, WgtInstaller installer, CatalogService catalog,
-		SessionState session)
+		GitHubUpdateChecker updateChecker, SessionState session)
 	{
 		InitializeComponent();
 		_networkService = networkService;
@@ -43,6 +45,7 @@ public partial class InstallerPage : ContentPage
 		_certProvisioner = certProvisioner;
 		_installer = installer;
 		_catalog = catalog;
+		_updateChecker = updateChecker;
 		_session = session;
 
 		// Shows the app version (ApplicationDisplayVersion), so it stays in sync with the build.
@@ -71,6 +74,36 @@ public partial class InstallerPage : ContentPage
 			SetStatus("No apps loaded (offline or GitHub rate-limited). Add a token in Settings, or install a custom .wgt.");
 		else if (catalog.Failed > 0)
 			SetStatus($"Ready — but {catalog.Failed} of {catalog.Total} app sources failed (likely GitHub rate limit). Add a GitHub token in Settings.");
+
+		// Quietly check for a newer build (best-effort; never blocks the UI).
+		_ = CheckForUpdatesAsync();
+	}
+
+	private async Task CheckForUpdatesAsync()
+	{
+		try
+		{
+			var current = AppInfo.Current.VersionString;
+			var result = await _updateChecker.CheckForUpdateAsync(
+				current,
+				includePrereleases: true, // mobile ships as -beta releases
+				assetMatcher: name => name.EndsWith(".apk", StringComparison.OrdinalIgnoreCase));
+
+			if (!result.IsSuccess || !result.IsUpdateAvailable)
+				return;
+
+			var download = await DisplayAlert(
+				"Update available",
+				$"{result.LatestVersion} is available (you have v{current}). Download the new APK?",
+				"Download", "Later");
+
+			if (download)
+				await Launcher.Default.OpenAsync(result.DownloadUrl ?? result.ReleasesPageUrl);
+		}
+		catch
+		{
+			// Update check is best-effort — offline / rate-limited is fine.
+		}
 	}
 
 	private async Task<CatalogService.CatalogResult?> LoadCatalogAsync()
