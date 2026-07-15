@@ -13,7 +13,7 @@ let
 
     targetPkgs = p: with p; [
       # Build and Run
-      dotnet-sdk_8
+      dotnet-sdk_10
       patchelf
       file
       stdenv.cc.cc.lib
@@ -65,7 +65,7 @@ let
           -p:PublishSingleFile=false \
           -p:PublishTrimmed=false
 
-      Jellyfin2Samsung-CrossOS/bin/Release/net8.0/linux-x64/publish/Apps2Samsung
+      Jellyfin2Samsung-CrossOS/bin/Release/net10.0/linux-x64/publish/Apps2Samsung
     '';
   };
 
