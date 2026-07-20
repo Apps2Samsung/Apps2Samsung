@@ -93,7 +93,13 @@ namespace Apps2Samsung.Helpers.Tizen.Certificate
 
                     if (cert.NotAfter.Date >= DateTime.Today)
                     {
-                        var name = cert.GetNameInfo(X509NameType.SimpleName, forIssuer: false);
+                        // Display the profile FOLDER name (e.g. "Jelly2Sams - Partner") rather than the
+                        // author cert's CN — the CN is "Jelly2Sams" for every generated cert, so it
+                        // can't distinguish the Public vs Partner profiles. Fall back to the CN if the
+                        // folder name is somehow empty.
+                        var name = Path.GetFileName(directory);
+                        if (string.IsNullOrEmpty(name))
+                            name = cert.GetNameInfo(X509NameType.SimpleName, forIssuer: false);
 
                         // The same cert can appear in more than one scanned root (e.g. a copy
                         // migrated to the user dir while an old copy still sits in the bundle).
