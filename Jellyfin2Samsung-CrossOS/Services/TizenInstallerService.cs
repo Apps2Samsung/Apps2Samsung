@@ -481,8 +481,13 @@ namespace Apps2Samsung.Services
                 return null;
 
             string tvDuid = await GetTvDuidAsync(tvIpAddress);
-            if (string.IsNullOrEmpty(tvDuid))
+            // Reject a malformed DUID (e.g. an SDB transport-error string) so it never ends up baked
+            // into the certificate's device-id SAN.
+            if (!TizenDuid.IsValid(tvDuid))
+            {
+                Trace.WriteLine($"[Cert] Invalid TV DUID read from {tvIpAddress}: '{tvDuid}'");
                 return null;
+            }
 
             var (tizenOs, sdkToolPath) = await FetchCapabilitiesAsync(tvIpAddress);
 
@@ -548,7 +553,20 @@ namespace Apps2Samsung.Services
 
             string authorp12, distributorp12, p12Password;
 
-            var jelly2SamsDir = Path.Combine(AppSettings.CertificatePath, Constants.AppIdentifiers.Jelly2Sams);
+            // Public and Partner distributor certs are kept as separate profiles ("Jelly2Sams - Public"
+            // / "Jelly2Sams - Partner") so both can coexist and each is reused independently — switching
+            // level never clobbers the other. The requested level comes from the toggle (later also
+            // per-package via the manifest).
+            // Partner if the global toggle is on, OR the selected package's manifest declares it, OR
+            // the .wgt itself declares a partner-level privilege (e.g. vpnservice) in its config.xml.
+            // The last one is the automatic binding: a package that needs a restricted API must declare
+            // it, so we don't have to track cert levels per package anywhere.
+            var requestedLevel = (_appSettings.PartnerSigning
+                                  || _appSettings.RequiresPartnerSigning
+                                  || Apps2Samsung.Packaging.WgtPrivileges.RequiresPartner(packageUrl))
+                ? CertificatePrivilegeLevel.Partner
+                : CertificatePrivilegeLevel.Public;
+            var jelly2SamsDir = Path.Combine(AppSettings.CertificatePath, AutoCertProfileName(requestedLevel));
             bool hasAuthor = HasUsableAuthorCert(jelly2SamsDir);
 
             // Older Tizen TVs use the shipped "Jellyfin" certificate (set just above) — it's always
@@ -556,17 +574,18 @@ namespace Apps2Samsung.Services
             // and is just reused from disk (unless the user forces a fresh login).
             bool isBundledJellyfin = selectedCertificate == Constants.AppIdentifiers.JellyfinAppName;
 
-            // A full Samsung profile (fresh keypair + new author cert) is only needed on first run,
-            // when no real cert is selected, when the generated author cert is missing/expired, or
-            // when forced. The bundled "Jellyfin" cert never needs one.
+            // A full Samsung profile (fresh keypair + new author cert) is needed on first run for this
+            // level, when no real cert is selected, when the author cert is missing/expired, or when
+            // forced. Because the folder is level-specific, switching Public<->Partner naturally has no
+            // author yet and generates a fresh profile without touching the other level.
             bool needsFullProfile = string.IsNullOrEmpty(selectedCertificate) ||
                                     selectedCertificate == Constants.AppIdentifiers.Jelly2SamsDefault ||
                                     _appSettings.ForceSamsungLogin ||
                                     (!isBundledJellyfin && !hasAuthor);
 
-            // DUIDs the user manually pre-authorized + DUIDs already covered by the current
-            // distributor cert. One distributor cert can cover several TVs (multiple device-id
-            // SAN entries), so we only regenerate when a needed DUID isn't covered yet.
+            // DUIDs the user manually pre-authorized + DUIDs already covered by THIS level's distributor
+            // cert. One distributor cert can cover several TVs (multiple device-id SAN entries), so we
+            // only regenerate when a needed DUID isn't covered yet.
             var manualDuids = ParseDuids(_appSettings.ManualDuids);
             var coveredDuids = (hasAuthor && !isBundledJellyfin)
                 ? GetCoveredDuids(jelly2SamsDir)
@@ -623,7 +642,8 @@ namespace Apps2Samsung.Services
                         userEmail: auth.inputEmailID,
                         outputPath: jelly2SamsDir,
                         caPath: caPath,
-                        certProgress);
+                        level: requestedLevel,
+                        progress: certProgress);
                 }
                 else
                 {
@@ -635,17 +655,19 @@ namespace Apps2Samsung.Services
                         userId: auth.userId,
                         userEmail: auth.inputEmailID,
                         caPath: caPath,
-                        certProgress);
+                        level: requestedLevel,
+                        progress: certProgress);
                     authorp12 = Path.Combine(jelly2SamsDir, Constants.Certificate.AuthorFileName);
                     p12Password = (await File.ReadAllTextAsync(
                         Path.Combine(jelly2SamsDir, Constants.Certificate.PasswordFileName))).Trim();
                 }
 
-                PackageCertificate = Constants.AppIdentifiers.Jelly2Sams;
-                _appSettings.Certificate = PackageCertificate;
+                var profileName = AutoCertProfileName(requestedLevel);
+                PackageCertificate = profileName;
+                _appSettings.Certificate = profileName;
                 _appSettings.ChosenCertificates = new ExistingCertificates
                 {
-                    Name = Constants.AppIdentifiers.Jelly2Sams,
+                    Name = profileName,
                     Duid = deviceInfo.Duid,
                     File = authorp12
                 };
@@ -653,11 +675,17 @@ namespace Apps2Samsung.Services
             }
             else
             {
-                var certDir = Path.GetDirectoryName(_appSettings.ChosenCertificates!.File)!;
+                // Reuse in place. For the auto-generated cert, use THIS level's folder — the stored
+                // ChosenCertificates path may point at the other level from a previous install.
+                // Bundled/imported certs keep using their stored path.
+                bool reuseAutoCert = !isBundledJellyfin && IsAutoCertName(selectedCertificate);
+                var certDir = reuseAutoCert
+                    ? jelly2SamsDir
+                    : Path.GetDirectoryName(_appSettings.ChosenCertificates!.File)!;
                 authorp12 = Path.Combine(certDir, Constants.Certificate.AuthorFileName);
                 distributorp12 = Path.Combine(certDir, Constants.Certificate.DistributorFileName);
                 p12Password = File.ReadAllText(Path.Combine(certDir, Constants.Certificate.PasswordFileName)).Trim();
-                PackageCertificate = selectedCertificate;
+                PackageCertificate = reuseAutoCert ? AutoCertProfileName(requestedLevel) : selectedCertificate;
             }
 
             // Handle permit install for older Tizen versions
@@ -737,6 +765,17 @@ namespace Apps2Samsung.Services
             }
         }
 
+        // The auto-generated cert profile name for a privilege level, e.g. "Jelly2Sams - Partner".
+        // Public and Partner are stored as separate profiles so both can coexist and be reused.
+        private static string AutoCertProfileName(CertificatePrivilegeLevel level) =>
+            $"{Constants.AppIdentifiers.Jelly2Sams} - {(level == CertificatePrivilegeLevel.Partner ? "Partner" : "Public")}";
+
+        // True for any auto-generated Jelly2Sams profile ("Jelly2Sams", "Jelly2Sams (default)",
+        // "Jelly2Sams - Public/Partner") — as opposed to the bundled Jellyfin or a user-imported cert.
+        private static bool IsAutoCertName(string? name) =>
+            !string.IsNullOrEmpty(name) &&
+            name.StartsWith(Constants.AppIdentifiers.Jelly2Sams, StringComparison.OrdinalIgnoreCase);
+
         // The DUID set a (re)generated distributor cert should cover: this TV first, then manual
         // entries, then already-covered ones — capped at Samsung's per-cert limit (extras dropped).
         private static IReadOnlyCollection<string> BuildDistributorDuids(
@@ -745,7 +784,8 @@ namespace Apps2Samsung.Services
             var ordered = new List<string>();
             void Add(string d)
             {
-                if (!string.IsNullOrWhiteSpace(d) && !ordered.Contains(d, StringComparer.OrdinalIgnoreCase))
+                // Only ever embed well-formed DUIDs — never a stray error string or typo'd manual entry.
+                if (TizenDuid.IsValid(d) && !ordered.Contains(d.Trim(), StringComparer.OrdinalIgnoreCase))
                     ordered.Add(d.Trim());
             }
 

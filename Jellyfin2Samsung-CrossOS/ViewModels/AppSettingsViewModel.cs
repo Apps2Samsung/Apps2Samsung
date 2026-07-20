@@ -49,6 +49,9 @@ namespace Apps2Samsung.ViewModels
         private bool forceSamsungLogin;
 
         [ObservableProperty]
+        private bool partnerSigning;
+
+        [ObservableProperty]
         private bool showAllJellyfinVersions;
 
         [ObservableProperty]
@@ -175,6 +178,7 @@ namespace Apps2Samsung.ViewModels
 
             DeletePreviousInstall = AppSettings.Default.DeletePreviousInstall;
             ForceSamsungLogin = AppSettings.Default.ForceSamsungLogin;
+            PartnerSigning = AppSettings.Default.PartnerSigning;
             ShowAllJellyfinVersions = AppSettings.Default.ShowAllJellyfinVersions;
             RtlReading = AppSettings.Default.RTLReading;
             LocalIP = AppSettings.Default.LocalIp ?? string.Empty;
@@ -373,6 +377,12 @@ namespace Apps2Samsung.ViewModels
         partial void OnForceSamsungLoginChanged(bool value)
         {
             AppSettings.Default.ForceSamsungLogin = value;
+            AppSettings.Default.Save();
+        }
+
+        partial void OnPartnerSigningChanged(bool value)
+        {
+            AppSettings.Default.PartnerSigning = value;
             AppSettings.Default.Save();
         }
 

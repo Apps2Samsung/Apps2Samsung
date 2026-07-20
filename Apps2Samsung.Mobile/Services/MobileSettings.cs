@@ -17,6 +17,7 @@ public static class MobileSettings
 	private const string KeyShowAllJf = "show_all_jellyfin_versions";
 	private const string KeyManualDuids = "manual_duids";
 	private const string KeyTvAppChannels = "tvapp_channels_json";
+	private const string KeyPartnerSigning = "partner_signing";
 	private const string KeyGitHubToken = "github_token"; // SecureStorage
 
 	/// <summary>Uninstall the previous version before installing (desktop: "Remove old version").</summary>
@@ -45,6 +46,17 @@ public static class MobileSettings
 	{
 		get => Preferences.Get(KeyShowAllJf, false);
 		set => Preferences.Set(KeyShowAllJf, value);
+	}
+
+	/// <summary>
+	/// Opt-in Partner-level distributor signing (experimental). Default false = Public. Only apps
+	/// that use restricted privileges (e.g. vpnservice) need it; some TVs may reject partner-signed
+	/// installs, and Samsung may not issue Partner certs for individual accounts.
+	/// </summary>
+	public static bool PartnerSigning
+	{
+		get => Preferences.Get(KeyPartnerSigning, false);
+		set => Preferences.Set(KeyPartnerSigning, value);
 	}
 
 	/// <summary>Extra TV DUIDs to pre-authorize in the signing cert (one per line/comma-separated).</summary>

@@ -15,7 +15,7 @@ namespace Apps2Samsung.Mobile.Services;
 public sealed class CertificateProvisioner
 {
 	// Samsung CA certs shipped as MauiAssets under Resources/Raw/ca and required by the cert service.
-	private static readonly string[] CaFiles = { "vd_tizen_dev_author_ca.cer", "vd_tizen_dev_public2.crt" };
+	private static readonly string[] CaFiles = { "vd_tizen_dev_author_ca.cer", "vd_tizen_dev_public2.crt", "vd_tizen_dev_partner2.crt" };
 
 	private readonly ISdbEngine _sdb;
 	private readonly ITizenCertificateService _certService;
@@ -28,14 +28,15 @@ public sealed class CertificateProvisioner
 
 	public sealed record Result(string AuthorP12, string DistributorP12, string Password, string ProfileDir, string Duid);
 
-	public async Task<Result> ProvisionAsync(string tvIp, SamsungAuth auth, Action<string>? progress = null)
+	public async Task<Result> ProvisionAsync(string tvIp, SamsungAuth auth, bool requirePartner = false, Action<string>? progress = null)
 	{
 		progress?.Invoke("Reading TV DUID…");
 		var duidResult = await _sdb.DuidAsync(tvIp);
 		var duid = duidResult.Output.Trim();
-		if (duidResult.ExitCode != 0 || string.IsNullOrWhiteSpace(duid))
+		// Reject a malformed DUID (e.g. an SDB transport-error string) so it never lands in the cert SAN.
+		if (duidResult.ExitCode != 0 || !TizenDuid.IsValid(duid))
 			throw new InvalidOperationException(
-				$"Could not read the TV DUID{(string.IsNullOrWhiteSpace(duidResult.Error) ? "." : $": {duidResult.Error}")}");
+				$"Could not read a valid TV DUID{(string.IsNullOrWhiteSpace(duidResult.Error) ? "." : $": {duidResult.Error}")}");
 
 		var caPath = await MaterializeCaAsync();
 		var profileDir = Path.Combine(FileSystem.AppDataDirectory, "TizenProfile");
@@ -44,9 +45,16 @@ public sealed class CertificateProvisioner
 		// certificate can cover several TVs.
 		var duids = new[] { duid }
 			.Concat(MobileSettings.ParseDuids())
-			.Where(d => !string.IsNullOrWhiteSpace(d))
+			.Where(TizenDuid.IsValid)
 			.Distinct(StringComparer.OrdinalIgnoreCase)
 			.ToArray();
+
+		// Opt-in Partner signing (experimental) — needed only by apps that use restricted
+		// privileges (e.g. vpnservice). Partner if the global toggle is on OR the selected package
+		// declares it needs it; default stays Public.
+		var level = (MobileSettings.PartnerSigning || requirePartner)
+			? CertificatePrivilegeLevel.Partner
+			: CertificatePrivilegeLevel.Public;
 
 		ProgressCallback? cb = progress is null ? null : new ProgressCallback(progress);
 		var (authorP12, distributorP12, password) = await _certService.GenerateProfileAsync(
@@ -56,6 +64,7 @@ public sealed class CertificateProvisioner
 			userEmail: auth.inputEmailID,
 			outputPath: profileDir,
 			caPath: caPath,
+			level: level,
 			progress: cb);
 
 		return new Result(authorP12, distributorP12, password, profileDir, duid);

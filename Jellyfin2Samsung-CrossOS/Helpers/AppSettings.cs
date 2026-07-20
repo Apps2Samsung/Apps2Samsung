@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -45,6 +46,10 @@ namespace Apps2Samsung.Helpers
         public ExistingCertificates? ChosenCertificates { get; set; }
         [JsonIgnore]
         public string CustomWgtPath { get; set; } = "";
+        // Set per-install from the selected package's manifest cert_level ("partner"); bumps this
+        // install to Partner signing even when the global PartnerSigning toggle is off. Runtime-only.
+        [JsonIgnore]
+        public bool RequiresPartnerSigning { get; set; }
         [JsonIgnore]
         public string LocalIp { get; set; } = "";
         [JsonIgnore]
@@ -61,6 +66,10 @@ namespace Apps2Samsung.Helpers
         public string UserCustomIP { get; set; } = "";
         public string SavedNetworkInterfaceName { get; set; } = "";
         public bool ForceSamsungLogin { get; set; } = false;
+        // Opt-in Partner-level distributor signing (experimental). Default Public. Only apps that
+        // use restricted privileges (e.g. vpnservice) need it; some TVs may reject partner-signed
+        // installs, and svdca may not issue Partner certs for individual accounts.
+        public bool PartnerSigning { get; set; } = false;
         public bool ShowAllJellyfinVersions { get; set; } = false;
         public bool RTLReading { get; set; } = false;
         public string JellyfinIP { get; set; } = "";
@@ -171,6 +180,7 @@ namespace Apps2Samsung.Helpers
         public static AppSettings Load()
         {
             MigrateCertificatesIfNeeded();
+            MigrateJelly2SamsToLevelFolderIfNeeded();
 
             try
             {
@@ -261,6 +271,49 @@ namespace Apps2Samsung.Helpers
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.WriteLine($"Certificate migration failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// One-time: the auto-generated cert used to live in a single "Jelly2Sams" folder. Now that
+        /// Public and Partner are separate profiles, move an existing "Jelly2Sams" into the folder
+        /// matching the level it was actually issued at (read from the distributor cert's issuer, so a
+        /// Partner cert isn't mislabeled Public), preserving the user's cert instead of regenerating.
+        /// </summary>
+        private static void MigrateJelly2SamsToLevelFolderIfNeeded()
+        {
+            try
+            {
+                var legacy = Path.Combine(CertificatePath, "Jelly2Sams");
+                if (!Directory.Exists(legacy))
+                    return;
+
+                // Already split into level-specific profiles? Then leave the legacy folder alone.
+                if (Directory.Exists(Path.Combine(CertificatePath, "Jelly2Sams - Public")) ||
+                    Directory.Exists(Path.Combine(CertificatePath, "Jelly2Sams - Partner")))
+                    return;
+
+                // Detect the level from the distributor cert's issuer CN; default to Public.
+                var level = "Public";
+                try
+                {
+                    var distributor = Path.Combine(legacy, "distributor.p12");
+                    var passwordFile = Path.Combine(legacy, "password.txt");
+                    if (File.Exists(distributor) && File.Exists(passwordFile))
+                    {
+                        var password = File.ReadAllText(passwordFile).Trim();
+                        using var cert = new X509Certificate2(distributor, password, X509KeyStorageFlags.Exportable);
+                        if (cert.Issuer.Contains("Partner", StringComparison.OrdinalIgnoreCase))
+                            level = "Partner";
+                    }
+                }
+                catch { /* keep default Public */ }
+
+                Directory.Move(legacy, Path.Combine(CertificatePath, $"Jelly2Sams - {level}"));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"Jelly2Sams level-folder migration failed: {ex.Message}");
             }
         }
 

@@ -178,6 +178,22 @@
 								  VerticalAlignment="Center"/>
 				</Grid>
 
+				<!-- Partner signing (experimental) -->
+				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+					<StackPanel Grid.Column="0" Spacing="2">
+						<TextBlock Text="Partner signing (experimental)"
+								   Classes="label"
+								   VerticalAlignment="Center"/>
+						<TextBlock Text="Only for apps needing restricted privileges (e.g. VPN). May be rejected by some TVs or accounts."
+								   Classes="subtitle"
+								   FontSize="11"
+								   TextWrapping="Wrap"/>
+					</StackPanel>
+					<ToggleSwitch Grid.Column="1"
+								  IsChecked="{Binding PartnerSigning}"
+								  VerticalAlignment="Center"/>
+				</Grid>
+
 				<!-- Show all Jellyfin versions -->
 				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
 					<TextBlock Grid.Column="0"
