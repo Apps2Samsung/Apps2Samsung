@@ -33,9 +33,10 @@ public sealed class CertificateProvisioner
 		progress?.Invoke("Reading TV DUID…");
 		var duidResult = await _sdb.DuidAsync(tvIp);
 		var duid = duidResult.Output.Trim();
-		if (duidResult.ExitCode != 0 || string.IsNullOrWhiteSpace(duid))
+		// Reject a malformed DUID (e.g. an SDB transport-error string) so it never lands in the cert SAN.
+		if (duidResult.ExitCode != 0 || !TizenDuid.IsValid(duid))
 			throw new InvalidOperationException(
-				$"Could not read the TV DUID{(string.IsNullOrWhiteSpace(duidResult.Error) ? "." : $": {duidResult.Error}")}");
+				$"Could not read a valid TV DUID{(string.IsNullOrWhiteSpace(duidResult.Error) ? "." : $": {duidResult.Error}")}");
 
 		var caPath = await MaterializeCaAsync();
 		var profileDir = Path.Combine(FileSystem.AppDataDirectory, "TizenProfile");
@@ -44,7 +45,7 @@ public sealed class CertificateProvisioner
 		// certificate can cover several TVs.
 		var duids = new[] { duid }
 			.Concat(MobileSettings.ParseDuids())
-			.Where(d => !string.IsNullOrWhiteSpace(d))
+			.Where(TizenDuid.IsValid)
 			.Distinct(StringComparer.OrdinalIgnoreCase)
 			.ToArray();
 

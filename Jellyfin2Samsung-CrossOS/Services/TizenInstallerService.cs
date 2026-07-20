@@ -481,8 +481,13 @@ namespace Apps2Samsung.Services
                 return null;
 
             string tvDuid = await GetTvDuidAsync(tvIpAddress);
-            if (string.IsNullOrEmpty(tvDuid))
+            // Reject a malformed DUID (e.g. an SDB transport-error string) so it never ends up baked
+            // into the certificate's device-id SAN.
+            if (!TizenDuid.IsValid(tvDuid))
+            {
+                Trace.WriteLine($"[Cert] Invalid TV DUID read from {tvIpAddress}: '{tvDuid}'");
                 return null;
+            }
 
             var (tizenOs, sdkToolPath) = await FetchCapabilitiesAsync(tvIpAddress);
 
@@ -779,7 +784,8 @@ namespace Apps2Samsung.Services
             var ordered = new List<string>();
             void Add(string d)
             {
-                if (!string.IsNullOrWhiteSpace(d) && !ordered.Contains(d, StringComparer.OrdinalIgnoreCase))
+                // Only ever embed well-formed DUIDs — never a stray error string or typo'd manual entry.
+                if (TizenDuid.IsValid(d) && !ordered.Contains(d.Trim(), StringComparer.OrdinalIgnoreCase))
                     ordered.Add(d.Trim());
             }
 
