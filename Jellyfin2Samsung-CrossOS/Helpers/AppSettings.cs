@@ -61,6 +61,10 @@ namespace Apps2Samsung.Helpers
         public string UserCustomIP { get; set; } = "";
         public string SavedNetworkInterfaceName { get; set; } = "";
         public bool ForceSamsungLogin { get; set; } = false;
+        // Opt-in Partner-level distributor signing (experimental). Default Public. Only apps that
+        // use restricted privileges (e.g. vpnservice) need it; some TVs may reject partner-signed
+        // installs, and svdca may not issue Partner certs for individual accounts.
+        public bool PartnerSigning { get; set; } = false;
         public bool ShowAllJellyfinVersions { get; set; } = false;
         public bool RTLReading { get; set; } = false;
         public string JellyfinIP { get; set; } = "";
