@@ -882,6 +882,19 @@ namespace Apps2Samsung.Services
                 return InstallResult.FailureResult(certMessage);
             }
 
+            // Handle API-version incompatibility ([118, -4] "Operation not allowed"): the package
+            // targets a higher Tizen API level than this TV supports. Not a certificate or privilege
+            // problem, and re-signing/overwriting can't help — the TV simply can't run this build.
+            // Give the user a clear reason instead of a raw error code.
+            if (installResults.Output.Contains(Constants.TizenErrorCodes.InstallFailed118Minus4))
+            {
+                _appSettings.TryOverwrite = false;
+                var apiMessage = Constants.LocalizationKeys.ApiVersionMismatch.Localized();
+                progress?.Invoke(apiMessage);
+                Trace.WriteLine($"[Install] API-version incompatibility ([118, -4]) on {tvIpAddress}: {installResults.Output}");
+                return InstallResult.FailureResult(apiMessage);
+            }
+
             // Handle package ID conflict error. Note: a service-component incompatibility
             // (the common cause on older TVs) is already handled before install in Step 3b,
             // so reaching here generally means a genuine id/config conflict.

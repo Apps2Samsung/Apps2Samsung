@@ -25,6 +25,9 @@ namespace Apps2Samsung.Helpers.Core
             public const string DownloadFailed116 = "download failed[116]";
             public const string InstallFailed118012 = "install failed[118012]";
             public const string InstallFailed118Minus12 = "install failed[118, -12]";
+            // API-version incompatibility: the package targets a higher Tizen API level than the TV
+            // supports. Distinct from the generic [118] and the [118, -12] cert mismatch.
+            public const string InstallFailed118Minus4 = "install failed[118, -4]";
             public const string InstallFailed118 = "install failed[118]";
             public const string Installing100 = "installing[100]";
             public const string InstallCompleted = "install completed";
@@ -228,6 +231,7 @@ namespace Apps2Samsung.Helpers.Core
             public const string InsufficientSpace = "insufficientSpace";
             public const string AuthorMismatch = "AuthorMismatch";
             public const string CertificateMismatch = "certificateMismatch";
+            public const string ApiVersionMismatch = "apiVersionMismatch";
             public const string ModifyConfigRequired = "modiyConfigRequired";
             public const string DuidLimitReached = "duidLimitReached";
             public const string FailedTizenSdb = "FailedTizenSdb";
