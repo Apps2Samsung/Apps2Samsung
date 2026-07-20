@@ -572,8 +572,21 @@ namespace Apps2Samsung.Services
                 ? GetCoveredDuids(jelly2SamsDir)
                 : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+            // The privilege level this install needs vs. what the existing distributor cert was
+            // issued at. A cached Public cert can't be reused when Partner is requested (and vice
+            // versa), so a level change must force a distributor regeneration even when the DUID is
+            // already covered — the author keypair is level-independent and is still reused.
+            var requestedLevel = _appSettings.PartnerSigning
+                ? CertificatePrivilegeLevel.Partner
+                : CertificatePrivilegeLevel.Public;
+            var existingLevel = (hasAuthor && !isBundledJellyfin)
+                ? GetExistingDistributorLevel(jelly2SamsDir)
+                : (CertificatePrivilegeLevel?)null;
+            bool levelMatches = existingLevel == requestedLevel;
+
             bool duidsCovered = coveredDuids.Contains(deviceInfo.Duid) &&
-                                manualDuids.All(coveredDuids.Contains);
+                                manualDuids.All(coveredDuids.Contains) &&
+                                levelMatches;
 
             // Generated author cert exists but the distributor cert doesn't yet cover this TV (or a
             // newly-added manual DUID): regenerate ONLY the distributor (reusing the author keypair)
@@ -623,7 +636,7 @@ namespace Apps2Samsung.Services
                         userEmail: auth.inputEmailID,
                         outputPath: jelly2SamsDir,
                         caPath: caPath,
-                        level: _appSettings.PartnerSigning ? CertificatePrivilegeLevel.Partner : CertificatePrivilegeLevel.Public,
+                        level: requestedLevel,
                         progress: certProgress);
                 }
                 else
@@ -636,7 +649,7 @@ namespace Apps2Samsung.Services
                         userId: auth.userId,
                         userEmail: auth.inputEmailID,
                         caPath: caPath,
-                        level: _appSettings.PartnerSigning ? CertificatePrivilegeLevel.Partner : CertificatePrivilegeLevel.Public,
+                        level: requestedLevel,
                         progress: certProgress);
                     authorp12 = Path.Combine(jelly2SamsDir, Constants.Certificate.AuthorFileName);
                     p12Password = (await File.ReadAllTextAsync(
@@ -736,6 +749,34 @@ namespace Apps2Samsung.Services
             {
                 Trace.WriteLine($"[Cert] Could not read covered DUIDs from '{certDir}': {ex.Message}");
                 return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
+        // The privilege level of the existing distributor cert in certDir (null if missing/unreadable),
+        // inferred from its issuer CN ("VD DEVELOPER Partner/Public CA Class"). Used so a cached cert
+        // is only reused when it was issued at the level this install requests.
+        private static CertificatePrivilegeLevel? GetExistingDistributorLevel(string certDir)
+        {
+            try
+            {
+                var passwordFile = Path.Combine(certDir, Constants.Certificate.PasswordFileName);
+                var distributor = Path.Combine(certDir, Constants.Certificate.DistributorFileName);
+                if (!File.Exists(passwordFile) || !File.Exists(distributor))
+                    return null;
+
+                var password = File.ReadAllText(passwordFile).Trim();
+                using var cert = new X509Certificate2(distributor, password, X509KeyStorageFlags.Exportable);
+
+                if (cert.Issuer.Contains("Partner", StringComparison.OrdinalIgnoreCase))
+                    return CertificatePrivilegeLevel.Partner;
+                if (cert.Issuer.Contains("Public", StringComparison.OrdinalIgnoreCase))
+                    return CertificatePrivilegeLevel.Public;
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Cert] Could not read distributor level from '{certDir}': {ex.Message}");
+                return null;
             }
         }
 
