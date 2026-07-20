@@ -574,13 +574,21 @@ namespace Apps2Samsung.Services
             // and is just reused from disk (unless the user forces a fresh login).
             bool isBundledJellyfin = selectedCertificate == Constants.AppIdentifiers.JellyfinAppName;
 
-            // A full Samsung profile (fresh keypair + new author cert) is needed on first run for this
-            // level, when no real cert is selected, when the author cert is missing/expired, or when
-            // forced. Because the folder is level-specific, switching Public<->Partner naturally has no
-            // author yet and generates a fresh profile without touching the other level.
-            bool needsFullProfile = string.IsNullOrEmpty(selectedCertificate) ||
-                                    selectedCertificate == Constants.AppIdentifiers.Jelly2SamsDefault ||
-                                    _appSettings.ForceSamsungLogin ||
+            // "Auto" mode = the app drives cert selection itself: no real pick, the "(default)"
+            // placeholder, or one of our generated "Jelly2Sams[ - Public/Partner]" profiles. In auto
+            // mode we REUSE an existing valid profile for the requested level rather than logging in
+            // again. Crucially, the "(default)"/empty placeholder must NOT force a fresh Samsung login
+            // when a usable level cert is already on disk — that placeholder was the cause of the
+            // "sign in every time" bug (the dropdown often reverts to "(default)" even though
+            // "Jelly2Sams - Public/Partner" exists).
+            bool autoMode = string.IsNullOrEmpty(selectedCertificate) || IsAutoCertName(selectedCertificate);
+
+            // A full Samsung profile (fresh keypair + new author cert) is only needed when the user
+            // forces a login, or there's genuinely no usable author cert for this level yet (first run
+            // for the level, or it's missing/expired). Because the folder is level-specific, switching
+            // Public<->Partner naturally has no author yet and generates a fresh profile without
+            // touching the other level.
+            bool needsFullProfile = _appSettings.ForceSamsungLogin ||
                                     (!isBundledJellyfin && !hasAuthor);
 
             // DUIDs the user manually pre-authorized + DUIDs already covered by THIS level's distributor
@@ -678,7 +686,7 @@ namespace Apps2Samsung.Services
                 // Reuse in place. For the auto-generated cert, use THIS level's folder — the stored
                 // ChosenCertificates path may point at the other level from a previous install.
                 // Bundled/imported certs keep using their stored path.
-                bool reuseAutoCert = !isBundledJellyfin && IsAutoCertName(selectedCertificate);
+                bool reuseAutoCert = !isBundledJellyfin && autoMode;
                 var certDir = reuseAutoCert
                     ? jelly2SamsDir
                     : Path.GetDirectoryName(_appSettings.ChosenCertificates!.File)!;
