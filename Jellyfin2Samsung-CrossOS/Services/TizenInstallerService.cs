@@ -552,8 +552,13 @@ namespace Apps2Samsung.Services
             // / "Jelly2Sams - Partner") so both can coexist and each is reused independently — switching
             // level never clobbers the other. The requested level comes from the toggle (later also
             // per-package via the manifest).
-            // Partner if the global toggle is on OR the selected package's manifest requires it.
-            var requestedLevel = (_appSettings.PartnerSigning || _appSettings.RequiresPartnerSigning)
+            // Partner if the global toggle is on, OR the selected package's manifest declares it, OR
+            // the .wgt itself declares a partner-level privilege (e.g. vpnservice) in its config.xml.
+            // The last one is the automatic binding: a package that needs a restricted API must declare
+            // it, so we don't have to track cert levels per package anywhere.
+            var requestedLevel = (_appSettings.PartnerSigning
+                                  || _appSettings.RequiresPartnerSigning
+                                  || Apps2Samsung.Packaging.WgtPrivileges.RequiresPartner(packageUrl))
                 ? CertificatePrivilegeLevel.Partner
                 : CertificatePrivilegeLevel.Public;
             var jelly2SamsDir = Path.Combine(AppSettings.CertificatePath, AutoCertProfileName(requestedLevel));

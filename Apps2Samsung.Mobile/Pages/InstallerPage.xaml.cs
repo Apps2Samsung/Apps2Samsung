@@ -4,6 +4,7 @@ using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Mobile.Catalog;
 using Apps2Samsung.Mobile.Services;
+using Apps2Samsung.Packaging;
 using Apps2Samsung.Update;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Storage;
@@ -291,8 +292,12 @@ public partial class InstallerPage : ContentPage
 				_session.Auth = await _loginService.LoginAsync();
 			}
 
-			var cert = await _certProvisioner.ProvisionAsync(tvIp, _session.Auth!, requirePartner, SetStatus);
+			// Download first so we can inspect the package's declared privileges before signing.
 			wgtPath = custom ? _customWgtPath! : await _installer.DownloadAsync(asset!.DownloadUrl, SetStatus);
+
+			// Partner if the manifest declared it OR the .wgt itself needs a partner-level privilege.
+			var needsPartner = requirePartner || WgtPrivileges.RequiresPartner(wgtPath);
+			var cert = await _certProvisioner.ProvisionAsync(tvIp, _session.Auth!, needsPartner, SetStatus);
 			await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus);
 
 			SetStatus($"✓ Installed {appName}. Open the TV's Apps list to launch it.");
