@@ -28,7 +28,7 @@ public sealed class CertificateProvisioner
 
 	public sealed record Result(string AuthorP12, string DistributorP12, string Password, string ProfileDir, string Duid);
 
-	public async Task<Result> ProvisionAsync(string tvIp, SamsungAuth auth, Action<string>? progress = null)
+	public async Task<Result> ProvisionAsync(string tvIp, SamsungAuth auth, bool requirePartner = false, Action<string>? progress = null)
 	{
 		progress?.Invoke("Reading TV DUID…");
 		var duidResult = await _sdb.DuidAsync(tvIp);
@@ -49,8 +49,9 @@ public sealed class CertificateProvisioner
 			.ToArray();
 
 		// Opt-in Partner signing (experimental) — needed only by apps that use restricted
-		// privileges (e.g. vpnservice); default stays Public.
-		var level = MobileSettings.PartnerSigning
+		// privileges (e.g. vpnservice). Partner if the global toggle is on OR the selected package
+		// declares it needs it; default stays Public.
+		var level = (MobileSettings.PartnerSigning || requirePartner)
 			? CertificatePrivilegeLevel.Partner
 			: CertificatePrivilegeLevel.Public;
 

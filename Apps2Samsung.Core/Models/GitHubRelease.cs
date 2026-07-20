@@ -25,6 +25,13 @@ namespace Apps2Samsung.Models
         [JsonIgnore]
         public string? PrimaryDownloadUrl => Assets?.FirstOrDefault()?.DownloadUrl;
 
+        /// <summary>
+        /// True when the source provider declared <c>cert_level: partner</c> — the installer then
+        /// auto-requests Partner signing for this package. Stamped from the manifest, not serialized.
+        /// </summary>
+        [JsonIgnore]
+        public bool RequiresPartner { get; set; }
+
         public GitHubRelease()
         {
         }

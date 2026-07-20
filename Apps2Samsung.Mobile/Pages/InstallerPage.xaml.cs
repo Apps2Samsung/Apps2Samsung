@@ -275,6 +275,10 @@ public partial class InstallerPage : ContentPage
 		var appName = custom
 			? Path.GetFileNameWithoutExtension(_customWgtPath!)
 			: (AppPicker.SelectedItem as string ?? "app");
+		// Auto-request Partner signing if the selected app's manifest declares cert_level: partner.
+		var requirePartner = !custom
+			&& AppPicker.SelectedIndex >= 0 && AppPicker.SelectedIndex < _releases.Count
+			&& _releases[AppPicker.SelectedIndex].RequiresPartner;
 
 		InstallBtn.IsEnabled = false;
 		RefreshBtn.IsEnabled = false;
@@ -287,7 +291,7 @@ public partial class InstallerPage : ContentPage
 				_session.Auth = await _loginService.LoginAsync();
 			}
 
-			var cert = await _certProvisioner.ProvisionAsync(tvIp, _session.Auth!, SetStatus);
+			var cert = await _certProvisioner.ProvisionAsync(tvIp, _session.Auth!, requirePartner, SetStatus);
 			wgtPath = custom ? _customWgtPath! : await _installer.DownloadAsync(asset!.DownloadUrl, SetStatus);
 			await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus);
 

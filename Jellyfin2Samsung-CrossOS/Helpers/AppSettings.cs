@@ -46,6 +46,10 @@ namespace Apps2Samsung.Helpers
         public ExistingCertificates? ChosenCertificates { get; set; }
         [JsonIgnore]
         public string CustomWgtPath { get; set; } = "";
+        // Set per-install from the selected package's manifest cert_level ("partner"); bumps this
+        // install to Partner signing even when the global PartnerSigning toggle is off. Runtime-only.
+        [JsonIgnore]
+        public bool RequiresPartnerSigning { get; set; }
         [JsonIgnore]
         public string LocalIp { get; set; } = "";
         [JsonIgnore]

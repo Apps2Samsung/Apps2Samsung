@@ -60,6 +60,9 @@ public sealed class CatalogService
 			var (releases, ok) = await _releases.GetReleasesWithStatusAsync(
 				provider.Url, provider.Prefix, provider.DisplayName, take);
 
+			// Apps declaring cert_level: partner auto-request Partner signing at install.
+			var requiresPartner = string.Equals(provider.CertLevel, "partner", StringComparison.OrdinalIgnoreCase);
+
 			var entries = new List<GitHubRelease>();
 			if (provider.ExpandAssets)
 			{
@@ -73,10 +76,13 @@ public sealed class CatalogService
 							PublishedAt = r.PublishedAt,
 							Url = r.Url,
 							Assets = new List<Asset> { asset },
+							RequiresPartner = requiresPartner,
 						});
 			}
 			else
 			{
+				foreach (var r in releases)
+					r.RequiresPartner = requiresPartner;
 				entries.AddRange(releases);
 			}
 

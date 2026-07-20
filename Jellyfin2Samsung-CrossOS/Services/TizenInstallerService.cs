@@ -552,7 +552,8 @@ namespace Apps2Samsung.Services
             // / "Jelly2Sams - Partner") so both can coexist and each is reused independently — switching
             // level never clobbers the other. The requested level comes from the toggle (later also
             // per-package via the manifest).
-            var requestedLevel = _appSettings.PartnerSigning
+            // Partner if the global toggle is on OR the selected package's manifest requires it.
+            var requestedLevel = (_appSettings.PartnerSigning || _appSettings.RequiresPartnerSigning)
                 ? CertificatePrivilegeLevel.Partner
                 : CertificatePrivilegeLevel.Public;
             var jelly2SamsDir = Path.Combine(AppSettings.CertificatePath, AutoCertProfileName(requestedLevel));

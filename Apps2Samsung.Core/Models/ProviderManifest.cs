@@ -27,6 +27,12 @@ namespace Apps2Samsung.Models
         /// entry in the release list (used for the community package bundle).
         /// </summary>
         public bool ExpandAssets { get; set; }
+        /// <summary>
+        /// Optional required signing level for this app: "partner" for apps that use restricted
+        /// privileges (e.g. vpnservice — Tailscale). Empty/"public" (default) uses Public signing.
+        /// The installer auto-requests this level for the package.
+        /// </summary>
+        public string CertLevel { get; set; } = "";
         public ProviderBuildInfo? BuildInfo { get; set; }
     }
 
