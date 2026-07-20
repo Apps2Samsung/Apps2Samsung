@@ -623,7 +623,7 @@ namespace Apps2Samsung.Services
                         userEmail: auth.inputEmailID,
                         outputPath: jelly2SamsDir,
                         caPath: caPath,
-                        certProgress);
+                        progress: certProgress);
                 }
                 else
                 {
@@ -635,7 +635,7 @@ namespace Apps2Samsung.Services
                         userId: auth.userId,
                         userEmail: auth.inputEmailID,
                         caPath: caPath,
-                        certProgress);
+                        progress: certProgress);
                     authorp12 = Path.Combine(jelly2SamsDir, Constants.Certificate.AuthorFileName);
                     p12Password = (await File.ReadAllTextAsync(
                         Path.Combine(jelly2SamsDir, Constants.Certificate.PasswordFileName))).Trim();

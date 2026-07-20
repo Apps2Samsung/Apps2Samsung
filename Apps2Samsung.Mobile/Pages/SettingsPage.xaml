@@ -91,6 +91,12 @@
                     <Label Grid.Column="0" Text="Show all Jellyfin versions" VerticalOptions="Center" />
                     <Switch Grid.Column="1" x:Name="ShowAllJfSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
                 </Grid>
+                <Grid Style="{StaticResource ToggleRow}">
+                    <Label Grid.Column="0" Text="Partner signing (experimental)" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" x:Name="PartnerSigningSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                </Grid>
+                <Label Style="{StaticResource Hint}"
+                       Text="Partner signing is only needed for apps that use restricted privileges (e.g. VPN). Some TVs may reject partner-signed installs, and Samsung may not issue Partner certs for individual accounts. Leave off unless an app requires it." />
 
                 <BoxView Style="{StaticResource Divider}" />
 

@@ -40,6 +40,7 @@ namespace Apps2Samsung.Services
             string userEmail,
             string outputPath,
             string caPath,
+            CertificatePrivilegeLevel level = CertificatePrivilegeLevel.Public,
             ProgressCallback? progress = null)
         {
             if (string.IsNullOrEmpty(outputPath))
@@ -70,16 +71,16 @@ namespace Apps2Samsung.Services
             await File.WriteAllBytesAsync(Path.Combine(outputPath, "signed_author.cer"), signedAuthorCsrBytes);
 
             progress?.Invoke("PostDistributorCSR");
-            var (profileXmlBytes, signedDistributorCsrBytes) = await PostDistributorCsrAsync(accessToken, userId, distributorCsrData);
+            var (profileXmlBytes, signedDistributorCsrBytes) = await PostDistributorCsrAsync(accessToken, userId, distributorCsrData, level);
             if (profileXmlBytes != null)
                 await File.WriteAllBytesAsync(Path.Combine(outputPath, "device-profile.xml"), profileXmlBytes);
             await File.WriteAllBytesAsync(Path.Combine(outputPath, "signed_distributor.cer"), signedDistributorCsrBytes);
 
-            await CheckCertificateExistenceAsync(caPath);
+            await CheckCertificateExistenceAsync(caPath, level);
 
             progress?.Invoke("ExportPfxCertificates");
             string authorp12 = await ExportPfxWithCaChainAsync(signedAuthorCsrBytes, keyPair.Private, p12Plain, outputPath, caPath, "author", "vd_tizen_dev_author_ca.cer");
-            string distributorp12 = await ExportPfxWithCaChainAsync(signedDistributorCsrBytes, keyPair.Private, p12Plain, outputPath, caPath, "distributor", "vd_tizen_dev_public2.crt");
+            string distributorp12 = await ExportPfxWithCaChainAsync(signedDistributorCsrBytes, keyPair.Private, p12Plain, outputPath, caPath, "distributor", DistributorCaFile(level));
             return (authorp12, distributorp12, p12Plain);
         }
 
@@ -90,6 +91,7 @@ namespace Apps2Samsung.Services
             string userId,
             string userEmail,
             string caPath,
+            CertificatePrivilegeLevel level = CertificatePrivilegeLevel.Public,
             ProgressCallback? progress = null)
         {
             if (string.IsNullOrEmpty(certDir))
@@ -113,18 +115,18 @@ namespace Apps2Samsung.Services
 
             progress?.Invoke("PostDistributorCSR");
             var (profileXmlBytes, signedDistributorCsrBytes) =
-                await PostDistributorCsrAsync(accessToken, userId, distributorCsrData);
+                await PostDistributorCsrAsync(accessToken, userId, distributorCsrData, level);
             if (profileXmlBytes != null)
                 await File.WriteAllBytesAsync(Path.Combine(certDir, "device-profile.xml"), profileXmlBytes);
             await File.WriteAllBytesAsync(Path.Combine(certDir, "signed_distributor.cer"), signedDistributorCsrBytes);
 
-            await CheckCertificateExistenceAsync(caPath);
+            await CheckCertificateExistenceAsync(caPath, level);
 
             progress?.Invoke("ExportPfxCertificates");
             // author.p12 / signed_author.cer / password.txt are intentionally left untouched.
             return await ExportPfxWithCaChainAsync(
                 signedDistributorCsrBytes, keyPair.Private, password, certDir,
-                caPath, "distributor", "vd_tizen_dev_public2.crt");
+                caPath, "distributor", DistributorCaFile(level));
         }
 
         /// <summary>Loads the keypair (public + private) from a PKCS#12 file's first key entry.</summary>
@@ -199,9 +201,15 @@ namespace Apps2Samsung.Services
 
         }
 
-        private static Task CheckCertificateExistenceAsync(string caPath)
+        // The distributor CA chain file that matches a requested privilege level.
+        private static string DistributorCaFile(CertificatePrivilegeLevel level) =>
+            level == CertificatePrivilegeLevel.Partner
+                ? "vd_tizen_dev_partner2.crt"
+                : "vd_tizen_dev_public2.crt";
+
+        private static Task CheckCertificateExistenceAsync(string caPath, CertificatePrivilegeLevel level)
         {
-            string[] requiredFiles = { "vd_tizen_dev_author_ca.cer", "vd_tizen_dev_public2.crt" };
+            string[] requiredFiles = { "vd_tizen_dev_author_ca.cer", DistributorCaFile(level) };
 
             foreach (var file in requiredFiles)
             {
@@ -230,15 +238,16 @@ namespace Apps2Samsung.Services
             return await response.Content.ReadAsByteArrayAsync();
         }
 
-        private async Task<(byte[] profileXml, byte[] distributorCert)> PostDistributorCsrAsync(string accessToken, string userId, byte[] csrBytes)
+        private async Task<(byte[] profileXml, byte[] distributorCert)> PostDistributorCsrAsync(string accessToken, string userId, byte[] csrBytes, CertificatePrivilegeLevel level)
         {
             var certificateHelper = new CertificateHelper();
+            var privilegeLevel = level.ToString(); // "Public" or "Partner"
 
             var v1Content = new MultipartFormDataContent
             {
                 { new StringContent(accessToken), "access_token" },
                 { new StringContent(userId), "user_id" },
-                { new StringContent("Public"), "privilege_level" },
+                { new StringContent(privilegeLevel), "privilege_level" },
                 { new StringContent("Individual"), "developer_type" },
                 { new StringContent("VD"), "platform" },
                 { new ByteArrayContent(csrBytes), "csr", "distributor.csr" }
@@ -260,7 +269,7 @@ namespace Apps2Samsung.Services
             {
                 { new StringContent(accessToken), "access_token" },
                 { new StringContent(userId), "user_id" },
-                { new StringContent("Public"), "privilege_level" },
+                { new StringContent(privilegeLevel), "privilege_level" },
                 { new StringContent("Individual"), "developer_type" },
                 { new StringContent("VD"), "platform" },
                 { new ByteArrayContent(csrBytes), "csr", "distributor.csr" }

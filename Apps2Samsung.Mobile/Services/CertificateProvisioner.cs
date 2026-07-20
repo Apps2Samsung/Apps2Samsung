@@ -15,7 +15,7 @@ namespace Apps2Samsung.Mobile.Services;
 public sealed class CertificateProvisioner
 {
 	// Samsung CA certs shipped as MauiAssets under Resources/Raw/ca and required by the cert service.
-	private static readonly string[] CaFiles = { "vd_tizen_dev_author_ca.cer", "vd_tizen_dev_public2.crt" };
+	private static readonly string[] CaFiles = { "vd_tizen_dev_author_ca.cer", "vd_tizen_dev_public2.crt", "vd_tizen_dev_partner2.crt" };
 
 	private readonly ISdbEngine _sdb;
 	private readonly ITizenCertificateService _certService;
@@ -48,6 +48,12 @@ public sealed class CertificateProvisioner
 			.Distinct(StringComparer.OrdinalIgnoreCase)
 			.ToArray();
 
+		// Opt-in Partner signing (experimental) — needed only by apps that use restricted
+		// privileges (e.g. vpnservice); default stays Public.
+		var level = MobileSettings.PartnerSigning
+			? CertificatePrivilegeLevel.Partner
+			: CertificatePrivilegeLevel.Public;
+
 		ProgressCallback? cb = progress is null ? null : new ProgressCallback(progress);
 		var (authorP12, distributorP12, password) = await _certService.GenerateProfileAsync(
 			duids: duids,
@@ -56,6 +62,7 @@ public sealed class CertificateProvisioner
 			userEmail: auth.inputEmailID,
 			outputPath: profileDir,
 			caPath: caPath,
+			level: level,
 			progress: cb);
 
 		return new Result(authorP12, distributorP12, password, profileDir, duid);
