@@ -241,7 +241,11 @@ namespace Apps2Samsung.Services
         private async Task<(byte[] profileXml, byte[] distributorCert)> PostDistributorCsrAsync(string accessToken, string userId, byte[] csrBytes, CertificatePrivilegeLevel level)
         {
             var certificateHelper = new CertificateHelper();
-            var privilegeLevel = level.ToString(); // "Public" or "Partner"
+            // svdca expects a LOWERCASE privilege_level ("public"/"partner") — the official Tizen
+            // extension sends lowercase, and the server treats anything that isn't exactly "partner"
+            // as public. Sending "Partner" (the enum's ToString) silently yielded a PUBLIC cert, which
+            // is why partner privileges (e.g. vpnservice) never unlocked. Lowercase it to match.
+            var privilegeLevel = level.ToString().ToLowerInvariant(); // "public" or "partner"
 
             var v1Content = new MultipartFormDataContent
             {
