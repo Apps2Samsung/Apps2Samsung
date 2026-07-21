@@ -19,6 +19,13 @@ namespace Apps2Samsung.Models
         [JsonPropertyName("published_at")]
         public string PublishedAt { get; set; } = string.Empty;
 
+        // GitHub always sorts draft releases to the TOP of the /releases list, and drafts appear
+        // there once the request is authenticated (token/gh). A draft's asset browser_download_url
+        // 404s, so blindly taking releases[0] breaks whenever a release run leaves a draft behind.
+        // Callers must skip drafts and take the newest published release.
+        [JsonPropertyName("draft")]
+        public bool Draft { get; set; }
+
         [JsonPropertyName("assets")]
         public List<Asset> Assets { get; set; } = new();
 

@@ -144,7 +144,9 @@ namespace Apps2Samsung.Services
 
                 var json = await response.Content.ReadAsStringAsync();
                 var releases = JsonSerializer.Deserialize<List<GitHubRelease>>(json, JsonSerializerOptionsProvider.Default);
-                var firstRelease = releases?.FirstOrDefault();
+                // Skip drafts: GitHub sorts them to the top of the list once authenticated, but their
+                // assets aren't downloadable. Take the newest published release.
+                var firstRelease = releases?.FirstOrDefault(r => !r.Draft);
 
                 if (firstRelease == null)
                     throw new InvalidOperationException("No releases found");
@@ -163,7 +165,9 @@ namespace Apps2Samsung.Services
             {
                 var json = await _httpClient.GetStringAsync(AppSettings.Default.TizenSdb);
                 var releases = JsonSerializer.Deserialize<List<GitHubRelease>>(json, JsonSerializerOptionsProvider.Default);
-                var firstRelease = (releases?.FirstOrDefault()) ?? throw new InvalidOperationException("No releases found");
+                // Skip drafts: GitHub sorts them to the top once authenticated, but a draft's asset
+                // browser_download_url 404s. Take the newest published release.
+                var firstRelease = (releases?.FirstOrDefault(r => !r.Draft)) ?? throw new InvalidOperationException("No releases found");
                 string nameMatch = PlatformService.GetAssetPlatformIdentifier();
 
                 var matchedAsset = firstRelease.Assets.FirstOrDefault(a =>
