@@ -1,4 +1,5 @@
-﻿using Apps2Samsung.Helpers.Core;
+﻿using Apps2Samsung.Configuration;
+using Apps2Samsung.Helpers.Core;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,6 +8,13 @@ namespace Apps2Samsung.Helpers.Jellyfin.Diagnostic
 {
     public class JellyfinDiagnostic
     {
+        private readonly IAppConfig _config;
+
+        public JellyfinDiagnostic(IAppConfig config)
+        {
+            _config = config;
+        }
+
         public async Task InjectDevLogsAsync(PackageWorkspace ws)
         {
             string indexPath = Path.Combine(ws.Root, "www", "index.html");
@@ -26,7 +34,7 @@ namespace Apps2Samsung.Helpers.Jellyfin.Diagnostic
             script.AppendLine("<script>");
             script.AppendLine("(function(){");
             script.AppendLine("  try {");
-            script.AppendLine($"    var ws = new WebSocket('ws://{AppSettings.Default.LocalIp}:54321');");
+            script.AppendLine($"    var ws = new WebSocket('ws://{_config.LocalIp}:54321');");
             script.AppendLine("    ws.onopen = function(){ ws.send('INJECTOR: websocket connected'); };");
             script.AppendLine("    ws.onerror = function(e){ alert('WS Error. Check Firewall on port 54321'); };");
 

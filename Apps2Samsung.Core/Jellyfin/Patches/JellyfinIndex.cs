@@ -1,4 +1,5 @@
-﻿using Apps2Samsung.Helpers.API;
+﻿using Apps2Samsung.Configuration;
+using Apps2Samsung.Helpers.API;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Helpers.Jellyfin.Plugins;
 using System.Diagnostics;
@@ -14,10 +15,12 @@ namespace Apps2Samsung.Helpers.Jellyfin.Patches
     public class JellyfinIndex(
         HttpClient http,
         JellyfinApiClient api,
-        PluginManager plugins)
+        PluginManager plugins,
+        IAppConfig config)
     {
         private readonly JellyfinApiClient _apiClient = api;
-        private readonly JellyfinPluginPatcher _plugins = new(http, api, plugins);
+        private readonly IAppConfig _config = config;
+        private readonly JellyfinPluginPatcher _plugins = new(http, api, plugins, config);
 
         public async Task PatchIndexAsync(PackageWorkspace ws, string serverUrl)
         {
@@ -70,7 +73,7 @@ namespace Apps2Samsung.Helpers.Jellyfin.Patches
                 config["servers"] = servers;
             }
 
-            var serverUrl = UrlHelper.NormalizeServerUrl(AppSettings.Default.JellyfinFullUrl);
+            var serverUrl = UrlHelper.NormalizeServerUrl(_config.JellyfinFullUrl);
 
             // Avoid duplicates
             if (!servers.Any(s => s?.GetValue<string>() == serverUrl))
@@ -80,7 +83,7 @@ namespace Apps2Samsung.Helpers.Jellyfin.Patches
             // Samsung TVs (Tizen) cannot reliably resolve mDNS hostnames, especially after network disruptions.
             // Only add it if it actually responds: a dead entry here makes the server-select path
             // stall ~20s on the web client's startup probe (fetchWithTimeout: 20000ms).
-            var localAddress = UrlHelper.NormalizeServerUrl(AppSettings.Default.JellyfinServerLocalAddress);
+            var localAddress = UrlHelper.NormalizeServerUrl(_config.JellyfinServerLocalAddress);
             if (!string.IsNullOrEmpty(localAddress) &&
                 localAddress != serverUrl &&
                 UrlHelper.IsValidHttpUrl(localAddress) &&
@@ -102,12 +105,12 @@ namespace Apps2Samsung.Helpers.Jellyfin.Patches
         /// </summary>
         public async Task InjectAutoLoginAsync(PackageWorkspace ws)
         {
-            var accessToken = AppSettings.Default.JellyfinAccessToken;
-            var userId = AppSettings.Default.JellyfinUserId;
-            var serverUrl = UrlHelper.NormalizeServerUrl(AppSettings.Default.JellyfinFullUrl);
-            var serverId = AppSettings.Default.JellyfinServerId;
-            var localAddress = AppSettings.Default.JellyfinServerLocalAddress;
-            var serverName = AppSettings.Default.JellyfinServerName;
+            var accessToken = _config.JellyfinAccessToken;
+            var userId = _config.JellyfinUserId;
+            var serverUrl = UrlHelper.NormalizeServerUrl(_config.JellyfinFullUrl);
+            var serverId = _config.JellyfinServerId;
+            var localAddress = _config.JellyfinServerLocalAddress;
+            var serverName = _config.JellyfinServerName;
 
             if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(serverUrl))
             {
@@ -125,11 +128,8 @@ namespace Apps2Samsung.Helpers.Jellyfin.Patches
                     serverId = serverInfo.Id;
                     localAddress = serverInfo.LocalAddress ?? "";
                     serverName = serverInfo.ServerName ?? "";
-                    AppSettings.Default.JellyfinServerId = serverId;
-                    AppSettings.Default.JellyfinServerLocalAddress = localAddress;
-                    AppSettings.Default.JellyfinServerName = serverName;
-                    AppSettings.Default.Save();
-                    Trace.WriteLine($"[InjectAutoLogin] Fetched and stored server ID: {serverId}, Name: {serverName}");
+                    // Note: fetched values are used for this install only; no longer persisted (IAppConfig is read-only on the patch path).
+                    Trace.WriteLine($"[InjectAutoLogin] Fetched server ID: {serverId}, Name: {serverName}");
                 }
                 else
                 {

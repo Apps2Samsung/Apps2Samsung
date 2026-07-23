@@ -520,7 +520,7 @@ namespace Apps2Samsung.ViewModels
 
             AuthenticationStatus = "Authenticating...";
 
-            var (accessToken, userId, isAdmin, error) = await _jellyfinApiClient.AuthenticateAsync(JellyfinUsername, JellyfinPassword);
+            var (accessToken, userId, isAdmin, error) = await _jellyfinApiClient.AuthenticateAsync(AppSettings.Default.JellyfinFullUrl, JellyfinUsername, JellyfinPassword);
 
             if (accessToken != null && userId != null)
             {
@@ -617,7 +617,7 @@ namespace Apps2Samsung.ViewModels
         {
             try
             {
-                var users = await _jellyfinApiClient.LoadUsersAsync();
+                var users = await _jellyfinApiClient.LoadUsersAsync(AppSettings.Default.JellyfinFullUrl, AppSettings.Default.JellyfinAccessToken);
 
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {

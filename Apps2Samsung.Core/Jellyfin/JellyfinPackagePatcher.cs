@@ -1,4 +1,5 @@
-﻿using Apps2Samsung.Helpers.API;
+﻿using Apps2Samsung.Configuration;
+using Apps2Samsung.Helpers.API;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Helpers.Jellyfin.CSS;
 using Apps2Samsung.Helpers.Jellyfin.Diagnostic;
@@ -17,20 +18,23 @@ namespace Apps2Samsung.Helpers.Jellyfin
 {
     public class JellyfinPackagePatcher : IPackagePatcher
     {
+        private readonly IAppConfig _config;
         private readonly JellyfinIndex _indexHtml;
         private readonly JellyfinDiagnostic _diagnostic;
         private readonly FixYouTube _youTube;
         private readonly CustomCss _customCss;
 
-        public JellyfinPackagePatcher(HttpClient http)
+        public JellyfinPackagePatcher(HttpClient http, IAppConfig config)
         {
+            _config = config;
+
             var api = new JellyfinApiClient(http);
             var plugins = new PluginManager(http, api);
 
-            _indexHtml = new JellyfinIndex(http, api, plugins);
-            _diagnostic = new JellyfinDiagnostic();
+            _indexHtml = new JellyfinIndex(http, api, plugins, config);
+            _diagnostic = new JellyfinDiagnostic(config);
             _youTube = new FixYouTube();
-            _customCss = new CustomCss();
+            _customCss = new CustomCss(config);
         }
 
         public bool CanHandle(string packagePath)
@@ -40,7 +44,7 @@ namespace Apps2Samsung.Helpers.Jellyfin
         public Task<InstallResult> ApplyAsync(string packagePath)
         {
             // No server configured → nothing to inject (preserves prior install behavior).
-            if (string.IsNullOrEmpty(AppSettings.Default.JellyfinIP))
+            if (string.IsNullOrEmpty(_config.JellyfinFullUrl))
                 return Task.FromResult(InstallResult.SuccessResult());
 
             return ApplyJellyfinConfigAsync(packagePath);
@@ -51,11 +55,11 @@ namespace Apps2Samsung.Helpers.Jellyfin
             using var ws = PackageWorkspace.Extract(packagePath);
 
             // Apply server scripts (JS injection) if enabled
-            if (AppSettings.Default.UseServerScripts)
-                await _indexHtml.PatchIndexAsync(ws, AppSettings.Default.JellyfinFullUrl);
+            if (_config.UseServerScripts)
+                await _indexHtml.PatchIndexAsync(ws, _config.JellyfinFullUrl);
 
             // Apply YouTube plugin patch if enabled
-            if (AppSettings.Default.PatchYoutubePlugin)
+            if (_config.PatchYoutubePlugin)
             {
                 await _youTube.PatchPluginAsync(ws);
                 await _youTube.UpdateCorsAsync(ws);
@@ -66,21 +70,21 @@ namespace Apps2Samsung.Helpers.Jellyfin
             await _indexHtml.UpdateServerAddressAsync(ws);
 
             // Inject auto-login credentials if available
-            if (!string.IsNullOrEmpty(AppSettings.Default.JellyfinAccessToken) &&
-                !string.IsNullOrEmpty(AppSettings.Default.JellyfinUserId))
+            if (!string.IsNullOrEmpty(_config.JellyfinAccessToken) &&
+                !string.IsNullOrEmpty(_config.JellyfinUserId))
             {
                 Trace.WriteLine("Injecting auto-login credentials...");
                 await _indexHtml.InjectAutoLoginAsync(ws);
             }
 
-            if (AppSettings.Default.EnableDevLogs)
+            if (_config.EnableDevLogs)
             {
                 Trace.WriteLine("Injecting dev logs...");
                 await _diagnostic.InjectDevLogsAsync(ws);
             }
 
             // Inject custom CSS if configured
-            if (!string.IsNullOrWhiteSpace(AppSettings.Default.CustomCss))
+            if (!string.IsNullOrWhiteSpace(_config.CustomCss))
             {
                 Trace.WriteLine("Injecting custom CSS...");
                 await _customCss.InjectAsync(ws);

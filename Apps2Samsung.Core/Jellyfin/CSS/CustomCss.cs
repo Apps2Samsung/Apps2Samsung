@@ -1,4 +1,5 @@
-﻿using Apps2Samsung.Helpers.Core;
+﻿using Apps2Samsung.Configuration;
+using Apps2Samsung.Helpers.Core;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -12,9 +13,16 @@ namespace Apps2Samsung.Helpers.Jellyfin.CSS
     /// </summary>
     public class CustomCss
     {
+        private readonly IAppConfig _config;
+
+        public CustomCss(IAppConfig config)
+        {
+            _config = config;
+        }
+
         public async Task InjectAsync(PackageWorkspace ws)
         {
-            var customCss = AppSettings.Default.CustomCss;
+            var customCss = _config.CustomCss;
 
             if (string.IsNullOrWhiteSpace(customCss))
             {

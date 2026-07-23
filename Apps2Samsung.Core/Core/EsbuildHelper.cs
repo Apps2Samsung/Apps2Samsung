@@ -13,7 +13,10 @@ namespace Apps2Samsung.Helpers.Core
             try
             {
                 string baseDir = AppContext.BaseDirectory;
-                return PlatformService.GetEsbuildPath(Path.Combine(baseDir, AppSettings.EsbuildPath));
+                // Shipped esbuild binaries ride next to the executable under Assets/esbuild
+                // (identical to the desktop AppSettings.EsbuildPath layout; resolved at runtime
+                // against the host process's base dir so behaviour is unchanged per head).
+                return PlatformService.GetEsbuildPath(Path.Combine(baseDir, "Assets", "esbuild"));
             }
             catch
             {

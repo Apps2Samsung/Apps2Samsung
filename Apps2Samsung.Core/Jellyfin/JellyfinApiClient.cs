@@ -1,3 +1,4 @@
+using Apps2Samsung.Configuration;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Models;
 using System;
@@ -25,21 +26,21 @@ namespace Apps2Samsung.Helpers.API
         /// Checks if a valid Jellyfin configuration exists with an authenticated user.
         /// Uses AccessToken from username/password authentication.
         /// </summary>
-        public static bool IsValidJellyfinConfiguration()
+        public static bool IsValidJellyfinConfiguration(IAppConfig s)
         {
-            return !string.IsNullOrEmpty(AppSettings.Default.JellyfinFullUrl) &&
-                   !string.IsNullOrEmpty(AppSettings.Default.JellyfinAccessToken) &&
-                   !string.IsNullOrEmpty(AppSettings.Default.JellyfinUserId) &&
-                   UrlHelper.IsValidHttpUrl($"{AppSettings.Default.JellyfinFullUrl}/Users");
+            return !string.IsNullOrEmpty(s.JellyfinFullUrl) &&
+                   !string.IsNullOrEmpty(s.JellyfinAccessToken) &&
+                   !string.IsNullOrEmpty(s.JellyfinUserId) &&
+                   UrlHelper.IsValidHttpUrl($"{s.JellyfinFullUrl}/Users");
         }
 
         /// <summary>
         /// Checks if the user has a valid authentication (AccessToken + UserId).
         /// </summary>
-        public static bool HasValidAuthentication()
+        public static bool HasValidAuthentication(IAppConfig s)
         {
-            return !string.IsNullOrEmpty(AppSettings.Default.JellyfinAccessToken) &&
-                   !string.IsNullOrEmpty(AppSettings.Default.JellyfinUserId);
+            return !string.IsNullOrEmpty(s.JellyfinAccessToken) &&
+                   !string.IsNullOrEmpty(s.JellyfinUserId);
         }
 
         public async Task<List<JellyfinPluginInfo>> GetInstalledPluginsAsync(string serverUrl)
@@ -105,23 +106,23 @@ namespace Apps2Samsung.Helpers.API
         /// Sets up HTTP headers for authenticated Jellyfin API requests.
         /// Uses the AccessToken obtained from username/password authentication.
         /// </summary>
-        private void SetupHeaders()
+        private void SetupHeaders(string accessToken)
         {
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.Api.UserAgent);
             _httpClient.DefaultRequestHeaders.Add("Authorization",
-                string.Format(Constants.Api.MediaBrowserAuthHeader, AppSettings.Default.JellyfinAccessToken));
+                string.Format(Constants.Api.MediaBrowserAuthHeader, accessToken));
         }
 
         /// <summary>
         /// Authenticates with Jellyfin using username and password.
         /// Returns the access token, user ID, and admin status on success.
         /// </summary>
-        public async Task<(string? accessToken, string? userId, bool isAdmin, string? error)> AuthenticateAsync(string username, string password)
+        public async Task<(string? accessToken, string? userId, bool isAdmin, string? error)> AuthenticateAsync(string serverUrl, string username, string password)
         {
             try
             {
-                var serverUrl = UrlHelper.NormalizeServerUrl(AppSettings.Default.JellyfinFullUrl);
+                serverUrl = UrlHelper.NormalizeServerUrl(serverUrl);
                 var authUrl = $"{serverUrl}/Users/AuthenticateByName";
 
                 _httpClient.DefaultRequestHeaders.Clear();
@@ -168,13 +169,13 @@ namespace Apps2Samsung.Helpers.API
         /// <summary>
         /// Loads all Jellyfin users. Requires admin authentication.
         /// </summary>
-        public async Task<List<JellyfinUser>> LoadUsersAsync()
+        public async Task<List<JellyfinUser>> LoadUsersAsync(string serverUrl, string accessToken)
         {
             var users = new List<JellyfinUser>();
             try
             {
-                SetupHeaders();
-                var serverUrl = UrlHelper.NormalizeServerUrl(AppSettings.Default.JellyfinFullUrl);
+                SetupHeaders(accessToken);
+                serverUrl = UrlHelper.NormalizeServerUrl(serverUrl);
                 var usersUrl = $"{serverUrl}/Users";
 
                 Trace.WriteLine($"[LoadUsers] Fetching users from: {usersUrl}");

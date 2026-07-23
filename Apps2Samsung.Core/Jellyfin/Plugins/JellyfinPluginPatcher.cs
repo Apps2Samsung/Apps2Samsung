@@ -1,4 +1,5 @@
-﻿using Apps2Samsung.Helpers.API;
+﻿using Apps2Samsung.Configuration;
+using Apps2Samsung.Helpers.API;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Models;
 using System;
@@ -25,6 +26,7 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
         private readonly HttpClient _httpClient;
         private readonly JellyfinApiClient _apiClient;
         private readonly PluginManager _pluginManager;
+        private readonly IAppConfig _config;
 
         private readonly HashSet<string> _injectedScripts = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _injectedStyles = new(StringComparer.OrdinalIgnoreCase);
@@ -32,11 +34,13 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
         public JellyfinPluginPatcher(
             HttpClient httpClient,
             JellyfinApiClient apiClient,
-            PluginManager pluginManager)
+            PluginManager pluginManager,
+            IAppConfig config)
         {
             _httpClient = httpClient;
             _apiClient = apiClient;
             _pluginManager = pluginManager;
+            _config = config;
         }
 
         public async Task PatchPluginsAsync(
@@ -182,7 +186,7 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
         {
             var apiPlugins = await _apiClient.GetInstalledPluginsAsync(serverUrl);
 
-            var disabledIds = (AppSettings.Default.DisabledPluginIds ?? string.Empty)
+            var disabledIds = (_config.DisabledPluginIds ?? string.Empty)
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
