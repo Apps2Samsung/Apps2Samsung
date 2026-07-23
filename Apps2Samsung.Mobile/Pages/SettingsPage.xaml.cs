@@ -41,6 +41,8 @@ public partial class SettingsPage : ContentPage
 
 	private async void OnBackClicked(object? sender, EventArgs e) => await Navigation.PopAsync();
 
+	private async void OnAppIconsClicked(object? sender, EventArgs e) => await Navigation.PushAsync(new AppIconsPage());
+
 	private void OnToggleTokenVisibility(object? sender, EventArgs e)
 	{
 		TokenEntry.IsPassword = !TokenEntry.IsPassword;
