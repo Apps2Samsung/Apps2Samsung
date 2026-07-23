@@ -531,7 +531,6 @@ namespace Apps2Samsung.Services
 
             Version certVersion = new(Constants.TizenVersions.CertificateRequired);
             Version pushVersion = new(Constants.TizenVersions.PushInstallMax);
-            Version intermediateVersion = new(Constants.TizenVersions.IntermediateVersion);
 
             bool requiresResign = deviceInfo.TizenVersion >= certVersion ||
                                   deviceInfo.TizenVersion <= pushVersion ||
@@ -633,15 +632,10 @@ namespace Apps2Samsung.Services
                     };
                     _appSettings.Save();
 
-                    // Permit-install for older Tizen versions (same as the manual path below).
-                    if (deviceInfo.TizenVersion <= pushVersion)
-                    {
-                        var deviceProfilePath = Path.Combine(Path.GetDirectoryName(profile.AuthorP12)!, Constants.Certificate.DeviceProfileFileName);
-                        var targetPath = deviceInfo.TizenVersion < intermediateVersion
-                            ? Constants.Defaults.HomeDeveloperPath
-                            : deviceInfo.SdkToolPath;
-                        await AllowPermitInstall(tvIpAddress, deviceProfilePath, targetPath);
-                    }
+                    // Permit-install for older Tizen versions (thresholds shared with Core).
+                    await Apps2Samsung.Sdb.TizenPermitInstall.EnsureAsync(
+                        _sdb, tvIpAddress, deviceInfo.TizenVersion, deviceInfo.SdkToolPath,
+                        Path.Combine(Path.GetDirectoryName(profile.AuthorP12)!, Constants.Certificate.DeviceProfileFileName));
 
                     return new CertificateResult
                     {
@@ -777,16 +771,10 @@ namespace Apps2Samsung.Services
                 PackageCertificate = reuseAutoCert ? AutoCertProfileName(requestedLevel) : selectedCertificate;
             }
 
-            // Handle permit install for older Tizen versions
-            if (deviceInfo.TizenVersion <= pushVersion)
-            {
-                var deviceProfilePath = Path.Combine(Path.GetDirectoryName(authorp12)!, Constants.Certificate.DeviceProfileFileName);
-                var targetPath = deviceInfo.TizenVersion < intermediateVersion
-                    ? Constants.Defaults.HomeDeveloperPath
-                    : deviceInfo.SdkToolPath;
-
-                await AllowPermitInstall(tvIpAddress, deviceProfilePath, targetPath);
-            }
+            // Handle permit install for older Tizen versions (thresholds shared with Core).
+            await Apps2Samsung.Sdb.TizenPermitInstall.EnsureAsync(
+                _sdb, tvIpAddress, deviceInfo.TizenVersion, deviceInfo.SdkToolPath,
+                Path.Combine(Path.GetDirectoryName(authorp12)!, Constants.Certificate.DeviceProfileFileName));
 
             return new CertificateResult
             {
@@ -1053,14 +1041,8 @@ namespace Apps2Samsung.Services
         private async Task<(string tizenOs, string sdkToolPath)> FetchCapabilitiesAsync(string tvIpAddress)
         {
             var output = await _sdb.CapabilityAsync(tvIpAddress);
-
-            var versionMatch = RegexPatterns.TizenCapability.PlatformVersion.Match(output.Output);
-            string tizenOs = versionMatch.Success ? versionMatch.Groups[1].Value.Trim() : string.Empty;
-
-            var pathMatch = RegexPatterns.TizenCapability.SdkToolPath.Match(output.Output);
-            string sdkToolPath = pathMatch.Success ? pathMatch.Groups[1].Value.Trim() : Constants.Defaults.SdkToolPath;
-
-            return (tizenOs, sdkToolPath);
+            var caps = Apps2Samsung.Sdb.TizenCapabilities.Parse(output.Output);
+            return (caps.PlatformVersion, caps.SdkToolPath);
         }
 
         private async Task<string> GetTvDuidAsync(string tvIpAddress)
@@ -1158,11 +1140,6 @@ namespace Apps2Samsung.Services
         private async Task<ProcessResult> UninstallPackageAsync(string tvIpAddress, string packageId)
         {
             return await _sdb.UninstallAsync(tvIpAddress, packageId);
-        }
-
-        private async Task AllowPermitInstall(string tvIpAddress, string deviceXml, string sdkToolPath)
-        {
-            await _sdb.PermitInstallAsync(tvIpAddress, deviceXml, sdkToolPath);
         }
 
         #endregion
