@@ -113,6 +113,18 @@
 
                 <BoxView Style="{StaticResource Divider}" />
 
+                <!-- App icons -->
+                <Label Text="App icons" FontAttributes="Bold" FontSize="14" />
+                <Label Style="{StaticResource Hint}"
+                       Text="Give an app a custom launcher icon, applied when you install it." />
+                <Button Text="🎨 Manage app icons" HorizontalOptions="Start"
+                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
+                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                        Clicked="OnAppIconsClicked" />
+
+                <BoxView Style="{StaticResource Divider}" />
+
                 <!-- Certificate note (mobile provisions automatically) -->
                 <Label Text="Certificate" FontAttributes="Bold" FontSize="14" />
                 <Label Style="{StaticResource Hint}"
