@@ -114,6 +114,8 @@ namespace Apps2Samsung
 
             services.AddSingleton<SamsungLoginService>();
             services.AddSingleton<ISamsungLoginService>(sp => sp.GetRequiredService<SamsungLoginService>());
+            // Shared reuse-aware cert provisioning (single source of truth with the mobile head).
+            services.AddSingleton<Apps2Samsung.Certificate.CertificateProvisioningService>();
             services.AddSingleton<JellyfinApiClient>();
             services.AddSingleton<TizenApiClient>();
             services.AddSingleton<PluginManager>();
