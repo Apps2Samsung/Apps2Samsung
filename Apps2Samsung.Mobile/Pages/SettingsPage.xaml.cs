@@ -33,6 +33,8 @@ public partial class SettingsPage : ContentPage
 		KeepWgtSwitch.IsToggled = MobileSettings.KeepWgtFile;
 		ShowAllJfSwitch.IsToggled = MobileSettings.ShowAllJellyfinVersions;
 		PartnerSigningSwitch.IsToggled = MobileSettings.PartnerSigning;
+		TryOverwriteSwitch.IsToggled = MobileSettings.TryOverwrite;
+		ForceLoginSwitch.IsToggled = MobileSettings.ForceSamsungLogin;
 
 		ChannelsContainer.Children.Clear();
 		_channelRows.Clear();
@@ -102,6 +104,8 @@ public partial class SettingsPage : ContentPage
 		MobileSettings.KeepWgtFile = KeepWgtSwitch.IsToggled;
 		MobileSettings.ShowAllJellyfinVersions = ShowAllJfSwitch.IsToggled;
 		MobileSettings.PartnerSigning = PartnerSigningSwitch.IsToggled;
+		MobileSettings.TryOverwrite = TryOverwriteSwitch.IsToggled;
+		MobileSettings.ForceSamsungLogin = ForceLoginSwitch.IsToggled;
 	}
 
 	private void OnAddChannel(object? sender, EventArgs e) => AddChannelRow(string.Empty, string.Empty);

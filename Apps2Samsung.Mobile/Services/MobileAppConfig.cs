@@ -11,15 +11,13 @@ namespace Apps2Samsung.Mobile.Services;
 /// </summary>
 public sealed class MobileAppConfig : IAppConfig
 {
-    private const string KeyForceLogin = "force_samsung_login";
-    private const string KeyTryOverwrite = "try_overwrite";
     private const string KeyCustomIcons = "custom_app_icons_json";
 
     // ---- Install behaviour ----
     public bool DeletePreviousInstall { get => MobileSettings.DeletePreviousInstall; set => MobileSettings.DeletePreviousInstall = value; }
     public bool OpenAfterInstall { get => MobileSettings.OpenAfterInstall; set => MobileSettings.OpenAfterInstall = value; }
     public bool KeepWgtFile { get => MobileSettings.KeepWgtFile; set => MobileSettings.KeepWgtFile = value; }
-    public bool TryOverwrite { get => Preferences.Get(KeyTryOverwrite, true); set => Preferences.Set(KeyTryOverwrite, value); }
+    public bool TryOverwrite { get => MobileSettings.TryOverwrite; set => MobileSettings.TryOverwrite = value; }
 
     // ---- Catalog ----
     public bool ShowAllJellyfinVersions { get => MobileSettings.ShowAllJellyfinVersions; set => MobileSettings.ShowAllJellyfinVersions = value; }
@@ -29,7 +27,7 @@ public sealed class MobileAppConfig : IAppConfig
     public bool PartnerSigning { get => MobileSettings.PartnerSigning; set => MobileSettings.PartnerSigning = value; }
     // Runtime-only, per-install (mirrors the desktop's [JsonIgnore] RequiresPartnerSigning).
     public bool RequiresPartnerSigning { get; set; }
-    public bool ForceSamsungLogin { get => Preferences.Get(KeyForceLogin, false); set => Preferences.Set(KeyForceLogin, value); }
+    public bool ForceSamsungLogin { get => MobileSettings.ForceSamsungLogin; set => MobileSettings.ForceSamsungLogin = value; }
     public string ManualDuids { get => MobileSettings.ManualDuids; set => MobileSettings.ManualDuids = value; }
     // Root under which the generated signing profiles ("Jelly2Sams - Public/Partner") live.
     public string CertificateStorePath => Path.Combine(FileSystem.AppDataDirectory, "Certificate");

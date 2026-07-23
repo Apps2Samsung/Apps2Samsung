@@ -18,6 +18,8 @@ public static class MobileSettings
 	private const string KeyManualDuids = "manual_duids";
 	private const string KeyTvAppChannels = "tvapp_channels_json";
 	private const string KeyPartnerSigning = "partner_signing";
+	private const string KeyForceLogin = "force_samsung_login";
+	private const string KeyTryOverwrite = "try_overwrite";
 	private const string KeyGitHubToken = "github_token"; // SecureStorage
 	private const string KeyJellyfinServerUrl = "jellyfin_server_url";
 	private const string KeyJellyfinUserId = "jellyfin_user_id";
@@ -54,6 +56,22 @@ public static class MobileSettings
 	{
 		get => Preferences.Get(KeyShowAllJf, false);
 		set => Preferences.Set(KeyShowAllJf, value);
+	}
+
+	/// <summary>Force a fresh Samsung login + certificate even when a reusable one exists (desktop:
+	/// "Force Samsung login"). Off by default.</summary>
+	public static bool ForceSamsungLogin
+	{
+		get => Preferences.Get(KeyForceLogin, false);
+		set => Preferences.Set(KeyForceLogin, value);
+	}
+
+	/// <summary>Attempt an overwrite-install and, on failure, retry after removing the old copy
+	/// (desktop: "Override existing app"). On by default — matches the desktop's recovery behaviour.</summary>
+	public static bool TryOverwrite
+	{
+		get => Preferences.Get(KeyTryOverwrite, true);
+		set => Preferences.Set(KeyTryOverwrite, value);
 	}
 
 	/// <summary>
