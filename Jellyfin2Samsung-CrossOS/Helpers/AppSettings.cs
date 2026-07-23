@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 
 namespace Apps2Samsung.Helpers
 {
-    public class AppSettings
+    public class AppSettings : Apps2Samsung.Configuration.IAppConfig
     {
         private const string FileName = "settings.json";
 
@@ -116,6 +116,12 @@ namespace Apps2Samsung.Helpers
         public bool LitefinUseOblongIcon { get; set; } = false;  // legacy: migrated into CustomAppIconsJson ("oblong")
         public string ManualDuids { get; set; } = "";  // extra Tizen DUIDs to pre-authorize in the distributor cert (one per line / comma-separated)
         public string CustomAppIconsJson { get; set; } = "";  // JSON map { appKey -> "oblong" | custom launcher PNG path } applied to the wgt at install
+
+        // ----- IAppConfig adapters (not serialized; map the interface onto existing state) -----
+        [JsonIgnore]
+        public bool KeepWgtFile { get => KeepWGTFile; set => KeepWGTFile = value; }
+        [JsonIgnore]
+        public string CertificateStorePath => CertificatePath;
 
         // ----- Updater settings -----
         public bool CheckForUpdatesOnStartup { get; set; } = true;
