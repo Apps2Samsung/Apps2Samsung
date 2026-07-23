@@ -70,7 +70,7 @@
     },
     {
       "id": "tizen-community",
-      "url": "https://api.github.com/repos/PatrickSt1991/tizen-community-packages/releases",
+      "url": "https://api.github.com/repos/Apps2Samsung/tizen-community-packages/releases",
       "prefix": "",
       "displayName": "Tizen Community",
       "take": 1,
