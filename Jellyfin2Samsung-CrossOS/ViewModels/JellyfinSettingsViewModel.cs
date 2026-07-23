@@ -9,6 +9,7 @@ using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Helpers.Jellyfin.Plugins;
 using Apps2Samsung.Helpers.Tizen.Certificate;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Jellyfin;
 using Apps2Samsung.Models;
 using Apps2Samsung.Services;
 using Apps2Samsung.Views;
@@ -1023,75 +1024,14 @@ namespace Apps2Samsung.ViewModels
         #region JellyThemes
 
         /// <summary>
-        /// Available JellyThemes from https://github.com/kingchenc/JellyThemes
+        /// Available JellyThemes \u2014 sourced from the shared Core <see cref="JellyThemeCatalog"/> so the
+        /// list lives in one place and both heads use the same themes.
         /// </summary>
-        public static ObservableCollection<JellyTheme> JellyThemes { get; } = new()
-        {
-            new JellyTheme
-            {
-                Name = "Obsidian",
-                Icon = "\U0001F7E3", // Purple circle
-                ColorName = "Purple",
-                HexColor = "#6B5B95",
-                CssImportUrl = "https://cdn.jsdelivr.net/gh/kingchenc/JellyThemes@master/Themes/Obsidian/Obsidian.css",
-                PreviewUrl = "https://raw.githubusercontent.com/kingchenc/JellyThemes/master/Themes/Obsidian/assets/preview/Obsidian.png",
-                ReadmeUrl = "https://github.com/kingchenc/JellyThemes/tree/main/Themes/Obsidian"
-            },
-            new JellyTheme
-            {
-                Name = "Solaris",
-                Icon = "\U0001F7E1", // Yellow circle
-                ColorName = "Gold",
-                HexColor = "#D4AF37",
-                CssImportUrl = "https://cdn.jsdelivr.net/gh/kingchenc/JellyThemes@master/Themes/Solaris/Solaris.css",
-                PreviewUrl = "https://raw.githubusercontent.com/kingchenc/JellyThemes/master/Themes/Solaris/assets/preview/Solaris.png",
-                ReadmeUrl = "https://github.com/kingchenc/JellyThemes/tree/main/Themes/Solaris"
-            },
-            new JellyTheme
-            {
-                Name = "Nebula",
-                Icon = "\U0001F535", // Blue circle
-                ColorName = "Cyan",
-                HexColor = "#00CED1",
-                CssImportUrl = "https://cdn.jsdelivr.net/gh/kingchenc/JellyThemes@master/Themes/Nebula/Nebula.css",
-                PreviewUrl = "https://raw.githubusercontent.com/kingchenc/JellyThemes/master/Themes/Nebula/assets/preview/Nebula.png",
-                ReadmeUrl = "https://github.com/kingchenc/JellyThemes/tree/main/Themes/Nebula"
-            },
-            new JellyTheme
-            {
-                Name = "Ember",
-                Icon = "\U0001F7E0", // Orange circle
-                ColorName = "Orange",
-                HexColor = "#FF6B35",
-                CssImportUrl = "https://cdn.jsdelivr.net/gh/kingchenc/JellyThemes@master/Themes/Ember/Ember.css",
-                PreviewUrl = "https://raw.githubusercontent.com/kingchenc/JellyThemes/master/Themes/Ember/assets/preview/Ember.png",
-                ReadmeUrl = "https://github.com/kingchenc/JellyThemes/tree/main/Themes/Ember"
-            },
-            new JellyTheme
-            {
-                Name = "Void",
-                Icon = "\u26AB", // Black circle
-                ColorName = "Black",
-                HexColor = "#1C1C1C",
-                CssImportUrl = "https://cdn.jsdelivr.net/gh/kingchenc/JellyThemes@master/Themes/Void/Void.css",
-                PreviewUrl = "https://raw.githubusercontent.com/kingchenc/JellyThemes/master/Themes/Void/assets/preview/Void.png",
-                ReadmeUrl = "https://github.com/kingchenc/JellyThemes/tree/main/Themes/Void"
-            },
-            new JellyTheme
-            {
-                Name = "Phantom",
-                Icon = "\U0001F47B", // Ghost
-                ColorName = "Slate",
-                HexColor = "#708090",
-                CssImportUrl = "https://cdn.jsdelivr.net/gh/kingchenc/JellyThemes@master/Themes/Phantom/Phantom.css",
-                PreviewUrl = "https://raw.githubusercontent.com/kingchenc/JellyThemes/master/Themes/Phantom/assets/preview/Phantom.png",
-                ReadmeUrl = "https://github.com/kingchenc/JellyThemes/tree/main/Themes/Phantom"
-            }
-        };
+        public static ObservableCollection<JellyTheme> JellyThemes { get; } = new(JellyThemeCatalog.Themes);
 
         public string LblJellyThemes => _localizationService.GetString("lblJellyThemes");
         public string LblJellyThemesHint => _localizationService.GetString("lblJellyThemesHint");
-        public const string JellyThemesRepoUrl = "https://github.com/kingchenc/JellyThemes";
+        public const string JellyThemesRepoUrl = JellyThemeCatalog.RepoUrl;
 
         [RelayCommand]
         private async Task InsertThemeAsync(JellyTheme theme)
