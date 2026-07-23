@@ -1,3 +1,4 @@
+using Apps2Samsung.Configuration;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Services;
 using Apps2Samsung.Mobile.Catalog;
@@ -32,6 +33,10 @@ public static class MauiProgram
 		// Ethernet/Wireless80211 and IPv4Mask is unavailable, so the Core scan's interface
 		// enumeration yields nothing. Feed the device's own IPv4 as the custom scan IP: the
 		// scanner then covers its /24 (the mask fallback), which finds TVs on the same LAN.
+		// Shared settings contract — the mobile head's settings adapted to Core's IAppConfig, so the
+		// shared cert/install/patcher services read settings uniformly across both heads.
+		builder.Services.AddSingleton<IAppConfig, MobileAppConfig>();
+
 		builder.Services.AddSingleton<INetworkService>(_ => new NetworkService(customIpProvider: NetworkInfo.GetLocalIPv4));
 
 		// The SDB engine needs a writable directory to persist its RSA auth keypair (the desktop
