@@ -152,6 +152,7 @@ public partial class JellyfinSettingsPage : ContentPage
 
 	private void SetStatus(string message, bool isError)
 	{
+		System.Diagnostics.Trace.WriteLine($"[jellyfin] {message}");
 		StatusLabel.Text = message;
 		StatusLabel.TextColor = isError ? Color.FromArgb("#B00020") : Color.FromArgb("#2E7D32");
 		StatusLabel.Opacity = 1.0;
