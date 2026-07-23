@@ -2,7 +2,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Xml.Linq;
-using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Packaging;
@@ -131,30 +130,27 @@ public sealed class WgtInstaller
 	private async Task<ProcessResult> RecoverInstallAsync(
 		string tvIp, string wgtPath, string sdkToolPath, string? packageId, ProcessResult failed, Action<string>? progress)
 	{
-		const StringComparison IC = StringComparison.OrdinalIgnoreCase;
 		var output = failed.Output ?? string.Empty;
 
 		// Environmental — a broken route to the TV. Retrying the same push can't help.
-		if (output.Contains(Constants.TizenErrorCodes.TransportConnectionLost, IC) ||
-			output.Contains(Constants.TizenErrorCodes.ConnectionResetByPeer, IC))
+		if (TizenInstallDiagnostics.IsTransportLost(output))
 			throw new InvalidOperationException(
 				"Connection to the TV was interrupted. Check Wi-Fi (and that the TV is awake), then try again.");
 
 		// API-version mismatch: the app targets a newer Tizen than this TV supports — a different build
 		// is needed, not a retry.
-		if (output.Contains(Constants.TizenErrorCodes.InstallFailed118Minus4, IC))
+		if (TizenInstallDiagnostics.IsApiVersionMismatch(output))
 			throw new InvalidOperationException(
 				"This TV's Tizen version is too old for this app (API-version mismatch [118, -4]). Try an older build if one is available.");
 
-		bool certMismatch = output.Contains(Constants.TizenErrorCodes.InstallFailed118012, IC) ||
-							 output.Contains(Constants.TizenErrorCodes.InstallFailed118Minus12, IC);
-		bool outOfSpace = output.Contains(Constants.TizenErrorCodes.DownloadFailed116, IC);
+		bool certMismatch = TizenInstallDiagnostics.IsCertificateMismatch(output);
+		bool outOfSpace = TizenInstallDiagnostics.IsInsufficientSpace(output);
 
 		// Recoverable by removing the old copy first: certificate mismatch, insufficient space,
 		// package-id conflict, or a generic failure. Try exactly one clean reinstall.
 		bool recoverable = certMismatch || outOfSpace ||
-						   output.Contains(Constants.TizenErrorCodes.InstallFailed118, IC) ||
-						   output.Contains(Constants.TizenErrorCodes.Failed, IC);
+						   TizenInstallDiagnostics.IsPackageIdConflict(output) ||
+						   TizenInstallDiagnostics.IsGenericFailure(output);
 
 		if (recoverable && TryOverwriteEnabled && !string.IsNullOrWhiteSpace(packageId))
 		{
@@ -166,8 +162,7 @@ public sealed class WgtInstaller
 				return retry;
 
 			// Still failing after a clean slate — surface the most useful message.
-			if (retry.Output.Contains(Constants.TizenErrorCodes.InstallFailed118012, IC) ||
-				retry.Output.Contains(Constants.TizenErrorCodes.InstallFailed118Minus12, IC))
+			if (TizenInstallDiagnostics.IsCertificateMismatch(retry.Output))
 				throw new InvalidOperationException(
 					"The TV already has this app signed with a different certificate. Remove it on the TV (Apps → delete), then install again.");
 

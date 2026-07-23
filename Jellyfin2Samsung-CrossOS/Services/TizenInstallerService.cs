@@ -900,8 +900,7 @@ namespace Apps2Samsung.Services
             // the host capturing the route to the TV, or an unstable Wi-Fi link — not a packaging
             // problem, so retrying or overwriting can't help. Fail fast with an actionable hint
             // instead of looping a re-sign+re-push over the same broken route.
-            if (installResults.Output.Contains(Constants.TizenErrorCodes.TransportConnectionLost, StringComparison.OrdinalIgnoreCase) ||
-                installResults.Output.Contains(Constants.TizenErrorCodes.ConnectionResetByPeer, StringComparison.OrdinalIgnoreCase))
+            if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsTransportLost(installResults.Output))
             {
                 _appSettings.TryOverwrite = false;
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
@@ -910,7 +909,7 @@ namespace Apps2Samsung.Services
             }
 
             // Handle insufficient space error
-            if (installResults.Output.Contains(Constants.TizenErrorCodes.DownloadFailed116))
+            if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsInsufficientSpace(installResults.Output))
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
 
@@ -928,8 +927,7 @@ namespace Apps2Samsung.Services
 
             // Handle certificate mismatch: the installed copy was signed with a different
             // certificate, so Tizen refuses to overwrite it. The only fix is removing the old copy.
-            if (installResults.Output.Contains(Constants.TizenErrorCodes.InstallFailed118012) ||
-                installResults.Output.Contains(Constants.TizenErrorCodes.InstallFailed118Minus12))
+            if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsCertificateMismatch(installResults.Output))
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
 
@@ -955,7 +953,7 @@ namespace Apps2Samsung.Services
             // targets a higher Tizen API level than this TV supports. Not a certificate or privilege
             // problem, and re-signing/overwriting can't help — the TV simply can't run this build.
             // Give the user a clear reason instead of a raw error code.
-            if (installResults.Output.Contains(Constants.TizenErrorCodes.InstallFailed118Minus4))
+            if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsApiVersionMismatch(installResults.Output))
             {
                 _appSettings.TryOverwrite = false;
                 var apiMessage = Constants.LocalizationKeys.ApiVersionMismatch.Localized();
@@ -967,7 +965,7 @@ namespace Apps2Samsung.Services
             // Handle package ID conflict error. Note: a service-component incompatibility
             // (the common cause on older TVs) is already handled before install in Step 3b,
             // so reaching here generally means a genuine id/config conflict.
-            if (installResults.Output.Contains(Constants.TizenErrorCodes.InstallFailed118))
+            if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsPackageIdConflict(installResults.Output))
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
 
@@ -983,7 +981,7 @@ namespace Apps2Samsung.Services
             }
 
             // Handle generic failure
-            if (installResults.Output.Contains(Constants.TizenErrorCodes.Failed))
+            if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsGenericFailure(installResults.Output))
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
 
@@ -998,8 +996,7 @@ namespace Apps2Samsung.Services
             }
 
             // Handle success
-            if (installResults.Output.Contains(Constants.TizenErrorCodes.Installing100) ||
-                installResults.Output.Contains(Constants.TizenErrorCodes.InstallCompleted))
+            if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IndicatesSuccess(installResults.Output))
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationSuccessful.Localized());
 
