@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Apps2Samsung.Mobile.Pages.JellyfinSettingsPage"
+             Title="Jellyfin"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+
+    <ContentPage.Resources>
+        <Style x:Key="Divider" TargetType="BoxView">
+            <Setter Property="HeightRequest" Value="1" />
+            <Setter Property="Color" Value="{AppThemeBinding Light=#E2E2E2, Dark=#333}" />
+            <Setter Property="Margin" Value="0,4" />
+        </Style>
+        <Style x:Key="Hint" TargetType="Label">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Opacity" Value="0.6" />
+        </Style>
+        <Style x:Key="Field" TargetType="Border">
+            <Setter Property="Padding" Value="8,0" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 6" />
+            <Setter Property="Stroke" Value="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}" />
+            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark=#2A2A2A}" />
+        </Style>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <Border Margin="12" Padding="16" StrokeThickness="1"
+                StrokeShape="RoundRectangle 8"
+                Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
+                BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
+            <VerticalStackLayout Spacing="14">
+
+                <!-- Header banner with a back affordance -->
+                <Border BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+                    <Grid ColumnDefinitions="44,*,44" VerticalOptions="Center">
+                        <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
+                                BackgroundColor="Transparent" BorderWidth="0" Padding="0"
+                                WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
+                        <Label Grid.Column="1" Text="Jellyfin server" TextColor="White" FontAttributes="Bold"
+                               VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                    </Grid>
+                </Border>
+
+                <Label Style="{StaticResource Hint}"
+                       Text="Point installed Jellyfin apps at your server and sign in once, so the TV app opens straight to your library. These settings are baked into the Jellyfin package when you install it." />
+
+                <!-- Server URL -->
+                <Label Text="Server URL" FontAttributes="Bold" FontSize="14" />
+                <Border Style="{StaticResource Field}">
+                    <Entry x:Name="ServerUrlEntry" Keyboard="Url" Placeholder="http://192.168.1.10:8096"
+                           BackgroundColor="Transparent" Unfocused="OnServerUrlUnfocused" />
+                </Border>
+                <Label Style="{StaticResource Hint}"
+                       Text="Full address including http:// or https:// and the port. Include a base path too if you use a reverse proxy (e.g. https://media.example.com/jellyfin)." />
+
+                <BoxView Style="{StaticResource Divider}" />
+
+                <!-- Auto-login -->
+                <Label Text="Auto-login (optional)" FontAttributes="Bold" FontSize="14" />
+                <Label Style="{StaticResource Hint}"
+                       Text="Sign in to bake credentials into the package so the TV app skips the login screen. Leave blank to only set the server address." />
+                <Border Style="{StaticResource Field}">
+                    <Entry x:Name="UsernameEntry" Placeholder="Username" BackgroundColor="Transparent" />
+                </Border>
+                <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
+                    <Border Grid.Column="0" Style="{StaticResource Field}">
+                        <Entry x:Name="PasswordEntry" IsPassword="True" Placeholder="Password" BackgroundColor="Transparent" />
+                    </Border>
+                    <Button Grid.Column="1" x:Name="PwEyeBtn" Text="👁" FontSize="16"
+                            BackgroundColor="Transparent" BorderWidth="1"
+                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                            Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="6"
+                            Clicked="OnTogglePasswordVisibility" />
+                </Grid>
+                <Button x:Name="SignInBtn" Text="Connect &amp; sign in" Clicked="OnSignInClicked"
+                        HorizontalOptions="Start" BackgroundColor="#2C3E50" TextColor="White"
+                        CornerRadius="6" Padding="16,8" />
+                <Label x:Name="StatusLabel" Style="{StaticResource Hint}" IsVisible="False" />
+                <Button x:Name="SignOutBtn" Text="Clear saved sign-in" Clicked="OnSignOutClicked"
+                        HorizontalOptions="Start" IsVisible="False"
+                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
+                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                        TextColor="{AppThemeBinding Light=#B00020, Dark=#FF6B6B}" />
+
+                <BoxView Style="{StaticResource Divider}" />
+
+                <!-- YouTube fix -->
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <Label Grid.Column="0" Text="Fix YouTube trailers (error 153)" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" x:Name="YoutubeSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                </Grid>
+                <Label Style="{StaticResource Hint}"
+                       Text="Patches the YouTube-trailers plugin so trailers play on Tizen instead of failing with error 153." />
+
+                <BoxView Style="{StaticResource Divider}" />
+
+                <!-- Custom CSS -->
+                <Label Text="Custom CSS" FontAttributes="Bold" FontSize="14" />
+                <Label Style="{StaticResource Hint}"
+                       Text="Injected into the Jellyfin web client. Use it to tweak the look, or paste an @import for a community theme." />
+                <Border Style="{StaticResource Field}" Padding="8,4">
+                    <Editor x:Name="CssEditor" HeightRequest="120" Placeholder="/* your CSS here */"
+                            BackgroundColor="Transparent" Unfocused="OnCssUnfocused" />
+                </Border>
+
+            </VerticalStackLayout>
+        </Border>
+    </ScrollView>
+
+</ContentPage>

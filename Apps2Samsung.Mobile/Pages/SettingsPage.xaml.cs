@@ -43,6 +43,8 @@ public partial class SettingsPage : ContentPage
 
 	private async void OnAppIconsClicked(object? sender, EventArgs e) => await Navigation.PushAsync(new AppIconsPage());
 
+	private async void OnJellyfinClicked(object? sender, EventArgs e) => await Navigation.PushAsync(new JellyfinSettingsPage());
+
 	private void OnToggleTokenVisibility(object? sender, EventArgs e)
 	{
 		TokenEntry.IsPassword = !TokenEntry.IsPassword;

@@ -61,6 +61,18 @@
 
                 <BoxView Style="{StaticResource Divider}" />
 
+                <!-- Jellyfin server -->
+                <Label Text="Jellyfin" FontAttributes="Bold" FontSize="14" />
+                <Label Style="{StaticResource Hint}"
+                       Text="Set your Jellyfin server address and sign in once, baked into the Jellyfin app when you install it." />
+                <Button Text="🎬 Configure Jellyfin server" HorizontalOptions="Start"
+                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
+                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                        Clicked="OnJellyfinClicked" />
+
+                <BoxView Style="{StaticResource Divider}" />
+
                 <!-- Extra TV device IDs -->
                 <Label Text="Extra TV device IDs" FontAttributes="Bold" FontSize="14" />
                 <Border Padding="8,4" StrokeThickness="1" StrokeShape="RoundRectangle 6"
