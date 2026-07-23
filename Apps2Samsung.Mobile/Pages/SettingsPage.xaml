@@ -92,6 +92,10 @@
                     <Switch Grid.Column="1" x:Name="RemoveOldSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
                 </Grid>
                 <Grid Style="{StaticResource ToggleRow}">
+                    <Label Grid.Column="0" Text="Override existing app" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" x:Name="TryOverwriteSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                </Grid>
+                <Grid Style="{StaticResource ToggleRow}">
                     <Label Grid.Column="0" Text="Open after installation" VerticalOptions="Center" />
                     <Switch Grid.Column="1" x:Name="OpenAfterSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
                 </Grid>
@@ -109,6 +113,12 @@
                 </Grid>
                 <Label Style="{StaticResource Hint}"
                        Text="Partner signing is only needed for apps that use restricted privileges (e.g. VPN). Some TVs may reject partner-signed installs, and Samsung may not issue Partner certs for individual accounts. Leave off unless an app requires it." />
+                <Grid Style="{StaticResource ToggleRow}">
+                    <Label Grid.Column="0" Text="Force Samsung login" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" x:Name="ForceLoginSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                </Grid>
+                <Label Style="{StaticResource Hint}"
+                       Text="Always sign in to Samsung and generate a fresh certificate, even when a reusable one already covers this TV. Normally off — leave it off unless signing is misbehaving." />
 
                 <BoxView Style="{StaticResource Divider}" />
 
