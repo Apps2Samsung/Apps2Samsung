@@ -1,6 +1,7 @@
 ﻿using Apps2Samsung.Extensions;
 using Apps2Samsung.Models;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,5 +19,11 @@ namespace Apps2Samsung.Interfaces
         Task<string> EnsureTizenSdbAvailable();
         Task<string> DownloadPackageAsync(string downloadUrl, bool validateWgt = false);
         Task<InstallResult> InstallPackageAsync(string packageUrl, string tvIpAddress, CancellationToken cancellationToken, ProgressCallback? progress = null, Action? onSamsungLoginStarted = null);
+
+        /// <summary>Lists the apps installed on the TV (ensures the SDB binary, queries, parses).</summary>
+        Task<IReadOnlyList<Apps2Samsung.Models.InstalledApp>> GetInstalledAppsAsync(string tvIpAddress);
+
+        /// <summary>Uninstalls an app from the TV by its Tizen id. Returns the raw SDB result.</summary>
+        Task<Apps2Samsung.Models.ProcessResult> UninstallAppAsync(string tvIpAddress, string tizenId);
     }
 }

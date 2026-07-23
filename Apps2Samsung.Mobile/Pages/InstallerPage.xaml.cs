@@ -26,6 +26,7 @@ public partial class InstallerPage : ContentPage
 	private readonly CatalogService _catalog;
 	private readonly GitHubUpdateChecker _updateChecker;
 	private readonly SessionState _session;
+	private readonly ISdbEngine _sdb;
 
 	// Parallel lists backing the TV picker: IP + display label for each listed TV (discovered or
 	// manually added). The picker also shows a trailing ManualIpLabel entry that isn't in these.
@@ -46,7 +47,7 @@ public partial class InstallerPage : ContentPage
 
 	public InstallerPage(INetworkService networkService, ISamsungLoginService loginService,
 		CertificateProvisioner certProvisioner, WgtInstaller installer, CatalogService catalog,
-		GitHubUpdateChecker updateChecker, SessionState session)
+		GitHubUpdateChecker updateChecker, SessionState session, ISdbEngine sdb)
 	{
 		InitializeComponent();
 		_networkService = networkService;
@@ -56,6 +57,7 @@ public partial class InstallerPage : ContentPage
 		_catalog = catalog;
 		_updateChecker = updateChecker;
 		_session = session;
+		_sdb = sdb;
 
 		// Shows the app version (ApplicationDisplayVersion), so it stays in sync with the build.
 		VersionLabel.Text = $"v{AppInfo.Current.VersionString}";
@@ -255,6 +257,18 @@ public partial class InstallerPage : ContentPage
 		}
 		RebuildTvPicker(idx);
 		SetStatus($"Using TV at {ip}.");
+	}
+
+	private async void OnShowInstalledAppsClicked(object? sender, EventArgs e)
+	{
+		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
+		{
+			SetStatus("Select a TV first (tap refresh to scan).");
+			return;
+		}
+		var tvIp = _tvIps[TvPicker.SelectedIndex];
+		var label = TvPicker.SelectedItem as string ?? tvIp;
+		await Navigation.PushAsync(new InstalledAppsPage(_sdb, tvIp, label));
 	}
 
 	private async void OnRefreshClicked(object? sender, EventArgs e) => await ScanAsync();
