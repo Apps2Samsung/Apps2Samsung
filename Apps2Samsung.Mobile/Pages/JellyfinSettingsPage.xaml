@@ -54,6 +54,17 @@
                 </Border>
                 <Label Style="{StaticResource Hint}"
                        Text="Full address including http:// or https:// and the port. Include a base path too if you use a reverse proxy (e.g. https://media.example.com/jellyfin)." />
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                    <Button Grid.Column="0" x:Name="TestBtn" Text="Test connection" Clicked="OnTestConnectionClicked"
+                            BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,6"
+                            HorizontalOptions="Start"
+                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
+                    <Label Grid.Column="1" x:Name="ServerTestLabel" Style="{StaticResource Hint}"
+                           VerticalOptions="Center" IsVisible="False" />
+                </Grid>
+                <Label x:Name="MdnsWarning" IsVisible="False" FontSize="12" TextColor="#B8860B"
+                       Text="⚠️ .local (mDNS) addresses are often unreliable on Samsung TVs. Prefer the server's IP address if you can." />
 
                 <BoxView Style="{StaticResource Divider}" />
 
