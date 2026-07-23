@@ -15,6 +15,9 @@ public partial class InstallerPage : ContentPage
 {
 	// Synthetic App-picker entry for installing a local .wgt (mirrors the desktop's option).
 	private const string CustomWgtLabel = "📁 Custom WGT file…";
+	// Synthetic TV-picker entry for targeting a TV the scan didn't find (mirrors the desktop's
+	// manual-IP option). Always the last item in the TV list.
+	private const string ManualIpLabel = "✏️ Enter IP manually…";
 
 	private readonly INetworkService _networkService;
 	private readonly ISamsungLoginService _loginService;
@@ -24,8 +27,12 @@ public partial class InstallerPage : ContentPage
 	private readonly GitHubUpdateChecker _updateChecker;
 	private readonly SessionState _session;
 
-	// Parallel to TvPicker items: the IP for each listed (debug-ready) TV.
+	// Parallel lists backing the TV picker: IP + display label for each listed TV (discovered or
+	// manually added). The picker also shows a trailing ManualIpLabel entry that isn't in these.
 	private readonly List<string> _tvIps = new();
+	private readonly List<string> _tvLabels = new();
+	// Suppresses OnTvChanged while we rebuild the picker programmatically.
+	private bool _rebuildingTvPicker;
 	// The catalog releases backing AppPicker; the selected release's assets back VersionPicker.
 	private IReadOnlyList<GitHubRelease> _releases = new List<GitHubRelease>();
 	private List<Asset> _versions = new();
@@ -199,6 +206,57 @@ public partial class InstallerPage : ContentPage
 		}
 	}
 
+	// Rebuilds the TV picker from _tvLabels plus the trailing "enter IP manually" entry, selecting the
+	// given index (−1 = leave unselected). Guarded so it doesn't re-enter OnTvChanged.
+	private void RebuildTvPicker(int selectIndex)
+	{
+		_rebuildingTvPicker = true;
+		try
+		{
+			var items = new List<string>(_tvLabels) { ManualIpLabel };
+			TvPicker.ItemsSource = items;
+			TvPicker.SelectedIndex = selectIndex >= 0 && selectIndex < items.Count ? selectIndex : -1;
+		}
+		finally { _rebuildingTvPicker = false; }
+	}
+
+	private async void OnTvChanged(object? sender, EventArgs e)
+	{
+		if (_rebuildingTvPicker)
+			return;
+		if ((TvPicker.SelectedItem as string) == ManualIpLabel)
+			await PromptManualIpAsync();
+	}
+
+	// Prompts for a TV IP the scan didn't discover, validates it, and adds it as a selectable entry.
+	private async Task PromptManualIpAsync()
+	{
+		var input = await DisplayPromptAsync(
+			"Manual TV IP",
+			"Enter the TV's IP address (Developer Mode must be on):",
+			accept: "Add", cancel: "Cancel", placeholder: "192.168.1.50");
+
+		if (string.IsNullOrWhiteSpace(input) || !System.Net.IPAddress.TryParse(input.Trim(), out _))
+		{
+			if (!string.IsNullOrWhiteSpace(input))
+				SetStatus("That doesn't look like a valid IP address.");
+			// Move the selection off the manual entry (back to the first real TV, if any).
+			RebuildTvPicker(_tvIps.Count > 0 ? 0 : -1);
+			return;
+		}
+
+		var ip = input.Trim();
+		var idx = _tvIps.IndexOf(ip);
+		if (idx < 0)
+		{
+			_tvIps.Add(ip);
+			_tvLabels.Add($"{ip} (manual)");
+			idx = _tvIps.Count - 1;
+		}
+		RebuildTvPicker(idx);
+		SetStatus($"Using TV at {ip}.");
+	}
+
 	private async void OnRefreshClicked(object? sender, EventArgs e) => await ScanAsync();
 
 	private async void OnSettingsClicked(object? sender, EventArgs e) =>
@@ -222,22 +280,18 @@ public partial class InstallerPage : ContentPage
 				: null;
 
 			_tvIps.Clear();
-			var labels = new List<string>();
+			_tvLabels.Clear();
 			foreach (var d in devices)
 			{
 				_tvIps.Add(d.IpAddress);
-				labels.Add(d.DisplayText);
+				_tvLabels.Add(d.DisplayText);
 			}
 
-			TvPicker.ItemsSource = labels;
-			if (_tvIps.Count > 0)
-			{
-				var keep = selected is null ? 0 : _tvIps.IndexOf(selected);
-				TvPicker.SelectedIndex = keep >= 0 ? keep : 0;
-			}
+			var keep = selected is null ? -1 : _tvIps.IndexOf(selected);
+			RebuildTvPicker(_tvIps.Count > 0 ? (keep >= 0 ? keep : 0) : -1);
 
 			SetStatus(_tvIps.Count == 0
-				? "No debug-ready TVs found. Enable Developer Mode on the TV, then refresh."
+				? "No debug-ready TVs found. Enable Developer Mode on the TV and refresh, or tap the TV list to enter an IP manually."
 				: "Ready for use…");
 		}
 		catch (Exception ex)
