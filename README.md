@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/github/v/release/Apps2Samsung/Apps2Samsung?label=stable&style=for-the-badge" />
   <img src="https://img.shields.io/github/v/release/Apps2Samsung/Apps2Samsung?include_prereleases&label=beta&style=for-the-badge" />
   <img src="https://img.shields.io/badge/Tizen-TV-blue?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/OS-Windows%20%7C%20Linux%20%7C%20macOS-brightgreen?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/OS-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android-brightgreen?style=for-the-badge" />
   <a href="https://discord.gg/7mga3zh8Cv">
     <img src="https://img.shields.io/badge/Discord-Community-7289DA?style=for-the-badge&logo=discord&logoColor=white" />
   </a>
@@ -34,8 +34,8 @@
 
 | Channel    | Version                                                             | Notes                        |
 |------------|---------------------------------------------------------------------|------------------------------|
-| **Stable** | [v2.5.7](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v2.5.7)                                        | Recommended for most users   |
-| **Beta**   | [v2.6.0-beta](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v2.6.0-beta)                                            | Includes new features        |
+| **Stable** | [v2.6.0](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v2.6.0)                                        | Recommended for most users   |
+| **Beta**   | [v2.7.0-beta](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v2.7.0-beta)                                            | Includes new features        |
 
 <!-- versions:end -->
 

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Apps2Samsung.Mobile.Pages.InstallCompletePage"
+             Title="Installation successful"
+             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+
+    <Grid Padding="20" VerticalOptions="Center">
+        <Border Padding="20" StrokeThickness="1"
+                StrokeShape="RoundRectangle 8"
+                Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
+                BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
+            <VerticalStackLayout Spacing="14" HorizontalOptions="Center">
+
+                <Label Text="✅" FontSize="40" HorizontalOptions="Center" />
+
+                <Label x:Name="MessageLabel" FontSize="16" FontAttributes="Bold"
+                       HorizontalTextAlignment="Center" HorizontalOptions="Center" />
+
+                <Label Text="That was easy, right?" FontSize="14" Opacity="0.7"
+                       HorizontalTextAlignment="Center" HorizontalOptions="Center" />
+
+                <!-- Ko-fi QR on a white tile -->
+                <Border BackgroundColor="White" Padding="8" StrokeThickness="0"
+                        StrokeShape="RoundRectangle 6" HorizontalOptions="Center">
+                    <Image x:Name="QrImage" WidthRequest="160" HeightRequest="160" Aspect="AspectFit" />
+                </Border>
+
+                <HorizontalStackLayout Spacing="12" HorizontalOptions="Center" Margin="0,8,0,0">
+                    <Button Text="🍺 Buy me a beer" Clicked="OnKoFiClicked" />
+                    <Button Text="Close" WidthRequest="100" Clicked="OnCloseClicked" />
+                </HorizontalStackLayout>
+
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+
+</ContentPage>

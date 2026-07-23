@@ -1,0 +1,411 @@
+using Apps2Samsung.Extensions;
+using Apps2Samsung.Helpers.Tizen.Certificate;
+using Apps2Samsung.Interfaces;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Pkcs;
+using Org.BouncyCastle.Security;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
+
+namespace Apps2Samsung.Services
+{
+    public class TizenCertificateService : ITizenCertificateService
+    {
+        private readonly HttpClient _httpClient;
+        private readonly CertificateEndpoints _endpoints;
+
+        public TizenCertificateService(
+            HttpClient httpClient,
+            CertificateEndpoints endpoints)
+        {
+            _httpClient = httpClient;
+            _endpoints = endpoints;
+        }
+
+        public async Task<(string authorP12, string distributorP12, string passwordP12)> GenerateProfileAsync(
+            IReadOnlyCollection<string> duids,
+            string accessToken,
+            string userId,
+            string userEmail,
+            string outputPath,
+            string caPath,
+            CertificatePrivilegeLevel level = CertificatePrivilegeLevel.Public,
+            ProgressCallback? progress = null)
+        {
+            if (string.IsNullOrEmpty(outputPath))
+                throw new ArgumentException("Output path cannot be empty", nameof(outputPath));
+
+            var cipherUtil = new CipherUtil();
+
+            Directory.CreateDirectory(outputPath);
+
+            progress?.Invoke("GenPassword");
+            string p12Plain = cipherUtil.GenerateRandomPassword();
+            string p12Encrypted = cipherUtil.GetEncryptedString(p12Plain);
+            await File.WriteAllTextAsync(Path.Combine(outputPath, "password.txt"), p12Plain);
+
+            progress?.Invoke("GenKeyPair");
+            var keyPair = GenerateKeyPair();
+
+            progress?.Invoke("CreateAuthorCsr");
+            var authorCsrData = GenerateAuthorCsr(keyPair);
+            await File.WriteAllBytesAsync(Path.Combine(outputPath, "author.csr"), authorCsrData);
+
+            progress?.Invoke("CreateDistributorCSR");
+            var distributorCsrData = GenerateDistributorCsr(keyPair, duids, userEmail);
+            await File.WriteAllBytesAsync(Path.Combine(outputPath, "distributor.csr"), distributorCsrData);
+
+            progress?.Invoke("PostAuthorCSR");
+            var signedAuthorCsrBytes = await PostAuthorCsrAsync(authorCsrData, accessToken, userId);
+            await File.WriteAllBytesAsync(Path.Combine(outputPath, "signed_author.cer"), signedAuthorCsrBytes);
+
+            progress?.Invoke("PostDistributorCSR");
+            var (profileXmlBytes, signedDistributorCsrBytes) = await PostDistributorCsrAsync(accessToken, userId, distributorCsrData, level);
+            if (profileXmlBytes != null)
+                await File.WriteAllBytesAsync(Path.Combine(outputPath, "device-profile.xml"), profileXmlBytes);
+            await File.WriteAllBytesAsync(Path.Combine(outputPath, "signed_distributor.cer"), signedDistributorCsrBytes);
+
+            await CheckCertificateExistenceAsync(caPath, level);
+
+            progress?.Invoke("ExportPfxCertificates");
+            string authorp12 = await ExportPfxWithCaChainAsync(signedAuthorCsrBytes, keyPair.Private, p12Plain, outputPath, caPath, "author", "vd_tizen_dev_author_ca.cer");
+            string distributorp12 = await ExportPfxWithCaChainAsync(signedDistributorCsrBytes, keyPair.Private, p12Plain, outputPath, caPath, "distributor", DistributorCaFile(level));
+            return (authorp12, distributorp12, p12Plain);
+        }
+
+        public async Task<string> RegenerateDistributorAsync(
+            string certDir,
+            IReadOnlyCollection<string> duids,
+            string accessToken,
+            string userId,
+            string userEmail,
+            string caPath,
+            CertificatePrivilegeLevel level = CertificatePrivilegeLevel.Public,
+            ProgressCallback? progress = null)
+        {
+            if (string.IsNullOrEmpty(certDir))
+                throw new ArgumentException("Certificate directory cannot be empty", nameof(certDir));
+
+            var authorP12 = Path.Combine(certDir, "author.p12");
+            var passwordFile = Path.Combine(certDir, "password.txt");
+            if (!File.Exists(authorP12) || !File.Exists(passwordFile))
+                throw new FileNotFoundException(
+                    "Existing author certificate not found; cannot regenerate distributor only.", authorP12);
+
+            var password = (await File.ReadAllTextAsync(passwordFile)).Trim();
+
+            // Reuse the existing author keypair so the author identity stays byte-identical —
+            // only the device-bound distributor cert changes for the new DUID.
+            var keyPair = LoadKeyPairFromP12(authorP12, password);
+
+            progress?.Invoke("CreateDistributorCSR");
+            var distributorCsrData = GenerateDistributorCsr(keyPair, duids, userEmail);
+            await File.WriteAllBytesAsync(Path.Combine(certDir, "distributor.csr"), distributorCsrData);
+
+            progress?.Invoke("PostDistributorCSR");
+            var (profileXmlBytes, signedDistributorCsrBytes) =
+                await PostDistributorCsrAsync(accessToken, userId, distributorCsrData, level);
+            if (profileXmlBytes != null)
+                await File.WriteAllBytesAsync(Path.Combine(certDir, "device-profile.xml"), profileXmlBytes);
+            await File.WriteAllBytesAsync(Path.Combine(certDir, "signed_distributor.cer"), signedDistributorCsrBytes);
+
+            await CheckCertificateExistenceAsync(caPath, level);
+
+            progress?.Invoke("ExportPfxCertificates");
+            // author.p12 / signed_author.cer / password.txt are intentionally left untouched.
+            return await ExportPfxWithCaChainAsync(
+                signedDistributorCsrBytes, keyPair.Private, password, certDir,
+                caPath, "distributor", DistributorCaFile(level));
+        }
+
+        /// <summary>Loads the keypair (public + private) from a PKCS#12 file's first key entry.</summary>
+        private static AsymmetricCipherKeyPair LoadKeyPairFromP12(string p12Path, string password)
+        {
+            using var fs = File.OpenRead(p12Path);
+            var store = new Pkcs12StoreBuilder().Build();
+            store.Load(fs, password.ToCharArray());
+
+            var alias = store.Aliases.Cast<string>().FirstOrDefault(store.IsKeyEntry)
+                ?? throw new InvalidOperationException($"No private key entry found in '{p12Path}'.");
+
+            var privateKey = store.GetKey(alias).Key;
+            var publicKey = store.GetCertificate(alias).Certificate.GetPublicKey();
+            return new AsymmetricCipherKeyPair(publicKey, privateKey);
+        }
+
+        private static AsymmetricCipherKeyPair GenerateKeyPair()
+        {
+            var keyGen = new RsaKeyPairGenerator();
+            keyGen.Init(new KeyGenerationParameters(new SecureRandom(), 2048));
+            return keyGen.GenerateKeyPair();
+        }
+
+        private static byte[] GenerateAuthorCsr(AsymmetricCipherKeyPair keyPair)
+        {
+            var subject = new X509Name(
+                new ArrayList { X509Name.C, X509Name.ST, X509Name.L, X509Name.O, X509Name.OU, X509Name.CN },
+                new ArrayList { "", "", "", "", "", "Jelly2Sams" });
+            var csr = new Pkcs10CertificationRequest("SHA256withRSA", subject, keyPair.Public, null, keyPair.Private);
+
+            using var ms = new MemoryStream();
+            using var sw = new StreamWriter(ms, System.Text.Encoding.ASCII, leaveOpen: true);
+            var pemWriter = new PemWriter(sw);
+            pemWriter.WriteObject(csr);
+            sw.Flush();
+            ms.Position = 0;
+            return ms.ToArray();
+
+        }
+
+        private static byte[] GenerateDistributorCsr(AsymmetricCipherKeyPair keyPair, IEnumerable<string> duids, string userEmail)
+        {
+            var subject = new X509Name(
+                new ArrayList { X509Name.CN, X509Name.OU, X509Name.O, X509Name.L, X509Name.ST, X509Name.C, X509Name.EmailAddress },
+                new ArrayList { "TizenSDK", "", "", "", "", "", userEmail });
+
+            // One device-id SAN entry per DUID lets a single distributor cert cover several TVs.
+            var names = new List<GeneralName>
+            {
+                new GeneralName(GeneralName.UniformResourceIdentifier, "URN:tizen:packageid=")
+            };
+            foreach (var duid in duids)
+                names.Add(new GeneralName(GeneralName.UniformResourceIdentifier, $"URN:tizen:deviceid={duid}"));
+            var generalNames = new GeneralNames(names.ToArray());
+
+            var extensions = new X509Extensions(new Dictionary<DerObjectIdentifier, Org.BouncyCastle.Asn1.X509.X509Extension>
+            {
+                { X509Extensions.SubjectAlternativeName, new Org.BouncyCastle.Asn1.X509.X509Extension(false, new DerOctetString(generalNames)) }
+            });
+
+            var attribute = new AttributePkcs(PkcsObjectIdentifiers.Pkcs9AtExtensionRequest, new DerSet(extensions));
+            var csr = new Pkcs10CertificationRequest("SHA256withRSA", subject, keyPair.Public, new DerSet(attribute), keyPair.Private);
+
+            using var ms = new MemoryStream();
+            using var sw = new StreamWriter(ms, System.Text.Encoding.ASCII, leaveOpen: true);
+            var pemWriter = new PemWriter(sw);
+            pemWriter.WriteObject(csr);
+            sw.Flush();
+            ms.Position = 0;
+            return ms.ToArray();
+
+        }
+
+        // The distributor CA chain file that matches a requested privilege level.
+        private static string DistributorCaFile(CertificatePrivilegeLevel level) =>
+            level == CertificatePrivilegeLevel.Partner
+                ? "vd_tizen_dev_partner2.crt"
+                : "vd_tizen_dev_public2.crt";
+
+        private static Task CheckCertificateExistenceAsync(string caPath, CertificatePrivilegeLevel level)
+        {
+            string[] requiredFiles = { "vd_tizen_dev_author_ca.cer", DistributorCaFile(level) };
+
+            foreach (var file in requiredFiles)
+            {
+                string target = Path.Combine(caPath, file);
+                if (!File.Exists(target))
+                    // Core can't show UI; surface it so the host head reports it.
+                    throw new FileNotFoundException($"Missing CA file: {file}", target);
+            }
+            return Task.CompletedTask;
+        }
+
+        // Simplified Http Post for Author CSR
+        private async Task<byte[]> PostAuthorCsrAsync(byte[] csrData, string accessToken, string userId)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, _endpoints.AuthorV3);
+            var content = new MultipartFormDataContent
+            {
+                { new StringContent(accessToken), "access_token" },
+                { new StringContent(userId), "user_id" },
+                { new StringContent("VD"), "platform"},
+                { new ByteArrayContent(csrData), "csr", "author.csr" }
+            };
+            request.Content = content;
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsByteArrayAsync();
+        }
+
+        private async Task<(byte[] profileXml, byte[] distributorCert)> PostDistributorCsrAsync(string accessToken, string userId, byte[] csrBytes, CertificatePrivilegeLevel level)
+        {
+            var certificateHelper = new CertificateHelper();
+            // svdca expects a LOWERCASE privilege_level ("public"/"partner") — the official Tizen
+            // extension sends lowercase, and the server treats anything that isn't exactly "partner"
+            // as public. Sending "Partner" (the enum's ToString) silently yielded a PUBLIC cert, which
+            // is why partner privileges (e.g. vpnservice) never unlocked. Lowercase it to match.
+            var privilegeLevel = level.ToString().ToLowerInvariant(); // "public" or "partner"
+
+            var v1Content = new MultipartFormDataContent
+            {
+                { new StringContent(accessToken), "access_token" },
+                { new StringContent(userId), "user_id" },
+                { new StringContent(privilegeLevel), "privilege_level" },
+                { new StringContent("Individual"), "developer_type" },
+                { new StringContent("VD"), "platform" },
+                { new ByteArrayContent(csrBytes), "csr", "distributor.csr" }
+            };
+
+            var v1Request = new HttpRequestMessage(HttpMethod.Post, _endpoints.DistributorsV1);
+            v1Request.Content = v1Content;
+            var v1Response = await _httpClient.SendAsync(v1Request);
+
+            if (!v1Response.IsSuccessStatusCode)
+            {
+                await certificateHelper.HandleErrorResponse(v1Response);
+                v1Response.EnsureSuccessStatusCode();
+            }
+
+            var profileXml = await v1Response.Content.ReadAsByteArrayAsync();
+
+            var v3Content = new MultipartFormDataContent
+            {
+                { new StringContent(accessToken), "access_token" },
+                { new StringContent(userId), "user_id" },
+                { new StringContent(privilegeLevel), "privilege_level" },
+                { new StringContent("Individual"), "developer_type" },
+                { new StringContent("VD"), "platform" },
+                { new ByteArrayContent(csrBytes), "csr", "distributor.csr" }
+            };
+
+            var v3Request = new HttpRequestMessage(HttpMethod.Post, _endpoints.DistributorsV3);
+            v3Request.Content = v3Content;
+            var v3Response = await _httpClient.SendAsync(v3Request);
+
+            if (!v3Response.IsSuccessStatusCode)
+            {
+                await certificateHelper.HandleErrorResponse(v3Response);
+                v3Response.EnsureSuccessStatusCode();
+            }
+
+            var distributorCert = await v3Response.Content.ReadAsByteArrayAsync();
+
+            return (profileXml, distributorCert);
+        }
+
+
+        private static async Task<string> ExportPfxWithCaChainAsync(
+            byte[] signedCertBytes,
+            AsymmetricKeyParameter privateKey,
+            string password,
+            string outputPath,
+            string caPath,
+            string filename,
+            string caFile /* kept for compat but verified below */)
+        {
+            var parser = new Org.BouncyCastle.X509.X509CertificateParser();
+
+            var leafBc = parser.ReadCertificate(signedCertBytes);
+            using var leafDot = new X509Certificate2(leafBc.GetEncoded());
+
+            X509Certificate2? candidateDot = null;
+            string requested = Path.Combine(caPath, caFile);
+            if (File.Exists(requested))
+            {
+                var bc = parser.ReadCertificate(await File.ReadAllBytesAsync(requested));
+                candidateDot = new X509Certificate2(bc.GetEncoded());
+            }
+
+            // --- Load all CAs in folder as fallback pool ---
+            var allCaDot = new List<X509Certificate2>();
+            if (Directory.Exists(caPath))
+            {
+                foreach (var p in Directory.EnumerateFiles(caPath, "*.*")
+                         .Where(f => f.EndsWith(".cer", StringComparison.OrdinalIgnoreCase) ||
+                                     f.EndsWith(".crt", StringComparison.OrdinalIgnoreCase)))
+                {
+                    try
+                    {
+                        var caTemp = parser.ReadCertificate(await File.ReadAllBytesAsync(p));
+                        allCaDot.Add(new X509Certificate2(caTemp.GetEncoded()));
+                    }
+                    catch { /* ignore bad files */ }
+                }
+            }
+
+            static bool IsMatchingIntermediate(X509Certificate2 ca, X509Certificate2 ee) =>
+                !ca.Subject.Equals(ca.Issuer, StringComparison.Ordinal) &&  // not self-signed
+                 ca.Subject.Equals(ee.Issuer, StringComparison.Ordinal);    // issuer match
+
+            // --- Pick/verify the correct INTERMEDIATE (never a root) ---
+            if (candidateDot == null || !IsMatchingIntermediate(candidateDot, leafDot))
+            {
+                candidateDot?.Dispose();
+                candidateDot = allCaDot.FirstOrDefault(c => IsMatchingIntermediate(c, leafDot))
+                    ?? throw new InvalidOperationException(
+                        $"No matching intermediate in '{caPath}'. Expected Subject: '{leafDot.Issuer}'.");
+            }
+
+            // --- Convert chosen CA back to BC type for Pkcs12Store ---
+            var caBcCert = parser.ReadCertificate(candidateDot.RawData);
+
+            // --- Build PKCS#12 deterministically with BC (alias + order) ---
+            // Encrypt BOTH the key and the certificate bags with 3DES. BouncyCastle's default
+            // cert-bag cipher is legacy 40-bit RC2, which Windows reads but Android/MonoVM (and
+            // OpenSSL-3 hosts) reject — surfacing as a misleading "certificate cannot be read with
+            // the provided password" when the resigner loads the .p12. 3DES is read everywhere.
+            var store = new Pkcs12StoreBuilder()
+                .SetKeyAlgorithm(PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc)
+                .SetCertAlgorithm(PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc)
+                .Build();
+
+            var keyEntry = new AsymmetricKeyEntry(privateKey);
+            var leafEntry = new X509CertificateEntry(leafBc);
+            var caEntry = new X509CertificateEntry(caBcCert);
+
+            // Chain MUST be [leaf, intermediate]
+            var chain = new[] { leafEntry, caEntry };
+
+            const string keyAlias = "usercertificate"; // visible in cert viewers
+            store.SetKeyEntry(keyAlias, keyEntry, chain);
+            string caAlias = caBcCert.SubjectDN.ToString();  // keeps escaped commas (\,) as expected
+            store.SetCertificateEntry(caAlias, caEntry);
+
+            // --- Write .p12 ---
+            var target = Path.Combine(outputPath, $"{filename}.p12");
+            using (var ms = new MemoryStream())
+            {
+                store.Save(ms, password.ToCharArray(), new SecureRandom());
+                await File.WriteAllBytesAsync(target, ms.ToArray());
+            }
+
+            // --- Optional sanity check ---
+            if (OperatingSystem.IsWindows())
+            {
+                try
+                {
+                    var verify = new X509Certificate2Collection();
+                    // For a one-off verification, EphemeralKeySet is fine
+                    verify.Import(target, password, X509KeyStorageFlags.EphemeralKeySet);
+
+                    var leaf = verify.Cast<X509Certificate2>().FirstOrDefault(c => c.HasPrivateKey)
+                               ?? throw new InvalidOperationException("PFX sanity failed: no leaf with private key.");
+                    var ca = verify.Cast<X509Certificate2>().FirstOrDefault(c => !c.HasPrivateKey)
+                               ?? throw new InvalidOperationException("PFX sanity failed: no intermediate certificate.");
+
+                    if (!string.Equals(leaf.Issuer, ca.Subject, StringComparison.Ordinal))
+                        throw new InvalidOperationException(
+                            $"PFX chain mismatch: leaf issuer '{leaf.Issuer}' != CA subject '{ca.Subject}'.");
+                }
+                catch (Exception ex)
+                {
+                    // Log if you want, but don't block the install on Linux quirks
+                    System.Diagnostics.Trace.WriteLine($"PFX sanity check failed: {ex}");
+                }
+            }
+
+            return target;
+        }
+    }
+}

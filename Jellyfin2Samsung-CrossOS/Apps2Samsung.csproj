@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -15,7 +15,7 @@
 	<CFBundleName>Apps2Samsung</CFBundleName>
 	<CFBundleDisplayName>Apps2Samsung</CFBundleDisplayName>
 	<CFBundleIdentifier>com.madebypatrick.apps2samsung</CFBundleIdentifier>
-	<CFBundleVersion>2.6.0</CFBundleVersion>
+	<CFBundleVersion>2.7.0</CFBundleVersion>
 	<CFBundlePackageType>APPL</CFBundlePackageType>
 	<CFBundleSignature>????</CFBundleSignature>
 	<CFBundleExecutable>Apps2Samsung</CFBundleExecutable>
@@ -107,5 +107,9 @@
 	  <AvaloniaResource Update="Assets\esbuild\win-x64\esbuild.exe">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </AvaloniaResource>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Apps2Samsung.Core\Apps2Samsung.Core.csproj" />
 	</ItemGroup>
 </Project>

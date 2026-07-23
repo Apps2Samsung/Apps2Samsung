@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Apps2Samsung.Mobile.Pages.InstalledAppsPage"
+             Title="Installed apps"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="12" RowSpacing="10">
+
+        <!-- Header banner with a back affordance -->
+        <Border Grid.Row="0" BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+            <Grid ColumnDefinitions="44,*,44" VerticalOptions="Center">
+                <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
+                        BackgroundColor="Transparent" BorderWidth="0" Padding="0"
+                        WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
+                <Label Grid.Column="1" Text="Installed apps" TextColor="White" FontAttributes="Bold"
+                       VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                <Button Grid.Column="2" x:Name="RefreshBtn" Text="⟳" FontSize="18" TextColor="White"
+                        BackgroundColor="Transparent" BorderWidth="0" Padding="0"
+                        WidthRequest="44" HeightRequest="44" Clicked="OnRefreshClicked" />
+            </Grid>
+        </Border>
+
+        <!-- Subtitle: count / status -->
+        <Label Grid.Row="1" x:Name="CountLabel" FontSize="12" Opacity="0.6" Text="Loading…" />
+
+        <!-- App list -->
+        <CollectionView Grid.Row="2" x:Name="AppsList">
+            <CollectionView.EmptyView>
+                <Label x:Name="EmptyLabel" Text="No apps to show." Padding="16"
+                       HorizontalTextAlignment="Center" Opacity="0.6" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Margin="0,4" Padding="12" StrokeThickness="1" StrokeShape="RoundRectangle 8"
+                            Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Text="{Binding DisplayName}" FontAttributes="Bold" FontSize="15"
+                                       LineBreakMode="TailTruncation" />
+                                <Label Text="{Binding TizenId}" FontSize="11" Opacity="0.55"
+                                       LineBreakMode="TailTruncation" />
+                                <Label Text="{Binding Version, StringFormat='v{0}'}" FontSize="11" Opacity="0.55" />
+                            </VerticalStackLayout>
+                            <Button Grid.Column="1" Text="Uninstall" Clicked="OnUninstallClicked"
+                                    IsVisible="{Binding IsRemovable}" VerticalOptions="Center"
+                                    BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
+                                    BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                    TextColor="{AppThemeBinding Light=#B00020, Dark=#FF6B6B}" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Busy overlay -->
+        <ActivityIndicator Grid.Row="2" x:Name="Busy" IsRunning="False" IsVisible="False"
+                           VerticalOptions="Center" HorizontalOptions="Center" Color="#2C3E50" />
+
+    </Grid>
+
+</ContentPage>

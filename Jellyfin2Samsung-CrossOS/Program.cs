@@ -11,15 +11,8 @@ namespace Apps2Samsung
         [STAThread]
         public static void Main(string[] args)
         {
-            // Register trace listener BEFORE Avalonia starts
-            var logDir = AppContext.BaseDirectory;
-            string logFolder = Path.Combine(logDir, "Logs");
-            Directory.CreateDirectory(logFolder);
-            var dtg = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss-fff");
-            var logFile = Path.Combine(logFolder, $"debug_{dtg}.log");
-
-            Trace.Listeners.Add(new FileTraceListener(logFile));
-            Trace.AutoFlush = true;
+            // Route Trace to a file BEFORE Avalonia starts (shared with the mobile head via Core).
+            Apps2Samsung.Diagnostics.FileLog.Initialize(Path.Combine(AppContext.BaseDirectory, "Logs"));
 
 
             BuildAvaloniaApp()

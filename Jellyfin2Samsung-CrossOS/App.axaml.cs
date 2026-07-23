@@ -68,8 +68,27 @@ namespace Apps2Samsung
             services.AddSingleton(settings);
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<ILocalizationService, LocalizationService>();
-            services.AddSingleton<INetworkService, NetworkService>();
-            services.AddSingleton<ITizenCertificateService, TizenCertificateService>();
+            services.AddSingleton<IMacVendorLookup, ArpMacVendorLookup>();
+            // The TV-name lookup is SDB-backed and lives on the installer; expose it under the
+            // Core-side abstraction so NetworkService needn't know the full installer interface.
+            services.AddSingleton<ITvNameResolver>(sp =>
+                (TizenInstallerService)sp.GetRequiredService<ITizenInstallerService>());
+            services.AddSingleton<INetworkService>(sp => new NetworkService(
+                sp.GetRequiredService<ITvNameResolver>(),
+                sp.GetRequiredService<IMacVendorLookup>(),
+                () => AppSettings.Default.UserCustomIP));
+            services.AddSingleton<ITizenCertificateService>(sp => new TizenCertificateService(
+                sp.GetRequiredService<HttpClient>(),
+                new CertificateEndpoints(
+                    AppSettings.Default.AuthorEndpoint_V3,
+                    AppSettings.Default.DistributorsEndpoint_V1,
+                    AppSettings.Default.DistributorsEndpoint_V3)));
+            // Desktop SDB engine: shells out to the downloaded TizenSdb.exe. Its path is owned by
+            // TizenInstallerService.EnsureTizenSdbAvailable(); the provider reads it lazily at
+            // call time (so this registration doesn't force the installer to build early — no cycle).
+            services.AddSingleton<ISdbEngine>(sp => new ExeSdbEngine(
+                sp.GetRequiredService<ProcessHelper>(),
+                () => sp.GetRequiredService<ITizenInstallerService>().TizenSdbPath));
             services.AddSingleton<ITizenInstallerService, TizenInstallerService>();
             services.AddSingleton<IThemeService, ThemeService>();
             services.AddSingleton<IUpdaterService, UpdaterService>();
@@ -94,17 +113,26 @@ namespace Apps2Samsung
             });
 
             services.AddSingleton<SamsungLoginService>();
+            services.AddSingleton<ISamsungLoginService>(sp => sp.GetRequiredService<SamsungLoginService>());
+            // Shared reuse-aware cert provisioning (single source of truth with the mobile head).
+            services.AddSingleton<Apps2Samsung.Certificate.CertificateProvisioningService>();
             services.AddSingleton<JellyfinApiClient>();
             services.AddSingleton<TizenApiClient>();
             services.AddSingleton<PluginManager>();
             services.AddSingleton<JellyfinPackagePatcher>();
+
+            // The shared settings contract + this head's bundled oblong-tile source, needed by the
+            // Core CustomIconPackagePatcher.
+            services.AddSingleton<Apps2Samsung.Configuration.IAppConfig>(_ => AppSettings.Default);
+            services.AddSingleton<Apps2Samsung.Packaging.IOblongIconSource, DesktopOblongIconSource>();
 
             // Per-app package patchers (edit the .wgt before signing/install).
             services.AddSingleton<IPackagePatcher>(sp => sp.GetRequiredService<JellyfinPackagePatcher>());
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Helpers.TvApp.TvAppPackagePatcher>();
             // Registered last so the user's chosen icon (custom PNG or the bundled oblong tile)
             // overrides the package's default and composes with the app-specific patchers above.
-            services.AddSingleton<IPackagePatcher, Apps2Samsung.Helpers.CustomIconPackagePatcher>();
+            // Now the shared Core patcher (was Apps2Samsung.Helpers.CustomIconPackagePatcher).
+            services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.CustomIconPackagePatcher>();
 
             // --------------------
             // Helpers

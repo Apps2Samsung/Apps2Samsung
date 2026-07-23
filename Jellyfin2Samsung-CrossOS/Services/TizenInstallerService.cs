@@ -1,3 +1,4 @@
+using Apps2Samsung.Certificate;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.API;
@@ -19,13 +20,16 @@ using System.Threading.Tasks;
 
 namespace Apps2Samsung.Services
 {
-    public class TizenInstallerService : ITizenInstallerService
+    public class TizenInstallerService : ITizenInstallerService, ITvNameResolver
     {
         private readonly HttpClient _httpClient;
         private readonly IDialogService _dialogService;
         private readonly AppSettings _appSettings;
         private readonly IEnumerable<IPackagePatcher> _packagePatchers;
         private readonly ProcessHelper _processHelper;
+        private readonly ISdbEngine _sdb;
+        private readonly ISamsungLoginService _login;
+        private readonly CertificateProvisioningService _provisioning;
 
         public string? TizenSdbPath { get; private set; }
         public string? PackageCertificate { get; set; }
@@ -36,13 +40,19 @@ namespace Apps2Samsung.Services
             AppSettings appSettings,
             IEnumerable<IPackagePatcher> packagePatchers,
             JellyfinApiClient jellyfinApiClient,
-            ProcessHelper processHelper)
+            ProcessHelper processHelper,
+            ISdbEngine sdb,
+            ISamsungLoginService samsungLogin,
+            CertificateProvisioningService provisioning)
         {
             _httpClient = httpClient;
             _dialogService = dialogService;
             _appSettings = appSettings;
             _packagePatchers = packagePatchers;
             _processHelper = processHelper;
+            _sdb = sdb;
+            _login = samsungLogin;
+            _provisioning = provisioning;
         }
 
         #region TizenSdb Management
@@ -141,7 +151,9 @@ namespace Apps2Samsung.Services
 
                 var json = await response.Content.ReadAsStringAsync();
                 var releases = JsonSerializer.Deserialize<List<GitHubRelease>>(json, JsonSerializerOptionsProvider.Default);
-                var firstRelease = releases?.FirstOrDefault();
+                // Skip drafts: GitHub sorts them to the top of the list once authenticated, but their
+                // assets aren't downloadable. Take the newest published release.
+                var firstRelease = releases?.FirstOrDefault(r => !r.Draft);
 
                 if (firstRelease == null)
                     throw new InvalidOperationException("No releases found");
@@ -160,7 +172,9 @@ namespace Apps2Samsung.Services
             {
                 var json = await _httpClient.GetStringAsync(AppSettings.Default.TizenSdb);
                 var releases = JsonSerializer.Deserialize<List<GitHubRelease>>(json, JsonSerializerOptionsProvider.Default);
-                var firstRelease = (releases?.FirstOrDefault()) ?? throw new InvalidOperationException("No releases found");
+                // Skip drafts: GitHub sorts them to the top once authenticated, but a draft's asset
+                // browser_download_url 404s. Take the newest published release.
+                var firstRelease = (releases?.FirstOrDefault(r => !r.Draft)) ?? throw new InvalidOperationException("No releases found");
                 string nameMatch = PlatformService.GetAssetPlatformIdentifier();
 
                 var matchedAsset = firstRelease.Assets.FirstOrDefault(a =>
@@ -409,7 +423,7 @@ namespace Apps2Samsung.Services
             finally
             {
                 if (!string.IsNullOrEmpty(tvIpAddress))
-                    await _processHelper.RunCommandAsync(TizenSdbPath!, $"disconnect {tvIpAddress}");
+                    await _sdb.DisconnectAsync(tvIpAddress);
             }
         }
 
@@ -478,8 +492,13 @@ namespace Apps2Samsung.Services
                 return null;
 
             string tvDuid = await GetTvDuidAsync(tvIpAddress);
-            if (string.IsNullOrEmpty(tvDuid))
+            // Reject a malformed DUID (e.g. an SDB transport-error string) so it never ends up baked
+            // into the certificate's device-id SAN.
+            if (!TizenDuid.IsValid(tvDuid))
+            {
+                Trace.WriteLine($"[Cert] Invalid TV DUID read from {tvIpAddress}: '{tvDuid}'");
                 return null;
+            }
 
             var (tizenOs, sdkToolPath) = await FetchCapabilitiesAsync(tvIpAddress);
 
@@ -512,7 +531,6 @@ namespace Apps2Samsung.Services
 
             Version certVersion = new(Constants.TizenVersions.CertificateRequired);
             Version pushVersion = new(Constants.TizenVersions.PushInstallMax);
-            Version intermediateVersion = new(Constants.TizenVersions.IntermediateVersion);
 
             bool requiresResign = deviceInfo.TizenVersion >= certVersion ||
                                   deviceInfo.TizenVersion <= pushVersion ||
@@ -545,7 +563,20 @@ namespace Apps2Samsung.Services
 
             string authorp12, distributorp12, p12Password;
 
-            var jelly2SamsDir = Path.Combine(AppSettings.CertificatePath, Constants.AppIdentifiers.Jelly2Sams);
+            // Public and Partner distributor certs are kept as separate profiles ("Jelly2Sams - Public"
+            // / "Jelly2Sams - Partner") so both can coexist and each is reused independently — switching
+            // level never clobbers the other. The requested level comes from the toggle (later also
+            // per-package via the manifest).
+            // Partner if the global toggle is on, OR the selected package's manifest declares it, OR
+            // the .wgt itself declares a partner-level privilege (e.g. vpnservice) in its config.xml.
+            // The last one is the automatic binding: a package that needs a restricted API must declare
+            // it, so we don't have to track cert levels per package anywhere.
+            var requestedLevel = (_appSettings.PartnerSigning
+                                  || _appSettings.RequiresPartnerSigning
+                                  || Apps2Samsung.Packaging.WgtPrivileges.RequiresPartner(packageUrl))
+                ? CertificatePrivilegeLevel.Partner
+                : CertificatePrivilegeLevel.Public;
+            var jelly2SamsDir = Path.Combine(AppSettings.CertificatePath, AutoCertProfileName(requestedLevel));
             bool hasAuthor = HasUsableAuthorCert(jelly2SamsDir);
 
             // Older Tizen TVs use the shipped "Jellyfin" certificate (set just above) — it's always
@@ -553,17 +584,91 @@ namespace Apps2Samsung.Services
             // and is just reused from disk (unless the user forces a fresh login).
             bool isBundledJellyfin = selectedCertificate == Constants.AppIdentifiers.JellyfinAppName;
 
-            // A full Samsung profile (fresh keypair + new author cert) is only needed on first run,
-            // when no real cert is selected, when the generated author cert is missing/expired, or
-            // when forced. The bundled "Jellyfin" cert never needs one.
-            bool needsFullProfile = string.IsNullOrEmpty(selectedCertificate) ||
-                                    selectedCertificate == Constants.AppIdentifiers.Jelly2SamsDefault ||
-                                    _appSettings.ForceSamsungLogin ||
+            // "Auto" mode = the app drives cert selection itself: no real pick, the "(default)"
+            // placeholder, or one of our generated "Jelly2Sams[ - Public/Partner]" profiles. In auto
+            // mode we REUSE an existing valid profile for the requested level rather than logging in
+            // again. Crucially, the "(default)"/empty placeholder must NOT force a fresh Samsung login
+            // when a usable level cert is already on disk — that placeholder was the cause of the
+            // "sign in every time" bug (the dropdown often reverts to "(default)" even though
+            // "Jelly2Sams - Public/Partner" exists).
+            bool autoMode = string.IsNullOrEmpty(selectedCertificate) || IsAutoCertName(selectedCertificate);
+
+            // Auto profile (no real pick / "(default)" / a generated "Jelly2Sams - Public/Partner"):
+            // delegate the whole reuse/regenerate/mint decision to the shared Core
+            // CertificateProvisioningService, so desktop and mobile use one source of truth for cert
+            // reuse (it reuses a valid profile covering this TV with NO Samsung login, regenerates only
+            // the distributor when a DUID isn't covered, and mints a full profile otherwise / on force).
+            // The bundled "Jellyfin" cert and user-imported certs fall through to the original path
+            // below, unchanged.
+            if (!isBundledJellyfin && autoMode)
+            {
+                var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
+                // Core emits progress as localization keys; localize them here at the boundary.
+                ProgressCallback? certProgress = progress is null ? null : new ProgressCallback(k => progress(k.Localized()));
+                try
+                {
+                    var profile = await _provisioning.EnsureAsync(
+                        deviceDuid: deviceInfo.Duid,
+                        level: requestedLevel,
+                        storePath: AppSettings.CertificatePath,
+                        caPath: caPath,
+                        manualDuids: ParseDuids(_appSettings.ManualDuids),
+                        forceLogin: _appSettings.ForceSamsungLogin,
+                        onLoginStarting: () =>
+                        {
+                            progress?.Invoke(Constants.LocalizationKeys.SamsungLogin.Localized());
+                            onSamsungLoginStarted?.Invoke();
+                        },
+                        progress: certProgress,
+                        ct: cancellationToken);
+
+                    PackageCertificate = profile.ProfileName;
+                    _appSettings.Certificate = profile.ProfileName;
+                    _appSettings.ChosenCertificates = new ExistingCertificates
+                    {
+                        Name = profile.ProfileName,
+                        Duid = deviceInfo.Duid,
+                        File = profile.AuthorP12
+                    };
+                    _appSettings.Save();
+
+                    // Permit-install for older Tizen versions (thresholds shared with Core).
+                    await Apps2Samsung.Sdb.TizenPermitInstall.EnsureAsync(
+                        _sdb, tvIpAddress, deviceInfo.TizenVersion, deviceInfo.SdkToolPath,
+                        Path.Combine(Path.GetDirectoryName(profile.AuthorP12)!, Constants.Certificate.DeviceProfileFileName));
+
+                    return new CertificateResult
+                    {
+                        Success = true,
+                        RequiresResign = true,
+                        AuthorP12 = profile.AuthorP12,
+                        DistributorP12 = profile.DistributorP12,
+                        P12Password = profile.Password
+                    };
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"[Cert] Provisioning failed: {ex.Message}");
+                    await _dialogService.ShowErrorAsync(ex.Message);
+                    return new CertificateResult
+                    {
+                        Success = false,
+                        InstallResult = InstallResult.FailureResult(ex.Message)
+                    };
+                }
+            }
+
+            // A full Samsung profile (fresh keypair + new author cert) is only needed when the user
+            // forces a login, or there's genuinely no usable author cert for this level yet (first run
+            // for the level, or it's missing/expired). Because the folder is level-specific, switching
+            // Public<->Partner naturally has no author yet and generates a fresh profile without
+            // touching the other level.
+            bool needsFullProfile = _appSettings.ForceSamsungLogin ||
                                     (!isBundledJellyfin && !hasAuthor);
 
-            // DUIDs the user manually pre-authorized + DUIDs already covered by the current
-            // distributor cert. One distributor cert can cover several TVs (multiple device-id
-            // SAN entries), so we only regenerate when a needed DUID isn't covered yet.
+            // DUIDs the user manually pre-authorized + DUIDs already covered by THIS level's distributor
+            // cert. One distributor cert can cover several TVs (multiple device-id SAN entries), so we
+            // only regenerate when a needed DUID isn't covered yet.
             var manualDuids = ParseDuids(_appSettings.ManualDuids);
             var coveredDuids = (hasAuthor && !isBundledJellyfin)
                 ? GetCoveredDuids(jelly2SamsDir)
@@ -584,7 +689,7 @@ namespace Apps2Samsung.Services
                 progress?.Invoke(Constants.LocalizationKeys.SamsungLogin.Localized());
                 onSamsungLoginStarted?.Invoke();
 
-                SamsungAuth auth = await SamsungLoginService.PerformSamsungLoginAsync(cancellationToken);
+                SamsungAuth auth = await _login.LoginAsync(cancellationToken);
 
                 if (string.IsNullOrEmpty(auth.access_token))
                 {
@@ -597,7 +702,15 @@ namespace Apps2Samsung.Services
                 }
 
                 progress?.Invoke(Constants.LocalizationKeys.CreatingCertificateProfile.Localized());
-                var certificateService = new TizenCertificateService(_httpClient, _dialogService);
+                var certificateService = new TizenCertificateService(
+                    _httpClient,
+                    new CertificateEndpoints(
+                        _appSettings.AuthorEndpoint_V3,
+                        _appSettings.DistributorsEndpoint_V1,
+                        _appSettings.DistributorsEndpoint_V3));
+                var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
+                // Core emits progress as localization keys; localize them here at the boundary.
+                ProgressCallback? certProgress = progress is null ? null : new ProgressCallback(k => progress(k.Localized()));
 
                 // Union of DUIDs the (re)generated distributor cert should cover: this TV first,
                 // then manual entries, then already-covered ones — capped at Samsung's per-cert limit.
@@ -611,7 +724,9 @@ namespace Apps2Samsung.Services
                         userId: auth.userId,
                         userEmail: auth.inputEmailID,
                         outputPath: jelly2SamsDir,
-                        progress);
+                        caPath: caPath,
+                        level: requestedLevel,
+                        progress: certProgress);
                 }
                 else
                 {
@@ -622,17 +737,20 @@ namespace Apps2Samsung.Services
                         accessToken: auth.access_token,
                         userId: auth.userId,
                         userEmail: auth.inputEmailID,
-                        progress);
+                        caPath: caPath,
+                        level: requestedLevel,
+                        progress: certProgress);
                     authorp12 = Path.Combine(jelly2SamsDir, Constants.Certificate.AuthorFileName);
                     p12Password = (await File.ReadAllTextAsync(
                         Path.Combine(jelly2SamsDir, Constants.Certificate.PasswordFileName))).Trim();
                 }
 
-                PackageCertificate = Constants.AppIdentifiers.Jelly2Sams;
-                _appSettings.Certificate = PackageCertificate;
+                var profileName = AutoCertProfileName(requestedLevel);
+                PackageCertificate = profileName;
+                _appSettings.Certificate = profileName;
                 _appSettings.ChosenCertificates = new ExistingCertificates
                 {
-                    Name = Constants.AppIdentifiers.Jelly2Sams,
+                    Name = profileName,
                     Duid = deviceInfo.Duid,
                     File = authorp12
                 };
@@ -640,23 +758,23 @@ namespace Apps2Samsung.Services
             }
             else
             {
-                var certDir = Path.GetDirectoryName(_appSettings.ChosenCertificates!.File)!;
+                // Reuse in place. For the auto-generated cert, use THIS level's folder — the stored
+                // ChosenCertificates path may point at the other level from a previous install.
+                // Bundled/imported certs keep using their stored path.
+                bool reuseAutoCert = !isBundledJellyfin && autoMode;
+                var certDir = reuseAutoCert
+                    ? jelly2SamsDir
+                    : Path.GetDirectoryName(_appSettings.ChosenCertificates!.File)!;
                 authorp12 = Path.Combine(certDir, Constants.Certificate.AuthorFileName);
                 distributorp12 = Path.Combine(certDir, Constants.Certificate.DistributorFileName);
                 p12Password = File.ReadAllText(Path.Combine(certDir, Constants.Certificate.PasswordFileName)).Trim();
-                PackageCertificate = selectedCertificate;
+                PackageCertificate = reuseAutoCert ? AutoCertProfileName(requestedLevel) : selectedCertificate;
             }
 
-            // Handle permit install for older Tizen versions
-            if (deviceInfo.TizenVersion <= pushVersion)
-            {
-                var deviceProfilePath = Path.Combine(Path.GetDirectoryName(authorp12)!, Constants.Certificate.DeviceProfileFileName);
-                var targetPath = deviceInfo.TizenVersion < intermediateVersion
-                    ? Constants.Defaults.HomeDeveloperPath
-                    : deviceInfo.SdkToolPath;
-
-                await AllowPermitInstall(tvIpAddress, deviceProfilePath, targetPath);
-            }
+            // Handle permit install for older Tizen versions (thresholds shared with Core).
+            await Apps2Samsung.Sdb.TizenPermitInstall.EnsureAsync(
+                _sdb, tvIpAddress, deviceInfo.TizenVersion, deviceInfo.SdkToolPath,
+                Path.Combine(Path.GetDirectoryName(authorp12)!, Constants.Certificate.DeviceProfileFileName));
 
             return new CertificateResult
             {
@@ -724,6 +842,17 @@ namespace Apps2Samsung.Services
             }
         }
 
+        // The auto-generated cert profile name for a privilege level, e.g. "Jelly2Sams - Partner".
+        // Public and Partner are stored as separate profiles so both can coexist and be reused.
+        private static string AutoCertProfileName(CertificatePrivilegeLevel level) =>
+            $"{Constants.AppIdentifiers.Jelly2Sams} - {(level == CertificatePrivilegeLevel.Partner ? "Partner" : "Public")}";
+
+        // True for any auto-generated Jelly2Sams profile ("Jelly2Sams", "Jelly2Sams (default)",
+        // "Jelly2Sams - Public/Partner") — as opposed to the bundled Jellyfin or a user-imported cert.
+        private static bool IsAutoCertName(string? name) =>
+            !string.IsNullOrEmpty(name) &&
+            name.StartsWith(Constants.AppIdentifiers.Jelly2Sams, StringComparison.OrdinalIgnoreCase);
+
         // The DUID set a (re)generated distributor cert should cover: this TV first, then manual
         // entries, then already-covered ones — capped at Samsung's per-cert limit (extras dropped).
         private static IReadOnlyCollection<string> BuildDistributorDuids(
@@ -732,7 +861,8 @@ namespace Apps2Samsung.Services
             var ordered = new List<string>();
             void Add(string d)
             {
-                if (!string.IsNullOrWhiteSpace(d) && !ordered.Contains(d, StringComparer.OrdinalIgnoreCase))
+                // Only ever embed well-formed DUIDs — never a stray error string or typo'd manual entry.
+                if (TizenDuid.IsValid(d) && !ordered.Contains(d.Trim(), StringComparer.OrdinalIgnoreCase))
                     ordered.Add(d.Trim());
             }
 
@@ -770,8 +900,7 @@ namespace Apps2Samsung.Services
             // the host capturing the route to the TV, or an unstable Wi-Fi link — not a packaging
             // problem, so retrying or overwriting can't help. Fail fast with an actionable hint
             // instead of looping a re-sign+re-push over the same broken route.
-            if (installResults.Output.Contains(Constants.TizenErrorCodes.TransportConnectionLost, StringComparison.OrdinalIgnoreCase) ||
-                installResults.Output.Contains(Constants.TizenErrorCodes.ConnectionResetByPeer, StringComparison.OrdinalIgnoreCase))
+            if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsTransportLost(installResults.Output))
             {
                 _appSettings.TryOverwrite = false;
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
@@ -780,7 +909,7 @@ namespace Apps2Samsung.Services
             }
 
             // Handle insufficient space error
-            if (installResults.Output.Contains(Constants.TizenErrorCodes.DownloadFailed116))
+            if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsInsufficientSpace(installResults.Output))
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
 
@@ -798,8 +927,7 @@ namespace Apps2Samsung.Services
 
             // Handle certificate mismatch: the installed copy was signed with a different
             // certificate, so Tizen refuses to overwrite it. The only fix is removing the old copy.
-            if (installResults.Output.Contains(Constants.TizenErrorCodes.InstallFailed118012) ||
-                installResults.Output.Contains(Constants.TizenErrorCodes.InstallFailed118Minus12))
+            if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsCertificateMismatch(installResults.Output))
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
 
@@ -821,10 +949,23 @@ namespace Apps2Samsung.Services
                 return InstallResult.FailureResult(certMessage);
             }
 
+            // Handle API-version incompatibility ([118, -4] "Operation not allowed"): the package
+            // targets a higher Tizen API level than this TV supports. Not a certificate or privilege
+            // problem, and re-signing/overwriting can't help — the TV simply can't run this build.
+            // Give the user a clear reason instead of a raw error code.
+            if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsApiVersionMismatch(installResults.Output))
+            {
+                _appSettings.TryOverwrite = false;
+                var apiMessage = Constants.LocalizationKeys.ApiVersionMismatch.Localized();
+                progress?.Invoke(apiMessage);
+                Trace.WriteLine($"[Install] API-version incompatibility ([118, -4]) on {tvIpAddress}: {installResults.Output}");
+                return InstallResult.FailureResult(apiMessage);
+            }
+
             // Handle package ID conflict error. Note: a service-component incompatibility
             // (the common cause on older TVs) is already handled before install in Step 3b,
             // so reaching here generally means a genuine id/config conflict.
-            if (installResults.Output.Contains(Constants.TizenErrorCodes.InstallFailed118))
+            if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsPackageIdConflict(installResults.Output))
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
 
@@ -840,7 +981,7 @@ namespace Apps2Samsung.Services
             }
 
             // Handle generic failure
-            if (installResults.Output.Contains(Constants.TizenErrorCodes.Failed))
+            if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsGenericFailure(installResults.Output))
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
 
@@ -855,8 +996,7 @@ namespace Apps2Samsung.Services
             }
 
             // Handle success
-            if (installResults.Output.Contains(Constants.TizenErrorCodes.Installing100) ||
-                installResults.Output.Contains(Constants.TizenErrorCodes.InstallCompleted))
+            if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IndicatesSuccess(installResults.Output))
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationSuccessful.Localized());
 
@@ -865,7 +1005,7 @@ namespace Apps2Samsung.Services
                     string tvAppId = await GetInstalledAppId(tvIpAddress, GetPackageAppTitle(packageUrl));
                     _ = Task.Run(async () =>
                     {
-                        await _processHelper.RunCommandAsync(TizenSdbPath!, $"launch {tvIpAddress} \"{tvAppId}\"");
+                        await _sdb.LaunchAsync(tvIpAddress, tvAppId);
                     });
                 }
 
@@ -891,32 +1031,53 @@ namespace Apps2Samsung.Services
 
         public async Task<string> GetTvNameAsync(string tvIpAddress)
         {
-            var output = await _processHelper.RunCommandAsync(TizenSdbPath!, $"devices {tvIpAddress}");
+            var output = await _sdb.DevicesAsync(tvIpAddress);
             return output.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? string.Empty;
+        }
+
+        public async Task<IReadOnlyList<InstalledApp>> GetInstalledAppsAsync(string tvIpAddress)
+        {
+            await EnsureTizenSdbAvailable();
+            try
+            {
+                var result = await _sdb.AppsAsync(tvIpAddress);
+                return Apps2Samsung.Sdb.TizenInstalledApps.Parse(result?.Output);
+            }
+            finally
+            {
+                await _sdb.DisconnectAsync(tvIpAddress);
+            }
+        }
+
+        public async Task<ProcessResult> UninstallAppAsync(string tvIpAddress, string tizenId)
+        {
+            await EnsureTizenSdbAvailable();
+            try
+            {
+                return await _sdb.UninstallAsync(tvIpAddress, tizenId);
+            }
+            finally
+            {
+                await _sdb.DisconnectAsync(tvIpAddress);
+            }
         }
 
         private async Task<(string tizenOs, string sdkToolPath)> FetchCapabilitiesAsync(string tvIpAddress)
         {
-            var output = await _processHelper.RunCommandAsync(TizenSdbPath!, $"capability {tvIpAddress}");
-
-            var versionMatch = RegexPatterns.TizenCapability.PlatformVersion.Match(output.Output);
-            string tizenOs = versionMatch.Success ? versionMatch.Groups[1].Value.Trim() : string.Empty;
-
-            var pathMatch = RegexPatterns.TizenCapability.SdkToolPath.Match(output.Output);
-            string sdkToolPath = pathMatch.Success ? pathMatch.Groups[1].Value.Trim() : Constants.Defaults.SdkToolPath;
-
-            return (tizenOs, sdkToolPath);
+            var output = await _sdb.CapabilityAsync(tvIpAddress);
+            var caps = Apps2Samsung.Sdb.TizenCapabilities.Parse(output.Output);
+            return (caps.PlatformVersion, caps.SdkToolPath);
         }
 
         private async Task<string> GetTvDuidAsync(string tvIpAddress)
         {
-            var output = await _processHelper.RunCommandAsync(TizenSdbPath!, $"duid {tvIpAddress}");
+            var output = await _sdb.DuidAsync(tvIpAddress);
             return output.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? string.Empty;
         }
 
         private async Task<bool> GetTvDiagnoseAsync(string tvIpAddress)
         {
-            var output = await _processHelper.RunCommandAsync(TizenSdbPath!, $"diagnose {tvIpAddress}");
+            var output = await _sdb.DiagnoseAsync(tvIpAddress);
             var match = RegexPatterns.TizenCapability.AppUninstallFailed.Match(output.Output);
             return !match.Success;
         }
@@ -931,7 +1092,7 @@ namespace Apps2Samsung.Services
 
         private async Task<(bool isInstalled, string? appId)> CheckForInstalledApp(string tvIpAddress, string packageUrl)
         {
-            var result = await _processHelper.RunCommandAsync(TizenSdbPath!, $"apps {tvIpAddress}");
+            var result = await _sdb.AppsAsync(tvIpAddress);
             var output = result?.Output ?? string.Empty;
 
             // Read what the WGT *claims* its app id is (best effort fallback for "no listing" cases)
@@ -971,7 +1132,7 @@ namespace Apps2Samsung.Services
 
         private async Task<string> GetInstalledAppId(string tvIpAddress, string appTitle)
         {
-            var output = await _processHelper.RunCommandAsync(TizenSdbPath!, $"apps {tvIpAddress}");
+            var output = await _sdb.AppsAsync(tvIpAddress);
             string appsOutput = output.Output ?? string.Empty;
 
             var blockRegex = RegexPatterns.TizenApp.CreateAppBlockByTitleRegex(appTitle);
@@ -992,30 +1153,17 @@ namespace Apps2Samsung.Services
 
         private async Task<ProcessResult> ResignPackageAsync(string packagePath, string authorP12, string distributorP12, string certPass)
         {
-            return await _processHelper.RunCommandAsync(
-                TizenSdbPath!,
-                $"resign \"{packagePath}\" \"{authorP12}\" \"{distributorP12}\" {certPass}");
+            return await _sdb.ResignAsync(packagePath, authorP12, distributorP12, certPass);
         }
 
         private async Task<ProcessResult> InstallPackageOnDeviceAsync(string tvIpAddress, string packagePath, string sdkToolPath)
         {
-            return await _processHelper.RunCommandAsync(
-                TizenSdbPath!,
-                $"install {tvIpAddress} \"{packagePath}\" {sdkToolPath}");
+            return await _sdb.InstallAsync(tvIpAddress, packagePath, sdkToolPath);
         }
 
         private async Task<ProcessResult> UninstallPackageAsync(string tvIpAddress, string packageId)
         {
-            return await _processHelper.RunCommandAsync(
-                TizenSdbPath!,
-                $"uninstall {tvIpAddress} {packageId}");
-        }
-
-        private async Task AllowPermitInstall(string tvIpAddress, string deviceXml, string sdkToolPath)
-        {
-            await _processHelper.RunCommandAsync(
-                TizenSdbPath!,
-                $"permit-install {tvIpAddress} \"{deviceXml}\" {sdkToolPath}");
+            return await _sdb.UninstallAsync(tvIpAddress, packageId);
         }
 
         #endregion

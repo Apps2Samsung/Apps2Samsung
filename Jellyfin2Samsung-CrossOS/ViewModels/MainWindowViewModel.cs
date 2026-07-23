@@ -490,6 +490,10 @@ namespace Apps2Samsung.ViewModels
         {
             _samsungLoginCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
 
+            // Auto-request Partner signing when the selected package's manifest declares
+            // cert_level: partner (silent bump; the global toggle still forces Partner too).
+            AppSettings.Default.RequiresPartnerSigning = SelectedRelease?.RequiresPartner ?? false;
+
             if ((SelectedRelease != null && SelectedDevice != null) || (!string.IsNullOrEmpty(AppSettings.Default.CustomWgtPath)))
             {
                 var customPaths = AppSettings.Default.CustomWgtPath?.Split(';', StringSplitOptions.RemoveEmptyEntries);
@@ -585,6 +589,35 @@ namespace Apps2Samsung.ViewModels
             catch (Exception ex)
             {
                 await _dialogService.ShowErrorAsync($"Failed to open build info window: {ex}");
+            }
+        }
+
+        [RelayCommand]
+        private async Task ShowInstalledAppsAsync()
+        {
+            try
+            {
+                if (SelectedDevice is null ||
+                    string.IsNullOrWhiteSpace(SelectedDevice.IpAddress) ||
+                    SelectedDevice.IpAddress == L("lblOther"))
+                {
+                    await _dialogService.ShowMessageAsync("Installed apps", "Select a TV first.");
+                    return;
+                }
+
+                if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                    return;
+
+                var label = string.IsNullOrWhiteSpace(SelectedDevice.DisplayText)
+                    ? SelectedDevice.IpAddress
+                    : SelectedDevice.DisplayText;
+                var vm = new InstalledAppsViewModel(_tizenInstaller, _dialogService, SelectedDevice.IpAddress, label);
+                var window = new Views.InstalledAppsWindow(vm);
+                await window.ShowDialog(desktop.MainWindow);
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync($"Failed to open installed apps: {ex}");
             }
         }
 
@@ -720,6 +753,9 @@ namespace Apps2Samsung.ViewModels
                     if (release.Count == 0)
                         continue;
 
+                    // Apps declaring cert_level: partner auto-request Partner signing at install.
+                    bool requiresPartner = string.Equals(provider.CertLevel, "partner", StringComparison.OrdinalIgnoreCase);
+
                     if (provider.ExpandAssets)
                     {
                         // One entry per .wgt so community apps show up as
@@ -732,11 +768,14 @@ namespace Apps2Samsung.ViewModels
                                     TagName = r.TagName,
                                     PublishedAt = r.PublishedAt,
                                     Url = r.Url,
-                                    Assets = new List<Asset> { asset }
+                                    Assets = new List<Asset> { asset },
+                                    RequiresPartner = requiresPartner
                                 });
                     }
                     else
                     {
+                        foreach (var r in release)
+                            r.RequiresPartner = requiresPartner;
                         list.AddRange(release);
                     }
                 }

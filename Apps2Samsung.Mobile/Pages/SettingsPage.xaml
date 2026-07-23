@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Apps2Samsung.Mobile.Pages.SettingsPage"
+             Title="Settings"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+
+    <ContentPage.Resources>
+        <Style x:Key="Divider" TargetType="BoxView">
+            <Setter Property="HeightRequest" Value="1" />
+            <Setter Property="Color" Value="{AppThemeBinding Light=#E2E2E2, Dark=#333}" />
+            <Setter Property="Margin" Value="0,4" />
+        </Style>
+        <Style x:Key="Hint" TargetType="Label">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Opacity" Value="0.6" />
+        </Style>
+        <Style x:Key="ToggleRow" TargetType="Grid">
+            <Setter Property="ColumnDefinitions" Value="*,Auto" />
+            <Setter Property="ColumnSpacing" Value="12" />
+        </Style>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <Border Margin="12" Padding="16" StrokeThickness="1"
+                StrokeShape="RoundRectangle 8"
+                Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
+                BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
+            <VerticalStackLayout Spacing="14">
+
+                <!-- Header banner with a back affordance -->
+                <Border BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+                    <Grid ColumnDefinitions="44,*,44" VerticalOptions="Center">
+                        <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
+                                BackgroundColor="Transparent" BorderWidth="0" Padding="0"
+                                WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
+                        <Label Grid.Column="1" Text="Application settings" TextColor="White" FontAttributes="Bold"
+                               VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- GitHub Token -->
+                <Label Text="GitHub Token (PAT)" FontAttributes="Bold" FontSize="14" />
+                <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
+                    <Border Grid.Column="0" Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                            Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
+                        <Entry x:Name="TokenEntry" IsPassword="True" Placeholder="ghp_xxxxxxxxxxxxxxxxx"
+                               BackgroundColor="Transparent" Unfocused="OnTokenUnfocused" />
+                    </Border>
+                    <Button Grid.Column="1" x:Name="TokenEyeBtn" Text="👁" FontSize="16"
+                            BackgroundColor="Transparent" BorderWidth="1"
+                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                            Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="6"
+                            Clicked="OnToggleTokenVisibility" />
+                </Grid>
+                <Label Style="{StaticResource Hint}"
+                       Text="Optional. Prevents GitHub API rate limiting when fetching releases. Create one at GitHub &gt; Settings &gt; Developer settings &gt; Personal access tokens." />
+
+                <BoxView Style="{StaticResource Divider}" />
+
+                <!-- Jellyfin server -->
+                <Label Text="Jellyfin" FontAttributes="Bold" FontSize="14" />
+                <Label Style="{StaticResource Hint}"
+                       Text="Set your Jellyfin server address and sign in once, baked into the Jellyfin app when you install it." />
+                <Button Text="🎬 Configure Jellyfin server" HorizontalOptions="Start"
+                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
+                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                        Clicked="OnJellyfinClicked" />
+
+                <BoxView Style="{StaticResource Divider}" />
+
+                <!-- Extra TV device IDs -->
+                <Label Text="Extra TV device IDs" FontAttributes="Bold" FontSize="14" />
+                <Border Padding="8,4" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                        Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                        BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
+                    <Editor x:Name="DuidsEditor" HeightRequest="90" Placeholder="One DUID per line"
+                            BackgroundColor="Transparent" Unfocused="OnDuidsUnfocused" />
+                </Border>
+                <Label Style="{StaticResource Hint}"
+                       Text="Optional, advanced. Pre-authorize other Samsung TVs by their DUID so a single signing certificate covers them — fewer Samsung logins when installing to multiple TVs." />
+
+                <BoxView Style="{StaticResource Divider}" />
+
+                <!-- Toggles -->
+                <Grid Style="{StaticResource ToggleRow}">
+                    <Label Grid.Column="0" Text="Remove old version" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" x:Name="RemoveOldSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                </Grid>
+                <Grid Style="{StaticResource ToggleRow}">
+                    <Label Grid.Column="0" Text="Override existing app" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" x:Name="TryOverwriteSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                </Grid>
+                <Grid Style="{StaticResource ToggleRow}">
+                    <Label Grid.Column="0" Text="Open after installation" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" x:Name="OpenAfterSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                </Grid>
+                <Grid Style="{StaticResource ToggleRow}">
+                    <Label Grid.Column="0" Text="Preserve WGT file" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" x:Name="KeepWgtSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                </Grid>
+                <Grid Style="{StaticResource ToggleRow}">
+                    <Label Grid.Column="0" Text="Show all Jellyfin versions" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" x:Name="ShowAllJfSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                </Grid>
+                <Grid Style="{StaticResource ToggleRow}">
+                    <Label Grid.Column="0" Text="Partner signing (experimental)" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" x:Name="PartnerSigningSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                </Grid>
+                <Label Style="{StaticResource Hint}"
+                       Text="Partner signing is only needed for apps that use restricted privileges (e.g. VPN). Some TVs may reject partner-signed installs, and Samsung may not issue Partner certs for individual accounts. Leave off unless an app requires it." />
+                <Grid Style="{StaticResource ToggleRow}">
+                    <Label Grid.Column="0" Text="Force Samsung login" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" x:Name="ForceLoginSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                </Grid>
+                <Label Style="{StaticResource Hint}"
+                       Text="Always sign in to Samsung and generate a fresh certificate, even when a reusable one already covers this TV. Normally off — leave it off unless signing is misbehaving." />
+
+                <BoxView Style="{StaticResource Divider}" />
+
+                <!-- TVApp channels (m3u8) -->
+                <Label Text="TVApp channels" FontAttributes="Bold" FontSize="14" />
+                <Label Style="{StaticResource Hint}"
+                       Text="Name + stream URL (m3u8) pairs, written into the TVApp package's channel list when you install it. Order is the play order." />
+                <VerticalStackLayout x:Name="ChannelsContainer" Spacing="8" />
+                <Button Text="➕ Add channel" HorizontalOptions="Start"
+                        BackgroundColor="Transparent" BorderWidth="1"
+                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                        Padding="14,8" Clicked="OnAddChannel" />
+
+                <BoxView Style="{StaticResource Divider}" />
+
+                <!-- App icons -->
+                <Label Text="App icons" FontAttributes="Bold" FontSize="14" />
+                <Label Style="{StaticResource Hint}"
+                       Text="Give an app a custom launcher icon, applied when you install it." />
+                <Button Text="🎨 Manage app icons" HorizontalOptions="Start"
+                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
+                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                        Clicked="OnAppIconsClicked" />
+
+                <BoxView Style="{StaticResource Divider}" />
+
+                <!-- Certificate note (auto-provisioned + reused; Public/Partner via the toggle above) -->
+                <Label Text="Certificate" FontAttributes="Bold" FontSize="14" />
+                <Label Style="{StaticResource Hint}"
+                       Text="Signing certificates are created and reused automatically from your Samsung account — one cert per TV, reused across installs, so you're not asked to sign in every time. Public is used by default; turn on Partner signing above only for apps that need a restricted privilege (e.g. VPN)." />
+
+                <BoxView Style="{StaticResource Divider}" />
+
+                <!-- Diagnostics -->
+                <Label Text="Diagnostics" FontAttributes="Bold" FontSize="14" />
+                <Label Style="{StaticResource Hint}"
+                       Text="Export this session's debug log to send when reporting a problem." />
+                <Button Text="📤 Share debug log" HorizontalOptions="Start"
+                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
+                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                        Clicked="OnShareLogClicked" />
+
+            </VerticalStackLayout>
+        </Border>
+    </ScrollView>
+
+</ContentPage>
