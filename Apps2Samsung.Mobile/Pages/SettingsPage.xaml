@@ -142,6 +142,18 @@
                 <Label Style="{StaticResource Hint}"
                        Text="Signing certificates are created and reused automatically from your Samsung account — one cert per TV, reused across installs, so you're not asked to sign in every time. Public is used by default; turn on Partner signing above only for apps that need a restricted privilege (e.g. VPN)." />
 
+                <BoxView Style="{StaticResource Divider}" />
+
+                <!-- Diagnostics -->
+                <Label Text="Diagnostics" FontAttributes="Bold" FontSize="14" />
+                <Label Style="{StaticResource Hint}"
+                       Text="Export this session's debug log to send when reporting a problem." />
+                <Button Text="📤 Share debug log" HorizontalOptions="Start"
+                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
+                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                        Clicked="OnShareLogClicked" />
+
             </VerticalStackLayout>
         </Border>
     </ScrollView>

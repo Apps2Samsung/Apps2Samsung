@@ -1,7 +1,10 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Apps2Samsung.Mobile.Services;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
+using Microsoft.Maui.Storage;
 
 namespace Apps2Samsung.Mobile.Pages;
 
@@ -44,6 +47,32 @@ public partial class SettingsPage : ContentPage
 	private async void OnAppIconsClicked(object? sender, EventArgs e) => await Navigation.PushAsync(new AppIconsPage());
 
 	private async void OnJellyfinClicked(object? sender, EventArgs e) => await Navigation.PushAsync(new JellyfinSettingsPage());
+
+	// Hands the current session's debug log to the OS share sheet. The file lives in private app
+	// storage (FileSystem.AppDataDirectory/Logs) with no way to reach it otherwise, so this is how a
+	// user gets logs off the phone when reporting an issue. Saving is set up in MauiProgram via FileLog.
+	private async void OnShareLogClicked(object? sender, EventArgs e)
+	{
+		var logPath = Apps2Samsung.Diagnostics.FileLog.CurrentLogFile;
+		if (string.IsNullOrEmpty(logPath) || !File.Exists(logPath))
+		{
+			await DisplayAlert("Debug log", "No log file is available for this session yet.", "OK");
+			return;
+		}
+
+		try
+		{
+			await Share.Default.RequestAsync(new ShareFileRequest
+			{
+				Title = "Apps2Samsung debug log",
+				File = new ShareFile(logPath),
+			});
+		}
+		catch (Exception ex)
+		{
+			await DisplayAlert("Debug log", $"Couldn't share the log: {ex.Message}", "OK");
+		}
+	}
 
 	private void OnToggleTokenVisibility(object? sender, EventArgs e)
 	{
