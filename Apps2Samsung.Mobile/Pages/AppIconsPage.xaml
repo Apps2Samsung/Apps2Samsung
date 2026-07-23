@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Apps2Samsung.Mobile.Pages.AppIconsPage"
+             Title="App icons"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+    <ScrollView>
+        <Border Margin="12" Padding="16" StrokeThickness="1"
+                StrokeShape="RoundRectangle 8"
+                Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
+                BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
+            <VerticalStackLayout Spacing="14">
+
+                <!-- Header banner with a back affordance -->
+                <Border BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+                    <Grid ColumnDefinitions="44,*,44" VerticalOptions="Center">
+                        <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
+                                BackgroundColor="Transparent" BorderWidth="0" Padding="0"
+                                WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
+                        <Label Grid.Column="1" Text="App icons" TextColor="White" FontAttributes="Bold"
+                               VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                    </Grid>
+                </Border>
+
+                <Label FontSize="12" Opacity="0.6"
+                       Text="Give an app a custom launcher icon. Enter the app name as it appears in the app list (e.g. &quot;Jellyfin&quot; or &quot;TizenYouTube&quot;) and pick a PNG — it's applied to that package when you install it." />
+
+                <VerticalStackLayout x:Name="IconsContainer" Spacing="10" />
+
+                <Button Text="+ Add app icon" Clicked="OnAddIcon" HorizontalOptions="Start"
+                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
+                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
+
+            </VerticalStackLayout>
+        </Border>
+    </ScrollView>
+</ContentPage>

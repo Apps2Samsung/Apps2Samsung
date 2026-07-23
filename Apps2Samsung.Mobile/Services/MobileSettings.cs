@@ -103,6 +103,15 @@ public static class MobileSettings
 	public static IReadOnlyList<TvChannel> GetTvAppChannels() =>
 		TvAppChannelInjector.ParseChannelsJson(TvAppChannelsJson);
 
+	/// <summary>Per-app custom launcher icons: JSON map { appKey -> "oblong" | custom PNG path },
+	/// applied to the wgt at install by the shared CustomIconPackagePatcher. (Same Preferences key as
+	/// MobileAppConfig.CustomAppIconsJson, so the settings page and the patcher share one store.)</summary>
+	public static string CustomAppIconsJson
+	{
+		get => Preferences.Get("custom_app_icons_json", string.Empty);
+		set => Preferences.Set("custom_app_icons_json", value ?? string.Empty);
+	}
+
 	/// <summary>Splits <see cref="ManualDuids"/> into individual DUIDs.</summary>
 	public static string[] ParseDuids() =>
 		ManualDuids.Split(new[] { '\n', '\r', ',', ';' },
