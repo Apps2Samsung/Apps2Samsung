@@ -5,6 +5,8 @@ on:
     branches: [beta]
     paths-ignore:
       - 'README.md'
+      - 'docs/**'      # website (GitHub Pages) — deploys on its own, shouldn't trigger an app release
+      - '.github/**'   # workflow / repo-meta changes shouldn't trigger an app release
   # Allow running the beta release manually (e.g. when a merge didn't fire the push trigger).
   workflow_dispatch:
 
