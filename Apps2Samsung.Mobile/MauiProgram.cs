@@ -70,6 +70,11 @@ public static class MauiProgram
 		// "oblong" tiles, so a no-op oblong source — only user-supplied custom PNG icons apply here.
 		builder.Services.AddSingleton<IOblongIconSource, NoOblongIconSource>();
 		builder.Services.AddSingleton<IPackagePatcher, CustomIconPackagePatcher>();
+		// Jellyfin config injection (server URL + auto-login + custom CSS), configured via the
+		// Settings → Jellyfin page. No-ops when no server is set (empty JellyfinFullUrl).
+		builder.Services.AddSingleton<IPackagePatcher>(sp =>
+			new Apps2Samsung.Helpers.Jellyfin.JellyfinPackagePatcher(
+				sp.GetRequiredService<HttpClient>(), sp.GetRequiredService<IAppConfig>()));
 
 		// Install: download a .wgt and push it to the TV (patch -> resign -> [permit] -> install).
 		builder.Services.AddSingleton<WgtInstaller>();

@@ -39,18 +39,22 @@ public sealed class MobileAppConfig : IAppConfig
     public string TvAppChannelsJson { get => MobileSettings.TvAppChannelsJson; set => MobileSettings.TvAppChannelsJson = value; }
 
     // ---- Jellyfin package patching ----
-    // Temporary stubs: the mobile head does not yet expose the Jellyfin patch settings, and the
-    // Jellyfin patcher is not registered in MauiProgram yet, so these are never read on mobile.
-    public string JellyfinFullUrl => string.Empty;             // TODO(PR B): wire to MobileSettings
-    public string JellyfinServerLocalAddress => string.Empty;  // TODO(PR B): wire to MobileSettings
-    public string JellyfinAccessToken => string.Empty;         // TODO(PR B): wire to MobileSettings
-    public string JellyfinUserId => string.Empty;              // TODO(PR B): wire to MobileSettings
-    public string JellyfinServerId => string.Empty;            // TODO(PR B): wire to MobileSettings
-    public string JellyfinServerName => string.Empty;          // TODO(PR B): wire to MobileSettings
-    public bool UseServerScripts => false;                     // TODO(PR B): wire to MobileSettings
-    public bool PatchYoutubePlugin => false;                   // TODO(PR B): wire to MobileSettings
-    public bool EnableDevLogs => false;                        // TODO(PR B): wire to MobileSettings
-    public string CustomCss => string.Empty;                   // TODO(PR B): wire to MobileSettings
-    public string DisabledPluginIds => string.Empty;          // TODO(PR B): wire to MobileSettings
-    public string LocalIp => string.Empty;                     // TODO(PR B): wire to MobileSettings
+    // Backed by the Settings → Jellyfin page (MobileSettings). Read by the shared
+    // JellyfinPackagePatcher at install to inject server URL + auto-login + custom CSS.
+    public string JellyfinFullUrl => Apps2Samsung.Helpers.Core.UrlHelper.NormalizeServerUrl(MobileSettings.JellyfinServerUrl);
+    public string JellyfinServerLocalAddress => MobileSettings.JellyfinServerLocalAddress;
+    public string JellyfinAccessToken => MobileSettings.JellyfinAccessToken;
+    public string JellyfinUserId => MobileSettings.JellyfinUserId;
+    public string JellyfinServerId => MobileSettings.JellyfinServerId;
+    public string JellyfinServerName => MobileSettings.JellyfinServerName;
+    public string CustomCss => MobileSettings.JellyfinCustomCss;
+    public bool PatchYoutubePlugin => MobileSettings.JellyfinPatchYoutube;
+
+    // Not exposed on mobile: "Use server scripts" (unneeded + relies on a bundled esbuild binary
+    // that isn't shipped on Android) and its plugin opt-outs; dev-logs (streams to a desktop-only
+    // websocket listener, no counterpart on the phone).
+    public bool UseServerScripts => false;
+    public string DisabledPluginIds => string.Empty;
+    public bool EnableDevLogs => false;
+    public string LocalIp => string.Empty;
 }
