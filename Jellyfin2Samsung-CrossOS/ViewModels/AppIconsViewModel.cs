@@ -31,6 +31,7 @@ namespace Apps2Samsung.ViewModels
         private readonly ILocalizationService _localizationService;
         private readonly FileHelper _fileHelper;
         private readonly ProviderManifestService _providerManifestService;
+        private readonly AddLatestRelease _addLatestRelease;
 
         public ObservableCollection<AppIconEntry> AppIcons { get; } = new();
 
@@ -54,6 +55,7 @@ namespace Apps2Samsung.ViewModels
             _localizationService = localizationService;
             _fileHelper = fileHelper;
             _providerManifestService = new ProviderManifestService(httpClient);
+            _addLatestRelease = new AddLatestRelease(httpClient);
 
             _localizationService.LanguageChanged += OnLanguageChanged;
 
@@ -94,7 +96,33 @@ namespace Apps2Samsung.ViewModels
                 foreach (var provider in manifest.Providers)
                 {
                     if (provider.ExpandAssets)
-                        continue; // the community bundle expands into CommunityApps below
+                    {
+                        // Community bundle: derive one icon entry per real .wgt asset in the latest
+                        // release, so EVERY community app is offered and the list stays current with
+                        // the repo — instead of a hardcoded subset (see #462). Custom launcher icons
+                        // only apply to web apps, so skip native .tpk assets. Best-effort: a fetch
+                        // failure just yields no community rows rather than breaking the editor.
+                        if (string.IsNullOrWhiteSpace(provider.Url))
+                            continue;
+                        try
+                        {
+                            var releases = await _addLatestRelease.GetReleasesAsync(
+                                provider.Url, provider.Prefix, provider.DisplayName, provider.Take);
+                            foreach (var r in releases)
+                                foreach (var asset in r.Assets)
+                                {
+                                    if (!asset.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase))
+                                        continue;
+                                    var name = Path.GetFileNameWithoutExtension(asset.FileName);
+                                    Add(name, name);
+                                }
+                        }
+                        catch (Exception ex)
+                        {
+                            Trace.WriteLine($"[AppIcons] Could not expand community assets from {provider.Url}: {ex.Message}");
+                        }
+                        continue;
+                    }
 
                     // All Jellyfin builds share the "Jellyfin" file-name root, so collapse the
                     // variants (AVPlay, Legacy, …) into a single entry that matches any of them.
@@ -104,9 +132,6 @@ namespace Apps2Samsung.ViewModels
                     else
                         Add(provider.DisplayName, provider.DisplayName);
                 }
-
-                foreach (var community in manifest.CommunityApps)
-                    Add(community.MatchName, community.MatchName);
 
                 var map = LoadIconMap();
                 foreach (var entry in entries)
