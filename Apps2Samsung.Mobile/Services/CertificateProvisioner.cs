@@ -1,5 +1,6 @@
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Configuration;
+using Apps2Samsung.Extensions;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Microsoft.Maui.Storage;
