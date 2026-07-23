@@ -1,5 +1,5 @@
-using System.Linq;
-using Apps2Samsung.Extensions;
+using Apps2Samsung.Certificate;
+using Apps2Samsung.Configuration;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Microsoft.Maui.Storage;
@@ -7,10 +7,11 @@ using Microsoft.Maui.Storage;
 namespace Apps2Samsung.Mobile.Services;
 
 /// <summary>
-/// Ties Samsung sign-in to certificate provisioning on the mobile head: reads the target TV's DUID
-/// via the in-process engine, then drives the shared <see cref="ITizenCertificateService"/> to mint
-/// the author + distributor PKCS#12s. Materializes the bundled Samsung CA files to a real filesystem
-/// path first (the cert service reads them via <c>File.*</c>, and Android package assets aren't files).
+/// Mobile certificate provisioning. Reads the target TV's DUID via the in-process engine, materializes
+/// the bundled Samsung CA files to a real path, then drives the shared
+/// <see cref="CertificateProvisioningService"/> — which <b>reuses</b> a valid signing profile that
+/// already covers the TV and only triggers a Samsung login when it must (re)generate. (Previously the
+/// mobile head minted a fresh cert — and forced a login — on every install.)
 /// </summary>
 public sealed class CertificateProvisioner
 {
@@ -18,17 +19,19 @@ public sealed class CertificateProvisioner
 	private static readonly string[] CaFiles = { "vd_tizen_dev_author_ca.cer", "vd_tizen_dev_public2.crt", "vd_tizen_dev_partner2.crt" };
 
 	private readonly ISdbEngine _sdb;
-	private readonly ITizenCertificateService _certService;
+	private readonly CertificateProvisioningService _provisioning;
+	private readonly IAppConfig _config;
 
-	public CertificateProvisioner(ISdbEngine sdb, ITizenCertificateService certService)
+	public CertificateProvisioner(ISdbEngine sdb, CertificateProvisioningService provisioning, IAppConfig config)
 	{
 		_sdb = sdb;
-		_certService = certService;
+		_provisioning = provisioning;
+		_config = config;
 	}
 
 	public sealed record Result(string AuthorP12, string DistributorP12, string Password, string ProfileDir, string Duid);
 
-	public async Task<Result> ProvisionAsync(string tvIp, SamsungAuth auth, bool requirePartner = false, Action<string>? progress = null)
+	public async Task<Result> ProvisionAsync(string tvIp, bool requirePartner = false, Action<string>? progress = null)
 	{
 		progress?.Invoke("Reading TV DUID…");
 		var duidResult = await _sdb.DuidAsync(tvIp);
@@ -39,35 +42,25 @@ public sealed class CertificateProvisioner
 				$"Could not read a valid TV DUID{(string.IsNullOrWhiteSpace(duidResult.Error) ? "." : $": {duidResult.Error}")}");
 
 		var caPath = await MaterializeCaAsync();
-		var profileDir = Path.Combine(FileSystem.AppDataDirectory, "TizenProfile");
 
-		// The target TV's DUID, plus any extra DUIDs the user pre-authorized in settings, so one
-		// certificate can cover several TVs.
-		var duids = new[] { duid }
-			.Concat(MobileSettings.ParseDuids())
-			.Where(TizenDuid.IsValid)
-			.Distinct(StringComparer.OrdinalIgnoreCase)
-			.ToArray();
-
-		// Opt-in Partner signing (experimental) — needed only by apps that use restricted
-		// privileges (e.g. vpnservice). Partner if the global toggle is on OR the selected package
-		// declares it needs it; default stays Public.
-		var level = (MobileSettings.PartnerSigning || requirePartner)
+		// Opt-in Partner signing (experimental) — needed only by apps that use restricted privileges
+		// (e.g. vpnservice). Partner if the global toggle is on OR the selected package declares it.
+		var level = (_config.PartnerSigning || requirePartner)
 			? CertificatePrivilegeLevel.Partner
 			: CertificatePrivilegeLevel.Public;
 
 		ProgressCallback? cb = progress is null ? null : new ProgressCallback(progress);
-		var (authorP12, distributorP12, password) = await _certService.GenerateProfileAsync(
-			duids: duids,
-			accessToken: auth.access_token,
-			userId: auth.userId,
-			userEmail: auth.inputEmailID,
-			outputPath: profileDir,
-			caPath: caPath,
+		var profile = await _provisioning.EnsureAsync(
+			deviceDuid: duid,
 			level: level,
+			storePath: _config.CertificateStorePath,
+			caPath: caPath,
+			manualDuids: MobileSettings.ParseDuids(),
+			forceLogin: _config.ForceSamsungLogin,
+			onLoginStarting: () => progress?.Invoke("Signing in to Samsung…"),
 			progress: cb);
 
-		return new Result(authorP12, distributorP12, password, profileDir, duid);
+		return new Result(profile.AuthorP12, profile.DistributorP12, profile.Password, profile.ProfileDir, duid);
 	}
 
 	// Copies the bundled CA certs to <AppData>/ca once, returning that directory.

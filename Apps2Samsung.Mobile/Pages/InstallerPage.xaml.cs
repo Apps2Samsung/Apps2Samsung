@@ -286,18 +286,14 @@ public partial class InstallerPage : ContentPage
 		string? wgtPath = null;
 		try
 		{
-			if (!_session.IsSignedIn)
-			{
-				SetStatus("Signing in to Samsung…");
-				_session.Auth = await _loginService.LoginAsync();
-			}
-
 			// Download first so we can inspect the package's declared privileges before signing.
 			wgtPath = custom ? _customWgtPath! : await _installer.DownloadAsync(asset!.DownloadUrl, SetStatus);
 
 			// Partner if the manifest declared it OR the .wgt itself needs a partner-level privilege.
 			var needsPartner = requirePartner || WgtPrivileges.RequiresPartner(wgtPath);
-			var cert = await _certProvisioner.ProvisionAsync(tvIp, _session.Auth!, needsPartner, SetStatus);
+			// Provisioning reuses a valid cert already covering this TV and only triggers a Samsung
+			// sign-in when it must (re)generate — so no login prompt when a cert is already in place.
+			var cert = await _certProvisioner.ProvisionAsync(tvIp, needsPartner, SetStatus);
 			await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus);
 
 			SetStatus($"✓ Installed {appName}. Open the TV's Apps list to launch it.");
