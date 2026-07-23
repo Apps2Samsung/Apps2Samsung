@@ -1,3 +1,4 @@
+using Apps2Samsung.Certificate;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.API;
@@ -28,6 +29,7 @@ namespace Apps2Samsung.Services
         private readonly ProcessHelper _processHelper;
         private readonly ISdbEngine _sdb;
         private readonly ISamsungLoginService _login;
+        private readonly CertificateProvisioningService _provisioning;
 
         public string? TizenSdbPath { get; private set; }
         public string? PackageCertificate { get; set; }
@@ -40,7 +42,8 @@ namespace Apps2Samsung.Services
             JellyfinApiClient jellyfinApiClient,
             ProcessHelper processHelper,
             ISdbEngine sdb,
-            ISamsungLoginService samsungLogin)
+            ISamsungLoginService samsungLogin,
+            CertificateProvisioningService provisioning)
         {
             _httpClient = httpClient;
             _dialogService = dialogService;
@@ -49,6 +52,7 @@ namespace Apps2Samsung.Services
             _processHelper = processHelper;
             _sdb = sdb;
             _login = samsungLogin;
+            _provisioning = provisioning;
         }
 
         #region TizenSdb Management
@@ -589,6 +593,76 @@ namespace Apps2Samsung.Services
             // "sign in every time" bug (the dropdown often reverts to "(default)" even though
             // "Jelly2Sams - Public/Partner" exists).
             bool autoMode = string.IsNullOrEmpty(selectedCertificate) || IsAutoCertName(selectedCertificate);
+
+            // Auto profile (no real pick / "(default)" / a generated "Jelly2Sams - Public/Partner"):
+            // delegate the whole reuse/regenerate/mint decision to the shared Core
+            // CertificateProvisioningService, so desktop and mobile use one source of truth for cert
+            // reuse (it reuses a valid profile covering this TV with NO Samsung login, regenerates only
+            // the distributor when a DUID isn't covered, and mints a full profile otherwise / on force).
+            // The bundled "Jellyfin" cert and user-imported certs fall through to the original path
+            // below, unchanged.
+            if (!isBundledJellyfin && autoMode)
+            {
+                var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
+                // Core emits progress as localization keys; localize them here at the boundary.
+                ProgressCallback? certProgress = progress is null ? null : new ProgressCallback(k => progress(k.Localized()));
+                try
+                {
+                    var profile = await _provisioning.EnsureAsync(
+                        deviceDuid: deviceInfo.Duid,
+                        level: requestedLevel,
+                        storePath: AppSettings.CertificatePath,
+                        caPath: caPath,
+                        manualDuids: ParseDuids(_appSettings.ManualDuids),
+                        forceLogin: _appSettings.ForceSamsungLogin,
+                        onLoginStarting: () =>
+                        {
+                            progress?.Invoke(Constants.LocalizationKeys.SamsungLogin.Localized());
+                            onSamsungLoginStarted?.Invoke();
+                        },
+                        progress: certProgress,
+                        ct: cancellationToken);
+
+                    PackageCertificate = profile.ProfileName;
+                    _appSettings.Certificate = profile.ProfileName;
+                    _appSettings.ChosenCertificates = new ExistingCertificates
+                    {
+                        Name = profile.ProfileName,
+                        Duid = deviceInfo.Duid,
+                        File = profile.AuthorP12
+                    };
+                    _appSettings.Save();
+
+                    // Permit-install for older Tizen versions (same as the manual path below).
+                    if (deviceInfo.TizenVersion <= pushVersion)
+                    {
+                        var deviceProfilePath = Path.Combine(Path.GetDirectoryName(profile.AuthorP12)!, Constants.Certificate.DeviceProfileFileName);
+                        var targetPath = deviceInfo.TizenVersion < intermediateVersion
+                            ? Constants.Defaults.HomeDeveloperPath
+                            : deviceInfo.SdkToolPath;
+                        await AllowPermitInstall(tvIpAddress, deviceProfilePath, targetPath);
+                    }
+
+                    return new CertificateResult
+                    {
+                        Success = true,
+                        RequiresResign = true,
+                        AuthorP12 = profile.AuthorP12,
+                        DistributorP12 = profile.DistributorP12,
+                        P12Password = profile.Password
+                    };
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"[Cert] Provisioning failed: {ex.Message}");
+                    await _dialogService.ShowErrorAsync(ex.Message);
+                    return new CertificateResult
+                    {
+                        Success = false,
+                        InstallResult = InstallResult.FailureResult(ex.Message)
+                    };
+                }
+            }
 
             // A full Samsung profile (fresh keypair + new author cert) is only needed when the user
             // forces a login, or there's genuinely no usable author cert for this level yet (first run
