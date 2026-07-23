@@ -118,12 +118,18 @@ namespace Apps2Samsung
             services.AddSingleton<PluginManager>();
             services.AddSingleton<JellyfinPackagePatcher>();
 
+            // The shared settings contract + this head's bundled oblong-tile source, needed by the
+            // Core CustomIconPackagePatcher.
+            services.AddSingleton<Apps2Samsung.Configuration.IAppConfig>(_ => AppSettings.Default);
+            services.AddSingleton<Apps2Samsung.Packaging.IOblongIconSource, DesktopOblongIconSource>();
+
             // Per-app package patchers (edit the .wgt before signing/install).
             services.AddSingleton<IPackagePatcher>(sp => sp.GetRequiredService<JellyfinPackagePatcher>());
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Helpers.TvApp.TvAppPackagePatcher>();
             // Registered last so the user's chosen icon (custom PNG or the bundled oblong tile)
             // overrides the package's default and composes with the app-specific patchers above.
-            services.AddSingleton<IPackagePatcher, Apps2Samsung.Helpers.CustomIconPackagePatcher>();
+            // Now the shared Core patcher (was Apps2Samsung.Helpers.CustomIconPackagePatcher).
+            services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.CustomIconPackagePatcher>();
 
             // --------------------
             // Helpers

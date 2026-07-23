@@ -1,6 +1,7 @@
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Configuration;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Packaging;
 using Apps2Samsung.Services;
 using Apps2Samsung.Mobile.Catalog;
 using Apps2Samsung.Mobile.Pages;
@@ -65,7 +66,12 @@ public static class MauiProgram
 		builder.Services.AddSingleton<CertificateProvisioningService>();
 		builder.Services.AddSingleton<CertificateProvisioner>();
 
-		// Install: download a .wgt and push it to the TV (resign -> [permit] -> install).
+		// Package patchers applied at install (shared Core IPackagePatchers). Mobile ships no bundled
+		// "oblong" tiles, so a no-op oblong source — only user-supplied custom PNG icons apply here.
+		builder.Services.AddSingleton<IOblongIconSource, NoOblongIconSource>();
+		builder.Services.AddSingleton<IPackagePatcher, CustomIconPackagePatcher>();
+
+		// Install: download a .wgt and push it to the TV (patch -> resign -> [permit] -> install).
 		builder.Services.AddSingleton<WgtInstaller>();
 
 		// App catalog (App/Version dropdowns) — reuses the shared HttpClient for GitHub calls.
