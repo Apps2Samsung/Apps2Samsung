@@ -64,7 +64,8 @@
                     <Border Grid.Column="1" Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
                             Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
                             BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                        <Picker x:Name="TvPicker" Title="Scan to find TVs" BackgroundColor="Transparent" />
+                        <Picker x:Name="TvPicker" Title="Scan to find TVs" BackgroundColor="Transparent"
+                                SelectedIndexChanged="OnTvChanged" />
                     </Border>
                     <Button Grid.Column="2" x:Name="RefreshBtn" Text="⟳" FontSize="18"
                             BackgroundColor="Transparent" BorderWidth="1"
