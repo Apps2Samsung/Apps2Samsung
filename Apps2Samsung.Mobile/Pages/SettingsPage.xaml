@@ -125,10 +125,10 @@
 
                 <BoxView Style="{StaticResource Divider}" />
 
-                <!-- Certificate note (mobile provisions automatically) -->
+                <!-- Certificate note (auto-provisioned + reused; Public/Partner via the toggle above) -->
                 <Label Text="Certificate" FontAttributes="Bold" FontSize="14" />
                 <Label Style="{StaticResource Hint}"
-                       Text="On mobile the signing certificate is provisioned automatically from your Samsung account during install — no manual certificate selection is needed." />
+                       Text="Signing certificates are created and reused automatically from your Samsung account — one cert per TV, reused across installs, so you're not asked to sign in every time. Public is used by default; turn on Partner signing above only for apps that need a restricted privilege (e.g. VPN)." />
 
             </VerticalStackLayout>
         </Border>
