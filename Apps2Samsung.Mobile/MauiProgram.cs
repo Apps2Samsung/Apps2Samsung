@@ -14,6 +14,10 @@ public static class MauiProgram
 {
 	public static MauiApp CreateMauiApp()
 	{
+		// Persist Trace diagnostics to a file so the mobile app is actually debuggable (shared infra
+		// with the desktop head). Previously mobile only logged to the transient Android console.
+		Apps2Samsung.Diagnostics.FileLog.Initialize(System.IO.Path.Combine(FileSystem.AppDataDirectory, "Logs"));
+
 		var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
