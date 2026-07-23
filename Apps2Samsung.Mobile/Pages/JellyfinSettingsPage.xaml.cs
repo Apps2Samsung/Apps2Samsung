@@ -37,6 +37,7 @@ public partial class JellyfinSettingsPage : ContentPage
 		ThemePicker.ItemsSource ??= JellyThemeCatalog.Themes.Select(t => t.DisplayName).ToList();
 		_loaded = true;
 
+		UpdateMdnsWarning(ServerUrlEntry.Text);
 		RefreshSignInState();
 	}
 
@@ -66,6 +67,68 @@ public partial class JellyfinSettingsPage : ContentPage
 	{
 		if (_loaded)
 			MobileSettings.JellyfinServerUrl = ServerUrlEntry.Text?.Trim() ?? string.Empty;
+		UpdateMdnsWarning(ServerUrlEntry.Text);
+	}
+
+	// Checks the server is reachable without needing credentials (GETs /System/Info/Public via the
+	// shared Core API client), so the user can verify the address before signing in or installing.
+	private async void OnTestConnectionClicked(object? sender, EventArgs e)
+	{
+		var url = UrlHelper.NormalizeServerUrl(ServerUrlEntry.Text?.Trim() ?? string.Empty);
+		if (string.IsNullOrWhiteSpace(url))
+		{
+			ShowTest("Enter a server URL first.", isError: true);
+			return;
+		}
+
+		TestBtn.IsEnabled = false;
+		ShowTest("Testing…", isError: false);
+		try
+		{
+			using var http = new HttpClient();
+			var api = new JellyfinApiClient(http);
+			var info = await api.GetPublicSystemInfoAsync(url);
+			if (info is not null && !string.IsNullOrEmpty(info.Id))
+				ShowTest(string.IsNullOrEmpty(info.ServerName) ? "✓ Reachable." : $"✓ Reachable — {info.ServerName}.", isError: false);
+			else
+				ShowTest("Couldn't reach a Jellyfin server at that address.", isError: true);
+		}
+		catch (Exception ex)
+		{
+			ShowTest($"Couldn't reach the server: {ex.Message}", isError: true);
+		}
+		finally
+		{
+			TestBtn.IsEnabled = true;
+		}
+	}
+
+	private void ShowTest(string message, bool isError)
+	{
+		ServerTestLabel.Text = message;
+		ServerTestLabel.TextColor = isError ? Color.FromArgb("#B00020") : Color.FromArgb("#2E7D32");
+		ServerTestLabel.Opacity = 1.0;
+		ServerTestLabel.IsVisible = true;
+	}
+
+	// Warn when the host is an mDNS (.local) name — Tizen TVs resolve these unreliably.
+	private void UpdateMdnsWarning(string? url)
+	{
+		MdnsWarning.IsVisible = IsMdnsHost(url);
+	}
+
+	private static bool IsMdnsHost(string? url)
+	{
+		if (string.IsNullOrWhiteSpace(url))
+			return false;
+		var s = url.Trim();
+		var scheme = s.IndexOf("://", StringComparison.Ordinal);
+		if (scheme >= 0) s = s[(scheme + 3)..];
+		var slash = s.IndexOf('/');
+		if (slash >= 0) s = s[..slash];
+		var colon = s.IndexOf(':');
+		if (colon >= 0) s = s[..colon];
+		return s.TrimEnd('.').EndsWith(".local", StringComparison.OrdinalIgnoreCase);
 	}
 
 	private void OnCssUnfocused(object? sender, FocusEventArgs e)
