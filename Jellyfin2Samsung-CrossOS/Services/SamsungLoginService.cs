@@ -1,4 +1,5 @@
 using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,7 +15,7 @@ using System.Web;
 
 namespace Apps2Samsung.Services
 {
-    public class SamsungLoginService
+    public class SamsungLoginService : ISamsungLoginService
     {
         private IWebHost? _callbackServer;
 
@@ -22,6 +23,14 @@ namespace Apps2Samsung.Services
             $"http://{Constants.Samsung.LoopbackHost}:{Constants.Ports.SamsungLoginCallbackPort}{Constants.Samsung.CallbackPath}";
 
         public Action<SamsungAuth>? CallbackReceived;
+
+        /// <summary>
+        /// Instance entry point behind the shared <see cref="ISamsungLoginService"/>, so Core services
+        /// (e.g. CertificateProvisioningService) can drive the desktop login the same way as mobile.
+        /// Delegates to the existing static implementation.
+        /// </summary>
+        public Task<SamsungAuth> LoginAsync(CancellationToken cancellationToken = default)
+            => PerformSamsungLoginAsync(cancellationToken);
 
         public static Task<SamsungAuth> PerformSamsungLoginAsync()
         {

@@ -27,6 +27,7 @@ namespace Apps2Samsung.Services
         private readonly IEnumerable<IPackagePatcher> _packagePatchers;
         private readonly ProcessHelper _processHelper;
         private readonly ISdbEngine _sdb;
+        private readonly ISamsungLoginService _login;
 
         public string? TizenSdbPath { get; private set; }
         public string? PackageCertificate { get; set; }
@@ -38,7 +39,8 @@ namespace Apps2Samsung.Services
             IEnumerable<IPackagePatcher> packagePatchers,
             JellyfinApiClient jellyfinApiClient,
             ProcessHelper processHelper,
-            ISdbEngine sdb)
+            ISdbEngine sdb,
+            ISamsungLoginService samsungLogin)
         {
             _httpClient = httpClient;
             _dialogService = dialogService;
@@ -46,6 +48,7 @@ namespace Apps2Samsung.Services
             _packagePatchers = packagePatchers;
             _processHelper = processHelper;
             _sdb = sdb;
+            _login = samsungLogin;
         }
 
         #region TizenSdb Management
@@ -618,7 +621,7 @@ namespace Apps2Samsung.Services
                 progress?.Invoke(Constants.LocalizationKeys.SamsungLogin.Localized());
                 onSamsungLoginStarted?.Invoke();
 
-                SamsungAuth auth = await SamsungLoginService.PerformSamsungLoginAsync(cancellationToken);
+                SamsungAuth auth = await _login.LoginAsync(cancellationToken);
 
                 if (string.IsNullOrEmpty(auth.access_token))
                 {

@@ -113,6 +113,7 @@ namespace Apps2Samsung
             });
 
             services.AddSingleton<SamsungLoginService>();
+            services.AddSingleton<ISamsungLoginService>(sp => sp.GetRequiredService<SamsungLoginService>());
             services.AddSingleton<JellyfinApiClient>();
             services.AddSingleton<TizenApiClient>();
             services.AddSingleton<PluginManager>();
