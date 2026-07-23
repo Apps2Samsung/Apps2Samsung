@@ -19,6 +19,14 @@ public static class MobileSettings
 	private const string KeyTvAppChannels = "tvapp_channels_json";
 	private const string KeyPartnerSigning = "partner_signing";
 	private const string KeyGitHubToken = "github_token"; // SecureStorage
+	private const string KeyJellyfinServerUrl = "jellyfin_server_url";
+	private const string KeyJellyfinUserId = "jellyfin_user_id";
+	private const string KeyJellyfinServerId = "jellyfin_server_id";
+	private const string KeyJellyfinServerName = "jellyfin_server_name";
+	private const string KeyJellyfinServerLocalAddress = "jellyfin_server_local_address";
+	private const string KeyJellyfinCustomCss = "jellyfin_custom_css";
+	private const string KeyJellyfinPatchYoutube = "jellyfin_patch_youtube";
+	private const string KeyJellyfinAccessToken = "jellyfin_access_token"; // SecureStorage
 
 	/// <summary>Uninstall the previous version before installing (desktop: "Remove old version").</summary>
 	public static bool DeletePreviousInstall
@@ -66,8 +74,9 @@ public static class MobileSettings
 		set => Preferences.Set(KeyManualDuids, value ?? string.Empty);
 	}
 
-	// SecureStorage is async; cache the token so callers on the request path can read it synchronously.
+	// SecureStorage is async; cache secrets so callers on the request path can read them synchronously.
 	private static string _gitHubToken = string.Empty;
+	private static string _jellyfinAccessToken = string.Empty;
 
 	/// <summary>The GitHub PAT (empty if unset). Backed by <see cref="SecureStorage"/>.</summary>
 	public static string GitHubToken => _gitHubToken;
@@ -77,6 +86,9 @@ public static class MobileSettings
 	{
 		try { _gitHubToken = await SecureStorage.GetAsync(KeyGitHubToken) ?? string.Empty; }
 		catch { _gitHubToken = string.Empty; }
+
+		try { _jellyfinAccessToken = await SecureStorage.GetAsync(KeyJellyfinAccessToken) ?? string.Empty; }
+		catch { _jellyfinAccessToken = string.Empty; }
 	}
 
 	public static async Task SetGitHubTokenAsync(string? value)
@@ -88,6 +100,74 @@ public static class MobileSettings
 				SecureStorage.Remove(KeyGitHubToken);
 			else
 				await SecureStorage.SetAsync(KeyGitHubToken, _gitHubToken);
+		}
+		catch { /* secure storage unavailable — keep the in-memory value for this run */ }
+	}
+
+	// ---- Jellyfin (Settings → Jellyfin): injected into a Jellyfin .wgt at install by the shared
+	// JellyfinPackagePatcher via IAppConfig/MobileAppConfig. ----
+
+	/// <summary>Full Jellyfin server URL as entered by the user (scheme://host:port[/base]).</summary>
+	public static string JellyfinServerUrl
+	{
+		get => Preferences.Get(KeyJellyfinServerUrl, string.Empty);
+		set => Preferences.Set(KeyJellyfinServerUrl, value ?? string.Empty);
+	}
+
+	/// <summary>Authenticated user id (from username/password login); paired with the access token.</summary>
+	public static string JellyfinUserId
+	{
+		get => Preferences.Get(KeyJellyfinUserId, string.Empty);
+		set => Preferences.Set(KeyJellyfinUserId, value ?? string.Empty);
+	}
+
+	/// <summary>Real server GUID from /System/Info/Public (prevents ServerMismatch on auto-login).</summary>
+	public static string JellyfinServerId
+	{
+		get => Preferences.Get(KeyJellyfinServerId, string.Empty);
+		set => Preferences.Set(KeyJellyfinServerId, value ?? string.Empty);
+	}
+
+	/// <summary>Human-readable server name shown in the Jellyfin server picker.</summary>
+	public static string JellyfinServerName
+	{
+		get => Preferences.Get(KeyJellyfinServerName, string.Empty);
+		set => Preferences.Set(KeyJellyfinServerName, value ?? string.Empty);
+	}
+
+	/// <summary>Server's self-reported LAN address, used as a reachable fallback in the server list.</summary>
+	public static string JellyfinServerLocalAddress
+	{
+		get => Preferences.Get(KeyJellyfinServerLocalAddress, string.Empty);
+		set => Preferences.Set(KeyJellyfinServerLocalAddress, value ?? string.Empty);
+	}
+
+	/// <summary>User custom CSS injected into index.html (empty = none).</summary>
+	public static string JellyfinCustomCss
+	{
+		get => Preferences.Get(KeyJellyfinCustomCss, string.Empty);
+		set => Preferences.Set(KeyJellyfinCustomCss, value ?? string.Empty);
+	}
+
+	/// <summary>Apply the YouTube-plugin ("error 153") fix to the package.</summary>
+	public static bool JellyfinPatchYoutube
+	{
+		get => Preferences.Get(KeyJellyfinPatchYoutube, false);
+		set => Preferences.Set(KeyJellyfinPatchYoutube, value);
+	}
+
+	/// <summary>Jellyfin access token (empty if unset). Backed by <see cref="SecureStorage"/>.</summary>
+	public static string JellyfinAccessToken => _jellyfinAccessToken;
+
+	public static async Task SetJellyfinAccessTokenAsync(string? value)
+	{
+		_jellyfinAccessToken = value?.Trim() ?? string.Empty;
+		try
+		{
+			if (string.IsNullOrEmpty(_jellyfinAccessToken))
+				SecureStorage.Remove(KeyJellyfinAccessToken);
+			else
+				await SecureStorage.SetAsync(KeyJellyfinAccessToken, _jellyfinAccessToken);
 		}
 		catch { /* secure storage unavailable — keep the in-memory value for this run */ }
 	}
