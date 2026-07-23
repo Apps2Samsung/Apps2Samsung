@@ -100,11 +100,23 @@
                 <!-- Custom CSS -->
                 <Label Text="Custom CSS" FontAttributes="Bold" FontSize="14" />
                 <Label Style="{StaticResource Hint}"
-                       Text="Injected into the Jellyfin web client. Use it to tweak the look, or paste an @import for a community theme." />
+                       Text="Injected into the Jellyfin web client. Pick a community theme below, or write / paste your own CSS." />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <Border Grid.Column="0" Style="{StaticResource Field}">
+                        <Picker x:Name="ThemePicker" Title="Community theme…"
+                                BackgroundColor="Transparent" SelectedIndexChanged="OnThemeSelected" />
+                    </Border>
+                    <Button Grid.Column="1" Text="Clear" Clicked="OnClearCss"
+                            BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,0" HeightRequest="44"
+                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                            TextColor="{AppThemeBinding Light=#B00020, Dark=#FF6B6B}" />
+                </Grid>
                 <Border Style="{StaticResource Field}" Padding="8,4">
                     <Editor x:Name="CssEditor" HeightRequest="120" Placeholder="/* your CSS here */"
                             BackgroundColor="Transparent" Unfocused="OnCssUnfocused" />
                 </Border>
+                <Label Style="{StaticResource Hint}"
+                       Text="Themes from github.com/kingchenc/JellyThemes — selecting one replaces the CSS with its @import." />
 
             </VerticalStackLayout>
         </Border>

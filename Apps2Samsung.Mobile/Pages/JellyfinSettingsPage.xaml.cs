@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Apps2Samsung.Helpers.API;
 using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Jellyfin;
 using Apps2Samsung.Mobile.Services;
 
 namespace Apps2Samsung.Mobile.Pages;
@@ -31,9 +33,31 @@ public partial class JellyfinSettingsPage : ContentPage
 		ServerUrlEntry.Text = MobileSettings.JellyfinServerUrl;
 		CssEditor.Text = MobileSettings.JellyfinCustomCss;
 		YoutubeSwitch.IsToggled = MobileSettings.JellyfinPatchYoutube;
+		// Populate the theme picker once from the shared Core catalog (same list the desktop uses).
+		ThemePicker.ItemsSource ??= JellyThemeCatalog.Themes.Select(t => t.DisplayName).ToList();
 		_loaded = true;
 
 		RefreshSignInState();
+	}
+
+	// Selecting a community theme replaces the CSS with its @import (mirrors the desktop gallery).
+	private void OnThemeSelected(object? sender, EventArgs e)
+	{
+		if (!_loaded)
+			return;
+		var i = ThemePicker.SelectedIndex;
+		if (i < 0 || i >= JellyThemeCatalog.Themes.Count)
+			return;
+		var css = JellyThemeCatalog.Themes[i].CssImportStatement;
+		CssEditor.Text = css;
+		MobileSettings.JellyfinCustomCss = css;
+	}
+
+	private void OnClearCss(object? sender, EventArgs e)
+	{
+		CssEditor.Text = string.Empty;
+		MobileSettings.JellyfinCustomCss = string.Empty;
+		ThemePicker.SelectedIndex = -1;
 	}
 
 	private async void OnBackClicked(object? sender, EventArgs e) => await Navigation.PopAsync();
