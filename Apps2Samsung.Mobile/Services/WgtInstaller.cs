@@ -25,11 +25,13 @@ public sealed class WgtInstaller
 
 	private readonly ISdbEngine _sdb;
 	private readonly HttpClient _http;
+	private readonly IEnumerable<IPackagePatcher> _patchers;
 
-	public WgtInstaller(ISdbEngine sdb, HttpClient http)
+	public WgtInstaller(ISdbEngine sdb, HttpClient http, IEnumerable<IPackagePatcher> patchers)
 	{
 		_sdb = sdb;
 		_http = http;
+		_patchers = patchers;
 	}
 
 	public async Task<string> DownloadAsync(string url, Action<string>? progress = null)
@@ -93,6 +95,14 @@ public sealed class WgtInstaller
 				progress?.Invoke("Applying TVApp channels…");
 				await TvAppChannelInjector.InjectChannelsAsync(wgtPath, channels);
 			}
+		}
+
+		// Apply registered package patchers before signing — e.g. the user's custom launcher icon.
+		// Shared with the desktop head via Core IPackagePatcher (composes with the TVApp inject above).
+		foreach (var patcher in _patchers.Where(p => p.CanHandle(wgtPath)))
+		{
+			progress?.Invoke("Applying customizations…");
+			await patcher.ApplyAsync(wgtPath);
 		}
 
 		progress?.Invoke("Re-signing package…");
