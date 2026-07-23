@@ -33,7 +33,7 @@ namespace Apps2Samsung.Catalog
         public const string DefaultJellyfinReadmeUrl =
             "https://raw.githubusercontent.com/jeppevinkel/jellyfin-tizen-builds/refs/heads/master/README.md";
         public const string DefaultCommunityReadmeUrl =
-            "https://raw.githubusercontent.com/PatrickSt1991/tizen-community-packages/refs/heads/main/README.md";
+            "https://raw.githubusercontent.com/Apps2Samsung/tizen-community-packages/refs/heads/main/README.md";
 
         private static readonly Regex VersionsTable =
             new(@"## Versions\s*\n(?<table>(\|[^\n]+\n)+)", RegexOptions.Compiled);

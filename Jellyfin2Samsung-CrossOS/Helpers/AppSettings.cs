@@ -138,7 +138,7 @@ namespace Apps2Samsung.Helpers
         [JsonIgnore]
         public string ReleaseInfo { get; set; } = "https://raw.githubusercontent.com/jeppevinkel/jellyfin-tizen-builds/refs/heads/master/README.md";
         [JsonIgnore]
-        public string CommunityInfo { get; set; } = "https://raw.githubusercontent.com/PatrickSt1991/tizen-community-packages/refs/heads/main/README.md";
+        public string CommunityInfo { get; set; } = "https://raw.githubusercontent.com/Apps2Samsung/tizen-community-packages/refs/heads/main/README.md";
         public AppSettings() { }
 
         /// <summary>
