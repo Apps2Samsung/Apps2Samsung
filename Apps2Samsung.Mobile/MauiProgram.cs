@@ -1,3 +1,4 @@
+using Apps2Samsung.Certificate;
 using Apps2Samsung.Configuration;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Services;
@@ -59,6 +60,9 @@ public static class MauiProgram
 		builder.Services.AddSingleton(new HttpClient());
 		builder.Services.AddSingleton<ITizenCertificateService>(sp =>
 			new TizenCertificateService(sp.GetRequiredService<HttpClient>(), CertificateEndpoints.Default));
+		// Shared reuse-aware provisioning: reuses a valid profile covering the TV and only logs in
+		// when it must (re)generate. Depends on the shared cert service + this head's login service.
+		builder.Services.AddSingleton<CertificateProvisioningService>();
 		builder.Services.AddSingleton<CertificateProvisioner>();
 
 		// Install: download a .wgt and push it to the TV (resign -> [permit] -> install).
