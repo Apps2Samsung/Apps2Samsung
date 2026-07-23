@@ -1035,6 +1035,33 @@ namespace Apps2Samsung.Services
             return output.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? string.Empty;
         }
 
+        public async Task<IReadOnlyList<InstalledApp>> GetInstalledAppsAsync(string tvIpAddress)
+        {
+            await EnsureTizenSdbAvailable();
+            try
+            {
+                var result = await _sdb.AppsAsync(tvIpAddress);
+                return Apps2Samsung.Sdb.TizenInstalledApps.Parse(result?.Output);
+            }
+            finally
+            {
+                await _sdb.DisconnectAsync(tvIpAddress);
+            }
+        }
+
+        public async Task<ProcessResult> UninstallAppAsync(string tvIpAddress, string tizenId)
+        {
+            await EnsureTizenSdbAvailable();
+            try
+            {
+                return await _sdb.UninstallAsync(tvIpAddress, tizenId);
+            }
+            finally
+            {
+                await _sdb.DisconnectAsync(tvIpAddress);
+            }
+        }
+
         private async Task<(string tizenOs, string sdkToolPath)> FetchCapabilitiesAsync(string tvIpAddress)
         {
             var output = await _sdb.CapabilityAsync(tvIpAddress);

@@ -593,6 +593,35 @@ namespace Apps2Samsung.ViewModels
         }
 
         [RelayCommand]
+        private async Task ShowInstalledAppsAsync()
+        {
+            try
+            {
+                if (SelectedDevice is null ||
+                    string.IsNullOrWhiteSpace(SelectedDevice.IpAddress) ||
+                    SelectedDevice.IpAddress == L("lblOther"))
+                {
+                    await _dialogService.ShowMessageAsync("Installed apps", "Select a TV first.");
+                    return;
+                }
+
+                if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                    return;
+
+                var label = string.IsNullOrWhiteSpace(SelectedDevice.DisplayText)
+                    ? SelectedDevice.IpAddress
+                    : SelectedDevice.DisplayText;
+                var vm = new InstalledAppsViewModel(_tizenInstaller, _dialogService, SelectedDevice.IpAddress, label);
+                var window = new Views.InstalledAppsWindow(vm);
+                await window.ShowDialog(desktop.MainWindow);
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync($"Failed to open installed apps: {ex}");
+            }
+        }
+
+        [RelayCommand]
         private async Task BrowseWgtAsync()
         {
             var mainWindow = Avalonia.Application.Current?.ApplicationLifetime is

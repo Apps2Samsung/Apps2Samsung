@@ -148,6 +148,15 @@
 					</Button>
 				</Grid>
 
+				<!-- Quick peek at what's already on the selected TV -->
+				<Button HorizontalAlignment="Left" Padding="0" Background="Transparent" BorderThickness="0"
+						Command="{Binding ShowInstalledAppsCommand}">
+					<StackPanel Orientation="Horizontal" Spacing="6">
+						<fa:SymbolIcon Symbol="List" Width="16" Height="16"/>
+						<TextBlock Text="Show installed apps" VerticalAlignment="Center"/>
+					</StackPanel>
+				</Button>
+
 			</StackPanel>
 
 			<!-- Status - Clean and simple -->

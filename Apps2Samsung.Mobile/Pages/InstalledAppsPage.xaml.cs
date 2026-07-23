@@ -1,0 +1,117 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
+using Apps2Samsung.Sdb;
+
+namespace Apps2Samsung.Mobile.Pages;
+
+/// <summary>
+/// A quick overview of the apps installed on a TV (parsed from the shared <c>vd_applist</c> query via
+/// <see cref="TizenInstalledApps"/>), with a per-app uninstall for user-removable apps. Read-only for
+/// system apps.
+/// </summary>
+public partial class InstalledAppsPage : ContentPage
+{
+	private readonly ISdbEngine _sdb;
+	private readonly string _tvIp;
+	private readonly string _tvLabel;
+
+	public InstalledAppsPage(ISdbEngine sdb, string tvIp, string tvLabel)
+	{
+		InitializeComponent();
+		_sdb = sdb;
+		_tvIp = tvIp;
+		_tvLabel = tvLabel;
+	}
+
+	protected override async void OnAppearing()
+	{
+		base.OnAppearing();
+		await LoadAsync();
+	}
+
+	private async void OnBackClicked(object? sender, EventArgs e) => await Navigation.PopAsync();
+
+	private async void OnRefreshClicked(object? sender, EventArgs e) => await LoadAsync();
+
+	private async Task LoadAsync()
+	{
+		SetBusy(true, "Reading installed apps…");
+		try
+		{
+			var result = await _sdb.AppsAsync(_tvIp);
+			var apps = TizenInstalledApps.Parse(result?.Output);
+			AppsList.ItemsSource = apps;
+
+			if (apps.Count == 0)
+			{
+				EmptyLabel.Text = "Couldn't read the app list from this TV.";
+				CountLabel.Text = _tvLabel;
+			}
+			else
+			{
+				var removable = apps.Count(a => a.IsRemovable);
+				CountLabel.Text = $"{apps.Count} apps on {_tvLabel} · {removable} removable";
+			}
+		}
+		catch (Exception ex)
+		{
+			AppsList.ItemsSource = null;
+			EmptyLabel.Text = $"Couldn't read the app list: {ex.Message}";
+			CountLabel.Text = _tvLabel;
+		}
+		finally
+		{
+			SetBusy(false);
+		}
+	}
+
+	private async void OnUninstallClicked(object? sender, EventArgs e)
+	{
+		if (sender is not Button { BindingContext: InstalledApp app })
+			return;
+
+		var confirm = await DisplayAlert(
+			"Uninstall app",
+			$"Remove \"{app.DisplayName}\" from {_tvLabel}?\n\n({app.TizenId})",
+			"Uninstall", "Cancel");
+		if (!confirm)
+			return;
+
+		SetBusy(true, $"Uninstalling {app.DisplayName}…");
+		try
+		{
+			var result = await _sdb.UninstallAsync(_tvIp, app.TizenId);
+			// The TV reports a not-installed code when the app is already gone — treat that as success.
+			var ok = result.ExitCode == 0 ||
+					 (result.Output?.Contains("failed[132]", StringComparison.OrdinalIgnoreCase) ?? false);
+			if (!ok)
+			{
+				SetBusy(false);
+				await DisplayAlert("Uninstall failed",
+					string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() : result.Error, "OK");
+				return;
+			}
+		}
+		catch (Exception ex)
+		{
+			SetBusy(false);
+			await DisplayAlert("Uninstall failed", ex.Message, "OK");
+			return;
+		}
+
+		// Refresh so the removed app drops off the list.
+		await LoadAsync();
+	}
+
+	private void SetBusy(bool busy, string? status = null)
+	{
+		Busy.IsVisible = busy;
+		Busy.IsRunning = busy;
+		AppsList.IsVisible = !busy;
+		if (status is not null)
+			CountLabel.Text = status;
+	}
+}
