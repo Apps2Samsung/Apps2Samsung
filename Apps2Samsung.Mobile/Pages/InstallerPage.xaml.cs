@@ -305,6 +305,7 @@ public partial class InstallerPage : ContentPage
 		}
 		catch (Exception ex)
 		{
+			System.Diagnostics.Trace.WriteLine($"[installer] Install failed: {ex}");
 			SetStatus($"Install failed: {ex.Message}");
 		}
 		finally
@@ -323,6 +324,11 @@ public partial class InstallerPage : ContentPage
 		}
 	}
 
-	private void SetStatus(string message) =>
+	private void SetStatus(string message)
+	{
+		// Mirror every status line to the debug log (timestamped) so the log is a full transcript of
+		// the scan/download/cert/install flow — not just the on-screen label.
+		System.Diagnostics.Trace.WriteLine($"[installer] {message}");
 		MainThread.BeginInvokeOnMainThread(() => StatusLabel.Text = message);
+	}
 }
