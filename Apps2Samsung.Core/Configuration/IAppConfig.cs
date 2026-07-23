@@ -46,5 +46,36 @@ namespace Apps2Samsung.Configuration
         string CustomAppIconsJson { get; set; }
         /// <summary>JSON array of { name, url } TVApp channels injected into a TVApp wgt at install.</summary>
         string TvAppChannelsJson { get; set; }
+
+        // ---- Jellyfin package patching ----
+        // The shared JellyfinPackagePatcher reads these to inject the server address, auto-login
+        // credentials, custom CSS, and optional script/plugin patches into a Jellyfin .wgt. All are
+        // read-only on the install path: an empty JellyfinFullUrl means "no server configured →
+        // nothing to inject". Each head fills them from its own store (desktop settings.json / mobile
+        // Preferences). See [[project_apps2samsung_rebrand]].
+        /// <summary>Normalized full server URL (scheme://host:port[/base]); empty when unconfigured.</summary>
+        string JellyfinFullUrl { get; }
+        /// <summary>Server's self-reported LAN address, used as a reachable fallback in the server list.</summary>
+        string JellyfinServerLocalAddress { get; }
+        /// <summary>Access token from username/password auth; enables auto-login injection when set.</summary>
+        string JellyfinAccessToken { get; }
+        /// <summary>Authenticated user id; paired with the access token for auto-login.</summary>
+        string JellyfinUserId { get; }
+        /// <summary>Real server GUID from /System/Info/Public (prevents ServerMismatch on auto-login).</summary>
+        string JellyfinServerId { get; }
+        /// <summary>Human-readable server name shown in the Jellyfin server picker.</summary>
+        string JellyfinServerName { get; }
+        /// <summary>Rewrite index.html to run bundled server scripts / plugin patches.</summary>
+        bool UseServerScripts { get; }
+        /// <summary>Apply the YouTube-plugin ("error 153") fix to the package.</summary>
+        bool PatchYoutubePlugin { get; }
+        /// <summary>Inject the dev-logs websocket shim (streams client logs to LocalIp:54321).</summary>
+        bool EnableDevLogs { get; }
+        /// <summary>User custom CSS injected into index.html (empty = none).</summary>
+        string CustomCss { get; }
+        /// <summary>Comma-separated plugin ids to skip when applying server-script plugin patches.</summary>
+        string DisabledPluginIds { get; }
+        /// <summary>This machine's LAN IP, the dev-logs websocket endpoint host.</summary>
+        string LocalIp { get; }
     }
 }

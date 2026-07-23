@@ -37,4 +37,20 @@ public sealed class MobileAppConfig : IAppConfig
     // ---- Package patching ----
     public string CustomAppIconsJson { get => Preferences.Get(KeyCustomIcons, string.Empty); set => Preferences.Set(KeyCustomIcons, value ?? string.Empty); }
     public string TvAppChannelsJson { get => MobileSettings.TvAppChannelsJson; set => MobileSettings.TvAppChannelsJson = value; }
+
+    // ---- Jellyfin package patching ----
+    // Temporary stubs: the mobile head does not yet expose the Jellyfin patch settings, and the
+    // Jellyfin patcher is not registered in MauiProgram yet, so these are never read on mobile.
+    public string JellyfinFullUrl => string.Empty;             // TODO(PR B): wire to MobileSettings
+    public string JellyfinServerLocalAddress => string.Empty;  // TODO(PR B): wire to MobileSettings
+    public string JellyfinAccessToken => string.Empty;         // TODO(PR B): wire to MobileSettings
+    public string JellyfinUserId => string.Empty;              // TODO(PR B): wire to MobileSettings
+    public string JellyfinServerId => string.Empty;            // TODO(PR B): wire to MobileSettings
+    public string JellyfinServerName => string.Empty;          // TODO(PR B): wire to MobileSettings
+    public bool UseServerScripts => false;                     // TODO(PR B): wire to MobileSettings
+    public bool PatchYoutubePlugin => false;                   // TODO(PR B): wire to MobileSettings
+    public bool EnableDevLogs => false;                        // TODO(PR B): wire to MobileSettings
+    public string CustomCss => string.Empty;                   // TODO(PR B): wire to MobileSettings
+    public string DisabledPluginIds => string.Empty;          // TODO(PR B): wire to MobileSettings
+    public string LocalIp => string.Empty;                     // TODO(PR B): wire to MobileSettings
 }
