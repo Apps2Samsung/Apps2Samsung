@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Xml.Linq;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Packaging;
+using Apps2Samsung.Sdb;
 using Microsoft.Maui.Storage;
 
 namespace Apps2Samsung.Mobile.Services;
@@ -16,13 +17,6 @@ namespace Apps2Samsung.Mobile.Services;
 /// </summary>
 public sealed class WgtInstaller
 {
-	// Fallback install staging path when the TV's capability report doesn't include one.
-	private const string DefaultSdkToolPath = "/opt/usr/apps/tmp";
-	// Below this Tizen version the device profile must be pushed first (permit-install).
-	private static readonly Version PushInstallMax = new(4, 0);
-	private static readonly Version IntermediateVersion = new(3, 0);
-	private const string HomeDeveloperPath = "/home/developer";
-
 	private readonly ISdbEngine _sdb;
 	private readonly HttpClient _http;
 	private readonly IEnumerable<IPackagePatcher> _patchers;
@@ -62,8 +56,9 @@ public sealed class WgtInstaller
 	{
 		progress?.Invoke("Reading TV capabilities…");
 		var cap = await _sdb.CapabilityAsync(tvIp);
-		var sdkToolPath = ParseCapability(cap.Output, "sdk_toolpath") ?? DefaultSdkToolPath;
-		Version.TryParse(ParseCapability(cap.Output, "platform_version"), out var version);
+		var caps = TizenCapabilities.Parse(cap.Output);
+		var sdkToolPath = caps.SdkToolPath;
+		var version = caps.Version;
 
 		// The Tizen app/package ids live in the package's config.xml; needed to remove an old
 		// version before install and/or launch the app afterwards.
@@ -76,13 +71,13 @@ public sealed class WgtInstaller
 		}
 
 		// Older TVs (<= 4.0) need the distributor device profile pushed before install; newer TVs
-		// carry the authorization in the re-signed package itself.
-		if (version is not null && version <= PushInstallMax)
+		// carry the authorization in the re-signed package itself. Thresholds live in Core so both
+		// heads agree.
+		if (TizenPermitInstall.IsRequired(version))
 		{
 			progress?.Invoke("Authorizing device…");
 			var profileXml = Path.Combine(cert.ProfileDir, "device-profile.xml");
-			var target = version < IntermediateVersion ? HomeDeveloperPath : sdkToolPath;
-			await _sdb.PermitInstallAsync(tvIp, profileXml, target);
+			await TizenPermitInstall.EnsureAsync(_sdb, tvIp, version, sdkToolPath, profileXml);
 		}
 
 		// Apply per-app modifications before signing — e.g. inject the user's TVApp channels
@@ -151,19 +146,6 @@ public sealed class WgtInstaller
 		{
 			return (null, null);
 		}
-	}
-
-	// Pulls a "  key: value" line out of the capability report.
-	private static string? ParseCapability(string output, string key)
-	{
-		foreach (var line in output.Split('\n'))
-		{
-			var marker = key + ":";
-			var i = line.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
-			if (i >= 0)
-				return line[(i + marker.Length)..].Trim();
-		}
-		return null;
 	}
 
 	private static string Detail(string error, string output) =>
