@@ -137,11 +137,12 @@ public sealed class WgtInstaller
 			throw new InvalidOperationException(
 				"Connection to the TV was interrupted. Check Wi-Fi (and that the TV is awake), then try again.");
 
-		// API-version mismatch: the app targets a newer Tizen than this TV supports — a different build
-		// is needed, not a retry.
+		// [118, -4] "operation not allowed": the TV refused the package. Ambiguous — could be the app
+		// targeting a newer Tizen than this TV, OR the package needing Partner signing / a privilege the
+		// certificate doesn't grant. Don't assert "TV too old" (it misleads when other apps install fine).
 		if (TizenInstallDiagnostics.IsApiVersionMismatch(output))
 			throw new InvalidOperationException(
-				"This TV's Tizen version is too old for this app (API-version mismatch [118, -4]). Try an older build if one is available.");
+				"The TV refused this package ([118, -4]). Either the app needs a newer Tizen than this TV, or it needs Partner signing / a privilege your certificate doesn't allow. If other apps install fine, turn on Partner signing in Settings and retry, or try an older build.");
 
 		bool certMismatch = TizenInstallDiagnostics.IsCertificateMismatch(output);
 		bool outOfSpace = TizenInstallDiagnostics.IsInsufficientSpace(output);
