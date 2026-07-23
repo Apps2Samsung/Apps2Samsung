@@ -33,34 +33,36 @@ namespace Apps2Samsung.Helpers.Tizen.Devices
                 // Check for cancellation before processing each device
                 cancellationToken.ThrowIfCancellationRequested();
 
+                // Enrich any TV that answers on the REST API (8001) with its friendly model/name —
+                // for ready (debug-open) TVs as well as not-ready ones. But never drop a TV we found:
+                // if REST is unavailable or returns no name, keep the base entry and fall back to the
+                // SDB-resolved name / IP so an installable TV always stays in the list.
                 if (await _networkService.IsPortOpenAsync(device.IpAddress, 8001, cancellationToken))
                 {
                     try
                     {
                         var samsungDevice = await _tizenApiClient.GetDeveloperInfoAsync(device);
-                        // GetDeveloperInfoAsync returns a fresh object, so carry over whether the
-                        // debug port was reachable (i.e. whether the TV is actually installable).
+                        // GetDeveloperInfoAsync returns a fresh object, so carry over the debug-port
+                        // state (installable?) and the SDB name when REST didn't supply its own.
                         samsungDevice.DebugPortOpen = device.DebugPortOpen;
-                        if (!string.IsNullOrEmpty(samsungDevice.DeviceName))
-                            devices.Add(samsungDevice);
+                        if (string.IsNullOrEmpty(samsungDevice.DeviceName))
+                            samsungDevice.DeviceName = device.DeviceName;
+                        if (string.IsNullOrEmpty(samsungDevice.Manufacturer))
+                            samsungDevice.Manufacturer = device.Manufacturer;
+                        devices.Add(samsungDevice);
                     }
                     catch
                     {
-                        Trace.WriteLine($"Failed to get developer info for device at {device.IpAddress}.");
+                        Trace.WriteLine($"Failed to get developer info for device at {device.IpAddress}; keeping base entry.");
+                        devices.Add(device);
                     }
                 }
                 else
                 {
-                    try
-                    {
-                        device.ModelName = device.ModelName;
-                        device.Manufacturer = device.Manufacturer;
-                        device.DeveloperMode = "1";
-                        device.DeveloperIP = string.Empty;
-
-                        devices.Add(device);
-                    }
-                    catch { }
+                    // No REST API — a debug-open TV reachable only over SDB. Keep it as-is (its SDB
+                    // name/IP is what identifies it); Developer Mode is on since the debug port answered.
+                    device.DeveloperMode = "1";
+                    devices.Add(device);
                 }
             }
 

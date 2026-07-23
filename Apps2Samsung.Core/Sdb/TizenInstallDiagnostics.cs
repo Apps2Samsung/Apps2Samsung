@@ -28,8 +28,10 @@ namespace Apps2Samsung.Sdb
             Has(output, Constants.TizenErrorCodes.InstallFailed118012) ||
             Has(output, Constants.TizenErrorCodes.InstallFailed118Minus12);
 
-        /// <summary>The package targets a newer Tizen API level than the TV supports ([118, -4]) —
-        /// re-signing/overwriting can't help.</summary>
+        /// <summary>The TV refused the package with [118, -4] ("operation not allowed" / "load archive
+        /// info fail"). Ambiguous: usually the package targets a newer Tizen than the TV, OR it needs
+        /// Partner signing / a privilege the certificate doesn't grant — so don't present it as a flat
+        /// "TV too old" (misleading when other apps install fine). Retrying/overwriting won't help.</summary>
         public static bool IsApiVersionMismatch(string? output) =>
             Has(output, Constants.TizenErrorCodes.InstallFailed118Minus4);
 

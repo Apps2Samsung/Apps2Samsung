@@ -114,7 +114,7 @@
   "lblKeepWGTFile": "Preserve WGT file",
   "AuthorMismatch": "Author Certificate mismatch, please re-sign the package with correct certificate.",
   "certificateMismatch": "{0} is already installed with a different signing certificate, so your TV won't replace it in place — and this TV doesn't allow removing apps remotely over the network connection. Please delete {0} on the TV manually (open the Apps list, press and hold {0}, choose Remove), then install it again.",
-  "apiVersionMismatch": "Your TV can't run this app: it was built for a newer Tizen version than your TV has (an API-version mismatch — install error [118, -4]). This is not a certificate or sign-in problem, so re-signing won't help. You need a build of this app made for your TV's Tizen version; check for an older or compatible release, or this app may not support your TV model.",
+  "apiVersionMismatch": "Your TV refused this package (install error [118, -4], \"operation not allowed\"). This usually means one of two things: the app was built for a newer Tizen version than your TV, or the package needs Partner signing / a privilege your certificate doesn't grant. If other apps (for example Jellyfin) install on this TV just fine, it's this package — try turning on Partner signing in Settings and installing again, or use an older/compatible build of the app.",
   "FixYouTube153": "Fix YouTube Plugin (Error 153)",
   "lblBasePath": "Base Path",
   "lblJellyfinUsername": "Username",
