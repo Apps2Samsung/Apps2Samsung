@@ -36,6 +36,50 @@ public partial class InstalledAppsPage : ContentPage
 
 	private async void OnRefreshClicked(object? sender, EventArgs e) => await LoadAsync();
 
+	// A partial/failed install can leave a package dir that vd_applist never shows, so it can't be
+	// removed from the list above. vd_appuninstall <packageId> still reclaims it, so offer a manual
+	// escape hatch: type the package id and force-remove it.
+	private async void OnRemoveLeftoverClicked(object? sender, EventArgs e)
+	{
+		var id = await DisplayPromptAsync(
+			"Remove leftover",
+			"Enter the package id of a leftover/partial install to remove:",
+			"Remove", "Cancel", placeholder: "e.g. HarborTV");
+		if (string.IsNullOrWhiteSpace(id))
+			return;
+		id = id.Trim();
+
+		var confirm = await DisplayAlert(
+			"Remove leftover",
+			$"Force-remove package \"{id}\" from {_tvLabel}?", "Remove", "Cancel");
+		if (!confirm)
+			return;
+
+		SetBusy(true, $"Removing {id}…");
+		try
+		{
+			var result = await _sdb.UninstallAsync(_tvIp, id);
+			// Exit 0, or "failed[132]" (not installed / already gone) — both mean the leftover is cleared.
+			var ok = result.ExitCode == 0 ||
+					 (result.Output?.Contains("failed[132]", StringComparison.OrdinalIgnoreCase) ?? false);
+			if (!ok)
+			{
+				SetBusy(false);
+				await DisplayAlert("Remove failed",
+					string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() : result.Error, "OK");
+				return;
+			}
+		}
+		catch (Exception ex)
+		{
+			SetBusy(false);
+			await DisplayAlert("Remove failed", ex.Message, "OK");
+			return;
+		}
+
+		await LoadAsync();
+	}
+
 	private async Task LoadAsync()
 	{
 		SetBusy(true, "Reading installed apps…");
@@ -53,7 +97,8 @@ public partial class InstalledAppsPage : ContentPage
 			else
 			{
 				var removable = apps.Count(a => a.IsRemovable);
-				CountLabel.Text = $"{apps.Count} apps on {_tvLabel} · {removable} removable";
+				var totalUsed = InstalledApp.FormatSize(apps.Sum(a => a.SizeBytes));
+				CountLabel.Text = $"{apps.Count} apps · {totalUsed} used on {_tvLabel} · {removable} removable";
 			}
 		}
 		catch (Exception ex)

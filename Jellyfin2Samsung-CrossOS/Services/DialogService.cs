@@ -311,5 +311,43 @@ namespace Apps2Samsung.Services
 
             return null;
         }
+
+        public async Task<string?> PromptForTextAsync(string title, string message, string placeholder)
+        {
+            var window = GetMainWindow();
+            if (window == null)
+                return null;
+
+            var isDarkMode = AppSettings.Default.DarkMode;
+            var foregroundBrush = GetThemeBrush("SystemControlForegroundBaseHighBrush", isDarkMode);
+
+            var textBox = new TextBox
+            {
+                Watermark = placeholder,
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(8),
+                FontSize = 14
+            };
+
+            var panel = new StackPanel { Spacing = 10 };
+            panel.Children.Add(new TextBlock
+            {
+                Text = message,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = foregroundBrush,
+                FontSize = 14,
+                Margin = new Thickness(0, 5, 0, 0)
+            });
+            panel.Children.Add(textBox);
+
+            // Reuse the app's styled dialog chrome (same Fluent look as the confirmation/IP prompts),
+            // wiring OK/Cancel through a bool TCS and returning the entered text only on OK.
+            var tcs = new TaskCompletionSource<bool>();
+            var dialog = CreateStyledDialog(title, panel, showButtons: true, tcs: tcs, yesText: "Remove", noText: "Cancel");
+
+            await dialog.ShowDialog(window);
+
+            return await tcs.Task ? textBox.Text : null;
+        }
     }
 }

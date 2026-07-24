@@ -65,6 +65,19 @@ public sealed class WgtInstaller
 		// version before install and/or launch the app afterwards.
 		var (appId, packageId) = ReadPackageIds(wgtPath);
 
+		// Was this package already on the TV before we started? Needed so the failure-cleanup below
+		// only clears a partial from a FRESH install and never removes a pre-existing working app.
+		bool wasInstalledBefore = false;
+		if (!string.IsNullOrWhiteSpace(packageId))
+		{
+			try
+			{
+				var listed = await _sdb.AppsAsync(tvIp);
+				wasInstalledBefore = listed?.Output?.Contains(packageId!, StringComparison.OrdinalIgnoreCase) ?? false;
+			}
+			catch { /* best-effort; if we can't tell, treat as fresh (cleanup guard still needs packageId) */ }
+		}
+
 		if (MobileSettings.DeletePreviousInstall && !string.IsNullOrWhiteSpace(packageId))
 		{
 			progress?.Invoke("Removing old version…");
@@ -109,7 +122,7 @@ public sealed class WgtInstaller
 		progress?.Invoke("Installing on TV…");
 		var install = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath);
 		if (install.ExitCode != 0)
-			install = await RecoverInstallAsync(tvIp, wgtPath, sdkToolPath, packageId, install, progress);
+			install = await RecoverInstallAsync(tvIp, wgtPath, sdkToolPath, packageId, install, progress, wasInstalledBefore);
 
 		if (MobileSettings.OpenAfterInstall && !string.IsNullOrWhiteSpace(appId))
 		{
@@ -128,9 +141,22 @@ public sealed class WgtInstaller
 	// mirroring the desktop head's error-code handling. Returns the successful result or throws with an
 	// actionable message.
 	private async Task<ProcessResult> RecoverInstallAsync(
-		string tvIp, string wgtPath, string sdkToolPath, string? packageId, ProcessResult failed, Action<string>? progress)
+		string tvIp, string wgtPath, string sdkToolPath, string? packageId, ProcessResult failed, Action<string>? progress,
+		bool wasInstalledBefore)
 	{
 		var output = failed.Output ?? string.Empty;
+
+		// Fresh-install cleanup guard: a failed install of an app that was NOT already on the TV can
+		// leave a partial package dir wasting storage. Best-effort clear it before we throw — but ONLY
+		// when it was a fresh install (never remove a pre-existing working app on a failed reinstall).
+		// Not called on the transport-lost / [118,-4] / cert-mismatch paths (those throw earlier).
+		async Task ClearPartialIfFresh()
+		{
+			if (!wasInstalledBefore && !string.IsNullOrWhiteSpace(packageId))
+			{
+				try { await _sdb.UninstallAsync(tvIp, packageId!); } catch { /* best-effort */ }
+			}
+		}
 
 		// Environmental — a broken route to the TV. Retrying the same push can't help.
 		if (TizenInstallDiagnostics.IsTransportLost(output))
@@ -167,6 +193,7 @@ public sealed class WgtInstaller
 				throw new InvalidOperationException(
 					"The TV already has this app signed with a different certificate. Remove it on the TV (Apps → delete), then install again.");
 
+			await ClearPartialIfFresh();
 			throw new InvalidOperationException($"Install failed: {Detail(retry.Error, retry.Output)}");
 		}
 
@@ -178,6 +205,7 @@ public sealed class WgtInstaller
 			throw new InvalidOperationException(
 				"Not enough free space on the TV [116]. Remove some apps and try again, or enable \"Override existing app\" in Settings.");
 
+		await ClearPartialIfFresh();
 		throw new InvalidOperationException($"Install failed: {Detail(failed.Error, failed.Output)}");
 	}
 
