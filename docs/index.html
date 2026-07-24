@@ -370,7 +370,20 @@
         <div class="dl-card"><span style="color:var(--muted)">Loading builds…</span></div>
       </div>
       <p class="note" id="archNote"></p>
-      <p class="note">📱 The Android build is a sideloaded <code>.apk</code> — open it on your phone and allow installs from your browser/files app. Desktop builds are unsigned beta artifacts built in CI.</p>
+
+      <!-- Android via Obtainium: install + auto-update straight from GitHub releases -->
+      <div class="card" style="margin-top:18px">
+        <h4 style="margin:0 0 6px">📱 Android — get updates automatically with Obtainium</h4>
+        <p style="margin:0 0 12px; color:var(--muted); font-size:.9rem">
+          The Android app is a sideloaded <code>.apk</code>. Use <a href="https://github.com/ImranR98/Obtainium" target="_blank" rel="noopener" style="color:var(--green)">Obtainium</a> to install it and get every new release automatically — no store account needed.
+        </p>
+        <a class="btn primary sm" target="_blank" rel="noopener"
+           href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/Apps2Samsung/Apps2Samsung">➕ Add to Obtainium</a>
+        <p class="note" style="margin-top:10px">
+          Or in Obtainium, tap <em>Add App</em> and paste <code>https://github.com/Apps2Samsung/Apps2Samsung</code>. Prefer a one-off install? Grab the <code>.apk</code> from the list above and allow installs from your browser/files app.
+        </p>
+      </div>
+      <p class="note" style="margin-top:14px">Desktop builds are beta artifacts built in CI.</p>
     </section>
   </div>
 
