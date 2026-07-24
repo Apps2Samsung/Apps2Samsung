@@ -56,9 +56,10 @@ namespace Apps2Samsung.ViewModels
                         Apps.Add(a);
                 });
                 var removable = apps.Count(a => a.IsRemovable);
+                var totalUsed = InstalledApp.FormatSize(apps.Sum(a => a.SizeBytes));
                 StatusText = apps.Count == 0
                     ? "Couldn't read the app list from this TV."
-                    : $"{apps.Count} apps · {removable} removable";
+                    : $"{apps.Count} apps · {totalUsed} used · {removable} removable";
             }
             catch (Exception ex)
             {
@@ -96,6 +97,56 @@ namespace Apps2Samsung.ViewModels
                     IsBusy = false;
                     await _dialogService.ShowErrorAsync(
                         string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() ?? "Uninstall failed." : result.Error);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                IsBusy = false;
+                await _dialogService.ShowErrorAsync(ex.Message);
+                return;
+            }
+
+            await Load();
+        }
+
+        // A partial/failed install can leave a package dir that vd_applist never lists, so it can't be
+        // removed from the list above. vd_appuninstall <packageId> still reclaims it — offer a manual
+        // escape hatch: prompt for the package id and force-remove it.
+        [RelayCommand]
+        private async Task RemoveLeftover()
+        {
+            if (IsBusy)
+                return;
+
+            var id = await _dialogService.PromptForTextAsync(
+                "Remove leftover",
+                "Enter the package id of a leftover/partial install to remove:",
+                "e.g. HarborTV");
+            if (string.IsNullOrWhiteSpace(id))
+                return;
+            id = id.Trim();
+
+            var confirm = await _dialogService.ShowConfirmationAsync(
+                "Remove leftover",
+                $"Force-remove package \"{id}\" from {TvLabel}?",
+                "Remove", "Cancel");
+            if (!confirm)
+                return;
+
+            IsBusy = true;
+            StatusText = $"Removing {id}…";
+            try
+            {
+                var result = await _installer.UninstallAppAsync(_tvIp, id);
+                // "failed[132]" = not installed — already gone, treat as success.
+                var ok = result.ExitCode == 0 ||
+                         (result.Output?.Contains("failed[132]", StringComparison.OrdinalIgnoreCase) ?? false);
+                if (!ok)
+                {
+                    IsBusy = false;
+                    await _dialogService.ShowErrorAsync(
+                        string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() ?? "Remove failed." : result.Error);
                     return;
                 }
             }

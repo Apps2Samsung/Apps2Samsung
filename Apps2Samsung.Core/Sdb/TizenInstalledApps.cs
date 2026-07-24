@@ -25,8 +25,9 @@ namespace Apps2Samsung.Sdb
         private static bool IsSeparator(string line) =>
             !line.Contains('=') && line.Contains("----") && line.Replace("-", "").Trim().Length == 0;
 
-        /// <summary>Parse the applist output. Returns the apps sorted by display name (case-insensitive);
-        /// empty when the output is blank or an error/"no listing" response.</summary>
+        /// <summary>Parse the applist output. Returns the apps sorted by install size (largest first,
+        /// so the biggest space users are on top), then display name (case-insensitive); empty when the
+        /// output is blank or an error/"no listing" response.</summary>
         public static IReadOnlyList<InstalledApp> Parse(string? output)
         {
             var apps = new List<InstalledApp>();
@@ -39,12 +40,14 @@ namespace Apps2Samsung.Sdb
             {
                 if (current.TryGetValue("app_tizen_id", out var id) && !string.IsNullOrWhiteSpace(id))
                 {
+                    long.TryParse(current.GetValueOrDefault("app_size", string.Empty).Trim(), out var size);
                     apps.Add(new InstalledApp(
                         Title: current.GetValueOrDefault("app_title", string.Empty),
                         TizenId: id.Trim(),
                         Version: current.GetValueOrDefault("app_version", string.Empty),
                         InstallDate: current.GetValueOrDefault("install_date", string.Empty),
-                        IsRemovable: current.GetValueOrDefault("is_removable", string.Empty) == "1"));
+                        IsRemovable: current.GetValueOrDefault("is_removable", string.Empty) == "1",
+                        SizeBytes: size));
                 }
                 current.Clear();
             }
@@ -66,7 +69,8 @@ namespace Apps2Samsung.Sdb
             return apps
                 .GroupBy(a => a.TizenId, StringComparer.OrdinalIgnoreCase)
                 .Select(g => g.First())
-                .OrderBy(a => a.DisplayName, StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(a => a.SizeBytes)
+                .ThenBy(a => a.DisplayName, StringComparer.OrdinalIgnoreCase)
                 .ToList();
         }
     }
