@@ -10,13 +10,16 @@
 
         <!-- Header banner with a back affordance -->
         <Border Grid.Row="0" BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
-            <Grid ColumnDefinitions="44,*,44" VerticalOptions="Center">
+            <Grid ColumnDefinitions="44,*,Auto,44" ColumnSpacing="4" VerticalOptions="Center">
                 <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
                         BackgroundColor="Transparent" BorderWidth="0" Padding="0"
                         WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
                 <Label Grid.Column="1" Text="Installed apps" TextColor="White" FontAttributes="Bold"
                        VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
-                <Button Grid.Column="2" x:Name="RefreshBtn" Text="⟳" FontSize="18" TextColor="White"
+                <Button Grid.Column="2" x:Name="RemoveLeftoverBtn" Text="Remove leftover…" FontSize="12"
+                        TextColor="White" BackgroundColor="Transparent" BorderWidth="0" Padding="6,0"
+                        VerticalOptions="Center" Clicked="OnRemoveLeftoverClicked" />
+                <Button Grid.Column="3" x:Name="RefreshBtn" Text="⟳" FontSize="18" TextColor="White"
                         BackgroundColor="Transparent" BorderWidth="0" Padding="0"
                         WidthRequest="44" HeightRequest="44" Clicked="OnRefreshClicked" />
             </Grid>
@@ -42,7 +45,10 @@
                                        LineBreakMode="TailTruncation" />
                                 <Label Text="{Binding TizenId}" FontSize="11" Opacity="0.55"
                                        LineBreakMode="TailTruncation" />
-                                <Label Text="{Binding Version, StringFormat='v{0}'}" FontSize="11" Opacity="0.55" />
+                                <HorizontalStackLayout Spacing="10">
+                                    <Label Text="{Binding Version, StringFormat='v{0}'}" FontSize="11" Opacity="0.55" />
+                                    <Label Text="{Binding SizeDisplay}" FontSize="11" Opacity="0.55" />
+                                </HorizontalStackLayout>
                             </VerticalStackLayout>
                             <Button Grid.Column="1" Text="Uninstall" Clicked="OnUninstallClicked"
                                     IsVisible="{Binding IsRemovable}" VerticalOptions="Center"

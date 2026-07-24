@@ -299,7 +299,8 @@ namespace Apps2Samsung.Services
             string tvIpAddress,
             CancellationToken cancellationToken,
             ProgressCallback? progress = null,
-            Action? onSamsungLoginStarted = null)
+            Action? onSamsungLoginStarted = null,
+            bool? wasAlreadyInstalled = null)
         {
             if (TizenSdbPath is null)
             {
@@ -312,7 +313,25 @@ namespace Apps2Samsung.Services
                     return InstallResult.FailureResult(Constants.LocalizationKeys.InstallTizenSdb.Localized());
                 }
             }
-        
+
+            // Record whether the app was already on the TV BEFORE this run (once, on the outer call;
+            // recursive retries carry the original value forward). This gates the fresh-install partial
+            // cleanup in HandleInstallationResultAsync: we only clear a partial for an app that wasn't
+            // there to begin with, never a pre-existing working app. If we can't tell, assume installed
+            // (fail safe — never uninstall).
+            if (wasAlreadyInstalled is null)
+            {
+                try
+                {
+                    var (existing, _) = await CheckForInstalledApp(tvIpAddress, packageUrl);
+                    wasAlreadyInstalled = existing;
+                }
+                catch
+                {
+                    wasAlreadyInstalled = true;
+                }
+            }
+
             try
             {
                 // Step 1: Prepare device and check for existing installations
@@ -404,7 +423,8 @@ namespace Apps2Samsung.Services
                     deviceInfo.SdkToolPath,
                     progress,
                     cancellationToken,
-                    onSamsungLoginStarted);
+                    onSamsungLoginStarted,
+                    wasAlreadyInstalled.Value);
             }
             catch (Exception ex)
             {
@@ -891,8 +911,25 @@ namespace Apps2Samsung.Services
             string sdkToolPath,
             ProgressCallback? progress,
             CancellationToken cancellationToken,
-            Action? onSamsungLoginStarted)
+            Action? onSamsungLoginStarted,
+            bool wasAlreadyInstalled)
         {
+            // Best-effort cleanup of a partial left behind by a FRESH failed install. Guarded on
+            // wasAlreadyInstalled: only clear a package that wasn't on the TV before this run — never
+            // uninstall a pre-existing working app on a failed reinstall. Swallows all errors.
+            async Task ClearPartialIfFresh()
+            {
+                if (wasAlreadyInstalled)
+                    return;
+                try
+                {
+                    var pkgId = await FileHelper.ReadWgtPackageId(packageUrl);
+                    if (!string.IsNullOrWhiteSpace(pkgId))
+                        await _sdb.UninstallAsync(tvIpAddress, pkgId!);
+                }
+                catch { /* best-effort */ }
+            }
+
             var installResults = await InstallPackageOnDeviceAsync(tvIpAddress, packageUrl, sdkToolPath);
 
             // Transport / connection failure (e.g. "Unable to read data from the transport
@@ -917,7 +954,7 @@ namespace Apps2Samsung.Services
                 {
                     Trace.WriteLine("Installation failed, insufficient space! retrying with remove previous version");
                     _appSettings.TryOverwrite = false;
-                    return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted);
+                    return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
                 }
 
                 _appSettings.TryOverwrite = false;
@@ -937,7 +974,7 @@ namespace Apps2Samsung.Services
                     _appSettings.TryOverwrite = false;
                     _appSettings.ForceSamsungLogin = true;
                     _appSettings.DeletePreviousInstall = true;
-                    return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted);
+                    return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
                 }
 
                 // Overwrite can't help and the TV can't remove it over USB -> tell the user to delete it manually.
@@ -973,7 +1010,7 @@ namespace Apps2Samsung.Services
                 {
                     _appSettings.TryOverwrite = false;
                     await FileHelper.ModifyWgtPackageId(packageUrl);
-                    return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted);
+                    return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
                 }
 
                 _appSettings.TryOverwrite = false;
@@ -988,10 +1025,12 @@ namespace Apps2Samsung.Services
                 if (_appSettings.TryOverwrite)
                 {
                     _appSettings.TryOverwrite = false;
-                    return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted);
+                    return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
                 }
 
                 _appSettings.TryOverwrite = false;
+                // Retries exhausted on a generic failure — clear any partial left by a fresh install.
+                await ClearPartialIfFresh();
                 return InstallResult.FailureResult($"Installation failed: {installResults.Output}");
             }
 
@@ -1018,10 +1057,12 @@ namespace Apps2Samsung.Services
             if (_appSettings.TryOverwrite)
             {
                 _appSettings.TryOverwrite = false;
-                return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted);
+                return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
             }
 
             _appSettings.TryOverwrite = false;
+            // Retries exhausted on an unknown result — clear any partial left by a fresh install.
+            await ClearPartialIfFresh();
             return InstallResult.FailureResult($"Installation failed: {installResults.Output}");
         }
 
