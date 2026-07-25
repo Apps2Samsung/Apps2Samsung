@@ -20,8 +20,13 @@ namespace Apps2Samsung.Services
         private static readonly Uri BundledUri =
             new("avares://Apps2Samsung/Assets/third-party-apps.json");
 
-        private static readonly string CachePath =
-            Path.Combine(AppSettings.FolderPath, "third-party-apps.cache.json");
+        // The remote-manifest cache. On macOS this must NOT live next to the binary: writing it into
+        // the .app bundle mutates it and breaks the code signature / TCC Local Network prompt (#498).
+        private static readonly string CachePath = OperatingSystem.IsMacOS()
+            ? Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "Library", "Caches", "Apps2Samsung", "third-party-apps.cache.json")
+            : Path.Combine(AppSettings.FolderPath, "third-party-apps.cache.json");
 
         private readonly HttpClient _httpClient;
 
@@ -103,6 +108,7 @@ namespace Apps2Samsung.Services
         {
             try
             {
+                Directory.CreateDirectory(Path.GetDirectoryName(CachePath)!);
                 File.WriteAllText(CachePath, json);
             }
             catch (Exception ex)
