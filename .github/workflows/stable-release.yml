@@ -331,6 +331,8 @@ jobs:
             <key>CFBundlePackageType</key><string>APPL</string>
             <key>LSMinimumSystemVersion</key><string>11.0</string>
 
+            <key>NSLocalNetworkUsageDescription</key>
+            <string>Apps2Samsung scans your local network to find Samsung TVs in Developer Mode.</string>
             <key>CFBundleIconFile</key><string>jellyfin.icns</string>
           </dict>
           </plist>
@@ -379,6 +381,8 @@ jobs:
             <key>CFBundlePackageType</key><string>APPL</string>
             <key>LSMinimumSystemVersion</key><string>11.0</string>
 
+            <key>NSLocalNetworkUsageDescription</key>
+            <string>Apps2Samsung scans your local network to find Samsung TVs in Developer Mode.</string>
             <key>CFBundleIconFile</key><string>jellyfin.icns</string>
           </dict>
           </plist>
