@@ -222,7 +222,7 @@ namespace Apps2Samsung.Services
                 {
                     try
                     {
-                        var logFolder = Path.Combine(AppContext.BaseDirectory, "Logs");
+                        var logFolder = Apps2Samsung.Diagnostics.FileLog.DefaultLogDirectory;
                         Directory.CreateDirectory(logFolder);
 
                         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
