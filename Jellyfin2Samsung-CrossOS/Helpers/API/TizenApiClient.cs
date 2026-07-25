@@ -48,10 +48,6 @@ namespace Apps2Samsung.Helpers.API
 
                 var jsonObject = JsonNode.Parse(jsonContent);
 
-                var logFilePath = Path.Combine(AppContext.BaseDirectory, "Logs", $"debug_tv_api_{DateTime.Now:yyyy-MM-dd_HH-mm-ss-fff}.log");
-                await File.WriteAllTextAsync(logFilePath, jsonContent);
-
-
                 var deviceNode = jsonObject?["device"];
                 if (deviceNode == null)
                 {
