@@ -62,15 +62,15 @@ namespace Apps2Samsung.Helpers.Core
                 WorkingDirectory = workingDirectory ?? ""
             };
 
-            // Build log file path (next to app .exe)
-            string exeDir = AppContext.BaseDirectory;
+            // Build log file path. Shares FileLog's directory so it stays OUT of the .app bundle on
+            // macOS — writing next to the binary mutates the signed bundle and breaks TCC (issue #498).
             string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss-fff");
             string firstTwoArgs = GetFirstArguments(arguments);
             string sanitizedArguments = new(firstTwoArgs.Where(c => char.IsLetterOrDigit(c) || c == '_' || c == '-').ToArray());
             if (string.IsNullOrEmpty(sanitizedArguments))
                 sanitizedArguments = "unknown";
 
-            string logFolder = Path.Combine(exeDir, "Logs");
+            string logFolder = Apps2Samsung.Diagnostics.FileLog.DefaultLogDirectory;
             string logFilePath = Path.Combine(logFolder, $"process_{sanitizedArguments}_{timestamp}.log");
 
             try
@@ -102,7 +102,7 @@ namespace Apps2Samsung.Helpers.Core
                 // Always write everything to a log file
                 try
                 {
-                    Directory.CreateDirectory(exeDir);
+                    Directory.CreateDirectory(logFolder);
                     await File.WriteAllTextAsync(logFilePath, result.Output);
                     result.Output += $"\n[Log written to: {logFilePath}]";
                 }

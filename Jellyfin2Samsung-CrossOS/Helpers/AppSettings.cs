@@ -25,7 +25,16 @@ namespace Apps2Samsung.Helpers
 
         // Pre-2.5.1 location: next to the binary. Used once to migrate existing users' settings.
         private static readonly string LegacyFilePath = Path.Combine(FolderPath, FileName);
-        public static readonly string TizenSdbPath = Path.Combine(FolderPath, "Assets", "TizenSDB");
+
+        // Read-only Tizen SDB binary shipped inside the install folder/bundle.
+        public static readonly string BundledTizenSdbPath = Path.Combine(FolderPath, "Assets", "TizenSDB");
+        // Working dir the SDB binary actually runs from. The auto-updater replaces the binary here, so
+        // on macOS it must live OUTSIDE the .app bundle (writing there breaks the code signature and the
+        // TCC Local Network prompt, #498); it's seeded from BundledTizenSdbPath on first use. Windows/
+        // Linux run straight from the bundled copy, unchanged.
+        public static readonly string TizenSdbPath = OperatingSystem.IsMacOS()
+            ? Path.Combine(DataFolderPath, "TizenSDB")
+            : BundledTizenSdbPath;
 
         // Generated signing certificates live in the per-user data dir so they survive app/bundle
         // updates. A macOS .dmg (or an installer) replaces the whole install folder/bundle; if the

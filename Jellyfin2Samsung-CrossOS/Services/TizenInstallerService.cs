@@ -60,6 +60,25 @@ namespace Apps2Samsung.Services
         public async Task<string> EnsureTizenSdbAvailable()
         {
             string tizenSdbPath = AppSettings.TizenSdbPath;
+
+            // On macOS the SDB runs from a writable per-user dir (see AppSettings.TizenSdbPath): the
+            // updater rewrites the binary and doing that inside the signed .app bundle breaks TCC
+            // (#498). Seed it from the read-only bundled copy on first use.
+            if (OperatingSystem.IsMacOS() && tizenSdbPath != AppSettings.BundledTizenSdbPath)
+            {
+                Directory.CreateDirectory(tizenSdbPath);
+                if (!Directory.EnumerateFileSystemEntries(tizenSdbPath).Any()
+                    && Directory.Exists(AppSettings.BundledTizenSdbPath))
+                {
+                    foreach (var src in Directory.GetFiles(AppSettings.BundledTizenSdbPath))
+                    {
+                        var dest = Path.Combine(tizenSdbPath, Path.GetFileName(src));
+                        File.Copy(src, dest, overwrite: true);
+                        await _processHelper.MakeExecutableAsync(dest);
+                    }
+                }
+            }
+
             if (!Directory.Exists(tizenSdbPath))
             {
                 throw new InvalidOperationException(
