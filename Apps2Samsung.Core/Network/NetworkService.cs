@@ -144,7 +144,12 @@ namespace Apps2Samsung.Services
                                 }
                             }
                         }
-                        catch { /* Ignore scan failures */ }
+                        catch (Exception ex)
+                        {
+                            // Don't let one host's failure abort the sweep, but no longer swallow it
+                            // silently — log so a systematic failure (e.g. an OS-level block) is visible.
+                            Trace.WriteLine($"[Scan] host probe failed: {ex.GetType().Name} — {ex.Message}");
+                        }
                     })));
 
             Trace.WriteLine($"Scan complete! Found {foundDevices.Count} device(s) (debug port {TizenDevPort} or REST API {SamsungTvApiPort}).");
@@ -199,8 +204,25 @@ namespace Apps2Samsung.Services
                 await client.ConnectAsync(ip, port, ct);
                 return true;
             }
-            catch
+            catch (OperationCanceledException)
             {
+                return false; // normal: per-probe timeout / linked-CTS cancellation
+            }
+            catch (Exception ex)
+            {
+                // A subnet sweep expects most probes to fail with refused/timeout/unreachable, so keep
+                // those quiet. Anything else is surfaced instead of silently swallowed — notably macOS
+                // Local Network privacy, which blocks the connect with "Operation not permitted"
+                // (SocketError.AccessDenied). That log line is what tells us a connect was denied by
+                // the OS rather than the host simply being absent (see #498).
+                var normal = ex is SocketException se && se.SocketErrorCode is
+                    SocketError.ConnectionRefused or SocketError.TimedOut or
+                    SocketError.HostUnreachable or SocketError.NetworkUnreachable;
+                if (!normal)
+                {
+                    var code = (ex as SocketException)?.SocketErrorCode.ToString() ?? ex.GetType().Name;
+                    Trace.WriteLine($"[Scan] connect {ip}:{port} failed unexpectedly ({code}): {ex.Message}");
+                }
                 return false;
             }
         }
