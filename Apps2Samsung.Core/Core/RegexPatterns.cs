@@ -124,20 +124,34 @@ namespace Apps2Samsung.Helpers.Core
                 @"<tizen:application\s+id=""(?<pkg>[A-Za-z0-9]+)\.Jellyfin""\s+package=""\k<pkg>""";
 
             /// <summary>
-            /// Pre-compiled regex for Tizen application ID extraction.
+            /// Pre-compiled regex for Tizen application ID extraction. Jellyfin-specific — matches
+            /// only <c>&lt;pkg&gt;.Jellyfin</c> ids. Keep this for the Jellyfin-only patches (e.g.
+            /// FixYouTube) that must never touch non-Jellyfin packages.
             /// </summary>
             public static readonly Regex TizenApplicationId = new(
                 TizenApplicationIdPattern,
                 RegexOptions.Compiled | RegexOptions.Multiline);
 
             /// <summary>
-            /// Creates a pattern to match and replace a specific package ID in config.xml.
+            /// Generic package-id matcher: any <c>&lt;pkg&gt;.&lt;AppName&gt;</c> id whose
+            /// <c>package</c> attribute equals <c>&lt;pkg&gt;</c>. Used to read/rewrite the package id
+            /// for ANY app. Jellyfin variants such as LiteFin use <c>LitefinApp.Litefin</c> (not
+            /// <c>.Jellyfin</c>), so the pattern above silently misses them — which made the [118]
+            /// package-id-conflict retry a no-op and failed the install with "needs a new app id" (#400).
+            /// </summary>
+            public static readonly Regex TizenPackageIdAny = new(
+                @"<tizen:application\s+id=""(?<pkg>[A-Za-z0-9]+)\.[A-Za-z0-9]+""\s+package=""\k<pkg>""",
+                RegexOptions.Compiled | RegexOptions.Multiline);
+
+            /// <summary>
+            /// Creates a pattern to match a specific package's Tizen application element (any app-name
+            /// suffix, not just <c>.Jellyfin</c>), so the id can be rewritten for any variant.
             /// </summary>
             /// <param name="packageId">The package ID to match.</param>
             /// <returns>The pattern string.</returns>
             public static string CreatePackageIdReplacePattern(string packageId)
             {
-                return $@"<tizen:application\s+id=""{packageId}\.Jellyfin""\s+package=""{packageId}""";
+                return $@"<tizen:application\s+id=""{packageId}\.[A-Za-z0-9]+""\s+package=""{packageId}""";
             }
         }
 
