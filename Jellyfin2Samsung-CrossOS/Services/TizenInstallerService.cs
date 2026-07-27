@@ -1028,8 +1028,12 @@ namespace Apps2Samsung.Services
                 if (_appSettings.TryOverwrite)
                 {
                     _appSettings.TryOverwrite = false;
-                    await FileHelper.ModifyWgtPackageId(packageUrl);
-                    return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
+                    // Give the package a fresh random id and retry. Only retry if the id was actually
+                    // rewritten — if the config couldn't be read/modified (previously silent for any
+                    // non-".Jellyfin" variant like LiteFin, #400), retrying would hit the identical
+                    // [118] conflict, so fall through to a clear failure instead.
+                    if (await FileHelper.ModifyWgtPackageId(packageUrl))
+                        return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
                 }
 
                 _appSettings.TryOverwrite = false;
