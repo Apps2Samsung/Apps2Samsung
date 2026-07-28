@@ -182,7 +182,7 @@ public class SamsungLoginActivity : Activity
     // the callback arrives over a socket, not an intent filter.
     private void BringToFront() =>
         StartActivity(new AndroidIntent(this, typeof(SamsungLoginActivity))
-            .AddFlags(ActivityFlags.ClearTop | ActivityFlags.SingleTop));
+            .AddFlags(global::Android.Content.ActivityFlags.ClearTop | global::Android.Content.ActivityFlags.SingleTop));
 
     protected override void OnDestroy()
     {
