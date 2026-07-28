@@ -108,7 +108,7 @@ public async Task<string?> BrowseWgtFilesAsync(IStorageProvider storageProvider)
             using (var reader = new StreamReader(configEntry.Open(), Encoding.UTF8))
                 configContent = await reader.ReadToEndAsync();
 
-            var match = RegexPatterns.WgtConfig.TizenApplicationId.Match(configContent);
+            var match = RegexPatterns.WgtConfig.TizenPackageIdAny.Match(configContent);
             return match.Success ? match.Groups["pkg"].Value : null;
         }
         public static async Task<string?> ReadExtractedWgtPackageId(string workspaceRoot)
@@ -118,7 +118,7 @@ public async Task<string?> BrowseWgtFilesAsync(IStorageProvider storageProvider)
                 return null;
 
             var configContent = await File.ReadAllTextAsync(configPath, Encoding.UTF8);
-            var match = RegexPatterns.WgtConfig.TizenApplicationId.Match(configContent);
+            var match = RegexPatterns.WgtConfig.TizenPackageIdAny.Match(configContent);
             return match.Success ? match.Groups["pkg"].Value : null;
         }
         public static async Task<bool> ModifyWgtPackageId(string wgtPath)

@@ -24,5 +24,13 @@ namespace Apps2Samsung.Samsung
             $"{SignInGateUrl}?locale=&clientId={ClientId}" +
             $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
             $"&state={State}&tokenType={TokenType}";
+
+        /// <summary>
+        /// True when the <c>state</c> returned on the callback matches the value we sent in
+        /// <see cref="BuildAuthorizeUrl"/>. The single implementation both heads use to reject a
+        /// callback whose state doesn't round-trip (CSRF / stray callback protection).
+        /// </summary>
+        public static bool IsValidState(string? state) =>
+            string.Equals(state, State, StringComparison.Ordinal);
     }
 }

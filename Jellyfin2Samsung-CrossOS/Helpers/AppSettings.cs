@@ -25,7 +25,16 @@ namespace Apps2Samsung.Helpers
 
         // Pre-2.5.1 location: next to the binary. Used once to migrate existing users' settings.
         private static readonly string LegacyFilePath = Path.Combine(FolderPath, FileName);
-        public static readonly string TizenSdbPath = Path.Combine(FolderPath, "Assets", "TizenSDB");
+
+        // Read-only Tizen SDB binary shipped inside the install folder/bundle.
+        public static readonly string BundledTizenSdbPath = Path.Combine(FolderPath, "Assets", "TizenSDB");
+        // Working dir the SDB binary actually runs from. The auto-updater replaces the binary here, so
+        // on macOS it must live OUTSIDE the .app bundle (writing there breaks the code signature and the
+        // TCC Local Network prompt, #498); it's seeded from BundledTizenSdbPath on first use. Windows/
+        // Linux run straight from the bundled copy, unchanged.
+        public static readonly string TizenSdbPath = OperatingSystem.IsMacOS()
+            ? Path.Combine(DataFolderPath, "TizenSDB")
+            : BundledTizenSdbPath;
 
         // Generated signing certificates live in the per-user data dir so they survive app/bundle
         // updates. A macOS .dmg (or an installer) replaces the whole install folder/bundle; if the
@@ -37,7 +46,15 @@ namespace Apps2Samsung.Helpers
 
         public static readonly string ProfilePath = Path.Combine(FolderPath, "Assets", "TizenProfile");
         public static readonly string EsbuildPath = Path.Combine(FolderPath, "Assets", "esbuild");
-        public static readonly string DownloadPath = Path.Combine(FolderPath, "Downloads");
+
+        // Downloaded-package (.wgt) cache. On macOS this must NOT live inside the .app bundle: writing
+        // there mutates the ad-hoc-signed bundle and breaks static signature validation (issue #498).
+        // Use ~/Library/Caches; Windows/Linux keep it next to the binary (unchanged).
+        public static readonly string DownloadPath = OperatingSystem.IsMacOS()
+            ? Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "Library", "Caches", "Apps2Samsung", "Downloads")
+            : Path.Combine(FolderPath, "Downloads");
 
         private static AppSettings? _instance;
 
@@ -136,7 +153,7 @@ namespace Apps2Samsung.Helpers
         [JsonIgnore]
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
         [JsonIgnore]
-        public string AppVersion { get; set; } = "v2.7.0";
+        public string AppVersion { get; set; } = "v2.7.1";
         [JsonIgnore]
         public string TizenSdb { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-sdb/releases";
         [JsonIgnore]
