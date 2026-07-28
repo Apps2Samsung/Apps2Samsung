@@ -74,7 +74,7 @@ namespace Apps2Samsung.Helpers.Core
         {
             public const int TizenDevPort = 26101;
             public const int SamsungTvApiPort = 8001;
-            public const int SamsungLoginCallbackPort = 4794;
+            // Samsung login callback port lives in Apps2Samsung.Samsung.SamsungOAuth.CallbackPort.
         }
 
         /// <summary>
@@ -134,11 +134,8 @@ namespace Apps2Samsung.Helpers.Core
         public static class Samsung
         {
             public const string LoopbackHost = "localhost";
-            public const string CallbackPath = "/signin/callback";
-            public const string OAuthClientId = "v285zxnl3h";
-            public const string OAuthState = "accountcheckdogeneratedstatetext";
-            public const string TokenType = "TOKEN";
-            public const string SignInGateUrl = "https://account.samsung.com/accounts/be1dce529476c1a6d407c4c7578c31bd/signInGate";
+            // OAuth endpoint + parameters (SignInGate URL, client id, state, token type, callback
+            // path) are the single source of truth in Apps2Samsung.Samsung.SamsungOAuth.
             public const string PlatformVd = "VD";
             public const string PrivilegeLevelPublic = "Public";
             public const string DeveloperTypeIndividual = "Individual";

@@ -1,6 +1,7 @@
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Samsung;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -11,7 +12,6 @@ using System.Net;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace Apps2Samsung.Services
 {
@@ -20,7 +20,7 @@ namespace Apps2Samsung.Services
         private IWebHost? _callbackServer;
 
         private string CallbackUrl =>
-            $"http://{Constants.Samsung.LoopbackHost}:{Constants.Ports.SamsungLoginCallbackPort}{Constants.Samsung.CallbackPath}";
+            $"http://{Constants.Samsung.LoopbackHost}:{SamsungOAuth.CallbackPort}{SamsungOAuth.CallbackPath}";
 
         public Action<SamsungAuth>? CallbackReceived;
 
@@ -56,12 +56,7 @@ namespace Apps2Samsung.Services
 
             await service.StartCallbackServer();
 
-            string loginUrl =
-                $"{Constants.Samsung.SignInGateUrl}" +
-                $"?locale=&clientId={Constants.Samsung.OAuthClientId}" +
-                $"&redirect_uri={HttpUtility.UrlEncode(service.CallbackUrl)}" +
-                $"&state={Constants.Samsung.OAuthState}" +
-                $"&tokenType={Constants.Samsung.TokenType}";
+            string loginUrl = SamsungOAuth.BuildAuthorizeUrl(service.CallbackUrl);
 
             try
             {
@@ -91,12 +86,12 @@ namespace Apps2Samsung.Services
         {
             _callbackServer = new WebHostBuilder()
                 .UseKestrel()
-                .UseUrls($"http://{Constants.Samsung.LoopbackHost}:{Constants.Ports.SamsungLoginCallbackPort}")
+                .UseUrls($"http://{Constants.Samsung.LoopbackHost}:{SamsungOAuth.CallbackPort}")
                 .Configure(app =>
                 {
                     app.Run(async context =>
                     {
-                        if (context.Request.Path == Constants.Samsung.CallbackPath &&
+                        if (context.Request.Path == SamsungOAuth.CallbackPath &&
                             context.Request.Method == "POST")
                         {
                             string body = await new StreamReader(context.Request.Body).ReadToEndAsync();
@@ -116,6 +111,14 @@ namespace Apps2Samsung.Services
 
                                 if (kv[0] == "code")
                                     codeEncoded = Uri.UnescapeDataString(kv[1]);
+                            }
+
+                            // Reject a callback whose state doesn't round-trip (CSRF / stray callback).
+                            if (!SamsungOAuth.IsValidState(state))
+                            {
+                                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                                await context.Response.WriteAsync("Invalid login response (state mismatch).");
+                                return;
                             }
 
                             if (string.IsNullOrWhiteSpace(codeEncoded))
@@ -163,7 +166,7 @@ namespace Apps2Samsung.Services
             await _callbackServer.StartAsync();
 
             Trace.WriteLine(
-                $"[SamsungLoginService] Bound to http://{Constants.Samsung.LoopbackHost}:{Constants.Ports.SamsungLoginCallbackPort}");
+                $"[SamsungLoginService] Bound to http://{Constants.Samsung.LoopbackHost}:{SamsungOAuth.CallbackPort}");
         }
 
         public async Task StopCallbackServer()
