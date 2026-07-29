@@ -392,6 +392,19 @@ namespace Apps2Samsung.Services
                         Trace.WriteLine($"Device Tizen {deviceInfo.TizenVersion} < {serviceSupport}: removed bundled background service so the package can install");
                 }
 
+                // Step 3c: Old TVs (below Tizen 4.0) reject a PUBLIC-signed package that declares a
+                // Partner-only privilege (e.g. SmartHub 'preview') with the same generic install
+                // failed[118] (#400 — LiteFin). When we're not Partner-signing this package, strip
+                // those privileges so the main app still installs; Partner-signed installs keep them.
+                bool signingPartner = _appSettings.PartnerSigning
+                                      || _appSettings.RequiresPartnerSigning
+                                      || Apps2Samsung.Packaging.WgtPrivileges.RequiresPartner(packageUrl);
+                if (deviceInfo.TizenVersion < serviceSupport && !signingPartner)
+                {
+                    if (await FileHelper.StripWgtIncompatiblePrivileges(packageUrl))
+                        Trace.WriteLine($"Device Tizen {deviceInfo.TizenVersion} < {serviceSupport}: removed Partner-only privilege(s) so the public-signed package can install");
+                }
+
                 // Step 4: Handle certificate selection/generation
                 var certificateResult = await HandleCertificateAsync(
                     tvIpAddress,
