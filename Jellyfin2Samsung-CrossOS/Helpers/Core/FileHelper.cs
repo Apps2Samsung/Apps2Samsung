@@ -264,6 +264,63 @@ public async Task<string?> BrowseWgtFilesAsync(IStorageProvider storageProvider)
         /// background-service components. Returns true if anything was removed (the wgt must be
         /// re-signed afterwards — the caller re-enters the install flow which re-signs).
         /// </summary>
+        /// <summary>
+        /// Removes Partner-only <c>&lt;tizen:privilege&gt;</c> declarations (see
+        /// <see cref="Apps2Samsung.Packaging.WgtPrivileges.PublicIncompatiblePrivileges"/>) from the
+        /// package's config.xml so a public-signed package installs on old TVs that otherwise reject it
+        /// with a generic <c>install failed[118]</c> (#400). Returns true if anything was removed (the
+        /// wgt must be re-signed afterwards — the caller re-enters the install flow which re-signs).
+        /// </summary>
+        public static async Task<bool> StripWgtIncompatiblePrivileges(string wgtPath)
+        {
+            if (!File.Exists(wgtPath))
+                return false;
+
+            var toStrip = Apps2Samsung.Packaging.WgtPrivileges.PublicIncompatiblePrivileges;
+            if (toStrip.Count == 0)
+                return false;
+
+            using var memoryStream = new MemoryStream();
+            using (var originalStream = File.OpenRead(wgtPath))
+                await originalStream.CopyToAsync(memoryStream);
+
+            memoryStream.Position = 0;
+
+            bool changed = false;
+            using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Update, true))
+            {
+                var configEntry = archive.GetEntry("config.xml");
+                if (configEntry == null)
+                    return false;
+
+                string configContent;
+                using (var reader = new StreamReader(configEntry.Open(), Encoding.UTF8))
+                    configContent = await reader.ReadToEndAsync();
+
+                var newConfig = configContent;
+                foreach (var priv in toStrip)
+                {
+                    // Drop the whole <tizen:privilege ... name="<priv>" .../> element (any attribute order).
+                    var pattern = $@"[ \t]*<tizen:privilege\b[^>]*\bname\s*=\s*""{Regex.Escape(priv)}""[^>]*/>\s*\r?\n?";
+                    newConfig = Regex.Replace(newConfig, pattern, string.Empty, RegexOptions.IgnoreCase);
+                }
+
+                if (newConfig == configContent)
+                    return false;
+
+                changed = true;
+                configEntry.Delete();
+                var newEntry = archive.CreateEntry("config.xml");
+                using var writer = new StreamWriter(newEntry.Open(), Encoding.UTF8);
+                await writer.WriteAsync(newConfig);
+            }
+
+            if (changed)
+                await File.WriteAllBytesAsync(wgtPath, memoryStream.ToArray());
+
+            return changed;
+        }
+
         public static async Task<bool> StripWgtServiceComponent(string wgtPath)
         {
             if (!File.Exists(wgtPath))
