@@ -1,3 +1,6 @@
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -11,6 +14,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
 
 namespace Apps2Samsung.ViewModels
 {
@@ -268,6 +274,117 @@ namespace Apps2Samsung.ViewModels
             {
                 return code;
             }
+        }
+
+        [ObservableProperty]
+        private string backupStatus = string.Empty;
+
+        // Export settings.json + the generated signing certificates to a single .zip the user can copy
+        // to another computer or phone (#510). Uses the shared Core BackupService so the archive format
+        // matches the mobile head.
+        [RelayCommand]
+        private async Task ExportBackup()
+        {
+            try
+            {
+                var storage = GetActiveStorageProvider();
+                if (storage is null)
+                    return;
+
+                var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
+                {
+                    Title = "Export backup",
+                    SuggestedFileName = "apps2samsung-backup.zip",
+                    DefaultExtension = "zip",
+                    FileTypeChoices = new[]
+                    {
+                        new FilePickerFileType("Apps2Samsung backup") { Patterns = new[] { "*.zip" } }
+                    }
+                });
+                if (file is null)
+                    return;
+
+                var settingsJson = JsonSerializer.Serialize(AppSettings.Default,
+                    new JsonSerializerOptions { WriteIndented = true });
+
+                await using (var stream = await file.OpenWriteAsync())
+                    Apps2Samsung.Backup.BackupService.Export(stream, settingsJson, AppSettings.CertificatePath);
+
+                BackupStatus = "Backup exported.";
+            }
+            catch (Exception ex)
+            {
+                BackupStatus = $"Export failed: {ex.Message}";
+                Trace.WriteLine($"[Backup] export failed: {ex}");
+            }
+        }
+
+        // Import a backup .zip: restore the certificates and merge the settings. Settings take effect on
+        // next launch.
+        [RelayCommand]
+        private async Task ImportBackup()
+        {
+            try
+            {
+                var storage = GetActiveStorageProvider();
+                if (storage is null)
+                    return;
+
+                var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+                {
+                    Title = "Import backup",
+                    AllowMultiple = false,
+                    FileTypeFilter = new[]
+                    {
+                        new FilePickerFileType("Apps2Samsung backup") { Patterns = new[] { "*.zip" } }
+                    }
+                });
+                var file = files.FirstOrDefault();
+                if (file is null)
+                    return;
+
+                Apps2Samsung.Backup.BackupImportResult result;
+                await using (var stream = await file.OpenReadAsync())
+                    result = Apps2Samsung.Backup.BackupService.Import(stream, AppSettings.CertificatePath);
+
+                if (!string.IsNullOrEmpty(result.SettingsJson))
+                    MergeImportedSettings(result.SettingsJson!);
+
+                BackupStatus = $"Imported settings + {result.CertificateFilesRestored} certificate file(s). Restart the app to apply.";
+            }
+            catch (Exception ex)
+            {
+                BackupStatus = $"Import failed: {ex.Message}";
+                Trace.WriteLine($"[Backup] import failed: {ex}");
+            }
+        }
+
+        // Merge the imported settings.json into the current settings.json: imported keys win, and keys the
+        // backup doesn't contain (e.g. desktop-only fields absent from a mobile export) keep their current
+        // value, so importing never silently resets unrelated settings. Applied on next Load().
+        private static void MergeImportedSettings(string importedJson)
+        {
+            var current = JsonNode.Parse(JsonSerializer.Serialize(AppSettings.Default))?.AsObject() ?? new JsonObject();
+            var imported = JsonNode.Parse(importedJson)?.AsObject();
+            if (imported is not null)
+            {
+                foreach (var kv in imported)
+                    current[kv.Key] = kv.Value?.DeepClone();
+            }
+
+            var dir = Path.GetDirectoryName(AppSettings.FilePath);
+            if (!string.IsNullOrEmpty(dir))
+                Directory.CreateDirectory(dir);
+            File.WriteAllText(AppSettings.FilePath,
+                current.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        }
+
+        private static IStorageProvider? GetActiveStorageProvider()
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                return (desktop.Windows.FirstOrDefault(w => w.IsActive) ?? desktop.MainWindow)?.StorageProvider;
+
+            return null;
         }
 
         [RelayCommand]

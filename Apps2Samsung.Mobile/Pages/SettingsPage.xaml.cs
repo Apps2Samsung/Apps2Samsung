@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using Apps2Samsung.Backup;
 using Apps2Samsung.Mobile.Services;
 using Microsoft.Maui.ApplicationModel.DataTransfer;
 using Microsoft.Maui.Storage;
@@ -74,6 +76,142 @@ public partial class SettingsPage : ContentPage
 		{
 			await DisplayAlert("Debug log", $"Couldn't share the log: {ex.Message}", "OK");
 		}
+	}
+
+	// ---- Backup (export/import of settings + signing certificates) ----
+	// Uses the head-agnostic Apps2Samsung.Backup.BackupService: the archive holds a settings.json
+	// (desktop AppSettings schema, so configs move PC ↔ Mac ↔ mobile) plus the whole Certificate/ tree.
+
+	private static string CertStorePath => new MobileAppConfig().CertificateStorePath;
+
+	// Serialize the mobile settings into the shared desktop AppSettings JSON schema.
+	private static string BuildSettingsJson()
+	{
+		var obj = new JsonObject
+		{
+			["DeletePreviousInstall"] = MobileSettings.DeletePreviousInstall,
+			["OpenAfterInstall"] = MobileSettings.OpenAfterInstall,
+			["KeepWGTFile"] = MobileSettings.KeepWgtFile,
+			["ShowAllJellyfinVersions"] = MobileSettings.ShowAllJellyfinVersions,
+			["ForceSamsungLogin"] = MobileSettings.ForceSamsungLogin,
+			["TryOverwrite"] = MobileSettings.TryOverwrite,
+			["PartnerSigning"] = MobileSettings.PartnerSigning,
+			["ManualDuids"] = MobileSettings.ManualDuids,
+			["GitHubToken"] = MobileSettings.GitHubToken,
+			["JellyfinIP"] = MobileSettings.JellyfinServerUrl,
+			["JellyfinUserId"] = MobileSettings.JellyfinUserId,
+			["JellyfinServerId"] = MobileSettings.JellyfinServerId,
+			["JellyfinServerName"] = MobileSettings.JellyfinServerName,
+			["JellyfinServerLocalAddress"] = MobileSettings.JellyfinServerLocalAddress,
+			["CustomCss"] = MobileSettings.JellyfinCustomCss,
+			["PatchYoutubePlugin"] = MobileSettings.JellyfinPatchYoutube,
+			["JellyfinAccessToken"] = MobileSettings.JellyfinAccessToken,
+			["TvAppChannelsJson"] = MobileSettings.TvAppChannelsJson,
+			["CustomAppIconsJson"] = MobileSettings.CustomAppIconsJson,
+		};
+		return obj.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+	}
+
+	private async void OnExportBackupClicked(object? sender, EventArgs e)
+	{
+		try
+		{
+			var path = Path.Combine(FileSystem.CacheDirectory, "apps2samsung-backup.zip");
+			using (var stream = File.Create(path))
+				BackupService.Export(stream, BuildSettingsJson(), CertStorePath);
+
+			await Share.Default.RequestAsync(new ShareFileRequest("Apps2Samsung backup", new ShareFile(path)));
+		}
+		catch (Exception ex)
+		{
+			await DisplayAlert("Export backup", $"Couldn't export the backup: {ex.Message}", "OK");
+		}
+	}
+
+	private async void OnImportBackupClicked(object? sender, EventArgs e)
+	{
+		try
+		{
+			// Accept .zip archives. FilePickerFileType is per-platform; on Android match by MIME + extension.
+			var zipTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+			{
+				[DevicePlatform.Android] = new[] { "application/zip", "application/octet-stream" },
+				[DevicePlatform.iOS] = new[] { "public.zip-archive" },
+				[DevicePlatform.MacCatalyst] = new[] { "public.zip-archive" },
+				[DevicePlatform.WinUI] = new[] { ".zip" },
+			});
+
+			var result = await FilePicker.Default.PickAsync(new PickOptions
+			{
+				PickerTitle = "Select an Apps2Samsung backup (.zip)",
+				FileTypes = zipTypes,
+			});
+			if (result is null)
+				return;
+
+			BackupImportResult import;
+			using (var stream = await result.OpenReadAsync())
+				import = BackupService.Import(stream, CertStorePath);
+
+			if (!string.IsNullOrEmpty(import.SettingsJson))
+				await ApplySettingsJsonAsync(import.SettingsJson!);
+
+			// Refresh visible controls from the newly-applied settings.
+			OnAppearing();
+
+			await DisplayAlert(
+				"Import backup",
+				$"Imported settings + {import.CertificateFilesRestored} certificate file(s). Certificates are already restored. Restart the app to fully apply the imported settings.",
+				"OK");
+		}
+		catch (Exception ex)
+		{
+			await DisplayAlert("Import backup", $"Couldn't import the backup: {ex.Message}", "OK");
+		}
+	}
+
+	// Map the shared AppSettings JSON keys back onto MobileSettings. Missing keys are left untouched.
+	private static async Task ApplySettingsJsonAsync(string json)
+	{
+		JsonNode? root;
+		try { root = JsonNode.Parse(json); }
+		catch { return; }
+		if (root is not JsonObject o)
+			return;
+
+		bool? GetBool(string key)
+		{
+			try { return o[key]?.GetValue<bool>(); }
+			catch { return null; }
+		}
+		string? GetString(string key)
+		{
+			try { return o[key]?.GetValue<string>(); }
+			catch { return null; }
+		}
+
+		if (GetBool("DeletePreviousInstall") is { } deletePrev) MobileSettings.DeletePreviousInstall = deletePrev;
+		if (GetBool("OpenAfterInstall") is { } openAfter) MobileSettings.OpenAfterInstall = openAfter;
+		if (GetBool("KeepWGTFile") is { } keepWgt) MobileSettings.KeepWgtFile = keepWgt;
+		if (GetBool("ShowAllJellyfinVersions") is { } showAll) MobileSettings.ShowAllJellyfinVersions = showAll;
+		if (GetBool("ForceSamsungLogin") is { } forceLogin) MobileSettings.ForceSamsungLogin = forceLogin;
+		if (GetBool("TryOverwrite") is { } tryOverwrite) MobileSettings.TryOverwrite = tryOverwrite;
+		if (GetBool("PartnerSigning") is { } partner) MobileSettings.PartnerSigning = partner;
+		if (GetBool("PatchYoutubePlugin") is { } patchYt) MobileSettings.JellyfinPatchYoutube = patchYt;
+
+		if (GetString("ManualDuids") is { } duids) MobileSettings.ManualDuids = duids;
+		if (GetString("JellyfinIP") is { } jfIp) MobileSettings.JellyfinServerUrl = jfIp;
+		if (GetString("JellyfinUserId") is { } jfUser) MobileSettings.JellyfinUserId = jfUser;
+		if (GetString("JellyfinServerId") is { } jfServer) MobileSettings.JellyfinServerId = jfServer;
+		if (GetString("JellyfinServerName") is { } jfName) MobileSettings.JellyfinServerName = jfName;
+		if (GetString("JellyfinServerLocalAddress") is { } jfLocal) MobileSettings.JellyfinServerLocalAddress = jfLocal;
+		if (GetString("CustomCss") is { } css) MobileSettings.JellyfinCustomCss = css;
+		if (GetString("TvAppChannelsJson") is { } channels) MobileSettings.TvAppChannelsJson = channels;
+		if (GetString("CustomAppIconsJson") is { } icons) MobileSettings.CustomAppIconsJson = icons;
+
+		// Secrets go through the async SecureStorage-backed setters.
+		if (GetString("GitHubToken") is { } token) await MobileSettings.SetGitHubTokenAsync(token);
+		if (GetString("JellyfinAccessToken") is { } accessToken) await MobileSettings.SetJellyfinAccessTokenAsync(accessToken);
 	}
 
 	private void OnToggleTokenVisibility(object? sender, EventArgs e)

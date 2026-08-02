@@ -249,6 +249,26 @@
 				</Grid>
 			</StackPanel>
 
+			<Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4"/>
+
+			<!-- Backup Section -->
+			<StackPanel Spacing="8">
+				<TextBlock Text="Backup &amp; restore" Classes="label" FontWeight="SemiBold"/>
+				<TextBlock Text="Save your settings and signing certificates to a file, or restore them — to move between this PC, a Mac, or your phone."
+						   Classes="label" Opacity="0.7" TextWrapping="Wrap"/>
+				<Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+					<Button Grid.Column="0" Classes="secondary" HorizontalAlignment="Stretch"
+							HorizontalContentAlignment="Center" Padding="10,6"
+							Content="Export backup"
+							Command="{Binding ExportBackupCommand}"/>
+					<Button Grid.Column="1" Classes="secondary" HorizontalAlignment="Stretch"
+							HorizontalContentAlignment="Center" Padding="10,6"
+							Content="Import backup"
+							Command="{Binding ImportBackupCommand}"/>
+				</Grid>
+				<TextBlock Text="{Binding BackupStatus}" Classes="label" Opacity="0.8" TextWrapping="Wrap"/>
+			</StackPanel>
+
 		<!-- bottom slack: ScrollViewer under-measures wrapping content, so guarantee the last row clears the fold -->
 			<Border Height="40"/>
 		</StackPanel>
