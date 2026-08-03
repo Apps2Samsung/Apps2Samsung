@@ -1,0 +1,119 @@
+name: Require log files on bug reports
+
+on:
+  issues:
+    types: [opened, edited, reopened, labeled]
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  issues: write
+
+# A new issue fires opened plus one labeled event per template label, so without
+# this the runs race each other and every one of them posts its own comment.
+concurrency:
+  group: require-log-files-${{ github.event.issue.number }}
+
+jobs:
+  check-logs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const LABEL = 'Missing Log Files';
+            const MARKER = '<!-- missing-log-files-bot -->';
+
+            const issue = context.payload.issue;
+            if (!issue || issue.pull_request) return;
+
+            // Only bug reports, and never the maintainers' own.
+            const isBug = issue.labels.some(l => l.name.toLowerCase() === 'bug');
+            if (!isBug) return;
+            if (['OWNER', 'MEMBER', 'COLLABORATOR'].includes(issue.author_association)) return;
+
+            const { owner, repo } = context.repo;
+            const issue_number = issue.number;
+
+            const hasLogs = (text) => {
+              const linked = [
+                // Current GitHub upload host.
+                /https:\/\/github\.com\/user-attachments\/(files|assets)\/\S+/i,
+                // Legacy per-repo upload path.
+                /https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/files\/\d+\/\S+/i,
+                // A bare link to something that is plainly a log.
+                /https?:\/\/\S+\.(log|txt|zip|7z|rar|gz|tgz|json|xml)(\?\S*)?/i,
+              ].some(re => re.test(text));
+              if (linked) return true;
+
+              // A pasted log counts too, as long as it isn't a one-line snippet.
+              return (text.match(/```[\s\S]*?```/g) || []).some(block => {
+                const inner = block.replace(/```[^\n]*\n?/, '').replace(/```$/, '').trim();
+                return inner.length >= 200 || inner.split('\n').length >= 6;
+              });
+            };
+
+            const labelled = issue.labels.some(l => l.name === LABEL);
+            const clear = async () => {
+              if (labelled) await github.rest.issues.removeLabel({ owner, repo, issue_number, name: LABEL });
+            };
+
+            // The body on its own usually settles it, and a freshly opened issue
+            // has no comments to fetch anyway.
+            if (hasLogs(issue.body || '')) return clear();
+
+            // Otherwise a follow-up upload in a comment counts just the same.
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+
+            if (comments.some(c => c.user.type !== 'Bot' && hasLogs(c.body || ''))) return clear();
+
+            if (!labelled) {
+              // Create the label up front so it gets this colour and description
+              // rather than the random one an unknown label is given.
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name: LABEL });
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                await github.rest.issues.createLabel({
+                  owner,
+                  repo,
+                  name: LABEL,
+                  color: 'd93f0b',
+                  description: 'Bug report opened without the application log files',
+                });
+              }
+
+              await github.rest.issues.addLabels({ owner, repo, issue_number, labels: [LABEL] });
+            }
+
+            // Ask once, not on every edit.
+            if (comments.some(c => (c.body || '').includes(MARKER))) return;
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number,
+              body: [
+                MARKER,
+                `Thanks for the report, @${issue.user.login}.`,
+                '',
+                "This issue doesn't include any log files, so it has been labelled **Missing Log Files**. Without a log we can't see what actually went wrong on your machine, so this can't be looked at yet.",
+                '',
+                '**How to attach your log**',
+                '',
+                '1. Reproduce the problem once more, so the run is covered by a log.',
+                "2. Open **Settings → Open Logs Folder** in the app. If you can't start the app, the folder is:",
+                '   - Windows and Linux: a `Logs` folder next to the Apps2Samsung executable',
+                '   - macOS: `~/Library/Logs/Apps2Samsung`',
+                '3. Pick the newest `debug_<date>.log` and drag it into a comment below, or paste its contents inside a code block.',
+                '',
+                "The label is removed automatically once a log file or a pasted log shows up on this issue. Screenshots of an error message are welcome, but they aren't a substitute for the log.",
+                '',
+                'If you skipped them in the template, please also confirm the app version, your Tizen version, and whether the TV is in developer mode.',
+              ].join('\n'),
+            });
