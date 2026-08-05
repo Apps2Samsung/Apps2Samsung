@@ -109,8 +109,13 @@ public class SamsungLoginActivity : Activity
     {
         try
         {
-            _listener = new TcpListener(IPAddress.Loopback, SamsungOAuth.CallbackPort);
+            // Bind dual-stack: Android's Chrome often resolves the redirect's "localhost" to the IPv6
+            // loopback (::1), so an IPv4-only (127.0.0.1) listener never receives the callback POST and
+            // the login tab hangs on signInComplete. Accepting both ::1 and 127.0.0.1 fixes it.
+            _listener = new TcpListener(IPAddress.IPv6Any, SamsungOAuth.CallbackPort);
+            _listener.Server.DualMode = true;
             _listener.Start();
+            System.Diagnostics.Trace.WriteLine($"[SamsungLogin] callback listener up on :{SamsungOAuth.CallbackPort} (dual-stack)");
 
             while (!ct.IsCancellationRequested)
             {
@@ -118,6 +123,7 @@ public class SamsungLoginActivity : Activity
                 using var stream = client.GetStream();
 
                 var (method, path, body) = await ReadRequestAsync(stream, ct);
+                System.Diagnostics.Trace.WriteLine($"[SamsungLogin] callback request: {method} {path}");
 
                 // Briefly visible in the browser tab before CLEAR_TOP dismisses it.
                 const string page =
