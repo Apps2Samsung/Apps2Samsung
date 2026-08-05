@@ -154,6 +154,23 @@
 
                 <BoxView Style="{StaticResource Divider}" />
 
+                <!-- Backup -->
+                <Label Text="Backup" FontAttributes="Bold" FontSize="14" />
+                <Label Style="{StaticResource Hint}"
+                       Text="Save your settings and signing certificates to a .zip you can move to another device, or restore from one. Certificates are restored immediately; restart the app to apply imported settings." />
+                <Button Text="📦 Export backup" HorizontalOptions="Start"
+                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
+                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                        Clicked="OnExportBackupClicked" />
+                <Button Text="📥 Import backup" HorizontalOptions="Start"
+                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
+                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                        Clicked="OnImportBackupClicked" />
+
+                <BoxView Style="{StaticResource Divider}" />
+
                 <!-- Diagnostics -->
                 <Label Text="Diagnostics" FontAttributes="Bold" FontSize="14" />
                 <Label Style="{StaticResource Hint}"

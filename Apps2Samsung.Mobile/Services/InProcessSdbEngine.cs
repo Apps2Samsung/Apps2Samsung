@@ -10,13 +10,19 @@ using TizenSdb.SigningManager;
 namespace Apps2Samsung.Mobile.Services;
 
 /// <summary>
-/// Mobile <see cref="ISdbEngine"/>: drives <c>TizenSdb.Core</c> in-process (no exe). Each call
-/// opens a fresh <see cref="SdbTcpDevice"/> connection, runs the operation, and disposes — mirroring
-/// how the desktop CLI runs one process per command, so the <see cref="ProcessResult.Output"/> it
-/// returns matches the CLI's stdout that the shared orchestration/regex parsing expects.
+/// Mobile <see cref="ISdbEngine"/>: drives <c>TizenSdb.Core</c> in-process (no exe). One
+/// <see cref="SdbTcpDevice"/> connection is reused across sequential calls to the same TV rather
+/// than reconnecting per command — the reconnect churn is what triggered Samsung sdbd to close a
+/// fresh connection mid-handshake. Engine calls in the mobile flow are sequential (the network scan
+/// uses raw TCP, not this engine), so a single gate serializes access; the connection is dropped on
+/// any failure or when the target IP changes, so the next call reconnects.
 /// </summary>
-public sealed class InProcessSdbEngine : ISdbEngine
+public sealed class InProcessSdbEngine : ISdbEngine, IAsyncDisposable
 {
+	private readonly SemaphoreSlim _gate = new(1, 1);
+	private SdbTcpDevice? _device;
+	private string? _deviceIp;
+
 	// Commands ListApps tries in order (first useful reply wins) — ported from the CLI.
 	private static readonly string[] AppListCommands =
 	{
@@ -37,9 +43,14 @@ public sealed class InProcessSdbEngine : ISdbEngine
 		return Task.FromResult(parts.Length >= 2 ? parts[1] : string.Empty);
 	});
 
-	public Task<ProcessResult> DisconnectAsync(string tvIpAddress)
-		// The CLI's disconnect is a no-op (each command already tears down its own connection).
-		=> Task.FromResult(Ok($"* Disconnected from {tvIpAddress}"));
+	public async Task<ProcessResult> DisconnectAsync(string tvIpAddress)
+	{
+		// Drop the reused connection so the next call reconnects.
+		await _gate.WaitAsync().ConfigureAwait(false);
+		try { await DropAsync(); }
+		finally { _gate.Release(); }
+		return Ok($"* Disconnected from {tvIpAddress}");
+	}
 
 	public async Task<ProcessResult> CapabilityAsync(string tvIpAddress) => await RunConnected(tvIpAddress, async device =>
 	{
@@ -149,30 +160,105 @@ public sealed class InProcessSdbEngine : ISdbEngine
 		return "Push completed successfully";
 	});
 
-	// Opens a connection, runs <paramref name="body"/>, always disposes. Maps success to ExitCode 0
-	// (with the body's text as Output) and any failure to ExitCode 1 with the message in Error —
-	// the same shape the desktop's ExeSdbEngine surfaces from the process result.
-	private static async Task<ProcessResult> RunConnected(string ip, Func<SdbTcpDevice, Task<string>> body)
+	// Runs <paramref name="body"/> on a reused connection to <paramref name="ip"/>. Success →
+	// ExitCode 0 with the body's text; any failure → ExitCode 1 with the message in Error (same shape
+	// the desktop's ExeSdbEngine surfaces). On any failure the connection is dropped so the next call
+	// reconnects. Error semantics are unchanged — there is no body-level retry, so a failed install is
+	// never silently re-run (callers keep their own recovery logic).
+	private async Task<ProcessResult> RunConnected(string ip, Func<SdbTcpDevice, Task<string>> body)
 	{
-		SdbTcpDevice? device = null;
+		await _gate.WaitAsync().ConfigureAwait(false);
 		try
 		{
-			device = new SdbTcpDevice(IPAddress.Parse(ip));
-			await device.ConnectAsync();
-			return Ok(await body(device));
-		}
-		catch (Exception ex)
-		{
-			return Fail(ex);
+			SdbTcpDevice device;
+			try
+			{
+				device = await GetOrConnectAsync(ip);
+			}
+			catch (Exception ex)
+			{
+				await DropAsync();
+				return Fail(ex);
+			}
+
+			try
+			{
+				return Ok(await body(device));
+			}
+			catch (Exception ex)
+			{
+				await DropAsync();
+				return Fail(ex);
+			}
 		}
 		finally
 		{
-			if (device is not null)
-				await device.DisposeAsync();
+			_gate.Release();
 		}
+	}
+
+	// Returns the cached connection for this IP, or connects (with handshake retry) and caches it.
+	// Switching to a different IP drops the old connection first.
+	private async Task<SdbTcpDevice> GetOrConnectAsync(string ip)
+	{
+		if (_device is not null && _deviceIp == ip)
+			return _device;
+
+		await DropAsync();
+		_device = await ConnectWithRetryAsync(ip);
+		_deviceIp = ip;
+		return _device;
+	}
+
+	private async Task DropAsync()
+	{
+		var device = _device;
+		_device = null;
+		_deviceIp = null;
+		if (device is not null)
+		{
+			try { await device.DisposeAsync(); } catch { /* already torn down */ }
+		}
+	}
+
+	// Samsung sdbd sometimes closes a freshly-opened connection mid-handshake
+	// ("Remote closed stream while reading"), typically right after a previous connection was
+	// torn down (every engine call reconnects). The command never runs — it dies in the CNXN/AUTH
+	// handshake — so retry the connect a few times on a fresh socket before giving up. A genuinely
+	// offline TV still fails fast (3 quick attempts).
+	private static async Task<SdbTcpDevice> ConnectWithRetryAsync(string ip)
+	{
+		var address = IPAddress.Parse(ip);
+		Exception? last = null;
+
+		for (int attempt = 1; attempt <= 3; attempt++)
+		{
+			var device = new SdbTcpDevice(address);
+			try
+			{
+				await device.ConnectAsync();
+				return device;
+			}
+			catch (Exception ex)
+			{
+				last = ex;
+				await device.DisposeAsync();
+				if (attempt < 3)
+					await Task.Delay(400);
+			}
+		}
+
+		throw last ?? new InvalidOperationException($"Could not connect to {ip}.");
 	}
 
 	private static ProcessResult Ok(string output) => new() { ExitCode = 0, Output = output, Error = string.Empty };
 
 	private static ProcessResult Fail(Exception ex) => new() { ExitCode = 1, Output = string.Empty, Error = ex.Message };
+
+	public async ValueTask DisposeAsync()
+	{
+		await _gate.WaitAsync().ConfigureAwait(false);
+		try { await DropAsync(); }
+		finally { _gate.Release(); }
+	}
 }

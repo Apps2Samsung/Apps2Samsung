@@ -381,17 +381,6 @@ namespace Apps2Samsung.Services
                     }
                 }
 
-                // Step 3b: Older TVs (below Tizen 4.0) can't install a bundled background
-                // <tizen:service> component — the whole package is rejected with a generic
-                // install failed[118] (see #400). Only on those TVs, strip the service so
-                // the main app still installs. Newer TVs keep the package untouched.
-                var serviceSupport = new Version(Constants.TizenVersions.ServiceComponentSupport);
-                if (deviceInfo.TizenVersion < serviceSupport && await FileHelper.WgtContainsService(packageUrl))
-                {
-                    if (await FileHelper.StripWgtServiceComponent(packageUrl))
-                        Trace.WriteLine($"Device Tizen {deviceInfo.TizenVersion} < {serviceSupport}: removed bundled background service so the package can install");
-                }
-
                 // Step 4: Handle certificate selection/generation
                 var certificateResult = await HandleCertificateAsync(
                     tvIpAddress,
