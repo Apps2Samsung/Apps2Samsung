@@ -18,19 +18,6 @@ namespace Apps2Samsung.Packaging
             "http://tizen.org/privilege/vpnservice",
         };
 
-        // Partner-only / Samsung-restricted privileges that a PUBLIC-signed package must not declare on
-        // old firmware: pre-Tizen-4 TVs reject the whole install with a generic install failed[118]
-        // when a public cert requests one (#400 — LiteFin declares SmartHub 'preview'). Newer TVs just
-        // ignore an ungranted privilege, and Partner-signed installs are entitled to them, so these are
-        // only stripped for a public install on an old TV — never when Partner signing is in effect.
-        // Deliberately NOT in PartnerPrivileges: adding them there would force Partner signing, which
-        // retail TVs/individual accounts often can't obtain — the point is to install *public*.
-        public static readonly IReadOnlyCollection<string> PublicIncompatiblePrivileges =
-            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "http://developer.samsung.com/privilege/preview",
-        };
-
         // .wgt / config.xml: <tizen:privilege name="http://tizen.org/privilege/..."/>
         private static readonly Regex WebPrivilege = new(
             @"<tizen:privilege\b[^>]*\bname\s*=\s*""(?<name>[^""]+)""",
