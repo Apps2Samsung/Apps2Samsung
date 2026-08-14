@@ -70,7 +70,8 @@ jobs:
             echo "::error::secrets — see fdroid/README.md."
             exit 1
           fi
-          echo "$KS_B64" | base64 -d > build/keystore.p12
+          # Strip any whitespace/newlines the secret may have picked up on paste, then decode.
+          printf '%s' "$KS_B64" | tr -d '[:space:]' | base64 -d > build/keystore.p12
           cp -r fdroid/metadata build/metadata
           # Reuse the store listing (icon, screenshots, descriptions) from the fastlane metadata.
           dest="build/metadata/nl.madebypatrick.apps2samsung/en-US"
