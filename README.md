@@ -34,12 +34,21 @@
 
 | Channel    | Version                                                             | Notes                        |
 |------------|---------------------------------------------------------------------|------------------------------|
-| **Stable** | [v2.7.1](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v2.7.1)                                        | Recommended for most users   |
-| **Beta**   | [v2.7.3-beta](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v2.7.3-beta)                                            | Includes new features        |
+| **Stable** | [v2.7.3](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v2.7.3)                                        | Recommended for most users   |
+| **Beta**   | [v2.7.4-beta](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v2.7.4-beta)                                            | Includes new features        |
 
 <!-- versions:end -->
 
 👉 All releases: https://github.com/Apps2Samsung/Apps2Samsung/releases
+
+### 📱 Get the Android app (auto-updating)
+
+The phone app is the mobile installer head — run the whole install from your phone.
+
+- **Obtainium** — tracks this repo's GitHub releases and updates automatically when a new **stable** is published. Add it with one tap:
+  [Add to Obtainium](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/Apps2Samsung/Apps2Samsung), or paste `https://github.com/Apps2Samsung/Apps2Samsung` into Obtainium's *Add App*.
+- **IzzyOnDroid / F-Droid** — pending inclusion in the [IzzyOnDroid](https://apt.izzysoft.de/fdroid/) repo; once live it will auto-track new stable releases inside the F-Droid app.
+- **Direct** — grab the `-android.apk` from any [release](https://github.com/Apps2Samsung/Apps2Samsung/releases) and sideload it.
 
 ---
 

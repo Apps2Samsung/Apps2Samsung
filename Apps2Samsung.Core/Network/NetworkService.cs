@@ -58,23 +58,25 @@ namespace Apps2Samsung.Services
                 using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
                     cts.Token, cancellationToken);
 
+                // Accept a TV on the SDB debug port (26101) alone — the same bar the network scan
+                // uses (see FindTizenTvsAsync). Manual entry previously ALSO required the 8001 REST
+                // API to be open, so a TV that's reachable and developer-ready on 26101 but whose
+                // 8001 is closed/firewalled/slow (the two probes shared one 1s budget) was wrongly
+                // rejected as "Invalid device IP" — even though the exact same TV would have been
+                // accepted by the scan. Match the scan so the manual and discovered paths agree (#523).
                 if (await IsPortOpenAsync(ip, TizenDevPort, linkedCts.Token))
                 {
-                    if (await IsPortOpenAsync(ip, SamsungTvApiPort, linkedCts.Token))
+                    var manufacturer = await GetManufacturerFromIp(ip);
+                    var device = new NetworkDevice
                     {
-                        var manufacturer = await GetManufacturerFromIp(ip);
-                        var device = new NetworkDevice
-                        {
-                            IpAddress = ip,
-                            Manufacturer = manufacturer
-                        };
+                        IpAddress = ip,
+                        Manufacturer = manufacturer
+                    };
 
-                        if (manufacturer?.Contains("Samsung", StringComparison.OrdinalIgnoreCase) == true)
-                            device.DeviceName = await GetTvNameAsync(ip);
+                    if (manufacturer?.Contains("Samsung", StringComparison.OrdinalIgnoreCase) == true)
+                        device.DeviceName = await GetTvNameAsync(ip);
 
-                        return device;
-                    }
-                    return null;
+                    return device;
                 }
 
                 return null;

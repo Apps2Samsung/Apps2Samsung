@@ -30,6 +30,12 @@ namespace Apps2Samsung.Models
         [ObservableProperty]
         private string summary = string.Empty;
 
+        /// <summary>Custom launcher title for this app. "" keeps the package's own name; otherwise
+        /// persisted in <c>AppSettings.CustomAppTitlesJson</c> keyed by <see cref="Key"/> and written
+        /// into the package's config.xml &lt;name&gt; at install.</summary>
+        [ObservableProperty]
+        private string title = string.Empty;
+
         public bool IsOblong => string.Equals(Value, OblongValue, StringComparison.OrdinalIgnoreCase);
         public bool IsCustom => !string.IsNullOrEmpty(Value) && !IsOblong;
         public bool IsDefault => string.IsNullOrEmpty(Value);

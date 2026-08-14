@@ -12,6 +12,7 @@ namespace Apps2Samsung.Mobile.Services;
 public sealed class MobileAppConfig : IAppConfig
 {
     private const string KeyCustomIcons = "custom_app_icons_json";
+    private const string KeyCustomTitles = "custom_app_titles_json";
 
     // ---- Install behaviour ----
     public bool DeletePreviousInstall { get => MobileSettings.DeletePreviousInstall; set => MobileSettings.DeletePreviousInstall = value; }
@@ -34,6 +35,7 @@ public sealed class MobileAppConfig : IAppConfig
 
     // ---- Package patching ----
     public string CustomAppIconsJson { get => Preferences.Get(KeyCustomIcons, string.Empty); set => Preferences.Set(KeyCustomIcons, value ?? string.Empty); }
+    public string CustomAppTitlesJson { get => Preferences.Get(KeyCustomTitles, string.Empty); set => Preferences.Set(KeyCustomTitles, value ?? string.Empty); }
     public string TvAppChannelsJson { get => MobileSettings.TvAppChannelsJson; set => MobileSettings.TvAppChannelsJson = value; }
 
     // ---- Jellyfin package patching ----

@@ -44,6 +44,8 @@ namespace Apps2Samsung.Configuration
         // ---- Package patching ----
         /// <summary>JSON map { appKey -> "oblong" | custom launcher PNG path } applied to a wgt at install.</summary>
         string CustomAppIconsJson { get; set; }
+        /// <summary>JSON map { appKey -> custom app title } written into a wgt's config.xml &lt;name&gt; at install.</summary>
+        string CustomAppTitlesJson { get; set; }
         /// <summary>JSON array of { name, url } TVApp channels injected into a TVApp wgt at install.</summary>
         string TvAppChannelsJson { get; set; }
 

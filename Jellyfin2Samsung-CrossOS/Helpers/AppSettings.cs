@@ -133,6 +133,7 @@ namespace Apps2Samsung.Helpers
         public bool LitefinUseOblongIcon { get; set; } = false;  // legacy: migrated into CustomAppIconsJson ("oblong")
         public string ManualDuids { get; set; } = "";  // extra Tizen DUIDs to pre-authorize in the distributor cert (one per line / comma-separated)
         public string CustomAppIconsJson { get; set; } = "";  // JSON map { appKey -> "oblong" | custom launcher PNG path } applied to the wgt at install
+        public string CustomAppTitlesJson { get; set; } = "";  // JSON map { appKey -> custom title } written into the wgt's config.xml <name> at install
 
         // ----- IAppConfig adapters (not serialized; map the interface onto existing state) -----
         [JsonIgnore]
@@ -153,7 +154,7 @@ namespace Apps2Samsung.Helpers
         [JsonIgnore]
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
         [JsonIgnore]
-        public string AppVersion { get; set; } = "v2.7.3";
+        public string AppVersion { get; set; } = "v2.7.4";
         [JsonIgnore]
         public string TizenSdb { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-sdb/releases";
         [JsonIgnore]

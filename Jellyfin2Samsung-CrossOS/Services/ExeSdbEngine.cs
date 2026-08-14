@@ -31,17 +31,47 @@ namespace Apps2Samsung.Services
 
         private Task<ProcessResult> Run(string arguments) => _processHelper.RunCommandAsync(SdbPath, arguments);
 
-        public Task<ProcessResult> DevicesAsync(string tvIpAddress) => Run($"devices {tvIpAddress}");
+        // Transient SDB transport hiccups: the TV drops the connection mid-read ("...forcibly closed by
+        // the remote host", "Remote closed stream while reading"). These are races on the SDB link, not
+        // real failures — a quick retry almost always succeeds. This is why a single reset on the
+        // device-info read produced a spurious "TV Name could not be found" even though the TV was just
+        // discovered (#524). Applied ONLY to idempotent read/query commands — never to
+        // install/uninstall/resign, which aren't safe to blindly repeat.
+        private static readonly string[] TransientTransportErrors =
+        {
+            "forcibly closed by the remote host",
+            "Remote closed stream while reading",
+            "Unable to read data from the transport connection",
+            "Connection reset by peer",
+        };
+
+        private static bool IsTransientTransportError(ProcessResult result) =>
+            !string.IsNullOrEmpty(result.Output) &&
+            Array.Exists(TransientTransportErrors,
+                marker => result.Output.Contains(marker, StringComparison.OrdinalIgnoreCase));
+
+        private async Task<ProcessResult> RunWithRetry(string arguments, int attempts = 3)
+        {
+            var result = await _processHelper.RunCommandAsync(SdbPath, arguments);
+            for (int i = 1; i < attempts && IsTransientTransportError(result); i++)
+            {
+                await Task.Delay(400 * i); // brief backoff before retrying the reset
+                result = await _processHelper.RunCommandAsync(SdbPath, arguments);
+            }
+            return result;
+        }
+
+        public Task<ProcessResult> DevicesAsync(string tvIpAddress) => RunWithRetry($"devices {tvIpAddress}");
 
         public Task<ProcessResult> DisconnectAsync(string tvIpAddress) => Run($"disconnect {tvIpAddress}");
 
-        public Task<ProcessResult> CapabilityAsync(string tvIpAddress) => Run($"capability {tvIpAddress}");
+        public Task<ProcessResult> CapabilityAsync(string tvIpAddress) => RunWithRetry($"capability {tvIpAddress}");
 
-        public Task<ProcessResult> DuidAsync(string tvIpAddress) => Run($"duid {tvIpAddress}");
+        public Task<ProcessResult> DuidAsync(string tvIpAddress) => RunWithRetry($"duid {tvIpAddress}");
 
-        public Task<ProcessResult> DiagnoseAsync(string tvIpAddress) => Run($"diagnose {tvIpAddress}");
+        public Task<ProcessResult> DiagnoseAsync(string tvIpAddress) => RunWithRetry($"diagnose {tvIpAddress}");
 
-        public Task<ProcessResult> AppsAsync(string tvIpAddress) => Run($"apps {tvIpAddress}");
+        public Task<ProcessResult> AppsAsync(string tvIpAddress) => RunWithRetry($"apps {tvIpAddress}");
 
         public Task<ProcessResult> LaunchAsync(string tvIpAddress, string appId) => Run($"launch {tvIpAddress} \"{appId}\"");
 
