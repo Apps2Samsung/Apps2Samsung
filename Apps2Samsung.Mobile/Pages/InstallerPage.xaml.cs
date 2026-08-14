@@ -276,6 +276,20 @@ public partial class InstallerPage : ContentPage
 		await Navigation.PushAsync(new InstalledAppsPage(_sdb, tvIp, label));
 	}
 
+	private async void OnShowDeviceInfoClicked(object? sender, EventArgs e)
+	{
+		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
+		{
+			SetStatus("Select a TV first (tap refresh to scan).");
+			return;
+		}
+		var idx = TvPicker.SelectedIndex;
+		var tvIp = _tvIps[idx];
+		var label = TvPicker.SelectedItem as string ?? tvIp;
+		var debugPortOpen = idx >= _tvReady.Count || _tvReady[idx];
+		await Navigation.PushAsync(new DeviceInfoPage(_sdb, tvIp, label, debugPortOpen));
+	}
+
 	private async void OnRefreshClicked(object? sender, EventArgs e) => await ScanAsync();
 
 	private async void OnSettingsClicked(object? sender, EventArgs e) =>

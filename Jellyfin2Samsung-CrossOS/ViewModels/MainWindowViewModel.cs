@@ -622,6 +622,35 @@ namespace Apps2Samsung.ViewModels
         }
 
         [RelayCommand]
+        private async Task ShowDeviceInfoAsync()
+        {
+            try
+            {
+                if (SelectedDevice is null ||
+                    string.IsNullOrWhiteSpace(SelectedDevice.IpAddress) ||
+                    SelectedDevice.IpAddress == L("lblOther"))
+                {
+                    await _dialogService.ShowMessageAsync("TV information", "Select a TV first.");
+                    return;
+                }
+
+                if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                    return;
+
+                var label = string.IsNullOrWhiteSpace(SelectedDevice.DisplayText)
+                    ? SelectedDevice.IpAddress
+                    : SelectedDevice.DisplayText;
+                var vm = new DeviceInfoViewModel(_tizenInstaller, SelectedDevice.IpAddress, label, SelectedDevice.DebugPortOpen);
+                var window = new Views.DeviceInfoWindow(vm);
+                await window.ShowDialog(desktop.MainWindow);
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync($"Failed to open TV information: {ex}");
+            }
+        }
+
+        [RelayCommand]
         private async Task BrowseWgtAsync()
         {
             var mainWindow = Avalonia.Application.Current?.ApplicationLifetime is
