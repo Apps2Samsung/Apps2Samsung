@@ -1,0 +1,36 @@
+Categories:
+  - Multimedia
+  - System
+License: MIT
+AuthorName: Patrick Stel
+WebSite: https://apps2samsung.com
+SourceCode: https://github.com/Apps2Samsung/Apps2Samsung
+IssueTracker: https://github.com/Apps2Samsung/Apps2Samsung/issues
+Changelog: https://github.com/Apps2Samsung/Apps2Samsung/releases
+
+AutoName: Apps2Samsung
+Summary: Install Jellyfin and other apps on your Samsung Tizen TV from your phone
+
+Description: |-
+    Apps2Samsung is a cross-platform installer that sideloads Jellyfin and other
+    web and community apps onto Samsung Tizen TVs — no PC, no Tizen Studio, and no
+    manual sideloading.
+
+    This Android build is the mobile (phone) installer head: put the TV into
+    Developer Mode, point the app at it over your local network, sign in once with a
+    free Samsung account to provision a signing certificate, and install.
+
+    Features:
+
+    * Finds Samsung Tizen TVs on your network, or connect directly by IP.
+    * Installs Jellyfin (multiple build variants) and a catalog of community apps.
+    * Give any app a custom launcher icon and a custom title.
+    * Optional Jellyfin server pre-configuration: server URL, auto-login, custom CSS.
+    * Uses a free Samsung account certificate — no paid developer account required.
+
+    Requires a Samsung Tizen TV in Developer Mode on the same local network as the
+    phone. Desktop versions for Windows, macOS and Linux are also available.
+
+# Prebuilt APKs are published to this repo from the project's signed GitHub stable
+# releases; there is no from-source build here (the app is .NET MAUI, which F-Droid's
+# buildserver can't build). `fdroid update` reads the version from the APK itself.
