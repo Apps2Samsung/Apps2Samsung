@@ -48,6 +48,21 @@ namespace Apps2Samsung.Sdb
             Has(output, Constants.TizenErrorCodes.Installing100) ||
             Has(output, Constants.TizenErrorCodes.InstallCompleted);
 
+        /// <summary>
+        /// The output reports the install actually FAILED — regardless of the process exit code.
+        /// Tizen's install helper returns process exit 0 (<c>cmd_ret:0</c>) even when the app install
+        /// itself failed (e.g. <c>app_id[...] install failed[118]</c>), so a caller must not treat a
+        /// zero exit code as success on its own — it has to classify the output. Matches any
+        /// <c>install failed[...]</c> code, a <c>val[fail]</c> result marker, and the transport /
+        /// out-of-space signals. Deliberately does NOT match a bare "failed" substring, so an
+        /// unrelated line (e.g. "Pull skipped or failed") can't be mistaken for an install failure.
+        /// </summary>
+        public static bool IndicatesFailure(string? output) =>
+            IsTransportLost(output) ||
+            IsInsufficientSpace(output) ||
+            Has(output, "install failed[") ||
+            Has(output, "val[fail]");
+
         private static bool Has(string? output, string token) =>
             !string.IsNullOrEmpty(output) && output.Contains(token, IC);
     }
