@@ -1,0 +1,17 @@
+Apps2Samsung installs Jellyfin and other web and community apps onto your Samsung Tizen TV — no PC, no Tizen Studio, and no manual sideloading.
+
+This is the mobile (phone) installer head of Apps2Samsung. Put your TV into Developer Mode, point the app at it over your local network, sign in once with a free Samsung account to provision a signing certificate, and install.
+
+Features:
+
+* Finds Samsung Tizen TVs on your network, or connect directly by IP.
+* Installs Jellyfin (multiple build variants) and a catalog of community apps.
+* Give any app a custom launcher icon and a custom title.
+* Optional Jellyfin server pre-configuration: server URL, auto-login, and custom CSS.
+* Uses a free Samsung account certificate — no paid developer account required.
+
+Requirements:
+
+* A Samsung Tizen TV in Developer Mode, on the same local network as your phone.
+
+Desktop versions for Windows, macOS and Linux are also available. Apps2Samsung is free and open source (MIT).
