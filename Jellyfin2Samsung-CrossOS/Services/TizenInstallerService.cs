@@ -1100,6 +1100,19 @@ namespace Apps2Samsung.Services
             }
         }
 
+        public async Task<TizenDeviceInfo> GetDeviceInfoAsync(string tvIpAddress, bool debugPortOpen)
+        {
+            await EnsureTizenSdbAvailable();
+            try
+            {
+                return await Apps2Samsung.Sdb.TizenDeviceInfoService.GatherAsync(_sdb, tvIpAddress, debugPortOpen);
+            }
+            finally
+            {
+                await _sdb.DisconnectAsync(tvIpAddress);
+            }
+        }
+
         public async Task<ProcessResult> UninstallAppAsync(string tvIpAddress, string tizenId)
         {
             await EnsureTizenSdbAvailable();
