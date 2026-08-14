@@ -204,34 +204,6 @@ public async Task<string?> BrowseWgtFilesAsync(IStorageProvider storageProvider)
         
             return match.Success ? match.Groups["id"].Value : null;
         }
-        public static async Task<string?> ReadWgtRequiredVersion(string wgtPath)
-        {
-            if (!File.Exists(wgtPath))
-                return null;
-
-            using var memoryStream = new MemoryStream();
-            using (var originalStream = File.OpenRead(wgtPath))
-                await originalStream.CopyToAsync(memoryStream);
-
-            memoryStream.Position = 0;
-
-            using var archive = new ZipArchive(memoryStream, ZipArchiveMode.Read, true);
-            var configEntry = archive.GetEntry("config.xml");
-            if (configEntry == null)
-                return null;
-
-            string configContent;
-            using (var reader = new StreamReader(configEntry.Open(), Encoding.UTF8))
-                configContent = await reader.ReadToEndAsync();
-
-            var match = Regex.Match(
-                configContent,
-                @"<tizen:application\b[^>]*\brequired_version\s*=\s*""(?<version>[^""]+)""",
-                RegexOptions.IgnoreCase);
-
-            return match.Success ? match.Groups["version"].Value : null;
-        }
-
         /// <summary>
         /// True when the package bundles a background <c>&lt;tizen:service&gt;</c> component.
         /// Older Samsung TVs (Tizen 2.x/3.x) can't install such multi-component widgets and

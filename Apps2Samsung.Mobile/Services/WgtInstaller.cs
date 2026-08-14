@@ -65,6 +65,15 @@ public sealed class WgtInstaller
 		// version before install and/or launch the app afterwards.
 		var (appId, packageId) = ReadPackageIds(wgtPath);
 
+		// Pre-install Tizen version gate (shared Core check, same as the desktop head): if the package
+		// declares a required_version newer than this TV, fail up front with a clear message instead of
+		// signing + pushing and getting back the ambiguous [118, -4] "operation not allowed".
+		var requiredVersion = await WgtManifest.ReadRequiredVersionAsync(wgtPath);
+		if (WgtManifest.RequiresNewerTizen(version, requiredVersion))
+			throw new InvalidOperationException(
+				$"This app needs Tizen {requiredVersion} or newer, but this TV is Tizen {caps.PlatformVersion}. " +
+				"Install an older build of the app, or update the TV's firmware.");
+
 		// Was this package already on the TV before we started? Needed so the failure-cleanup below
 		// only clears a partial from a FRESH install and never removes a pre-existing working app.
 		bool wasInstalledBefore = false;
