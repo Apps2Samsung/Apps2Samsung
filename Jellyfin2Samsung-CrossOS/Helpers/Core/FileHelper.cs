@@ -41,8 +41,14 @@ namespace Apps2Samsung.Helpers.Core
 
 public async Task<string?> BrowseWgtFilesAsync(IStorageProvider storageProvider)
 {
+    // The first entry is the picker's default-selected filter — keep the combined WGT/TPK
+    // filter first so both package types are shown by default (was defaulting to WGT-only).
     var fileTypes = new List<FilePickerFileType>
     {
+        new("WGT / TPK Files")
+        {
+            Patterns = allItem
+        },
         new("WGT Files")
         {
             Patterns = wgtItem
@@ -50,10 +56,6 @@ public async Task<string?> BrowseWgtFilesAsync(IStorageProvider storageProvider)
         new("TPK Files")
         {
             Patterns = tpkItem
-        },
-        new("All Supported Files")
-        {
-            Patterns = allItem
         }
     };
 
