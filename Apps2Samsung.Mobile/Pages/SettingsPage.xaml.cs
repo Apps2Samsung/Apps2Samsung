@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Apps2Samsung.Backup;
 using Apps2Samsung.Mobile.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.ApplicationModel.DataTransfer;
 using Microsoft.Maui.Storage;
 
@@ -48,7 +49,8 @@ public partial class SettingsPage : ContentPage
 
 	private async void OnBackClicked(object? sender, EventArgs e) => await Navigation.PopAsync();
 
-	private async void OnAppIconsClicked(object? sender, EventArgs e) => await Navigation.PushAsync(new AppIconsPage());
+	private async void OnAppIconsClicked(object? sender, EventArgs e) =>
+		await Navigation.PushAsync(IPlatformApplication.Current!.Services.GetRequiredService<AppIconsPage>());
 
 	private async void OnJellyfinClicked(object? sender, EventArgs e) => await Navigation.PushAsync(new JellyfinSettingsPage());
 

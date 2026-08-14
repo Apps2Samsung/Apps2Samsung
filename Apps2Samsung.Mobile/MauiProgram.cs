@@ -94,6 +94,8 @@ public static class MauiProgram
 		// Session (holds the Samsung sign-in for the app's lifetime) + the installer page.
 		builder.Services.AddSingleton<SessionState>();
 		builder.Services.AddSingleton<InstallerPage>();
+		// The icon/title editor needs the catalog services injected (shared app list).
+		builder.Services.AddTransient<AppIconsPage>();
 
 #if DEBUG
 		builder.Logging.AddDebug();

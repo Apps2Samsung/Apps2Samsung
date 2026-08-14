@@ -97,7 +97,9 @@ public sealed class CatalogService
 		return new CatalogResult(list, failed, providers.Count);
 	}
 
-	private async Task<ProviderManifest> GetManifestAsync()
+	/// <summary>Fetches the provider manifest (remote, else cached, else empty). Public so the
+	/// icon/title editor can feed it to the shared <see cref="Apps2Samsung.Catalog.AppCatalog"/>.</summary>
+	public async Task<ProviderManifest> GetManifestAsync()
 	{
 		var cachePath = Path.Combine(FileSystem.AppDataDirectory, CacheFileName);
 

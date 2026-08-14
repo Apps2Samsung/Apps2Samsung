@@ -41,6 +41,8 @@
   "lblIconCustom": "Custom…",
   "lblIconReset": "Reset",
   "lblIconDefault": "Default",
+  "lblAppTitle": "Custom title",
+  "lblAppTitleHint": "Optional. Rename this app's launcher tile on the TV. Leave empty to keep the package's own name. Remembered per app and written into the package at install.",
   "lblSettings": "Application settings",
   "lblDeletePrevious": "Remove old version",
   "IpWindowTitle": "Enter TV IP",
