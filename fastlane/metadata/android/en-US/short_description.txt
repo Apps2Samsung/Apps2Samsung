@@ -1,0 +1,1 @@
+Install Jellyfin and other apps on your Samsung Tizen TV from your phone.
