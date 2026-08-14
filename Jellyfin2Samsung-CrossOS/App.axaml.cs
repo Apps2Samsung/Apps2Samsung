@@ -133,6 +133,14 @@ namespace Apps2Samsung
             // overrides the package's default and composes with the app-specific patchers above.
             // Now the shared Core patcher (was Apps2Samsung.Helpers.CustomIconPackagePatcher).
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.CustomIconPackagePatcher>();
+            // Custom app title → config.xml <name> at install (shared Core patcher).
+            services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.AppTitlePackagePatcher>();
+
+            // Shared app catalog for the icon/title editor (manifest → entries; HasOblong via the
+            // bundled-oblong source, so it stays correct per head).
+            services.AddSingleton<Apps2Samsung.Catalog.AppCatalog>(sp => new Apps2Samsung.Catalog.AppCatalog(
+                new Apps2Samsung.Helpers.Core.AddLatestRelease(sp.GetRequiredService<System.Net.Http.HttpClient>()),
+                sp.GetRequiredService<Apps2Samsung.Packaging.IOblongIconSource>()));
 
             // --------------------
             // Helpers

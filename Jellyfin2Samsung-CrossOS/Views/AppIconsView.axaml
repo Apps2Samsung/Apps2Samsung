@@ -56,6 +56,22 @@
 				</StackPanel>
 			</Grid>
 
+			<!-- Custom launcher title for the selected app (written into config.xml <name> at install). -->
+			<StackPanel Spacing="4" IsVisible="{Binding HasSelectedAppIcon}" Margin="0,4,0,0">
+				<TextBlock Text="{Binding LblAppTitle}"
+						   FontSize="13"
+						   FontWeight="SemiBold"
+						   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+				<TextBox Text="{Binding SelectedAppIcon.Title, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+						 Watermark="{Binding SelectedAppIcon.DisplayName}"
+						 HorizontalAlignment="Left"
+						 MinWidth="320"/>
+				<TextBlock Text="{Binding LblAppTitleHint}"
+						   FontSize="11"
+						   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+						   TextWrapping="Wrap"/>
+			</StackPanel>
+
 		<!-- bottom slack: ScrollViewer under-measures wrapping content, so guarantee the last row clears the fold -->
 			<Border Height="40"/>
 		</StackPanel>

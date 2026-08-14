@@ -31,7 +31,7 @@ namespace Apps2Samsung.ViewModels
         private readonly ILocalizationService _localizationService;
         private readonly FileHelper _fileHelper;
         private readonly ProviderManifestService _providerManifestService;
-        private readonly AddLatestRelease _addLatestRelease;
+        private readonly Apps2Samsung.Catalog.AppCatalog _appCatalog;
 
         public ObservableCollection<AppIconEntry> AppIcons { get; } = new();
 
@@ -46,16 +46,19 @@ namespace Apps2Samsung.ViewModels
         public string LblIconCustom => _localizationService.GetString("lblIconCustom");
         public string LblIconReset => _localizationService.GetString("lblIconReset");
         public string LblIconDefault => _localizationService.GetString("lblIconDefault");
+        public string LblAppTitle => _localizationService.GetString("lblAppTitle");
+        public string LblAppTitleHint => _localizationService.GetString("lblAppTitleHint");
 
         public AppIconsViewModel(
             ILocalizationService localizationService,
             FileHelper fileHelper,
-            HttpClient httpClient)
+            HttpClient httpClient,
+            Apps2Samsung.Catalog.AppCatalog appCatalog)
         {
             _localizationService = localizationService;
             _fileHelper = fileHelper;
             _providerManifestService = new ProviderManifestService(httpClient);
-            _addLatestRelease = new AddLatestRelease(httpClient);
+            _appCatalog = appCatalog;
 
             _localizationService.LanguageChanged += OnLanguageChanged;
 
@@ -74,83 +77,68 @@ namespace Apps2Samsung.ViewModels
         {
             try
             {
+                // The head fetches the manifest; the shared Core AppCatalog does the list shaping
+                // (expand community assets, collapse Jellyfin variants, flag bundled oblong tiles),
+                // so desktop and mobile present the same app list (#521).
                 var manifest = await _providerManifestService.GetAsync();
+                var catalog = await _appCatalog.BuildAsync(manifest);
 
-                var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                var entries = new List<AppIconEntry>();
+                var iconMap = LoadIconMap();
+                var titleMap = LoadTitleMap();
 
-                void Add(string display, string key)
+                var entries = catalog.Select(c =>
                 {
-                    key = key?.Trim() ?? string.Empty;
-                    if (string.IsNullOrEmpty(key) || !seen.Add(key))
-                        return;
-
-                    entries.Add(new AppIconEntry
+                    var entry = new AppIconEntry
                     {
-                        DisplayName = string.IsNullOrWhiteSpace(display) ? key : display.Trim(),
-                        Key = key,
-                        HasOblong = HasBundledOblong(key),
-                    });
-                }
-
-                foreach (var provider in manifest.Providers)
-                {
-                    if (provider.ExpandAssets)
-                    {
-                        // Community bundle: derive one icon entry per real .wgt asset in the latest
-                        // release, so EVERY community app is offered and the list stays current with
-                        // the repo — instead of a hardcoded subset (see #462). Custom launcher icons
-                        // only apply to web apps, so skip native .tpk assets. Best-effort: a fetch
-                        // failure just yields no community rows rather than breaking the editor.
-                        if (string.IsNullOrWhiteSpace(provider.Url))
-                            continue;
-                        try
-                        {
-                            var releases = await _addLatestRelease.GetReleasesAsync(
-                                provider.Url, provider.Prefix, provider.DisplayName, provider.Take);
-                            foreach (var r in releases)
-                                foreach (var asset in r.Assets)
-                                {
-                                    if (!asset.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase))
-                                        continue;
-                                    var name = Path.GetFileNameWithoutExtension(asset.FileName);
-                                    Add(name, name);
-                                }
-                        }
-                        catch (Exception ex)
-                        {
-                            Trace.WriteLine($"[AppIcons] Could not expand community assets from {provider.Url}: {ex.Message}");
-                        }
-                        continue;
-                    }
-
-                    // All Jellyfin builds share the "Jellyfin" file-name root, so collapse the
-                    // variants (AVPlay, Legacy, …) into a single entry that matches any of them.
-                    if (string.IsNullOrWhiteSpace(provider.DisplayName) ||
-                        provider.DisplayName.StartsWith("Jellyfin", StringComparison.OrdinalIgnoreCase))
-                        Add("Jellyfin", "Jellyfin");
-                    else
-                        Add(provider.DisplayName, provider.DisplayName);
-                }
-
-                var map = LoadIconMap();
-                foreach (var entry in entries)
-                {
-                    entry.Value = map.TryGetValue(entry.Key, out var v) ? v : string.Empty;
+                        DisplayName = c.DisplayName,
+                        Key = c.Key,
+                        HasOblong = c.HasOblong,
+                        Value = iconMap.TryGetValue(c.Key, out var v) ? v : string.Empty,
+                        Title = titleMap.TryGetValue(c.Key, out var t) ? t : string.Empty,
+                    };
                     RefreshSummary(entry);
-                }
+                    return entry;
+                }).ToList();
 
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
+                    // Drop the previous rows' change subscriptions before rebuilding the list.
+                    foreach (var old in AppIcons)
+                        old.PropertyChanged -= OnEntryPropertyChanged;
+
                     AppIcons.Clear();
                     foreach (var entry in entries)
+                    {
+                        entry.PropertyChanged += OnEntryPropertyChanged;
                         AppIcons.Add(entry);
+                    }
                 });
             }
             catch (Exception ex)
             {
                 Trace.WriteLine($"[AppIcons] Failed to build the app-icon list: {ex.Message}");
             }
+        }
+
+        // A custom title is edited inline (TextBox two-way bound to the entry), so persist it whenever
+        // the entry's Title changes — mirroring how SetIcon auto-saves the icon choice.
+        private void OnEntryPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(AppIconEntry.Title) && sender is AppIconEntry entry)
+                SaveTitle(entry);
+        }
+
+        private void SaveTitle(AppIconEntry entry)
+        {
+            var map = LoadTitleMap();
+            var title = entry.Title?.Trim() ?? string.Empty;
+            if (string.IsNullOrEmpty(title))
+                map.Remove(entry.Key);
+            else
+                map[entry.Key] = title;
+
+            AppSettings.Default.CustomAppTitlesJson = JsonSerializer.Serialize(map);
+            AppSettings.Default.Save();
         }
 
         [RelayCommand(CanExecute = nameof(HasSelectedAppIcon))]
@@ -207,13 +195,12 @@ namespace Apps2Samsung.ViewModels
                     : Path.GetFileName(entry.Value);
         }
 
-        private static bool HasBundledOblong(string key)
-            => key.IndexOf("tvapp", StringComparison.OrdinalIgnoreCase) >= 0
-            || key.IndexOf("litefin", StringComparison.OrdinalIgnoreCase) >= 0;
+        private static Dictionary<string, string> LoadIconMap() => LoadMap(AppSettings.Default.CustomAppIconsJson);
 
-        private static Dictionary<string, string> LoadIconMap()
+        private static Dictionary<string, string> LoadTitleMap() => LoadMap(AppSettings.Default.CustomAppTitlesJson);
+
+        private static Dictionary<string, string> LoadMap(string? json)
         {
-            var json = AppSettings.Default.CustomAppIconsJson;
             if (string.IsNullOrWhiteSpace(json))
                 return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -245,6 +232,8 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblIconCustom));
             OnPropertyChanged(nameof(LblIconReset));
             OnPropertyChanged(nameof(LblIconDefault));
+            OnPropertyChanged(nameof(LblAppTitle));
+            OnPropertyChanged(nameof(LblAppTitleHint));
 
             foreach (var entry in AppIcons)
                 RefreshSummary(entry);
@@ -253,6 +242,8 @@ namespace Apps2Samsung.ViewModels
         public void Dispose()
         {
             _localizationService.LanguageChanged -= OnLanguageChanged;
+            foreach (var entry in AppIcons)
+                entry.PropertyChanged -= OnEntryPropertyChanged;
         }
     }
 }

@@ -2,49 +2,105 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
+using Apps2Samsung.Catalog;
+using Apps2Samsung.Mobile.Catalog;
 using Apps2Samsung.Mobile.Services;
 using Microsoft.Maui.Storage;
 
 namespace Apps2Samsung.Mobile.Pages;
 
 /// <summary>
-/// Settings → App icons. Lets the user map an app (by a name substring of its .wgt, e.g. "Jellyfin")
-/// to a custom launcher PNG; the map is persisted in <see cref="MobileSettings.CustomAppIconsJson"/>
-/// and applied at install by the shared <c>CustomIconPackagePatcher</c>. Built as dynamic rows to
-/// mirror the TVApp-channels editor (no data binding), for robustness.
+/// Settings → App icons. Presents the same manifest-driven app list as the desktop head (built by the
+/// shared Core <see cref="AppCatalog"/>) and lets the user give each app a custom launcher icon (PNG)
+/// and/or a custom title. Choices are persisted per app in <see cref="MobileSettings.CustomAppIconsJson"/>
+/// / <see cref="MobileSettings.CustomAppTitlesJson"/> and applied at install by the shared
+/// <c>CustomIconPackagePatcher</c> / <c>AppTitlePackagePatcher</c> (#521).
 /// </summary>
 public partial class AppIconsPage : ContentPage
 {
-	private readonly List<IconRow> _rows = new();
+	private readonly CatalogService _catalog;
+	private readonly AppCatalog _appCatalog;
+	private readonly List<AppRow> _rows = new();
+	private bool _loaded;
 
-	private sealed record IconRow(View Container, Entry Key, Label PathLabel)
+	private sealed record AppRow(string Key, Label IconSummary)
 	{
 		public string? IconPath { get; set; }
 	}
 
-	public AppIconsPage()
+	public AppIconsPage(CatalogService catalog, AppCatalog appCatalog)
 	{
 		InitializeComponent();
-		foreach (var (key, value) in LoadMap())
-			AddRow(key, value);
+		_catalog = catalog;
+		_appCatalog = appCatalog;
 	}
 
-	private async void OnBackClicked(object? sender, EventArgs e) => await Navigation.PopAsync();
-
-	private void OnAddIcon(object? sender, EventArgs e) => AddRow(string.Empty, string.Empty);
-
-	private void AddRow(string key, string value)
+	protected override async void OnAppearing()
 	{
-		var keyEntry = new Entry { Text = key, Placeholder = "App name (e.g. Jellyfin)", BackgroundColor = Colors.Transparent };
-		var pathLabel = new Label
+		base.OnAppearing();
+		if (_loaded)
+			return;
+		_loaded = true;
+		await LoadAsync();
+	}
+
+	private async Task LoadAsync()
+	{
+		try
+		{
+			var manifest = await _catalog.GetManifestAsync();
+			var entries = await _appCatalog.BuildAsync(manifest);
+
+			var iconMap = LoadMap(MobileSettings.CustomAppIconsJson);
+			var titleMap = LoadMap(MobileSettings.CustomAppTitlesJson);
+
+			IconsContainer.Children.Clear();
+			_rows.Clear();
+			foreach (var entry in entries)
+			{
+				iconMap.TryGetValue(entry.Key, out var icon);
+				titleMap.TryGetValue(entry.Key, out var title);
+				AddRow(entry, icon, title);
+			}
+
+			StatusLabel.Text = _rows.Count == 0
+				? "No apps loaded (offline or GitHub rate-limited). Add a token in Settings and reopen."
+				: string.Empty;
+			StatusLabel.IsVisible = _rows.Count == 0;
+		}
+		catch (Exception ex)
+		{
+			StatusLabel.Text = $"Couldn't load the app list: {ex.Message}";
+			StatusLabel.IsVisible = true;
+		}
+	}
+
+	private void AddRow(AppCatalogEntry entry, string? iconValue, string? titleValue)
+	{
+		var nameLabel = new Label
+		{
+			Text = entry.DisplayName,
+			FontAttributes = FontAttributes.Bold,
+			VerticalOptions = LayoutOptions.Center,
+		};
+
+		var titleEntry = new Entry
+		{
+			Text = titleValue ?? string.Empty,
+			Placeholder = entry.DisplayName,
+			BackgroundColor = Colors.Transparent,
+		};
+
+		var iconSummary = new Label
 		{
 			FontSize = 12,
 			Opacity = 0.6,
 			LineBreakMode = LineBreakMode.TailTruncation,
 			VerticalOptions = LayoutOptions.Center,
 		};
-		var chooseBtn = new Button { Text = "Choose…", FontSize = 13, Padding = new Thickness(10, 0), HeightRequest = 40, CornerRadius = 6 };
-		var removeBtn = new Button
+		var chooseBtn = new Button { Text = "Icon…", FontSize = 13, Padding = new Thickness(10, 0), HeightRequest = 40, CornerRadius = 6 };
+		var clearBtn = new Button
 		{
 			Text = "✕",
 			FontSize = 14,
@@ -72,40 +128,46 @@ public partial class AppIconsPage : ContentPage
 			{
 				new RowDefinition(GridLength.Auto),
 				new RowDefinition(GridLength.Auto),
+				new RowDefinition(GridLength.Auto),
 			},
 		};
-		Grid.SetColumn(keyEntry, 0); Grid.SetRow(keyEntry, 0);
-		Grid.SetColumn(chooseBtn, 1); Grid.SetRow(chooseBtn, 0);
-		Grid.SetColumn(removeBtn, 2); Grid.SetRow(removeBtn, 0);
-		Grid.SetColumn(pathLabel, 0); Grid.SetRow(pathLabel, 1); Grid.SetColumnSpan(pathLabel, 3);
-		grid.Children.Add(keyEntry);
+		// Row 0: app name. Row 1: custom-title entry (spans). Row 2: icon summary + choose/clear.
+		Grid.SetColumn(nameLabel, 0); Grid.SetRow(nameLabel, 0); Grid.SetColumnSpan(nameLabel, 3);
+		Grid.SetColumn(titleEntry, 0); Grid.SetRow(titleEntry, 1); Grid.SetColumnSpan(titleEntry, 3);
+		Grid.SetColumn(iconSummary, 0); Grid.SetRow(iconSummary, 2);
+		Grid.SetColumn(chooseBtn, 1); Grid.SetRow(chooseBtn, 2);
+		Grid.SetColumn(clearBtn, 2); Grid.SetRow(clearBtn, 2);
+		grid.Children.Add(nameLabel);
+		grid.Children.Add(titleEntry);
+		grid.Children.Add(iconSummary);
 		grid.Children.Add(chooseBtn);
-		grid.Children.Add(removeBtn);
-		grid.Children.Add(pathLabel);
+		grid.Children.Add(clearBtn);
 
-		var row = new IconRow(grid, keyEntry, pathLabel)
+		var row = new AppRow(entry.Key, iconSummary)
 		{
-			IconPath = string.IsNullOrWhiteSpace(value) ? null : value,
+			IconPath = string.IsNullOrWhiteSpace(iconValue) ? null : iconValue,
 		};
-		pathLabel.Text = DescribePath(row.IconPath);
+		iconSummary.Text = DescribeIcon(row.IconPath);
 
-		keyEntry.Unfocused += (_, _) => Save();
-		chooseBtn.Clicked += async (_, _) => { await PickAsync(row); Save(); };
-		removeBtn.Clicked += (_, _) =>
+		titleEntry.Unfocused += (_, _) => SaveTitle(entry.Key, titleEntry.Text);
+		chooseBtn.Clicked += async (_, _) => await PickIconAsync(row);
+		clearBtn.Clicked += (_, _) =>
 		{
-			IconsContainer.Children.Remove(grid);
-			_rows.Remove(row);
-			Save();
+			row.IconPath = null;
+			iconSummary.Text = DescribeIcon(null);
+			SaveIcon(row.Key, null);
 		};
 
 		_rows.Add(row);
 		IconsContainer.Children.Add(grid);
 	}
 
-	private static string DescribePath(string? path) =>
-		string.IsNullOrWhiteSpace(path) ? "No icon chosen" : $"Icon: {Path.GetFileName(path)}";
+	private static string DescribeIcon(string? path) =>
+		string.IsNullOrWhiteSpace(path) ? "Default icon" : $"Icon: {Path.GetFileName(path)}";
 
-	private async Task PickAsync(IconRow row)
+	private async void OnBackClicked(object? sender, EventArgs e) => await Navigation.PopAsync();
+
+	private async Task PickIconAsync(AppRow row)
 	{
 		try
 		{
@@ -120,7 +182,7 @@ public partial class AppIconsPage : ContentPage
 			// Copy into app data so the path stays valid after the picker URI is released.
 			var dir = Path.Combine(FileSystem.AppDataDirectory, "app-icons");
 			Directory.CreateDirectory(dir);
-			var baseName = string.Concat((row.Key.Text ?? "icon").Select(c => char.IsLetterOrDigit(c) ? c : '_'));
+			var baseName = string.Concat(row.Key.Select(c => char.IsLetterOrDigit(c) ? c : '_'));
 			if (string.IsNullOrWhiteSpace(baseName)) baseName = "icon";
 			var dest = Path.Combine(dir, baseName + Path.GetExtension(result.FileName));
 			using (var src = await result.OpenReadAsync())
@@ -128,7 +190,8 @@ public partial class AppIconsPage : ContentPage
 				await src.CopyToAsync(dst);
 
 			row.IconPath = dest;
-			row.PathLabel.Text = DescribePath(dest);
+			row.IconSummary.Text = DescribeIcon(dest);
+			SaveIcon(row.Key, dest);
 		}
 		catch (Exception ex)
 		{
@@ -136,22 +199,29 @@ public partial class AppIconsPage : ContentPage
 		}
 	}
 
-	private void Save()
+	private void SaveIcon(string key, string? path)
 	{
-		var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-		foreach (var r in _rows)
-		{
-			var k = r.Key.Text?.Trim();
-			if (string.IsNullOrWhiteSpace(k) || string.IsNullOrWhiteSpace(r.IconPath))
-				continue;
-			map[k!] = r.IconPath!;
-		}
+		var map = LoadMap(MobileSettings.CustomAppIconsJson);
+		if (string.IsNullOrWhiteSpace(path))
+			map.Remove(key);
+		else
+			map[key] = path;
 		MobileSettings.CustomAppIconsJson = JsonSerializer.Serialize(map);
 	}
 
-	private static Dictionary<string, string> LoadMap()
+	private void SaveTitle(string key, string? title)
 	{
-		var json = MobileSettings.CustomAppIconsJson;
+		var map = LoadMap(MobileSettings.CustomAppTitlesJson);
+		var t = title?.Trim();
+		if (string.IsNullOrWhiteSpace(t))
+			map.Remove(key);
+		else
+			map[key] = t;
+		MobileSettings.CustomAppTitlesJson = JsonSerializer.Serialize(map);
+	}
+
+	private static Dictionary<string, string> LoadMap(string? json)
+	{
 		if (string.IsNullOrWhiteSpace(json))
 			return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		try

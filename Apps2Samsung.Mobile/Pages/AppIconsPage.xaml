@@ -24,14 +24,11 @@
                 </Border>
 
                 <Label FontSize="12" Opacity="0.6"
-                       Text="Give an app a custom launcher icon. Enter the app name as it appears in the app list (e.g. &quot;Jellyfin&quot; or &quot;TizenYouTube&quot;) and pick a PNG — it's applied to that package when you install it." />
+                       Text="Pick an app from the list and give it a custom launcher icon (PNG) and/or a custom title. Both are applied to that package when you install it. Leave either empty to keep the package's default." />
+
+                <Label x:Name="StatusLabel" FontSize="12" Opacity="0.6" Text="Loading app list…" />
 
                 <VerticalStackLayout x:Name="IconsContainer" Spacing="10" />
-
-                <Button Text="+ Add app icon" Clicked="OnAddIcon" HorizontalOptions="Start"
-                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
-                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
 
             </VerticalStackLayout>
         </Border>
