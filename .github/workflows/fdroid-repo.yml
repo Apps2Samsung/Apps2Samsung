@@ -1,0 +1,112 @@
+name: F-Droid Repo
+
+# Builds and publishes a self-hosted F-Droid repository from the latest signed stable
+# APK, to docs/fdroid/repo on the `beta` branch (GitHub Pages → https://apps2samsung.com/fdroid/repo).
+# Runs after a successful stable release, or on demand.
+on:
+  workflow_run:
+    workflows: ["Stable Release"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fdroid-repo
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # Only after a successful stable build (or a manual run).
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: beta
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android build-tools (apksigner/aapt for fdroidserver)
+        uses: android-actions/setup-android@v3
+
+      - name: Install build-tools + fdroidserver
+        run: |
+          set -euo pipefail
+          sdkmanager "build-tools;34.0.0" >/dev/null
+          echo "${ANDROID_HOME}/build-tools/34.0.0" >> "$GITHUB_PATH"
+          python -m pip install --upgrade pip
+          pip install fdroidserver
+
+      - name: Download the latest stable APK
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts \
+                --json tagName,isPrerelease --jq '[.[] | select(.isPrerelease==false)][0].tagName')
+          echo "Latest stable: $TAG"
+          mkdir -p build/repo
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*-android.apk' --dir build/repo
+          ls -la build/repo
+
+      - name: Assemble F-Droid config + metadata
+        env:
+          KS_B64: ${{ secrets.FDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.FDROID_KEYSTORE_PASS }}
+          KS_ALIAS: ${{ secrets.FDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.FDROID_KEY_PASS }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KS_B64:-}" ]; then
+            echo "::error::FDROID_KEYSTORE_BASE64 is not set. Generate a repo keystore and add the"
+            echo "::error::FDROID_KEYSTORE_BASE64 / FDROID_KEYSTORE_PASS / FDROID_KEY_ALIAS / FDROID_KEY_PASS"
+            echo "::error::secrets — see fdroid/README.md."
+            exit 1
+          fi
+          echo "$KS_B64" | base64 -d > build/keystore.p12
+          cp -r fdroid/metadata build/metadata
+          # Reuse the store listing (icon, screenshots, descriptions) from the fastlane metadata.
+          dest="build/metadata/nl.madebypatrick.apps2samsung/en-US"
+          mkdir -p "$dest"
+          cp -r fastlane/metadata/android/en-US/* "$dest/" 2>/dev/null || true
+          cat > build/config.yml <<EOF
+          repo_url: https://apps2samsung.com/fdroid/repo
+          repo_name: Apps2Samsung
+          repo_description: >-
+            Self-hosted F-Droid repository for the Apps2Samsung Android installer
+            (the phone-as-installer head). Auto-updated from the project's signed
+            GitHub stable releases.
+          archive_older: 0
+          keystore: keystore.p12
+          repo_keyalias: "${KS_ALIAS}"
+          keystorepass: "${KS_PASS}"
+          keypass: "${KEY_PASS}"
+          keydname: "CN=Apps2Samsung, O=Apps2Samsung"
+          EOF
+
+      - name: Build the repo index
+        working-directory: build
+        run: fdroid update --create-metadata --pretty --verbose
+
+      - name: Publish to docs/fdroid (GitHub Pages, served from beta:/docs)
+        run: |
+          set -euo pipefail
+          rm -rf docs/fdroid/repo
+          mkdir -p docs/fdroid
+          cp -r build/repo docs/fdroid/repo
+          git config user.name "Patrick"
+          git config user.email "patrick@madebypatrick.nl"
+          git add docs/fdroid/repo
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+          else
+            git commit -m "fdroid: publish repo for the latest stable APK [skip ci]"
+            git push origin beta
+          fi
