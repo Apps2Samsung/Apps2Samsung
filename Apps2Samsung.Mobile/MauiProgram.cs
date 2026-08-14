@@ -70,6 +70,12 @@ public static class MauiProgram
 		// "oblong" tiles, so a no-op oblong source — only user-supplied custom PNG icons apply here.
 		builder.Services.AddSingleton<IOblongIconSource, NoOblongIconSource>();
 		builder.Services.AddSingleton<IPackagePatcher, CustomIconPackagePatcher>();
+		builder.Services.AddSingleton<IPackagePatcher, AppTitlePackagePatcher>();
+
+		// Shared app catalog for the icon/title editor (same list as desktop).
+		builder.Services.AddSingleton<Apps2Samsung.Catalog.AppCatalog>(sp => new Apps2Samsung.Catalog.AppCatalog(
+			new Apps2Samsung.Helpers.Core.AddLatestRelease(sp.GetRequiredService<HttpClient>(), () => MobileSettings.GitHubToken),
+			sp.GetRequiredService<IOblongIconSource>()));
 		// Jellyfin config injection (server URL + auto-login + custom CSS), configured via the
 		// Settings → Jellyfin page. No-ops when no server is set (empty JellyfinFullUrl).
 		builder.Services.AddSingleton<IPackagePatcher>(sp =>

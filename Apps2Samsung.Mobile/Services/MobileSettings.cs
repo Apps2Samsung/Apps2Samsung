@@ -210,6 +210,15 @@ public static class MobileSettings
 		set => Preferences.Set("custom_app_icons_json", value ?? string.Empty);
 	}
 
+	/// <summary>Per-app custom launcher titles: JSON map { appKey -> title }, written into the wgt's
+	/// config.xml &lt;name&gt; at install by the shared AppTitlePackagePatcher. (Same Preferences key as
+	/// MobileAppConfig.CustomAppTitlesJson.)</summary>
+	public static string CustomAppTitlesJson
+	{
+		get => Preferences.Get("custom_app_titles_json", string.Empty);
+		set => Preferences.Set("custom_app_titles_json", value ?? string.Empty);
+	}
+
 	/// <summary>Splits <see cref="ManualDuids"/> into individual DUIDs.</summary>
 	public static string[] ParseDuids() =>
 		ManualDuids.Split(new[] { '\n', '\r', ',', ';' },
