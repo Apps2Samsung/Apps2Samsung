@@ -7,6 +7,7 @@ using Apps2Samsung.Helpers.Jellyfin;
 using Apps2Samsung.Helpers.Tizen.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -368,17 +369,14 @@ namespace Apps2Samsung.Services
                     return InstallResult.FailureResult(Constants.LocalizationKeys.TvNameNotFound.Localized());
                 }
 
-                // Step 3: Check is WGT is compatible with TV's Tizen version
-                var requiredTizenVersion = await FileHelper.ReadWgtRequiredVersion(packageUrl);
-                if (requiredTizenVersion != null)
+                // Step 3: Check the WGT is compatible with the TV's Tizen version (shared Core check,
+                // so the mobile head applies the exact same gate).
+                var requiredTizenVersion = await WgtManifest.ReadRequiredVersionAsync(packageUrl);
+                if (WgtManifest.RequiresNewerTizen(deviceInfo.TizenVersion, requiredTizenVersion))
                 {
-                    var requiredVersion = new Version(requiredTizenVersion);
-                    if (deviceInfo.TizenVersion < requiredVersion)
-                    {
-                        progress?.Invoke(Constants.LocalizationKeys.IncompatiblePackage.Localized());
-                        Trace.WriteLine($"Package requires Tizen {requiredVersion} but device has {deviceInfo.TizenVersion}");
-                        return InstallResult.FailureResult(string.Format(Constants.LocalizationKeys.IncompatiblePackageDetailed.Localized(), requiredTizenVersion, deviceInfo.TizenVersion));
-                    }
+                    progress?.Invoke(Constants.LocalizationKeys.IncompatiblePackage.Localized());
+                    Trace.WriteLine($"Package requires Tizen {requiredTizenVersion} but device has {deviceInfo.TizenVersion}");
+                    return InstallResult.FailureResult(string.Format(Constants.LocalizationKeys.IncompatiblePackageDetailed.Localized(), requiredTizenVersion, deviceInfo.TizenVersion));
                 }
 
                 // Step 4: Handle certificate selection/generation
