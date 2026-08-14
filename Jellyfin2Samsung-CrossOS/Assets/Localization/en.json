@@ -65,6 +65,8 @@
   "DevNotReadyEnableDevMode": "⚠ TV detected, but Developer Mode is off. On the TV: open Apps, type 1 2 3 4 5, switch Developer Mode On, enter this PC's IP, restart the TV, then rescan.",
   "DevNotReadyPowerCycle": "⚠ TV detected and Developer Mode is on, but its debug port isn't responding yet. Fully power-cycle the TV (unplug ~30s), then rescan.",
   "DevNotReadyIpMismatch": "⚠ TV detected, but its Developer Mode IP doesn't match this PC. Re-enter this PC's IP in the TV's Developer Mode settings, power-cycle the TV, then rescan.",
+  "restartRequiredTitle": "Restart the TV first",
+  "restartRequiredBody": "This TV has Developer Mode on, but its install service isn't running yet, so it can't be installed to until it's restarted.\n\n• Press and hold the TV's power button until it fully shuts down, then turn it back on, or\n• Unplug the TV from power for a minute or two, then plug it back in.\n\nAfter it restarts, scan again and the TV will be ready.",
   "lblRTL": "Reverse IP (for Arabic/Hebrew)",
   "ServerIP": "Server IP",
   "Theme": "Theme",
