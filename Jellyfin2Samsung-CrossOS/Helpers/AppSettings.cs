@@ -88,6 +88,9 @@ namespace Apps2Samsung.Helpers
         // installs, and svdca may not issue Partner certs for individual accounts.
         public bool PartnerSigning { get; set; } = false;
         public bool ShowAllJellyfinVersions { get; set; } = false;
+        // When on, the in-app update check offers beta (pre-release) versions too, and downloads that
+        // beta — not the older stable. Off by default on desktop (stable channel).
+        public bool IncludeBetaUpdates { get; set; } = false;
         public bool RTLReading { get; set; } = false;
         public string JellyfinIP { get; set; } = "";
         public string JellyfinBasePath { get; set; } = "";
