@@ -29,6 +29,10 @@ namespace Apps2Samsung.Update
         public string ReleasesPageUrl => $"https://github.com/{_owner}/{_repo}/releases";
         private string AtomFeedUrl => $"https://github.com/{_owner}/{_repo}/releases.atom";
         private string LatestApiUrl => $"https://api.github.com/repos/{_owner}/{_repo}/releases/latest";
+        // The specific release the feed identified — NOT /releases/latest, which GitHub always resolves
+        // to the latest *stable* (so a detected beta would otherwise download the older stable asset).
+        private string ReleaseByTagApiUrl(string tag) =>
+            $"https://api.github.com/repos/{_owner}/{_repo}/releases/tags/{Uri.EscapeDataString(tag)}";
 
         /// <param name="currentVersion">The running app's version (e.g. "v2.7.0").</param>
         /// <param name="includePrereleases">
@@ -133,7 +137,13 @@ namespace Apps2Samsung.Update
         {
             try
             {
-                using var request = new HttpRequestMessage(HttpMethod.Get, LatestApiUrl);
+                // Resolve the asset from the release the feed actually detected (may be a pre-release),
+                // so the download matches the version we told the user about. Fall back to /releases/latest
+                // only if we somehow don't have the tag.
+                var apiUrl = string.IsNullOrWhiteSpace(result.LatestVersion)
+                    ? LatestApiUrl
+                    : ReleaseByTagApiUrl(result.LatestVersion);
+                using var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
                 request.Headers.UserAgent.ParseAdd("Apps2Samsung");
                 using var response = await _http.SendAsync(request, ct);
                 if (!response.IsSuccessStatusCode)

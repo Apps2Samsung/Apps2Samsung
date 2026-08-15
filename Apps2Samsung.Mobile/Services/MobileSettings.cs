@@ -58,6 +58,15 @@ public static class MobileSettings
 		set => Preferences.Set(KeyShowAllJf, value);
 	}
 
+	/// <summary>Offer beta (pre-release) versions in the in-app update check, and download that beta
+	/// rather than the older stable. On by default — the mobile app has historically shipped as -beta
+	/// builds, so keep existing users on the beta channel unless they turn it off.</summary>
+	public static bool IncludeBetaUpdates
+	{
+		get => Preferences.Get("include_beta_updates", true);
+		set => Preferences.Set("include_beta_updates", value);
+	}
+
 	/// <summary>Force a fresh Samsung login + certificate even when a reusable one exists (desktop:
 	/// "Force Samsung login"). Off by default.</summary>
 	public static bool ForceSamsungLogin

@@ -101,7 +101,7 @@ public partial class InstallerPage : ContentPage
 			var current = AppInfo.Current.VersionString;
 			var result = await _updateChecker.CheckForUpdateAsync(
 				current,
-				includePrereleases: true, // mobile ships as -beta releases
+				includePrereleases: MobileSettings.IncludeBetaUpdates, // beta channel toggle (Settings)
 				assetMatcher: name => name.EndsWith(".apk", StringComparison.OrdinalIgnoreCase));
 
 			if (!result.IsSuccess || !result.IsUpdateAvailable)

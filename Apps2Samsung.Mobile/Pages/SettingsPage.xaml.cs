@@ -35,6 +35,7 @@ public partial class SettingsPage : ContentPage
 		OpenAfterSwitch.IsToggled = MobileSettings.OpenAfterInstall;
 		KeepWgtSwitch.IsToggled = MobileSettings.KeepWgtFile;
 		ShowAllJfSwitch.IsToggled = MobileSettings.ShowAllJellyfinVersions;
+		BetaUpdatesSwitch.IsToggled = MobileSettings.IncludeBetaUpdates;
 		PartnerSigningSwitch.IsToggled = MobileSettings.PartnerSigning;
 		TryOverwriteSwitch.IsToggled = MobileSettings.TryOverwrite;
 		ForceLoginSwitch.IsToggled = MobileSettings.ForceSamsungLogin;
@@ -243,6 +244,7 @@ public partial class SettingsPage : ContentPage
 		MobileSettings.OpenAfterInstall = OpenAfterSwitch.IsToggled;
 		MobileSettings.KeepWgtFile = KeepWgtSwitch.IsToggled;
 		MobileSettings.ShowAllJellyfinVersions = ShowAllJfSwitch.IsToggled;
+		MobileSettings.IncludeBetaUpdates = BetaUpdatesSwitch.IsToggled;
 		MobileSettings.PartnerSigning = PartnerSigningSwitch.IsToggled;
 		MobileSettings.TryOverwrite = TryOverwriteSwitch.IsToggled;
 		MobileSettings.ForceSamsungLogin = ForceLoginSwitch.IsToggled;

@@ -108,6 +108,12 @@
                     <Switch Grid.Column="1" x:Name="ShowAllJfSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
                 </Grid>
                 <Grid Style="{StaticResource ToggleRow}">
+                    <Label Grid.Column="0" Text="Beta updates" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" x:Name="BetaUpdatesSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                </Grid>
+                <Label Style="{StaticResource Hint}"
+                       Text="When on, the in-app update check offers new beta versions and downloads them. Turn off to only be notified about stable releases." />
+                <Grid Style="{StaticResource ToggleRow}">
                     <Label Grid.Column="0" Text="Partner signing (experimental)" VerticalOptions="Center" />
                     <Switch Grid.Column="1" x:Name="PartnerSigningSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
                 </Grid>
