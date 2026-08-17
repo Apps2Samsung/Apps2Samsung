@@ -61,6 +61,9 @@ namespace Apps2Samsung.ViewModels
         private bool showAllJellyfinVersions;
 
         [ObservableProperty]
+        private bool includeBetaUpdates;
+
+        [ObservableProperty]
         private bool rtlReading;
 
         [ObservableProperty]
@@ -102,6 +105,7 @@ namespace Apps2Samsung.ViewModels
         public string LblDeletePrevious => _localizationService.GetString("lblDeletePrevious");
         public string LblForceLogin => _localizationService.GetString("lblForceLogin");
         public string LblShowAllJellyfinVersions => _localizationService.GetString("lblShowAllJellyfinVersions");
+        public string LblIncludeBetaUpdates => _localizationService.GetString("lblIncludeBetaUpdates");
         public string LblRTL => _localizationService.GetString("lblRTL");
         public string LblKeepWGTFile => _localizationService.GetString("lblKeepWGTFile");
         public string LblSettingsHeader => _localizationService.GetString("lblSettings");
@@ -163,6 +167,7 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblDeletePrevious));
             OnPropertyChanged(nameof(LblForceLogin));
             OnPropertyChanged(nameof(LblShowAllJellyfinVersions));
+            OnPropertyChanged(nameof(LblIncludeBetaUpdates));
             OnPropertyChanged(nameof(LblRTL));
             OnPropertyChanged(nameof(LblKeepWGTFile));
             OnPropertyChanged(nameof(LblSettingsHeader));
@@ -186,6 +191,7 @@ namespace Apps2Samsung.ViewModels
             ForceSamsungLogin = AppSettings.Default.ForceSamsungLogin;
             PartnerSigning = AppSettings.Default.PartnerSigning;
             ShowAllJellyfinVersions = AppSettings.Default.ShowAllJellyfinVersions;
+            IncludeBetaUpdates = AppSettings.Default.IncludeBetaUpdates;
             RtlReading = AppSettings.Default.RTLReading;
             LocalIP = AppSettings.Default.LocalIp ?? string.Empty;
             TryOverwrite = AppSettings.Default.TryOverwrite;
@@ -506,6 +512,12 @@ namespace Apps2Samsung.ViewModels
         partial void OnShowAllJellyfinVersionsChanged(bool value)
         {
             AppSettings.Default.ShowAllJellyfinVersions = value;
+            AppSettings.Default.Save();
+        }
+
+        partial void OnIncludeBetaUpdatesChanged(bool value)
+        {
+            AppSettings.Default.IncludeBetaUpdates = value;
             AppSettings.Default.Save();
         }
 

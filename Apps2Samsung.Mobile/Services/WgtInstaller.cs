@@ -65,6 +65,15 @@ public sealed class WgtInstaller
 		// version before install and/or launch the app afterwards.
 		var (appId, packageId) = ReadPackageIds(wgtPath);
 
+		// Pre-install Tizen version gate (shared Core check, same as the desktop head): if the package
+		// declares a required_version newer than this TV, fail up front with a clear message instead of
+		// signing + pushing and getting back the ambiguous [118, -4] "operation not allowed".
+		var requiredVersion = await WgtManifest.ReadRequiredVersionAsync(wgtPath);
+		if (WgtManifest.RequiresNewerTizen(version, requiredVersion))
+			throw new InvalidOperationException(
+				$"This app needs Tizen {requiredVersion} or newer, but this TV is Tizen {caps.PlatformVersion}. " +
+				"Install an older build of the app, or update the TV's firmware.");
+
 		// Was this package already on the TV before we started? Needed so the failure-cleanup below
 		// only clears a partial from a FRESH install and never removes a pre-existing working app.
 		bool wasInstalledBefore = false;
@@ -121,7 +130,11 @@ public sealed class WgtInstaller
 
 		progress?.Invoke("Installing on TV…");
 		var install = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath);
-		if (install.ExitCode != 0)
+		// The Tizen install helper returns a zero exit code (cmd_ret:0) even when the app install
+		// itself failed (e.g. "app_id[...] install failed[118]"). Trusting the exit code alone made
+		// the app report "✓ Installed" for installs that never landed on the TV — so classify the
+		// OUTPUT as well, mirroring the desktop head, and route real failures into recovery.
+		if (install.ExitCode != 0 || TizenInstallDiagnostics.IndicatesFailure(install.Output))
 			install = await RecoverInstallAsync(tvIp, wgtPath, sdkToolPath, packageId, install, progress, wasInstalledBefore);
 
 		if (MobileSettings.OpenAfterInstall && !string.IsNullOrWhiteSpace(appId))
@@ -185,7 +198,7 @@ public sealed class WgtInstaller
 			try { await _sdb.UninstallAsync(tvIp, packageId!); } catch { /* best-effort */ }
 
 			var retry = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath);
-			if (retry.ExitCode == 0)
+			if (retry.ExitCode == 0 && !TizenInstallDiagnostics.IndicatesFailure(retry.Output))
 				return retry;
 
 			// Still failing after a clean slate — surface the most useful message.

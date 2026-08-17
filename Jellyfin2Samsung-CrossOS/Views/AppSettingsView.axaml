@@ -205,6 +205,17 @@
 								  VerticalAlignment="Center"/>
 				</Grid>
 
+				<!-- Include beta versions in update checks -->
+				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+					<TextBlock Grid.Column="0"
+							   Text="{Binding LblIncludeBetaUpdates}"
+							   Classes="label"
+							   VerticalAlignment="Center"/>
+					<ToggleSwitch Grid.Column="1"
+								  IsChecked="{Binding IncludeBetaUpdates}"
+								  VerticalAlignment="Center"/>
+				</Grid>
+
 				<!-- RTL Reading -->
 				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
 					<TextBlock Grid.Column="0"

@@ -76,10 +76,16 @@
                 </Grid>
 
                 <!-- Quick peek at what's already on the selected TV -->
-                <Button Text="📋 Show installed apps" Clicked="OnShowInstalledAppsClicked"
-                        HorizontalOptions="Start" BackgroundColor="Transparent" BorderWidth="0"
-                        Padding="0" FontSize="13"
-                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
+                <HorizontalStackLayout Spacing="18">
+                    <Button Text="📋 Show installed apps" Clicked="OnShowInstalledAppsClicked"
+                            BackgroundColor="Transparent" BorderWidth="0"
+                            Padding="0" FontSize="13"
+                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
+                    <Button Text="ℹ️ TV information" Clicked="OnShowDeviceInfoClicked"
+                            BackgroundColor="Transparent" BorderWidth="0"
+                            Padding="0" FontSize="13"
+                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
+                </HorizontalStackLayout>
 
                 <!-- Status bar -->
                 <Border BackgroundColor="#2C3E50" Padding="16" StrokeThickness="0" StrokeShape="RoundRectangle 6">

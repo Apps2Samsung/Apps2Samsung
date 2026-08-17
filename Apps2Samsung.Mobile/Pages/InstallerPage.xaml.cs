@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Services;
 using Apps2Samsung.Mobile.Catalog;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Packaging;
@@ -32,6 +33,9 @@ public partial class InstallerPage : ContentPage
 	// manually added). The picker also shows a trailing ManualIpLabel entry that isn't in these.
 	private readonly List<string> _tvIps = new();
 	private readonly List<string> _tvLabels = new();
+	// Per-TV readiness, index-aligned with _tvIps: false = detected via the REST API only (SDB debug
+	// port not up yet), so it needs a restart before it can be installed to.
+	private readonly List<bool> _tvReady = new();
 	// Suppresses OnTvChanged while we rebuild the picker programmatically.
 	private bool _rebuildingTvPicker;
 	// The catalog releases backing AppPicker; the selected release's assets back VersionPicker.
@@ -97,7 +101,7 @@ public partial class InstallerPage : ContentPage
 			var current = AppInfo.Current.VersionString;
 			var result = await _updateChecker.CheckForUpdateAsync(
 				current,
-				includePrereleases: true, // mobile ships as -beta releases
+				includePrereleases: MobileSettings.IncludeBetaUpdates, // beta channel toggle (Settings)
 				assetMatcher: name => name.EndsWith(".apk", StringComparison.OrdinalIgnoreCase));
 
 			if (!result.IsSuccess || !result.IsUpdateAvailable)
@@ -253,6 +257,7 @@ public partial class InstallerPage : ContentPage
 		{
 			_tvIps.Add(ip);
 			_tvLabels.Add($"{ip} (manual)");
+			_tvReady.Add(true); // manual IPs are assumed ready; a real SDB error surfaces if not
 			idx = _tvIps.Count - 1;
 		}
 		RebuildTvPicker(idx);
@@ -271,6 +276,20 @@ public partial class InstallerPage : ContentPage
 		await Navigation.PushAsync(new InstalledAppsPage(_sdb, tvIp, label));
 	}
 
+	private async void OnShowDeviceInfoClicked(object? sender, EventArgs e)
+	{
+		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
+		{
+			SetStatus("Select a TV first (tap refresh to scan).");
+			return;
+		}
+		var idx = TvPicker.SelectedIndex;
+		var tvIp = _tvIps[idx];
+		var label = TvPicker.SelectedItem as string ?? tvIp;
+		var debugPortOpen = idx >= _tvReady.Count || _tvReady[idx];
+		await Navigation.PushAsync(new DeviceInfoPage(_sdb, tvIp, label, debugPortOpen));
+	}
+
 	private async void OnRefreshClicked(object? sender, EventArgs e) => await ScanAsync();
 
 	private async void OnSettingsClicked(object? sender, EventArgs e) =>
@@ -285,9 +304,10 @@ public partial class InstallerPage : ContentPage
 		SetStatus("Scanning for TVs…");
 		try
 		{
-			var devices = (await _networkService.GetLocalTizenAddresses())
-				.Where(d => d.DebugPortOpen)
-				.ToList();
+			// Keep not-ready TVs (REST API answered but the SDB debug port isn't up): they're shown
+			// with a ⚠ marker so the user knows the TV was found but needs a restart first, instead of
+			// silently disappearing from the list.
+			var devices = (await _networkService.GetLocalTizenAddresses()).ToList();
 
 			var selected = TvPicker.SelectedIndex >= 0 && TvPicker.SelectedIndex < _tvIps.Count
 				? _tvIps[TvPicker.SelectedIndex]
@@ -295,18 +315,23 @@ public partial class InstallerPage : ContentPage
 
 			_tvIps.Clear();
 			_tvLabels.Clear();
+			_tvReady.Clear();
 			foreach (var d in devices)
 			{
 				_tvIps.Add(d.IpAddress);
 				_tvLabels.Add(d.DisplayText);
+				_tvReady.Add(d.DebugPortOpen);
 			}
 
 			var keep = selected is null ? -1 : _tvIps.IndexOf(selected);
 			RebuildTvPicker(_tvIps.Count > 0 ? (keep >= 0 ? keep : 0) : -1);
 
+			var notReady = _tvReady.Count(r => !r);
 			SetStatus(_tvIps.Count == 0
-				? "No debug-ready TVs found. Enable Developer Mode on the TV and refresh, or tap the TV list to enter an IP manually."
-				: "Ready for use…");
+				? "No TVs found. Enable Developer Mode on the TV and refresh, or tap the TV list to enter an IP manually."
+				: notReady > 0
+					? $"Found {_tvIps.Count} TV(s). ⚠ {notReady} need a restart before installing."
+					: "Ready for use…");
 		}
 		catch (Exception ex)
 		{
@@ -324,6 +349,18 @@ public partial class InstallerPage : ContentPage
 		{
 			SetStatus("Select a TV first (tap refresh to scan).");
 			return;
+		}
+
+		// The selected TV answered on the REST API but its SDB debug port isn't up yet — it can't be
+		// installed to until it's restarted. Warn (Continue/Stop) like the desktop head does.
+		if (TvPicker.SelectedIndex < _tvReady.Count && !_tvReady[TvPicker.SelectedIndex])
+		{
+			bool continueAnyway = await DisplayAlert(
+				TizenDeviceReadiness.RestartTitle,
+				TizenDeviceReadiness.RestartInstructions,
+				"Continue", "Stop");
+			if (!continueAnyway)
+				return;
 		}
 
 		var custom = CustomSelected;

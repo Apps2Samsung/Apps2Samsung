@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- Android blocks cleartext HTTP by default (API 28+). The Samsung SignInGate redirects the
-     captured token by POSTing to the in-app loopback listener over http://localhost:4794, so
-     cleartext must be permitted — but ONLY to loopback. Everything else (Samsung = HTTPS; the
-     SDB scan/protocol = raw TCP, not HTTP-policy-gated) stays under the secure default. -->
+<!-- Android blocks cleartext HTTP by default (API 28+). This app legitimately talks HTTP to
+     devices on the local network, and those hosts can't be whitelisted ahead of time:
+       - the Samsung SignInGate POSTs the captured token to the in-app loopback listener
+         (http://localhost:4794), and
+       - the "TV information" view reads the TV's Samsung REST API over
+         http://<tv-ip>:8001/api/v2/ (the TV IP is DHCP-assigned, so it's not known here).
+     Permit cleartext generally. Security-sensitive traffic (Samsung OAuth, GitHub, catalog
+     downloads) uses HTTPS regardless, and the SDB scan/protocol is raw TCP, not HTTP-policy-gated. -->
 <network-security-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">localhost</domain>
-        <domain includeSubdomains="false">127.0.0.1</domain>
-    </domain-config>
+    <base-config cleartextTrafficPermitted="true" />
 </network-security-config>

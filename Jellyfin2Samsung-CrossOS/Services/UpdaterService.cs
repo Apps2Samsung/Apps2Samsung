@@ -46,7 +46,7 @@ namespace Apps2Samsung.Services
             var platformSuffix = GetPlatformSuffix();
             var result = await _checker.CheckForUpdateAsync(
                 CurrentVersion,
-                includePrereleases: false,
+                includePrereleases: AppSettings.Default.IncludeBetaUpdates,
                 assetMatcher: name => name.Contains(platformSuffix, StringComparison.OrdinalIgnoreCase) &&
                     (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
                      name.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase)),

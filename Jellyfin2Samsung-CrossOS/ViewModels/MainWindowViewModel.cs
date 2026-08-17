@@ -269,6 +269,11 @@ namespace Apps2Samsung.ViewModels
                 if (string.IsNullOrEmpty(tizenSdb))
                 {
                     SetStatus("FailedTizenSdb");
+                    // Tizen SDB couldn't be downloaded (GitHub outage/rate-limit/no releases) and there's
+                    // no local copy — tell the user how to install it by hand instead of leaving them stuck.
+                    await _dialogService.ShowMessageAsync(
+                        L("FailedTizenSdb"),
+                        string.Format(L("TizenSdbManualDownload"), AppSettings.TizenSdbPath));
                     return;
                 }
 
@@ -618,6 +623,35 @@ namespace Apps2Samsung.ViewModels
             catch (Exception ex)
             {
                 await _dialogService.ShowErrorAsync($"Failed to open installed apps: {ex}");
+            }
+        }
+
+        [RelayCommand]
+        private async Task ShowDeviceInfoAsync()
+        {
+            try
+            {
+                if (SelectedDevice is null ||
+                    string.IsNullOrWhiteSpace(SelectedDevice.IpAddress) ||
+                    SelectedDevice.IpAddress == L("lblOther"))
+                {
+                    await _dialogService.ShowMessageAsync("TV information", "Select a TV first.");
+                    return;
+                }
+
+                if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                    return;
+
+                var label = string.IsNullOrWhiteSpace(SelectedDevice.DisplayText)
+                    ? SelectedDevice.IpAddress
+                    : SelectedDevice.DisplayText;
+                var vm = new DeviceInfoViewModel(_tizenInstaller, SelectedDevice.IpAddress, label, SelectedDevice.DebugPortOpen);
+                var window = new Views.DeviceInfoWindow(vm);
+                await window.ShowDialog(desktop.MainWindow);
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync($"Failed to open TV information: {ex}");
             }
         }
 

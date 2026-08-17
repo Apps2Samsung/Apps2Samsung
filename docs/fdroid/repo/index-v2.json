@@ -1,0 +1,130 @@
+{
+  "repo": {
+    "name": {
+      "en-US": "Apps2Samsung"
+    },
+    "description": {
+      "en-US": "Self-hosted F-Droid repository for the Apps2Samsung Android installer (the phone-as-installer head). Auto-updated from the project's signed GitHub stable releases."
+    },
+    "icon": {
+      "en-US": {
+        "name": "/icons/icon.png",
+        "sha256": "b5ed0fedfdbc9d2edd9ce924dd6ce22eefc7a0060a0f50a1e4ce460a5a70f927",
+        "size": 644
+      }
+    },
+    "address": "https://apps2samsung.com/fdroid/repo",
+    "timestamp": 1786736841000,
+    "categories": {
+      "Multimedia": {
+        "name": {
+          "en-US": "Multimedia"
+        }
+      },
+      "System": {
+        "name": {
+          "en-US": "System"
+        }
+      }
+    }
+  },
+  "packages": {
+    "nl.madebypatrick.apps2samsung": {
+      "metadata": {
+        "added": 1786736839000,
+        "categories": [
+          "Multimedia",
+          "System"
+        ],
+        "changelog": "https://github.com/Apps2Samsung/Apps2Samsung/releases",
+        "issueTracker": "https://github.com/Apps2Samsung/Apps2Samsung/issues",
+        "lastUpdated": 1786736839000,
+        "license": "MIT",
+        "sourceCode": "https://github.com/Apps2Samsung/Apps2Samsung",
+        "webSite": "https://apps2samsung.com",
+        "screenshots": {
+          "phone": {
+            "en-US": [
+              {
+                "name": "/nl.madebypatrick.apps2samsung/en-US/phoneScreenshots/1.jpg",
+                "sha256": "1103140f8a31fcad3daee923a7ae61bf8b30dbe2d4c019c08814a6ee7ed0f5b0",
+                "size": 98833
+              },
+              {
+                "name": "/nl.madebypatrick.apps2samsung/en-US/phoneScreenshots/2.jpg",
+                "sha256": "f648b88aaf94b28b797ebc9fa23d507e6530fe16b11d3e442ab6172c36ae2287",
+                "size": 129621
+              },
+              {
+                "name": "/nl.madebypatrick.apps2samsung/en-US/phoneScreenshots/3.jpg",
+                "sha256": "8bd31f70ba77ff43c29a77322b0b675fdba6c505674898ad688f34f599d5d824",
+                "size": 79913
+              },
+              {
+                "name": "/nl.madebypatrick.apps2samsung/en-US/phoneScreenshots/4.jpg",
+                "sha256": "9ac06740d3eb33760b71e02f51e5096b76b3ac7826d2ab1c54701bdbdfd9bad8",
+                "size": 83686
+              }
+            ]
+          }
+        },
+        "authorName": "Patrick Stel",
+        "name": {
+          "en-US": "Apps2Samsung"
+        },
+        "summary": {
+          "en-US": "Install Jellyfin and other apps on your Samsung Tizen TV from your phone"
+        },
+        "description": {
+          "en-US": "Apps2Samsung is a cross-platform installer that sideloads Jellyfin and other\nweb and community apps onto Samsung Tizen TVs — no PC, no Tizen Studio, and no\nmanual sideloading.\n\nThis Android build is the mobile (phone) installer head: put the TV into\nDeveloper Mode, point the app at it over your local network, sign in once with a\nfree Samsung account to provision a signing certificate, and install.\n\nFeatures:\n\n* Finds Samsung Tizen TVs on your network, or connect directly by IP.\n* Installs Jellyfin (multiple build variants) and a catalog of community apps.\n* Give any app a custom launcher icon and a custom title.\n* Optional Jellyfin server pre-configuration: server URL, auto-login, custom CSS.\n* Uses a free Samsung account certificate — no paid developer account required.\n\nRequires a Samsung Tizen TV in Developer Mode on the same local network as the\nphone. Desktop versions for Windows, macOS and Linux are also available."
+        },
+        "icon": {
+          "en-US": {
+            "name": "/nl.madebypatrick.apps2samsung/en-US/icon_40rgATRxL9O4LpgqOkg8axPOhjdcMffAWNFwzXfmpjc=.png",
+            "sha256": "e34ae00134712fd3b82e982a3a483c6b13ce86375c31f7c058d170cd77e6a637",
+            "size": 90528
+          }
+        },
+        "preferredSigner": "bd4dee21ebeee1b0b690c612318808d27f35c46fa53ba31d256379a7fed7e107"
+      },
+      "versions": {
+        "278b946e7073ef5977b6f8f0f7aa8ef9a5a82edb26ce1a7c2ae3dbd2f1616465": {
+          "added": 1786736839000,
+          "file": {
+            "name": "/Apps2Samsung-v2.7.4-android.apk",
+            "sha256": "278b946e7073ef5977b6f8f0f7aa8ef9a5a82edb26ce1a7c2ae3dbd2f1616465",
+            "size": 35022267
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "x86_64"
+            ],
+            "versionName": "2.7.4",
+            "versionCode": 53,
+            "usesSdk": {
+              "minSdkVersion": 21,
+              "targetSdkVersion": 36
+            },
+            "signer": {
+              "sha256": [
+                "bd4dee21ebeee1b0b690c612318808d27f35c46fa53ba31d256379a7fed7e107"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              },
+              {
+                "name": "android.permission.INTERNET"
+              },
+              {
+                "name": "nl.madebypatrick.apps2samsung.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

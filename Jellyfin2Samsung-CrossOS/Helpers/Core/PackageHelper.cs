@@ -2,6 +2,7 @@
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Services;
 using Apps2Samsung.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -41,6 +42,20 @@ namespace Apps2Samsung.Helpers.Core
         }
         public async Task<bool> InstallPackageAsync(string? packagePath, NetworkDevice selectedDevice, CancellationToken cancellationToken, ProgressCallback? progress = null, Action? onSamsungLoginStarted = null)
         {
+            // A TV detected only via the REST API (8001) has Developer Mode on but its SDB debug port
+            // (26101) isn't up yet — installing can't work until the TV is restarted. Gate it like the
+            // other pre-install confirmations: let the user stop (and restart the TV) or continue.
+            if (TizenDeviceReadiness.RequiresRestart(selectedDevice))
+            {
+                bool continueAnyway = await _dialogService.ShowConfirmationAsync(
+                    "restartRequiredTitle".Localized(),
+                    "restartRequiredBody".Localized(),
+                    "keyContinue".Localized(),
+                    "keyStop".Localized());
+                if (!continueAnyway)
+                    return false;
+            }
+
             if(selectedDevice.DeveloperIP == null) return false;
 
             var localIps = _networkService.GetRelevantLocalIPs()
