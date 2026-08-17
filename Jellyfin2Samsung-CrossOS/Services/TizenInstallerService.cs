@@ -144,8 +144,8 @@ namespace Apps2Samsung.Services
         {
             try
             {
-                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(existingFilePath);
-                var match = RegexPatterns.Version.FileNameVersion.Match(fileNameWithoutExtension);
+                var fileName = Path.GetFileName(existingFilePath);
+                var match = RegexPatterns.Version.FileNameVersion.Match(fileName);
 
                 if (!match.Success)
                     return true;
