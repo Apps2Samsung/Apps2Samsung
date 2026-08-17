@@ -144,8 +144,8 @@ namespace Apps2Samsung.Services
         {
             try
             {
-                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(existingFilePath);
-                var match = RegexPatterns.Version.FileNameVersion.Match(fileNameWithoutExtension);
+                var fileName = Path.GetFileName(existingFilePath);
+                var match = RegexPatterns.Version.FileNameVersion.Match(fileName);
 
                 if (!match.Success)
                     return true;
@@ -1155,6 +1155,74 @@ namespace Apps2Samsung.Services
             try
             {
                 return await _sdb.UninstallAsync(tvIpAddress, tizenId);
+            }
+            finally
+            {
+                await _sdb.DisconnectAsync(tvIpAddress);
+            }
+        }
+
+        public async Task LaunchAppAsync(string tvIpAddress, string tizenId)
+        {
+            await EnsureTizenSdbAvailable();
+            try
+            {
+                var result = await _sdb.LaunchAsync(tvIpAddress, tizenId);
+                if (result.ExitCode != 0)
+                    throw new Exception($"Failed to launch app: {result.Error}");
+            }
+            finally
+            {
+                await _sdb.DisconnectAsync(tvIpAddress);
+            }
+        }
+
+        public async Task StopAppAsync(string tvIpAddress, string tizenId)
+        {
+            await EnsureTizenSdbAvailable();
+            try
+            {
+                var result = await _sdb.ShellAsync(tvIpAddress, $"0 was_kill {tizenId}");
+                if (result.ExitCode != 0)
+                {
+                    string errorMsg = string.IsNullOrWhiteSpace(result.Error) ? result.Output : result.Error;
+                    throw new Exception($"Failed to stop app {tizenId}: {errorMsg}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"StopAppAsync failed: {ex}");
+                throw;
+            }
+            finally
+            {
+                await _sdb.DisconnectAsync(tvIpAddress);
+            }
+        }
+
+        public async Task<(int LocalPort, IAsyncDisposable ForwardSession)> DebugAppAsync(string tvIpAddress, string tizenId)
+        {
+            await EnsureTizenSdbAvailable();
+            try
+            {
+                var result = await _sdb.ShellAsync(tvIpAddress, $"0 debug {tizenId}");
+                if (result.ExitCode != 0)
+                {
+                    string errorMsg = string.IsNullOrWhiteSpace(result.Error) ? result.Output : result.Error;
+                    throw new Exception($"Failed to start debug mode for {tizenId}: {errorMsg}");
+                }
+
+                var match = System.Text.RegularExpressions.Regex.Match(result.Output, @"port:\s*(\d+)");
+                if (!match.Success)
+                {
+                    throw new Exception($"Failed to detect the debug port from the device. Output: {result.Output}");
+                }
+                
+                int remotePort = int.Parse(match.Groups[1].Value);
+                int localPort = 9222;
+
+                var forwardSession = await _sdb.ForwardAsync(tvIpAddress, localPort, remotePort);
+                return (localPort, forwardSession);
             }
             finally
             {

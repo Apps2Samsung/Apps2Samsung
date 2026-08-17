@@ -50,11 +50,21 @@
                                     <Label Text="{Binding SizeDisplay}" FontSize="11" Opacity="0.55" />
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
-                            <Button Grid.Column="1" Text="Uninstall" Clicked="OnUninstallClicked"
-                                    IsVisible="{Binding IsRemovable}" VerticalOptions="Center"
-                                    BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
-                                    BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                    TextColor="{AppThemeBinding Light=#B00020, Dark=#FF6B6B}" />
+                            <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                                <Button Text="▶" ToolTipProperties.Text="Run" Clicked="OnLaunchClicked" FontSize="18"
+                                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
+                                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=#ECEFF1}" />
+                                <Button Text="⏹" ToolTipProperties.Text="Stop" Clicked="OnStopClicked" FontSize="18"
+                                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
+                                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=#ECEFF1}" />
+                                <Button Text="🗑️" ToolTipProperties.Text="Uninstall" Clicked="OnUninstallClicked" FontSize="18"
+                                        IsVisible="{Binding IsRemovable}"
+                                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
+                                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                        TextColor="{AppThemeBinding Light=#B00020, Dark=#FF6B6B}" />
+                            </HorizontalStackLayout>
                         </Grid>
                     </Border>
                 </DataTemplate>

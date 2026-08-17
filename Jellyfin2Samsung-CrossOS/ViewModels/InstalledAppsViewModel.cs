@@ -15,7 +15,7 @@ namespace Apps2Samsung.ViewModels
     /// which shares the Core parser with the mobile head) and offers a per-app uninstall for
     /// user-removable apps.
     /// </summary>
-    public partial class InstalledAppsViewModel : ViewModelBase
+    public partial class InstalledAppsViewModel : ViewModelBase, IDisposable
     {
         private readonly ITizenInstallerService _installer;
         private readonly IDialogService _dialogService;
@@ -26,7 +26,17 @@ namespace Apps2Samsung.ViewModels
         public ObservableCollection<InstalledApp> Apps { get; } = new();
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsProgressVisible))]
         private bool isBusy;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsProgressVisible))]
+        private bool isDebugging;
+
+        public bool IsProgressVisible => IsBusy || IsDebugging;
+
+        private IAsyncDisposable? _activeForwardSession;
+        private InstalledApp? _debuggedApp;
 
         [ObservableProperty]
         private string statusText = string.Empty;
@@ -110,6 +120,132 @@ namespace Apps2Samsung.ViewModels
             await Load();
         }
 
+        [RelayCommand]
+        private async Task Launch(InstalledApp? app)
+        {
+            if (app is null || IsBusy) return;
+            IsBusy = true;
+            StatusText = $"Launching {app.DisplayName}…";
+            try
+            {
+                await _installer.LaunchAppAsync(_tvIp, app.TizenId);
+                StatusText = $"Launched {app.DisplayName}.";
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync(ex.Message);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task Stop(InstalledApp? app)
+        {
+            if (app is null || IsBusy) return;
+            IsBusy = true;
+            StatusText = $"Stopping {app.DisplayName}…";
+            try
+            {
+                await _installer.StopAppAsync(_tvIp, app.TizenId);
+                StatusText = $"Stopped {app.DisplayName}.";
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync(ex.Message);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task Debug(InstalledApp? app)
+        {
+            if (app is null || IsBusy) return;
+            IsBusy = true;
+            
+            try 
+            { 
+                await _installer.StopAppAsync(_tvIp, app.TizenId); 
+            } 
+            catch { /* Ignore if it's not running */ }
+            
+            StatusText = $"Starting debug for {app.DisplayName}…";
+            try
+            {
+                var (port, session) = await _installer.DebugAppAsync(_tvIp, app.TizenId);
+                _activeForwardSession = session;
+                _debuggedApp = app;
+                IsDebugging = true;
+
+                StatusText = $"Debugging {app.DisplayName} on local port {port}…";
+
+                bool opened = false;
+                Exception? lastError = null;
+
+                try
+                {
+                    if (OperatingSystem.IsWindows())
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("cmd", "/c start chrome \"chrome://inspect\"") { CreateNoWindow = true });
+                    }
+                    else if (OperatingSystem.IsMacOS())
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("open", "-a \"Google Chrome\" \"chrome://inspect\"") { UseShellExecute = false });
+                    }
+                    else
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("google-chrome", "\"chrome://inspect\"") { UseShellExecute = false });
+                    }
+                    opened = true;
+                }
+                catch (Exception ex1)
+                {
+                    lastError = ex1;
+                    try
+                    {
+                        if (OperatingSystem.IsWindows())
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("cmd", "/c start msedge \"edge://inspect\"") { CreateNoWindow = true });
+                        }
+                        else if (OperatingSystem.IsMacOS())
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("open", "-a \"Microsoft Edge\" \"edge://inspect\"") { UseShellExecute = false });
+                        }
+                        else
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("microsoft-edge", "\"edge://inspect\"") { UseShellExecute = false });
+                        }
+                        opened = true;
+                    }
+                    catch (Exception ex2)
+                    {
+                        lastError = ex2;
+                    }
+                }
+
+                if (!opened)
+                {
+                    await _dialogService.ShowMessageAsync("Debug Started",
+                        $"The app is now running in debug mode on the TV. The debugger is forwarded to localhost:{port}.\n\n" +
+                        "However, we could not automatically open the inspector in your browser. " +
+                        "Please manually open 'chrome://inspect' or 'edge://inspect' in your browser to attach to the TV.");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync(ex.Message);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
         // A partial/failed install can leave a package dir that vd_applist never lists, so it can't be
         // removed from the list above. vd_appuninstall <packageId> still reclaims it — offer a manual
         // escape hatch: prompt for the package id and force-remove it.
@@ -162,5 +298,31 @@ namespace Apps2Samsung.ViewModels
 
         [RelayCommand]
         private void Close() => OnRequestClose?.Invoke();
+
+        [RelayCommand]
+        private async Task StopDebug()
+        {
+            if (!IsDebugging || _debuggedApp == null) return;
+            
+            if (_activeForwardSession != null)
+            {
+                await _activeForwardSession.DisposeAsync();
+                _activeForwardSession = null;
+            }
+            
+            IsDebugging = false;
+            _debuggedApp = null;
+            StatusText = string.Empty;
+        }
+
+        public void Dispose()
+        {
+            if (_activeForwardSession != null)
+            {
+                try { _activeForwardSession.DisposeAsync().AsTask().Wait(); } catch { }
+                _activeForwardSession = null;
+            }
+        }
+
     }
 }

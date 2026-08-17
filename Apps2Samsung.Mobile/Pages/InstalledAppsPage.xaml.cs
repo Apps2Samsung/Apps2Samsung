@@ -151,6 +151,54 @@ public partial class InstalledAppsPage : ContentPage
 		await LoadAsync();
 	}
 
+	private async void OnLaunchClicked(object? sender, EventArgs e)
+	{
+		if (sender is not Button { BindingContext: InstalledApp app })
+			return;
+
+		SetBusy(true, $"Launching {app.DisplayName}…");
+		try
+		{
+			var result = await _sdb.LaunchAsync(_tvIp, app.TizenId);
+			if (result.ExitCode != 0)
+			{
+				await DisplayAlert("Launch failed", result.Error, "OK");
+			}
+		}
+		catch (Exception ex)
+		{
+			await DisplayAlert("Launch failed", ex.Message, "OK");
+		}
+		finally
+		{
+			SetBusy(false);
+		}
+	}
+
+	private async void OnStopClicked(object? sender, EventArgs e)
+	{
+		if (sender is not Button { BindingContext: InstalledApp app })
+			return;
+
+		SetBusy(true, $"Stopping {app.DisplayName}…");
+		try
+		{
+			var result = await _sdb.ShellAsync(_tvIp, $"0 was_kill {app.TizenId}");
+			if (result.ExitCode != 0)
+			{
+				await DisplayAlert("Stop failed", result.Error, "OK");
+			}
+		}
+		catch (Exception ex)
+		{
+			await DisplayAlert("Stop failed", ex.Message, "OK");
+		}
+		finally
+		{
+			SetBusy(false);
+		}
+	}
+
 	private void SetBusy(bool busy, string? status = null)
 	{
 		Busy.IsVisible = busy;

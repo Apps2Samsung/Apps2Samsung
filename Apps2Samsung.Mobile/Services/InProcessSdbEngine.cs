@@ -261,4 +261,14 @@ public sealed class InProcessSdbEngine : ISdbEngine, IAsyncDisposable
 		try { await DropAsync(); }
 		finally { _gate.Release(); }
 	}
+
+	public async Task<ProcessResult> ShellAsync(string tvIpAddress, string command) => await RunConnected(tvIpAddress, async device =>
+	{
+		return await device.ShellCommandAsync(command);
+	});
+
+	public Task<IAsyncDisposable> ForwardAsync(string tvIpAddress, int localPort, int remotePort)
+	{
+		throw new NotSupportedException("Port forwarding is not supported on the Mobile SDB engine.");
+	}
 }

@@ -2,6 +2,7 @@ using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Apps2Samsung.Services
@@ -86,5 +87,48 @@ namespace Apps2Samsung.Services
 
         public Task<ProcessResult> PermitInstallAsync(string tvIpAddress, string deviceXml, string sdkToolPath)
             => Run($"permit-install {tvIpAddress} \"{deviceXml}\" {sdkToolPath}");
+
+        public Task<ProcessResult> ShellAsync(string tvIpAddress, string command)
+            => Run($"shell {tvIpAddress} {command}");
+
+        public Task<IAsyncDisposable> ForwardAsync(string tvIpAddress, int localPort, int remotePort)
+        {
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = SdbPath,
+                    Arguments = $"forward {tvIpAddress} tcp:{localPort} tcp:{remotePort}",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+            process.Start();
+            return Task.FromResult<IAsyncDisposable>(new ProcessForwardSession(process));
+        }
+
+        private class ProcessForwardSession : IAsyncDisposable
+        {
+            private readonly Process _process;
+
+            public ProcessForwardSession(Process process)
+            {
+                _process = process;
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                try
+                {
+                    if (!_process.HasExited)
+                    {
+                        _process.Kill();
+                    }
+                    _process.Dispose();
+                }
+                catch { }
+                return default;
+            }
+        }
     }
 }
