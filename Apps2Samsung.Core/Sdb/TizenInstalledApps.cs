@@ -43,6 +43,7 @@ namespace Apps2Samsung.Sdb
                     long.TryParse(current.GetValueOrDefault("app_size", string.Empty).Trim(), out var size);
                     apps.Add(new InstalledApp(
                         Title: current.GetValueOrDefault("app_title", string.Empty),
+                        AppId: current.GetValueOrDefault("app_id", string.Empty).Trim(),
                         TizenId: id.Trim(),
                         Version: current.GetValueOrDefault("app_version", string.Empty),
                         InstallDate: current.GetValueOrDefault("install_date", string.Empty),

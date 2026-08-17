@@ -8,14 +8,38 @@ namespace Apps2Samsung.Models
     /// </summary>
     public sealed record InstalledApp(
         string Title,
+        string? AppId,
         string TizenId,
         string Version,
         string InstallDate,
         bool IsRemovable,
-        long SizeBytes = 0)
+        long SizeBytes = 0,
+        string? IconUrl = null)
     {
         /// <summary>Title if the TV reported one, otherwise the Tizen id — never empty.</summary>
         public string DisplayName => string.IsNullOrWhiteSpace(Title) ? TizenId : Title;
+
+        public bool HasIcon => !string.IsNullOrWhiteSpace(IconUrl);
+        public bool MissingIcon => string.IsNullOrWhiteSpace(IconUrl);
+        public string Initials => string.IsNullOrWhiteSpace(DisplayName) ? "" : DisplayName.Substring(0, 1).ToUpperInvariant();
+
+        private static readonly string[] _fallbackColors = {
+            "#F44336", "#E91E63", "#9C27B0", "#673AB7", 
+            "#3F51B5", "#2196F3", "#03A9F4", "#00BCD4", 
+            "#009688", "#4CAF50", "#8BC34A", "#FF9800", 
+            "#FF5722", "#795548", "#607D8B"
+        };
+
+        public string FallbackColor
+        {
+            get
+            {
+                var id = string.IsNullOrWhiteSpace(DisplayName) ? TizenId : DisplayName;
+                int hash = 0;
+                foreach (char c in id) hash = (hash * 31) + c;
+                return _fallbackColors[System.Math.Abs(hash) % _fallbackColors.Length];
+            }
+        }
 
         /// <summary>Human-readable install size for this app ("—" when unknown/0).</summary>
         public string SizeDisplay => FormatSize(SizeBytes);

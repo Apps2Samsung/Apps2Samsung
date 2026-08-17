@@ -20,10 +20,12 @@ namespace Apps2Samsung.ViewModels
         private readonly ITizenInstallerService _installer;
         private readonly IDialogService _dialogService;
         private readonly string _tvIp;
+        private static readonly System.Net.Http.HttpClient _http = new();
+        private static readonly System.Collections.Generic.Dictionary<string, Avalonia.Media.Imaging.Bitmap?> _bitmapCache = new(StringComparer.OrdinalIgnoreCase);
 
         public string TvLabel { get; }
 
-        public ObservableCollection<InstalledApp> Apps { get; } = new();
+        public ObservableCollection<InstalledAppViewModel> Apps { get; } = new();
 
         [ObservableProperty]
         private bool isBusy;
@@ -48,13 +50,40 @@ namespace Apps2Samsung.ViewModels
             StatusText = "Reading installed apps…";
             try
             {
-                var apps = await _installer.GetInstalledAppsAsync(_tvIp);
+                var iconMap = await Apps2Samsung.Catalog.AppIconResolver.GetIconMapAsync();
+                var apps = (await _installer.GetInstalledAppsAsync(_tvIp)).ToList();
+                var viewModels = new System.Collections.Generic.List<InstalledAppViewModel>();
+
+                for (int i = 0; i < apps.Count; i++)
+                {
+                    var a = apps[i];
+                    if ((!string.IsNullOrEmpty(a.AppId) && iconMap.TryGetValue(a.AppId, out var iconUrl)) ||
+                        iconMap.TryGetValue(a.TizenId, out iconUrl) ||
+                        iconMap.TryGetValue(a.DisplayName, out iconUrl) ||
+                        iconMap.TryGetValue(a.DisplayName.ToLowerInvariant(), out iconUrl))
+                    {
+                        apps[i] = a with { IconUrl = iconUrl };
+                    }
+                    viewModels.Add(new InstalledAppViewModel(apps[i]));
+                }
+
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     Apps.Clear();
-                    foreach (var a in apps)
+                    foreach (var a in viewModels)
                         Apps.Add(a);
                 });
+                
+                // Start loading bitmaps in the background
+                _ = Task.Run(async () =>
+                {
+                    foreach (var vm in viewModels)
+                    {
+                        if (!string.IsNullOrEmpty(vm.App.IconUrl))
+                            await vm.LoadIconAsync(_http, _bitmapCache);
+                    }
+                });
+
                 var removable = apps.Count(a => a.IsRemovable);
                 var totalUsed = InstalledApp.FormatSize(apps.Sum(a => a.SizeBytes));
                 StatusText = apps.Count == 0
@@ -163,4 +192,43 @@ namespace Apps2Samsung.ViewModels
         [RelayCommand]
         private void Close() => OnRequestClose?.Invoke();
     }
+
+    public partial class InstalledAppViewModel : ObservableObject
+    {
+        public InstalledApp App { get; }
+        
+        [ObservableProperty]
+        private Avalonia.Media.Imaging.Bitmap? iconBitmap;
+        
+        public InstalledAppViewModel(InstalledApp app)
+        {
+            App = app;
+        }
+        
+        public async Task LoadIconAsync(System.Net.Http.HttpClient http, System.Collections.Generic.Dictionary<string, Avalonia.Media.Imaging.Bitmap?> cache)
+        {
+            if (string.IsNullOrEmpty(App.IconUrl)) return;
+            
+            if (cache.TryGetValue(App.IconUrl, out var cached))
+            {
+                IconBitmap = cached;
+                return;
+            }
+            
+            try
+            {
+                var bytes = await http.GetByteArrayAsync(App.IconUrl);
+                using var ms = new System.IO.MemoryStream(bytes);
+                var bmp = new Avalonia.Media.Imaging.Bitmap(ms);
+                cache[App.IconUrl] = bmp;
+                IconBitmap = bmp;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"Failed to load app icon '{App.IconUrl}': {ex.Message}");
+                cache[App.IconUrl] = null;
+            }
+        }
+    }
 }
+

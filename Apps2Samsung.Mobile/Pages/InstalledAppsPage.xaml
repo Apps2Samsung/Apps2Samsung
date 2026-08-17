@@ -39,8 +39,24 @@
                     <Border Margin="0,4" Padding="12" StrokeThickness="1" StrokeShape="RoundRectangle 8"
                             Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
                             BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" VerticalOptions="Center">
-                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                        <Grid ColumnDefinitions="48,*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+                            
+                            <!-- Icon / Avatar -->
+                            <Grid Grid.Column="0" WidthRequest="48" HeightRequest="48" VerticalOptions="Center">
+                                <Border StrokeThickness="0" BackgroundColor="{Binding FallbackColor}"
+                                        IsVisible="{Binding MissingIcon}" HorizontalOptions="Fill" VerticalOptions="Fill">
+                                    <Label Text="{Binding Initials}" TextColor="White" FontSize="20" FontAttributes="Bold"
+                                           HorizontalOptions="Center" VerticalOptions="Center"/>
+                                </Border>
+                                <Image Source="{Binding IconUrl}" Aspect="AspectFill" IsVisible="{Binding HasIcon}"
+                                       HorizontalOptions="Fill" VerticalOptions="Fill">
+                                    <Image.Clip>
+                                        <RoundRectangleGeometry CornerRadius="8" Rect="0,0,48,48"/>
+                                    </Image.Clip>
+                                </Image>
+                            </Grid>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
                                 <Label Text="{Binding DisplayName}" FontAttributes="Bold" FontSize="15"
                                        LineBreakMode="TailTruncation" />
                                 <Label Text="{Binding TizenId}" FontSize="11" Opacity="0.55"
@@ -50,7 +66,8 @@
                                     <Label Text="{Binding SizeDisplay}" FontSize="11" Opacity="0.55" />
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
-                            <Button Grid.Column="1" Text="Uninstall" Clicked="OnUninstallClicked"
+                            
+                            <Button Grid.Column="2" Text="Uninstall" Clicked="OnUninstallClicked"
                                     IsVisible="{Binding IsRemovable}" VerticalOptions="Center"
                                     BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
                                     BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
