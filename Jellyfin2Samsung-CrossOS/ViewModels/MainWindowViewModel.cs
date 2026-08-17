@@ -269,6 +269,11 @@ namespace Apps2Samsung.ViewModels
                 if (string.IsNullOrEmpty(tizenSdb))
                 {
                     SetStatus("FailedTizenSdb");
+                    // Tizen SDB couldn't be downloaded (GitHub outage/rate-limit/no releases) and there's
+                    // no local copy — tell the user how to install it by hand instead of leaving them stuck.
+                    await _dialogService.ShowMessageAsync(
+                        L("FailedTizenSdb"),
+                        string.Format(L("TizenSdbManualDownload"), AppSettings.TizenSdbPath));
                     return;
                 }
 

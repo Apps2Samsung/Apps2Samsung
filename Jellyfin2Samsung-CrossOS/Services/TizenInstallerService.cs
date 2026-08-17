@@ -106,7 +106,25 @@ namespace Apps2Samsung.Services
                 return TizenSdbPath;
             }
 
-            string downloadedFile = await DownloadTizenSdbAsync();
+            string? downloadedFile = await DownloadTizenSdbAsync();
+
+            // Couldn't fetch a fresh binary (offline / proxy / GitHub outage / no releases). Fall back
+            // to an existing copy if we have one; otherwise report failure (empty path) so the UI shows
+            // the FailedTizenSdb banner instead of crashing initialization (#547).
+            if (string.IsNullOrEmpty(downloadedFile))
+            {
+                if (existingFile != null && File.Exists(existingFile))
+                {
+                    Trace.WriteLine("[TizenSdb] Download unavailable — using the existing Tizen SDB binary.");
+                    await _processHelper.MakeExecutableAsync(existingFile);
+                    TizenSdbPath = existingFile;
+                    return TizenSdbPath;
+                }
+
+                Trace.WriteLine("[TizenSdb] Download unavailable and no existing binary — signalling failure.");
+                TizenSdbPath = null;
+                return string.Empty;
+            }
 
             if (existingFile != null && File.Exists(existingFile))
             {
@@ -186,7 +204,14 @@ namespace Apps2Samsung.Services
             }
         }
 
-        public async Task<string> DownloadTizenSdbAsync()
+        /// <summary>
+        /// Downloads the platform Tizen SDB binary from the tizen-sdb GitHub releases. Returns the
+        /// downloaded file path, or <c>null</c> if it couldn't be fetched (GitHub unreachable/unstable,
+        /// rate-limited, no releases, or no matching asset). Never throws for those cases, so
+        /// <see cref="EnsureTizenSdbAvailable"/> can degrade to the FailedTizenSdb banner instead of
+        /// crashing initialization (#547).
+        /// </summary>
+        public async Task<string?> DownloadTizenSdbAsync()
         {
             try
             {
@@ -194,27 +219,38 @@ namespace Apps2Samsung.Services
                 var releases = JsonSerializer.Deserialize<List<GitHubRelease>>(json, JsonSerializerOptionsProvider.Default);
                 // Skip drafts: GitHub sorts them to the top once authenticated, but a draft's asset
                 // browser_download_url 404s. Take the newest published release.
-                var firstRelease = (releases?.FirstOrDefault(r => !r.Draft)) ?? throw new InvalidOperationException("No releases found");
-                string nameMatch = PlatformService.GetAssetPlatformIdentifier();
+                var firstRelease = releases?.FirstOrDefault(r => !r.Draft);
+                if (firstRelease is null)
+                {
+                    Trace.WriteLine("[TizenSdb] GitHub returned no releases for tizen-sdb — cannot download.");
+                    return null;
+                }
 
+                string nameMatch = PlatformService.GetAssetPlatformIdentifier();
                 var matchedAsset = firstRelease.Assets.FirstOrDefault(a =>
                     !string.IsNullOrEmpty(a.FileName) &&
                     a.FileName.Contains(nameMatch, StringComparison.OrdinalIgnoreCase));
 
-                return matchedAsset == null
-                    ? throw new InvalidOperationException($"No matching asset found for {nameMatch}")
-                    : await DownloadPackageAsync(matchedAsset.DownloadUrl);
+                if (matchedAsset is null)
+                {
+                    Trace.WriteLine($"[TizenSdb] No matching Tizen SDB asset for '{nameMatch}'.");
+                    return null;
+                }
+
+                return await DownloadPackageAsync(matchedAsset.DownloadUrl);
             }
             catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
-                throw new TimeoutException(
-                    "GitHub rate limit reached while checking for Tizen SDB.\n\n" +
-                    "To avoid this, set a GitHub Personal Access Token (PAT) in settings,\n" +
-                    "or set the GITHUB_TOKEN environment variable,\n" +
-                    "or install the GitHub CLI (gh) and run 'gh auth login'.\n\n" +
-                    "Alternatively, please try again later.",
-                    ex
-                );
+                Trace.WriteLine("[TizenSdb] GitHub rate limit reached while fetching Tizen SDB. " +
+                    "Set a GitHub PAT in settings / GITHUB_TOKEN / 'gh auth login' to avoid this.");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                // Offline, corporate proxy/firewall blocking api.github.com, a GitHub outage, a 404/504,
+                // or malformed JSON — degrade gracefully rather than taking down startup (#547).
+                Trace.WriteLine($"[TizenSdb] Could not download Tizen SDB: {ex.GetType().Name} — {ex.Message}");
+                return null;
             }
         }
 
