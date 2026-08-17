@@ -8,6 +8,7 @@
   "FailedLoadingReleases": "Failed to load releases:",
   "InstallTizenSdb": "The Tizen SDB is required but not found. Retrying to download.",
   "FailedTizenSdb": "Tizen SDB is required but could not be found and downloaded.",
+  "TizenSdbManualDownload": "The Tizen SDB component couldn't be downloaded — GitHub may be unreachable, rate-limited, or temporarily returning no releases.\n\nTo continue, install it manually:\n\n1. Open https://github.com/PatrickSt1991/tizen-sdb/releases/latest and download the file for your operating system.\n2. Place it in this folder:\n{0}\n3. Restart Apps2Samsung.",
   "ConnectingToDevice": "Connecting to device...",
   "TvNameNotFound": "TV Name could not be found...",
   "TvDuidNotFound": "TV duid could not be found...",
