@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Apps2Samsung.Backup;
+using Apps2Samsung.Collections;
 using Apps2Samsung.Mobile.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.ApplicationModel.DataTransfer;
@@ -256,40 +257,45 @@ public partial class SettingsPage : ContentPage
 	{
 		var nameEntry = new Entry { Text = name, Placeholder = "Name", BackgroundColor = Colors.Transparent };
 		var urlEntry = new Entry { Text = url, Placeholder = "https://…/stream.m3u8", BackgroundColor = Colors.Transparent };
-		var removeBtn = new Button
-		{
-			Text = "✕",
-			FontSize = 14,
-			Padding = 0,
-			WidthRequest = 40,
-			HeightRequest = 40,
-			CornerRadius = 6,
-			BackgroundColor = Colors.Transparent,
-			BorderWidth = 1,
-			BorderColor = Color.FromArgb("#CDD3D8"),
-			TextColor = Color.FromArgb("#B00020"),
-		};
+		var upBtn = SmallChannelButton("↑", "#2C3E50");
+		var downBtn = SmallChannelButton("↓", "#2C3E50");
+		var removeBtn = SmallChannelButton("✕", "#B00020");
 
+		// Row 0: name + url. Row 1: reorder (↑ ↓) + remove, right-aligned, so the entries stay wide.
 		var grid = new Grid
 		{
 			ColumnSpacing = 8,
+			RowSpacing = 2,
 			ColumnDefinitions =
 			{
 				new ColumnDefinition(GridLength.Star),
 				new ColumnDefinition(GridLength.Star),
-				new ColumnDefinition(new GridLength(40)),
+			},
+			RowDefinitions =
+			{
+				new RowDefinition(GridLength.Auto),
+				new RowDefinition(GridLength.Auto),
 			},
 		};
-		Grid.SetColumn(nameEntry, 0);
-		Grid.SetColumn(urlEntry, 1);
-		Grid.SetColumn(removeBtn, 2);
+		Grid.SetColumn(nameEntry, 0); Grid.SetRow(nameEntry, 0);
+		Grid.SetColumn(urlEntry, 1); Grid.SetRow(urlEntry, 0);
+
+		var buttons = new HorizontalStackLayout { Spacing = 6, HorizontalOptions = LayoutOptions.End };
+		buttons.Children.Add(upBtn);
+		buttons.Children.Add(downBtn);
+		buttons.Children.Add(removeBtn);
+		Grid.SetColumn(buttons, 0); Grid.SetRow(buttons, 1); Grid.SetColumnSpan(buttons, 2);
+
 		grid.Children.Add(nameEntry);
 		grid.Children.Add(urlEntry);
-		grid.Children.Add(removeBtn);
+		grid.Children.Add(buttons);
 
 		var row = new ChannelRow(grid, nameEntry, urlEntry);
 		nameEntry.Unfocused += (_, _) => SaveChannels();
 		urlEntry.Unfocused += (_, _) => SaveChannels();
+		// Channels play on the TV in list order, so let the user reorder them (mirrors the desktop head).
+		upBtn.Clicked += (_, _) => MoveChannelRow(row, -1);
+		downBtn.Clicked += (_, _) => MoveChannelRow(row, +1);
 		removeBtn.Clicked += (_, _) =>
 		{
 			ChannelsContainer.Children.Remove(grid);
@@ -299,6 +305,38 @@ public partial class SettingsPage : ContentPage
 
 		_channelRows.Add(row);
 		ChannelsContainer.Children.Add(grid);
+	}
+
+	private static Button SmallChannelButton(string text, string textColor) => new()
+	{
+		Text = text,
+		FontSize = 14,
+		Padding = 0,
+		WidthRequest = 40,
+		HeightRequest = 40,
+		CornerRadius = 6,
+		BackgroundColor = Colors.Transparent,
+		BorderWidth = 1,
+		BorderColor = Color.FromArgb("#CDD3D8"),
+		TextColor = Color.FromArgb(textColor),
+	};
+
+	private void MoveChannelRow(ChannelRow row, int delta)
+	{
+		var i = _channelRows.IndexOf(row);
+		// Shared bounds rule with the desktop head (Core Collections.ListReorder).
+		if (ListReorder.TargetIndex(_channelRows.Count, i, delta) is not int j)
+			return;
+
+		_channelRows.RemoveAt(i);
+		_channelRows.Insert(j, row);
+
+		// Rebuild the visual order to match, then persist.
+		ChannelsContainer.Children.Clear();
+		foreach (var r in _channelRows)
+			ChannelsContainer.Children.Add(r.Container);
+
+		SaveChannels();
 	}
 
 	private void SaveChannels()
