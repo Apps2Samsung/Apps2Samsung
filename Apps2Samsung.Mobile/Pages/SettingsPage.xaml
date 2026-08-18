@@ -113,19 +113,6 @@
                 </Grid>
                 <Label Style="{StaticResource Hint}"
                        Text="When on, the in-app update check offers new beta versions and downloads them. Turn off to only be notified about stable releases." />
-                <Grid Style="{StaticResource ToggleRow}">
-                    <Label Grid.Column="0" Text="Certificate" VerticalOptions="Center" />
-                    <Picker Grid.Column="1" x:Name="CertificatePicker" SelectedIndexChanged="OnCertificateChanged"
-                            HorizontalOptions="End" MinimumWidthRequest="150" />
-                </Grid>
-                <Label Style="{StaticResource Hint}"
-                       Text="Which signing certificate to use. Automatic picks Public, or Partner when an app requires it. Partner is only needed for apps that use restricted privileges (e.g. VPN); some TVs reject partner-signed installs. After importing a backup this defaults to the imported certificate." />
-                <Grid Style="{StaticResource ToggleRow}">
-                    <Label Grid.Column="0" Text="Force Samsung login" VerticalOptions="Center" />
-                    <Switch Grid.Column="1" x:Name="ForceLoginSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
-                </Grid>
-                <Label Style="{StaticResource Hint}"
-                       Text="Always sign in to Samsung and generate a fresh certificate, even when a reusable one already covers this TV. Normally off — leave it off unless signing is misbehaving." />
 
                 <BoxView Style="{StaticResource Divider}" />
 
@@ -154,10 +141,21 @@
 
                 <BoxView Style="{StaticResource Divider}" />
 
-                <!-- Certificate note (auto-provisioned + reused; Public/Partner via the toggle above) -->
+                <!-- Certificate: pick the signing type, force a fresh login, and note on auto-provisioning. -->
                 <Label Text="Certificate" FontAttributes="Bold" FontSize="14" />
+                <Grid Style="{StaticResource ToggleRow}">
+                    <Label Grid.Column="0" Text="Certificate type" VerticalOptions="Center" />
+                    <Picker Grid.Column="1" x:Name="CertificatePicker" SelectedIndexChanged="OnCertificateChanged"
+                            HorizontalOptions="End" MinimumWidthRequest="150" />
+                </Grid>
                 <Label Style="{StaticResource Hint}"
-                       Text="Signing certificates are created and reused automatically from your Samsung account — one cert per TV, reused across installs, so you're not asked to sign in every time. Public is used by default; turn on Partner signing above only for apps that need a restricted privilege (e.g. VPN)." />
+                       Text="Automatic uses Public, switching to Partner only when an app requires a restricted privilege (e.g. VPN); choose Public or Partner to force it. Certificates are created and reused automatically from your Samsung account (one per TV), so you're not asked to sign in every time. After importing a backup, this defaults to the imported certificate." />
+                <Grid Style="{StaticResource ToggleRow}">
+                    <Label Grid.Column="0" Text="Force Samsung login" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" x:Name="ForceLoginSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                </Grid>
+                <Label Style="{StaticResource Hint}"
+                       Text="Always sign in to Samsung and generate a fresh certificate, even when a reusable one already covers this TV. Normally off — leave it off unless signing is misbehaving." />
 
                 <BoxView Style="{StaticResource Divider}" />
 
