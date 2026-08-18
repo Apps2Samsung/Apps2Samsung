@@ -114,11 +114,12 @@
                 <Label Style="{StaticResource Hint}"
                        Text="When on, the in-app update check offers new beta versions and downloads them. Turn off to only be notified about stable releases." />
                 <Grid Style="{StaticResource ToggleRow}">
-                    <Label Grid.Column="0" Text="Partner signing (experimental)" VerticalOptions="Center" />
-                    <Switch Grid.Column="1" x:Name="PartnerSigningSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                    <Label Grid.Column="0" Text="Certificate" VerticalOptions="Center" />
+                    <Picker Grid.Column="1" x:Name="CertificatePicker" SelectedIndexChanged="OnCertificateChanged"
+                            HorizontalOptions="End" MinimumWidthRequest="150" />
                 </Grid>
                 <Label Style="{StaticResource Hint}"
-                       Text="Partner signing is only needed for apps that use restricted privileges (e.g. VPN). Some TVs may reject partner-signed installs, and Samsung may not issue Partner certs for individual accounts. Leave off unless an app requires it." />
+                       Text="Which signing certificate to use. Automatic picks Public, or Partner when an app requires it. Partner is only needed for apps that use restricted privileges (e.g. VPN); some TVs reject partner-signed installs. After importing a backup this defaults to the imported certificate." />
                 <Grid Style="{StaticResource ToggleRow}">
                     <Label Grid.Column="0" Text="Force Samsung login" VerticalOptions="Center" />
                     <Switch Grid.Column="1" x:Name="ForceLoginSwitch" OnColor="#2C3E50" Toggled="OnToggle" />

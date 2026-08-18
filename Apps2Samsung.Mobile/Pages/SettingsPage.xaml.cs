@@ -4,7 +4,9 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Apps2Samsung.Backup;
+using Apps2Samsung.Certificate;
 using Apps2Samsung.Collections;
+using Apps2Samsung.Interfaces;
 using Apps2Samsung.Mobile.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.ApplicationModel.DataTransfer;
@@ -37,7 +39,7 @@ public partial class SettingsPage : ContentPage
 		KeepWgtSwitch.IsToggled = MobileSettings.KeepWgtFile;
 		ShowAllJfSwitch.IsToggled = MobileSettings.ShowAllJellyfinVersions;
 		BetaUpdatesSwitch.IsToggled = MobileSettings.IncludeBetaUpdates;
-		PartnerSigningSwitch.IsToggled = MobileSettings.PartnerSigning;
+		LoadCertificatePicker();
 		TryOverwriteSwitch.IsToggled = MobileSettings.TryOverwrite;
 		ForceLoginSwitch.IsToggled = MobileSettings.ForceSamsungLogin;
 
@@ -160,6 +162,9 @@ public partial class SettingsPage : ContentPage
 			if (!string.IsNullOrEmpty(import.SettingsJson))
 				await ApplySettingsJsonAsync(import.SettingsJson!);
 
+			// Make the imported certificate the selected one.
+			DefaultCertificateToImportedProfile();
+
 			// Refresh visible controls from the newly-applied settings.
 			OnAppearing();
 
@@ -246,9 +251,47 @@ public partial class SettingsPage : ContentPage
 		MobileSettings.KeepWgtFile = KeepWgtSwitch.IsToggled;
 		MobileSettings.ShowAllJellyfinVersions = ShowAllJfSwitch.IsToggled;
 		MobileSettings.IncludeBetaUpdates = BetaUpdatesSwitch.IsToggled;
-		MobileSettings.PartnerSigning = PartnerSigningSwitch.IsToggled;
 		MobileSettings.TryOverwrite = TryOverwriteSwitch.IsToggled;
 		MobileSettings.ForceSamsungLogin = ForceLoginSwitch.IsToggled;
+	}
+
+	// Populates the certificate picker (Automatic / Public / Partner) and selects the current preference.
+	private void LoadCertificatePicker()
+	{
+		CertificatePicker.ItemsSource ??= new List<string>
+		{
+			MobileSettings.CertificatePreferenceAuto,
+			MobileSettings.CertificatePreferencePublic,
+			MobileSettings.CertificatePreferencePartner,
+		};
+		CertificatePicker.SelectedItem = MobileSettings.CertificatePreference;
+	}
+
+	private void OnCertificateChanged(object? sender, EventArgs e)
+	{
+		if (!_loaded)
+			return;
+		if (CertificatePicker.SelectedItem is string pref)
+			MobileSettings.CertificatePreference = pref;
+	}
+
+	// After an import, default the certificate picker to whichever level profile was restored — so the
+	// imported certificate becomes the selected one (when exactly one level is present).
+	private static void DefaultCertificateToImportedProfile()
+	{
+		var store = CertStorePath;
+		bool Has(CertificatePrivilegeLevel level) =>
+			CertificateProvisioningService.HasUsableAuthorCert(
+				Path.Combine(store, CertificateProvisioningService.ProfileName(level)));
+
+		bool partner = Has(CertificatePrivilegeLevel.Partner);
+		bool pub = Has(CertificatePrivilegeLevel.Public);
+
+		if (partner && !pub)
+			MobileSettings.CertificatePreference = MobileSettings.CertificatePreferencePartner;
+		else if (pub && !partner)
+			MobileSettings.CertificatePreference = MobileSettings.CertificatePreferencePublic;
+		// If both or neither were imported, leave the preference as-is (Automatic covers "both").
 	}
 
 	private void OnAddChannel(object? sender, EventArgs e) => AddChannelRow(string.Empty, string.Empty);
