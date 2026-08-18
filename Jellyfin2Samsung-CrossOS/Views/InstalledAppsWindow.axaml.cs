@@ -12,6 +12,9 @@ namespace Apps2Samsung.Views
             vm.OnRequestClose += Close;
             // Kick off the initial load once the window is shown.
             Opened += async (_, _) => await vm.LoadCommand.ExecuteAsync(null);
+            Closed += (s, e) => {
+                if (vm is System.IDisposable d) d.Dispose();
+            };
         }
 
         // Parameterless ctor for the XAML designer.

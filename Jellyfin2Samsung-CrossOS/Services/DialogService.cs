@@ -33,7 +33,13 @@ namespace Apps2Samsung.Services
         private Window? GetMainWindow()
         {
             if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                foreach (var w in desktop.Windows)
+                {
+                    if (w.IsActive) return w;
+                }
                 return desktop.MainWindow;
+            }
 
             return null;
         }

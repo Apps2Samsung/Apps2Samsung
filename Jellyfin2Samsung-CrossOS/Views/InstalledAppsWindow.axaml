@@ -28,8 +28,14 @@
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
                     <Button Content="Remove leftover…" Command="{Binding RemoveLeftoverCommand}"
-                            ToolTip.Tip="Force-remove a leftover/partial install by package id"/>
-                    <Button Content="↻" Command="{Binding LoadCommand}" ToolTip.Tip="Refresh"/>
+                            ToolTip.Tip="Force-remove a leftover/partial install by package id"
+                            IsEnabled="{Binding !IsDebugging}"/>
+                    <Button Content="↻" Command="{Binding LoadCommand}" ToolTip.Tip="Refresh"
+                            IsVisible="{Binding !IsDebugging}"/>
+                    <Button Command="{Binding StopDebugCommand}" ToolTip.Tip="Stop debugging"
+                            IsVisible="{Binding IsDebugging}" Background="#FF6B6B">
+                        <fa:SymbolIcon Symbol="StopFilled" Width="16" Height="16" Foreground="White"/>
+                    </Button>
                     <Button Content="✕" Command="{Binding CloseCommand}"/>
                 </StackPanel>
             </Grid>
@@ -39,10 +45,15 @@
 
             <!-- Busy indicator -->
             <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" Height="3" Margin="0,0,0,8"
-                         IsVisible="{Binding IsBusy}"/>
+                         IsVisible="{Binding IsProgressVisible}"/>
 
             <!-- App list -->
-            <ScrollViewer>
+            <ScrollViewer IsEnabled="{Binding !IsDebugging}">
+                <ScrollViewer.Styles>
+                    <Style Selector="ScrollViewer[IsEnabled=False]">
+                        <Setter Property="Opacity" Value="0.4"/>
+                    </Style>
+                </ScrollViewer.Styles>
                 <ItemsControl ItemsSource="{Binding Apps}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="viewModels:InstalledAppViewModel">
@@ -76,12 +87,29 @@
                                             <TextBlock Text="{Binding App.SizeDisplay}" FontSize="11" Opacity="0.55"/>
                                         </StackPanel>
                                     </StackPanel>
-                                    
-                                    <!-- Uninstall button -->
-                                    <Button Grid.Column="2" Content="Uninstall" VerticalAlignment="Center"
-                                            IsVisible="{Binding App.IsRemovable}"
-                                            Command="{ReflectionBinding $parent[Window].DataContext.UninstallCommand}"
-                                            CommandParameter="{Binding App}"/>
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Button ToolTip.Tip="Run"
+                                                Command="{ReflectionBinding $parent[Window].DataContext.LaunchCommand}"
+                                                CommandParameter="{Binding App}">
+                                            <fa:SymbolIcon Symbol="Play" Width="16" Height="16"/>
+                                        </Button>
+                                        <Button ToolTip.Tip="Stop"
+                                                Command="{ReflectionBinding $parent[Window].DataContext.StopCommand}"
+                                                CommandParameter="{Binding App}">
+                                            <fa:SymbolIcon Symbol="Stop" Width="16" Height="16"/>
+                                        </Button>
+                                        <Button ToolTip.Tip="Debug"
+                                                Command="{ReflectionBinding $parent[Window].DataContext.DebugCommand}"
+                                                CommandParameter="{Binding App}">
+                                            <fa:SymbolIcon Symbol="Code" Width="16" Height="16"/>
+                                        </Button>
+                                        <Button ToolTip.Tip="Uninstall"
+                                                IsVisible="{Binding App.IsRemovable}"
+                                                Command="{ReflectionBinding $parent[Window].DataContext.UninstallCommand}"
+                                                CommandParameter="{Binding App}">
+                                            <fa:SymbolIcon Symbol="Delete" Width="16" Height="16" Foreground="#FF6B6B"/>
+                                        </Button>
+                                    </StackPanel>
                                 </Grid>
                             </Border>
                         </DataTemplate>
