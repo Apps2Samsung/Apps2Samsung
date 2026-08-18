@@ -90,8 +90,25 @@ public static class MobileSettings
 	/// </summary>
 	public static bool PartnerSigning
 	{
-		get => Preferences.Get(KeyPartnerSigning, false);
-		set => Preferences.Set(KeyPartnerSigning, value);
+		// Kept as a derived alias so IAppConfig/MobileAppConfig readers still work; the source of truth
+		// is now CertificatePreference (a 3-way choice), like the desktop's certificate picker.
+		get => CertificatePreference == CertificatePreferencePartner;
+		set => CertificatePreference = value ? CertificatePreferencePartner : CertificatePreferenceAuto;
+	}
+
+	public const string CertificatePreferenceAuto = "Automatic";
+	public const string CertificatePreferencePublic = "Public";
+	public const string CertificatePreferencePartner = "Partner";
+	private const string KeyCertPreference = "certificate_preference";
+
+	/// <summary>Which signing certificate/level to use: "Automatic" (Public unless a package requires
+	/// Partner), "Public", or "Partner" — mirrors the desktop's certificate picker. Migrates from the old
+	/// <see cref="KeyPartnerSigning"/> flag on first read.</summary>
+	public static string CertificatePreference
+	{
+		get => Preferences.Get(KeyCertPreference,
+			Preferences.Get(KeyPartnerSigning, false) ? CertificatePreferencePartner : CertificatePreferenceAuto);
+		set => Preferences.Set(KeyCertPreference, value ?? CertificatePreferenceAuto);
 	}
 
 	/// <summary>Extra TV DUIDs to pre-authorize in the signing cert (one per line/comma-separated).</summary>

@@ -44,11 +44,17 @@ public sealed class CertificateProvisioner
 
 		var caPath = await MaterializeCaAsync();
 
-		// Opt-in Partner signing (experimental) — needed only by apps that use restricted privileges
-		// (e.g. vpnservice). Partner if the global toggle is on OR the selected package declares it.
-		var level = (_config.PartnerSigning || requirePartner)
-			? CertificatePrivilegeLevel.Partner
-			: CertificatePrivilegeLevel.Public;
+		// Which certificate/level to sign with, from the user's Certificate preference (Settings):
+		//  • Partner   → always Partner.
+		//  • Public    → always Public (the user's explicit choice).
+		//  • Automatic → Public, unless the selected package declares it needs Partner (requirePartner).
+		// Partner is only needed by apps that use restricted privileges (e.g. vpnservice).
+		var level = MobileSettings.CertificatePreference switch
+		{
+			MobileSettings.CertificatePreferencePartner => CertificatePrivilegeLevel.Partner,
+			MobileSettings.CertificatePreferencePublic => CertificatePrivilegeLevel.Public,
+			_ => requirePartner ? CertificatePrivilegeLevel.Partner : CertificatePrivilegeLevel.Public,
+		};
 
 		ProgressCallback? cb = progress is null ? null : new ProgressCallback(progress);
 		var profile = await _provisioning.EnsureAsync(
