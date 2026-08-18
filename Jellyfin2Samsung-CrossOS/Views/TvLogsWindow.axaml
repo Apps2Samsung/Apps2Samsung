@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:Apps2Samsung.Extensions"
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
         xmlns:helpers="clr-namespace:Apps2Samsung.Helpers.Converters"
         x:Class="Apps2Samsung.Views.TvLogsWindow"
@@ -56,7 +57,7 @@
 		<StackPanel Spacing="16">
 
 			<!-- Header -->
-			<TextBlock Text="TV Log Output"
+			<TextBlock Text="{l:Localize lblTvLogOutput}"
                        FontSize="20"
                        FontWeight="SemiBold"
                        Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>

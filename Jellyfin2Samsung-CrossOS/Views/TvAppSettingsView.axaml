@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Extensions"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
@@ -58,14 +59,14 @@
 										Command="{Binding $parent[ItemsControl].((viewModels:TvAppSettingsViewModel)DataContext).MoveChannelUpCommand}"
 										CommandParameter="{Binding}"
 										Padding="6,6"
-										ToolTip.Tip="Move up">
+										ToolTip.Tip="{l:Localize lblMoveUp}">
 									<fa:SymbolIcon Symbol="ChevronUp" Width="14" Height="14"/>
 								</Button>
 								<Button Classes="secondary"
 										Command="{Binding $parent[ItemsControl].((viewModels:TvAppSettingsViewModel)DataContext).MoveChannelDownCommand}"
 										CommandParameter="{Binding}"
 										Padding="6,6"
-										ToolTip.Tip="Move down">
+										ToolTip.Tip="{l:Localize lblMoveDown}">
 									<fa:SymbolIcon Symbol="ChevronDown" Width="14" Height="14"/>
 								</Button>
 							</StackPanel>
@@ -83,7 +84,7 @@
 									CommandParameter="{Binding}"
 									Padding="8,6"
 									VerticalAlignment="Center"
-									ToolTip.Tip="Remove">
+									ToolTip.Tip="{l:Localize lblRemove}">
 								<fa:SymbolIcon Symbol="Delete" Width="16" Height="16"/>
 							</Button>
 						</Grid>

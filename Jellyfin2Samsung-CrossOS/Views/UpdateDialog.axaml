@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:Apps2Samsung.Extensions"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
@@ -82,7 +83,7 @@
                         <Border Background="#22c55e"
                                 CornerRadius="4"
                                 Padding="6,2">
-                            <TextBlock Text="NEW"
+                            <TextBlock Text="{l:Localize lblNew}"
                                        FontSize="10"
                                        FontWeight="Bold"
                                        Foreground="White"/>
@@ -200,7 +201,7 @@
             </StackPanel>
 
             <!-- Tooltip for disabled automatic button (rate limited) -->
-            <TextBlock Text="(Automatic download unavailable - GitHub API rate limited)"
+            <TextBlock Text="{l:Localize lblAutoDownloadUnavailable}"
                        FontSize="11"
                        FontStyle="Italic"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"

@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Extensions"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
@@ -91,7 +92,7 @@
 									  Height="36"
 									  CornerRadius="4"
 									  Padding="0"
-									  ToolTip.Tip="Show/Hide token">
+									  ToolTip.Tip="{l:Localize lblShowHideToken}">
 							<Panel>
 								<fa:SymbolIcon Symbol="View" Width="16" Height="16" IsVisible="{Binding !ShowGitHubToken}"/>
 								<fa:SymbolIcon Symbol="Cancel" Width="16" Height="16" IsVisible="{Binding ShowGitHubToken}"/>
@@ -118,7 +119,7 @@
 							 AcceptsReturn="True"
 							 TextWrapping="Wrap"
 							 MinHeight="60"
-							 Watermark="One DUID per line"
+							 Watermark="{l:Localize lblDuidsWatermark}"
 							 Classes="clean"
 							 HorizontalAlignment="Stretch"/>
 				</Grid>
@@ -181,10 +182,10 @@
 				<!-- Partner signing (experimental) -->
 				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
 					<StackPanel Grid.Column="0" Spacing="2">
-						<TextBlock Text="Partner signing (experimental)"
+						<TextBlock Text="{l:Localize lblPartnerSigning}"
 								   Classes="label"
 								   VerticalAlignment="Center"/>
-						<TextBlock Text="Only for apps needing restricted privileges (e.g. VPN). May be rejected by some TVs or accounts."
+						<TextBlock Text="{l:Localize lblPartnerSigningHint}"
 								   Classes="subtitle"
 								   FontSize="11"
 								   TextWrapping="Wrap"/>
@@ -264,17 +265,17 @@
 
 			<!-- Backup Section -->
 			<StackPanel Spacing="8">
-				<TextBlock Text="Backup &amp; restore" Classes="label" FontWeight="SemiBold"/>
-				<TextBlock Text="Save your settings and signing certificates to a file, or restore them — to move between this PC, a Mac, or your phone."
+				<TextBlock Text="{l:Localize lblBackupRestore}" Classes="label" FontWeight="SemiBold"/>
+				<TextBlock Text="{l:Localize lblBackupRestoreHint}"
 						   Classes="label" Opacity="0.7" TextWrapping="Wrap"/>
 				<Grid ColumnDefinitions="*,*" ColumnSpacing="12">
 					<Button Grid.Column="0" Classes="secondary" HorizontalAlignment="Stretch"
 							HorizontalContentAlignment="Center" Padding="10,6"
-							Content="Export backup"
+							Content="{l:Localize lblExportBackup}"
 							Command="{Binding ExportBackupCommand}"/>
 					<Button Grid.Column="1" Classes="secondary" HorizontalAlignment="Stretch"
 							HorizontalContentAlignment="Center" Padding="10,6"
-							Content="Import backup"
+							Content="{l:Localize lblImportBackup}"
 							Command="{Binding ImportBackupCommand}"/>
 				</Grid>
 				<TextBlock Text="{Binding BackupStatus}" Classes="label" Opacity="0.8" TextWrapping="Wrap"/>

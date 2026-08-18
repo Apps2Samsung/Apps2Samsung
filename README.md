@@ -105,9 +105,8 @@ Contributions of all kinds are welcome — whether it’s bug reports, feature r
 
 Want to help translate **Apps2Samsung**? Community translations are always appreciated.
 
-You can contribute here:
+You can contribute on Crowdin:
 
-- [Transifex](https://app.transifex.com/madebypatrick/apps2samsung)
 - [Crowdin](https://crowdin.com/project/jellyfin2samsung)
 
 You can help by translating missing strings, improving existing translations, or reviewing your language.

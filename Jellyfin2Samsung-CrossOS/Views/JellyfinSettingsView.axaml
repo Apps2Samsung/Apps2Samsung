@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Extensions"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
@@ -213,7 +214,7 @@
 									   VerticalAlignment="Center"/>
 							<TextBox Grid.Column="1"
 									 Text="{Binding JellyfinUsername}"
-									 Watermark="Jellyfin username"
+									 Watermark="{l:Localize lblJellyfinUsername}"
 									 Classes="clean"
 									 HorizontalAlignment="Stretch"/>
 						</Grid>
@@ -227,7 +228,7 @@
 							<TextBox Grid.Column="1"
 									 Text="{Binding JellyfinPassword}"
 									 PasswordChar="*"
-									 Watermark="Jellyfin password"
+									 Watermark="{l:Localize lblJellyfinPassword}"
 									 Classes="clean"
 									 HorizontalAlignment="Stretch"/>
 						</Grid>
@@ -618,7 +619,7 @@
 									FontSize="11">
 								<StackPanel Orientation="Horizontal" Spacing="4">
 									<fa:SymbolIcon Symbol="Link" Width="12" Height="12"/>
-									<TextBlock Text="GitHub JellyThemes"/>
+									<TextBlock Text="{l:Localize lblGitHubJellyThemes}"/>
 								</StackPanel>
 							</Button>
 						</Grid>
@@ -696,7 +697,7 @@
 								</Button>
 
 								<TextBlock
-									Text="Theme preview"
+									Text="{l:Localize lblThemePreview}"
 									FontSize="11"
 									HorizontalAlignment="Center"
 									Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
