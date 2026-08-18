@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Apps2Samsung.Collections;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
@@ -118,7 +119,9 @@ namespace Apps2Samsung.ViewModels
                 Channels.Remove(channel);
         }
 
-        // Channels play on the TV in this list's order, so let the user arrange it.
+        // Channels play on the TV in this list's order, so let the user arrange it. The bounds rule is
+        // shared with the mobile head via Collections.ListReorder; the Move keeps the data binding's
+        // single Move notification.
         [RelayCommand]
         private void MoveChannelUp(TvAppChannel? channel)
         {
@@ -126,8 +129,8 @@ namespace Apps2Samsung.ViewModels
                 return;
 
             var index = Channels.IndexOf(channel);
-            if (index > 0)
-                Channels.Move(index, index - 1);
+            if (ListReorder.TargetIndex(Channels.Count, index, -1) is int target)
+                Channels.Move(index, target);
         }
 
         [RelayCommand]
@@ -137,8 +140,8 @@ namespace Apps2Samsung.ViewModels
                 return;
 
             var index = Channels.IndexOf(channel);
-            if (index >= 0 && index < Channels.Count - 1)
-                Channels.Move(index, index + 1);
+            if (ListReorder.TargetIndex(Channels.Count, index, +1) is int target)
+                Channels.Move(index, target);
         }
 
         private void OnLanguageChanged(object? sender, EventArgs e)

@@ -78,11 +78,17 @@ namespace Apps2Samsung.Packaging
                 return;
             }
 
-            // JSON is valid JS; serialize with lowercase keys to match TVApp's { name, url } shape.
-            var payload = JsonSerializer.Serialize(
-                channels.Select(c => new { name = c.Name ?? string.Empty, url = c.Url ?? string.Empty }));
+            // Build the channels JSON by hand (lowercase { name, url } keys) instead of serializing an
+            // anonymous type. Reflection-based serialization of anonymous types loses its property
+            // metadata under the mobile head's trimmed/AOT release build, which emitted empty objects
+            // (`[{},{}]`) and blackscreened the TVApp (#553). Serializing each string on its own stays
+            // trim-safe and keeps the exact same escaping.
+            var payload = "[" + string.Join(",", channels.Select(c =>
+                $"{{\"name\":{JsonSerializer.Serialize(c.Name ?? string.Empty)},\"url\":{JsonSerializer.Serialize(c.Url ?? string.Empty)}}}")) + "]";
 
-            js = ChannelsArrayRegex.Replace(js, $"var channels = {payload};", 1);
+            // Replace via a MatchEvaluator so a literal '$' in a URL isn't interpreted as a regex
+            // substitution (e.g. `$1`) in the replacement string.
+            js = ChannelsArrayRegex.Replace(js, _ => $"var channels = {payload};", 1);
 
             await File.WriteAllTextAsync(mainJsPath, js);
             ws.Repack();

@@ -86,7 +86,19 @@ public partial class InstalledAppsPage : ContentPage
 		try
 		{
 			var result = await _sdb.AppsAsync(_tvIp);
-			var apps = TizenInstalledApps.Parse(result?.Output);
+			var apps = TizenInstalledApps.Parse(result?.Output).ToList();
+			var iconMap = await Apps2Samsung.Catalog.AppIconResolver.GetIconMapAsync();
+			for (int i = 0; i < apps.Count; i++)
+			{
+				var a = apps[i];
+				if ((!string.IsNullOrEmpty(a.AppId) && iconMap.TryGetValue(a.AppId, out var iconUrl)) ||
+					iconMap.TryGetValue(a.TizenId, out iconUrl) ||
+					iconMap.TryGetValue(a.DisplayName, out iconUrl) ||
+					iconMap.TryGetValue(a.DisplayName.ToLowerInvariant(), out iconUrl))
+				{
+					apps[i] = a with { IconUrl = iconUrl };
+				}
+			}
 			AppsList.ItemsSource = apps;
 
 			if (apps.Count == 0)

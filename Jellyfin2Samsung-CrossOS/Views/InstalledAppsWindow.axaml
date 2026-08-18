@@ -56,41 +56,57 @@
                 </ScrollViewer.Styles>
                 <ItemsControl ItemsSource="{Binding Apps}">
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="models:InstalledApp">
+                        <DataTemplate x:DataType="viewModels:InstalledAppViewModel">
                             <Border Margin="0,3" Padding="12"
                                     Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
                                     CornerRadius="8">
-                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                    <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="14"
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                    
+                                    <!-- App Icon or initials fallback -->
+                                    <Panel Grid.Column="0" Width="48" Height="48" VerticalAlignment="Center">
+                                        <!-- Fallback placeholder -->
+                                        <Border Background="{Binding App.FallbackColor}"
+                                                IsVisible="{Binding App.MissingIcon}">
+                                            <TextBlock Text="{Binding App.Initials}" 
+                                                       Foreground="White" FontWeight="Bold" FontSize="20"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <!-- Actual icon -->
+                                        <Image Source="{Binding IconBitmap}" Stretch="UniformToFill" 
+                                               IsVisible="{Binding App.HasIcon}"/>
+                                    </Panel>
+
+                                    <!-- App info -->
+                                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding App.DisplayName}" FontWeight="SemiBold" FontSize="14"
                                                    TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Text="{Binding TizenId}" FontSize="11" Opacity="0.55"
+                                        <TextBlock Text="{Binding App.TizenId}" FontSize="11" Opacity="0.55"
                                                    TextTrimming="CharacterEllipsis"/>
                                         <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <TextBlock Text="{Binding Version, StringFormat='v{0}'}" FontSize="11" Opacity="0.55"/>
-                                            <TextBlock Text="{Binding SizeDisplay}" FontSize="11" Opacity="0.55"/>
+                                            <TextBlock Text="{Binding App.Version, StringFormat='v{0}'}" FontSize="11" Opacity="0.55"/>
+                                            <TextBlock Text="{Binding App.SizeDisplay}" FontSize="11" Opacity="0.55"/>
                                         </StackPanel>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                         <Button ToolTip.Tip="Run"
                                                 Command="{ReflectionBinding $parent[Window].DataContext.LaunchCommand}"
-                                                CommandParameter="{Binding}">
+                                                CommandParameter="{Binding App}">
                                             <fa:SymbolIcon Symbol="Play" Width="16" Height="16"/>
                                         </Button>
                                         <Button ToolTip.Tip="Stop"
                                                 Command="{ReflectionBinding $parent[Window].DataContext.StopCommand}"
-                                                CommandParameter="{Binding}">
+                                                CommandParameter="{Binding App}">
                                             <fa:SymbolIcon Symbol="Stop" Width="16" Height="16"/>
                                         </Button>
                                         <Button ToolTip.Tip="Debug"
                                                 Command="{ReflectionBinding $parent[Window].DataContext.DebugCommand}"
-                                                CommandParameter="{Binding}">
+                                                CommandParameter="{Binding App}">
                                             <fa:SymbolIcon Symbol="Code" Width="16" Height="16"/>
                                         </Button>
                                         <Button ToolTip.Tip="Uninstall"
-                                                IsVisible="{Binding IsRemovable}"
+                                                IsVisible="{Binding App.IsRemovable}"
                                                 Command="{ReflectionBinding $parent[Window].DataContext.UninstallCommand}"
-                                                CommandParameter="{Binding}">
+                                                CommandParameter="{Binding App}">
                                             <fa:SymbolIcon Symbol="Delete" Width="16" Height="16" Foreground="#FF6B6B"/>
                                         </Button>
                                     </StackPanel>
