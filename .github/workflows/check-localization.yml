@@ -1,6 +1,6 @@
 name: Localization check
 
-# Keeps the base translation file (en.json) 1:1 with the code so Crowdin/Transifex always have
+# Keeps the base translation file (en.json) 1:1 with the code so Crowdin always has
 # every user-facing string to translate (issue #560). Fails a PR if a localization key is used in
 # code but missing from en.json, or if a new hard-coded UI string is added instead of a key.
 

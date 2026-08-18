@@ -3,7 +3,7 @@
 Localization guard for the desktop app.
 
 Two checks, both hard failures, so the base translation file (en.json) stays 1:1 with the
-code and Crowdin/Transifex always have every user-facing string to translate (issue #560):
+code and Crowdin always has every user-facing string to translate (issue #560):
 
   A. Every localization KEY referenced in code exists in en.json.
      - C#:   GetString("key")  and  "key".Localized()
