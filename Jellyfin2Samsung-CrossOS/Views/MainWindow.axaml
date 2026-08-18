@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:Apps2Samsung.Extensions"
         x:Class="Apps2Samsung.Views.MainWindow"
 		x:DataType="viewModels:MainWindowViewModel"
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
@@ -40,7 +41,7 @@
                     CornerRadius="8">
 				<StackPanel Spacing="12" HorizontalAlignment="Center">
 					<TextBlock
-                               Text="App Installer for Samsung (Tizen)"
+                               Text="{l:Localize lblAppInstallerTitle}"
 								HorizontalAlignment="Center"
 								Foreground="White"
 								FontWeight="Medium"/>
@@ -154,14 +155,14 @@
 							Command="{Binding ShowInstalledAppsCommand}">
 						<StackPanel Orientation="Horizontal" Spacing="6">
 							<fa:SymbolIcon Symbol="List" Width="16" Height="16"/>
-							<TextBlock Text="Show installed apps" VerticalAlignment="Center"/>
+							<TextBlock Text="{l:Localize lblShowInstalledApps}" VerticalAlignment="Center"/>
 						</StackPanel>
 					</Button>
 					<Button HorizontalAlignment="Left" Padding="0" Background="Transparent" BorderThickness="0"
 							Command="{Binding ShowDeviceInfoCommand}">
 						<StackPanel Orientation="Horizontal" Spacing="6">
 							<fa:SymbolIcon Symbol="Important" Width="16" Height="16"/>
-							<TextBlock Text="TV information" VerticalAlignment="Center"/>
+							<TextBlock Text="{l:Localize lblTvInformation}" VerticalAlignment="Center"/>
 						</StackPanel>
 					</Button>
 				</StackPanel>

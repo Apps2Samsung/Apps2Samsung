@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:Apps2Samsung.Extensions"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
@@ -52,7 +53,7 @@
 
 			<!-- IP Input -->
 			<TextBox Text="{Binding EnteredIp}"
-                     Watermark="Enter IP address..."
+                     Watermark="{l:Localize lblEnterIpAddress}"
                      SelectionBrush="#2563eb"
                      BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                      CornerRadius="8"

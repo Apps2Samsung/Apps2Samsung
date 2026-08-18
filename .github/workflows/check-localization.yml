@@ -1,0 +1,31 @@
+name: Localization check
+
+# Keeps the base translation file (en.json) 1:1 with the code so Crowdin/Transifex always have
+# every user-facing string to translate (issue #560). Fails a PR if a localization key is used in
+# code but missing from en.json, or if a new hard-coded UI string is added instead of a key.
+
+on:
+  pull_request:
+    paths:
+      - 'Jellyfin2Samsung-CrossOS/**/*.cs'
+      - 'Jellyfin2Samsung-CrossOS/**/*.axaml'
+      - 'Jellyfin2Samsung-CrossOS/Assets/Localization/en.json'
+      - '.github/scripts/check_localization.py'
+      - '.github/workflows/check-localization.yml'
+  push:
+    branches: [beta, master]
+    paths:
+      - 'Jellyfin2Samsung-CrossOS/**/*.cs'
+      - 'Jellyfin2Samsung-CrossOS/**/*.axaml'
+      - 'Jellyfin2Samsung-CrossOS/Assets/Localization/en.json'
+
+jobs:
+  check-localization:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Verify every localization key exists in en.json
+        run: python3 .github/scripts/check_localization.py

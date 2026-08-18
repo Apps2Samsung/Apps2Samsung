@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:Apps2Samsung.Extensions"
         xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
         xmlns:models="clr-namespace:Apps2Samsung.Models;assembly=Apps2Samsung.Core"
@@ -23,16 +24,16 @@
             <!-- Header -->
             <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,4">
                 <StackPanel Grid.Column="0" Spacing="2">
-                    <TextBlock Text="Installed apps" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="{l:Localize lblInstalledApps}" FontSize="18" FontWeight="SemiBold"/>
                     <TextBlock Text="{Binding TvLabel}" FontSize="12" Opacity="0.6"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
-                    <Button Content="Remove leftover…" Command="{Binding RemoveLeftoverCommand}"
-                            ToolTip.Tip="Force-remove a leftover/partial install by package id"
+                    <Button Content="{l:Localize lblRemoveLeftover}" Command="{Binding RemoveLeftoverCommand}"
+                            ToolTip.Tip="{l:Localize lblRemoveLeftoverHint}"
                             IsEnabled="{Binding !IsDebugging}"/>
-                    <Button Content="↻" Command="{Binding LoadCommand}" ToolTip.Tip="Refresh"
+                    <Button Content="↻" Command="{Binding LoadCommand}" ToolTip.Tip="{l:Localize lblRefresh}"
                             IsVisible="{Binding !IsDebugging}"/>
-                    <Button Command="{Binding StopDebugCommand}" ToolTip.Tip="Stop debugging"
+                    <Button Command="{Binding StopDebugCommand}" ToolTip.Tip="{l:Localize lblStopDebugging}"
                             IsVisible="{Binding IsDebugging}" Background="#FF6B6B">
                         <fa:SymbolIcon Symbol="StopFilled" Width="16" Height="16" Foreground="White"/>
                     </Button>
@@ -88,22 +89,22 @@
                                         </StackPanel>
                                     </StackPanel>
                                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Button ToolTip.Tip="Run"
+                                        <Button ToolTip.Tip="{l:Localize lblRun}"
                                                 Command="{ReflectionBinding $parent[Window].DataContext.LaunchCommand}"
                                                 CommandParameter="{Binding App}">
                                             <fa:SymbolIcon Symbol="Play" Width="16" Height="16"/>
                                         </Button>
-                                        <Button ToolTip.Tip="Stop"
+                                        <Button ToolTip.Tip="{l:Localize lblStop}"
                                                 Command="{ReflectionBinding $parent[Window].DataContext.StopCommand}"
                                                 CommandParameter="{Binding App}">
                                             <fa:SymbolIcon Symbol="Stop" Width="16" Height="16"/>
                                         </Button>
-                                        <Button ToolTip.Tip="Debug"
+                                        <Button ToolTip.Tip="{l:Localize lblDebug}"
                                                 Command="{ReflectionBinding $parent[Window].DataContext.DebugCommand}"
                                                 CommandParameter="{Binding App}">
                                             <fa:SymbolIcon Symbol="Code" Width="16" Height="16"/>
                                         </Button>
-                                        <Button ToolTip.Tip="Uninstall"
+                                        <Button ToolTip.Tip="{l:Localize lblUninstall}"
                                                 IsVisible="{Binding App.IsRemovable}"
                                                 Command="{ReflectionBinding $parent[Window].DataContext.UninstallCommand}"
                                                 CommandParameter="{Binding App}">
