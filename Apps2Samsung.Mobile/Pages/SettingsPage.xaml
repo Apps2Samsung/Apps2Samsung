@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.SettingsPage"
              Title="Settings"
              NavigationPage.HasNavigationBar="False"
@@ -27,10 +28,10 @@
                 StrokeShape="RoundRectangle 8"
                 Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
                 BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
-            <VerticalStackLayout Spacing="14">
+            <VerticalStackLayout Spacing="4">
 
                 <!-- Header banner with a back affordance -->
-                <Border BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+                <Border BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8" Margin="0,0,0,6">
                     <Grid ColumnDefinitions="44,*,44" VerticalOptions="Center">
                         <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
                                 BackgroundColor="Transparent" BorderWidth="0" Padding="0"
@@ -41,150 +42,178 @@
                 </Border>
 
                 <!-- GitHub Token -->
-                <Label Text="GitHub Token (PAT)" FontAttributes="Bold" FontSize="14" />
-                <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
-                    <Border Grid.Column="0" Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                            Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                        <Entry x:Name="TokenEntry" IsPassword="True" Placeholder="ghp_xxxxxxxxxxxxxxxxx"
-                               BackgroundColor="Transparent" Unfocused="OnTokenUnfocused" />
-                    </Border>
-                    <Button Grid.Column="1" x:Name="TokenEyeBtn" Text="👁" FontSize="16"
-                            BackgroundColor="Transparent" BorderWidth="1"
-                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                            Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="6"
-                            Clicked="OnToggleTokenVisibility" />
-                </Grid>
-                <Label Style="{StaticResource Hint}"
-                       Text="Optional. Prevents GitHub API rate limiting when fetching releases. Create one at GitHub &gt; Settings &gt; Developer settings &gt; Personal access tokens." />
+                <controls:ExpanderSection Title="GitHub token (PAT)">
+                    <VerticalStackLayout Spacing="8">
+                        <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
+                            <Border Grid.Column="0" Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                                    Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                    BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
+                                <Entry x:Name="TokenEntry" IsPassword="True" Placeholder="ghp_xxxxxxxxxxxxxxxxx"
+                                       BackgroundColor="Transparent" Unfocused="OnTokenUnfocused" />
+                            </Border>
+                            <Button Grid.Column="1" x:Name="TokenEyeBtn" Text="👁" FontSize="16"
+                                    BackgroundColor="Transparent" BorderWidth="1"
+                                    BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                    TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                                    Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="6"
+                                    Clicked="OnToggleTokenVisibility" />
+                        </Grid>
+                        <Label Style="{StaticResource Hint}"
+                               Text="Optional. Prevents GitHub API rate limiting when fetching releases. Create one at GitHub &gt; Settings &gt; Developer settings &gt; Personal access tokens." />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
 
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- Jellyfin server -->
-                <Label Text="Jellyfin" FontAttributes="Bold" FontSize="14" />
-                <Label Style="{StaticResource Hint}"
-                       Text="Set your Jellyfin server address and sign in once, baked into the Jellyfin app when you install it." />
-                <Button Text="🎬 Configure Jellyfin server" HorizontalOptions="Start"
-                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
-                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                        Clicked="OnJellyfinClicked" />
+                <controls:ExpanderSection Title="Jellyfin">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Hint}"
+                               Text="Set your Jellyfin server address and sign in once, baked into the Jellyfin app when you install it." />
+                        <Button Text="🎬 Configure Jellyfin server" HorizontalOptions="Start"
+                                BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
+                                BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                                Clicked="OnJellyfinClicked" />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
+
+                <BoxView Style="{StaticResource Divider}" />
+
+                <!-- Install options -->
+                <controls:ExpanderSection Title="Install options">
+                    <VerticalStackLayout Spacing="8">
+                        <Grid Style="{StaticResource ToggleRow}">
+                            <Label Grid.Column="0" Text="Remove old version" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" x:Name="RemoveOldSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                        </Grid>
+                        <Grid Style="{StaticResource ToggleRow}">
+                            <Label Grid.Column="0" Text="Override existing app" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" x:Name="TryOverwriteSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                        </Grid>
+                        <Grid Style="{StaticResource ToggleRow}">
+                            <Label Grid.Column="0" Text="Open after installation" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" x:Name="OpenAfterSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                        </Grid>
+                        <Grid Style="{StaticResource ToggleRow}">
+                            <Label Grid.Column="0" Text="Preserve WGT file" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" x:Name="KeepWgtSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                        </Grid>
+                        <Grid Style="{StaticResource ToggleRow}">
+                            <Label Grid.Column="0" Text="Show all Jellyfin versions" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" x:Name="ShowAllJfSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                        </Grid>
+                        <Grid Style="{StaticResource ToggleRow}">
+                            <Label Grid.Column="0" Text="Beta updates" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" x:Name="BetaUpdatesSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                        </Grid>
+                        <Label Style="{StaticResource Hint}"
+                               Text="When on, the in-app update check offers new beta versions and downloads them. Turn off to only be notified about stable releases." />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
 
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- Extra TV device IDs -->
-                <Label Text="Extra TV device IDs" FontAttributes="Bold" FontSize="14" />
-                <Border Padding="8,4" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                        Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                        BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                    <Editor x:Name="DuidsEditor" HeightRequest="90" Placeholder="One DUID per line"
-                            BackgroundColor="Transparent" Unfocused="OnDuidsUnfocused" />
-                </Border>
-                <Label Style="{StaticResource Hint}"
-                       Text="Optional, advanced. Pre-authorize other Samsung TVs by their DUID so a single signing certificate covers them — fewer Samsung logins when installing to multiple TVs." />
-
-                <BoxView Style="{StaticResource Divider}" />
-
-                <!-- Toggles -->
-                <Grid Style="{StaticResource ToggleRow}">
-                    <Label Grid.Column="0" Text="Remove old version" VerticalOptions="Center" />
-                    <Switch Grid.Column="1" x:Name="RemoveOldSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
-                </Grid>
-                <Grid Style="{StaticResource ToggleRow}">
-                    <Label Grid.Column="0" Text="Override existing app" VerticalOptions="Center" />
-                    <Switch Grid.Column="1" x:Name="TryOverwriteSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
-                </Grid>
-                <Grid Style="{StaticResource ToggleRow}">
-                    <Label Grid.Column="0" Text="Open after installation" VerticalOptions="Center" />
-                    <Switch Grid.Column="1" x:Name="OpenAfterSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
-                </Grid>
-                <Grid Style="{StaticResource ToggleRow}">
-                    <Label Grid.Column="0" Text="Preserve WGT file" VerticalOptions="Center" />
-                    <Switch Grid.Column="1" x:Name="KeepWgtSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
-                </Grid>
-                <Grid Style="{StaticResource ToggleRow}">
-                    <Label Grid.Column="0" Text="Show all Jellyfin versions" VerticalOptions="Center" />
-                    <Switch Grid.Column="1" x:Name="ShowAllJfSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
-                </Grid>
-                <Grid Style="{StaticResource ToggleRow}">
-                    <Label Grid.Column="0" Text="Beta updates" VerticalOptions="Center" />
-                    <Switch Grid.Column="1" x:Name="BetaUpdatesSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
-                </Grid>
-                <Label Style="{StaticResource Hint}"
-                       Text="When on, the in-app update check offers new beta versions and downloads them. Turn off to only be notified about stable releases." />
+                <controls:ExpanderSection Title="Extra TV device IDs">
+                    <VerticalStackLayout Spacing="8">
+                        <Border Padding="8,4" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                                Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
+                            <Editor x:Name="DuidsEditor" HeightRequest="90" Placeholder="One DUID per line"
+                                    BackgroundColor="Transparent" Unfocused="OnDuidsUnfocused" />
+                        </Border>
+                        <Label Style="{StaticResource Hint}"
+                               Text="Optional, advanced. Pre-authorize other Samsung TVs by their DUID so a single signing certificate covers them — fewer Samsung logins when installing to multiple TVs." />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
 
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- TVApp channels (m3u8) -->
-                <Label Text="TVApp channels" FontAttributes="Bold" FontSize="14" />
-                <Label Style="{StaticResource Hint}"
-                       Text="Name + stream URL (m3u8) pairs, written into the TVApp package's channel list when you install it. Order is the play order." />
-                <VerticalStackLayout x:Name="ChannelsContainer" Spacing="8" />
-                <Button Text="➕ Add channel" HorizontalOptions="Start"
-                        BackgroundColor="Transparent" BorderWidth="1"
-                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                        Padding="14,8" Clicked="OnAddChannel" />
+                <controls:ExpanderSection Title="TVApp channels">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Hint}"
+                               Text="Name + stream URL (m3u8) pairs, written into the TVApp package's channel list when you install it. Order is the play order." />
+                        <VerticalStackLayout x:Name="ChannelsContainer" Spacing="8" />
+                        <Button Text="➕ Add channel" HorizontalOptions="Start"
+                                BackgroundColor="Transparent" BorderWidth="1"
+                                BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                                Padding="14,8" Clicked="OnAddChannel" />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
 
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- App icons -->
-                <Label Text="App icons" FontAttributes="Bold" FontSize="14" />
-                <Label Style="{StaticResource Hint}"
-                       Text="Give an app a custom launcher icon, applied when you install it." />
-                <Button Text="🎨 Manage app icons" HorizontalOptions="Start"
-                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
-                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                        Clicked="OnAppIconsClicked" />
+                <controls:ExpanderSection Title="App icons">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Hint}"
+                               Text="Give an app a custom launcher icon, applied when you install it." />
+                        <Button Text="🎨 Manage app icons" HorizontalOptions="Start"
+                                BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
+                                BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                                Clicked="OnAppIconsClicked" />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
 
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- Certificate: pick the signing type, force a fresh login, and note on auto-provisioning. -->
-                <Label Text="Certificate" FontAttributes="Bold" FontSize="14" />
-                <Grid Style="{StaticResource ToggleRow}">
-                    <Label Grid.Column="0" Text="Certificate type" VerticalOptions="Center" />
-                    <Picker Grid.Column="1" x:Name="CertificatePicker" SelectedIndexChanged="OnCertificateChanged"
-                            HorizontalOptions="End" MinimumWidthRequest="150" />
-                </Grid>
-                <Label Style="{StaticResource Hint}"
-                       Text="Automatic uses Public, switching to Partner only when an app requires a restricted privilege (e.g. VPN); choose Public or Partner to force it. Certificates are created and reused automatically from your Samsung account (one per TV), so you're not asked to sign in every time. After importing a backup, this defaults to the imported certificate." />
-                <Grid Style="{StaticResource ToggleRow}">
-                    <Label Grid.Column="0" Text="Force Samsung login" VerticalOptions="Center" />
-                    <Switch Grid.Column="1" x:Name="ForceLoginSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
-                </Grid>
-                <Label Style="{StaticResource Hint}"
-                       Text="Always sign in to Samsung and generate a fresh certificate, even when a reusable one already covers this TV. Normally off — leave it off unless signing is misbehaving." />
+                <controls:ExpanderSection Title="Certificate">
+                    <VerticalStackLayout Spacing="8">
+                        <Grid Style="{StaticResource ToggleRow}">
+                            <Label Grid.Column="0" Text="Certificate type" VerticalOptions="Center" />
+                            <Picker Grid.Column="1" x:Name="CertificatePicker" SelectedIndexChanged="OnCertificateChanged"
+                                    HorizontalOptions="End" MinimumWidthRequest="150" />
+                        </Grid>
+                        <Label Style="{StaticResource Hint}"
+                               Text="Automatic uses Public, switching to Partner only when an app requires a restricted privilege (e.g. VPN); choose Public or Partner to force it. Certificates are created and reused automatically from your Samsung account (one per TV), so you're not asked to sign in every time. After importing a backup, this defaults to the imported certificate." />
+                        <Grid Style="{StaticResource ToggleRow}">
+                            <Label Grid.Column="0" Text="Force Samsung login" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" x:Name="ForceLoginSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                        </Grid>
+                        <Label Style="{StaticResource Hint}"
+                               Text="Always sign in to Samsung and generate a fresh certificate, even when a reusable one already covers this TV. Normally off — leave it off unless signing is misbehaving." />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
 
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- Backup -->
-                <Label Text="Backup" FontAttributes="Bold" FontSize="14" />
-                <Label Style="{StaticResource Hint}"
-                       Text="Save your settings and signing certificates to a .zip you can move to another device, or restore from one. Certificates are restored immediately; restart the app to apply imported settings." />
-                <Button Text="📦 Export backup" HorizontalOptions="Start"
-                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
-                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                        Clicked="OnExportBackupClicked" />
-                <Button Text="📥 Import backup" HorizontalOptions="Start"
-                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
-                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                        Clicked="OnImportBackupClicked" />
+                <controls:ExpanderSection Title="Backup">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Hint}"
+                               Text="Save your settings and signing certificates to a .zip you can move to another device, or restore from one. Certificates are restored immediately; restart the app to apply imported settings." />
+                        <Button Text="📦 Export backup" HorizontalOptions="Start"
+                                BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
+                                BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                                Clicked="OnExportBackupClicked" />
+                        <Button Text="📥 Import backup" HorizontalOptions="Start"
+                                BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
+                                BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                                Clicked="OnImportBackupClicked" />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
 
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- Diagnostics -->
-                <Label Text="Diagnostics" FontAttributes="Bold" FontSize="14" />
-                <Label Style="{StaticResource Hint}"
-                       Text="Export this session's debug log to send when reporting a problem." />
-                <Button Text="📤 Share debug log" HorizontalOptions="Start"
-                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
-                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                        Clicked="OnShareLogClicked" />
+                <controls:ExpanderSection Title="Diagnostics">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Hint}"
+                               Text="Export this session's debug log to send when reporting a problem." />
+                        <Button Text="📤 Share debug log" HorizontalOptions="Start"
+                                BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
+                                BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                                Clicked="OnShareLogClicked" />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
 
             </VerticalStackLayout>
         </Border>
