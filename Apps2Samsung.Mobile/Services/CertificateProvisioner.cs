@@ -3,6 +3,7 @@ using Apps2Samsung.Configuration;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Sdb;
 using Microsoft.Maui.Storage;
 
 namespace Apps2Samsung.Mobile.Services;
@@ -35,12 +36,9 @@ public sealed class CertificateProvisioner
 	public async Task<Result> ProvisionAsync(string tvIp, bool requirePartner = false, Action<string>? progress = null)
 	{
 		progress?.Invoke("Reading TV DUID…");
-		var duidResult = await _sdb.DuidAsync(tvIp);
-		var duid = duidResult.Output.Trim();
-		// Reject a malformed DUID (e.g. an SDB transport-error string) so it never lands in the cert SAN.
-		if (duidResult.ExitCode != 0 || !TizenDuid.IsValid(duid))
-			throw new InvalidOperationException(
-				$"Could not read a valid TV DUID{(string.IsNullOrWhiteSpace(duidResult.Error) ? "." : $": {duidResult.Error}")}");
+		// Retry the read: old/slow TVs often hand back an empty reply or drop the connection mid-command
+		// on the first try, then answer on a retry. A validated DUID is returned; anything else throws.
+		var duid = await TizenDuidReader.ReadAsync(_sdb, tvIp, progress: progress);
 
 		var caPath = await MaterializeCaAsync();
 
