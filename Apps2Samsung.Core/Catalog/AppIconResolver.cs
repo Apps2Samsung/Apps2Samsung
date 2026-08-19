@@ -10,11 +10,20 @@ namespace Apps2Samsung.Catalog
 {
     public static class AppIconResolver
     {
-        private static readonly HttpClient _httpClient = new();
+        // Short timeout so a flaky network fails fast to the lettered-avatar fallback instead of
+        // hanging on HttpClient's 100s default while the user waits on the Installed-apps list.
+        private static readonly HttpClient _httpClient = new() { Timeout = TimeSpan.FromSeconds(8) };
         private static Dictionary<string, string>? _iconMapCache;
         private static bool _fetchAttempted;
 
-        private const string JsonUrl = "https://rs.ltd/data/samsung-tv-app-ids.json";
+        // Primary: our own mirror in the Apps2Samsung org, so the app doesn't depend on a third-party
+        // personal domain. Fallback: the upstream community source it was mirrored from. (The icon
+        // images themselves live on Samsung's CDN, referenced from inside this JSON.)
+        private static readonly string[] JsonUrls =
+        {
+            "https://raw.githubusercontent.com/Apps2Samsung/tizen-community-packages/refs/heads/main/data/samsung-tv-app-ids.json",
+            "https://rs.ltd/data/samsung-tv-app-ids.json",
+        };
 
         /// <summary>
         /// Fetches and parses the community-maintained TV App IDs JSON file.
@@ -32,44 +41,52 @@ namespace Apps2Samsung.Catalog
             _fetchAttempted = true;
             var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            try
+            // Try each source in order; the first that returns a parseable manifest wins. A dead host
+            // or DNS failure (e.g. the phone couldn't resolve the domain) just falls through to the next
+            // one, and if all fail the UI shows lettered-avatar fallbacks.
+            foreach (var url in JsonUrls)
             {
-                var response = await _httpClient.GetAsync(JsonUrl);
-                if (response.IsSuccessStatusCode)
+                try
                 {
+                    var response = await _httpClient.GetAsync(url);
+                    if (!response.IsSuccessStatusCode)
+                        continue;
+
                     var json = await response.Content.ReadAsStringAsync();
                     var manifest = JsonSerializer.Deserialize<TvAppIconManifest>(json, JsonSerializerOptionsProvider.Default);
+                    if (manifest?.Items == null)
+                        continue;
 
-                    if (manifest?.Items != null)
+                    foreach (var item in manifest.Items)
                     {
-                        foreach (var item in manifest.Items)
-                        {
-                            if (string.IsNullOrWhiteSpace(item.Id) || string.IsNullOrWhiteSpace(item.Icon))
-                                continue;
+                        if (string.IsNullOrWhiteSpace(item.Id) || string.IsNullOrWhiteSpace(item.Icon))
+                            continue;
 
-                            // The ID field can be a comma-separated list of Tizen IDs
-                            var ids = item.Id.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                            foreach (var id in ids)
-                            {
-                                // Overwrite is fine if duplicates exist
-                                map[id] = item.Icon;
-                            }
-                            
-                            // Also map by the human-readable app name for fallback resolution
-                            if (!string.IsNullOrWhiteSpace(item.Name))
-                            {
-                                map[item.Name] = item.Icon;
-                                
-                                // Also map the lower invariant for fuzzy matching
-                                map[item.Name.ToLowerInvariant()] = item.Icon;
-                            }
+                        // The ID field can be a comma-separated list of Tizen IDs
+                        var ids = item.Id.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                        foreach (var id in ids)
+                        {
+                            // Overwrite is fine if duplicates exist
+                            map[id] = item.Icon;
+                        }
+
+                        // Also map by the human-readable app name for fallback resolution
+                        if (!string.IsNullOrWhiteSpace(item.Name))
+                        {
+                            map[item.Name] = item.Icon;
+
+                            // Also map the lower invariant for fuzzy matching
+                            map[item.Name.ToLowerInvariant()] = item.Icon;
                         }
                     }
+
+                    if (map.Count > 0)
+                        break; // got a usable map — don't hit the fallback source
                 }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"Failed to fetch AppIcon manifest: {ex}");
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"Failed to fetch AppIcon manifest from {url}: {ex.Message}");
+                }
             }
 
             // Also map some built-in community apps as a fallback (using jellyfin defaults if needed)
