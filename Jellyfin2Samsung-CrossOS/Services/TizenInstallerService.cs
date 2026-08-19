@@ -8,6 +8,7 @@ using Apps2Samsung.Helpers.Tizen.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Packaging;
+using Apps2Samsung.Sdb;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -1239,8 +1240,17 @@ namespace Apps2Samsung.Services
 
         private async Task<string> GetTvDuidAsync(string tvIpAddress)
         {
-            var output = await _sdb.DuidAsync(tvIpAddress);
-            return output.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? string.Empty;
+            // Retry the read — old/slow TVs often return an empty reply or drop the connection on the
+            // first try. Returns blank on total failure so the caller's IsValid check handles it.
+            try
+            {
+                return await TizenDuidReader.ReadAsync(_sdb, tvIpAddress);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Cert] DUID read failed for {tvIpAddress}: {ex.Message}");
+                return string.Empty;
+            }
         }
 
         private async Task<bool> GetTvDiagnoseAsync(string tvIpAddress)
