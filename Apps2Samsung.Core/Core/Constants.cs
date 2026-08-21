@@ -219,6 +219,7 @@ namespace Apps2Samsung.Helpers.Core
             public const string TvDuidNotFound = "TvDuidNotFound";
             public const string SamsungLogin = "SamsungLogin";
             public const string CreatingCertificateProfile = "CreatingCertificateProfile";
+            public const string PartnerSigningAutoEnabled = "partnerSigningAutoEnabled";
             public const string PackageAndSign = "packageAndSign";
             public const string InstallingPackage = "InstallingPackage";
             public const string InstallationFailed = "InstallationFailed";

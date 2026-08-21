@@ -134,6 +134,14 @@ namespace Apps2Samsung.Certificate
             return new CertificateProfile(authorP12, distributorP12, password, profileDir, profileName, level);
         }
 
+        /// <summary>
+        /// True when a usable profile for <paramref name="level"/> already exists in the store — i.e.
+        /// the user "already has" that certificate, so nothing has to be minted for it. Used by the
+        /// heads to decide whether requiring Partner means creating a new certificate.
+        /// </summary>
+        public static bool HasProfile(string storePath, CertificatePrivilegeLevel level) =>
+            HasUsableAuthorCert(Path.Combine(storePath, ProfileName(level)));
+
         /// <summary>True if the profile dir has a loadable, unexpired author cert.</summary>
         public static bool HasUsableAuthorCert(string certDir)
         {

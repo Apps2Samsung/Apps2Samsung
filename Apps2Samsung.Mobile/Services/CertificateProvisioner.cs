@@ -42,15 +42,29 @@ public sealed class CertificateProvisioner
 
 		var caPath = await MaterializeCaAsync();
 
+		// The selected package can only be installed Partner-signed (it declares a Partner-only
+		// privilege such as vpnservice or drminfo) and there is no Partner certificate yet: switch the
+		// Settings preference to Partner so one is actually created, and so the picker shows the level
+		// we sign with. Without this the install reaches the TV as Public and is rejected with
+		// MISMATCHED_PRIVILEGE_LEVEL. The user can switch back to Automatic/Public afterwards.
+		if (requirePartner &&
+			MobileSettings.CertificatePreference != MobileSettings.CertificatePreferencePartner &&
+			!CertificateProvisioningService.HasProfile(_config.CertificateStorePath, CertificatePrivilegeLevel.Partner))
+		{
+			MobileSettings.CertificatePreference = MobileSettings.CertificatePreferencePartner;
+			progress?.Invoke("This app needs a Partner certificate — turning on Partner signing…");
+		}
+
 		// Which certificate/level to sign with, from the user's Certificate preference (Settings):
 		//  • Partner   → always Partner.
-		//  • Public    → always Public (the user's explicit choice).
+		//  • Public    → Public, unless the package requires Partner — a hard requirement wins over the
+		//                preference, because signing Public would simply be refused by the TV.
 		//  • Automatic → Public, unless the selected package declares it needs Partner (requirePartner).
-		// Partner is only needed by apps that use restricted privileges (e.g. vpnservice).
+		// Partner is only needed by apps that use restricted privileges (e.g. vpnservice, drminfo).
 		var level = MobileSettings.CertificatePreference switch
 		{
 			MobileSettings.CertificatePreferencePartner => CertificatePrivilegeLevel.Partner,
-			MobileSettings.CertificatePreferencePublic => CertificatePrivilegeLevel.Public,
+			MobileSettings.CertificatePreferencePublic when !requirePartner => CertificatePrivilegeLevel.Public,
 			_ => requirePartner ? CertificatePrivilegeLevel.Partner : CertificatePrivilegeLevel.Public,
 		};
 
