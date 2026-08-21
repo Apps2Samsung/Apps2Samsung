@@ -22,6 +22,10 @@ namespace Apps2Samsung.Packaging
         private static readonly Regex ChannelsArrayRegex =
             new(@"var\s+channels\s*=\s*\[.*?\];", RegexOptions.Singleline | RegexOptions.Compiled);
 
+        // Matches the upstream `var hls = new Hls()` construction inside loadChannel().
+        private static readonly Regex HlsConstructRegex =
+            new(@"var\s+hls\s*=\s*new\s+Hls\s*\(\s*\)", RegexOptions.Compiled);
+
         private static readonly JsonSerializerOptions ReadOptions = new() { PropertyNameCaseInsensitive = true };
 
         /// <summary>True if the package is a TVApp build (matched by wgt filename).</summary>
@@ -90,9 +94,31 @@ namespace Apps2Samsung.Packaging
             // substitution (e.g. `$1`) in the replacement string.
             js = ChannelsArrayRegex.Replace(js, _ => $"var channels = {payload};", 1);
 
+            js = PatchChannelSwitch(js);
+
             await File.WriteAllTextAsync(mainJsPath, js);
             ws.Repack();
             Trace.WriteLine($"[TvApp] Injected {channels.Count} channel(s) into {MainJsRelativePath}.");
+        }
+
+        /// <summary>
+        /// Workaround for an upstream TVApp bug (KaashDev/TVapp): <c>loadChannel()</c> constructs a
+        /// fresh <c>new Hls()</c> on every channel switch without destroying the previous one, so the
+        /// <c>&lt;video&gt;</c> element stays bound to the first stream and every channel plays channel
+        /// #1. Since we already rewrite main.js to inject channels, also make the Hls instance persist
+        /// and tear it down before each switch. No-op once the app is fixed upstream (a <c>destroy(</c>
+        /// call is present) or if the construction isn't found.
+        /// </summary>
+        private static string PatchChannelSwitch(string js)
+        {
+            if (js.Contains("destroy(", StringComparison.Ordinal) || !HlsConstructRegex.IsMatch(js))
+                return js;
+
+            js = HlsConstructRegex.Replace(js, _ =>
+                "if (window.__a2sHls) { try { window.__a2sHls.destroy(); } catch (e) {} } " +
+                "var hls = window.__a2sHls = new Hls()", 1);
+            Trace.WriteLine("[TvApp] Applied channel-switch fix (destroy the previous Hls before loading the next).");
+            return js;
         }
 
         private sealed class ChannelDto
