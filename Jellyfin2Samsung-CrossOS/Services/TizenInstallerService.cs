@@ -631,12 +631,25 @@ namespace Apps2Samsung.Services
             // level never clobbers the other. The requested level comes from the toggle (later also
             // per-package via the manifest).
             // Partner if the global toggle is on, OR the selected package's manifest declares it, OR
-            // the .wgt itself declares a partner-level privilege (e.g. vpnservice) in its config.xml.
-            // The last one is the automatic binding: a package that needs a restricted API must declare
-            // it, so we don't have to track cert levels per package anywhere.
+            // the package itself declares a partner-level privilege (e.g. vpnservice in a .wgt's
+            // config.xml, drminfo in a .tpk's tizen-manifest.xml) — the automatic binding: a package
+            // that needs a restricted API must declare it, so we don't track cert levels per package.
+            var partnerPrivilege = Apps2Samsung.Packaging.WgtPrivileges.FindPartnerPrivilege(packageUrl);
+
+            // The package can only be installed Partner-signed, and there's no Partner certificate yet:
+            // turn the Settings toggle on so one is actually created (and so the UI matches what we
+            // sign with) instead of letting the install fail on the TV with MISMATCHED_PRIVILEGE_LEVEL.
+            if (partnerPrivilege is not null && !_appSettings.PartnerSigning &&
+                !CertificateProvisioningService.HasProfile(AppSettings.CertificatePath, CertificatePrivilegeLevel.Partner))
+            {
+                Trace.WriteLine($"[Cert] Auto-enabling Partner signing: package declares '{partnerPrivilege}'.");
+                _appSettings.EnablePartnerSigning();
+                progress?.Invoke(Constants.LocalizationKeys.PartnerSigningAutoEnabled.Localized());
+            }
+
             var requestedLevel = (_appSettings.PartnerSigning
                                   || _appSettings.RequiresPartnerSigning
-                                  || Apps2Samsung.Packaging.WgtPrivileges.RequiresPartner(packageUrl))
+                                  || partnerPrivilege is not null)
                 ? CertificatePrivilegeLevel.Partner
                 : CertificatePrivilegeLevel.Public;
             var jelly2SamsDir = Path.Combine(AppSettings.CertificatePath, AutoCertProfileName(requestedLevel));
