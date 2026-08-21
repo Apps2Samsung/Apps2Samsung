@@ -35,8 +35,8 @@
 		<ApplicationId>nl.madebypatrick.apps2samsung</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>2.7.7</ApplicationDisplayVersion>
-		<ApplicationVersion>3</ApplicationVersion>
+		<ApplicationDisplayVersion>2.7.8</ApplicationDisplayVersion>
+		<ApplicationVersion>4</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 		<WindowsPackageType>None</WindowsPackageType>
