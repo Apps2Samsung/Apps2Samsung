@@ -157,7 +157,7 @@ namespace Apps2Samsung.Helpers
         [JsonIgnore]
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
         [JsonIgnore]
-        public string AppVersion { get; set; } = "v2.7.6";
+        public string AppVersion { get; set; } = "v2.7.7";
         [JsonIgnore]
         public string TizenSdb { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-sdb/releases";
         [JsonIgnore]
@@ -185,6 +185,30 @@ namespace Apps2Samsung.Helpers
 
                 return $"{baseUrl}/{basePath}";
             }
+        }
+
+        /// <summary>
+        /// Raised when the app itself turns Partner signing on because the package being installed
+        /// declares a Partner-only privilege. An already-constructed Settings view listens for this so
+        /// its toggle shows the new value instead of a stale "off".
+        /// </summary>
+        public static event Action? PartnerSigningAutoEnabled;
+
+        /// <summary>
+        /// Turns Partner signing on and persists it, then notifies the UI. Called when the selected
+        /// package can only be installed with a Partner-signed certificate and the user has none yet:
+        /// flipping the visible toggle is what makes the provisioner mint that certificate, and leaves
+        /// the setting visible (and reversible) instead of silently signing at a level the Settings
+        /// screen claims is off. No-op when it is already on.
+        /// </summary>
+        public void EnablePartnerSigning()
+        {
+            if (PartnerSigning)
+                return;
+
+            PartnerSigning = true;
+            Save();
+            PartnerSigningAutoEnabled?.Invoke();
         }
 
         public void Save()

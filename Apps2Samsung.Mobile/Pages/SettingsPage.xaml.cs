@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Apps2Samsung.Backup;
+using Apps2Samsung.Certificate;
+using Apps2Samsung.Collections;
+using Apps2Samsung.Interfaces;
 using Apps2Samsung.Mobile.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.ApplicationModel.DataTransfer;
@@ -36,7 +39,7 @@ public partial class SettingsPage : ContentPage
 		KeepWgtSwitch.IsToggled = MobileSettings.KeepWgtFile;
 		ShowAllJfSwitch.IsToggled = MobileSettings.ShowAllJellyfinVersions;
 		BetaUpdatesSwitch.IsToggled = MobileSettings.IncludeBetaUpdates;
-		PartnerSigningSwitch.IsToggled = MobileSettings.PartnerSigning;
+		LoadCertificatePicker();
 		TryOverwriteSwitch.IsToggled = MobileSettings.TryOverwrite;
 		ForceLoginSwitch.IsToggled = MobileSettings.ForceSamsungLogin;
 
@@ -159,6 +162,9 @@ public partial class SettingsPage : ContentPage
 			if (!string.IsNullOrEmpty(import.SettingsJson))
 				await ApplySettingsJsonAsync(import.SettingsJson!);
 
+			// Make the imported certificate the selected one.
+			DefaultCertificateToImportedProfile();
+
 			// Refresh visible controls from the newly-applied settings.
 			OnAppearing();
 
@@ -245,9 +251,47 @@ public partial class SettingsPage : ContentPage
 		MobileSettings.KeepWgtFile = KeepWgtSwitch.IsToggled;
 		MobileSettings.ShowAllJellyfinVersions = ShowAllJfSwitch.IsToggled;
 		MobileSettings.IncludeBetaUpdates = BetaUpdatesSwitch.IsToggled;
-		MobileSettings.PartnerSigning = PartnerSigningSwitch.IsToggled;
 		MobileSettings.TryOverwrite = TryOverwriteSwitch.IsToggled;
 		MobileSettings.ForceSamsungLogin = ForceLoginSwitch.IsToggled;
+	}
+
+	// Populates the certificate picker (Automatic / Public / Partner) and selects the current preference.
+	private void LoadCertificatePicker()
+	{
+		CertificatePicker.ItemsSource ??= new List<string>
+		{
+			MobileSettings.CertificatePreferenceAuto,
+			MobileSettings.CertificatePreferencePublic,
+			MobileSettings.CertificatePreferencePartner,
+		};
+		CertificatePicker.SelectedItem = MobileSettings.CertificatePreference;
+	}
+
+	private void OnCertificateChanged(object? sender, EventArgs e)
+	{
+		if (!_loaded)
+			return;
+		if (CertificatePicker.SelectedItem is string pref)
+			MobileSettings.CertificatePreference = pref;
+	}
+
+	// After an import, default the certificate picker to whichever level profile was restored — so the
+	// imported certificate becomes the selected one (when exactly one level is present).
+	private static void DefaultCertificateToImportedProfile()
+	{
+		var store = CertStorePath;
+		bool Has(CertificatePrivilegeLevel level) =>
+			CertificateProvisioningService.HasUsableAuthorCert(
+				Path.Combine(store, CertificateProvisioningService.ProfileName(level)));
+
+		bool partner = Has(CertificatePrivilegeLevel.Partner);
+		bool pub = Has(CertificatePrivilegeLevel.Public);
+
+		if (partner && !pub)
+			MobileSettings.CertificatePreference = MobileSettings.CertificatePreferencePartner;
+		else if (pub && !partner)
+			MobileSettings.CertificatePreference = MobileSettings.CertificatePreferencePublic;
+		// If both or neither were imported, leave the preference as-is (Automatic covers "both").
 	}
 
 	private void OnAddChannel(object? sender, EventArgs e) => AddChannelRow(string.Empty, string.Empty);
@@ -256,40 +300,45 @@ public partial class SettingsPage : ContentPage
 	{
 		var nameEntry = new Entry { Text = name, Placeholder = "Name", BackgroundColor = Colors.Transparent };
 		var urlEntry = new Entry { Text = url, Placeholder = "https://…/stream.m3u8", BackgroundColor = Colors.Transparent };
-		var removeBtn = new Button
-		{
-			Text = "✕",
-			FontSize = 14,
-			Padding = 0,
-			WidthRequest = 40,
-			HeightRequest = 40,
-			CornerRadius = 6,
-			BackgroundColor = Colors.Transparent,
-			BorderWidth = 1,
-			BorderColor = Color.FromArgb("#CDD3D8"),
-			TextColor = Color.FromArgb("#B00020"),
-		};
+		var upBtn = SmallChannelButton("↑", "#2C3E50");
+		var downBtn = SmallChannelButton("↓", "#2C3E50");
+		var removeBtn = SmallChannelButton("✕", "#B00020");
 
+		// Row 0: name + url. Row 1: reorder (↑ ↓) + remove, right-aligned, so the entries stay wide.
 		var grid = new Grid
 		{
 			ColumnSpacing = 8,
+			RowSpacing = 2,
 			ColumnDefinitions =
 			{
 				new ColumnDefinition(GridLength.Star),
 				new ColumnDefinition(GridLength.Star),
-				new ColumnDefinition(new GridLength(40)),
+			},
+			RowDefinitions =
+			{
+				new RowDefinition(GridLength.Auto),
+				new RowDefinition(GridLength.Auto),
 			},
 		};
-		Grid.SetColumn(nameEntry, 0);
-		Grid.SetColumn(urlEntry, 1);
-		Grid.SetColumn(removeBtn, 2);
+		Grid.SetColumn(nameEntry, 0); Grid.SetRow(nameEntry, 0);
+		Grid.SetColumn(urlEntry, 1); Grid.SetRow(urlEntry, 0);
+
+		var buttons = new HorizontalStackLayout { Spacing = 6, HorizontalOptions = LayoutOptions.End };
+		buttons.Children.Add(upBtn);
+		buttons.Children.Add(downBtn);
+		buttons.Children.Add(removeBtn);
+		Grid.SetColumn(buttons, 0); Grid.SetRow(buttons, 1); Grid.SetColumnSpan(buttons, 2);
+
 		grid.Children.Add(nameEntry);
 		grid.Children.Add(urlEntry);
-		grid.Children.Add(removeBtn);
+		grid.Children.Add(buttons);
 
 		var row = new ChannelRow(grid, nameEntry, urlEntry);
 		nameEntry.Unfocused += (_, _) => SaveChannels();
 		urlEntry.Unfocused += (_, _) => SaveChannels();
+		// Channels play on the TV in list order, so let the user reorder them (mirrors the desktop head).
+		upBtn.Clicked += (_, _) => MoveChannelRow(row, -1);
+		downBtn.Clicked += (_, _) => MoveChannelRow(row, +1);
 		removeBtn.Clicked += (_, _) =>
 		{
 			ChannelsContainer.Children.Remove(grid);
@@ -299,6 +348,38 @@ public partial class SettingsPage : ContentPage
 
 		_channelRows.Add(row);
 		ChannelsContainer.Children.Add(grid);
+	}
+
+	private static Button SmallChannelButton(string text, string textColor) => new()
+	{
+		Text = text,
+		FontSize = 14,
+		Padding = 0,
+		WidthRequest = 40,
+		HeightRequest = 40,
+		CornerRadius = 6,
+		BackgroundColor = Colors.Transparent,
+		BorderWidth = 1,
+		BorderColor = Color.FromArgb("#CDD3D8"),
+		TextColor = Color.FromArgb(textColor),
+	};
+
+	private void MoveChannelRow(ChannelRow row, int delta)
+	{
+		var i = _channelRows.IndexOf(row);
+		// Shared bounds rule with the desktop head (Core Collections.ListReorder).
+		if (ListReorder.TargetIndex(_channelRows.Count, i, delta) is not int j)
+			return;
+
+		_channelRows.RemoveAt(i);
+		_channelRows.Insert(j, row);
+
+		// Rebuild the visual order to match, then persist.
+		ChannelsContainer.Children.Clear();
+		foreach (var r in _channelRows)
+			ChannelsContainer.Children.Add(r.Container);
+
+		SaveChannels();
 	}
 
 	private void SaveChannels()

@@ -86,7 +86,19 @@ public partial class InstalledAppsPage : ContentPage
 		try
 		{
 			var result = await _sdb.AppsAsync(_tvIp);
-			var apps = TizenInstalledApps.Parse(result?.Output);
+			var apps = TizenInstalledApps.Parse(result?.Output).ToList();
+			var iconMap = await Apps2Samsung.Catalog.AppIconResolver.GetIconMapAsync();
+			for (int i = 0; i < apps.Count; i++)
+			{
+				var a = apps[i];
+				if ((!string.IsNullOrEmpty(a.AppId) && iconMap.TryGetValue(a.AppId, out var iconUrl)) ||
+					iconMap.TryGetValue(a.TizenId, out iconUrl) ||
+					iconMap.TryGetValue(a.DisplayName, out iconUrl) ||
+					iconMap.TryGetValue(a.DisplayName.ToLowerInvariant(), out iconUrl))
+				{
+					apps[i] = a with { IconUrl = iconUrl };
+				}
+			}
 			AppsList.ItemsSource = apps;
 
 			if (apps.Count == 0)
@@ -149,6 +161,54 @@ public partial class InstalledAppsPage : ContentPage
 
 		// Refresh so the removed app drops off the list.
 		await LoadAsync();
+	}
+
+	private async void OnLaunchClicked(object? sender, EventArgs e)
+	{
+		if (sender is not Button { BindingContext: InstalledApp app })
+			return;
+
+		SetBusy(true, $"Launching {app.DisplayName}…");
+		try
+		{
+			var result = await _sdb.LaunchAsync(_tvIp, app.TizenId);
+			if (result.ExitCode != 0)
+			{
+				await DisplayAlert("Launch failed", result.Error, "OK");
+			}
+		}
+		catch (Exception ex)
+		{
+			await DisplayAlert("Launch failed", ex.Message, "OK");
+		}
+		finally
+		{
+			SetBusy(false);
+		}
+	}
+
+	private async void OnStopClicked(object? sender, EventArgs e)
+	{
+		if (sender is not Button { BindingContext: InstalledApp app })
+			return;
+
+		SetBusy(true, $"Stopping {app.DisplayName}…");
+		try
+		{
+			var result = await _sdb.ShellAsync(_tvIp, $"0 was_kill {app.TizenId}");
+			if (result.ExitCode != 0)
+			{
+				await DisplayAlert("Stop failed", result.Error, "OK");
+			}
+		}
+		catch (Exception ex)
+		{
+			await DisplayAlert("Stop failed", ex.Message, "OK");
+		}
+		finally
+		{
+			SetBusy(false);
+		}
 	}
 
 	private void SetBusy(bool busy, string? status = null)

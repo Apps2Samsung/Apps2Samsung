@@ -44,5 +44,11 @@ namespace Apps2Samsung.Interfaces
 
         /// <summary>Pushes the distributor device-profile XML that permits sideloading.</summary>
         Task<ProcessResult> PermitInstallAsync(string tvIpAddress, string deviceXml, string sdkToolPath);
+
+        /// <summary>Executes a generic shell command on the TV.</summary>
+        Task<ProcessResult> ShellAsync(string tvIpAddress, string command);
+
+        /// <summary>Forwards a local TCP port to a remote TCP port on the TV.</summary>
+        Task<IAsyncDisposable> ForwardAsync(string tvIpAddress, int localPort, int remotePort);
     }
 }

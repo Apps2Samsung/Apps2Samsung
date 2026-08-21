@@ -8,6 +8,7 @@ using Apps2Samsung.Helpers.Tizen.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Packaging;
+using Apps2Samsung.Sdb;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -630,12 +631,25 @@ namespace Apps2Samsung.Services
             // level never clobbers the other. The requested level comes from the toggle (later also
             // per-package via the manifest).
             // Partner if the global toggle is on, OR the selected package's manifest declares it, OR
-            // the .wgt itself declares a partner-level privilege (e.g. vpnservice) in its config.xml.
-            // The last one is the automatic binding: a package that needs a restricted API must declare
-            // it, so we don't have to track cert levels per package anywhere.
+            // the package itself declares a partner-level privilege (e.g. vpnservice in a .wgt's
+            // config.xml, drminfo in a .tpk's tizen-manifest.xml) — the automatic binding: a package
+            // that needs a restricted API must declare it, so we don't track cert levels per package.
+            var partnerPrivilege = Apps2Samsung.Packaging.WgtPrivileges.FindPartnerPrivilege(packageUrl);
+
+            // The package can only be installed Partner-signed, and there's no Partner certificate yet:
+            // turn the Settings toggle on so one is actually created (and so the UI matches what we
+            // sign with) instead of letting the install fail on the TV with MISMATCHED_PRIVILEGE_LEVEL.
+            if (partnerPrivilege is not null && !_appSettings.PartnerSigning &&
+                !CertificateProvisioningService.HasProfile(AppSettings.CertificatePath, CertificatePrivilegeLevel.Partner))
+            {
+                Trace.WriteLine($"[Cert] Auto-enabling Partner signing: package declares '{partnerPrivilege}'.");
+                _appSettings.EnablePartnerSigning();
+                progress?.Invoke(Constants.LocalizationKeys.PartnerSigningAutoEnabled.Localized());
+            }
+
             var requestedLevel = (_appSettings.PartnerSigning
                                   || _appSettings.RequiresPartnerSigning
-                                  || Apps2Samsung.Packaging.WgtPrivileges.RequiresPartner(packageUrl))
+                                  || partnerPrivilege is not null)
                 ? CertificatePrivilegeLevel.Partner
                 : CertificatePrivilegeLevel.Public;
             var jelly2SamsDir = Path.Combine(AppSettings.CertificatePath, AutoCertProfileName(requestedLevel));
@@ -1162,6 +1176,74 @@ namespace Apps2Samsung.Services
             }
         }
 
+        public async Task LaunchAppAsync(string tvIpAddress, string tizenId)
+        {
+            await EnsureTizenSdbAvailable();
+            try
+            {
+                var result = await _sdb.LaunchAsync(tvIpAddress, tizenId);
+                if (result.ExitCode != 0)
+                    throw new Exception($"Failed to launch app: {result.Error}");
+            }
+            finally
+            {
+                await _sdb.DisconnectAsync(tvIpAddress);
+            }
+        }
+
+        public async Task StopAppAsync(string tvIpAddress, string tizenId)
+        {
+            await EnsureTizenSdbAvailable();
+            try
+            {
+                var result = await _sdb.ShellAsync(tvIpAddress, $"0 was_kill {tizenId}");
+                if (result.ExitCode != 0)
+                {
+                    string errorMsg = string.IsNullOrWhiteSpace(result.Error) ? result.Output : result.Error;
+                    throw new Exception($"Failed to stop app {tizenId}: {errorMsg}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"StopAppAsync failed: {ex}");
+                throw;
+            }
+            finally
+            {
+                await _sdb.DisconnectAsync(tvIpAddress);
+            }
+        }
+
+        public async Task<(int LocalPort, IAsyncDisposable ForwardSession)> DebugAppAsync(string tvIpAddress, string tizenId)
+        {
+            await EnsureTizenSdbAvailable();
+            try
+            {
+                var result = await _sdb.ShellAsync(tvIpAddress, $"0 debug {tizenId}");
+                if (result.ExitCode != 0)
+                {
+                    string errorMsg = string.IsNullOrWhiteSpace(result.Error) ? result.Output : result.Error;
+                    throw new Exception($"Failed to start debug mode for {tizenId}: {errorMsg}");
+                }
+
+                var match = System.Text.RegularExpressions.Regex.Match(result.Output, @"port:\s*(\d+)");
+                if (!match.Success)
+                {
+                    throw new Exception($"Failed to detect the debug port from the device. Output: {result.Output}");
+                }
+                
+                int remotePort = int.Parse(match.Groups[1].Value);
+                int localPort = 9222;
+
+                var forwardSession = await _sdb.ForwardAsync(tvIpAddress, localPort, remotePort);
+                return (localPort, forwardSession);
+            }
+            finally
+            {
+                await _sdb.DisconnectAsync(tvIpAddress);
+            }
+        }
+
         private async Task<(string tizenOs, string sdkToolPath)> FetchCapabilitiesAsync(string tvIpAddress)
         {
             var output = await _sdb.CapabilityAsync(tvIpAddress);
@@ -1171,8 +1253,17 @@ namespace Apps2Samsung.Services
 
         private async Task<string> GetTvDuidAsync(string tvIpAddress)
         {
-            var output = await _sdb.DuidAsync(tvIpAddress);
-            return output.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? string.Empty;
+            // Retry the read — old/slow TVs often return an empty reply or drop the connection on the
+            // first try. Returns blank on total failure so the caller's IsValid check handles it.
+            try
+            {
+                return await TizenDuidReader.ReadAsync(_sdb, tvIpAddress);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Cert] DUID read failed for {tvIpAddress}: {ex.Message}");
+                return string.Empty;
+            }
         }
 
         private async Task<bool> GetTvDiagnoseAsync(string tvIpAddress)

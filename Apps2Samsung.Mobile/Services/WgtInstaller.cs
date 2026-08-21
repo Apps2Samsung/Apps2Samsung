@@ -38,17 +38,23 @@ public sealed class WgtInstaller
 			name = "package.wgt";
 		var dest = Path.Combine(FileSystem.CacheDirectory, name);
 
-		using var req = new HttpRequestMessage(HttpMethod.Get, url);
-		req.Headers.UserAgent.ParseAdd("Apps2Samsung-Mobile");
-		var token = MobileSettings.GitHubToken;
-		if (!string.IsNullOrWhiteSpace(token) && new Uri(url).Host.Contains("github", StringComparison.OrdinalIgnoreCase))
-			req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+		// Run the transfer off the UI thread with ConfigureAwait(false): on Android, disposing the HTTP
+		// response stream can do socket I/O, which StrictMode kills with NetworkOnMainThreadException if
+		// the continuation resumes on the main thread.
+		await Task.Run(async () =>
+		{
+			using var req = new HttpRequestMessage(HttpMethod.Get, url);
+			req.Headers.UserAgent.ParseAdd("Apps2Samsung-Mobile");
+			var token = MobileSettings.GitHubToken;
+			if (!string.IsNullOrWhiteSpace(token) && new Uri(url).Host.Contains("github", StringComparison.OrdinalIgnoreCase))
+				req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-		using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
-		resp.EnsureSuccessStatusCode();
-		await using (var src = await resp.Content.ReadAsStreamAsync())
-		await using (var dst = File.Create(dest))
-			await src.CopyToAsync(dst);
+			using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+			resp.EnsureSuccessStatusCode();
+			await using var src = await resp.Content.ReadAsStreamAsync().ConfigureAwait(false);
+			await using var dst = File.Create(dest);
+			await src.CopyToAsync(dst).ConfigureAwait(false);
+		}).ConfigureAwait(false);
 
 		return dest;
 	}

@@ -128,6 +128,7 @@ namespace Apps2Samsung.ViewModels
 
             _localizationService.LanguageChanged += OnLanguageChanged;
             _themeService.ThemeChanged += OnThemeChanged;
+            AppSettings.PartnerSigningAutoEnabled += OnPartnerSigningAutoEnabled;
 
             AvailableLanguages = new ObservableCollection<LanguageOption>(
                 _localizationService.AvailableLanguages
@@ -143,6 +144,11 @@ namespace Apps2Samsung.ViewModels
             _ = LoadNetworkInterfacesAsync();
             _ = InitializeCertificatesAsync();
         }
+
+        // The installer flipped Partner signing on for a package that requires it — mirror it onto the
+        // toggle so this (singleton) view model doesn't keep showing the pre-install value.
+        private void OnPartnerSigningAutoEnabled() =>
+            Dispatcher.UIThread.Post(() => PartnerSigning = true);
 
         private void OnLanguageChanged(object? sender, EventArgs e)
         {
@@ -571,6 +577,7 @@ namespace Apps2Samsung.ViewModels
         {
             _localizationService.LanguageChanged -= OnLanguageChanged;
             _themeService.ThemeChanged -= OnThemeChanged;
+            AppSettings.PartnerSigningAutoEnabled -= OnPartnerSigningAutoEnabled;
         }
     }
 }

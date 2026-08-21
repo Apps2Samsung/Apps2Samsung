@@ -1,6 +1,0 @@
-filters:
-  - filter_type: file
-    file_format: KEYVALUEJSON
-    source_file: Assets/Localization/en.json
-    source_language: en
-    translation_files_expression: 'Assets/Localization/<lang>.json'

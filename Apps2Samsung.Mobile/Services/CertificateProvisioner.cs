@@ -3,6 +3,7 @@ using Apps2Samsung.Configuration;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Sdb;
 using Microsoft.Maui.Storage;
 
 namespace Apps2Samsung.Mobile.Services;
@@ -35,20 +36,37 @@ public sealed class CertificateProvisioner
 	public async Task<Result> ProvisionAsync(string tvIp, bool requirePartner = false, Action<string>? progress = null)
 	{
 		progress?.Invoke("Reading TV DUID…");
-		var duidResult = await _sdb.DuidAsync(tvIp);
-		var duid = duidResult.Output.Trim();
-		// Reject a malformed DUID (e.g. an SDB transport-error string) so it never lands in the cert SAN.
-		if (duidResult.ExitCode != 0 || !TizenDuid.IsValid(duid))
-			throw new InvalidOperationException(
-				$"Could not read a valid TV DUID{(string.IsNullOrWhiteSpace(duidResult.Error) ? "." : $": {duidResult.Error}")}");
+		// Retry the read: old/slow TVs often hand back an empty reply or drop the connection mid-command
+		// on the first try, then answer on a retry. A validated DUID is returned; anything else throws.
+		var duid = await TizenDuidReader.ReadAsync(_sdb, tvIp, progress: progress);
 
 		var caPath = await MaterializeCaAsync();
 
-		// Opt-in Partner signing (experimental) — needed only by apps that use restricted privileges
-		// (e.g. vpnservice). Partner if the global toggle is on OR the selected package declares it.
-		var level = (_config.PartnerSigning || requirePartner)
-			? CertificatePrivilegeLevel.Partner
-			: CertificatePrivilegeLevel.Public;
+		// The selected package can only be installed Partner-signed (it declares a Partner-only
+		// privilege such as vpnservice or drminfo) and there is no Partner certificate yet: switch the
+		// Settings preference to Partner so one is actually created, and so the picker shows the level
+		// we sign with. Without this the install reaches the TV as Public and is rejected with
+		// MISMATCHED_PRIVILEGE_LEVEL. The user can switch back to Automatic/Public afterwards.
+		if (requirePartner &&
+			MobileSettings.CertificatePreference != MobileSettings.CertificatePreferencePartner &&
+			!CertificateProvisioningService.HasProfile(_config.CertificateStorePath, CertificatePrivilegeLevel.Partner))
+		{
+			MobileSettings.CertificatePreference = MobileSettings.CertificatePreferencePartner;
+			progress?.Invoke("This app needs a Partner certificate — turning on Partner signing…");
+		}
+
+		// Which certificate/level to sign with, from the user's Certificate preference (Settings):
+		//  • Partner   → always Partner.
+		//  • Public    → Public, unless the package requires Partner — a hard requirement wins over the
+		//                preference, because signing Public would simply be refused by the TV.
+		//  • Automatic → Public, unless the selected package declares it needs Partner (requirePartner).
+		// Partner is only needed by apps that use restricted privileges (e.g. vpnservice, drminfo).
+		var level = MobileSettings.CertificatePreference switch
+		{
+			MobileSettings.CertificatePreferencePartner => CertificatePrivilegeLevel.Partner,
+			MobileSettings.CertificatePreferencePublic when !requirePartner => CertificatePrivilegeLevel.Public,
+			_ => requirePartner ? CertificatePrivilegeLevel.Partner : CertificatePrivilegeLevel.Public,
+		};
 
 		ProgressCallback? cb = progress is null ? null : new ProgressCallback(progress);
 		var profile = await _provisioning.EnsureAsync(
