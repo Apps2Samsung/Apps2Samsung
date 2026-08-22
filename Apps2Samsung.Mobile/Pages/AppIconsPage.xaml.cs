@@ -195,7 +195,11 @@ public partial class AppIconsPage : ContentPage
 		}
 		catch (Exception ex)
 		{
-			await DisplayAlert("App icons", $"Couldn't set the icon: {ex.Message}", "OK");
+			await DisplayAlert(
+				"App icons",
+				$"Couldn't set the icon: {ErrorText.Describe(ex, "app-icons/pick")}\n\n" +
+				"Settings \u2192 Diagnostics \u2192 Share debug log has the full details.",
+				"OK");
 		}
 	}
 

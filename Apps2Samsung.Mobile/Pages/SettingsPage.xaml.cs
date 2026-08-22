@@ -130,7 +130,10 @@ public partial class SettingsPage : ContentPage
 		}
 		catch (Exception ex)
 		{
-			await DisplayAlert("Export backup", $"Couldn't export the backup: {ex.Message}", "OK");
+			await DisplayAlert(
+				"Export backup",
+				$"Couldn't export the backup: {ErrorText.Describe(ex, "backup/export")}",
+				"OK");
 		}
 	}
 
@@ -175,7 +178,11 @@ public partial class SettingsPage : ContentPage
 		}
 		catch (Exception ex)
 		{
-			await DisplayAlert("Import backup", $"Couldn't import the backup: {ex.Message}", "OK");
+			await DisplayAlert(
+				"Import backup",
+				$"Couldn't import the backup: {ErrorText.Describe(ex, "backup/import")}\n\n" +
+				"Settings \u2192 Diagnostics \u2192 Share debug log has the full details.",
+				"OK");
 		}
 	}
 

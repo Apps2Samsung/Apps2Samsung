@@ -28,6 +28,15 @@
 		       <MauiXaml Update="MyPage.xaml" Inflator="Runtime" /> (force runtime inflation) -->
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
+		<!-- Keep real exception messages in Release. Trimming turns on
+		     System.Resources.UseSystemResourceKeys, which strips the framework's message strings and
+		     renders every exception as its raw resource KEY instead: a message-less Java exception
+		     surfaced as "Exception_WasThrown, Java.Lang.RuntimeException" in the error dialogs, so no
+		     failure reported from a release build could be diagnosed (every one of this head's ~20
+		     "Couldn't … {ex.Message}" dialogs was affected, not just one feature). Costs a little APK
+		     size for the retained resource strings; being able to read a crash is worth more. -->
+		<UseSystemResourceKeys>false</UseSystemResourceKeys>
+
 		<!-- Display name -->
 		<ApplicationTitle>Apps2Samsung</ApplicationTitle>
 
