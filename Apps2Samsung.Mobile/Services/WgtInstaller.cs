@@ -1,4 +1,4 @@
-﻿using System.IO.Compression;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Xml.Linq;

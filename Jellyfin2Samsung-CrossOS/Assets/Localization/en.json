@@ -1,4 +1,4 @@
-﻿{
+{
   "DownloadAndInstall": "Download & Install",
   "InstallationFailed": "Installation failed",
   "connectionInterrupted": "The connection to your TV dropped during installation (\"connection reset by peer\"). This usually isn't a problem with the app — it's almost always a VPN, proxy, or \"secure DNS\" app on this computer capturing the route to your TV, or an unstable Wi-Fi link. Try this, then install again: 1) turn off any VPN / tunnel / secure-DNS app, 2) connect the TV by Ethernet or move it closer to the router, 3) make sure this computer and the TV are on the same network.",

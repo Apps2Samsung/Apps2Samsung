@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Interfaces;

@@ -1,4 +1,4 @@
-﻿using Apps2Samsung.Certificate;
+using Apps2Samsung.Certificate;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.API;

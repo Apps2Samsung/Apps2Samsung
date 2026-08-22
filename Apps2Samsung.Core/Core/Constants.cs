@@ -1,4 +1,4 @@
-﻿namespace Apps2Samsung.Helpers.Core
+namespace Apps2Samsung.Helpers.Core
 {
     /// <summary>
     /// Centralized constants for the application.
