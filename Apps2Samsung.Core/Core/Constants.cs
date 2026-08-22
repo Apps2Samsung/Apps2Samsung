@@ -229,6 +229,10 @@ namespace Apps2Samsung.Helpers.Core
             public const string InsufficientSpace = "insufficientSpace";
             public const string AuthorMismatch = "AuthorMismatch";
             public const string CertificateMismatch = "certificateMismatch";
+            public const string CertificateNotYetValid = "certificateNotYetValid";
+            public const string CertificateNotYetValidTitle = "certificateNotYetValidTitle";
+            public const string CertificateWaiting = "certificateWaiting";
+            public const string CertificateWaitCancelled = "certificateWaitCancelled";
             public const string ApiVersionMismatch = "apiVersionMismatch";
             public const string ModifyConfigRequired = "modiyConfigRequired";
             public const string DuidLimitReached = "duidLimitReached";

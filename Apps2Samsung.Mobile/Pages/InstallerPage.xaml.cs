@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Apps2Samsung.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Services;
@@ -399,7 +400,30 @@ public partial class InstallerPage : ContentPage
 			// Provisioning reuses a valid cert already covering this TV and only triggers a Samsung
 			// sign-in when it must (re)generate — so no login prompt when a cert is already in place.
 			var cert = await _certProvisioner.ProvisionAsync(tvIp, needsPartner, SetStatus);
-			await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus);
+
+			// The signing certificate's validity period may not have started yet — a Samsung TV
+			// rejects such a package ("Certificate in signature is not valid yet"). Hold the install
+			// behind a countdown to the moment it becomes valid instead of pushing something the TV
+			// will refuse; the loop re-runs the check once the user chooses to continue.
+			while (true)
+			{
+				try
+				{
+					await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus);
+					break;
+				}
+				catch (CertificateNotYetValidException notYetValid)
+				{
+					SetStatus("Waiting for the signing certificate to become valid…");
+					var wait = new CertificateWaitPage(notYetValid.Result);
+					await Navigation.PushModalAsync(wait);
+					if (!await wait.Completion)
+					{
+						SetStatus("Installation cancelled — the signing certificate isn't valid yet.");
+						return;
+					}
+				}
+			}
 
 			SetStatus($"✓ Installed {appName}. Open the TV's Apps list to launch it.");
 			await Navigation.PushModalAsync(new InstallCompletePage(appName));
