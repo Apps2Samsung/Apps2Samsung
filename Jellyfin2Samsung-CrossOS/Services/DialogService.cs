@@ -1,9 +1,11 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Avalonia.Styling;
+using Avalonia.Threading;
+using Apps2Samsung.Certificate;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Extensions;
@@ -50,7 +52,8 @@ namespace Apps2Samsung.Services
             bool showButtons = false,
             TaskCompletionSource<bool>? tcs = null,
             string yesText = "Yes",
-            string noText = "No")
+            string noText = "No",
+            Action<Button, Button>? onButtonsCreated = null)
         {
             // Get theme from AppSettings
             var isDarkMode = AppSettings.Default.DarkMode;
@@ -148,6 +151,10 @@ namespace Apps2Samsung.Services
                 buttons.Children.Add(noButton);
 
                 mainPanel.Children.Add(buttons);
+
+                // Lets a caller keep hold of the buttons (e.g. to gate "Install now" on a countdown)
+                // instead of hunting for them in the visual tree by their label.
+                onButtonsCreated?.Invoke(yesButton, noButton);
             }
 
             dialog.Content = mainPanel;
@@ -304,6 +311,93 @@ namespace Apps2Samsung.Services
             if (window != null)
                 await dialog.ShowDialog(window);
 
+            return await tcs.Task;
+        }
+
+        public async Task<bool> ShowCertificateCountdownAsync(string title, string message, DateTime validFromLocal)
+        {
+            var window = GetMainWindow();
+            if (window == null)
+                return false;
+
+            var isDarkMode = AppSettings.Default.DarkMode;
+            var foregroundBrush = GetThemeBrush("SystemControlForegroundBaseHighBrush", isDarkMode);
+
+            var panel = new StackPanel { Spacing = 10 };
+            panel.Children.Add(new TextBlock
+            {
+                Text = message,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = foregroundBrush,
+                FontSize = 14,
+                Margin = new Thickness(0, 5, 0, 0)
+            });
+
+            // The countdown itself: big, monospaced digits so the ticking seconds don't reflow the text.
+            var countdown = new TextBlock
+            {
+                FontSize = 34,
+                FontWeight = FontWeight.Bold,
+                FontFamily = new FontFamily("Consolas, Menlo, monospace"),
+                Foreground = foregroundBrush,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 10, 0, 0)
+            };
+            panel.Children.Add(countdown);
+
+            var caption = new TextBlock
+            {
+                Text = "certificateCountdownCaption".Localized(),
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = foregroundBrush,
+                Opacity = 0.7,
+                FontSize = 12,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            panel.Children.Add(caption);
+
+            // "Install now" stays disabled until the certificate is actually valid; Cancel is always
+            // available (the wait can be hours if the clock is badly off).
+            var tcs = new TaskCompletionSource<bool>();
+            Button? installButton = null;
+            var dialog = CreateStyledDialog(
+                title, panel, showButtons: true, tcs: tcs,
+                yesText: "lblInstallNow".Localized(),
+                noText: "lblCancel".Localized(),
+                onButtonsCreated: (yes, _) => installButton = yes);
+
+            var validFromUtc = validFromLocal.ToUniversalTime();
+            void Tick()
+            {
+                var remaining = validFromUtc - DateTime.UtcNow;
+                if (remaining <= TimeSpan.Zero)
+                {
+                    countdown.Text = CertificateValidity.FormatCountdown(TimeSpan.Zero);
+                    caption.Text = "certificateCountdownReady".Localized();
+                    if (installButton != null)
+                        installButton.IsEnabled = true;
+                    return;
+                }
+
+                countdown.Text = CertificateValidity.FormatCountdown(remaining);
+            }
+
+            if (installButton != null)
+                installButton.IsEnabled = false;
+            Tick();
+
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            timer.Tick += (_, _) => Tick();
+            timer.Start();
+            // Closing via the window chrome (X) never resolves the TCS on its own — treat it as cancel,
+            // and always stop the timer so it can't outlive the dialog.
+            dialog.Closed += (_, _) =>
+            {
+                timer.Stop();
+                tcs.TrySetResult(false);
+            };
+
+            await dialog.ShowDialog(window);
             return await tcs.Task;
         }
 

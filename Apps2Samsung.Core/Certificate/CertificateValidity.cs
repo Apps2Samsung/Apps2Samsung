@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -33,6 +33,19 @@ namespace Apps2Samsung.Certificate
 
         /// <summary>Local time the certificate starts being accepted (null if unreadable).</summary>
         public DateTime? ValidFromLocal => NotBeforeUtc?.ToLocalTime();
+
+        /// <summary>
+        /// How long until the certificate starts being accepted; <see cref="TimeSpan.Zero"/> once it
+        /// is (so a countdown can simply tick this to zero and stop).
+        /// </summary>
+        public TimeSpan RemainingUntilValid(DateTime? utcNow = null)
+        {
+            if (NotBeforeUtc is null)
+                return TimeSpan.Zero;
+
+            var remaining = NotBeforeUtc.Value - (utcNow ?? DateTime.UtcNow);
+            return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
+        }
     }
 
     /// <summary>
@@ -42,19 +55,13 @@ namespace Apps2Samsung.Certificate
     /// validity period hasn't started yet (<c>install failed[118, -12] ... Certificate in signature
     /// is not valid yet</c>). Nothing about the package can fix that — the only cures are waiting
     /// until the certificate's start date or correcting a wrong clock — so checking before we sign
-    /// and push lets the heads say so instead of failing on the TV.
+    /// and push lets the heads hold the install and count down to the start date instead of failing
+    /// on the TV. Any <c>NotBefore</c> in the future blocks: there is no grace window, because the
+    /// TV grants none either.
     /// </para>
     /// </summary>
     public static class CertificateValidity
     {
-        /// <summary>
-        /// How far into the future <c>NotBefore</c> may sit before we call a certificate unusable.
-        /// A freshly minted Samsung certificate carries the issuing server's timestamp, which can be
-        /// slightly ahead of this machine's clock — blocking on that would break the normal "mint a
-        /// certificate, install immediately" flow.
-        /// </summary>
-        public static readonly TimeSpan NotBeforeTolerance = TimeSpan.FromMinutes(5);
-
         /// <summary>
         /// Checks the certificates an install signs with (author + distributor) and reports the first
         /// blocking problem, preferring "not yet valid" — the one the user can only wait out.
@@ -97,7 +104,7 @@ namespace Apps2Samsung.Certificate
                 var notBeforeUtc = cert.NotBefore.ToUniversalTime();
                 var notAfterUtc = cert.NotAfter.ToUniversalTime();
 
-                var state = notBeforeUtc - now > NotBeforeTolerance
+                var state = notBeforeUtc > now
                     ? CertificateValidityState.NotYetValid
                     : notAfterUtc < now
                         ? CertificateValidityState.Expired
@@ -119,8 +126,29 @@ namespace Apps2Samsung.Certificate
         }
 
         /// <summary>
+        /// The remaining wait as a countdown clock: <c>mm:ss</c> under an hour, <c>h:mm:ss</c> under a
+        /// day, <c>d.hh:mm:ss</c> beyond that. Shared so both heads tick the same way.
+        /// </summary>
+        public static string FormatCountdown(TimeSpan remaining)
+        {
+            if (remaining < TimeSpan.Zero)
+                remaining = TimeSpan.Zero;
+
+            // Round up: with 0.4s left a countdown should read 00:01, not 00:00 — it hits 00:00 only
+            // when the wait is genuinely over.
+            var seconds = (long)Math.Ceiling(remaining.TotalSeconds);
+            var t = TimeSpan.FromSeconds(seconds);
+
+            if (t.TotalDays >= 1)
+                return $"{t.Days}d {t.Hours:00}:{t.Minutes:00}:{t.Seconds:00}";
+            if (t.TotalHours >= 1)
+                return $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}";
+            return $"{t.Minutes:00}:{t.Seconds:00}";
+        }
+
+        /// <summary>
         /// Plain-English explanation of a not-yet-valid certificate, for heads without a localization
-        /// catalog (the mobile app).
+        /// catalog (the mobile app). The live countdown is rendered separately by the head.
         /// </summary>
         public static string DescribeNotYetValid(CertificateValidityResult result)
         {
@@ -129,8 +157,9 @@ namespace Apps2Samsung.Certificate
             return "Your signing certificate isn't valid yet" +
                    (when is null ? "" : $" — it only becomes valid on {when}") +
                    ". A Samsung TV refuses a package signed with a certificate whose validity period " +
-                   "hasn't started, so wait until then and install again. If that date looks wrong, " +
-                   "this device's clock is off: correct the date, time and time zone, then retry.";
+                   "hasn't started, so the install has to wait until the countdown reaches zero. If " +
+                   "that time looks wrong, this device's clock is off: correct the date, time and time " +
+                   "zone, then retry.";
         }
     }
 
