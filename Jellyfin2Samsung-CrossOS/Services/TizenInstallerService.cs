@@ -1,4 +1,4 @@
-using Apps2Samsung.Certificate;
+﻿using Apps2Samsung.Certificate;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.API;
@@ -12,6 +12,7 @@ using Apps2Samsung.Sdb;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -427,6 +428,33 @@ namespace Apps2Samsung.Services
 
                 if (!certificateResult.Success)
                     return certificateResult.InstallResult;
+
+                // Step 4b: the certificate we're about to sign with must already be inside its
+                // validity window. Tizen checks the signature against the TV's clock and refuses a
+                // certificate whose start date is still in the future ("Certificate in signature is
+                // not valid yet"); re-signing or overwriting can't help, only waiting. Stop here with
+                // a popup naming the moment it becomes usable instead of pushing a doomed package.
+                if (certificateResult.RequiresResign)
+                {
+                    var validity = CertificateValidity.CheckSigningProfile(
+                        certificateResult.AuthorP12,
+                        certificateResult.DistributorP12,
+                        certificateResult.P12Password);
+
+                    if (validity.IsNotYetValid)
+                    {
+                        _appSettings.TryOverwrite = false;
+                        var notYetValid = string.Format(
+                            Constants.LocalizationKeys.CertificateNotYetValid.Localized(),
+                            validity.ValidFromLocal?.ToString("f", CultureInfo.CurrentCulture) ?? string.Empty);
+
+                        progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
+                        await _dialogService.ShowMessageAsync(
+                            Constants.LocalizationKeys.CertificateNotYetValidTitle.Localized(),
+                            notYetValid);
+                        return InstallResult.FailureResult(notYetValid);
+                    }
+                }
 
                 // Step 5: Apply package configuration. Every matching patcher runs, in registration
                 // order, so app-specific patchers (channels/oblong) compose with the generic

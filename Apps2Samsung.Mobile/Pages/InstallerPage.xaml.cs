@@ -1,5 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Apps2Samsung.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Services;
@@ -407,6 +408,13 @@ public partial class InstallerPage : ContentPage
 		catch (TaskCanceledException)
 		{
 			SetStatus("Sign-in cancelled.");
+		}
+		catch (CertificateNotYetValidException ex)
+		{
+			// Nothing to retry: the signing certificate's validity period hasn't started, so the TV
+			// would reject the package. Surface it as a popup so the wait isn't missed in the log.
+			SetStatus("Certificate isn't valid yet — install cancelled.");
+			await DisplayAlert("Certificate isn't valid yet", ex.Message, "OK");
 		}
 		catch (Exception ex)
 		{
