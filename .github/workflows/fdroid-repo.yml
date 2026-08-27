@@ -22,16 +22,16 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     env:
-      PUSH_TOKEN: ${{ secrets.FDROID_PUSH_TOKEN }}
+      PUSH_TOKEN: ${{ secrets.CI_PUSH_TOKEN }}
     steps:
       - name: Check the push token is configured
         run: |
           set -euo pipefail
           if [ -z "${PUSH_TOKEN:-}" ]; then
-            echo "::error::FDROID_PUSH_TOKEN is not set. The publish step pushes straight to"
+            echo "::error::CI_PUSH_TOKEN is not set. The publish step pushes straight to"
             echo "::error::\`beta\`, which the 'Required PR checks' ruleset guards; GITHUB_TOKEN"
             echo "::error::pushes on write level and is rejected there. Add a fine-grained PAT"
-            echo "::error::(Contents: read/write) owned by a repo admin as FDROID_PUSH_TOKEN."
+            echo "::error::(Contents: read/write) owned by a repo admin as CI_PUSH_TOKEN."
             exit 1
           fi
 
@@ -42,7 +42,7 @@ jobs:
           # Admins are on the ruleset's bypass list, GITHUB_TOKEN is not — and the commit
           # below carries [skip ci], so the required checks can never report on it anyway.
           # Checking out with the PAT makes the push at the end use it too.
-          token: ${{ secrets.FDROID_PUSH_TOKEN }}
+          token: ${{ secrets.CI_PUSH_TOKEN }}
 
       - name: Set up Java
         uses: actions/setup-java@v4

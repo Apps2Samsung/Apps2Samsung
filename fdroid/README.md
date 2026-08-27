@@ -34,13 +34,14 @@ Add these **repository secrets** (Settings → Secrets and variables → Actions
 | `FDROID_KEYSTORE_PASS`   | the keystore password you chose |
 | `FDROID_KEY_ALIAS`       | `apps2samsung` |
 | `FDROID_KEY_PASS`        | same as `FDROID_KEYSTORE_PASS` (PKCS12) |
-| `FDROID_PUSH_TOKEN`      | fine-grained PAT of a **repo admin**, this repo only, *Contents: read/write* |
+| `CI_PUSH_TOKEN`          | fine-grained PAT of a **repo admin**, this repo only, *Contents: read/write* |
 
-`FDROID_PUSH_TOKEN` exists because the workflow commits the built index straight to
+`CI_PUSH_TOKEN` exists because the workflow commits the built index straight to
 `beta`, and the *Required PR checks* ruleset guards that branch. The default
 `GITHUB_TOKEN` pushes on write level and is rejected (`3 of 3 required status checks are
 expected`) — and since the commit carries `[skip ci]`, those checks can never report on
 it either. Admins are on the ruleset's bypass list, so a PAT owned by one gets through.
+`update-version-table.yml` pushes to `beta` for the same reason and uses the same secret.
 **The token expires**: when it does, the publish step starts failing on the push — mint a
 new one and update the secret.
 
