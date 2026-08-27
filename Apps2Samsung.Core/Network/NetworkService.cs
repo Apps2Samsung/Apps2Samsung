@@ -132,7 +132,7 @@ namespace Apps2Samsung.Services
                             // Debug port closed, but the TV REST API (8001) answers: the TV is
                             // there but not ready (Developer Mode not fully active). Surface it as
                             // "not ready" so the user gets an actionable hint instead of "no devices".
-                            // DeviceHelper enriches it via /api/v2/ (name, developerMode, developerIP).
+                            // TizenDeveloperInfo enriches it via /api/v2/ (name, developerMode, developerIP).
                             else if (await IsPortOpenAsync(ip, SamsungTvApiPort, linkedCts.Token))
                             {
                                 var device = new NetworkDevice
@@ -423,15 +423,25 @@ namespace Apps2Samsung.Services
             return $"{bytes[0]}.{bytes[1]}.{bytes[2]}.{bytes[3]}";
         }
 
-        // Looks up the subnet mask assigned to a local interface IP.
+        // Looks up the subnet mask assigned to a local interface IP. Returns null when it can't be
+        // determined — including on Android, where IPv4Mask isn't implemented and throws; callers
+        // fall back to /24 rather than losing the comparison entirely.
         private static IPAddress? GetMaskForLocalIp(IPAddress target)
         {
-            return NetworkInterface.GetAllNetworkInterfaces()
-                .Where(ni => ni.OperationalStatus == OperationalStatus.Up)
-                .SelectMany(ni => ni.GetIPProperties().UnicastAddresses)
-                .Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork)
-                .FirstOrDefault(ua => ua.Address.Equals(target))
-                ?.IPv4Mask;
+            try
+            {
+                return NetworkInterface.GetAllNetworkInterfaces()
+                    .Where(ni => ni.OperationalStatus == OperationalStatus.Up)
+                    .SelectMany(ni => ni.GetIPProperties().UnicastAddresses)
+                    .Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork)
+                    .FirstOrDefault(ua => ua.Address.Equals(target))
+                    ?.IPv4Mask;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Network] Subnet mask lookup failed for {target}: {ex.Message}");
+                return null;
+            }
         }
 
         public string GetLocalIPAddress()

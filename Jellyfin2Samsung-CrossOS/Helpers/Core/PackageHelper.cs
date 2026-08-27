@@ -42,43 +42,6 @@ namespace Apps2Samsung.Helpers.Core
         }
         public async Task<bool> InstallPackageAsync(string? packagePath, NetworkDevice selectedDevice, CancellationToken cancellationToken, ProgressCallback? progress = null, Action? onSamsungLoginStarted = null)
         {
-            // A TV detected only via the REST API (8001) has Developer Mode on but its SDB debug port
-            // (26101) isn't up yet — installing can't work until the TV is restarted. Gate it like the
-            // other pre-install confirmations: let the user stop (and restart the TV) or continue.
-            if (TizenDeviceReadiness.RequiresRestart(selectedDevice))
-            {
-                bool continueAnyway = await _dialogService.ShowConfirmationAsync(
-                    "restartRequiredTitle".Localized(),
-                    "restartRequiredBody".Localized(),
-                    "keyContinue".Localized(),
-                    "keyStop".Localized());
-                if (!continueAnyway)
-                    return false;
-            }
-
-            if(selectedDevice.DeveloperIP == null) return false;
-
-            var localIps = _networkService.GetRelevantLocalIPs()
-                              .Select(ip => ip.ToString())
-                              .ToList();
-
-            bool ipMismatch = !localIps.Contains(selectedDevice.DeveloperIP) && !string.IsNullOrEmpty(selectedDevice.DeveloperIP);
-
-            if (!string.IsNullOrEmpty(AppSettings.Default.LocalIp)
-                && !string.IsNullOrEmpty(selectedDevice.DeveloperIP)
-                && _networkService.IsDifferentSubnet(AppSettings.Default.LocalIp, selectedDevice.DeveloperIP))
-            {
-                bool continueExecution =
-                    await _dialogService.ShowConfirmationAsync(
-                        "Subnet Mismatch",
-                        "subnetMismatch".Localized(),
-                        "keyContinue".Localized(),
-                        "keyStop".Localized());
-
-                if (!continueExecution)
-                    return false;
-            }
-
             if (string.IsNullOrEmpty(packagePath) || !File.Exists(packagePath))
             {
                 progress?.Invoke("NoPackageToInstall".Localized());
@@ -93,48 +56,40 @@ namespace Apps2Samsung.Helpers.Core
                 return false;
             }
 
-            if (selectedDevice.DeveloperMode == "0")
-            {
-                bool devmodeExecution = await _dialogService.ShowConfirmationAsync("Developer Disabled", "DeveloperModeRequired".Localized(), "keyContinue".Localized(), "keyStop".Localized());
-                if (!devmodeExecution)
-                    return false;
-            }
-
-            if (ipMismatch && AppSettings.Default.RTLReading)
-            {
-                ipMismatch = !localIps
-                    .Select(ip => _networkService.InvertIPAddress(ip))
-                    .Contains(selectedDevice.DeveloperIP);
-
-                if (!ipMismatch)
-                    selectedDevice.IpAddress = selectedDevice.DeveloperIP;
-            }
-
-            if (ipMismatch)
-            {
-                bool isReversedIp = localIps
-                    .Select(ip => _networkService.InvertIPAddress(ip))
-                    .Contains(selectedDevice.DeveloperIP);
-
-                if (isReversedIp)
+            // Shared pre-install guards: Developer Mode off, a Developer-Mode IP pointing at another
+            // machine (or typed back to front), a TV on another subnet, and a TV whose install service
+            // isn't up yet. Same checks and wording as the mobile head — see Core InstallGuards.
+            var guardResult = InstallGuards.Evaluate(
+                selectedDevice,
+                new InstallGuardOptions
                 {
-                    bool continueExecution = await _dialogService.ShowConfirmationAsync(
-                        "IP Reversed",
-                        "DeveloperIPReversed".Localized(),
-                        "keyContinue".Localized(),
-                        "keyStop".Localized());
-                    if (!continueExecution)
-                        return false;
-                    ipMismatch = false;
-                }
-            }
+                    LocalIps = _networkService.GetRelevantLocalIPs().Select(ip => ip.ToString()).ToList(),
+                    ConfiguredLocalIp = AppSettings.Default.LocalIp,
+                    ReversedIpReading = AppSettings.Default.RTLReading,
+                },
+                _networkService);
 
-            if (ipMismatch)
+            foreach (var guard in guardResult.Guards)
             {
-                bool continueExecution = await _dialogService.ShowConfirmationAsync("IP Mismatch", "DeveloperIPMismatch".Localized(), "keyContinue".Localized(), "keyStop".Localized());
+                // Detail is measured facts (the IPs involved), not translatable prose.
+                var message = string.IsNullOrEmpty(guard.Detail)
+                    ? guard.MessageKey.Localized()
+                    : $"{guard.MessageKey.Localized()}\n\n{guard.Detail}";
+
+                bool continueExecution = await _dialogService.ShowConfirmationAsync(
+                    guard.TitleKey.Localized(),
+                    message,
+                    "keyContinue".Localized(),
+                    "keyStop".Localized());
+
                 if (!continueExecution)
                     return false;
             }
+
+            // The TV's Developer-Mode IP read back to front matches ours and the user reads IPs
+            // right-to-left, so that reversed address is the one to install to.
+            if (guardResult.CorrectedTvIp is not null)
+                selectedDevice.IpAddress = guardResult.CorrectedTvIp;
 
             try
             {
