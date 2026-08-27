@@ -6,14 +6,13 @@ name: PR build
 # on a normal dev machine — only surfaced *after* the merge, where it breaks the beta release.
 # Build both heads here instead, so a PR can't merge a head that doesn't compile.
 
+# Both jobs are required status checks on the Default ruleset, so there is deliberately no
+# `paths:` filter: a check that never runs is never reported, and a required check that is never
+# reported blocks the PR forever. A docs-only PR therefore pays ~3 minutes of Android build
+# rather than hanging.
+
 on:
   pull_request:
-    paths:
-      - 'Apps2Samsung.Core/**'
-      - 'Apps2Samsung.Mobile/**'
-      - 'Jellyfin2Samsung-CrossOS/**'
-      - 'Apps2Samsung.sln'
-      - '.github/workflows/pr-build.yml'
   workflow_dispatch:
 
 concurrency:
