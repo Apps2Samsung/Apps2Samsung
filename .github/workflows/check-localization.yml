@@ -5,13 +5,9 @@ name: Localization check
 # code but missing from en.json, or if a new hard-coded UI string is added instead of a key.
 
 on:
+  # No `paths:` filter here either — this is a required status check (see pr-build.yml), and a
+  # filtered-out check is never reported, which blocks the PR. The script takes ~7s.
   pull_request:
-    paths:
-      - 'Jellyfin2Samsung-CrossOS/**/*.cs'
-      - 'Jellyfin2Samsung-CrossOS/**/*.axaml'
-      - 'Jellyfin2Samsung-CrossOS/Assets/Localization/en.json'
-      - '.github/scripts/check_localization.py'
-      - '.github/workflows/check-localization.yml'
   push:
     branches: [beta, master]
     paths:

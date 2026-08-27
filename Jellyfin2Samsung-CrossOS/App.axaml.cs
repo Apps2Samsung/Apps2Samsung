@@ -10,7 +10,6 @@ using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Helpers.Jellyfin;
 using Apps2Samsung.Helpers.Jellyfin.Plugins;
 using Apps2Samsung.Helpers.Tizen.Certificate;
-using Apps2Samsung.Helpers.Tizen.Devices;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Services;
 using Apps2Samsung.ViewModels;
@@ -117,7 +116,6 @@ namespace Apps2Samsung
             // Shared reuse-aware cert provisioning (single source of truth with the mobile head).
             services.AddSingleton<Apps2Samsung.Certificate.CertificateProvisioningService>();
             services.AddSingleton<JellyfinApiClient>();
-            services.AddSingleton<TizenApiClient>();
             services.AddSingleton<PluginManager>();
             services.AddSingleton<JellyfinPackagePatcher>();
 
@@ -145,7 +143,6 @@ namespace Apps2Samsung
             // --------------------
             // Helpers
             // --------------------
-            services.AddSingleton<DeviceHelper>();
             services.AddSingleton<PackageHelper>();
             services.AddSingleton<CertificateHelper>();
             services.AddSingleton<FileHelper>();

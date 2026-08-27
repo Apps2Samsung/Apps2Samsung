@@ -12,6 +12,7 @@ using Apps2Samsung.Sdb;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -427,6 +428,44 @@ namespace Apps2Samsung.Services
 
                 if (!certificateResult.Success)
                     return certificateResult.InstallResult;
+
+                // Step 4b: the certificate we're about to sign with must already be inside its
+                // validity window. Tizen checks the signature against the TV's clock and refuses a
+                // certificate whose start date is still in the future ("Certificate in signature is
+                // not valid yet"); re-signing or overwriting can't help — only waiting. So hold the
+                // install here and count down to the start date instead of pushing a doomed package.
+                // Loops because the certificate is re-checked after the wait: only a genuinely valid
+                // certificate gets past this point.
+                while (certificateResult.RequiresResign)
+                {
+                    var validity = CertificateValidity.CheckSigningProfile(
+                        certificateResult.AuthorP12,
+                        certificateResult.DistributorP12,
+                        certificateResult.P12Password);
+
+                    if (!validity.IsNotYetValid)
+                        break;
+
+                    var validFrom = validity.ValidFromLocal!.Value;
+                    var waitMessage = string.Format(
+                        Constants.LocalizationKeys.CertificateNotYetValid.Localized(),
+                        validFrom.ToString("f", CultureInfo.CurrentCulture));
+
+                    progress?.Invoke(Constants.LocalizationKeys.CertificateWaiting.Localized());
+                    var proceed = await _dialogService.ShowCertificateCountdownAsync(
+                        Constants.LocalizationKeys.CertificateNotYetValidTitle.Localized(),
+                        waitMessage,
+                        validFrom);
+
+                    if (!proceed)
+                    {
+                        // Cancelled during the wait — a deliberate stop, not a failed install.
+                        _appSettings.TryOverwrite = false;
+                        progress?.Invoke(Constants.LocalizationKeys.CertificateWaitCancelled.Localized());
+                        return InstallResult.FailureResult(
+                            Constants.LocalizationKeys.CertificateWaitCancelled.Localized());
+                    }
+                }
 
                 // Step 5: Apply package configuration. Every matching patcher runs, in registration
                 // order, so app-specific patchers (channels/oblong) compose with the generic

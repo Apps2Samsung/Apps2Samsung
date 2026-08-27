@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Apps2Samsung.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Services;
@@ -33,9 +34,11 @@ public partial class InstallerPage : ContentPage
 	// manually added). The picker also shows a trailing ManualIpLabel entry that isn't in these.
 	private readonly List<string> _tvIps = new();
 	private readonly List<string> _tvLabels = new();
-	// Per-TV readiness, index-aligned with _tvIps: false = detected via the REST API only (SDB debug
-	// port not up yet), so it needs a restart before it can be installed to.
-	private readonly List<bool> _tvReady = new();
+	// Per-TV scan result, index-aligned with _tvIps (null for a hand-typed IP the TV's REST API didn't
+	// answer for). Carries DebugPortOpen — false = detected via the REST API only (SDB debug port not
+	// up yet), so it needs a restart before it can be installed to — plus the Developer-Mode fields
+	// the shared pre-install guards check.
+	private readonly List<NetworkDevice?> _tvDevices = new();
 	// Suppresses OnTvChanged while we rebuild the picker programmatically.
 	private bool _rebuildingTvPicker;
 	// The catalog releases backing AppPicker; the selected release's assets back VersionPicker.
@@ -231,7 +234,12 @@ public partial class InstallerPage : ContentPage
 		if (_rebuildingTvPicker)
 			return;
 		if ((TvPicker.SelectedItem as string) == ManualIpLabel)
+		{
 			await PromptManualIpAsync();
+			return;
+		}
+
+		SetStatus(SelectedTvStatus());
 	}
 
 	// Prompts for a TV IP the scan didn't discover, validates it, and adds it as a selectable entry.
@@ -255,9 +263,13 @@ public partial class InstallerPage : ContentPage
 		var idx = _tvIps.IndexOf(ip);
 		if (idx < 0)
 		{
+			// Ask the TV's REST API for its Developer-Mode state so a hand-typed IP gets the same
+			// pre-install guards as a scanned one. Nothing is lost when it doesn't answer: the entry
+			// is still added (assumed ready, a real SDB error surfaces at install) and stays unguarded.
+			var probed = await ProbeTvAsync(ip);
 			_tvIps.Add(ip);
 			_tvLabels.Add($"{ip} (manual)");
-			_tvReady.Add(true); // manual IPs are assumed ready; a real SDB error surfaces if not
+			_tvDevices.Add(probed);
 			idx = _tvIps.Count - 1;
 		}
 		RebuildTvPicker(idx);
@@ -286,7 +298,7 @@ public partial class InstallerPage : ContentPage
 		var idx = TvPicker.SelectedIndex;
 		var tvIp = _tvIps[idx];
 		var label = TvPicker.SelectedItem as string ?? tvIp;
-		var debugPortOpen = idx >= _tvReady.Count || _tvReady[idx];
+		var debugPortOpen = idx >= _tvDevices.Count || (_tvDevices[idx]?.DebugPortOpen ?? true);
 		await Navigation.PushAsync(new DeviceInfoPage(_sdb, tvIp, label, debugPortOpen));
 	}
 
@@ -306,8 +318,10 @@ public partial class InstallerPage : ContentPage
 		{
 			// Keep not-ready TVs (REST API answered but the SDB debug port isn't up): they're shown
 			// with a ⚠ marker so the user knows the TV was found but needs a restart first, instead of
-			// silently disappearing from the list.
-			var devices = (await _networkService.GetLocalTizenAddresses()).ToList();
+			// silently disappearing from the list. The shared scan also enriches every TV with its
+			// Developer-Mode state (name, developerMode, developerIP) — what the guards below and the
+			// not-ready hint need to tell the user what to fix.
+			var devices = await TizenDeveloperInfo.ScanAsync(_networkService);
 
 			var selected = TvPicker.SelectedIndex >= 0 && TvPicker.SelectedIndex < _tvIps.Count
 				? _tvIps[TvPicker.SelectedIndex]
@@ -315,23 +329,20 @@ public partial class InstallerPage : ContentPage
 
 			_tvIps.Clear();
 			_tvLabels.Clear();
-			_tvReady.Clear();
+			_tvDevices.Clear();
 			foreach (var d in devices)
 			{
 				_tvIps.Add(d.IpAddress);
 				_tvLabels.Add(d.DisplayText);
-				_tvReady.Add(d.DebugPortOpen);
+				_tvDevices.Add(d);
 			}
 
 			var keep = selected is null ? -1 : _tvIps.IndexOf(selected);
 			RebuildTvPicker(_tvIps.Count > 0 ? (keep >= 0 ? keep : 0) : -1);
 
-			var notReady = _tvReady.Count(r => !r);
 			SetStatus(_tvIps.Count == 0
 				? "No TVs found. Enable Developer Mode on the TV and refresh, or tap the TV list to enter an IP manually."
-				: notReady > 0
-					? $"Found {_tvIps.Count} TV(s). ⚠ {notReady} need a restart before installing."
-					: "Ready for use…");
+				: SelectedTvStatus());
 		}
 		catch (Exception ex)
 		{
@@ -351,18 +362,6 @@ public partial class InstallerPage : ContentPage
 			return;
 		}
 
-		// The selected TV answered on the REST API but its SDB debug port isn't up yet — it can't be
-		// installed to until it's restarted. Warn (Continue/Stop) like the desktop head does.
-		if (TvPicker.SelectedIndex < _tvReady.Count && !_tvReady[TvPicker.SelectedIndex])
-		{
-			bool continueAnyway = await DisplayAlert(
-				TizenDeviceReadiness.RestartTitle,
-				TizenDeviceReadiness.RestartInstructions,
-				"Continue", "Stop");
-			if (!continueAnyway)
-				return;
-		}
-
 		var custom = CustomSelected;
 		if (custom)
 		{
@@ -377,6 +376,29 @@ public partial class InstallerPage : ContentPage
 		}
 
 		var tvIp = _tvIps[TvPicker.SelectedIndex];
+
+		// Shared pre-install guards (Core): a TV that still needs a restart, Developer Mode off, a
+		// Developer-Mode IP pointing at another device or typed back to front, a TV on another subnet.
+		// Same checks and wording as the desktop head — each one is Continue/Stop, never a hard block.
+		var guardResult = InstallGuards.Evaluate(
+			_tvDevices[TvPicker.SelectedIndex],
+			new InstallGuardOptions
+			{
+				LocalIps = LocalIps(),
+				ConfiguredLocalIp = NetworkInfo.GetLocalIPv4(),
+			},
+			_networkService);
+
+		foreach (var guard in guardResult.Guards)
+		{
+			bool continueAnyway = await DisplayAlert(
+				guard.DefaultTitle, guard.DefaultMessageWithDetail, "Continue", "Stop");
+			if (!continueAnyway)
+				return;
+		}
+
+		tvIp = guardResult.CorrectedTvIp ?? tvIp;
+
 		var asset = custom ? null : _versions[VersionPicker.SelectedIndex];
 		var appName = custom
 			? Path.GetFileNameWithoutExtension(_customWgtPath!)
@@ -399,7 +421,30 @@ public partial class InstallerPage : ContentPage
 			// Provisioning reuses a valid cert already covering this TV and only triggers a Samsung
 			// sign-in when it must (re)generate — so no login prompt when a cert is already in place.
 			var cert = await _certProvisioner.ProvisionAsync(tvIp, needsPartner, SetStatus);
-			await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus);
+
+			// The signing certificate's validity period may not have started yet — a Samsung TV
+			// rejects such a package ("Certificate in signature is not valid yet"). Hold the install
+			// behind a countdown to the moment it becomes valid instead of pushing something the TV
+			// will refuse; the loop re-runs the check once the user chooses to continue.
+			while (true)
+			{
+				try
+				{
+					await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus);
+					break;
+				}
+				catch (CertificateNotYetValidException notYetValid)
+				{
+					SetStatus("Waiting for the signing certificate to become valid…");
+					var wait = new CertificateWaitPage(notYetValid.Result);
+					await Navigation.PushModalAsync(wait);
+					if (!await wait.Completion)
+					{
+						SetStatus("Installation cancelled — the signing certificate isn't valid yet.");
+						return;
+					}
+				}
+			}
 
 			SetStatus($"✓ Installed {appName}. Open the TV's Apps list to launch it.");
 			await Navigation.PushModalAsync(new InstallCompletePage(appName));
@@ -427,6 +472,57 @@ public partial class InstallerPage : ContentPage
 			InstallBtn.IsEnabled = true;
 			RefreshBtn.IsEnabled = true;
 		}
+	}
+
+	// The IPs this phone answers on — what the guards compare the TV's Developer-Mode IP against.
+	// On Android interface enumeration classifies nothing, so this resolves to the socket-derived
+	// phone IP the scanner is configured with (empty when offline: the guards then skip the IP
+	// checks rather than guess).
+	private List<string> LocalIps()
+	{
+		try
+		{
+			return _networkService.GetRelevantLocalIPs().Select(ip => ip.ToString()).ToList();
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[installer] Couldn't enumerate local IPs: {ex.Message}");
+			return new List<string>();
+		}
+	}
+
+	// Reads a TV's Developer-Mode state over its REST API; null when it doesn't answer.
+	private async Task<NetworkDevice?> ProbeTvAsync(string ip)
+	{
+		try
+		{
+			var enriched = await TizenDeveloperInfo.EnrichAsync(
+				_networkService, new[] { new NetworkDevice { IpAddress = ip } });
+			return enriched.FirstOrDefault();
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[installer] Couldn't read TV info for {ip}: {ex.Message}");
+			return null;
+		}
+	}
+
+	// Status line for the current selection. A TV that isn't installable yet gets the actual reason
+	// (Developer Mode off, its Developer-Mode IP pointing at another device, or a power cycle needed)
+	// instead of a bare count — the same guidance the desktop head shows.
+	private string SelectedTvStatus()
+	{
+		var idx = TvPicker.SelectedIndex;
+		var device = idx >= 0 && idx < _tvDevices.Count ? _tvDevices[idx] : null;
+		var localIp = NetworkInfo.GetLocalIPv4();
+
+		if (device is { DebugPortOpen: false })
+			return TizenDeviceReadiness.Describe(TizenDeviceReadiness.WhyNotReady(device, localIp), localIp);
+
+		var notReady = _tvDevices.Count(d => d is { DebugPortOpen: false });
+		return notReady > 0
+			? $"Found {_tvIps.Count} TV(s). ⚠ {notReady} not ready — select one to see why."
+			: "Ready for use…";
 	}
 
 	private void SetStatus(string message)

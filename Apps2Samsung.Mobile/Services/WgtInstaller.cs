@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Xml.Linq;
+using Apps2Samsung.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Packaging;
@@ -128,6 +129,14 @@ public sealed class WgtInstaller
 			progress?.Invoke("Applying customizations…");
 			await patcher.ApplyAsync(wgtPath);
 		}
+
+		// The certificate must already be inside its validity window: Tizen checks the signature
+		// against the TV's clock and refuses one whose start date is still in the future
+		// ("Certificate in signature is not valid yet"). Only waiting fixes that, so stop before we
+		// sign and push — InstallerPage turns this into a popup naming the moment it becomes usable.
+		var validity = CertificateValidity.CheckSigningProfile(cert.AuthorP12, cert.DistributorP12, cert.Password);
+		if (validity.IsNotYetValid)
+			throw new CertificateNotYetValidException(validity);
 
 		progress?.Invoke("Re-signing package…");
 		var resign = await _sdb.ResignAsync(wgtPath, cert.AuthorP12, cert.DistributorP12, cert.Password);

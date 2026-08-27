@@ -1,3 +1,4 @@
+using System;
 using Apps2Samsung.Models;
 
 namespace Apps2Samsung.Services
@@ -30,5 +31,64 @@ namespace Apps2Samsung.Services
             "• Press and hold the TV's power button until it fully shuts down, then turn it back on, or\n" +
             "• Unplug the TV from power for a minute or two, then plug it back in.\n\n" +
             "After it restarts, scan again and the TV will be ready.";
+
+        /// <summary>Why a detected TV isn't installable yet.</summary>
+        public enum NotReadyReason
+        {
+            /// <summary>The TV reports Developer Mode off.</summary>
+            DeveloperModeOff,
+            /// <summary>Developer Mode points at a different machine than this one.</summary>
+            DeveloperIpMismatch,
+            /// <summary>Developer Mode looks right; the TV just hasn't been restarted since.</summary>
+            PowerCycle,
+        }
+
+        /// <summary>
+        /// Actionable reason a TV was detected but isn't installable yet (debug port closed), picked
+        /// from what /api/v2/ reported. <paramref name="localIp"/> is this machine's / this phone's own
+        /// address; leave it empty to skip the IP comparison.
+        /// </summary>
+        public static NotReadyReason WhyNotReady(NetworkDevice device, string? localIp)
+        {
+            if (!string.Equals(device.DeveloperMode, "1", StringComparison.Ordinal))
+                return NotReadyReason.DeveloperModeOff;
+
+            if (!string.IsNullOrEmpty(device.DeveloperIP) &&
+                !string.IsNullOrEmpty(localIp) &&
+                !string.Equals(device.DeveloperIP, localIp, StringComparison.Ordinal))
+                return NotReadyReason.DeveloperIpMismatch;
+
+            return NotReadyReason.PowerCycle;
+        }
+
+        /// <summary>The desktop head's localization key for a reason (its en.json copy says "this PC").</summary>
+        public static string MessageKey(NotReadyReason reason) => reason switch
+        {
+            NotReadyReason.DeveloperModeOff => "DevNotReadyEnableDevMode",
+            NotReadyReason.DeveloperIpMismatch => "DevNotReadyIpMismatch",
+            _ => "DevNotReadyPowerCycle",
+        };
+
+        /// <summary>
+        /// The same guidance in English for the mobile head, which has no localization layer. Names
+        /// the local IP when it's known, since "enter this device's IP" is the step people get wrong.
+        /// </summary>
+        public static string Describe(NotReadyReason reason, string? localIp = null)
+        {
+            var thisDevice = string.IsNullOrEmpty(localIp) ? "this device's IP" : $"this device's IP ({localIp})";
+
+            return reason switch
+            {
+                NotReadyReason.DeveloperModeOff =>
+                    "\u26a0 TV detected, but Developer Mode is off. On the TV: open Apps, type 1 2 3 4 5, " +
+                    $"switch Developer Mode On, enter {thisDevice}, restart the TV, then rescan.",
+                NotReadyReason.DeveloperIpMismatch =>
+                    "\u26a0 TV detected, but its Developer Mode IP points at another device. Re-enter " +
+                    $"{thisDevice} in the TV's Developer Mode settings, power-cycle the TV, then rescan.",
+                _ =>
+                    "\u26a0 TV detected and Developer Mode is on, but its debug port isn't responding yet. " +
+                    "Fully power-cycle the TV (unplug ~30s), then rescan.",
+            };
+        }
     }
 }
