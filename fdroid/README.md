@@ -34,6 +34,15 @@ Add these **repository secrets** (Settings → Secrets and variables → Actions
 | `FDROID_KEYSTORE_PASS`   | the keystore password you chose |
 | `FDROID_KEY_ALIAS`       | `apps2samsung` |
 | `FDROID_KEY_PASS`        | same as `FDROID_KEYSTORE_PASS` (PKCS12) |
+| `FDROID_PUSH_TOKEN`      | fine-grained PAT of a **repo admin**, this repo only, *Contents: read/write* |
+
+`FDROID_PUSH_TOKEN` exists because the workflow commits the built index straight to
+`beta`, and the *Required PR checks* ruleset guards that branch. The default
+`GITHUB_TOKEN` pushes on write level and is rejected (`3 of 3 required status checks are
+expected`) — and since the commit carries `[skip ci]`, those checks can never report on
+it either. Admins are on the ruleset's bypass list, so a PAT owned by one gets through.
+**The token expires**: when it does, the publish step starts failing on the push — mint a
+new one and update the secret.
 
 ⚠️ Keep `fdroid-repo.p12` and its password safe and **reuse the same keystore forever** —
 if it changes, existing users' F-Droid clients reject the repo and must re-add it.
