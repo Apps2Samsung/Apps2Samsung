@@ -141,25 +141,13 @@ public partial class SettingsPage : ContentPage
 	{
 		try
 		{
-			// Accept .zip archives. FilePickerFileType is per-platform; on Android match by MIME + extension.
-			var zipTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-			{
-				[DevicePlatform.Android] = new[] { "application/zip", "application/octet-stream" },
-				[DevicePlatform.iOS] = new[] { "public.zip-archive" },
-				[DevicePlatform.MacCatalyst] = new[] { "public.zip-archive" },
-				[DevicePlatform.WinUI] = new[] { ".zip" },
-			});
-
-			var result = await FilePicker.Default.PickAsync(new PickOptions
-			{
-				PickerTitle = "Select an Apps2Samsung backup (.zip)",
-				FileTypes = zipTypes,
-			});
-			if (result is null)
+			// Some file managers hand a .zip to the picker as application/octet-stream.
+			var picked = await SafFilePicker.PickAsync("application/zip", "application/octet-stream");
+			if (picked is null)
 				return;
 
 			BackupImportResult import;
-			using (var stream = await result.OpenReadAsync())
+			using (var stream = File.OpenRead(picked.LocalPath))
 				import = BackupService.Import(stream, CertStorePath);
 
 			if (!string.IsNullOrEmpty(import.SettingsJson))
