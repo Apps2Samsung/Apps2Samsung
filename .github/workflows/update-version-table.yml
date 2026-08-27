@@ -21,7 +21,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # The step below commits to `beta`, which the "Required PR checks" ruleset guards.
+          # GITHUB_TOKEN pushes as github-actions[bot] on write level and is rejected there
+          # ("3 of 3 required status checks are expected"); a repo admin is on the bypass list.
+          # See fdroid/README.md for what CI_PUSH_TOKEN is and when it has to be renewed.
+          token: ${{ secrets.CI_PUSH_TOKEN }}
           ref: beta
       - name: Fetch latest releases
         id: releases
