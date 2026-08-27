@@ -4,9 +4,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Apps2Samsung.Helpers;
-using Apps2Samsung.Helpers.API;
 using Apps2Samsung.Helpers.Core;
-using Apps2Samsung.Helpers.Tizen.Devices;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Services;
@@ -32,8 +30,6 @@ namespace Apps2Samsung.ViewModels
         private readonly IUpdaterService _updaterService;
         private readonly IUpdateDialogService _updateDialogService;
         private readonly FileHelper _fileHelper;
-        private readonly DeviceHelper _deviceHelper;
-        private readonly TizenApiClient _tizenApiClient;
         private readonly PackageHelper _packageHelper;
         private readonly SettingsWindowViewModel _settingsViewModel;
         private readonly AddLatestRelease _addLatestRelease;
@@ -117,8 +113,6 @@ namespace Apps2Samsung.ViewModels
             IUpdaterService updaterService,
             IUpdateDialogService updateDialogService,
             HttpClient httpClient,
-            DeviceHelper deviceHelper,
-            TizenApiClient tizenApiClient,
             PackageHelper packageHelper,
             FileHelper fileHelper,
             SettingsWindowViewModel settingsViewModel
@@ -127,8 +121,6 @@ namespace Apps2Samsung.ViewModels
             _tizenInstaller = tizenInstaller;
             _dialogService = dialogService;
             _networkService = networkService;
-            _deviceHelper = deviceHelper;
-            _tizenApiClient = tizenApiClient;
             _packageHelper = packageHelper;
             _localizationService = localizationService;
             _themeService = themeService;
@@ -722,20 +714,10 @@ namespace Apps2Samsung.ViewModels
         }
 
         // Actionable status-bar message for a TV that was detected but isn't installable yet
-        // (debug port closed). Picks the right guidance from what /api/v2/ reported.
-        private static string DeviceNotReadyStatusKey(NetworkDevice device)
-        {
-            if (!string.Equals(device.DeveloperMode, "1", StringComparison.Ordinal))
-                return "DevNotReadyEnableDevMode";
-
-            var localIp = AppSettings.Default.LocalIp;
-            if (!string.IsNullOrEmpty(device.DeveloperIP) &&
-                !string.IsNullOrEmpty(localIp) &&
-                !string.Equals(device.DeveloperIP, localIp, StringComparison.Ordinal))
-                return "DevNotReadyIpMismatch";
-
-            return "DevNotReadyPowerCycle";
-        }
+        // (debug port closed). The classification is shared with the mobile head (Core).
+        private static string DeviceNotReadyStatusKey(NetworkDevice device) =>
+            TizenDeviceReadiness.MessageKey(
+                TizenDeviceReadiness.WhyNotReady(device, AppSettings.Default.LocalIp));
 
 
         // True once the release list holds something other than the always-present
@@ -857,7 +839,8 @@ namespace Apps2Samsung.ViewModels
             {
                 string? selectedIp = SelectedDevice?.IpAddress;
 
-                var devices = await _deviceHelper.ScanForDevicesAsync(cancellationToken, virtualScan);
+                // Scan + Developer-Mode enrichment, shared with the mobile head (Core).
+                var devices = await TizenDeveloperInfo.ScanAsync(_networkService, cancellationToken, virtualScan);
                 foreach (var device in devices)
                     AvailableDevices.Add(device);
 
@@ -955,7 +938,7 @@ namespace Apps2Samsung.ViewModels
                 return;
             }
 
-            var samsungDevice = await _tizenApiClient.GetDeveloperInfoAsync(device);
+            var samsungDevice = await TizenDeveloperInfo.ReadAsync(device);
 
             if (samsungDevice != null)
             {
