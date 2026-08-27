@@ -185,27 +185,25 @@ public partial class InstallerPage : ContentPage
 	{
 		try
 		{
-			var result = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "Select a .wgt package" });
-			if (result is null)
+			var picked = await SafFilePicker.PickAsync();
+			if (picked is null)
 			{
 				SetStatus("No file selected.");
 				return false;
 			}
-			if (!result.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase))
+			if (!picked.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase))
 			{
 				SetStatus("Please choose a .wgt file.");
 				return false;
 			}
 
-			var dest = Path.Combine(FileSystem.CacheDirectory, result.FileName);
-			using (var src = await result.OpenReadAsync())
-			using (var dst = File.Create(dest))
-				await src.CopyToAsync(dst);
+			var dest = Path.Combine(FileSystem.CacheDirectory, picked.FileName);
+			File.Copy(picked.LocalPath, dest, overwrite: true);
 
 			_customWgtPath = dest;
-			VersionPicker.ItemsSource = new List<string> { result.FileName };
+			VersionPicker.ItemsSource = new List<string> { picked.FileName };
 			VersionPicker.SelectedIndex = 0;
-			SetStatus($"Custom package ready: {result.FileName}");
+			SetStatus($"Custom package ready: {picked.FileName}");
 			return true;
 		}
 		catch (Exception ex)

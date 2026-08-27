@@ -171,23 +171,17 @@ public partial class AppIconsPage : ContentPage
 	{
 		try
 		{
-			var result = await FilePicker.Default.PickAsync(new PickOptions
-			{
-				PickerTitle = "Select a launcher icon (PNG)",
-				FileTypes = FilePickerFileType.Images,
-			});
-			if (result is null)
+			var picked = await SafFilePicker.PickAsync("image/*");
+			if (picked is null)
 				return;
 
-			// Copy into app data so the path stays valid after the picker URI is released.
+			// Copy into app data: the picker cache is cleared on the next pick.
 			var dir = Path.Combine(FileSystem.AppDataDirectory, "app-icons");
 			Directory.CreateDirectory(dir);
 			var baseName = string.Concat(row.Key.Select(c => char.IsLetterOrDigit(c) ? c : '_'));
 			if (string.IsNullOrWhiteSpace(baseName)) baseName = "icon";
-			var dest = Path.Combine(dir, baseName + Path.GetExtension(result.FileName));
-			using (var src = await result.OpenReadAsync())
-			using (var dst = File.Create(dest))
-				await src.CopyToAsync(dst);
+			var dest = Path.Combine(dir, baseName + Path.GetExtension(picked.FileName));
+			File.Copy(picked.LocalPath, dest, overwrite: true);
 
 			row.IconPath = dest;
 			row.IconSummary.Text = DescribeIcon(dest);
