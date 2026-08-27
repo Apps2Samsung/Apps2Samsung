@@ -1,0 +1,60 @@
+name: PR build
+
+# Nothing else compiles the app on a pull request: the release workflows only run on a push to
+# beta (beta-prerelease.yml) or a merge to master (stable-release.yml). So a compile error —
+# most easily in Apps2Samsung.Mobile, which needs the maui-android workload that isn't installed
+# on a normal dev machine — only surfaced *after* the merge, where it breaks the beta release.
+# Build both heads here instead, so a PR can't merge a head that doesn't compile.
+
+on:
+  pull_request:
+    paths:
+      - 'Apps2Samsung.Core/**'
+      - 'Apps2Samsung.Mobile/**'
+      - 'Jellyfin2Samsung-CrossOS/**'
+      - 'Apps2Samsung.sln'
+      - '.github/workflows/pr-build.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: pr-build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  desktop:
+    name: Core + desktop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      # Apps2Samsung.Core comes along as a project reference, so this covers both.
+      - name: Build
+        run: dotnet build Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj -c Release
+
+  android:
+    name: Mobile (Android)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
+      # Compile + XAML check only. Deliberately `build`, not `publish`: packaging an APK needs the
+      # signing key and the full trimming pass (minutes), and says nothing more about whether the
+      # code compiles. beta-prerelease.yml still does the real publish on merge.
+      - name: Build
+        run: dotnet build Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj -c Release -f net10.0-android
