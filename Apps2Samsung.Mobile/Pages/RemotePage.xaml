@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              x:Class="Apps2Samsung.Mobile.Pages.RemotePage"
-             Title="Remote"
+             Title="{l:Localize lblRemote}"
              NavigationPage.HasNavigationBar="False"
              BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
 
@@ -33,7 +34,7 @@
                 <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
                         BackgroundColor="Transparent" BorderWidth="0" Padding="0"
                         WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
-                <Label Grid.Column="1" Text="Remote" TextColor="White" FontAttributes="Bold"
+                <Label Grid.Column="1" Text="{l:Localize lblRemote}" TextColor="White" FontAttributes="Bold"
                        VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
                 <Button Grid.Column="2" Text="⏻" FontSize="18" TextColor="White"
                         BackgroundColor="Transparent" BorderWidth="0" Padding="0"
@@ -43,7 +44,7 @@
         </Border>
 
         <!-- Which TV, and whether the channel is up -->
-        <Label Grid.Row="1" x:Name="StatusLabel" FontSize="12" Opacity="0.6" Text="Connecting…" />
+        <Label Grid.Row="1" x:Name="StatusLabel" FontSize="12" Opacity="0.6" Text="{l:Localize lblRemoteConnecting}" />
 
         <ScrollView Grid.Row="2">
             <VerticalStackLayout Spacing="14">
@@ -54,7 +55,7 @@
                             CommandParameter="KEY_UP" Clicked="OnKeyClicked" />
                     <Button Grid.Row="1" Grid.Column="0" Style="{StaticResource Key}" Text="◀"
                             CommandParameter="KEY_LEFT" Clicked="OnKeyClicked" />
-                    <Button Grid.Row="1" Grid.Column="1" Style="{StaticResource Accent}" Text="OK"
+                    <Button Grid.Row="1" Grid.Column="1" Style="{StaticResource Accent}" Text="{l:Localize lblRemoteOk}"
                             FontAttributes="Bold" CommandParameter="KEY_ENTER" Clicked="OnKeyClicked" />
                     <Button Grid.Row="1" Grid.Column="2" Style="{StaticResource Key}" Text="▶"
                             CommandParameter="KEY_RIGHT" Clicked="OnKeyClicked" />
@@ -75,7 +76,7 @@
                 </Grid>
 
                 <!-- Playback: what the issue asked for first -->
-                <Label Text="Playback" FontSize="12" Opacity="0.6" Margin="2,4,0,0" />
+                <Label Text="{l:Localize lblRemotePlayback}" FontSize="12" Opacity="0.6" Margin="2,4,0,0" />
                 <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="8">
                     <Button Grid.Column="0" Style="{StaticResource Key}" Text="⏮"
                             CommandParameter="KEY_REWIND_" Clicked="OnKeyClicked" />
@@ -89,35 +90,35 @@
                             CommandParameter="KEY_FF_" Clicked="OnKeyClicked" />
                 </Grid>
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                    <Button Grid.Column="0" Style="{StaticResource Key}" Text="⏹ Stop" FontSize="14"
+                    <Button Grid.Column="0" Style="{StaticResource Key}" Text="{l:Localize Key=lblRemoteStop, Format='⏹ {0}'}" FontSize="14"
                             CommandParameter="KEY_STOP" Clicked="OnKeyClicked" />
-                    <Button Grid.Column="1" Style="{StaticResource Key}" Text="🔇 Mute" FontSize="14"
+                    <Button Grid.Column="1" Style="{StaticResource Key}" Text="{l:Localize Key=lblRemoteMute, Format='🔇 {0}'}" FontSize="14"
                             CommandParameter="KEY_MUTE" Clicked="OnKeyClicked" />
                 </Grid>
 
                 <!-- Volume and channel -->
-                <Label Text="Volume &amp; channel" FontSize="12" Opacity="0.6" Margin="2,4,0,0" />
+                <Label Text="{l:Localize lblRemoteVolumeChannel}" FontSize="12" Opacity="0.6" Margin="2,4,0,0" />
                 <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
-                    <Button Grid.Column="0" Style="{StaticResource Key}" Text="VOL +" FontSize="14"
+                    <Button Grid.Column="0" Style="{StaticResource Key}" Text="{l:Localize lblRemoteVolumeUp}" FontSize="14"
                             CommandParameter="KEY_VOLUP" Clicked="OnKeyClicked" />
-                    <Button Grid.Column="1" Style="{StaticResource Key}" Text="VOL −" FontSize="14"
+                    <Button Grid.Column="1" Style="{StaticResource Key}" Text="{l:Localize lblRemoteVolumeDown}" FontSize="14"
                             CommandParameter="KEY_VOLDOWN" Clicked="OnKeyClicked" />
-                    <Button Grid.Column="2" Style="{StaticResource Key}" Text="CH +" FontSize="14"
+                    <Button Grid.Column="2" Style="{StaticResource Key}" Text="{l:Localize lblRemoteChannelUp}" FontSize="14"
                             CommandParameter="KEY_CHUP" Clicked="OnKeyClicked" />
-                    <Button Grid.Column="3" Style="{StaticResource Key}" Text="CH −" FontSize="14"
+                    <Button Grid.Column="3" Style="{StaticResource Key}" Text="{l:Localize lblRemoteChannelDown}" FontSize="14"
                             CommandParameter="KEY_CHDOWN" Clicked="OnKeyClicked" />
                 </Grid>
 
                 <!-- Phone keyboard instead of the on-screen one -->
-                <Label Text="Type on the TV" FontSize="12" Opacity="0.6" Margin="2,4,0,0" />
+                <Label Text="{l:Localize lblRemoteTypeOnTv}" FontSize="12" Opacity="0.6" Margin="2,4,0,0" />
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                    <Entry Grid.Column="0" x:Name="TextEntry" Placeholder="Text to send…"
+                    <Entry Grid.Column="0" x:Name="TextEntry" Placeholder="{l:Localize lblRemoteTextPlaceholder}"
                            ReturnType="Send" Completed="OnSendTextClicked" />
-                    <Button Grid.Column="1" Style="{StaticResource Accent}" Text="Send" FontSize="14"
+                    <Button Grid.Column="1" Style="{StaticResource Accent}" Text="{l:Localize lblRemoteSend}" FontSize="14"
                             WidthRequest="88" Clicked="OnSendTextClicked" />
                 </Grid>
                 <Label x:Name="TextHintLabel" FontSize="11" Opacity="0.5"
-                       Text="Focus a text field on the TV first. Not every model accepts typed text." />
+                       Text="{l:Localize lblRemoteTextHint}" />
 
             </VerticalStackLayout>
         </ScrollView>

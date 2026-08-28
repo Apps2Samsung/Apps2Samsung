@@ -86,7 +86,7 @@
                             BackgroundColor="Transparent" BorderWidth="0"
                             Padding="0" FontSize="13"
                             TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
-                    <Button Text="🎛 Remote" Clicked="OnShowRemoteClicked"
+                    <Button Text="{l:Localize Key=lblRemote, Format='🎛 {0}'}" Clicked="OnShowRemoteClicked"
                             BackgroundColor="Transparent" BorderWidth="0"
                             Padding="0" FontSize="13"
                             TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />

@@ -355,5 +355,7 @@
   "lblRemoteWaking": "Waking the TV...",
   "lblRemoteWakeNoMac": "No answer from the TV. Switch it on with its own remote once, then this page can wake it.",
   "lblRemoteWakeFailed": "The TV didn't wake. Check \"Power On with Mobile\" in its network settings.",
-  "lblRemoteSelectTvFirst": "Select a TV first."
+  "lblRemoteSelectTvFirst": "Select a TV first.",
+  "lblRemoteTextSentValue": "Sent \"{0}\"",
+  "lblRemoteNoAnswerNoMac": "No answer. Switch the TV on with its own remote once, then this page can wake it."
 }

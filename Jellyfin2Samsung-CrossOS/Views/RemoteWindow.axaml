@@ -8,7 +8,7 @@
         Width="380" MinWidth="340"
         Height="620" MinHeight="520"
         WindowStartupLocation="CenterOwner"
-        Title="Remote">
+        Title="{l:Localize lblRemote}">
 
     <Window.Styles>
         <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>

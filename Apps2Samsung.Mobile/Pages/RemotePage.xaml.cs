@@ -1,3 +1,4 @@
+using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Remote;
 
@@ -45,7 +46,7 @@ public partial class RemotePage : ContentPage
 
 	private async Task ConnectAsync()
 	{
-		SetStatus($"{_tvLabel} — connecting…");
+		SetStatus($"{_tvLabel} — {L10n.Get("lblRemoteConnecting")}");
 
 		var capability = await SamsungRemoteClient.ProbeAsync(_tvIp);
 
@@ -70,7 +71,7 @@ public partial class RemotePage : ContentPage
 		// No stored token on a token-auth set means the TV is about to prompt — say so, then give the
 		// user time to walk over and accept it.
 		if (capability.UsesToken && string.IsNullOrEmpty(stored))
-			SetStatus($"{_tvLabel} — accept the prompt on the TV to pair.");
+			SetStatus($"{_tvLabel} — {L10n.Get("lblRemotePairPrompt")}");
 
 		var timeout = capability.UsesToken && string.IsNullOrEmpty(stored)
 			? TimeSpan.FromSeconds(60)
@@ -80,15 +81,15 @@ public partial class RemotePage : ContentPage
 		if (!await client.ConnectAsync(cts.Token))
 		{
 			await client.DisposeAsync();
-			SetStatus(capability.UsesToken && string.IsNullOrEmpty(stored)
-				? $"{_tvLabel} — pairing wasn't accepted. Reopen this page to try again."
-				: $"{_tvLabel} — couldn't open the remote channel.");
+			SetStatus($"{_tvLabel} — " + (capability.UsesToken && string.IsNullOrEmpty(stored)
+				? L10n.Get("lblRemotePairFailed")
+				: L10n.Get("lblRemoteNoChannel")));
 			return;
 		}
 
 		_remote = client;
 		var name = string.IsNullOrWhiteSpace(capability.Name) ? _tvLabel : capability.Name;
-		SetStatus($"{name} — connected");
+		SetStatus($"{name} — {L10n.Get("lblRemoteConnected")}");
 	}
 
 	/// <summary>
@@ -102,17 +103,17 @@ public partial class RemotePage : ContentPage
 		if (string.IsNullOrEmpty(mac))
 		{
 			// Never seen this TV awake, so there is no MAC to wake it with.
-			SetStatus($"{_tvLabel} — no answer. Turn the TV on with its own remote once, then this page can wake it.");
+			SetStatus($"{_tvLabel} — {L10n.Get("lblRemoteNoAnswerNoMac")}");
 			return capability;
 		}
 
-		SetStatus($"{_tvLabel} — waking the TV…");
+		SetStatus($"{_tvLabel} — {L10n.Get("lblRemoteWaking")}");
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
 		if (await SamsungRemoteWake.WakeAndWaitAsync(_tvIp, mac, TimeSpan.FromSeconds(40), cts.Token))
 			return await SamsungRemoteClient.ProbeAsync(_tvIp);
 
 		// Wake-on-LAN needs the TV's own network-standby setting on, and a LAN that passes broadcast.
-		SetStatus($"{_tvLabel} — the TV didn't wake. Check \"Power On with Mobile\" in its network settings.");
+		SetStatus($"{_tvLabel} — {L10n.Get("lblRemoteWakeFailed")}");
 		return capability;
 	}
 
@@ -147,18 +148,18 @@ public partial class RemotePage : ContentPage
 		var remote = _remote;
 		if (remote is null)
 		{
-			SetStatus("Not connected — reopen this page.");
+			SetStatus(L10n.Get("lblRemoteNotConnected"));
 			return;
 		}
 
 		if (await remote.SendTextAsync(text))
 		{
 			TextEntry.Text = string.Empty;
-			SetStatus($"Sent \"{text}\"");
+			SetStatus(string.Format(L10n.Get("lblRemoteTextSentValue"), text));
 		}
 		else
 		{
-			SetStatus("The TV didn't take the text. Is a text field focused?");
+			SetStatus(L10n.Get("lblRemoteTextFailed"));
 		}
 	}
 
@@ -167,7 +168,7 @@ public partial class RemotePage : ContentPage
 		var remote = _remote;
 		if (remote is null)
 		{
-			SetStatus("Not connected — reopen this page.");
+			SetStatus(L10n.Get("lblRemoteNotConnected"));
 			return false;
 		}
 
@@ -175,7 +176,7 @@ public partial class RemotePage : ContentPage
 			return true;
 
 		// The client reconnects on its own, so a single miss is worth reporting but not fatal.
-		SetStatus("That press didn't get through — the TV may have gone to standby.");
+		SetStatus(L10n.Get("lblRemoteKeyFailed"));
 		return false;
 	}
 
