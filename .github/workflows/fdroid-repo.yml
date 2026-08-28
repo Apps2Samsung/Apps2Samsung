@@ -35,7 +35,7 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: beta
           fetch-depth: 0
@@ -45,13 +45,13 @@ jobs:
           token: ${{ secrets.CI_PUSH_TOKEN }}
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Set up Android build-tools (apksigner/aapt for fdroidserver)
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Install build-tools + fdroidserver
         run: |
