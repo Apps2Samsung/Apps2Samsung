@@ -7,7 +7,7 @@ let
   '';
 
   # FHS environment that provides /lib, /lib64, /usr/lib etc.
-  # so dynamically linked binaries (TizenSdb, .NET native bits) just work.
+  # so dynamically linked binaries (.NET native bits) just work.
   fhs = pkgs.buildFHSEnv {
     name = "apps2samsung-fhs";
 

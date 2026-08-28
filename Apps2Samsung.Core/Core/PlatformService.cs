@@ -65,63 +65,6 @@ namespace Apps2Samsung.Helpers.Core
         public static bool IsArm64 => RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
 
         /// <summary>
-        /// Gets the appropriate TizenSdb search pattern for the current platform.
-        /// </summary>
-        /// <returns>The file search pattern for TizenSdb binary.</returns>
-        /// <exception cref="PlatformNotSupportedException">Thrown when the platform is not supported.</exception>
-        public static string GetTizenSdbSearchPattern()
-        {
-            return CurrentPlatform switch
-            {
-                Platform.Windows => Constants.PlatformBinaries.TizenSdbWindowsPattern,
-                Platform.Linux => IsArm64
-                    ? Constants.PlatformBinaries.TizenSdbLinuxArm64Pattern
-                    : Constants.PlatformBinaries.TizenSdbLinuxX64Pattern,
-                Platform.MacOS => IsArm64
-                    ? Constants.PlatformBinaries.TizenSdbMacOsArm64Pattern
-                    : Constants.PlatformBinaries.TizenSdbMacOsPattern,
-                _ => throw new PlatformNotSupportedException("Unsupported operating system")
-            };
-        }
-
-        /// <summary>
-        /// Gets the TizenSdb file name with version for the current platform.
-        /// </summary>
-        /// <param name="version">The version string to include in the file name.</param>
-        /// <returns>The platform-specific file name.</returns>
-        /// <exception cref="PlatformNotSupportedException">Thrown when the platform is not supported.</exception>
-        public static string GetTizenSdbFileName(string version)
-        {
-            return CurrentPlatform switch
-            {
-                Platform.Windows => $"TizenSdb_{version}{Constants.PlatformBinaries.WindowsExtension}",
-                Platform.Linux => $"TizenSdb_{version}{(IsArm64
-                    ? Constants.PlatformBinaries.LinuxArm64Suffix
-                    : Constants.PlatformBinaries.LinuxX64Suffix)}",
-                Platform.MacOS => $"TizenSdb_{version}{(IsArm64
-                    ? Constants.PlatformBinaries.MacArm64Suffix
-                    : Constants.PlatformBinaries.MacX64Suffix)}",
-                _ => throw new PlatformNotSupportedException("Unsupported operating system")
-            };
-        }
-
-        /// <summary>
-        /// Gets the platform identifier for matching GitHub release assets.
-        /// </summary>
-        /// <returns>The platform identifier string used in asset file names.</returns>
-        /// <exception cref="PlatformNotSupportedException">Thrown when the platform is not supported.</exception>
-        public static string GetAssetPlatformIdentifier()
-        {
-            return CurrentPlatform switch
-            {
-                Platform.Windows => "exe",
-                Platform.Linux => IsArm64 ? "linux-arm64" : "linux-x64",
-                Platform.MacOS => IsArm64 ? "macos-arm64" : "macos-x64",
-                _ => throw new PlatformNotSupportedException("Unsupported operating system")
-            };
-        }
-
-        /// <summary>
         /// Gets the esbuild binary path relative to the esbuild directory.
         /// </summary>
         /// <param name="esbuildBasePath">The base path to the esbuild directory.</param>

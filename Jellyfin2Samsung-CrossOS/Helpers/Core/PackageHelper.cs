@@ -29,7 +29,7 @@ namespace Apps2Samsung.Helpers.Core
 
             try
             {
-                string downloadPath = await _tizenInstaller.DownloadPackageAsync(selectedAsset.DownloadUrl, validateWgt: true);
+                string downloadPath = await _tizenInstaller.DownloadPackageAsync(selectedAsset.DownloadUrl);
                 progress?.Invoke("DownloadCompleted".Localized());
                 return downloadPath;
             }

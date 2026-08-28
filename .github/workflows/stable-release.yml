@@ -226,12 +226,10 @@ jobs:
             mkdir -p \
               $PKG/opt/apps2samsung/Logs \
               $PKG/opt/apps2samsung/Downloads \
-              $PKG/opt/apps2samsung/Assets/TizenSDB \
               $PKG/opt/apps2samsung/Assets/Certificate
             chmod -R 777 \
               $PKG/opt/apps2samsung/Logs \
               $PKG/opt/apps2samsung/Downloads \
-              $PKG/opt/apps2samsung/Assets/TizenSDB \
               $PKG/opt/apps2samsung/Assets/Certificate
 
             cp jellyfin.png $PKG/usr/share/icons/hicolor/256x256/apps/apps2samsung.png

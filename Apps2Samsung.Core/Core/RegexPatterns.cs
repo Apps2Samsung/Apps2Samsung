@@ -9,22 +9,6 @@ namespace Apps2Samsung.Helpers.Core
     public static partial class RegexPatterns
     {
         /// <summary>
-        /// Patterns for version parsing and extraction.
-        /// </summary>
-        public static class Version
-        {
-            /// <summary>
-            /// Pattern to extract version from a file name (e.g., "TizenSdb_v1.0.0.exe" -> "v1.0.0").
-            /// </summary>
-            public const string FileNameVersionPattern = @"_([v]?\d+\.\d+\.\d+)";
-
-            /// <summary>
-            /// Pre-compiled regex for file name version extraction.
-            /// </summary>
-            public static readonly Regex FileNameVersion = new(FileNameVersionPattern, RegexOptions.Compiled);
-        }
-
-        /// <summary>
         /// Patterns for Tizen device capability parsing.
         /// </summary>
         public static class TizenCapability

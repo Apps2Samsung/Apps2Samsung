@@ -82,12 +82,9 @@ namespace Apps2Samsung
                     AppSettings.Default.AuthorEndpoint_V3,
                     AppSettings.Default.DistributorsEndpoint_V1,
                     AppSettings.Default.DistributorsEndpoint_V3)));
-            // Desktop SDB engine: shells out to the downloaded TizenSdb.exe. Its path is owned by
-            // TizenInstallerService.EnsureTizenSdbAvailable(); the provider reads it lazily at
-            // call time (so this registration doesn't force the installer to build early — no cycle).
-            services.AddSingleton<ISdbEngine>(sp => new ExeSdbEngine(
-                sp.GetRequiredService<ProcessHelper>(),
-                () => sp.GetRequiredService<ITizenInstallerService>().TizenSdbPath));
+            // SDB engine: TizenSdb.Core driven in-process, the same engine the mobile head runs.
+            // Nothing to download or update at first launch, so a fresh install works offline (#549).
+            services.AddSingleton<ISdbEngine, Apps2Samsung.Sdb.InProcessSdbEngine>();
             services.AddSingleton<ITizenInstallerService, TizenInstallerService>();
             services.AddSingleton<IThemeService, ThemeService>();
             services.AddSingleton<IUpdaterService, UpdaterService>();
@@ -146,7 +143,6 @@ namespace Apps2Samsung
             services.AddSingleton<PackageHelper>();
             services.AddSingleton<CertificateHelper>();
             services.AddSingleton<FileHelper>();
-            services.AddSingleton<ProcessHelper>();
             services.AddSingleton<TvLogService>();
 
             // --------------------

@@ -254,21 +254,8 @@ namespace Apps2Samsung.ViewModels
                 // scan, so the banner appears immediately on startup.
                 RefreshVpnWarning();
 
-                SetStatus("CheckingTizenSdb");
-
-                string tizenSdb = await _tizenInstaller.EnsureTizenSdbAvailable();
-
-                if (string.IsNullOrEmpty(tizenSdb))
-                {
-                    SetStatus("FailedTizenSdb");
-                    // Tizen SDB couldn't be downloaded (GitHub outage/rate-limit/no releases) and there's
-                    // no local copy — tell the user how to install it by hand instead of leaving them stuck.
-                    await _dialogService.ShowMessageAsync(
-                        L("FailedTizenSdb"),
-                        string.Format(L("TizenSdbManualDownload"), AppSettings.TizenSdbPath));
-                    return;
-                }
-
+                // A leftover Tizen SDK "sdb" server can hold the TV's single debug connection, which
+                // makes our own connect fail; clear those before scanning.
                 ProcessHelper.KillSdbServers();
 
                 await LoadReleasesAsync(token);
