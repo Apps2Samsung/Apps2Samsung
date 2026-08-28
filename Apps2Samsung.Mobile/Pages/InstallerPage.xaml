@@ -86,6 +86,10 @@
                             BackgroundColor="Transparent" BorderWidth="0"
                             Padding="0" FontSize="13"
                             TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
+                    <Button Text="🎛 Remote" Clicked="OnShowRemoteClicked"
+                            BackgroundColor="Transparent" BorderWidth="0"
+                            Padding="0" FontSize="13"
+                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
                 </HorizontalStackLayout>
 
                 <!-- Status bar -->

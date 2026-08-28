@@ -301,6 +301,20 @@ public partial class InstallerPage : ContentPage
 		await Navigation.PushAsync(new DeviceInfoPage(_sdb, tvIp, label, debugPortOpen));
 	}
 
+	// The remote needs only a TV on the network — no Developer Mode, no debug port — so it is
+	// offered for any selected TV, including one the installer itself couldn't use.
+	private async void OnShowRemoteClicked(object? sender, EventArgs e)
+	{
+		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
+		{
+			SetStatus("Select a TV first (tap refresh to scan).");
+			return;
+		}
+		var tvIp = _tvIps[TvPicker.SelectedIndex];
+		var label = TvPicker.SelectedItem as string ?? tvIp;
+		await Navigation.PushAsync(new RemotePage(tvIp, label));
+	}
+
 	private async void OnRefreshClicked(object? sender, EventArgs e) => await ScanAsync();
 
 	private async void OnSettingsClicked(object? sender, EventArgs e) =>
