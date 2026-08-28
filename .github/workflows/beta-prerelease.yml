@@ -28,6 +28,7 @@ jobs:
 
     outputs:
       VERSION: ${{ env.VERSION }}
+      VERSION_BETA: ${{ env.VERSION_BETA }}
       VERSION_TAG: ${{ env.VERSION_TAG }}
 
     steps:
@@ -47,8 +48,20 @@ jobs:
             exit 1
           fi
 
+          # VERSION      = 2.7.9        packaging fields that want a plain number (.deb, Info.plist)
+          # VERSION_BETA = 2.7.9-beta   the version the app itself reports (see the stamp step below)
+          # VERSION_TAG  = v2.7.9-beta  git tag, release name and asset file names
           echo "VERSION=${VERSION#v}" >> $GITHUB_ENV
+          echo "VERSION_BETA=${VERSION#v}-beta" >> $GITHUB_ENV
           echo "VERSION_TAG=${VERSION}-beta" >> $GITHUB_ENV
+
+      # ---------------- BETA MARKER (#578) ----------------
+      # The branch keeps a clean version (the Stable Release workflow rejects a "-beta" one), so
+      # CI adds the marker here — in the build tree only, never committed — and a beta build
+      # reports itself as "v2.7.9-beta" instead of claiming to be the stable v2.7.9.
+      - name: Stamp beta version
+        shell: bash
+        run: python3 .github/scripts/stamp-beta-version.py
 
       # ---------------- RELEASE NOTES ----------------
       # PR-based notes via GitHub's generate-notes API (categorised by
@@ -224,6 +237,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      # Fresh checkout — stamp the beta marker again (see the beta-release job).
+      - name: Stamp beta version
+        shell: bash
+        run: python3 .github/scripts/stamp-beta-version.py
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
@@ -375,6 +394,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Fresh checkout — stamp the beta marker again (see the beta-release job). The APK's own
+      # versionName comes from the -p:ApplicationDisplayVersion below, not from this file.
+      - name: Stamp beta version
+        shell: bash
+        run: python3 .github/scripts/stamp-beta-version.py
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
@@ -413,7 +438,7 @@ jobs:
         run: |
           dotnet publish Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj \
             -c Release -f net10.0-android \
-            -p:ApplicationDisplayVersion=${{ needs.beta-release.outputs.VERSION }} \
+            -p:ApplicationDisplayVersion=${{ needs.beta-release.outputs.VERSION_BETA }} \
             -p:ApplicationVersion=${{ github.run_number }} \
             -p:AndroidKeyStore=true \
             -p:AndroidSigningKeyStore="$PWD/a2s.keystore" \
