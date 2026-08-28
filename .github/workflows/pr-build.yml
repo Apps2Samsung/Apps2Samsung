@@ -81,30 +81,46 @@ jobs:
             https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
           sudo chmod +x /usr/local/bin/appimagetool
 
-      # x64 only: this proves the packaging script still works, and arm64 differs by three metadata
-      # strings. Publishing both would double the slowest part for no extra coverage.
-      - name: Publish and package (x64)
+      # BOTH architectures, like the releases do. An earlier version of this job packaged x64 only,
+      # on the assumption that arm64 differed by "three metadata strings" — it doesn't: the aarch64
+      # rpm needs rpmbuild --target, and packaging x64 alone let that reach a release (#590).
+      - name: Publish and package (x64 + arm64)
         run: |
-          dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
-            -c Release -r linux-x64 -p:SelfContained=true -o publish/linux-x64
-          # 0.0.0 rather than something like 0.0.0-pr: rpm forbids '-' in a version (it separates
-          # version from release), which is what the first run of this job discovered.
-          bash .github/scripts/package-linux.sh publish/linux-x64 x64 0.0.0 dist jellyfin.png
+          for ARCH in x64 arm64; do
+            dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
+              -c Release -r linux-$ARCH -p:SelfContained=true -o publish/linux-$ARCH
+            # 0.0.0 rather than something like 0.0.0-pr: rpm forbids '-' in a version (it separates
+            # version from release), which is what the first run of this job discovered.
+            bash .github/scripts/package-linux.sh "publish/linux-$ARCH" "$ARCH" 0.0.0 dist jellyfin.png
+          done
 
-      # A package that builds but is empty would still pass the step above, so assert the payload
-      # made it in: the binary in the .deb and the .rpm, and a runnable AppRun in the AppImage.
+      # A package that builds but is empty would still pass the step above, so assert the payload made
+      # it in, and that each package is tagged for the architecture it claims.
       - name: Check the packages contain the app
         run: |
           set -euo pipefail
           # Listings go to files first: `… | grep -q` exits on the first match, SIGPIPEs the writer,
-          # and pipefail then reports the whole pipeline as failed. It only looks fine when the
-          # listing is small enough to fit the pipe buffer, which is how this passed locally and
-          # failed here.
-          dpkg-deb -c dist/*.deb > deb-listing.txt
-          rpm -qlp dist/*.rpm > rpm-listing.txt
-          grep -q '/opt/apps2samsung/Apps2Samsung$' deb-listing.txt
-          grep -qx '/opt/apps2samsung/Apps2Samsung' rpm-listing.txt
-          ./dist/*.AppImage --appimage-extract >/dev/null
+          # and pipefail then reports the whole pipeline as failed. Whether it trips depends on the
+          # listing fitting in the pipe buffer, which is why it passed locally and failed here.
+          for ARCH in x64 arm64; do
+            dpkg-deb -c dist/*-linux-$ARCH.deb > "deb-$ARCH.txt"
+            rpm -qlp dist/*-linux-$ARCH.rpm > "rpm-$ARCH.txt"
+            grep -q '/opt/apps2samsung/Apps2Samsung$' "deb-$ARCH.txt"
+            grep -qx '/opt/apps2samsung/Apps2Samsung' "rpm-$ARCH.txt"
+          done
+
+          # The tags, not just the contents: a cross-built package that came out x86_64 would install
+          # on the wrong machines and fail on the right ones.
+          test "$(dpkg-deb -f dist/*-linux-x64.deb Architecture)" = amd64
+          test "$(dpkg-deb -f dist/*-linux-arm64.deb Architecture)" = arm64
+          test "$(rpm -qp --qf '%{ARCH}' dist/*-linux-x64.rpm)" = x86_64
+          test "$(rpm -qp --qf '%{ARCH}' dist/*-linux-arm64.rpm)" = aarch64
+          file -b dist/*-linux-arm64.AppImage | grep -q 'ARM aarch64'
+
+          # Only the x64 AppImage can be unpacked here: --appimage-extract runs the AppImage's own
+          # runtime, and the arm64 one is an aarch64 binary. Its payload is the same publish output
+          # the .deb and .rpm above were built from, and its runtime arch is asserted just above.
+          ./dist/*-linux-x64.AppImage --appimage-extract >/dev/null
           test -x squashfs-root/AppRun
           test -x squashfs-root/usr/bin/Apps2Samsung
-          echo "deb, rpm and AppImage all carry the app"
+          echo "deb, rpm and AppImage carry the app, for both architectures"

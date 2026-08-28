@@ -89,8 +89,10 @@ mv "$WORK/deb.deb" "$OUT_DIR/${PRODUCT}-${TAG}-linux-${ARCH}.deb"
 echo "✔ deb"
 
 # ---------------- .rpm ----------------
-# rpmbuild wants its own tree; BuildArch is forced so an x86_64 runner can build the aarch64 package
-# (nothing is compiled here — the payload is already published for the target).
+# rpmbuild wants its own tree. The architecture comes from --target alone, NOT from a BuildArch in
+# the spec: with BuildArch set, rpmbuild checks it against the host and refuses to build the aarch64
+# package on an x86_64 runner ("No compatible architectures found for build"). Nothing is compiled
+# here — the payload is already published for the target — so the target only tags the package.
 RPM_TOP="$WORK/rpm"
 mkdir -p "$RPM_TOP"/{BUILD,RPMS,SOURCES,SPECS,BUILDROOT}
 cat > "$RPM_TOP/SPECS/$APP_ID.spec" <<EOF
@@ -100,7 +102,6 @@ Release:        1
 Summary:        Install apps on Samsung Tizen TVs
 License:        MIT
 URL:            https://github.com/Apps2Samsung/Apps2Samsung
-BuildArch:      $RPM_ARCH
 Provides:       jellyfin2samsung
 # Versioned, or rpm warns: this replaces any jellyfin2samsung up to the rename.
 Obsoletes:      jellyfin2samsung < $VERSION
@@ -129,7 +130,8 @@ cp $ICON_PNG %{buildroot}/usr/share/icons/hicolor/256x256/apps/$APP_ID.png
 EOF
 desktop_entry "/opt/$APP_ID/$PRODUCT" > "$WORK/$APP_ID.desktop"
 # Quiet unless it fails: rpmbuild narrates its whole %install script otherwise.
-if ! rpmbuild --define "_topdir $RPM_TOP" -bb "$RPM_TOP/SPECS/$APP_ID.spec" > "$WORK/rpmbuild.log" 2>&1; then
+if ! rpmbuild --define "_topdir $RPM_TOP" --target "$RPM_ARCH" \
+        -bb "$RPM_TOP/SPECS/$APP_ID.spec" > "$WORK/rpmbuild.log" 2>&1; then
     cat "$WORK/rpmbuild.log" >&2
     exit 1
 fi
