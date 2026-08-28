@@ -359,7 +359,13 @@ rm -- ""$0""
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                // .deb installs land under package-manager-owned locations.
+                // An AppImage runs from a read-only squashfs mount, and the thing a user would want
+                // replaced is the .AppImage file itself, not this directory — so there is nothing here
+                // to update in place. The runtime sets APPIMAGE to that file's path (#589).
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPIMAGE")))
+                    return false;
+
+                // .deb / .rpm installs land under package-manager-owned locations.
                 if (IsUnderDirectory(appDir, "/usr") || IsUnderDirectory(appDir, "/opt"))
                     return false;
             }

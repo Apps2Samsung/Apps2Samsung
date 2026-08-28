@@ -142,77 +142,29 @@ jobs:
       # ---------------- LINUX (x64 + arm64) ----------------
       - name: Build Linux
         run: |
-          mkdir -p dist
           for ARCH in x64 arm64; do
             dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
               -c Release -r linux-$ARCH -p:SelfContained=true \
               -o publish/linux-$ARCH
-
-            tar -czf "dist/${PRODUCT_NAME}-${VERSION_TAG}-linux-$ARCH.tar.gz" \
-              -C publish/linux-$ARCH .
           done
 
-      # ---------------- LINUX ICON ----------------
-      - name: Linux icon
+      # ---------------- LINUX PACKAGES (tar.gz + deb + rpm + AppImage, x64 + arm64) ----------------
+      # One script for all of them, shared with the stable release and with the PR check that proves
+      # it still builds — see .github/scripts/package-linux.sh (#589).
+      - name: Linux packaging tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y librsvg2-bin
-          rsvg-convert -w 256 -h 256 \
-            jellyfin-tizen-logo.svg -o jellyfin.png
+          sudo apt-get install -y librsvg2-bin dpkg-dev rpm
+          rsvg-convert -w 256 -h 256 jellyfin-tizen-logo.svg -o jellyfin.png
+          curl -fsSL -o /usr/local/bin/appimagetool \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          sudo chmod +x /usr/local/bin/appimagetool
 
-      # ---------------- DEB (x64 + arm64) ----------------
-      - name: Build .deb
+      - name: Build Linux packages
         run: |
-          sudo apt-get install -y dpkg-dev
-
           for ARCH in x64 arm64; do
-            case $ARCH in
-              x64)   DEB_ARCH=amd64 ;;
-              arm64) DEB_ARCH=arm64 ;;
-            esac
-
-            PKG=deb-$ARCH
-            mkdir -p $PKG/opt/apps2samsung \
-                     $PKG/usr/share/{applications,icons/hicolor/256x256/apps}
-
-            cp -R publish/linux-$ARCH/. $PKG/opt/apps2samsung/
-            chmod +x $PKG/opt/apps2samsung/Apps2Samsung
-
-            # 🔥 quick+dirty: allow writes where your app writes
-            mkdir -p \
-              $PKG/opt/apps2samsung/Logs \
-              $PKG/opt/apps2samsung/Downloads \
-              $PKG/opt/apps2samsung/Assets/Certificate
-            chmod -R 777 \
-              $PKG/opt/apps2samsung/Logs \
-              $PKG/opt/apps2samsung/Downloads \
-              $PKG/opt/apps2samsung/Assets/Certificate
-
-            cp jellyfin.png $PKG/usr/share/icons/hicolor/256x256/apps/apps2samsung.png
-
-            cat > $PKG/usr/share/applications/apps2samsung.desktop <<EOF
-          [Desktop Entry]
-          Name=Apps2Samsung
-          Exec=/opt/apps2samsung/Apps2Samsung
-          Icon=apps2samsung
-          Type=Application
-          Categories=Utility;
-          EOF
-
-            mkdir -p $PKG/DEBIAN
-            cat > $PKG/DEBIAN/control <<EOF
-          Package: apps2samsung
-          Conflicts: jellyfin2samsung
-          Replaces: jellyfin2samsung
-          Provides: jellyfin2samsung
-          Version: ${VERSION}
-          Architecture: ${DEB_ARCH}
-          Maintainer: MadeByPatrick
-          Description: Apps2Samsung
-          EOF
-
-            dpkg-deb --build $PKG
-            mv $PKG.deb dist/${PRODUCT_NAME}-${VERSION_TAG}-linux-$ARCH.deb
+            bash .github/scripts/package-linux.sh \
+              "publish/linux-$ARCH" "$ARCH" "$VERSION" dist jellyfin.png
           done
 
       # ---------------- RELEASE (UPDATE SAME TAG EVERY COMMIT) ----------------
