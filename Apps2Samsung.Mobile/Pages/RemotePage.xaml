@@ -109,16 +109,21 @@
                             CommandParameter="KEY_CHDOWN" Clicked="OnKeyClicked" />
                 </Grid>
 
-                <!-- Phone keyboard instead of the on-screen one -->
+                <!-- Phone keyboard instead of the on-screen one. The TV's SendInputString replaces the
+                     focused field's whole contents rather than appending to it, so mirroring the box as
+                     it is typed - debounced, newest value wins - keeps the TV in step keystroke by
+                     keystroke, backspace included. The button is no longer a Send: by the time it is
+                     pressed the text is already on the TV, so all it does is commit it with Enter. -->
                 <Label Text="{l:Localize lblRemoteTypeOnTv}" FontSize="12" Opacity="0.6" Margin="2,4,0,0" />
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                    <Entry Grid.Column="0" x:Name="TextEntry" Placeholder="{l:Localize lblRemoteTextPlaceholder}"
-                           ReturnType="Send" Completed="OnSendTextClicked" />
-                    <Button Grid.Column="1" Style="{StaticResource Accent}" Text="{l:Localize lblRemoteSend}" FontSize="14"
-                            WidthRequest="88" Clicked="OnSendTextClicked" />
+                    <Entry Grid.Column="0" x:Name="TextEntry" Placeholder="{l:Localize lblRemoteTextLivePlaceholder}"
+                           ReturnType="Done" TextChanged="OnTextChanged" Completed="OnSubmitClicked" />
+                    <Button Grid.Column="1" Style="{StaticResource Accent}" Text="⏎" FontSize="20"
+                            WidthRequest="64" Clicked="OnSubmitClicked"
+                            SemanticProperties.Description="{l:Localize lblRemoteSubmit}" />
                 </Grid>
                 <Label x:Name="TextHintLabel" FontSize="11" Opacity="0.5"
-                       Text="{l:Localize lblRemoteTextHint}" />
+                       Text="{l:Localize lblRemoteTextLiveHint}" />
 
             </VerticalStackLayout>
         </ScrollView>

@@ -76,21 +76,26 @@
                             Clicked="OnRefreshClicked" />
                 </Grid>
 
-                <!-- Quick peek at what's already on the selected TV -->
-                <HorizontalStackLayout Spacing="18">
+                <!-- Quick peek at what's already on the selected TV.
+                     FlexLayout rather than HorizontalStackLayout: the three labels need roughly 330dp
+                     of width, which is more than the ~304dp a 360dp phone leaves inside the card, and a
+                     stack layout neither wraps nor shrinks - so the last button, Remote, was clipped off
+                     the right edge and looked missing. Wrapping also survives a larger font scale and the
+                     longer wordings these strings get once they come back from Crowdin. -->
+                <FlexLayout Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
                     <Button Text="{l:Localize lblShowInstalledApps}" Clicked="OnShowInstalledAppsClicked"
                             BackgroundColor="Transparent" BorderWidth="0"
-                            Padding="0" FontSize="13"
+                            Padding="0" Margin="0,0,18,2" FontSize="13"
                             TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
                     <Button Text="{l:Localize lblTvInformation}" Clicked="OnShowDeviceInfoClicked"
                             BackgroundColor="Transparent" BorderWidth="0"
-                            Padding="0" FontSize="13"
+                            Padding="0" Margin="0,0,18,2" FontSize="13"
                             TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
                     <Button Text="{l:Localize Key=lblRemote, Format='🎛 {0}'}" Clicked="OnShowRemoteClicked"
                             BackgroundColor="Transparent" BorderWidth="0"
-                            Padding="0" FontSize="13"
+                            Padding="0" Margin="0,0,0,2" FontSize="13"
                             TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
-                </HorizontalStackLayout>
+                </FlexLayout>
 
                 <!-- Status bar -->
                 <Border BackgroundColor="#2C3E50" Padding="16" StrokeThickness="0" StrokeShape="RoundRectangle 6">
