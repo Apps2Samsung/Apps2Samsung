@@ -10,7 +10,7 @@
         Width="560" MinWidth="460"
         Height="620" MinHeight="420"
         WindowStartupLocation="CenterOwner"
-        Title="Installed apps">
+        Title="{l:Localize lblInstalledApps}">
 
     <Window.Styles>
         <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>

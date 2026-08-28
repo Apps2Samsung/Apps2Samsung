@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              x:Class="Apps2Samsung.Mobile.Pages.JellyfinSettingsPage"
              Title="Jellyfin"
              NavigationPage.HasNavigationBar="False"
@@ -38,24 +39,24 @@
                         <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
                                 BackgroundColor="Transparent" BorderWidth="0" Padding="0"
                                 WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
-                        <Label Grid.Column="1" Text="Jellyfin server" TextColor="White" FontAttributes="Bold"
+                        <Label Grid.Column="1" Text="{l:Localize lblJellyfinServer}" TextColor="White" FontAttributes="Bold"
                                VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
                     </Grid>
                 </Border>
 
                 <Label Style="{StaticResource Hint}"
-                       Text="Point installed Jellyfin apps at your server and sign in once, so the TV app opens straight to your library. These settings are baked into the Jellyfin package when you install it." />
+                       Text="{l:Localize hintJellyfinSettingsPage}" />
 
                 <!-- Server URL -->
-                <Label Text="Server URL" FontAttributes="Bold" FontSize="14" />
+                <Label Text="{l:Localize lblServerUrl}" FontAttributes="Bold" FontSize="14" />
                 <Border Style="{StaticResource Field}">
                     <Entry x:Name="ServerUrlEntry" Keyboard="Url" Placeholder="http://192.168.1.10:8096"
                            BackgroundColor="Transparent" Unfocused="OnServerUrlUnfocused" />
                 </Border>
                 <Label Style="{StaticResource Hint}"
-                       Text="Full address including http:// or https:// and the port. Include a base path too if you use a reverse proxy (e.g. https://media.example.com/jellyfin)." />
+                       Text="{l:Localize hintServerUrl}" />
                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                    <Button Grid.Column="0" x:Name="TestBtn" Text="Test connection" Clicked="OnTestConnectionClicked"
+                    <Button Grid.Column="0" x:Name="TestBtn" Text="{l:Localize lblTestConnection}" Clicked="OnTestConnectionClicked"
                             BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,6"
                             HorizontalOptions="Start"
                             BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
@@ -64,20 +65,20 @@
                            VerticalOptions="Center" IsVisible="False" />
                 </Grid>
                 <Label x:Name="MdnsWarning" IsVisible="False" FontSize="12" TextColor="#B8860B"
-                       Text="⚠️ .local (mDNS) addresses are often unreliable on Samsung TVs. Prefer the server's IP address if you can." />
+                       Text="{l:Localize hintMdnsAddress}" />
 
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- Auto-login -->
-                <Label Text="Auto-login (optional)" FontAttributes="Bold" FontSize="14" />
+                <Label Text="{l:Localize lblAutoLoginOptional}" FontAttributes="Bold" FontSize="14" />
                 <Label Style="{StaticResource Hint}"
-                       Text="Sign in to bake credentials into the package so the TV app skips the login screen. Leave blank to only set the server address." />
+                       Text="{l:Localize hintAutoLogin}" />
                 <Border Style="{StaticResource Field}">
-                    <Entry x:Name="UsernameEntry" Placeholder="Username" BackgroundColor="Transparent" />
+                    <Entry x:Name="UsernameEntry" Placeholder="{l:Localize lblJellyfinUsername}" BackgroundColor="Transparent" />
                 </Border>
                 <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
                     <Border Grid.Column="0" Style="{StaticResource Field}">
-                        <Entry x:Name="PasswordEntry" IsPassword="True" Placeholder="Password" BackgroundColor="Transparent" />
+                        <Entry x:Name="PasswordEntry" IsPassword="True" Placeholder="{l:Localize lblJellyfinPassword}" BackgroundColor="Transparent" />
                     </Border>
                     <Button Grid.Column="1" x:Name="PwEyeBtn" Text="👁" FontSize="16"
                             BackgroundColor="Transparent" BorderWidth="1"
@@ -86,11 +87,11 @@
                             Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="6"
                             Clicked="OnTogglePasswordVisibility" />
                 </Grid>
-                <Button x:Name="SignInBtn" Text="Connect &amp; sign in" Clicked="OnSignInClicked"
+                <Button x:Name="SignInBtn" Text="{l:Localize lblConnectAndSignIn}" Clicked="OnSignInClicked"
                         HorizontalOptions="Start" BackgroundColor="#2C3E50" TextColor="White"
                         CornerRadius="6" Padding="16,8" />
                 <Label x:Name="StatusLabel" Style="{StaticResource Hint}" IsVisible="False" />
-                <Button x:Name="SignOutBtn" Text="Clear saved sign-in" Clicked="OnSignOutClicked"
+                <Button x:Name="SignOutBtn" Text="{l:Localize lblClearSavedSignIn}" Clicked="OnSignOutClicked"
                         HorizontalOptions="Start" IsVisible="False"
                         BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
                         BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
@@ -100,24 +101,24 @@
 
                 <!-- YouTube fix -->
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                    <Label Grid.Column="0" Text="Fix YouTube trailers (error 153)" VerticalOptions="Center" />
+                    <Label Grid.Column="0" Text="{l:Localize lblFixYoutubeTrailers}" VerticalOptions="Center" />
                     <Switch Grid.Column="1" x:Name="YoutubeSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
                 </Grid>
                 <Label Style="{StaticResource Hint}"
-                       Text="Patches the YouTube-trailers plugin so trailers play on Tizen instead of failing with error 153." />
+                       Text="{l:Localize hintFixYoutubeTrailers}" />
 
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- Custom CSS -->
-                <Label Text="Custom CSS" FontAttributes="Bold" FontSize="14" />
+                <Label Text="{l:Localize lblCustomCssMobile}" FontAttributes="Bold" FontSize="14" />
                 <Label Style="{StaticResource Hint}"
-                       Text="Injected into the Jellyfin web client. Pick a community theme below, or write / paste your own CSS." />
+                       Text="{l:Localize hintCustomCss}" />
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                     <Border Grid.Column="0" Style="{StaticResource Field}">
-                        <Picker x:Name="ThemePicker" Title="Community theme…"
+                        <Picker x:Name="ThemePicker" Title="{l:Localize lblCommunityTheme}"
                                 BackgroundColor="Transparent" SelectedIndexChanged="OnThemeSelected" />
                     </Border>
-                    <Button Grid.Column="1" Text="Clear" Clicked="OnClearCss"
+                    <Button Grid.Column="1" Text="{l:Localize lblClearCss}" Clicked="OnClearCss"
                             BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,0" HeightRequest="44"
                             BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
                             TextColor="{AppThemeBinding Light=#B00020, Dark=#FF6B6B}" />
@@ -127,7 +128,7 @@
                             BackgroundColor="Transparent" Unfocused="OnCssUnfocused" />
                 </Border>
                 <Label Style="{StaticResource Hint}"
-                       Text="Themes from github.com/kingchenc/JellyThemes — selecting one replaces the CSS with its @import." />
+                       Text="{l:Localize hintCommunityThemes}" />
 
             </VerticalStackLayout>
         </Border>

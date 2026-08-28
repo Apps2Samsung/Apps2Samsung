@@ -11,6 +11,7 @@ namespace Apps2Samsung.Mobile.Services;
 /// </summary>
 public static class MobileSettings
 {
+	private const string KeyLanguage = "language";
 	private const string KeyRemoveOld = "remove_old_version";
 	private const string KeyOpenAfter = "open_after_install";
 	private const string KeyKeepWgt = "keep_wgt_file";
@@ -249,4 +250,16 @@ public static class MobileSettings
 	public static string[] ParseDuids() =>
 		ManualDuids.Split(new[] { '\n', '\r', ',', ';' },
 			StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+	/// <summary>
+	/// The UI language as a two-letter code. Empty until the first run has detected one, which is when
+	/// the shared catalog commits the OS language (see L10n) — the same detect-once behaviour as the
+	/// desktop head's AppSettings.Language.
+	/// </summary>
+	public static string Language
+	{
+		get => Preferences.Get(KeyLanguage, string.Empty);
+		set => Preferences.Set(KeyLanguage, value);
+	}
 }
+
