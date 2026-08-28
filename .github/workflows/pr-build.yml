@@ -96,8 +96,14 @@ jobs:
       - name: Check the packages contain the app
         run: |
           set -euo pipefail
-          dpkg-deb -c dist/*.deb | grep -q './opt/apps2samsung/Apps2Samsung'
-          rpm -qlp dist/*.rpm | grep -qx '/opt/apps2samsung/Apps2Samsung'
+          # Listings go to files first: `… | grep -q` exits on the first match, SIGPIPEs the writer,
+          # and pipefail then reports the whole pipeline as failed. It only looks fine when the
+          # listing is small enough to fit the pipe buffer, which is how this passed locally and
+          # failed here.
+          dpkg-deb -c dist/*.deb > deb-listing.txt
+          rpm -qlp dist/*.rpm > rpm-listing.txt
+          grep -q '/opt/apps2samsung/Apps2Samsung$' deb-listing.txt
+          grep -qx '/opt/apps2samsung/Apps2Samsung' rpm-listing.txt
           ./dist/*.AppImage --appimage-extract >/dev/null
           test -x squashfs-root/AppRun
           test -x squashfs-root/usr/bin/Apps2Samsung
