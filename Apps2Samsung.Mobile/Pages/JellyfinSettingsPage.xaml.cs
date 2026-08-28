@@ -180,7 +180,7 @@ public partial class JellyfinSettingsPage : ContentPage
 			var (accessToken, userId, isAdmin, error) = await api.AuthenticateAsync(serverUrl, username, password);
 			if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(userId))
 			{
-				SetStatus(error ?? "Sign-in failed. Check the server URL and credentials.", isError: true);
+				SetStatus(error ?? L10n.Get("statusSignInFailedCheck"), isError: true);
 				return;
 			}
 
@@ -228,8 +228,8 @@ public partial class JellyfinSettingsPage : ContentPage
 		{
 			var name = MobileSettings.JellyfinServerName;
 			SetStatus(string.IsNullOrEmpty(name)
-				? "Signed in — auto-login will be baked into the package."
-				: $"Signed in to {name} — auto-login will be baked into the package.", isError: false);
+				? L10n.Get("statusSignedIn")
+				: string.Format(L10n.Get("statusSignedInTo"), name), isError: false);
 		}
 		else
 		{

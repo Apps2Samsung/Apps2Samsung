@@ -278,7 +278,7 @@ namespace Apps2Samsung.Services
                         Trace.WriteLine($"Resign output: {resignResults.Output}");
                         progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
                         _appSettings.TryOverwrite = false;
-                        return InstallResult.FailureResult($"Package resigning failed: {resignResults.Output}");
+                        return InstallResult.FailureResult(string.Format("statusResignFailed".Localized(), resignResults.Output));
                     }
                 }
 
@@ -594,11 +594,11 @@ namespace Apps2Samsung.Services
 
                 if (string.IsNullOrEmpty(auth.access_token))
                 {
-                    await _dialogService.ShowErrorAsync("Failed to authenticate with Samsung account.");
+                    await _dialogService.ShowErrorAsync("statusSamsungAuthFailed".Localized());
                     return new CertificateResult
                     {
                         Success = false,
-                        InstallResult = InstallResult.FailureResult("Auth failed.")
+                        InstallResult = InstallResult.FailureResult("statusAuthFailed".Localized())
                     };
                 }
 
@@ -840,7 +840,8 @@ namespace Apps2Samsung.Services
 
                 _appSettings.TryOverwrite = false;
                 Trace.WriteLine("Installation failed, insufficient space!");
-                return InstallResult.FailureResult($"Installation failed: {Constants.LocalizationKeys.InsufficientSpace.Localized()}");
+                return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(),
+                    Constants.LocalizationKeys.InsufficientSpace.Localized()));
             }
 
             // Handle certificate mismatch: the installed copy was signed with a different
@@ -899,7 +900,8 @@ namespace Apps2Samsung.Services
                 }
 
                 _appSettings.TryOverwrite = false;
-                return InstallResult.FailureResult($"Installation failed: {Constants.LocalizationKeys.ModifyConfigRequired.Localized()}");
+                return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(),
+                    Constants.LocalizationKeys.ModifyConfigRequired.Localized()));
             }
 
             // Handle generic failure
@@ -916,7 +918,7 @@ namespace Apps2Samsung.Services
                 _appSettings.TryOverwrite = false;
                 // Retries exhausted on a generic failure — clear any partial left by a fresh install.
                 await ClearPartialIfFresh();
-                return InstallResult.FailureResult($"Installation failed: {installResults.Output}");
+                return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(), installResults.Output));
             }
 
             // Handle success
@@ -948,7 +950,7 @@ namespace Apps2Samsung.Services
             _appSettings.TryOverwrite = false;
             // Retries exhausted on an unknown result — clear any partial left by a fresh install.
             await ClearPartialIfFresh();
-            return InstallResult.FailureResult($"Installation failed: {installResults.Output}");
+            return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(), installResults.Output));
         }
 
         #endregion

@@ -292,8 +292,12 @@ namespace Apps2Samsung.Services
                 await dialog.ShowDialog(window);
         }
 
-        public async Task<bool> ShowConfirmationAsync(string title, string message, string yesText = "Yes", string noText = "No", Window? owner = null)
+        // The defaults have to be compile-time constants, so they are empty here and filled in
+        // from the catalog below — otherwise an unlocalized "Yes"/"No" would ship.
+        public async Task<bool> ShowConfirmationAsync(string title, string message, string? yesText = null, string? noText = null, Window? owner = null)
         {
+            yesText ??= "keyYes".Localized();
+            noText ??= "keyNo".Localized();
             var window = owner ?? GetMainWindow();
             var tcs = new TaskCompletionSource<bool>();
             var isDarkMode = AppSettings.Default.DarkMode;

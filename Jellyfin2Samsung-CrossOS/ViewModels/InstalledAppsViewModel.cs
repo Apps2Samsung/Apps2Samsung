@@ -7,6 +7,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Apps2Samsung.Extensions;
 
 namespace Apps2Samsung.ViewModels
 {
@@ -57,7 +58,7 @@ namespace Apps2Samsung.ViewModels
         private async Task Load()
         {
             IsBusy = true;
-            StatusText = "Reading installed apps…";
+            StatusText = "statusReadingInstalledApps".Localized();
             try
             {
                 var iconMap = await Apps2Samsung.Catalog.AppIconResolver.GetIconMapAsync();
@@ -102,7 +103,7 @@ namespace Apps2Samsung.ViewModels
             }
             catch (Exception ex)
             {
-                StatusText = $"Couldn't read the app list: {ex.Message}";
+                StatusText = string.Format("statusReadAppListFailed".Localized(), ex.Message);
             }
             finally
             {
@@ -117,14 +118,14 @@ namespace Apps2Samsung.ViewModels
                 return;
 
             var confirm = await _dialogService.ShowConfirmationAsync(
-                "Uninstall app",
-                $"Remove \"{app.DisplayName}\" from {TvLabel}?\n\n({app.TizenId})",
-                "Uninstall", "Cancel");
+                "lblUninstallApp".Localized(),
+                string.Format("statusConfirmUninstall".Localized(), app.DisplayName, TvLabel, app.TizenId),
+                "lblUninstall".Localized(), "lblCancel".Localized());
             if (!confirm)
                 return;
 
             IsBusy = true;
-            StatusText = $"Uninstalling {app.DisplayName}…";
+            StatusText = string.Format("statusUninstalling".Localized(), app.DisplayName);
             try
             {
                 var result = await _installer.UninstallAppAsync(_tvIp, app.TizenId);
@@ -135,7 +136,7 @@ namespace Apps2Samsung.ViewModels
                 {
                     IsBusy = false;
                     await _dialogService.ShowErrorAsync(
-                        string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() ?? "Uninstall failed." : result.Error);
+                        string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() ?? "lblUninstallFailed".Localized() : result.Error);
                     return;
                 }
             }
@@ -154,11 +155,11 @@ namespace Apps2Samsung.ViewModels
         {
             if (app is null || IsBusy) return;
             IsBusy = true;
-            StatusText = $"Launching {app.DisplayName}…";
+            StatusText = string.Format("statusLaunching".Localized(), app.DisplayName);
             try
             {
                 await _installer.LaunchAppAsync(_tvIp, app.TizenId);
-                StatusText = $"Launched {app.DisplayName}.";
+                StatusText = string.Format("statusLaunched".Localized(), app.DisplayName);
             }
             catch (Exception ex)
             {
@@ -175,11 +176,11 @@ namespace Apps2Samsung.ViewModels
         {
             if (app is null || IsBusy) return;
             IsBusy = true;
-            StatusText = $"Stopping {app.DisplayName}…";
+            StatusText = string.Format("statusStopping".Localized(), app.DisplayName);
             try
             {
                 await _installer.StopAppAsync(_tvIp, app.TizenId);
-                StatusText = $"Stopped {app.DisplayName}.";
+                StatusText = string.Format("statusStopped".Localized(), app.DisplayName);
             }
             catch (Exception ex)
             {
@@ -203,7 +204,7 @@ namespace Apps2Samsung.ViewModels
             } 
             catch { /* Ignore if it's not running */ }
             
-            StatusText = $"Starting debug for {app.DisplayName}…";
+            StatusText = string.Format("statusStartingDebug".Localized(), app.DisplayName);
             try
             {
                 var (port, session) = await _installer.DebugAppAsync(_tvIp, app.TizenId);
@@ -211,7 +212,7 @@ namespace Apps2Samsung.ViewModels
                 _debuggedApp = app;
                 IsDebugging = true;
 
-                StatusText = $"Debugging {app.DisplayName} on local port {port}…";
+                StatusText = string.Format("statusDebugging".Localized(), app.DisplayName, port);
 
                 bool opened = false;
                 Exception? lastError = null;
@@ -259,10 +260,8 @@ namespace Apps2Samsung.ViewModels
 
                 if (!opened)
                 {
-                    await _dialogService.ShowMessageAsync("Debug Started",
-                        $"The app is now running in debug mode on the TV. The debugger is forwarded to localhost:{port}.\n\n" +
-                        "However, we could not automatically open the inspector in your browser. " +
-                        "Please manually open 'chrome://inspect' or 'edge://inspect' in your browser to attach to the TV.");
+                    await _dialogService.ShowMessageAsync("lblDebugStarted".Localized(),
+                        string.Format("statusDebugStarted".Localized(), port));
                 }
             }
             catch (Exception ex)
@@ -285,22 +284,22 @@ namespace Apps2Samsung.ViewModels
                 return;
 
             var id = await _dialogService.PromptForTextAsync(
-                "Remove leftover",
-                "Enter the package id of a leftover/partial install to remove:",
+                "lblRemoveLeftoverTitle".Localized(),
+                "statusRemoveLeftoverPrompt".Localized(),
                 "e.g. HarborTV");
             if (string.IsNullOrWhiteSpace(id))
                 return;
             id = id.Trim();
 
             var confirm = await _dialogService.ShowConfirmationAsync(
-                "Remove leftover",
-                $"Force-remove package \"{id}\" from {TvLabel}?",
-                "Remove", "Cancel");
+                "lblRemoveLeftoverTitle".Localized(),
+                string.Format("statusConfirmForceRemove".Localized(), id, TvLabel),
+                "lblRemove".Localized(), "lblCancel".Localized());
             if (!confirm)
                 return;
 
             IsBusy = true;
-            StatusText = $"Removing {id}…";
+            StatusText = string.Format("statusRemoving".Localized(), id);
             try
             {
                 var result = await _installer.UninstallAppAsync(_tvIp, id);
@@ -311,7 +310,7 @@ namespace Apps2Samsung.ViewModels
                 {
                     IsBusy = false;
                     await _dialogService.ShowErrorAsync(
-                        string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() ?? "Remove failed." : result.Error);
+                        string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() ?? "lblRemoveFailed".Localized() : result.Error);
                     return;
                 }
             }

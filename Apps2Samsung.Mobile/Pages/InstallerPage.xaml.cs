@@ -112,9 +112,9 @@ public partial class InstallerPage : ContentPage
 				return;
 
 			var download = await DisplayAlert(
-				"Update available",
-				$"{result.LatestVersion} is available (you have v{current}). Download the new APK?",
-				"Download", "Later");
+				L10n.Get("UpdateAvailable"),
+				string.Format(L10n.Get("statusUpdateAvailableApk"), result.LatestVersion, current),
+				L10n.Get("lblDownload"), L10n.Get("lblLater"));
 
 			if (download)
 				await Launcher.Default.OpenAsync(result.DownloadUrl ?? result.ReleasesPageUrl);
@@ -354,7 +354,7 @@ public partial class InstallerPage : ContentPage
 			RebuildTvPicker(_tvIps.Count > 0 ? (keep >= 0 ? keep : 0) : -1);
 
 			SetStatus(_tvIps.Count == 0
-				? "No TVs found. Enable Developer Mode on the TV and refresh, or tap the TV list to enter an IP manually."
+				? L10n.Get("statusNoTvsFoundHint")
 				: SelectedTvStatus());
 		}
 		catch (Exception ex)
@@ -405,7 +405,8 @@ public partial class InstallerPage : ContentPage
 		foreach (var guard in guardResult.Guards)
 		{
 			bool continueAnyway = await DisplayAlert(
-				guard.DefaultTitle, guard.DefaultMessageWithDetail, "Continue", "Stop");
+				guard.DefaultTitle, guard.DefaultMessageWithDetail,
+				L10n.Get("keyContinue"), L10n.Get("keyStop"));
 			if (!continueAnyway)
 				return;
 		}

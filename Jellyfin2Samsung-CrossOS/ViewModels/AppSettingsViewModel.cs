@@ -17,6 +17,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Apps2Samsung.Extensions;
 
 namespace Apps2Samsung.ViewModels
 {
@@ -322,11 +323,11 @@ namespace Apps2Samsung.ViewModels
                 await using (var stream = await file.OpenWriteAsync())
                     Apps2Samsung.Backup.BackupService.Export(stream, settingsJson, AppSettings.CertificatePath);
 
-                BackupStatus = "Backup exported.";
+                BackupStatus = "statusBackupExported".Localized();
             }
             catch (Exception ex)
             {
-                BackupStatus = $"Export failed: {ex.Message}";
+                BackupStatus = string.Format("statusExportFailed".Localized(), ex.Message);
                 Trace.WriteLine($"[Backup] export failed: {ex}");
             }
         }
@@ -362,11 +363,11 @@ namespace Apps2Samsung.ViewModels
                 if (!string.IsNullOrEmpty(result.SettingsJson))
                     MergeImportedSettings(result.SettingsJson!);
 
-                BackupStatus = $"Imported settings + {result.CertificateFilesRestored} certificate file(s). Restart the app to apply.";
+                BackupStatus = string.Format("statusImportedDesktop".Localized(), result.CertificateFilesRestored);
             }
             catch (Exception ex)
             {
-                BackupStatus = $"Import failed: {ex.Message}";
+                BackupStatus = string.Format("statusImportFailed".Localized(), ex.Message);
                 Trace.WriteLine($"[Backup] import failed: {ex}");
             }
         }

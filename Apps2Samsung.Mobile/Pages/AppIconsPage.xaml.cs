@@ -7,6 +7,7 @@ using Apps2Samsung.Catalog;
 using Apps2Samsung.Mobile.Catalog;
 using Apps2Samsung.Mobile.Services;
 using Microsoft.Maui.Storage;
+using Apps2Samsung.Mobile.Localization;
 
 namespace Apps2Samsung.Mobile.Pages;
 
@@ -190,10 +191,10 @@ public partial class AppIconsPage : ContentPage
 		catch (Exception ex)
 		{
 			await DisplayAlert(
-				"App icons",
-				$"Couldn't set the icon: {ErrorText.Describe(ex, "app-icons/pick")}\n\n" +
-				"Settings \u2192 Diagnostics \u2192 Share debug log has the full details.",
-				"OK");
+				L10n.Get("lblAppIcons"),
+				string.Format(L10n.Get("statusSetIconFailed"), ErrorText.Describe(ex, "app-icons/pick"))
+					+ "\n\n" + L10n.Get("statusSeeDebugLog"),
+				L10n.Get("lblOk"));
 		}
 	}
 

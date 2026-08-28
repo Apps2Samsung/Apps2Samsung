@@ -51,8 +51,9 @@ public partial class InstalledAppsPage : ContentPage
 		id = id.Trim();
 
 		var confirm = await DisplayAlert(
-			"Remove leftover",
-			$"Force-remove package \"{id}\" from {_tvLabel}?", "Remove", "Cancel");
+			L10n.Get("lblRemoveLeftoverTitle"),
+			string.Format(L10n.Get("statusConfirmForceRemove"), id, _tvLabel),
+			L10n.Get("lblRemove"), L10n.Get("lblCancel"));
 		if (!confirm)
 			return;
 
@@ -67,14 +68,14 @@ public partial class InstalledAppsPage : ContentPage
 			{
 				SetBusy(false);
 				await DisplayAlert(L10n.Get("lblRemoveFailed"),
-					string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() : result.Error, "OK");
+					string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() : result.Error, L10n.Get("lblOk"));
 				return;
 			}
 		}
 		catch (Exception ex)
 		{
 			SetBusy(false);
-			await DisplayAlert(L10n.Get("lblRemoveFailed"), ex.Message, "OK");
+			await DisplayAlert(L10n.Get("lblRemoveFailed"), ex.Message, L10n.Get("lblOk"));
 			return;
 		}
 
@@ -132,9 +133,9 @@ public partial class InstalledAppsPage : ContentPage
 			return;
 
 		var confirm = await DisplayAlert(
-			"Uninstall app",
-			$"Remove \"{app.DisplayName}\" from {_tvLabel}?\n\n({app.TizenId})",
-			"Uninstall", "Cancel");
+			L10n.Get("lblUninstallApp"),
+			string.Format(L10n.Get("statusConfirmUninstall"), app.DisplayName, _tvLabel, app.TizenId),
+			L10n.Get("lblUninstall"), L10n.Get("lblCancel"));
 		if (!confirm)
 			return;
 
@@ -149,14 +150,14 @@ public partial class InstalledAppsPage : ContentPage
 			{
 				SetBusy(false);
 				await DisplayAlert(L10n.Get("lblUninstallFailed"),
-					string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() : result.Error, "OK");
+					string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() : result.Error, L10n.Get("lblOk"));
 				return;
 			}
 		}
 		catch (Exception ex)
 		{
 			SetBusy(false);
-			await DisplayAlert(L10n.Get("lblUninstallFailed"), ex.Message, "OK");
+			await DisplayAlert(L10n.Get("lblUninstallFailed"), ex.Message, L10n.Get("lblOk"));
 			return;
 		}
 
@@ -175,12 +176,12 @@ public partial class InstalledAppsPage : ContentPage
 			var result = await _sdb.LaunchAsync(_tvIp, app.TizenId);
 			if (result.ExitCode != 0)
 			{
-				await DisplayAlert(L10n.Get("lblLaunchFailed"), result.Error, "OK");
+				await DisplayAlert(L10n.Get("lblLaunchFailed"), result.Error, L10n.Get("lblOk"));
 			}
 		}
 		catch (Exception ex)
 		{
-			await DisplayAlert(L10n.Get("lblLaunchFailed"), ex.Message, "OK");
+			await DisplayAlert(L10n.Get("lblLaunchFailed"), ex.Message, L10n.Get("lblOk"));
 		}
 		finally
 		{
@@ -199,12 +200,12 @@ public partial class InstalledAppsPage : ContentPage
 			var result = await _sdb.ShellAsync(_tvIp, $"0 was_kill {app.TizenId}");
 			if (result.ExitCode != 0)
 			{
-				await DisplayAlert(L10n.Get("lblStopFailed"), result.Error, "OK");
+				await DisplayAlert(L10n.Get("lblStopFailed"), result.Error, L10n.Get("lblOk"));
 			}
 		}
 		catch (Exception ex)
 		{
-			await DisplayAlert(L10n.Get("lblStopFailed"), ex.Message, "OK");
+			await DisplayAlert(L10n.Get("lblStopFailed"), ex.Message, L10n.Get("lblOk"));
 		}
 		finally
 		{

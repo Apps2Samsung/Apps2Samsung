@@ -12,6 +12,11 @@ code and Crowdin always has every user-facing string to translate (issue #560):
      Content / Placeholder / Title). Use {l:Localize key} + an en.json entry instead. A small
      ALLOWLIST covers strings that are intentionally not translated: example placeholders
      (a token/URL/CSS sample) and product names.
+  C. No hard-coded prose reaching a user-facing sink in C# — a dialog, a status line, an install
+     failure message. A literal there must either name an en.json key (several sinks take a key
+     and localize internally) or come from a lookup ("key".Localized() / L10n.Get("key")).
+     Interpolated strings are read as their literal parts, so $"{L("k")}: {ex}" is fine while
+     $"Failed to open: {ex}" is not.
 
 Both heads are checked: the desktop head (Avalonia) and the mobile head (MAUI), which shares
 the same en.json now that the string catalog lives in Core.
@@ -39,6 +44,7 @@ ALLOWLIST = {
     "/* your CSS here */",
     "Apps2Samsung",
     "Jellyfin",
+    "e.g. HarborTV",
 }
 
 # Strips XML character/entity references so emoji glyphs (e.g. &#x1F319;) aren't seen as "letters".
@@ -52,6 +58,102 @@ CS_L10N = re.compile(r'L10n\.Get\(\s*"([^"]+)"')
 XAML_LOCALIZE = re.compile(r'\{\s*l:Localize\s+(?:Key\s*=\s*)?([A-Za-z0-9_]+)')
 XAML_LITERAL = re.compile(
     r'\b(Text|Watermark|ToolTip\.Tip|Content|Placeholder|Title)\s*=\s*"([^"]+)"')
+
+
+# C# sinks whose argument a user reads on screen. Calls first, then the status properties both
+# heads' view models assign to directly.
+CS_SINK_CALL = re.compile(
+    r'(?:SetStatus|DisplayAlert|DisplayActionSheet|ShowMessageAsync|ShowErrorAsync'
+    r'|ShowConfirmationAsync|PromptForTextAsync|ShowCertificateCountdownAsync|FailureResult)\s*\(')
+CS_SINK_ASSIGN = re.compile(r'\b(?:StatusText|Status)\s*=\s*(?=[$@"])')
+WORDS = re.compile(r"[A-Za-z]{3,}")
+
+
+def read_string(text, i):
+    """Reads the C# string literal at text[i] ("…", $"…", @"…", $@"…"). Returns (end, literal),
+    where the literal keeps only the text OUTSIDE interpolation holes — a hole is code, and any
+    string inside it is a key, not prose."""
+    interpolated = verbatim = False
+    while text[i] in '$@':
+        interpolated |= text[i] == '$'
+        verbatim |= text[i] == '@'
+        i += 1
+    i += 1                                     # the opening quote
+    out = []
+    while i < len(text):
+        c = text[i]
+        if c == '\\' and not verbatim:
+            if text[i + 1:i + 2] == 'u':
+                out.append(chr(int(text[i + 2:i + 6], 16)))
+                i += 6
+            else:
+                out.append({'n': '\n', 't': '\t'}.get(text[i + 1:i + 2], text[i + 1:i + 2]))
+                i += 2
+            continue
+        if c == '"':
+            if verbatim and text[i + 1:i + 2] == '"':
+                out.append('"')
+                i += 2
+                continue
+            return i + 1, ''.join(out)
+        if interpolated and c == '{':
+            if text[i + 1:i + 2] == '{':
+                out.append('{')
+                i += 2
+                continue
+            depth, i = 1, i + 1
+            while i < len(text) and depth:
+                if text[i] == '"' or (text[i] in '$@' and text[i + 1:i + 2] in ('"', '$', '@')):
+                    i, _ = read_string(text, i)
+                    continue
+                depth += {'{': 1, '}': -1}.get(text[i], 0)
+                i += 1
+            out.append('{}')                   # stands in for the interpolated value
+            continue
+        out.append(c)
+        i += 1
+    return i, ''.join(out)
+
+
+def sink_literals(text, start, single_expression=False):
+    """Literals handed DIRECTLY to a sink: depth 1 of a call's argument list, or the right-hand
+    side of an assignment. A literal followed by .Localized() is a lookup, so it is not prose."""
+    found = []
+    if single_expression:
+        end = text.find(';', start)
+        region, depth_ok = text[start:end if end > 0 else start], lambda _: True
+    else:
+        region, depth_ok = text[start:], None
+
+    i, depth = 0, 0
+    while i < len(region):
+        c = region[i]
+        if not single_expression:
+            if c == '(':
+                depth += 1
+            elif c == ')':
+                depth -= 1
+                if depth == 0:
+                    break
+        if c == '"' or (c in '$@' and region[i + 1:i + 2] in ('"', '$', '@')):
+            end, literal = read_string(region, i)
+            if single_expression or depth == 1:
+                if not region[end:end + 13].lstrip().startswith(".Localized()"):
+                    found.append(literal)
+            i = end
+            continue
+        i += 1
+    return found
+
+
+def is_prose(literal, keys):
+    """Prose = text a user reads. Not a key, an identifier, a format token or punctuation.
+    Deliberately catches short button labels too ("OK", "Yes"), since those are exactly the ones
+    that get left untranslated; anything that is really a key or a sample is excluded above."""
+    if literal in keys or literal in ALLOWLIST:
+        return False
+    stripped = literal.replace('{}', ' ').strip()
+    return bool(re.search(r"[A-Za-z]{2,}", stripped))
 
 
 def source_files(suffix, roots=(DESKTOP, MOBILE)):
@@ -105,6 +207,24 @@ def main():
             errors.append(
                 f"[hardcoded] {f}: {attr}=\"{val}\" — use {{l:Localize key}} + an en.json entry"
             )
+
+    # C. no hard-coded prose reaching a user-facing sink in C#
+    for f in source_files(".cs"):
+        text = f.read_text(encoding="utf-8", errors="ignore")
+        for match in CS_SINK_CALL.finditer(text):
+            for literal in sink_literals(text, match.end() - 1):
+                if is_prose(literal, keys):
+                    line = text[:match.start()].count("\n") + 1
+                    errors.append(
+                        f"[hardcoded-cs] {f}:{line}: {match.group(0).rstrip('( ')}(… \"{literal}\") "
+                        f"— pass a key instead (\"key\".Localized() / L10n.Get(\"key\"))")
+        for match in CS_SINK_ASSIGN.finditer(text):
+            for literal in sink_literals(text, match.end(), single_expression=True):
+                if is_prose(literal, keys):
+                    line = text[:match.start()].count("\n") + 1
+                    errors.append(
+                        f"[hardcoded-cs] {f}:{line}: {match.group(0).strip()} \"{literal}\" "
+                        f"— pass a key instead (\"key\".Localized() / L10n.Get(\"key\"))")
 
     if errors:
         print("Localization check FAILED (%d issue(s)):\n" % len(errors) + "\n".join(sorted(errors)))
