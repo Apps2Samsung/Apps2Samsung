@@ -74,6 +74,8 @@ namespace Apps2Samsung.Services
                     samsungDevice.DeviceName = device.DeviceName;
                 if (string.IsNullOrEmpty(samsungDevice.Manufacturer))
                     samsungDevice.Manufacturer = device.Manufacturer;
+                if (string.IsNullOrEmpty(samsungDevice.MacAddress))
+                    samsungDevice.MacAddress = device.MacAddress;
                 return samsungDevice;
             }));
 
@@ -117,7 +119,9 @@ namespace Apps2Samsung.Services
                     ModelName = deviceNode["modelName"]?.GetValue<string>() ?? string.Empty,
                     Manufacturer = deviceNode["type"]?.GetValue<string>() ?? string.Empty,
                     DeveloperMode = deviceNode["developerMode"]?.GetValue<string>() ?? string.Empty,
-                    DeveloperIP = deviceNode["developerIP"]?.GetValue<string>() ?? string.Empty
+                    DeveloperIP = deviceNode["developerIP"]?.GetValue<string>() ?? string.Empty,
+                    // Reported for both wired and wireless sets despite the name; used for Wake-on-LAN.
+                    MacAddress = deviceNode["wifiMac"]?.GetValue<string>() ?? string.Empty
                 };
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -149,7 +153,8 @@ namespace Apps2Samsung.Services
                 DeviceName = device.DeviceName,
                 Manufacturer = device.Manufacturer,
                 DeveloperMode = string.Empty,
-                DeveloperIP = string.Empty
+                DeveloperIP = string.Empty,
+                MacAddress = device.MacAddress
             };
         }
     }

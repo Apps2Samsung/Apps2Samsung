@@ -47,7 +47,9 @@ ENTITY = re.compile(r"&#x?[0-9A-Fa-f]+;|&[a-zA-Z]+;")
 CS_GETSTRING = re.compile(r'GetString\(\s*"([^"]+)"')
 CS_LOCALIZED = re.compile(r'"([^"]+)"\s*\.\s*Localized\(\)')
 CS_L10N = re.compile(r'L10n\.Get\(\s*"([^"]+)"')
-XAML_LOCALIZE = re.compile(r'\{\s*l:Localize\s+([A-Za-z0-9_]+)')
+# Both forms the extension accepts: positional ({l:Localize key}) and named, which is how a
+# label that keeps an icon passes a format ({l:Localize Key=key, Format='\U0001F507 {0}'}).
+XAML_LOCALIZE = re.compile(r'\{\s*l:Localize\s+(?:Key\s*=\s*)?([A-Za-z0-9_]+)')
 XAML_LITERAL = re.compile(
     r'\b(Text|Watermark|ToolTip\.Tip|Content|Placeholder|Title)\s*=\s*"([^"]+)"')
 
