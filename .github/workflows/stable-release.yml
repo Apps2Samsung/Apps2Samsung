@@ -49,6 +49,10 @@ jobs:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
 
       # ---------------- VERSION (NO -beta allowed) ----------------
+      # The beta marker is added by CI at build time (.github/scripts/stamp-beta-version.py, run
+      # from the Beta Pre-Release workflow) and never committed, so the version in the branch must
+      # always be clean. A "-beta" here means someone hand-edited it — fail instead of shipping a
+      # stable release that calls itself a beta.
       - name: Validate AppVersion (must be stable)
         id: version
         shell: bash
@@ -60,6 +64,7 @@ jobs:
           if echo "$VERSION_LINE" | grep -q '\-beta"'; then
             echo "❌ AppVersion still contains '-beta'"
             echo "   Stable releases must use a clean version like v2.0.0.1"
+            echo "   CI stamps the beta marker itself — don't commit it (see stamp-beta-version.py)"
             exit 1
           fi
 
