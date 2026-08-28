@@ -63,7 +63,6 @@ namespace Apps2Samsung.Helpers.Core
             // Background <tizen:service> components are only reliably installable on
             // Samsung TVs from Tizen 4.0 onward. Below this, such a component must be
             // stripped or the whole package is rejected with a generic install failed[118].
-            public const string ServiceComponentSupport = "4.0";
         }
 
         /// <summary>

@@ -804,7 +804,7 @@ namespace Apps2Samsung.Services
                     return;
                 try
                 {
-                    var pkgId = await FileHelper.ReadWgtPackageId(packageUrl);
+                    var pkgId = await WgtManifest.ReadPackageIdAsync(packageUrl);
                     if (!string.IsNullOrWhiteSpace(pkgId))
                         await _sdb.UninstallAsync(tvIpAddress, pkgId!);
                 }
@@ -894,7 +894,7 @@ namespace Apps2Samsung.Services
                     // rewritten — if the config couldn't be read/modified (previously silent for any
                     // non-".Jellyfin" variant like LiteFin, #400), retrying would hit the identical
                     // [118] conflict, so fall through to a clear failure instead.
-                    if (await FileHelper.ModifyWgtPackageId(packageUrl))
+                    if (await WgtConfigEditor.RandomizePackageIdAsync(packageUrl))
                         return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
                 }
 
@@ -1106,7 +1106,7 @@ namespace Apps2Samsung.Services
             var output = result?.Output ?? string.Empty;
 
             // Read what the WGT *claims* its app id is (best effort fallback for "no listing" cases)
-            var wgtAppId = await FileHelper.ReadWgtApplicationId(packageUrl);
+            var wgtAppId = await WgtManifest.ReadApplicationIdAsync(packageUrl);
 
             // Case 3: no listing -> assume installed, return WGT app id as best-effort
             if (string.IsNullOrWhiteSpace(output) ||
