@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:Apps2Samsung.Extensions"
         xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
         x:Class="Apps2Samsung.Views.BuildInfoWindow"
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
@@ -9,7 +10,7 @@
         MaxWidth="1200"
         MinHeight="540"
         WindowStartupLocation="CenterOwner"
-        Title="App Catalog">
+        Title="{l:Localize catalogTitle}">
 
 	<Window.Styles>
 		<StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>

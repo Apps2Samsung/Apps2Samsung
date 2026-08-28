@@ -9,7 +9,7 @@
         Width="520" MinWidth="420"
         Height="480" MinHeight="360"
         WindowStartupLocation="CenterOwner"
-        Title="TV information">
+        Title="{l:Localize lblTvInformation}">
 
     <Window.Styles>
         <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>

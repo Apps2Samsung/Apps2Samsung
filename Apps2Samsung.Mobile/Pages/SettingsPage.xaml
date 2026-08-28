@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.SettingsPage"
-             Title="Settings"
+             Title="{l:Localize lblSettingsShort}"
              NavigationPage.HasNavigationBar="False"
              BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
 
@@ -36,13 +37,13 @@
                         <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
                                 BackgroundColor="Transparent" BorderWidth="0" Padding="0"
                                 WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
-                        <Label Grid.Column="1" Text="Application settings" TextColor="White" FontAttributes="Bold"
+                        <Label Grid.Column="1" Text="{l:Localize lblSettings}" TextColor="White" FontAttributes="Bold"
                                VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
                     </Grid>
                 </Border>
 
                 <!-- GitHub Token -->
-                <controls:ExpanderSection Title="GitHub token (PAT)">
+                <controls:ExpanderSection Title="{l:Localize lblGitHubToken}">
                     <VerticalStackLayout Spacing="8">
                         <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
                             <Border Grid.Column="0" Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
@@ -59,7 +60,7 @@
                                     Clicked="OnToggleTokenVisibility" />
                         </Grid>
                         <Label Style="{StaticResource Hint}"
-                               Text="Optional. Prevents GitHub API rate limiting when fetching releases. Create one at GitHub &gt; Settings &gt; Developer settings &gt; Personal access tokens." />
+                               Text="{l:Localize hintGitHubToken}" />
                     </VerticalStackLayout>
                 </controls:ExpanderSection>
 
@@ -69,8 +70,8 @@
                 <controls:ExpanderSection Title="Jellyfin">
                     <VerticalStackLayout Spacing="8">
                         <Label Style="{StaticResource Hint}"
-                               Text="Set your Jellyfin server address and sign in once, baked into the Jellyfin app when you install it." />
-                        <Button Text="🎬 Configure Jellyfin server" HorizontalOptions="Start"
+                               Text="{l:Localize hintConfigureJellyfinServer}" />
+                        <Button Text="{l:Localize lblConfigureJellyfinServer}" HorizontalOptions="Start"
                                 BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
                                 BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
                                 TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
@@ -80,63 +81,77 @@
 
                 <BoxView Style="{StaticResource Divider}" />
 
-                <!-- Install options -->
-                <controls:ExpanderSection Title="Install options">
+                <!-- Language: the shared Core catalog serves the same 28 translations as the desktop -->
+                <controls:ExpanderSection Title="{l:Localize lblLanguage}">
                     <VerticalStackLayout Spacing="8">
                         <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="Remove old version" VerticalOptions="Center" />
+                            <Label Grid.Column="0" Text="{l:Localize lblLanguage}" VerticalOptions="Center" />
+                            <Picker Grid.Column="1" x:Name="LanguagePicker" SelectedIndexChanged="OnLanguageChanged"
+                                    HorizontalOptions="End" WidthRequest="140" />
+                        </Grid>
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize hintLanguage}" />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
+
+                <BoxView Style="{StaticResource Divider}" />
+
+                <!-- Install options -->
+                <controls:ExpanderSection Title="{l:Localize lblInstallOptions}">
+                    <VerticalStackLayout Spacing="8">
+                        <Grid Style="{StaticResource ToggleRow}">
+                            <Label Grid.Column="0" Text="{l:Localize lblDeletePrevious}" VerticalOptions="Center" />
                             <Switch Grid.Column="1" x:Name="RemoveOldSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
                         </Grid>
                         <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="Override existing app" VerticalOptions="Center" />
+                            <Label Grid.Column="0" Text="{l:Localize lblOverrideExistingApp}" VerticalOptions="Center" />
                             <Switch Grid.Column="1" x:Name="TryOverwriteSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
                         </Grid>
                         <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="Open after installation" VerticalOptions="Center" />
+                            <Label Grid.Column="0" Text="{l:Localize lblLaunchOnInstall}" VerticalOptions="Center" />
                             <Switch Grid.Column="1" x:Name="OpenAfterSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
                         </Grid>
                         <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="Preserve WGT file" VerticalOptions="Center" />
+                            <Label Grid.Column="0" Text="{l:Localize lblKeepWGTFile}" VerticalOptions="Center" />
                             <Switch Grid.Column="1" x:Name="KeepWgtSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
                         </Grid>
                         <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="Show all Jellyfin versions" VerticalOptions="Center" />
+                            <Label Grid.Column="0" Text="{l:Localize lblShowAllJellyfinVersions}" VerticalOptions="Center" />
                             <Switch Grid.Column="1" x:Name="ShowAllJfSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
                         </Grid>
                         <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="Beta updates" VerticalOptions="Center" />
+                            <Label Grid.Column="0" Text="{l:Localize lblBetaUpdates}" VerticalOptions="Center" />
                             <Switch Grid.Column="1" x:Name="BetaUpdatesSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
                         </Grid>
                         <Label Style="{StaticResource Hint}"
-                               Text="When on, the in-app update check offers new beta versions and downloads them. Turn off to only be notified about stable releases." />
+                               Text="{l:Localize hintBetaUpdates}" />
                     </VerticalStackLayout>
                 </controls:ExpanderSection>
 
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- Extra TV device IDs -->
-                <controls:ExpanderSection Title="Extra TV device IDs">
+                <controls:ExpanderSection Title="{l:Localize lblManualDuids}">
                     <VerticalStackLayout Spacing="8">
                         <Border Padding="8,4" StrokeThickness="1" StrokeShape="RoundRectangle 6"
                                 Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
                                 BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                            <Editor x:Name="DuidsEditor" HeightRequest="90" Placeholder="One DUID per line"
+                            <Editor x:Name="DuidsEditor" HeightRequest="90" Placeholder="{l:Localize lblDuidsWatermark}"
                                     BackgroundColor="Transparent" Unfocused="OnDuidsUnfocused" />
                         </Border>
                         <Label Style="{StaticResource Hint}"
-                               Text="Optional, advanced. Pre-authorize other Samsung TVs by their DUID so a single signing certificate covers them — fewer Samsung logins when installing to multiple TVs." />
+                               Text="{l:Localize hintManualDuids}" />
                     </VerticalStackLayout>
                 </controls:ExpanderSection>
 
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- TVApp channels (m3u8) -->
-                <controls:ExpanderSection Title="TVApp channels">
+                <controls:ExpanderSection Title="{l:Localize lblTvAppChannels}">
                     <VerticalStackLayout Spacing="8">
                         <Label Style="{StaticResource Hint}"
-                               Text="Name + stream URL (m3u8) pairs, written into the TVApp package's channel list when you install it. Order is the play order." />
+                               Text="{l:Localize hintTvAppChannels}" />
                         <VerticalStackLayout x:Name="ChannelsContainer" Spacing="8" />
-                        <Button Text="➕ Add channel" HorizontalOptions="Start"
+                        <Button Text="{l:Localize lblAddChannel}" HorizontalOptions="Start"
                                 BackgroundColor="Transparent" BorderWidth="1"
                                 BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
                                 TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
@@ -147,11 +162,11 @@
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- App icons -->
-                <controls:ExpanderSection Title="App icons">
+                <controls:ExpanderSection Title="{l:Localize lblAppIcons}">
                     <VerticalStackLayout Spacing="8">
                         <Label Style="{StaticResource Hint}"
-                               Text="Give an app a custom launcher icon, applied when you install it." />
-                        <Button Text="🎨 Manage app icons" HorizontalOptions="Start"
+                               Text="{l:Localize hintManageAppIcons}" />
+                        <Button Text="{l:Localize lblManageAppIcons}" HorizontalOptions="Start"
                                 BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
                                 BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
                                 TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
@@ -162,37 +177,37 @@
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- Certificate: pick the signing type, force a fresh login, and note on auto-provisioning. -->
-                <controls:ExpanderSection Title="Certificate">
+                <controls:ExpanderSection Title="{l:Localize lblCertifcate}">
                     <VerticalStackLayout Spacing="8">
                         <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="Certificate type" VerticalOptions="Center" />
+                            <Label Grid.Column="0" Text="{l:Localize lblCertificateType}" VerticalOptions="Center" />
                             <Picker Grid.Column="1" x:Name="CertificatePicker" SelectedIndexChanged="OnCertificateChanged"
                                     HorizontalOptions="End" MinimumWidthRequest="150" />
                         </Grid>
                         <Label Style="{StaticResource Hint}"
-                               Text="Automatic uses Public, switching to Partner only when an app requires a restricted privilege (e.g. VPN); choose Public or Partner to force it. Certificates are created and reused automatically from your Samsung account (one per TV), so you're not asked to sign in every time. After importing a backup, this defaults to the imported certificate." />
+                               Text="{l:Localize hintCertificateType}" />
                         <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="Force Samsung login" VerticalOptions="Center" />
+                            <Label Grid.Column="0" Text="{l:Localize lblForceSamsungLogin}" VerticalOptions="Center" />
                             <Switch Grid.Column="1" x:Name="ForceLoginSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
                         </Grid>
                         <Label Style="{StaticResource Hint}"
-                               Text="Always sign in to Samsung and generate a fresh certificate, even when a reusable one already covers this TV. Normally off — leave it off unless signing is misbehaving." />
+                               Text="{l:Localize hintForceSamsungLogin}" />
                     </VerticalStackLayout>
                 </controls:ExpanderSection>
 
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- Backup -->
-                <controls:ExpanderSection Title="Backup">
+                <controls:ExpanderSection Title="{l:Localize lblBackup}">
                     <VerticalStackLayout Spacing="8">
                         <Label Style="{StaticResource Hint}"
-                               Text="Save your settings and signing certificates to a .zip you can move to another device, or restore from one. Certificates are restored immediately; restart the app to apply imported settings." />
-                        <Button Text="📦 Export backup" HorizontalOptions="Start"
+                               Text="{l:Localize hintBackup}" />
+                        <Button Text="{l:Localize lblExportBackup}" HorizontalOptions="Start"
                                 BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
                                 BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
                                 TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
                                 Clicked="OnExportBackupClicked" />
-                        <Button Text="📥 Import backup" HorizontalOptions="Start"
+                        <Button Text="{l:Localize lblImportBackup}" HorizontalOptions="Start"
                                 BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
                                 BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
                                 TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
@@ -203,11 +218,11 @@
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- Diagnostics -->
-                <controls:ExpanderSection Title="Diagnostics">
+                <controls:ExpanderSection Title="{l:Localize lblDiagnostics}">
                     <VerticalStackLayout Spacing="8">
                         <Label Style="{StaticResource Hint}"
-                               Text="Export this session's debug log to send when reporting a problem." />
-                        <Button Text="📤 Share debug log" HorizontalOptions="Start"
+                               Text="{l:Localize hintShareDebugLog}" />
+                        <Button Text="{l:Localize lblShareDebugLog}" HorizontalOptions="Start"
                                 BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
                                 BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
                                 TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"

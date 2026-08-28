@@ -7,6 +7,7 @@ using Apps2Samsung.Backup;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Collections;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.ApplicationModel.DataTransfer;
@@ -32,6 +33,7 @@ public partial class SettingsPage : ContentPage
 
 		// Load current values without firing the change handlers.
 		_loaded = false;
+		LoadLanguages();
 		TokenEntry.Text = MobileSettings.GitHubToken;
 		DuidsEditor.Text = MobileSettings.ManualDuids;
 		RemoveOldSwitch.IsToggled = MobileSettings.DeletePreviousInstall;
@@ -390,4 +392,49 @@ public partial class SettingsPage : ContentPage
 
 		MobileSettings.TvAppChannelsJson = JsonSerializer.Serialize(channels);
 	}
+
+	// The picker lists the languages that actually have a translation file, shown by their own
+	// endonym where .NET knows one ("Nederlands", not "nl") so the list is readable to the person
+	// looking for their language.
+	private readonly List<string> _languageCodes = new();
+
+	private void LoadLanguages()
+	{
+		if (_languageCodes.Count > 0)
+			return;
+
+		_languageCodes.AddRange(L10n.AvailableLanguages);
+		LanguagePicker.ItemsSource = _languageCodes.Select(DisplayName).ToList();
+		LanguagePicker.SelectedIndex = _languageCodes.IndexOf(L10n.CurrentLanguage);
+	}
+
+	private static string DisplayName(string code)
+	{
+		try
+		{
+			var name = new System.Globalization.CultureInfo(code).NativeName;
+			return string.IsNullOrWhiteSpace(name) ? code : char.ToUpperInvariant(name[0]) + name[1..];
+		}
+		catch (System.Globalization.CultureNotFoundException)
+		{
+			return code;
+		}
+	}
+
+	private async void OnLanguageChanged(object? sender, EventArgs e)
+	{
+		if (!_loaded || LanguagePicker.SelectedIndex < 0 || LanguagePicker.SelectedIndex >= _languageCodes.Count)
+			return;
+
+		var code = _languageCodes[LanguagePicker.SelectedIndex];
+		if (code == L10n.CurrentLanguage)
+			return;
+
+		L10n.SetLanguage(code);
+
+		// {l:Localize} resolves when a page is built, so pages already on the stack keep the old
+		// language until the app is reopened. Say that rather than leaving a half-translated UI.
+		await DisplayAlert(L10n.Get("lblLanguage"), L10n.Get("hintLanguage"), L10n.Get("btn_Close"));
+	}
 }
+

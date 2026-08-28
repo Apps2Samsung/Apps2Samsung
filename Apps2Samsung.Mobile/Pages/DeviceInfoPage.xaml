@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              x:Class="Apps2Samsung.Mobile.Pages.DeviceInfoPage"
-             Title="TV information"
+             Title="{l:Localize lblTvInformation}"
              NavigationPage.HasNavigationBar="False"
              BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
 
@@ -14,7 +15,7 @@
                 <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
                         BackgroundColor="Transparent" BorderWidth="0" Padding="0"
                         WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
-                <Label Grid.Column="1" Text="TV information" TextColor="White" FontAttributes="Bold"
+                <Label Grid.Column="1" Text="{l:Localize lblTvInformation}" TextColor="White" FontAttributes="Bold"
                        VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
                 <Button Grid.Column="2" x:Name="RefreshBtn" Text="⟳" FontSize="18" TextColor="White"
                         BackgroundColor="Transparent" BorderWidth="0" Padding="0"
@@ -23,12 +24,12 @@
         </Border>
 
         <!-- Subtitle: which TV / status -->
-        <Label Grid.Row="1" x:Name="CountLabel" FontSize="12" Opacity="0.6" Text="Loading…" />
+        <Label Grid.Row="1" x:Name="CountLabel" FontSize="12" Opacity="0.6" Text="{l:Localize lblLoading}" />
 
         <!-- Info rows -->
         <CollectionView Grid.Row="2" x:Name="RowsList">
             <CollectionView.EmptyView>
-                <Label x:Name="EmptyLabel" Text="No information to show." Padding="16"
+                <Label x:Name="EmptyLabel" Text="{l:Localize lblNoInformationToShow}" Padding="16"
                        HorizontalTextAlignment="Center" Opacity="0.6" />
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>

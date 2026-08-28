@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              x:Class="Apps2Samsung.Mobile.Pages.InstallerPage"
              Title="Apps2Samsung"
              NavigationPage.HasNavigationBar="False"
@@ -22,7 +23,7 @@
 
                 <!-- Header banner -->
                 <Border BackgroundColor="#2C3E50" Padding="24,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
-                    <Label Text="App Installer for Samsung (Tizen)"
+                    <Label Text="{l:Localize lblAppInstallerTitle}"
                            TextColor="White" FontAttributes="Bold"
                            HorizontalOptions="Center" HorizontalTextAlignment="Center" />
                 </Border>
@@ -33,18 +34,18 @@
 
                 <!-- App / Release -->
                 <Grid ColumnDefinitions="80,*" ColumnSpacing="10" VerticalOptions="Center">
-                    <Label Grid.Column="0" Text="App" VerticalOptions="Center" FontSize="14" FontAttributes="Bold" />
+                    <Label Grid.Column="0" Text="{l:Localize lblApp}" VerticalOptions="Center" FontSize="14" FontAttributes="Bold" />
                     <Border Grid.Column="1" Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
                             Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
                             BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                        <Picker x:Name="AppPicker" Title="Select an app" BackgroundColor="Transparent"
+                        <Picker x:Name="AppPicker" Title="{l:Localize lblSelectAnApp}" BackgroundColor="Transparent"
                                 SelectedIndexChanged="OnAppChanged" />
                     </Border>
                 </Grid>
 
                 <!-- Version + catalog ("?") -->
                 <Grid ColumnDefinitions="80,*,44" ColumnSpacing="8" VerticalOptions="Center">
-                    <Label Grid.Column="0" Text="Version" VerticalOptions="Center" FontSize="14" FontAttributes="Bold" />
+                    <Label Grid.Column="0" Text="{l:Localize lblVersion}" VerticalOptions="Center" FontSize="14" FontAttributes="Bold" />
                     <Border Grid.Column="1" Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
                             Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
                             BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
@@ -60,11 +61,11 @@
 
                 <!-- TV selection + refresh -->
                 <Grid ColumnDefinitions="80,*,44" ColumnSpacing="10">
-                    <Label Grid.Column="0" Text="Select TV" VerticalOptions="Center" FontSize="14" FontAttributes="Bold" />
+                    <Label Grid.Column="0" Text="{l:Localize lblSelectTv}" VerticalOptions="Center" FontSize="14" FontAttributes="Bold" />
                     <Border Grid.Column="1" Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
                             Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
                             BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                        <Picker x:Name="TvPicker" Title="Scan to find TVs" BackgroundColor="Transparent"
+                        <Picker x:Name="TvPicker" Title="{l:Localize lblScanToFindTvs}" BackgroundColor="Transparent"
                                 SelectedIndexChanged="OnTvChanged" />
                     </Border>
                     <Button Grid.Column="2" x:Name="RefreshBtn" Text="⟳" FontSize="18"
@@ -77,11 +78,11 @@
 
                 <!-- Quick peek at what's already on the selected TV -->
                 <HorizontalStackLayout Spacing="18">
-                    <Button Text="📋 Show installed apps" Clicked="OnShowInstalledAppsClicked"
+                    <Button Text="{l:Localize lblShowInstalledApps}" Clicked="OnShowInstalledAppsClicked"
                             BackgroundColor="Transparent" BorderWidth="0"
                             Padding="0" FontSize="13"
                             TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
-                    <Button Text="ℹ️ TV information" Clicked="OnShowDeviceInfoClicked"
+                    <Button Text="{l:Localize lblTvInformation}" Clicked="OnShowDeviceInfoClicked"
                             BackgroundColor="Transparent" BorderWidth="0"
                             Padding="0" FontSize="13"
                             TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
@@ -89,14 +90,14 @@
 
                 <!-- Status bar -->
                 <Border BackgroundColor="#2C3E50" Padding="16" StrokeThickness="0" StrokeShape="RoundRectangle 6">
-                    <Label x:Name="StatusLabel" Text="Ready for use…"
+                    <Label x:Name="StatusLabel" Text="{l:Localize Ready}"
                            TextColor="White" HorizontalOptions="Center"
                            HorizontalTextAlignment="Center" LineBreakMode="WordWrap" />
                 </Border>
 
                 <!-- Action -->
                 <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
-                    <Button Grid.Column="0" x:Name="InstallBtn" Text="Download &amp; Install"
+                    <Button Grid.Column="0" x:Name="InstallBtn" Text="{l:Localize DownloadAndInstall}"
                             Clicked="OnInstallClicked" HorizontalOptions="Fill" />
                     <Button Grid.Column="1" x:Name="SettingsBtn" Text="⚙" FontSize="18"
                             BackgroundColor="Transparent" BorderWidth="1"
@@ -106,7 +107,7 @@
                             Clicked="OnSettingsClicked" />
                 </Grid>
 
-                <Label Text="MIT License · Patrick Stel"
+                <Label Text="{l:Localize lblLicenseFooter}"
                        HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
                 <Label x:Name="VersionLabel"
                        HorizontalOptions="Center" FontSize="11" Opacity="0.55" />

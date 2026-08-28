@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              x:Class="Apps2Samsung.Mobile.Pages.CertificateWaitPage"
-             Title="Certificate isn't valid yet"
+             Title="{l:Localize certificateNotYetValidTitle}"
              BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
 
     <Grid Padding="20" VerticalOptions="Center">
@@ -14,7 +15,7 @@
 
                 <Label Text="⏳" FontSize="40" HorizontalOptions="Center" />
 
-                <Label Text="Certificate isn't valid yet" FontSize="16" FontAttributes="Bold"
+                <Label Text="{l:Localize certificateNotYetValidTitle}" FontSize="16" FontAttributes="Bold"
                        HorizontalTextAlignment="Center" HorizontalOptions="Center" />
 
                 <Label x:Name="MessageLabel" FontSize="14" HorizontalTextAlignment="Center" />
@@ -23,14 +24,14 @@
                 <Label x:Name="CountdownLabel" FontSize="34" FontFamily="monospace"
                        FontAttributes="Bold" HorizontalOptions="Center" />
 
-                <Label x:Name="CaptionLabel" Text="Time until your certificate becomes valid"
+                <Label x:Name="CaptionLabel" Text="{l:Localize certificateCountdownCaption}"
                        FontSize="12" Opacity="0.7"
                        HorizontalTextAlignment="Center" HorizontalOptions="Center" />
 
                 <HorizontalStackLayout Spacing="12" HorizontalOptions="Center" Margin="0,8,0,0">
-                    <Button x:Name="InstallNowBtn" Text="Install now" IsEnabled="False"
+                    <Button x:Name="InstallNowBtn" Text="{l:Localize lblInstallNow}" IsEnabled="False"
                             Clicked="OnInstallNowClicked" />
-                    <Button Text="Cancel" WidthRequest="100" Clicked="OnCancelClicked" />
+                    <Button Text="{l:Localize lblCancel}" WidthRequest="100" Clicked="OnCancelClicked" />
                 </HorizontalStackLayout>
 
             </VerticalStackLayout>

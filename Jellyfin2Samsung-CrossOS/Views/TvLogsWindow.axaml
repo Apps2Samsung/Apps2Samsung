@@ -7,7 +7,7 @@
         x:DataType="viewModels:TvLogsViewModel"
         Width="900"
         Height="650"
-        Title="Samsung TV Logs"
+        Title="{l:Localize lblTvLogOutput}"
         WindowStartupLocation="CenterOwner">
 
 	<!-- ========================= -->
