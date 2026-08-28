@@ -91,7 +91,8 @@ jobs:
               -c Release -r linux-$ARCH -p:SelfContained=true -o publish/linux-$ARCH
             # 0.0.0 rather than something like 0.0.0-pr: rpm forbids '-' in a version (it separates
             # version from release), which is what the first run of this job discovered.
-            bash .github/scripts/package-linux.sh "publish/linux-$ARCH" "$ARCH" 0.0.0 dist jellyfin.png
+            bash .github/scripts/package-linux.sh \
+              "publish/linux-$ARCH" "$ARCH" 0.0.0 v0.0.0-pr dist jellyfin.png
           done
 
       # A package that builds but is empty would still pass the step above, so assert the payload made
@@ -107,6 +108,17 @@ jobs:
             rpm -qlp dist/*-linux-$ARCH.rpm > "rpm-$ARCH.txt"
             grep -q '/opt/apps2samsung/Apps2Samsung$' "deb-$ARCH.txt"
             grep -qx '/opt/apps2samsung/Apps2Samsung' "rpm-$ARCH.txt"
+
+            # Present is not the same as whole. rpm's default post-install strip once reduced the
+            # x64 binary from 138 MB to 11 MB — a .NET single-file bundle with its payload cut off,
+            # which installs happily and then cannot run. Compare against the published binary.
+            EXPECTED=$(stat -c%s "publish/linux-$ARCH/Apps2Samsung")
+            IN_DEB=$(awk '$6=="./opt/apps2samsung/Apps2Samsung"{print $3}' "deb-$ARCH.txt")
+            IN_RPM=$(rpm -qp --qf '[%{FILENAMES} %{FILESIZES}\n]' dist/*-linux-$ARCH.rpm \
+              | awk '$1=="/opt/apps2samsung/Apps2Samsung"{print $2}')
+            echo "$ARCH: published=$EXPECTED deb=$IN_DEB rpm=$IN_RPM"
+            test "$IN_DEB" = "$EXPECTED"
+            test "$IN_RPM" = "$EXPECTED"
           done
 
           # The tags, not just the contents: a cross-built package that came out x86_64 would install
@@ -123,4 +135,5 @@ jobs:
           ./dist/*-linux-x64.AppImage --appimage-extract >/dev/null
           test -x squashfs-root/AppRun
           test -x squashfs-root/usr/bin/Apps2Samsung
-          echo "deb, rpm and AppImage carry the app, for both architectures"
+          test "$(stat -c%s squashfs-root/usr/bin/Apps2Samsung)" = "$(stat -c%s publish/linux-x64/Apps2Samsung)"
+          echo "deb, rpm and AppImage carry the whole app, for both architectures"

@@ -164,7 +164,7 @@ jobs:
         run: |
           for ARCH in x64 arm64; do
             bash .github/scripts/package-linux.sh \
-              "publish/linux-$ARCH" "$ARCH" "$VERSION" dist jellyfin.png
+              "publish/linux-$ARCH" "$ARCH" "$VERSION" "$VERSION_TAG" dist jellyfin.png
           done
 
       # ---------------- RELEASE (UPDATE SAME TAG EVERY COMMIT) ----------------

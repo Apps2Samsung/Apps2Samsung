@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds the Linux packages for one architecture from an already-published self-contained folder.
 #
-#   package-linux.sh <publish-dir> <arch: x64|arm64> <version> <out-dir> <icon-png>
+#   package-linux.sh <publish-dir> <arch: x64|arm64> <version> <asset-tag> <out-dir> <icon-png>
 #
 # Produces, named the way the release assets are (Apps2Samsung-v<version>-linux-<arch>.<ext>):
 #   .tar.gz     the portable folder, for anything not covered below
@@ -18,13 +18,17 @@ set -euo pipefail
 # relative publish dir or icon would silently resolve to the wrong place.
 PUBLISH_DIR="$(realpath "${1:?publish dir}")"
 ARCH="${2:?arch (x64|arm64)}"
-VERSION="${3:?version, without the leading v}"
-mkdir -p "${4:?output dir}"
-OUT_DIR="$(realpath "$4")"
-ICON_PNG="$(realpath "${5:?256x256 png}")"
+# Two version strings, deliberately: the package metadata version (rpm-legal, no '-') and the tag the
+# asset file names carry, which for a beta is v2.7.9-beta. Deriving the file names from the version
+# alone dropped the -beta marker from the beta release's Linux assets.
+VERSION="${3:?package version, e.g. 2.7.9}"
+ASSET_TAG="${4:?asset tag, e.g. v2.7.9-beta}"
+mkdir -p "${5:?output dir}"
+OUT_DIR="$(realpath "$5")"
+ICON_PNG="$(realpath "${6:?256x256 png}")"
 
 PRODUCT="Apps2Samsung"
-TAG="v${VERSION}"
+TAG="$ASSET_TAG"
 APP_ID="apps2samsung"
 
 # rpm reserves '-' as the version/release separator, so it can never appear in Version:. Say that
@@ -96,6 +100,15 @@ echo "✔ deb"
 RPM_TOP="$WORK/rpm"
 mkdir -p "$RPM_TOP"/{BUILD,RPMS,SOURCES,SPECS,BUILDROOT}
 cat > "$RPM_TOP/SPECS/$APP_ID.spec" <<EOF
+# rpm's default post-install processing runs strip over every ELF it finds. Our payload is a .NET
+# single-file bundle — the app is appended to the host executable — and stripping it threw away 126
+# of its 138 MB, leaving a package that installs and then cannot run. It only showed up as an x64
+# rpm suspiciously smaller than the aarch64 one, which survived because strip can't process a
+# foreign-architecture binary. Turn the whole post-processing off; nothing here needs it.
+%global __os_install_post %{nil}
+%global __strip /bin/true
+%global debug_package %{nil}
+
 Name:           $APP_ID
 Version:        $VERSION
 Release:        1
