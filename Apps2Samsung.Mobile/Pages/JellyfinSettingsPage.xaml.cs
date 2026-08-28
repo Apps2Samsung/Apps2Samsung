@@ -6,6 +6,7 @@ using Apps2Samsung.Helpers.API;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Jellyfin;
 using Apps2Samsung.Mobile.Services;
+using Apps2Samsung.Mobile.Localization;
 
 namespace Apps2Samsung.Mobile.Pages;
 
@@ -159,17 +160,17 @@ public partial class JellyfinSettingsPage : ContentPage
 
 		if (string.IsNullOrWhiteSpace(serverUrl))
 		{
-			SetStatus("Enter a server URL first.", isError: true);
+			SetStatus(L10n.Get("statusEnterServerUrl"), isError: true);
 			return;
 		}
 		if (string.IsNullOrWhiteSpace(username))
 		{
-			SetStatus("Enter a username to sign in (or just leave the server URL set).", isError: true);
+			SetStatus(L10n.Get("statusEnterUsername"), isError: true);
 			return;
 		}
 
 		SignInBtn.IsEnabled = false;
-		SetStatus("Connecting…", isError: false);
+		SetStatus(L10n.Get("ConnectingToDevice"), isError: false);
 		try
 		{
 			// A dedicated client so auth-header mutations never touch the app's shared HttpClient.
@@ -200,7 +201,7 @@ public partial class JellyfinSettingsPage : ContentPage
 		}
 		catch (Exception ex)
 		{
-			SetStatus($"Sign-in failed: {ex.Message}", isError: true);
+			SetStatus(string.Format(L10n.Get("statusSignInFailed"), ex.Message), isError: true);
 		}
 		finally
 		{

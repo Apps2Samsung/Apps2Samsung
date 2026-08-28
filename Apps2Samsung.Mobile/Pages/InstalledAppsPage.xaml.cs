@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Sdb;
+using Apps2Samsung.Mobile.Localization;
 
 namespace Apps2Samsung.Mobile.Pages;
 
@@ -65,7 +66,7 @@ public partial class InstalledAppsPage : ContentPage
 			if (!ok)
 			{
 				SetBusy(false);
-				await DisplayAlert("Remove failed",
+				await DisplayAlert(L10n.Get("lblRemoveFailed"),
 					string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() : result.Error, "OK");
 				return;
 			}
@@ -73,7 +74,7 @@ public partial class InstalledAppsPage : ContentPage
 		catch (Exception ex)
 		{
 			SetBusy(false);
-			await DisplayAlert("Remove failed", ex.Message, "OK");
+			await DisplayAlert(L10n.Get("lblRemoveFailed"), ex.Message, "OK");
 			return;
 		}
 
@@ -147,7 +148,7 @@ public partial class InstalledAppsPage : ContentPage
 			if (!ok)
 			{
 				SetBusy(false);
-				await DisplayAlert("Uninstall failed",
+				await DisplayAlert(L10n.Get("lblUninstallFailed"),
 					string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() : result.Error, "OK");
 				return;
 			}
@@ -155,7 +156,7 @@ public partial class InstalledAppsPage : ContentPage
 		catch (Exception ex)
 		{
 			SetBusy(false);
-			await DisplayAlert("Uninstall failed", ex.Message, "OK");
+			await DisplayAlert(L10n.Get("lblUninstallFailed"), ex.Message, "OK");
 			return;
 		}
 
@@ -174,12 +175,12 @@ public partial class InstalledAppsPage : ContentPage
 			var result = await _sdb.LaunchAsync(_tvIp, app.TizenId);
 			if (result.ExitCode != 0)
 			{
-				await DisplayAlert("Launch failed", result.Error, "OK");
+				await DisplayAlert(L10n.Get("lblLaunchFailed"), result.Error, "OK");
 			}
 		}
 		catch (Exception ex)
 		{
-			await DisplayAlert("Launch failed", ex.Message, "OK");
+			await DisplayAlert(L10n.Get("lblLaunchFailed"), ex.Message, "OK");
 		}
 		finally
 		{
@@ -198,12 +199,12 @@ public partial class InstalledAppsPage : ContentPage
 			var result = await _sdb.ShellAsync(_tvIp, $"0 was_kill {app.TizenId}");
 			if (result.ExitCode != 0)
 			{
-				await DisplayAlert("Stop failed", result.Error, "OK");
+				await DisplayAlert(L10n.Get("lblStopFailed"), result.Error, "OK");
 			}
 		}
 		catch (Exception ex)
 		{
-			await DisplayAlert("Stop failed", ex.Message, "OK");
+			await DisplayAlert(L10n.Get("lblStopFailed"), ex.Message, "OK");
 		}
 		finally
 		{

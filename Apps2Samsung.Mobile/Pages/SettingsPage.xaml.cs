@@ -68,7 +68,7 @@ public partial class SettingsPage : ContentPage
 		var logPath = Apps2Samsung.Diagnostics.FileLog.CurrentLogFile;
 		if (string.IsNullOrEmpty(logPath) || !File.Exists(logPath))
 		{
-			await DisplayAlert("Debug log", "No log file is available for this session yet.", "OK");
+			await DisplayAlert(L10n.Get("lblDebugLog"), L10n.Get("statusNoLogFile"), L10n.Get("btn_Close"));
 			return;
 		}
 
@@ -82,7 +82,7 @@ public partial class SettingsPage : ContentPage
 		}
 		catch (Exception ex)
 		{
-			await DisplayAlert("Debug log", $"Couldn't share the log: {ex.Message}", "OK");
+			await DisplayAlert(L10n.Get("lblDebugLog"), string.Format(L10n.Get("statusLogShareFailed"), ex.Message), L10n.Get("btn_Close"));
 		}
 	}
 
