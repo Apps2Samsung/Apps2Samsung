@@ -22,6 +22,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Apps2Samsung.Extensions;
 
 namespace Apps2Samsung.ViewModels
 {
@@ -754,12 +755,12 @@ namespace Apps2Samsung.ViewModels
         {
             if (!ServerIpSet)
             {
-                ServerConnectionStatus = "Not configured";
+                ServerConnectionStatus = "statusNotConfigured".Localized();
                 ServerValidated = false;
                 return;
             }
 
-            ServerConnectionStatus = "Validating...";
+            ServerConnectionStatus = "statusValidating".Localized();
             ServerValidated = false;
 
             var testUrl = UrlHelper.CombineUrl(AppSettings.Default.JellyfinFullUrl, "/System/Info/Public");
@@ -768,12 +769,12 @@ namespace Apps2Samsung.ViewModels
             if (isReachable)
             {
                 await FetchAndStoreServerIdAsync();
-                ServerConnectionStatus = "Connected";
+                ServerConnectionStatus = "statusConnected".Localized();
                 ServerValidated = true;
             }
             else
             {
-                ServerConnectionStatus = "Unreachable";
+                ServerConnectionStatus = "statusUnreachable".Localized();
                 ServerValidated = false;
             }
         }
@@ -943,7 +944,7 @@ namespace Apps2Samsung.ViewModels
             }
             catch (Exception ex)
             {
-                CssValidationStatus = $"Error: {ex.Message}";
+                CssValidationStatus = string.Format("statusErrorDetail".Localized(), ex.Message);
                 CssValidationSuccess = false;
             }
             finally

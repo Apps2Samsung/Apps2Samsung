@@ -146,7 +146,7 @@ namespace Apps2Samsung.Helpers.Core
                 var filePath = packagePath.Trim();
                 if (!File.Exists(filePath))
                 {
-                    await _dialogService.ShowErrorAsync($"Package not found: {filePath}");
+                    await _dialogService.ShowErrorAsync(string.Format("statusPackageNotFound".Localized(), filePath));
                     allSuccessful = false;
                     break;
                 }

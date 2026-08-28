@@ -17,6 +17,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Apps2Samsung.Extensions;
 
 namespace Apps2Samsung.ViewModels
 {
@@ -572,7 +573,7 @@ namespace Apps2Samsung.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync($"Failed to open build info window: {ex}");
+                await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("catalogTitle"), ex));
             }
         }
 
@@ -585,7 +586,7 @@ namespace Apps2Samsung.ViewModels
                     string.IsNullOrWhiteSpace(SelectedDevice.IpAddress) ||
                     SelectedDevice.IpAddress == L("lblOther"))
                 {
-                    await _dialogService.ShowMessageAsync("Installed apps", "Select a TV first.");
+                    await _dialogService.ShowMessageAsync(L("lblInstalledApps"), L("lblSelectTvFirst"));
                     return;
                 }
 
@@ -601,7 +602,7 @@ namespace Apps2Samsung.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync($"Failed to open installed apps: {ex}");
+                await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblInstalledApps"), ex));
             }
         }
 
@@ -614,7 +615,7 @@ namespace Apps2Samsung.ViewModels
                     string.IsNullOrWhiteSpace(SelectedDevice.IpAddress) ||
                     SelectedDevice.IpAddress == L("lblOther"))
                 {
-                    await _dialogService.ShowMessageAsync("TV information", "Select a TV first.");
+                    await _dialogService.ShowMessageAsync(L("lblTvInformation"), L("lblSelectTvFirst"));
                     return;
                 }
 
@@ -630,7 +631,7 @@ namespace Apps2Samsung.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync($"Failed to open TV information: {ex}");
+                await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblTvInformation"), ex));
             }
         }
 
@@ -669,7 +670,7 @@ namespace Apps2Samsung.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync($"Failed to open the remote: {ex}");
+                await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblRemote"), ex));
             }
         }
 
@@ -923,7 +924,7 @@ namespace Apps2Samsung.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync($"Failed to load devices: {ex}");
+                await _dialogService.ShowErrorAsync(string.Format("statusLoadDevicesFailed".Localized(), ex));
             }
             finally
             {

@@ -133,9 +133,9 @@ public partial class SettingsPage : ContentPage
 		catch (Exception ex)
 		{
 			await DisplayAlert(
-				"Export backup",
-				$"Couldn't export the backup: {ErrorText.Describe(ex, "backup/export")}",
-				"OK");
+				L10n.Get("lblExportBackup"),
+				string.Format(L10n.Get("statusExportBackupFailed"), ErrorText.Describe(ex, "backup/export")),
+				L10n.Get("lblOk"));
 		}
 	}
 
@@ -162,17 +162,17 @@ public partial class SettingsPage : ContentPage
 			OnAppearing();
 
 			await DisplayAlert(
-				"Import backup",
-				$"Imported settings + {import.CertificateFilesRestored} certificate file(s). Certificates are already restored. Restart the app to fully apply the imported settings.",
-				"OK");
+				L10n.Get("lblImportBackup"),
+				string.Format(L10n.Get("statusImportedMobile"), import.CertificateFilesRestored),
+				L10n.Get("lblOk"));
 		}
 		catch (Exception ex)
 		{
 			await DisplayAlert(
-				"Import backup",
-				$"Couldn't import the backup: {ErrorText.Describe(ex, "backup/import")}\n\n" +
-				"Settings \u2192 Diagnostics \u2192 Share debug log has the full details.",
-				"OK");
+				L10n.Get("lblImportBackup"),
+				string.Format(L10n.Get("statusImportBackupFailed"), ErrorText.Describe(ex, "backup/import"))
+					+ "\n\n" + L10n.Get("statusSeeDebugLog"),
+				L10n.Get("lblOk"));
 		}
 	}
 
