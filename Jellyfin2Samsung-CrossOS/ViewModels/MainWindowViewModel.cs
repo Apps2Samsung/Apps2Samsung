@@ -670,7 +670,7 @@ namespace Apps2Samsung.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync($"Failed to open the remote: {ex}");
+                await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblRemote"), ex));
             }
         }
 

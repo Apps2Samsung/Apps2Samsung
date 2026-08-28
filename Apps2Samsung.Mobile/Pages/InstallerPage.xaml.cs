@@ -307,7 +307,7 @@ public partial class InstallerPage : ContentPage
 	{
 		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
 		{
-			SetStatus("Select a TV first (tap refresh to scan).");
+			SetStatus(L10n.Get("statusSelectTvFirst"));
 			return;
 		}
 		var tvIp = _tvIps[TvPicker.SelectedIndex];
