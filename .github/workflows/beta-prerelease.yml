@@ -163,7 +163,7 @@ jobs:
       - name: Build Linux packages
         run: |
           for ARCH in x64 arm64; do
-            .github/scripts/package-linux.sh \
+            bash .github/scripts/package-linux.sh \
               "publish/linux-$ARCH" "$ARCH" "$VERSION" dist jellyfin.png
           done
 

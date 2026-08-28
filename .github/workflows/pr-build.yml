@@ -87,7 +87,7 @@ jobs:
         run: |
           dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
             -c Release -r linux-x64 -p:SelfContained=true -o publish/linux-x64
-          .github/scripts/package-linux.sh publish/linux-x64 x64 0.0.0-pr dist jellyfin.png
+          bash .github/scripts/package-linux.sh publish/linux-x64 x64 0.0.0-pr dist jellyfin.png
 
       # A package that builds but is empty would still pass the step above, so assert the payload
       # made it in: the binary in the .deb and the .rpm, and a runnable AppRun in the AppImage.
