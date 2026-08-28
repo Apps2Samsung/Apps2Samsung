@@ -22,6 +22,17 @@ public partial class RemotePage : ContentPage
 	private bool _toggleUnsupported;
 	private bool _lastWasPlay;
 
+	// Live typing. SendInputString hands the TV the whole field contents rather than appending to
+	// them, so the mirror is simply "send the box as it stands" - which makes deletions work for
+	// free, a shorter string overwriting a longer one. Sending on every keystroke would put one
+	// WebSocket round trip on each letter, so a keystroke only supersedes the pending send and the
+	// text goes out once typing pauses.
+	private static readonly TimeSpan TypingDebounce = TimeSpan.FromMilliseconds(180);
+	private CancellationTokenSource? _typingCts;
+	// What the TV was last told, so a value that comes back round to the mirrored one inside a single
+	// debounce window (type a letter, delete it) costs nothing.
+	private string _mirroredText = string.Empty;
+
 	public RemotePage(string tvIp, string tvLabel)
 	{
 		InitializeComponent();
@@ -38,6 +49,8 @@ public partial class RemotePage : ContentPage
 	protected override async void OnDisappearing()
 	{
 		base.OnDisappearing();
+		_typingCts?.Cancel();
+		_typingCts = null;
 		var remote = _remote;
 		_remote = null;
 		if (remote is not null)
@@ -88,6 +101,9 @@ public partial class RemotePage : ContentPage
 		}
 
 		_remote = client;
+		// Nothing is known about what sits in the TV's text field on a new connection, so start from
+		// "unmirrored" and let the first keystroke transmit in full.
+		_mirroredText = string.Empty;
 		var name = string.IsNullOrWhiteSpace(capability.Name) ? _tvLabel : capability.Name;
 		SetStatus($"{name} — {L10n.Get("lblRemoteConnected")}");
 	}
@@ -139,10 +155,88 @@ public partial class RemotePage : ContentPage
 		await SendKeyAsync(_lastWasPlay ? SamsungRemoteKeys.Play : SamsungRemoteKeys.Pause);
 	}
 
-	private async void OnSendTextClicked(object? sender, EventArgs e)
+	private void OnTextChanged(object? sender, TextChangedEventArgs e)
 	{
-		var text = TextEntry.Text;
-		if (string.IsNullOrEmpty(text))
+		// Supersede whatever was queued: only the newest value is worth sending, and cancelling the
+		// older one also stops two sends racing to arrive out of order on a slow link.
+		_typingCts?.Cancel();
+		var cts = new CancellationTokenSource();
+		_typingCts = cts;
+		_ = MirrorTextAsync(e.NewTextValue ?? string.Empty, cts);
+	}
+
+	/// <summary>
+	/// Waits out the current burst of typing and then puts <paramref name="text"/> on the TV. Runs on
+	/// the UI thread throughout - the awaits here deliberately keep their context, so touching
+	/// <see cref="SetStatus"/> afterwards is safe.
+	/// </summary>
+	private async Task MirrorTextAsync(string text, CancellationTokenSource cts)
+	{
+		try
+		{
+			await Task.Delay(TypingDebounce, cts.Token);
+
+			if (text == _mirroredText)
+				return;
+
+			var remote = _remote;
+			if (remote is null)
+			{
+				SetStatus(L10n.Get("lblRemoteNotConnected"));
+				return;
+			}
+
+			// Deliberately not handed the debounce token: SamsungRemoteClient reads any exception out
+			// of a send - a cancellation as much as a dropped Wi-Fi link - as a dead socket and tears
+			// the connection down, so cancelling a keystroke mid-flight would cost a reconnect. Once a
+			// send has started it is left to finish.
+			var sent = await remote.SendTextAsync(text);
+
+			// Superseded while that was in flight: the newer send owns the mirror and the status line,
+			// and stamping this older value over it would leave the two out of step.
+			if (cts.IsCancellationRequested)
+				return;
+
+			if (sent)
+			{
+				_mirroredText = text;
+				SetStatus(text.Length == 0
+					? L10n.Get("lblRemoteTextCleared")
+					: string.Format(L10n.Get("lblRemoteTextMirrored"), text));
+			}
+			else
+			{
+				SetStatus(L10n.Get("lblRemoteTextFailed"));
+			}
+		}
+		catch (OperationCanceledException)
+		{
+			// A newer keystroke took over before this one went out.
+		}
+		finally
+		{
+			if (ReferenceEquals(_typingCts, cts))
+				_typingCts = null;
+			cts.Dispose();
+		}
+	}
+
+	// The text is on the TV already, so committing it is all that is left: flush anything still
+	// waiting out its debounce, then press Enter the way the on-screen keyboard's Done key would.
+	private async void OnSubmitClicked(object? sender, EventArgs e)
+	{
+		await FlushTypingAsync();
+		await SendKeyAsync(SamsungRemoteKeys.Enter);
+	}
+
+	/// <summary>Puts the box on the TV right now, without waiting for the debounce to elapse.</summary>
+	private async Task FlushTypingAsync()
+	{
+		_typingCts?.Cancel();
+		_typingCts = null;
+
+		var text = TextEntry.Text ?? string.Empty;
+		if (text == _mirroredText)
 			return;
 
 		var remote = _remote;
@@ -153,14 +247,9 @@ public partial class RemotePage : ContentPage
 		}
 
 		if (await remote.SendTextAsync(text))
-		{
-			TextEntry.Text = string.Empty;
-			SetStatus(string.Format(L10n.Get("lblRemoteTextSentValue"), text));
-		}
+			_mirroredText = text;
 		else
-		{
 			SetStatus(L10n.Get("lblRemoteTextFailed"));
-		}
 	}
 
 	private async Task<bool> SendKeyAsync(string key)
