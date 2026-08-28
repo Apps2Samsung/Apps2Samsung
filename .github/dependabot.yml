@@ -20,6 +20,19 @@ updates:
     open-pull-requests-limit: 3
     commit-message:
       prefix: deps
+    ignore:
+      # Avalonia 12 and FluentAvalonia 3 are migrations, not bumps — the first Dependabot attempt
+      # (#582) failed to build: BindingPlugins is no longer public, Avalonia.Controls.SaveFileDialog
+      # is gone (StorageProvider replaces it), and FluentAvalonia dropped SymbolIcon/Symbol. Drop
+      # these entries when someone does the port deliberately.
+      - dependency-name: "Avalonia*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "FluentAvaloniaUI"
+        update-types: ["version-update:semver-major"]
+      # Pre-1.0, so a "minor" is a breaking change: 0.21 -> 0.95 crosses a lot of them, and this one
+      # only runs on Linux, where CI can't exercise it. Patches still come through.
+      - dependency-name: "Tmds.DBus.Protocol"
+        update-types: ["version-update:semver-minor"]
     groups:
       # The SDB engine gets its own PR: it is the one dependency whose bump changes how the app
       # talks to a TV, so it wants a run against real hardware before it goes to beta.
