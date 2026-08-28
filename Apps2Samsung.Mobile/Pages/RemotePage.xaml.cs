@@ -48,19 +48,20 @@ public partial class RemotePage : ContentPage
 		SetStatus($"{_tvLabel} — connecting…");
 
 		var capability = await SamsungRemoteClient.ProbeAsync(_tvIp);
-		if (!capability.Supported)
+
+		// A sleeping TV serves neither the REST API nor the remote channel, so "no answer" and
+		// "standby" are the same situation: nothing works until the set is woken. If we cached its
+		// MAC while it was awake, we can do that ourselves.
+		if (!capability.Supported || !capability.IsAwake)
 		{
-			// The remote API lives on port 8001/8002, which a TV in standby doesn't serve at all —
-			// so "no answer" most often means "asleep", not "unsupported".
-			SetStatus($"{_tvLabel} — no remote API. Is the TV on and on this network?");
-			return;
+			capability = await TryWakeAsync(capability);
+			if (!capability.Supported || !capability.IsAwake)
+				return;
 		}
 
-		if (!capability.IsAwake)
-		{
-			SetStatus($"{_tvLabel} — the TV reports standby. Turn it on with the physical remote first.");
-			return;
-		}
+		// Remember the MAC while we can read it — a sleeping TV won't tell us later.
+		if (!string.IsNullOrEmpty(capability.MacAddress))
+			MobileSettings.SetRemoteMac(_tvIp, capability.MacAddress);
 
 		var stored = MobileSettings.GetRemoteToken(_tvIp);
 		var client = new SamsungRemoteClient(_tvIp, token: stored, secure: capability.UsesToken);
@@ -88,6 +89,31 @@ public partial class RemotePage : ContentPage
 		_remote = client;
 		var name = string.IsNullOrWhiteSpace(capability.Name) ? _tvLabel : capability.Name;
 		SetStatus($"{name} — connected");
+	}
+
+	/// <summary>
+	/// Wakes the TV with a magic packet, if we know its MAC, and waits for it to come up. Returns the
+	/// re-probed capability, and sets the status when it couldn't be done — the caller only continues
+	/// when the TV is actually awake.
+	/// </summary>
+	private async Task<SamsungRemoteCapability> TryWakeAsync(SamsungRemoteCapability capability)
+	{
+		var mac = MobileSettings.GetRemoteMac(_tvIp);
+		if (string.IsNullOrEmpty(mac))
+		{
+			// Never seen this TV awake, so there is no MAC to wake it with.
+			SetStatus($"{_tvLabel} — no answer. Turn the TV on with its own remote once, then this page can wake it.");
+			return capability;
+		}
+
+		SetStatus($"{_tvLabel} — waking the TV…");
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+		if (await SamsungRemoteWake.WakeAndWaitAsync(_tvIp, mac, TimeSpan.FromSeconds(40), cts.Token))
+			return await SamsungRemoteClient.ProbeAsync(_tvIp);
+
+		// Wake-on-LAN needs the TV's own network-standby setting on, and a LAN that passes broadcast.
+		SetStatus($"{_tvLabel} — the TV didn't wake. Check \"Power On with Mobile\" in its network settings.");
+		return capability;
 	}
 
 	private async void OnKeyClicked(object? sender, EventArgs e)

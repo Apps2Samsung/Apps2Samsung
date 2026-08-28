@@ -1,0 +1,140 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:Apps2Samsung.Extensions"
+        xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+        x:Class="Apps2Samsung.Views.RemoteWindow"
+        x:Name="Root"
+        x:DataType="viewModels:RemoteViewModel"
+        Width="380" MinWidth="340"
+        Height="620" MinHeight="520"
+        WindowStartupLocation="CenterOwner"
+        Title="Remote">
+
+    <Window.Styles>
+        <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>
+        <StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+        <StyleInclude Source="avares://Apps2Samsung/Styles/TextBlocks.axaml"/>
+
+        <!-- One look for every key, sized for a pointer rather than a thumb. -->
+        <Style Selector="Button.key">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="FontSize" Value="16"/>
+        </Style>
+        <Style Selector="Button.keyAccent">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Background" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </Window.Styles>
+
+    <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" Padding="16">
+        <DockPanel LastChildFill="True">
+
+            <!-- Header -->
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                <StackPanel Grid.Column="0" Spacing="2">
+                    <TextBlock Text="{l:Localize lblRemote}" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding TvLabel}" FontSize="12" Opacity="0.6"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+                    <Button Content="⏻" Command="{Binding SendKeyCommand}" CommandParameter="KEY_POWER"
+                            ToolTip.Tip="{l:Localize lblRemotePower}"/>
+                    <Button Content="↻" Command="{Binding ConnectCommand}"
+                            ToolTip.Tip="{l:Localize lblRemoteReconnect}"/>
+                    <Button Content="✕" Command="{Binding CloseCommand}"/>
+                </StackPanel>
+            </Grid>
+
+            <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" Height="3" Margin="0,8,0,8"
+                         IsVisible="{Binding IsBusy}"/>
+
+            <!-- Status line: pairing, waking, connected, or why not -->
+            <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" FontSize="12" Opacity="0.7"
+                       TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+            <ScrollViewer>
+                <!-- Keys stay enabled only while the channel is up -->
+                <StackPanel Spacing="10" IsEnabled="{Binding IsConnected}">
+
+                    <!-- D-pad -->
+                    <Grid RowDefinitions="42,42,42" ColumnDefinitions="*,*,*" RowSpacing="6" ColumnSpacing="6">
+                        <Button Grid.Row="0" Grid.Column="1" Classes="key" Content="▲"
+                                Command="{Binding SendKeyCommand}" CommandParameter="KEY_UP"/>
+                        <Button Grid.Row="1" Grid.Column="0" Classes="key" Content="◀"
+                                Command="{Binding SendKeyCommand}" CommandParameter="KEY_LEFT"/>
+                        <Button Grid.Row="1" Grid.Column="1" Classes="keyAccent" Content="{l:Localize lblRemoteOk}"
+                                Command="{Binding SendKeyCommand}" CommandParameter="KEY_ENTER"/>
+                        <Button Grid.Row="1" Grid.Column="2" Classes="key" Content="▶"
+                                Command="{Binding SendKeyCommand}" CommandParameter="KEY_RIGHT"/>
+                        <Button Grid.Row="2" Grid.Column="1" Classes="key" Content="▼"
+                                Command="{Binding SendKeyCommand}" CommandParameter="KEY_DOWN"/>
+                    </Grid>
+
+                    <!-- Back / Home / Menu / Source -->
+                    <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="6">
+                        <Button Grid.Column="0" Classes="key" Content="↩" Command="{Binding SendKeyCommand}"
+                                CommandParameter="KEY_RETURN" ToolTip.Tip="{l:Localize lblRemoteBack}"/>
+                        <Button Grid.Column="1" Classes="key" Content="⌂" Command="{Binding SendKeyCommand}"
+                                CommandParameter="KEY_HOME" ToolTip.Tip="{l:Localize lblRemoteHome}"/>
+                        <Button Grid.Column="2" Classes="key" Content="☰" Command="{Binding SendKeyCommand}"
+                                CommandParameter="KEY_MENU" ToolTip.Tip="{l:Localize lblRemoteMenu}"/>
+                        <Button Grid.Column="3" Classes="key" Content="⇄" Command="{Binding SendKeyCommand}"
+                                CommandParameter="KEY_SOURCE" ToolTip.Tip="{l:Localize lblRemoteSource}"/>
+                    </Grid>
+
+                    <!-- Playback -->
+                    <TextBlock Text="{l:Localize lblRemotePlayback}" FontSize="12" Opacity="0.6" Margin="2,4,0,0"/>
+                    <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="6">
+                        <Button Grid.Column="0" Classes="key" Content="⏮" Command="{Binding SendKeyCommand}"
+                                CommandParameter="KEY_REWIND_"/>
+                        <Button Grid.Column="1" Classes="key" Content="⏪" Command="{Binding SendKeyCommand}"
+                                CommandParameter="KEY_REWIND"/>
+                        <Button Grid.Column="2" Classes="keyAccent" Content="⏯" Command="{Binding PlayPauseCommand}"/>
+                        <Button Grid.Column="3" Classes="key" Content="⏩" Command="{Binding SendKeyCommand}"
+                                CommandParameter="KEY_FF"/>
+                        <Button Grid.Column="4" Classes="key" Content="⏭" Command="{Binding SendKeyCommand}"
+                                CommandParameter="KEY_FF_"/>
+                    </Grid>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+                        <Button Grid.Column="0" Classes="key" FontSize="13" Content="{l:Localize lblRemoteStop}"
+                                Command="{Binding SendKeyCommand}" CommandParameter="KEY_STOP"/>
+                        <Button Grid.Column="1" Classes="key" FontSize="13" Content="{l:Localize lblRemoteMute}"
+                                Command="{Binding SendKeyCommand}" CommandParameter="KEY_MUTE"/>
+                    </Grid>
+
+                    <!-- Volume and channel -->
+                    <TextBlock Text="{l:Localize lblRemoteVolumeChannel}" FontSize="12" Opacity="0.6" Margin="2,4,0,0"/>
+                    <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="6">
+                        <Button Grid.Column="0" Classes="key" FontSize="13" Content="{l:Localize lblRemoteVolumeUp}"
+                                Command="{Binding SendKeyCommand}" CommandParameter="KEY_VOLUP"/>
+                        <Button Grid.Column="1" Classes="key" FontSize="13" Content="{l:Localize lblRemoteVolumeDown}"
+                                Command="{Binding SendKeyCommand}" CommandParameter="KEY_VOLDOWN"/>
+                        <Button Grid.Column="2" Classes="key" FontSize="13" Content="{l:Localize lblRemoteChannelUp}"
+                                Command="{Binding SendKeyCommand}" CommandParameter="KEY_CHUP"/>
+                        <Button Grid.Column="3" Classes="key" FontSize="13" Content="{l:Localize lblRemoteChannelDown}"
+                                Command="{Binding SendKeyCommand}" CommandParameter="KEY_CHDOWN"/>
+                    </Grid>
+
+                    <!-- Keyboard instead of the on-screen one -->
+                    <TextBlock Text="{l:Localize lblRemoteTypeOnTv}" FontSize="12" Opacity="0.6" Margin="2,4,0,0"/>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                        <TextBox Grid.Column="0" Text="{Binding TextToSend}"
+                                 Watermark="{l:Localize lblRemoteTextPlaceholder}"/>
+                        <Button Grid.Column="1" Classes="keyAccent" FontSize="13" Width="80"
+                                Content="{l:Localize lblRemoteSend}" Command="{Binding SendTextCommand}"/>
+                    </Grid>
+                    <TextBlock Text="{l:Localize lblRemoteTextHint}" FontSize="11" Opacity="0.5" TextWrapping="Wrap"/>
+
+                </StackPanel>
+            </ScrollViewer>
+
+        </DockPanel>
+    </Border>
+
+</Window>

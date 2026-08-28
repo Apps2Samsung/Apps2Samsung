@@ -127,6 +127,10 @@ namespace Apps2Samsung.Helpers
         public string ManualDuids { get; set; } = "";  // extra Tizen DUIDs to pre-authorize in the distributor cert (one per line / comma-separated)
         public string CustomAppIconsJson { get; set; } = "";  // JSON map { appKey -> "oblong" | custom launcher PNG path } applied to the wgt at install
         public string CustomAppTitlesJson { get; set; } = "";  // JSON map { appKey -> custom title } written into the wgt's config.xml <name> at install
+        // Remote control (#544), keyed by TV IP: the pairing token the TV handed back, and the MAC
+        // read from /api/v2/ while it was awake (the only way to wake it later). See RemoteStore.
+        public string RemoteTokensJson { get; set; } = "";
+        public string RemoteMacsJson { get; set; } = "";
 
         // ----- IAppConfig adapters (not serialized; map the interface onto existing state) -----
         [JsonIgnore]

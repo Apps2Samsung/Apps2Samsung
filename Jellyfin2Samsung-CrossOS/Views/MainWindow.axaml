@@ -165,6 +165,13 @@
 							<TextBlock Text="{l:Localize lblTvInformation}" VerticalAlignment="Center"/>
 						</StackPanel>
 					</Button>
+					<Button HorizontalAlignment="Left" Padding="0" Background="Transparent" BorderThickness="0"
+							Command="{Binding ShowRemoteCommand}">
+						<StackPanel Orientation="Horizontal" Spacing="6">
+							<fa:SymbolIcon Symbol="Play" Width="16" Height="16"/>
+							<TextBlock Text="{l:Localize lblRemote}" VerticalAlignment="Center"/>
+						</StackPanel>
+					</Button>
 				</StackPanel>
 
 			</StackPanel>

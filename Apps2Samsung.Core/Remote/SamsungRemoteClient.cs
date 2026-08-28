@@ -91,6 +91,9 @@ namespace Apps2Samsung.Remote
                     Model = device["modelName"]?.ToString() ?? string.Empty,
                     // Absent on older sets; only "standby" is a definite "asleep".
                     IsAwake = !string.Equals(powerState, "standby", StringComparison.OrdinalIgnoreCase),
+                    // Reported for wired sets too, despite the name. Worth caching: it is what a
+                    // later Wake-on-LAN needs, and a sleeping TV won't tell us any more (#544).
+                    MacAddress = device["wifiMac"]?.ToString() ?? string.Empty,
                 };
             }
             catch (Exception ex)
@@ -364,5 +367,8 @@ namespace Apps2Samsung.Remote
 
         /// <summary>False when the TV reported standby — keys won't reach it until it is woken.</summary>
         public bool IsAwake { get; init; } = true;
+
+        /// <summary>The TV's MAC, for <see cref="SamsungRemoteWake"/>. Only readable while awake.</summary>
+        public string MacAddress { get; init; } = string.Empty;
     }
 }
