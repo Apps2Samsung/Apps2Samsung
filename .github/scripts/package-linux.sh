@@ -27,6 +27,13 @@ PRODUCT="Apps2Samsung"
 TAG="v${VERSION}"
 APP_ID="apps2samsung"
 
+# rpm reserves '-' as the version/release separator, so it can never appear in Version:. Say that
+# here rather than letting rpmbuild fail three formats later with "Illegal char '-'".
+if [[ "$VERSION" == *-* ]]; then
+    echo "::error::version '$VERSION' contains '-', which rpm does not allow (use 2.7.9, not v2.7.9-beta)" >&2
+    exit 1
+fi
+
 case "$ARCH" in
     x64)   DEB_ARCH=amd64;  RPM_ARCH=x86_64;  APPIMAGE_ARCH=x86_64 ;;
     arm64) DEB_ARCH=arm64;  RPM_ARCH=aarch64; APPIMAGE_ARCH=aarch64 ;;

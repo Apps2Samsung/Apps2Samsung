@@ -87,7 +87,9 @@ jobs:
         run: |
           dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
             -c Release -r linux-x64 -p:SelfContained=true -o publish/linux-x64
-          bash .github/scripts/package-linux.sh publish/linux-x64 x64 0.0.0-pr dist jellyfin.png
+          # 0.0.0 rather than something like 0.0.0-pr: rpm forbids '-' in a version (it separates
+          # version from release), which is what the first run of this job discovered.
+          bash .github/scripts/package-linux.sh publish/linux-x64 x64 0.0.0 dist jellyfin.png
 
       # A package that builds but is empty would still pass the step above, so assert the payload
       # made it in: the binary in the .deb and the .rpm, and a runnable AppRun in the AppImage.
