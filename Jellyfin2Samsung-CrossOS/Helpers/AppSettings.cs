@@ -37,14 +37,12 @@ namespace Apps2Samsung.Helpers
         public static readonly string ProfilePath = Path.Combine(FolderPath, "Assets", "TizenProfile");
         public static readonly string EsbuildPath = Path.Combine(FolderPath, "Assets", "esbuild");
 
-        // Downloaded-package (.wgt) cache. On macOS this must NOT live inside the .app bundle: writing
-        // there mutates the ad-hoc-signed bundle and breaks static signature validation (issue #498).
-        // Use ~/Library/Caches; Windows/Linux keep it next to the binary (unchanged).
-        public static readonly string DownloadPath = OperatingSystem.IsMacOS()
-            ? Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "Library", "Caches", "Apps2Samsung", "Downloads")
-            : Path.Combine(FolderPath, "Downloads");
+        // Downloaded-package (.wgt) cache. Not inside the install directory on macOS or Linux: writing
+        // into the ad-hoc-signed .app bundle breaks signature validation (#498), and a Linux package
+        // can be installed read-only — root-owned under /opt, or a squashfs mount in an AppImage, where
+        // the download itself would fail (#589). Windows keeps it next to the binary (unchanged).
+        public static readonly string DownloadPath =
+            Apps2Samsung.Portability.UserPaths.Cache(FolderPath, "Downloads");
 
         private static AppSettings? _instance;
 

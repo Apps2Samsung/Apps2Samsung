@@ -6,7 +6,11 @@ name: PR build
 # on a normal dev machine — only surfaced *after* the merge, where it breaks the beta release.
 # Build both heads here instead, so a PR can't merge a head that doesn't compile.
 
-# Both jobs are required status checks on the Default ruleset, so there is deliberately no
+# The Linux packaging job builds the .deb/.rpm/AppImage the releases ship (#589). That packaging
+# used to live inline in the release workflows, where a mistake in it could only ever be found by
+# cutting a release; running it here means a PR proves it still produces the packages.
+
+# The two build jobs are required status checks on the Default ruleset, so there is deliberately no
 # `paths:` filter: a check that never runs is never reported, and a required check that is never
 # reported blocks the PR forever. A docs-only PR therefore pays ~3 minutes of Android build
 # rather than hanging.
@@ -57,3 +61,42 @@ jobs:
       # code compiles. beta-prerelease.yml still does the real publish on merge.
       - name: Build
         run: dotnet build Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj -c Release -f net10.0-android
+
+  linux-packages:
+    name: Linux packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y librsvg2-bin dpkg-dev rpm
+          rsvg-convert -w 256 -h 256 jellyfin-tizen-logo.svg -o jellyfin.png
+          curl -fsSL -o /usr/local/bin/appimagetool \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          sudo chmod +x /usr/local/bin/appimagetool
+
+      # x64 only: this proves the packaging script still works, and arm64 differs by three metadata
+      # strings. Publishing both would double the slowest part for no extra coverage.
+      - name: Publish and package (x64)
+        run: |
+          dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
+            -c Release -r linux-x64 -p:SelfContained=true -o publish/linux-x64
+          .github/scripts/package-linux.sh publish/linux-x64 x64 0.0.0-pr dist jellyfin.png
+
+      # A package that builds but is empty would still pass the step above, so assert the payload
+      # made it in: the binary in the .deb and the .rpm, and a runnable AppRun in the AppImage.
+      - name: Check the packages contain the app
+        run: |
+          set -euo pipefail
+          dpkg-deb -c dist/*.deb | grep -q './opt/apps2samsung/Apps2Samsung'
+          rpm -qlp dist/*.rpm | grep -qx '/opt/apps2samsung/Apps2Samsung'
+          ./dist/*.AppImage --appimage-extract >/dev/null
+          test -x squashfs-root/AppRun
+          test -x squashfs-root/usr/bin/Apps2Samsung
+          echo "deb, rpm and AppImage all carry the app"

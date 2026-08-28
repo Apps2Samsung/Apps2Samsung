@@ -29,18 +29,14 @@ namespace Apps2Samsung.Diagnostics
         /// The platform-appropriate log directory shared by every desktop log writer (Program startup
         /// and the "Open logs folder" buttons), so they can never drift apart.
         ///
-        /// On macOS this deliberately lives OUTSIDE the .app bundle, in <c>~/Library/Logs/Apps2Samsung</c>:
-        /// creating a <c>Logs/</c> dir inside the ad-hoc-signed bundle mutates it and breaks static
-        /// signature validation (issue #498). Windows/Linux keep logs next to the binary — unchanged, so
-        /// existing users' log paths stay put. The mobile head uses <c>FileSystem.AppDataDirectory</c>
-        /// directly and never touches this.
+        /// Not next to the binary on macOS or Linux: writing inside the ad-hoc-signed .app bundle
+        /// breaks static signature validation (#498), and a Linux package can be installed read-only —
+        /// root-owned under /opt, or a squashfs mount in an AppImage, where this would silently produce
+        /// no logs at all (#589). Windows keeps logs next to the binary, where existing installs have
+        /// them. The mobile head passes <c>FileSystem.AppDataDirectory</c> and never uses this.
         /// </summary>
         public static string DefaultLogDirectory =>
-            OperatingSystem.IsMacOS()
-                ? Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                    "Library", "Logs", "Apps2Samsung")
-                : Path.Combine(AppContext.BaseDirectory, "Logs");
+            Portability.UserPaths.State(AppContext.BaseDirectory, "Logs");
 
         /// <summary>Adds a file trace listener under <paramref name="logDirectory"/>, tees Console into
         /// it, and logs unhandled exceptions. Idempotent and never throws — logging must not take down

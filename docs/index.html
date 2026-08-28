@@ -455,7 +455,9 @@
     };
     const OS_LABEL={ win:'🪟 Windows', macos:'🍎 macOS', linux:'🐧 Linux', android:'🤖 Android' };
     const ARCH_LABEL={ x64:'x64 / Intel', arm64:'ARM64', apk:'.apk' };
-    const PREF={ win:['msi','zip'], macos:['dmg','tar.gz'], linux:['deb','tar.gz'], android:['apk'] };
+    // Linux: AppImage first — it runs on any distro without root, so it is the safest pick when the
+    // page can't know which distro this is; then the native packages, tar.gz last (#589).
+    const PREF={ win:['msi','zip'], macos:['dmg','tar.gz'], linux:['appimage','deb','rpm','tar.gz'], android:['apk'] };
     const OS_ORDER=['win','macos','linux','android'];
     const ARCH_ORDER=['x64','arm64','apk'];
 
