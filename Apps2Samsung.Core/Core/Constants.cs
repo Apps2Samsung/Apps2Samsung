@@ -46,7 +46,6 @@ namespace Apps2Samsung.Helpers.Core
             public const string TizenOsVersion = "7.0";
             public const string SdkToolPath = "/opt/usr/apps/tmp";
             public const string HomeDeveloperPath = "/home/developer";
-            public const string TizenSdbDefaultVersion = "v1.0.0";
             public const int SamsungLoginTimeoutMinutes = 5;
             public const int NetworkScanTimeoutMs = 1000;
             public const int HttpRequestTimeoutSeconds = 15;
@@ -99,16 +98,6 @@ namespace Apps2Samsung.Helpers.Core
         /// </summary>
         public static class PlatformBinaries
         {
-            public const string TizenSdbWindowsPattern = "TizenSdb*.exe";
-            public const string TizenSdbLinuxX64Pattern = "TizenSdb*_linux-x64";
-            public const string TizenSdbLinuxArm64Pattern = "TizenSdb*_linux-arm64";
-            public const string TizenSdbMacOsPattern = "TizenSdb*_macos-x64";
-            public const string TizenSdbMacOsArm64Pattern = "TizenSdb*_macos-arm64";
-            public const string WindowsExtension = ".exe";
-            public const string LinuxX64Suffix = "_linux-x64";
-            public const string LinuxArm64Suffix = "_linux-arm64";
-            public const string MacX64Suffix = "_macos-x64";
-            public const string MacArm64Suffix = "_macos-arm64";
             public const string EsbuildWindows = "win-x64";
             public const string EsbuildLinux = "linux-x64";
             public const string EsbuildMacOsX64 = "macos-x64";
@@ -207,7 +196,6 @@ namespace Apps2Samsung.Helpers.Core
         /// </summary>
         public static class LocalizationKeys
         {
-            public const string InstallTizenSdb = "InstallTizenSdb";
             public const string DiagnoseTv = "diagnoseTv";
             public const string AlreadyInstalled = "alreadyInstalled";
             public const string DeleteExistingVersion = "deleteExistingVersion";
@@ -236,8 +224,6 @@ namespace Apps2Samsung.Helpers.Core
             public const string ApiVersionMismatch = "apiVersionMismatch";
             public const string ModifyConfigRequired = "modiyConfigRequired";
             public const string DuidLimitReached = "duidLimitReached";
-            public const string FailedTizenSdb = "FailedTizenSdb";
-            public const string CheckingTizenSdb = "CheckingTizenSdb";
             public const string ScanningNetwork = "ScanningNetwork";
             public const string InitializationFailed = "InitializationFailed";
             public const string NoDevicesFound = "NoDevicesFound";

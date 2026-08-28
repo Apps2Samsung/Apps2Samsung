@@ -90,7 +90,6 @@
   </ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Assets\TizenSDB\" />
 	</ItemGroup>
 
 	<ItemGroup>
