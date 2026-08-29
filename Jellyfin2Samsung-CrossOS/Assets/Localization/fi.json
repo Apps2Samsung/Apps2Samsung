@@ -229,6 +229,7 @@
   "lblImportBackup": "Tuo varmuuskopio",
   "lblRefresh": "Päivitä",
   "lblInstalledApps": "Asennetut sovellukset",
+  "lblRemoveLeftover": "Poista jäänteet…",
   "lblRemoveLeftoverHint": "Poistakaa pakotteesta jäljellä/osittainen asennus pakettitunnuksella",
   "lblStopDebugging": "Lopeta virheenkorjaus",
   "lblRun": "Suorita",
