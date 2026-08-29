@@ -21,9 +21,9 @@
   <br/>
   It handles device detection, certificates, and installation so you don’t have to fight with Tizen Studio or manual sideloading.
   <br/><br/>
-  🌐 Available in: Danish, Dutch, English, French, German, Portuguese, Turkish
-  <br/>
-  🇩🇰 🇳🇱 🇬🇧 🇫🇷 🇩🇪 🇵🇹 🇹🇷 
+  🌐 Fully translated into <b>30 languages</b> — Afrikaans, Arabic, Catalan, Chinese (Simplified &amp; Traditional), Czech, Danish, Dutch, English,
+  Finnish, French, German, Greek, Hebrew, Hungarian, Italian, Japanese, Korean, Norwegian, Polish, Portuguese (BR &amp; PT), Romanian, Russian,
+  Serbian, Spanish, Swedish, Turkish, Ukrainian and Vietnamese. It starts in your system language and can be switched at any time.
 </p>
 
 ---
@@ -52,13 +52,27 @@ The phone app is the mobile installer head — run the whole install from your p
 
 ---
 
+## ✨ What It Does
+
+- **Finds your TV** — scans the network for Samsung TVs, or enter an IP by hand, and says exactly what's wrong when a TV isn't ready (Developer Mode off, IP mismatch, reversed IP, needs a power cycle).
+- **Handles the certificate** — signs in to Samsung once and reuses the certificate per TV. Pre-authorize extra TVs by DUID; Public/Partner certificates are picked automatically when an app needs restricted privileges.
+- **Installs anything Tizen** — the community catalog (49+ apps), the Jellyfin builds, or your own `.wgt` / native `.tpk`.
+- **Manages installed apps** — list them with their icons, then uninstall, launch, stop, debug (inspector forwarded to `chrome://inspect`) or force-remove a leftover package.
+- **Doubles as a TV remote** — D-pad, playback, volume, channel, power and live typing over Samsung's own remote channel. No Developer Mode needed.
+- **Tunes apps at install** — Jellyfin server + auto-login, JellyThemes/custom CSS, playback preferences, server plugins and the YouTube-trailer fix; TVapp channels; custom launcher icons and titles.
+- **Diagnoses TVs** — DUID, Tizen version, model and Developer Mode state, plus a live TV log console you can save.
+- **Backup & restore** — move your settings and signing certificates to another PC, Mac or phone in one file.
+- **Updates itself** — in-app updater with an optional beta channel.
+
+---
+
 ## 🚀 How It Works (Short Version)
 
 Before you begin, ensure your Samsung TV is in Developer Mode. This is required to install apps on it.
 
 👉 [How to enable Developer Mode on your TV](https://github.com/Apps2Samsung/Apps2Samsung/wiki/FAQ#-how-to-enable-developer-mode-on-your-tv)
 
-1. Run the tool on your computer
+1. Run the tool on your computer — or the Android app on your phone
 2. Select your Samsung TV
 3. Pick an app (Jellyfin, the community catalog, or a custom `.wgt`)
 4. Install
