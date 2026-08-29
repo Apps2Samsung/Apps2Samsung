@@ -8,6 +8,8 @@ on:
       - 'docs/**'      # website (GitHub Pages) — deploys on its own, shouldn't trigger an app release
       - '.github/**'   # workflow / repo-meta changes shouldn't trigger an app release
       - 'fastlane/**'  # store-listing metadata (F-Droid/IzzyOnDroid) — not app code
+      - 'crowdin.yml'  # translation sync config — changing it ships nothing, but the build it fired
+                       # overwrote the curated release notes, which then had to be re-applied
   # Allow running the beta release manually (e.g. when a merge didn't fire the push trigger).
   workflow_dispatch:
 
