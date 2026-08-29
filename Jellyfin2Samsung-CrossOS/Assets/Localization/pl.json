@@ -386,6 +386,7 @@
   "statusLaunched": "Uruchomiono {0}.",
   "statusStopping": "Zatrzymywanie {0}...",
   "statusStopped": "Zatrzymano {0}.",
+  "statusStartingDebug": "Starting debug for {0}...",
   "statusDebugging": "Debugowanie {0} na lokalnym porcie {1}...",
   "statusRemoving": "Usuwanie {0}...",
   "statusNotConfigured": "Nie skonfigurowano",

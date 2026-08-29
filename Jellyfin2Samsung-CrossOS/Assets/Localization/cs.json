@@ -401,6 +401,7 @@
   "lblOk": "OK",
   "lblDownload": "Stáhnout",
   "lblLater": "Později",
+  "statusSetIconFailed": "Couldn't set the icon: {0}",
   "statusSeeDebugLog": "Nastavení → Diagnostika → Sdílet protokol ladění má všechny podrobnosti.",
   "statusUpdateAvailableApk": "{0} je k dispozici (máte v{1}). Stáhnout nový APK?",
   "statusNoTvsFoundHint": "Nebyly nalezeny žádné televizory. Povolte vývojářský režim v televizoru a aktualizujte nebo klepněte na seznam televizorů pro zadání IP adresy ručně.",
