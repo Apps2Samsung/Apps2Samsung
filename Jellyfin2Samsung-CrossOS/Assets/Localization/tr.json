@@ -156,5 +156,10 @@
   "IncompatiblePackageDetailed": "Paket sürümü {0}, Tizen OS {1} ile uyumlu değil",
   "lblMdnsWarning": "Uyarı: Bir mDNS ana bilgisayar adı (.local) kullanıyorsunuz. Samsung TV'ler .local adreslerini güvenilir şekilde çözümleyemez, bu da sunucunun TV'nizde \"undefined\" olarak görünmesine neden olabilir — özellikle ağ kesintilerinden sonra. Kararlı bir bağlantı için bunun yerine doğrudan bir IP adresi (ör. 192.168.1.100) kullanın.",
   "lblOpenLogsFolder": "Open Logs Folder",
-  "lblJellyfinOnlyNotice": "These settings apply ONLY to the official Jellyfin client — they are not supported for Jellyfin forks or other apps."
+  "lblJellyfinOnlyNotice": "These settings apply ONLY to the official Jellyfin client — they are not supported for Jellyfin forks or other apps.",
+  "catalogColVersion": "Versiyon",
+  "lblStop": "Durdur",
+  "lblRemotePlayback": "Oynatma",
+  "lblRemoteStop": "Durdur",
+  "statusValidating": "Doğrulanıyor..."
 }
