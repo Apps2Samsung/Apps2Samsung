@@ -93,7 +93,11 @@ public static class MauiProgram
 
 		// Session (holds the Samsung sign-in for the app's lifetime) + the installer page.
 		builder.Services.AddSingleton<SessionState>();
-		builder.Services.AddSingleton<InstallerPage>();
+		// Transient, not a singleton: {l:Localize} resolves while a page is being built, so a cached
+		// installer page would serve the language it was born with for the whole life of the process -
+		// and Android keeps the process alive across closing and reopening the app, so "restart it"
+		// didn't rebuild it either. A language change resolves a fresh one (see SettingsPage).
+		builder.Services.AddTransient<InstallerPage>();
 		// The icon/title editor needs the catalog services injected (shared app list).
 		builder.Services.AddTransient<AppIconsPage>();
 

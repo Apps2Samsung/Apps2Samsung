@@ -432,9 +432,23 @@ public partial class SettingsPage : ContentPage
 
 		L10n.SetLanguage(code);
 
-		// {l:Localize} resolves when a page is built, so pages already on the stack keep the old
-		// language until the app is reopened. Say that rather than leaving a half-translated UI.
-		await DisplayAlert(L10n.Get("lblLanguage"), L10n.Get("hintLanguage"), L10n.Get("btn_Close"));
+		// {l:Localize} resolves while a page is being built, so every page already on the stack - this
+		// one and the installer page under it - still holds the old language. Asking the user to
+		// restart didn't help: Android keeps the process alive when the app is closed and reopened, so
+		// the same page objects came back. Rebuild the stack instead, and land the user back on this
+		// page so they can see the switch took.
+
+		// Let the picker finish closing before the tree it lives in is swapped out from under it.
+		await Task.Yield();
+
+		var services = IPlatformApplication.Current!.Services;
+		var window = Application.Current?.Windows.FirstOrDefault();
+		if (window is null)
+			return;
+
+		var root = new NavigationPage(services.GetRequiredService<InstallerPage>());
+		window.Page = root;
+		await root.Navigation.PushAsync(new SettingsPage(), animated: false);
 	}
 }
 
