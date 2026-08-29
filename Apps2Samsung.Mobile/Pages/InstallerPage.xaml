@@ -77,25 +77,38 @@
                 </Grid>
 
                 <!-- Quick peek at what's already on the selected TV.
-                     FlexLayout rather than HorizontalStackLayout: the three labels need roughly 330dp
-                     of width, which is more than the ~304dp a 360dp phone leaves inside the card, and a
-                     stack layout neither wraps nor shrinks - so the last button, Remote, was clipped off
-                     the right edge and looked missing. Wrapping also survives a larger font scale and the
-                     longer wordings these strings get once they come back from Crowdin. -->
-                <FlexLayout Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
-                    <Button Text="{l:Localize lblShowInstalledApps}" Clicked="OnShowInstalledAppsClicked"
-                            BackgroundColor="Transparent" BorderWidth="0"
-                            Padding="0" Margin="0,0,18,2" FontSize="13"
-                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
-                    <Button Text="{l:Localize lblTvInformation}" Clicked="OnShowDeviceInfoClicked"
-                            BackgroundColor="Transparent" BorderWidth="0"
-                            Padding="0" Margin="0,0,18,2" FontSize="13"
-                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
-                    <Button Text="{l:Localize Key=lblRemote, Format='🎛 {0}'}" Clicked="OnShowRemoteClicked"
-                            BackgroundColor="Transparent" BorderWidth="0"
-                            Padding="0" Margin="0,0,0,2" FontSize="13"
-                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
-                </FlexLayout>
+                     Three chips in an even Grid rather than a row of flat text buttons: the labels
+                     need roughly 330dp of width, more than the ~304dp a 360dp phone leaves inside the
+                     card, so they used to wrap onto a second line and read as stray links. Even
+                     columns keep this a single row whatever the font scale or the wording these
+                     strings come back with from Crowdin - a long translation wraps inside its own
+                     chip - and the borders match the pickers above. -->
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                    <Button Grid.Column="0" Text="{l:Localize lblInstalledApps}"
+                            Clicked="OnShowInstalledAppsClicked"
+                            FontSize="12" LineBreakMode="WordWrap"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}"
+                            BorderWidth="1" CornerRadius="8"
+                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                            Padding="4,8" MinimumHeightRequest="44" />
+                    <Button Grid.Column="1" Text="{l:Localize lblTvInformation}"
+                            Clicked="OnShowDeviceInfoClicked"
+                            FontSize="12" LineBreakMode="WordWrap"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}"
+                            BorderWidth="1" CornerRadius="8"
+                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                            Padding="4,8" MinimumHeightRequest="44" />
+                    <Button Grid.Column="2" Text="{l:Localize lblRemote}"
+                            Clicked="OnShowRemoteClicked"
+                            FontSize="12" LineBreakMode="WordWrap"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}"
+                            BorderWidth="1" CornerRadius="8"
+                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                            Padding="4,8" MinimumHeightRequest="44" />
+                </Grid>
 
                 <!-- Status bar -->
                 <Border BackgroundColor="#2C3E50" Padding="16" StrokeThickness="0" StrokeShape="RoundRectangle 6">
