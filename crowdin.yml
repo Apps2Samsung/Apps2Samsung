@@ -1,3 +1,15 @@
+# Crowdin sync for the language files both heads embed (see Apps2Samsung.Core/Localization).
+#
+# The app keys its languages by the two-letter code that names the file, so the mapping below only
+# names the variants that would otherwise collide: Crowdin carries pt-BR *and* pt-PT, zh-CN *and*
+# zh-TW, and %two_letters_code% turns each pair into one pt.json / zh.json, where whichever synced
+# last silently overwrote the other. The variant that already owns the file keeps it (pt.json is
+# Brazilian, zh.json is Traditional - those are the ones with translations in them), and the other
+# gets a file of its own.
 files:
   - source: /Jellyfin2Samsung-CrossOS/Assets/Localization/en.json
     translation: /Jellyfin2Samsung-CrossOS/Assets/Localization/%two_letters_code%.json
+    languages_mapping:
+      two_letters_code:
+        pt-PT: pt-PT
+        zh-CN: zh-CN

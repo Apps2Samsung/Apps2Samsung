@@ -1,0 +1,73 @@
+name: Crowdin sync
+
+# Keeps Crowdin fed with the strings the app actually ships.
+#
+# The project synced through Crowdin's GitHub integration until 2026-06-01, then quietly stopped:
+# en.json held 161 keys then and 412 now, so every string added since - the whole mobile string set,
+# the Remote page, the install guards - was never offered to a translator. Reconnecting the
+# integration didn't move it either; its "Sync branch" left the source file on its June revision, and
+# the 251 missing strings only arrived after being uploaded through the API by hand.
+#
+# So the sync belongs to the repo rather than to an integration that can come loose without saying
+# so. Sources go up whenever en.json changes on beta; translations come back as a pull request.
+#
+# Needs two repository secrets - until they exist the job warns and skips rather than failing:
+#   CROWDIN_PROJECT_ID       numeric project id
+#   CROWDIN_PERSONAL_TOKEN   personal access token with the Projects scope
+
+on:
+  push:
+    branches: [beta]
+    paths:
+      - 'Jellyfin2Samsung-CrossOS/Assets/Localization/en.json'
+      - 'crowdin.yml'
+  # Translations trickle in after an upload, so also collect whatever is ready once a week.
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: crowdin-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Check for Crowdin credentials
+        id: creds
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        run: |
+          if [ -z "$CROWDIN_PROJECT_ID" ] || [ -z "$CROWDIN_PERSONAL_TOKEN" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN are not set - skipping the sync."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.creds.outputs.configured == 'true'
+
+      - name: Upload sources and open a translations PR
+        if: steps.creds.outputs.configured == 'true'
+        uses: crowdin/github-action@v2
+        with:
+          upload_sources: true
+          upload_translations: false
+          download_translations: true
+          localization_branch_name: l10n_beta
+          create_pull_request: true
+          pull_request_base_branch_name: beta
+          pull_request_title: 'i18n: new translations from Crowdin'
+          pull_request_body: |
+            Translations downloaded from Crowdin. Merging updates the language files both heads embed.
+          commit_message: 'i18n: new translations from Crowdin'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
