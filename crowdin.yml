@@ -6,9 +6,15 @@
 # last silently overwrote the other. The variant that already owns the file keeps it (pt.json is
 # Brazilian, zh.json is Traditional - those are the ones with translations in them), and the other
 # gets a file of its own.
+#
+# skip_untranslated_strings keeps a language file to what has actually been translated. Without it
+# every untranslated key is written out with its English text, which reads as a finished translation
+# in the file and in the picker, hides how much is really left, and buys nothing: the catalog already
+# falls back to English for a key a file doesn't carry.
 files:
   - source: /Jellyfin2Samsung-CrossOS/Assets/Localization/en.json
     translation: /Jellyfin2Samsung-CrossOS/Assets/Localization/%two_letters_code%.json
+    skip_untranslated_strings: true
     languages_mapping:
       two_letters_code:
         pt-PT: pt-PT
