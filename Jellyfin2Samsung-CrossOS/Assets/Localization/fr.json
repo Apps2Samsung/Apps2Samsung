@@ -98,7 +98,7 @@
   "keyStop": "Arrêter",
   "keyConfirm": "Confirmer",
   "packageAndSign": "Empaquetage et signature...",
-  "alreadyInstalled": "Jellyfin n'a pas pu être installé car il est déjà installé. Veuillez d'abord le supprimer puis réessayer...",
+  "alreadyInstalled": "{0} est déjà installé et votre téléviseur n'autorise pas son remplacement ni sa suppression à distance via le réseau. Supprimez {0} sur le téléviseur (ouvrez la liste des applications, maintenez l'application appuyée, choisissez Supprimer), puis réessayez.",
   "diagnoseTv": "Diagnostiquer les capacités du téléviseur",
   "modiyConfigRequired": "L'application Jellyfin nécessite un nouvel identifiant d'application !",
   "deleteExistingVersion": "Suppression d'une version existante...",

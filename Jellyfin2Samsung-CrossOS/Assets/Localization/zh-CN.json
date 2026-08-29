@@ -100,7 +100,7 @@
   "keyStop": "停止",
   "keyConfirm": "确认",
   "packageAndSign": "打包和签名...",
-  "alreadyInstalled": "{0} 已经安装，您的电视不允许通过网络连接替换或删除它。 请删除电视上的 {0} (打开应用列表、按住应用，选择删除) 然后重试。",
+  "alreadyInstalled": "{0} 已安装，并且您的电视不允许通过网络远程替换或删除它。请在电视上删除 {0}（打开应用列表，长按该应用，选择删除）后重试。",
   "diagnoseTv": "诊断电视功能",
   "modiyConfigRequired": "Jellyfin 应用程序需要一个新的应用程序ID！",
   "deleteExistingVersion": "正在删除现有版本...",
