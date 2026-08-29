@@ -64,6 +64,7 @@
   "DevNotReadyPowerCycle": "⚠️ TV detectada y el Modo de Desarrollador está encendido, pero su puerto de depuración aún no está respondiendo al ciclo de energía completo del televisor (desenchufa ~30s), luego vuelve a escanear.",
   "DevNotReadyIpMismatch": "⚠️ TV detectada, pero su modo de desarrollo IP no coincide con este PC. Vuelva a introducir la IP de este PC en la configuración del modo de desarrollo de la TV, ciclo de energía del televisor y vuelva a escanear.",
   "restartRequiredTitle": "Reinicie el televisor primero",
+  "restartRequiredBody": "Este televisor tiene activado el modo de desarrollador, pero su servicio de instalación aún no se está ejecutando, así que no se puede instalar en él hasta que se reinicie.\n\n• Mantén pulsado el botón de encendido del televisor hasta que se apague por completo y vuelve a encenderlo, o\n• Desenchufa el televisor de la corriente un minuto o dos y vuelve a enchufarlo.\n\nDespués de reiniciarse, vuelve a buscar y el televisor estará listo.",
   "guardSubnetMismatchTitle": "Mismatch de subred",
   "guardDeveloperModeTitle": "Desarrollador desactivado",
   "guardIpReversedTitle": "IP invertida",
