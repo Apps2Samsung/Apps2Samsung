@@ -88,11 +88,45 @@ namespace Apps2Samsung.Localization
         /// </summary>
         public string ResolveInitialLanguage(string? storedLanguage)
         {
-            if (!string.IsNullOrWhiteSpace(storedLanguage) && HasLanguage(storedLanguage!))
-                return storedLanguage!;
+            return Match(storedLanguage)
+                ?? Match(CultureInfo.CurrentUICulture.Name)
+                ?? DefaultLanguage;
+        }
 
-            var systemLanguage = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
-            return HasLanguage(systemLanguage) ? systemLanguage : DefaultLanguage;
+        /// <summary>
+        /// The closest language we have to <paramref name="code"/>, or null. A regional file wins over
+        /// the plain language file when the OS asks for that region, which is what keeps the two
+        /// Chinese and the two Portuguese apart: zh.json is Traditional and pt.json is Brazilian (they
+        /// were translated first and kept the plain name), so a Simplified-Chinese or European
+        /// Portuguese device has to land on zh-CN.json / pt-PT.json rather than on the file whose name
+        /// merely starts with its language. Falls back the way a locale narrows: zh-Hans-CN, then
+        /// zh-Hans, then zh - and where the OS names only the script, to the region that writes it.
+        /// </summary>
+        private string? Match(string? code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+                return null;
+
+            code = code!.Replace('_', '-').Trim();
+
+            if (HasLanguage(code))
+                return code;
+
+            // Android and Windows can report a script without a region ("zh-Hans"), which names no
+            // file of ours; point the two scripts at the file that carries them.
+            if (code.Contains("Hans", StringComparison.OrdinalIgnoreCase) && HasLanguage("zh-CN"))
+                return "zh-CN";
+            if (code.Contains("Hant", StringComparison.OrdinalIgnoreCase) && HasLanguage("zh"))
+                return "zh";
+
+            for (var cut = code.LastIndexOf('-'); cut > 0; cut = code.LastIndexOf('-', cut - 1))
+            {
+                var shorter = code[..cut];
+                if (HasLanguage(shorter))
+                    return shorter;
+            }
+
+            return null;
         }
 
         private void LoadEmbeddedLanguages()
