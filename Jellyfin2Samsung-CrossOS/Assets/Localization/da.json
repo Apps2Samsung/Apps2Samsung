@@ -100,7 +100,7 @@
   "keyStop": "Stop",
   "keyConfirm": "Bekræfte",
   "packageAndSign": "Emballering og signering...",
-  "alreadyInstalled": "Jellyfin kunne ikke installeres, da den allerede er installeret. Fjern den først, og prøv igen.",
+  "alreadyInstalled": "{0} er allerede installeret, og dit tv tillader ikke at erstatte eller fjerne den eksternt via netværket. Slet {0} på tv'et (åbn applisten, hold appen nede, vælg Fjern), og prøv igen.",
   "diagnoseTv": "Diagnosticér tv-funktioner",
   "modiyConfigRequired": "Jellyfin-appen har brug for et nyt app-id!",
   "deleteExistingVersion": "Sletter en eksisterende version...",

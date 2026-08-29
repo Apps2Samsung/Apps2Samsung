@@ -100,7 +100,7 @@
   "keyStop": "Stopp",
   "keyConfirm": "Bestätigen",
   "packageAndSign": "Verpacken und Signieren...",
-  "alreadyInstalled": "Jellyfin konnte nicht installiert werden, da es bereits installiert ist. Bitte entfernen Sie es zuerst und versuchen Sie es erneut...",
+  "alreadyInstalled": "{0} ist bereits installiert, und Ihr Fernseher erlaubt es nicht, die App aus der Ferne über das Netzwerk zu ersetzen oder zu entfernen. Bitte löschen Sie {0} am Fernseher selbst (App-Liste öffnen, App gedrückt halten, Entfernen wählen) und versuchen Sie es erneut.",
   "diagnoseTv": "TV-Fähigkeiten diagnostizieren",
   "modiyConfigRequired": "Jellyfin-App benötigt eine neue App-ID!",
   "deleteExistingVersion": "Existierende Version wird gelöscht...",
