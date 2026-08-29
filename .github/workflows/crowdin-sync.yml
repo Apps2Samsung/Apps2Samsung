@@ -57,6 +57,11 @@ jobs:
         if: steps.creds.outputs.configured == 'true'
         uses: crowdin/github-action@v2
         with:
+          # The strings live under Crowdin's own "beta" branch (its file is /beta/...en.json), while
+          # crowdin.yml addresses the repo root. Without naming the branch the CLI compares the two
+          # and drops what doesn't line up - "Downloaded translations don't match the current project
+          # configuration ... will be omitted".
+          crowdin_branch_name: beta
           upload_sources: true
           upload_translations: false
           download_translations: true
