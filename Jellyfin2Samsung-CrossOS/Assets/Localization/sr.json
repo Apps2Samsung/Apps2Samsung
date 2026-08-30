@@ -100,7 +100,7 @@
   "keyStop": "Stop",
   "keyConfirm": "Confirm",
   "packageAndSign": "Packaging and signing...",
-  "alreadyInstalled": "{0} је већ инсталиран, а ваш телевизор не дозвољава да се замени или уклони на даљину преко мреже. Обришите {0} на телевизору (отворите листу апликација, држите апликацију и изаберите Уклони), па покушајте поново.",
+  "alreadyInstalled": "Jellyfin couldn't not be installed because its already installed, please remove first and try again...",
   "diagnoseTv": "Diagnose TV capabilities",
   "modiyConfigRequired": "Jellyfin app needs a new app id!",
   "deleteExistingVersion": "Deleting an existing version...",

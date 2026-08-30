@@ -100,7 +100,7 @@
   "keyStop": "Stop",
   "keyConfirm": "Confirm",
   "packageAndSign": "Packaging and signing...",
-  "alreadyInstalled": "A(z) {0} már telepítve van, és a televíziója nem engedi, hogy hálózaton keresztül távolról lecseréljék vagy eltávolítsák. Törölje a(z) {0} alkalmazást a televízión (nyissa meg az alkalmazáslistát, tartsa nyomva az alkalmazást, válassza az Eltávolítást), majd próbálja újra.",
+  "alreadyInstalled": "Jellyfin couldn't not be installed because its already installed, please remove first and try again...",
   "diagnoseTv": "Diagnose TV capabilities",
   "modiyConfigRequired": "Jellyfin app needs a new app id!",
   "deleteExistingVersion": "Deleting an existing version...",

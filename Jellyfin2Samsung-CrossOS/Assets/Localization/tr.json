@@ -100,7 +100,7 @@
   "keyStop": "Durdur",
   "keyConfirm": "Onayla",
   "packageAndSign": "Paketleniyor ve imzalanıyor...",
-  "alreadyInstalled": "{0} zaten kurulu ve TV'niz uygulamanın ağ bağlantısı üzerinden uzaktan değiştirilmesine ya da kaldırılmasına izin vermiyor. Lütfen {0} uygulamasını TV'de silin (uygulama listesini açın, uygulamaya basılı tutun, Kaldır'ı seçin) ve yeniden deneyin.",
+  "alreadyInstalled": "Jellyfin zaten kurulu olduğu için kurulamadı, lütfen önce kaldırın ve tekrar deneyin...",
   "diagnoseTv": "TV yeteneklerini tani",
   "modiyConfigRequired": "Jellyfin uygulamasının yeni bir uygulama kimliğine ihtiyacı var!",
   "deleteExistingVersion": "Mevcut sürüm siliniyor...",

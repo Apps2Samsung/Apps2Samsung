@@ -100,7 +100,7 @@
   "keyStop": "Stop",
   "keyConfirm": "Confirm",
   "packageAndSign": "Packaging and signing...",
-  "alreadyInstalled": "{0}이(가) 이미 설치되어 있으며, 이 TV는 네트워크를 통한 원격 교체나 삭제를 허용하지 않습니다. TV에서 {0}을(를) 삭제한 뒤(앱 목록을 열고 앱을 길게 눌러 삭제 선택) 다시 시도하세요.",
+  "alreadyInstalled": "Jellyfin couldn't not be installed because its already installed, please remove first and try again...",
   "diagnoseTv": "Diagnose TV capabilities",
   "modiyConfigRequired": "Jellyfin app needs a new app id!",
   "deleteExistingVersion": "Deleting an existing version...",

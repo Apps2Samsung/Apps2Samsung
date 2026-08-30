@@ -100,7 +100,7 @@
   "keyStop": "Stop",
   "keyConfirm": "Confirm",
   "packageAndSign": "Packaging and signing...",
-  "alreadyInstalled": "{0} on jo asennettu, eikä televisiosi salli sen korvaamista tai poistamista etänä verkkoyhteyden kautta. Poista {0} televisiossa (avaa sovellusluettelo, paina sovellusta pitkään ja valitse Poista) ja yritä uudelleen.",
+  "alreadyInstalled": "Jellyfin couldn't not be installed because its already installed, please remove first and try again...",
   "diagnoseTv": "Diagnose TV capabilities",
   "modiyConfigRequired": "Jellyfin app needs a new app id!",
   "deleteExistingVersion": "Deleting an existing version...",

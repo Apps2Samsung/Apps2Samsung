@@ -100,7 +100,7 @@
   "keyStop": "Stop",
   "keyConfirm": "Confirm",
   "packageAndSign": "Packaging and signing...",
-  "alreadyInstalled": "{0} مثبَّت بالفعل، وتلفازك لا يسمح باستبداله أو إزالته عن بُعد عبر اتصال الشبكة. يُرجى حذف {0} على التلفاز (افتح قائمة التطبيقات، واضغط مطولاً على التطبيق، ثم اختر إزالة) ثم أعد المحاولة.",
+  "alreadyInstalled": "Jellyfin couldn't not be installed because its already installed, please remove first and try again...",
   "diagnoseTv": "Diagnose TV capabilities",
   "modiyConfigRequired": "Jellyfin app needs a new app id!",
   "deleteExistingVersion": "Deleting an existing version...",

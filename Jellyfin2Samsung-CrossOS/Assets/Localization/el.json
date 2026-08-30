@@ -100,7 +100,7 @@
   "keyStop": "Stop",
   "keyConfirm": "Confirm",
   "packageAndSign": "Packaging and signing...",
-  "alreadyInstalled": "Το {0} είναι ήδη εγκατεστημένο και η τηλεόρασή σας δεν επιτρέπει την αντικατάσταση ή την απομάκρυνσή του εξ αποστάσεως μέσω δικτύου. Διαγράψτε το {0} στην τηλεόραση (ανοίξτε τη λίστα εφαρμογών, κρατήστε πατημένη την εφαρμογή, επιλέξτε Κατάργηση) και δοκιμάστε ξανά.",
+  "alreadyInstalled": "Jellyfin couldn't not be installed because its already installed, please remove first and try again...",
   "diagnoseTv": "Diagnose TV capabilities",
   "modiyConfigRequired": "Jellyfin app needs a new app id!",
   "deleteExistingVersion": "Deleting an existing version...",

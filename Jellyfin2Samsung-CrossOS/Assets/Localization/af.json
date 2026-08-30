@@ -100,7 +100,7 @@
   "keyStop": "Stop",
   "keyConfirm": "Confirm",
   "packageAndSign": "Packaging and signing...",
-  "alreadyInstalled": "{0} is reeds geïnstalleer en jou TV laat nie toe dat dit oor die netwerk vervang of verwyder word nie. Skrap asseblief {0} op die TV self (maak die programlys oop, hou die program in, kies Verwyder) en probeer weer.",
+  "alreadyInstalled": "Jellyfin couldn't not be installed because its already installed, please remove first and try again...",
   "diagnoseTv": "Diagnose TV capabilities",
   "modiyConfigRequired": "Jellyfin app needs a new app id!",
   "deleteExistingVersion": "Deleting an existing version...",

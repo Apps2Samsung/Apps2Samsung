@@ -100,7 +100,7 @@
   "keyStop": "Stop",
   "keyConfirm": "Confirm",
   "packageAndSign": "Packaging and signing...",
-  "alreadyInstalled": "{0} đã được cài đặt và TV của bạn không cho phép thay thế hoặc gỡ bỏ từ xa qua kết nối mạng. Vui lòng xoá {0} trên TV (mở danh sách ứng dụng, nhấn giữ ứng dụng, chọn Gỡ bỏ) rồi thử lại.",
+  "alreadyInstalled": "Jellyfin couldn't not be installed because its already installed, please remove first and try again...",
   "diagnoseTv": "Diagnose TV capabilities",
   "modiyConfigRequired": "Jellyfin app needs a new app id!",
   "deleteExistingVersion": "Deleting an existing version...",
