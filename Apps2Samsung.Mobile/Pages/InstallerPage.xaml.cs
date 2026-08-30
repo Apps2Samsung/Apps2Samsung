@@ -467,6 +467,24 @@ public partial class InstallerPage : ContentPage
 		{
 			SetStatus(L10n.Get("statusSignInCancelled"));
 		}
+		catch (SamsungAccountEmailMissingException)
+		{
+			// The Samsung account has no email, so the distributor CSR has nothing to put in its
+			// emailAddress field — this used to surface as a bare NullReferenceException (issue #606).
+			// Only the user can fix it, on their Samsung account page, so offer to open it.
+			SetStatus(L10n.Get("statusSamsungAccountNoEmail"));
+			var openAccount = await DisplayAlert(
+				L10n.Get("lblSamsungAccountNoEmailTitle"),
+				L10n.Get("statusSamsungAccountNoEmail"),
+				L10n.Get("lblOpenSamsungAccount"),
+				L10n.Get("btn_Close"));
+
+			if (openAccount)
+			{
+				try { await Launcher.Default.OpenAsync(SamsungAccountEmailMissingException.AccountUrl); }
+				catch (Exception ex) { System.Diagnostics.Trace.WriteLine($"[installer] Couldn't open the Samsung account page: {ex.Message}"); }
+			}
+		}
 		catch (Exception ex)
 		{
 			System.Diagnostics.Trace.WriteLine($"[installer] Install failed: {ex}");
