@@ -410,5 +410,8 @@
   "statusSignedInTo": "Signed in to {0} - auto-login will be baked into the package.",
   "statusExportBackupFailed": "Couldn't export the backup: {0}",
   "statusImportedMobile": "Imported settings + {0} certificate file(s). Certificates are already restored. Restart the app to fully apply the imported settings.",
-  "statusImportBackupFailed": "Couldn't import the backup: {0}"
+  "statusImportBackupFailed": "Couldn't import the backup: {0}",
+  "lblSamsungAccountNoEmailTitle": "Samsung account has no email address",
+  "statusSamsungAccountNoEmail": "Your Samsung account doesn't have an email address on it, and the signing certificate can't be created without one. Open account.samsung.com, add and verify an email address, then try again.",
+  "lblOpenSamsungAccount": "Open Samsung account"
 }

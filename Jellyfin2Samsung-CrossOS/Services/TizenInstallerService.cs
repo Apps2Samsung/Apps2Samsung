@@ -547,6 +547,24 @@ namespace Apps2Samsung.Services
                         P12Password = profile.Password
                     };
                 }
+                catch (SamsungAccountEmailMissingException)
+                {
+                    // Core's guard for a Samsung account with no email on it, which the distributor
+                    // CSR needs for its subject. Left to the generic handler below it would come out
+                    // as a bare error dialog, so show the account page instead (issue #606).
+                    Trace.WriteLine("[Cert] Samsung account has no email address; can't build the distributor CSR.");
+                    await _dialogService.ShowMessageWithLinkAsync(
+                        "lblSamsungAccountNoEmailTitle".Localized(),
+                        "statusSamsungAccountNoEmail".Localized(),
+                        "lblOpenSamsungAccount".Localized(),
+                        SamsungAccountEmailMissingException.AccountUrl);
+
+                    return new CertificateResult
+                    {
+                        Success = false,
+                        InstallResult = InstallResult.FailureResult("statusSamsungAccountNoEmail".Localized())
+                    };
+                }
                 catch (Exception ex)
                 {
                     Trace.WriteLine($"[Cert] Provisioning failed: {ex.Message}");
@@ -599,6 +617,25 @@ namespace Apps2Samsung.Services
                     {
                         Success = false,
                         InstallResult = InstallResult.FailureResult("statusAuthFailed".Localized())
+                    };
+                }
+
+                // The distributor CSR needs the account's email for its subject. Samsung accounts
+                // without one hand us null, which used to surface as a bare "Object reference not set
+                // to an instance of an object" from inside BouncyCastle (issue #606). Point the user
+                // straight at their account page instead.
+                if (string.IsNullOrWhiteSpace(auth.inputEmailID))
+                {
+                    await _dialogService.ShowMessageWithLinkAsync(
+                        "lblSamsungAccountNoEmailTitle".Localized(),
+                        "statusSamsungAccountNoEmail".Localized(),
+                        "lblOpenSamsungAccount".Localized(),
+                        SamsungAccountEmailMissingException.AccountUrl);
+
+                    return new CertificateResult
+                    {
+                        Success = false,
+                        InstallResult = InstallResult.FailureResult("statusSamsungAccountNoEmail".Localized())
                     };
                 }
 
