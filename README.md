@@ -152,3 +152,12 @@ Special thanks to:
   https://github.com/Moonfin-Client/Smart-TV
 - **@MoazSalem** — for the Litefin client and related work  
   https://github.com/MoazSalem/litefin/
+
+---
+
+## 📄 License
+
+Apps2Samsung is released under the [MIT License](LICENSE).
+
+Third-party components redistributed in Apps2Samsung builds — bundled binaries, Samsung CA
+certificates, NuGet dependencies, fonts and app artwork — are listed in [NOTICE.md](NOTICE.md).
