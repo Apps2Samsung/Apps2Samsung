@@ -1,0 +1,44 @@
+name: Crowdin config
+
+# Pushes the export pattern from crowdin.yml onto the Crowdin file, and clears the project's
+# per-language mapping.
+#
+# The export path is decided twice - Crowdin's own file setting builds the archive, crowdin.yml
+# only places what the CLI finds inside it - and only one of the two lives in this repo. They
+# drifted silently: the server pattern was %two_letters_code%, so pt-BR/pt-PT and zh-CN/zh-TW
+# collided server-side and one language of each pair was dropped from every build. Run this after
+# changing the translation pattern in crowdin.yml so the two cannot part company again.
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: 'Write the changes. Off = report what would change and touch nothing.'
+        type: boolean
+        default: false
+
+concurrency:
+  # A build started mid-change would be half-renamed.
+  group: crowdin-sync
+  cancel-in-progress: false
+
+jobs:
+  config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+      - name: Apply the Crowdin-side configuration
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+          APPLY: ${{ inputs.apply }}
+        run: |
+          if [ -z "$CROWDIN_PROJECT_ID" ] || [ -z "$CROWDIN_PERSONAL_TOKEN" ]; then
+            echo "::error::CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN are not set."
+            exit 1
+          fi
+          [ "$APPLY" = "true" ] && apply=--apply || apply=
+          python3 .github/scripts/crowdin_apply_config.py $apply | tee -a "$GITHUB_STEP_SUMMARY"

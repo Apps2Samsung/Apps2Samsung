@@ -37,7 +37,7 @@ namespace Apps2Samsung.Localization
             LoadEmbeddedLanguages();
         }
 
-        /// <summary>The language in use, as a two-letter code.</summary>
+        /// <summary>The language in use, as the locale that names its file (e.g. "pt-BR").</summary>
         public string CurrentLanguage { get; private set; } = DefaultLanguage;
 
         /// <summary>Every language that has a file, sorted — what a language picker binds to.</summary>
@@ -94,13 +94,17 @@ namespace Apps2Samsung.Localization
         }
 
         /// <summary>
-        /// The closest language we have to <paramref name="code"/>, or null. A regional file wins over
-        /// the plain language file when the OS asks for that region, which is what keeps the two
-        /// Chinese and the two Portuguese apart: zh.json is Traditional and pt.json is Brazilian (they
-        /// were translated first and kept the plain name), so a Simplified-Chinese or European
-        /// Portuguese device has to land on zh-CN.json / pt-PT.json rather than on the file whose name
-        /// merely starts with its language. Falls back the way a locale narrows: zh-Hans-CN, then
-        /// zh-Hans, then zh - and where the OS names only the script, to the region that writes it.
+        /// The closest language we have to <paramref name="code"/>, or null.
+        /// <para>
+        /// Widens the request one step at a time along the chain the framework itself defines -
+        /// zh-Hans-CN, then zh-Hans, then zh - and takes the first available file that shares that
+        /// ancestor. Script is handled by the chain rather than by naming it: a Simplified-Chinese
+        /// device asks for zh-Hans-CN and zh-CN's own chain runs through zh-Hans, while zh-TW's runs
+        /// through zh-Hant, so the two stay apart without either being mentioned here.
+        /// </para>
+        /// When a step matches more than one file - a stored bare "pt" against pt-BR and pt-PT - the
+        /// tie goes to the region the framework considers that language's default, which is a real
+        /// answer (pt to Brazil) rather than whichever sorted first.
         /// </summary>
         private string? Match(string? code)
         {
@@ -112,21 +116,113 @@ namespace Apps2Samsung.Localization
             if (HasLanguage(code))
                 return code;
 
-            // Android and Windows can report a script without a region ("zh-Hans"), which names no
-            // file of ours; point the two scripts at the file that carries them.
-            if (code.Contains("Hans", StringComparison.OrdinalIgnoreCase) && HasLanguage("zh-CN"))
-                return "zh-CN";
-            if (code.Contains("Hant", StringComparison.OrdinalIgnoreCase) && HasLanguage("zh"))
-                return "zh";
-
-            for (var cut = code.LastIndexOf('-'); cut > 0; cut = code.LastIndexOf('-', cut - 1))
+            foreach (var ancestor in Chain(code))
             {
-                var shorter = code[..cut];
-                if (HasLanguage(shorter))
-                    return shorter;
+                var candidates = _languages.Keys
+                    .Where(available => Chain(available).Contains(ancestor, StringComparer.OrdinalIgnoreCase))
+                    .OrderBy(available => available, StringComparer.Ordinal)
+                    .ToList();
+
+                if (candidates.Count == 0)
+                    continue;
+                if (candidates.Count == 1)
+                    return candidates[0];
+
+                var preferred = DefaultRegionOf(ancestor);
+                return candidates.FirstOrDefault(
+                           c => string.Equals(c, preferred, StringComparison.OrdinalIgnoreCase))
+                       ?? candidates[0];
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// A code and every broader form of it, most specific first: zh-Hans-CN, zh-Hans, zh. Uses the
+        /// framework's own parent chain, which knows the script step, and falls back to cutting the
+        /// code at its separators for anything it doesn't recognise.
+        /// </summary>
+        private static IEnumerable<string> Chain(string code)
+        {
+            var seen = new List<string>();
+
+            try
+            {
+                for (var culture = new CultureInfo(code);
+                     !string.IsNullOrEmpty(culture.Name);
+                     culture = culture.Parent)
+                {
+                    seen.Add(culture.Name);
+                }
+            }
+            catch (CultureNotFoundException)
+            {
+                // Crowdin ships a handful of codes the framework has never heard of (sr-SP names no
+                // real region), so widen them by hand rather than losing the language.
+                seen.Clear();
+                for (var cut = code.Length; cut > 0; cut = code.LastIndexOf('-', cut - 1))
+                {
+                    seen.Add(code[..cut]);
+                    if (code.LastIndexOf('-', cut - 1) < 0)
+                        break;
+                }
+            }
+
+            return seen;
+        }
+
+        /// <summary>The region the framework treats as a language's default - "pt" gives pt-BR.</summary>
+        private static string? DefaultRegionOf(string language)
+        {
+            try
+            {
+                return CultureInfo.CreateSpecificCulture(language).Name;
+            }
+            catch (CultureNotFoundException)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// What a language picker should show for <paramref name="code"/>, in that language's own
+        /// words. Names the region only when it distinguishes something: with one Dutch file this is
+        /// "Nederlands", and the day a nl-BE file arrives both become "Nederlands (Nederland)" and
+        /// "Nederlands (Belgie)" on their own. That keeps the list readable without a table of
+        /// hand-written names to maintain - and it is why the files are named by full locale, since
+        /// pt-BR.json carries the region that pt.json could only imply.
+        /// </summary>
+        public string GetDisplayName(string code)
+        {
+            try
+            {
+                var culture = new CultureInfo(code);
+                var language = culture.TwoLetterISOLanguageName;
+
+                var variants = _languages.Keys.Count(available => IsLanguage(available, language));
+                var name = variants > 1
+                    ? culture.NativeName
+                    : new CultureInfo(language).NativeName;
+
+                return string.IsNullOrEmpty(name) ? code : char.ToUpper(name[0]) + name[1..];
+            }
+            catch (CultureNotFoundException)
+            {
+                return code;
+            }
+        }
+
+        private static bool IsLanguage(string code, string language)
+        {
+            try
+            {
+                return string.Equals(new CultureInfo(code).TwoLetterISOLanguageName, language,
+                                     StringComparison.OrdinalIgnoreCase);
+            }
+            catch (CultureNotFoundException)
+            {
+                return false;
+            }
         }
 
         private void LoadEmbeddedLanguages()

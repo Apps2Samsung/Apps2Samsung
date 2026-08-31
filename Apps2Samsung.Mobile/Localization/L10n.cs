@@ -41,6 +41,9 @@ public static class L10n
     /// <summary>Every language with a translation file, for the picker in Settings.</summary>
     public static IEnumerable<string> AvailableLanguages => Catalog.AvailableLanguages;
 
+    /// <summary>What a picker shows for a language, in that language's own words.</summary>
+    public static string GetDisplayName(string languageCode) => Catalog.GetDisplayName(languageCode);
+
     /// <summary>The language in use.</summary>
     public static string CurrentLanguage => Catalog.CurrentLanguage;
 
