@@ -75,6 +75,29 @@ def language_file(language):
     return path if path.exists() else None
 
 
+def source_file(project_files):
+    """The one file crowdin.yml describes, and a hard error when the project holds more than one
+    candidate.
+
+    Crowdin accumulates orphans: a source uploaded under a different path, or before the branch
+    existed, stays in the project and keeps exporting. The project carried three files all named
+    en.json - the live one plus two left from earlier layouts - and every build contained all of
+    them, which is how a 29-language export came back with 56 entries. Picking whichever the API
+    listed first is exactly the bug that hid pt-PT and zh-CN, one level up, so this refuses to
+    guess: delete the orphans (crowdin-config does it) rather than let a script choose.
+    """
+    candidates = [f for f in project_files if f["name"] == SOURCE_FILE]
+    if not candidates:
+        raise SystemExit(f"No '{SOURCE_FILE}' in the project.")
+    if len(candidates) > 1:
+        listed = "\n".join(
+            f"    id={f['id']} branch={f.get('branchId')} path={f.get('path')}" for f in candidates)
+        raise SystemExit(
+            f"{len(candidates)} files named '{SOURCE_FILE}' - refusing to guess which one is "
+            f"live:\n{listed}\n  Run the 'Crowdin config' workflow to remove the orphans.")
+    return candidates[0]
+
+
 def main():
     if not TOKEN or not PROJECT:
         raise SystemExit("CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN are not set.")
@@ -91,15 +114,10 @@ def main():
     project = call("GET", f"/projects/{PROJECT}")["data"]
     print(f"Project: {project['name']} (#{PROJECT})")
 
-    branches = [b for b in listing(f"/projects/{PROJECT}/branches") if b["name"] == BRANCH]
-    if not branches:
-        raise SystemExit(f"No '{BRANCH}' branch in the project.")
-    files = [f for f in listing(f"/projects/{PROJECT}/files", branchId=branches[0]["id"])
-             if f["name"] == SOURCE_FILE]
-    if not files:
-        raise SystemExit(f"No '{SOURCE_FILE}' under the '{BRANCH}' branch.")
+    source = source_file(listing(f"/projects/{PROJECT}/files"))
+    print(f"Source of truth: id={source['id']} {source.get('path')}")
 
-    strings = [s for s in listing(f"/projects/{PROJECT}/strings", fileId=files[0]["id"])
+    strings = [s for s in listing(f"/projects/{PROJECT}/strings", fileId=source["id"])
                if s["identifier"] == key]
     if not strings:
         raise SystemExit(f'"{key}" is not in Crowdin - upload the sources first.')
