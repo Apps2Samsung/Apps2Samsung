@@ -404,21 +404,8 @@ public partial class SettingsPage : ContentPage
 			return;
 
 		_languageCodes.AddRange(L10n.AvailableLanguages);
-		LanguagePicker.ItemsSource = _languageCodes.Select(DisplayName).ToList();
+		LanguagePicker.ItemsSource = _languageCodes.Select(L10n.GetDisplayName).ToList();
 		LanguagePicker.SelectedIndex = _languageCodes.IndexOf(L10n.CurrentLanguage);
-	}
-
-	private static string DisplayName(string code)
-	{
-		try
-		{
-			var name = new System.Globalization.CultureInfo(code).NativeName;
-			return string.IsNullOrWhiteSpace(name) ? code : char.ToUpperInvariant(name[0]) + name[1..];
-		}
-		catch (System.Globalization.CultureNotFoundException)
-		{
-			return code;
-		}
 	}
 
 	private async void OnLanguageChanged(object? sender, EventArgs e)

@@ -36,6 +36,8 @@ namespace Apps2Samsung.Services
 
         public IEnumerable<string> AvailableLanguages => _catalog.AvailableLanguages;
 
+        public string GetDisplayName(string languageCode) => _catalog.GetDisplayName(languageCode);
+
         public event EventHandler? LanguageChanged;
 
         public string GetString(string key) => _catalog.GetString(key);

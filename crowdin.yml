@@ -1,11 +1,16 @@
 # Crowdin sync for the language files both heads embed (see Apps2Samsung.Core/Localization).
 #
-# The app keys its languages by the two-letter code that names the file, so the mapping below only
-# names the variants that would otherwise collide: Crowdin carries pt-BR *and* pt-PT, zh-CN *and*
-# zh-TW, and %two_letters_code% turns each pair into one pt.json / zh.json, where whichever synced
-# last silently overwrote the other. The variant that already owns the file keeps it (pt.json is
-# Brazilian, zh.json is Traditional - those are the ones with translations in them), and the other
-# gets a file of its own.
+# Every file is named by its full locale - nl-NL.json, pt-BR.json, zh-TW.json - because that is the
+# only naming that cannot collide. %two_letters_code% turned pt-BR and pt-PT both into pt.json and
+# zh-CN and zh-TW both into zh.json, and Crowdin resolves the export path server-side: it built one
+# file per collision and dropped the other language entirely, so pt-PT and zh-CN never once reached
+# this repo. A per-collision entry in the project's Language Mapping fixes one pair and waits for
+# the next; %locale% is unique for every language Crowdin has, so adding nl-BE tomorrow needs no
+# change here, in the project settings, or in the app.
+#
+# The export pattern has to match on BOTH sides - Crowdin's own file setting builds the archive, and
+# this file only names where the CLI puts what it finds inside it. .github/workflows/crowdin-config
+# writes the server side from the value below, so they cannot drift.
 #
 # skip_untranslated_strings keeps a language file to what has actually been translated. Without it
 # every untranslated key is written out with its English text, which reads as a finished translation
@@ -13,9 +18,5 @@
 # falls back to English for a key a file doesn't carry.
 files:
   - source: /Jellyfin2Samsung-CrossOS/Assets/Localization/en.json
-    translation: /Jellyfin2Samsung-CrossOS/Assets/Localization/%two_letters_code%.json
+    translation: /Jellyfin2Samsung-CrossOS/Assets/Localization/%locale%.json
     skip_untranslated_strings: true
-    languages_mapping:
-      two_letters_code:
-        pt-PT: pt-PT
-        zh-CN: zh-CN

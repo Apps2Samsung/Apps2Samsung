@@ -136,7 +136,7 @@ namespace Apps2Samsung.ViewModels
                     .Select(code => new LanguageOption
                     {
                         Code = code,
-                        Name = GetLanguageDisplayName(code)
+                        Name = _localizationService.GetDisplayName(code)
                     })
                     .OrderBy(lang => lang.Name)
             );
@@ -276,18 +276,6 @@ namespace Apps2Samsung.ViewModels
             });
         }
 
-        private static string GetLanguageDisplayName(string code)
-        {
-            try
-            {
-                var name = new System.Globalization.CultureInfo(code).NativeName;
-                return string.IsNullOrEmpty(name) ? code : char.ToUpper(name[0]) + name.Substring(1);
-            }
-            catch
-            {
-                return code;
-            }
-        }
 
         [ObservableProperty]
         private string backupStatus = string.Empty;
