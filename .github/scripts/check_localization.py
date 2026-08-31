@@ -2,7 +2,7 @@
 """
 Localization guard for both heads.
 
-Two checks, both hard failures, so the base translation file (en.json) stays 1:1 with the
+Four checks, all hard failures, so the base translation file (en.json) stays 1:1 with the
 code and Crowdin always has every user-facing string to translate (issue #560):
 
   A. Every localization KEY referenced in code exists in en.json.
@@ -17,6 +17,12 @@ code and Crowdin always has every user-facing string to translate (issue #560):
      and localize internally) or come from a lookup ("key".Localized() / L10n.Get("key")).
      Interpolated strings are read as their literal parts, so $"{L("k")}: {ex}" is fine while
      $"Failed to open: {ex}" is not.
+  D. Every translation carries the same {0}/{1} placeholders its English source does. A
+     translation that drops one leaves string.Format with nothing to substitute, so the message
+     names the wrong app (or the wrong number, or the wrong path) in that language — and one that
+     invents an index en.json doesn't have throws FormatException at runtime. This is what a
+     Crowdin sync writing an older revision back over a fix looks like (PR #610), and without
+     this check it merges green.
 
 Both heads are checked: the desktop head (Avalonia) and the mobile head (MAUI), which shares
 the same en.json now that the string catalog lives in Core.
@@ -30,7 +36,8 @@ from pathlib import Path
 
 DESKTOP = Path("Jellyfin2Samsung-CrossOS")
 MOBILE = Path("Apps2Samsung.Mobile")
-EN = DESKTOP / "Assets" / "Localization" / "en.json"
+LOCALIZATION = DESKTOP / "Assets" / "Localization"
+EN = LOCALIZATION / "en.json"
 
 # Strings that are intentionally NOT translated: example token / URL / CSS samples, and the
 # product names themselves.
@@ -67,6 +74,9 @@ CS_SINK_CALL = re.compile(
     r'|ShowConfirmationAsync|PromptForTextAsync|ShowCertificateCountdownAsync|FailureResult)\s*\(')
 CS_SINK_ASSIGN = re.compile(r'\b(?:StatusText|Status)\s*=\s*(?=[$@"])')
 WORDS = re.compile(r"[A-Za-z]{3,}")
+
+# string.Format placeholders. `{{` is a literal brace and is stripped before matching.
+PLACEHOLDER = re.compile(r"\{(\d+)\}")
 
 
 def read_string(text, i):
@@ -171,8 +181,20 @@ def markup_files():
     yield from source_files(".xaml", roots=(MOBILE,))
 
 
+def listed(indexes):
+    return ", ".join("{%s}" % i for i in sorted(indexes, key=int))
+
+
+def placeholders(text):
+    """The set of {N} indexes a string substitutes. A set rather than a list: a translation may
+    naturally repeat a placeholder more or fewer times than English does ("{0} … {0}" reads badly
+    in some languages), which is fine — dropping or inventing an index is not."""
+    return set(PLACEHOLDER.findall(text.replace("{{", "").replace("}}", "")))
+
+
 def main():
-    keys = set(json.loads(EN.read_text(encoding="utf-8")).keys())
+    english = json.loads(EN.read_text(encoding="utf-8"))
+    keys = set(english.keys())
     errors = []
 
     # A. referenced keys must exist. Each head has its own accessor, and they are checked
@@ -226,11 +248,32 @@ def main():
                         f"[hardcoded-cs] {f}:{line}: {match.group(0).strip()} \"{literal}\" "
                         f"— pass a key instead (\"key\".Localized() / L10n.Get(\"key\"))")
 
+    # D. every translation substitutes the same placeholders as its English source
+    for f in sorted(LOCALIZATION.glob("*.json")):
+        if f == EN:
+            continue
+        translations = json.loads(f.read_text(encoding="utf-8"))
+        for k, translated in translations.items():
+            source = english.get(k)
+            if not isinstance(source, str) or not isinstance(translated, str):
+                continue                       # a key en.json no longer has is simply unused
+            want, got = placeholders(source), placeholders(translated)
+            if want == got:
+                continue
+            problems = []
+            if want - got:
+                problems.append("drops " + listed(want - got))
+            if got - want:
+                problems.append("adds " + listed(got - want))
+            errors.append(
+                f"[placeholder] {f}: \"{k}\" {' and '.join(problems)} — en.json substitutes "
+                f"{listed(want) if want else 'nothing'}")
+
     if errors:
         print("Localization check FAILED (%d issue(s)):\n" % len(errors) + "\n".join(sorted(errors)))
         return 1
-    print("Localization check passed — every key exists in en.json and no hard-coded UI strings "
-          "(desktop + mobile).")
+    print("Localization check passed — every key exists in en.json, no hard-coded UI strings "
+          "(desktop + mobile), and every translation keeps its placeholders.")
     return 0
 
 

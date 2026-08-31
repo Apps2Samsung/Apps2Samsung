@@ -25,6 +25,18 @@ on:
   schedule:
     - cron: '0 6 * * 1'
   workflow_dispatch:
+    inputs:
+      upload_translations:
+        description: >-
+          Push the repo's language files UP to Crowdin before downloading. Off by default, and it
+          must stay off for the scheduled and push runs: Crowdin owns the translations, the repo is
+          downstream of it, and a download PR can sit open for days - during which the repo files
+          are OLDER than Crowdin's. Uploading on every run would eventually write that stale copy
+          over a translator's fresh edit, silently, inside Crowdin. Turn it on by hand for the one
+          case it is for: strings fixed directly in the repo that Crowdin still holds an earlier
+          revision of, which it otherwise keeps handing back (see PR #610).
+        type: boolean
+        default: false
 
 concurrency:
   group: crowdin-sync
@@ -63,7 +75,8 @@ jobs:
           # configuration ... will be omitted".
           crowdin_branch_name: beta
           upload_sources: true
-          upload_translations: false
+          # Only ever true for a deliberate workflow_dispatch; `inputs` is null on schedule/push.
+          upload_translations: ${{ inputs.upload_translations || false }}
           download_translations: true
           localization_branch_name: l10n_beta
           create_pull_request: true
