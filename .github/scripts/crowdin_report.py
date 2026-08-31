@@ -81,6 +81,29 @@ def archive_entries():
         return sorted(i.filename for i in archive.infolist() if not i.is_dir())
 
 
+def source_file(project_files):
+    """The one file crowdin.yml describes, and a hard error when the project holds more than one
+    candidate.
+
+    Crowdin accumulates orphans: a source uploaded under a different path, or before the branch
+    existed, stays in the project and keeps exporting. The project carried three files all named
+    en.json - the live one plus two left from earlier layouts - and every build contained all of
+    them, which is how a 29-language export came back with 56 entries. Picking whichever the API
+    listed first is exactly the bug that hid pt-PT and zh-CN, one level up, so this refuses to
+    guess: delete the orphans (crowdin-config does it) rather than let a script choose.
+    """
+    candidates = [f for f in project_files if f["name"] == SOURCE_FILE]
+    if not candidates:
+        raise SystemExit(f"No '{SOURCE_FILE}' in the project.")
+    if len(candidates) > 1:
+        listed = "\n".join(
+            f"    id={f['id']} branch={f.get('branchId')} path={f.get('path')}" for f in candidates)
+        raise SystemExit(
+            f"{len(candidates)} files named '{SOURCE_FILE}' - refusing to guess which one is "
+            f"live:\n{listed}\n  Run the 'Crowdin config' workflow to remove the orphans.")
+    return candidates[0]
+
+
 def main():
     if not TOKEN or not PROJECT:
         raise SystemExit("CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN are not set.")
@@ -89,11 +112,9 @@ def main():
     branches = [b for b in listing(f"/projects/{PROJECT}/branches") if b["name"] == BRANCH]
     if not branches:
         raise SystemExit(f"No '{BRANCH}' branch in the project.")
-    files = [f for f in listing(f"/projects/{PROJECT}/files", branchId=branches[0]["id"])
-             if f["name"] == SOURCE_FILE]
-    if not files:
-        raise SystemExit(f"No '{SOURCE_FILE}' under '{BRANCH}'.")
-    file_id = files[0]["id"]
+    source = source_file(everything)
+    file_id = source["id"]
+    print(f"Source of truth: id={file_id} {source.get('path')}\n")
     global BRANCH_ID
     BRANCH_ID = branches[0]["id"]
 

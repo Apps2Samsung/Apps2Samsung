@@ -14,6 +14,12 @@ Naming every file by %locale% removes the collision by construction rather than 
 time, which is why the project's languageMapping goes too: it existed only to patch the two pairs
 that had already collided, and a new language would have needed another entry.
 
+It also removes orphaned source files. Crowdin keeps a file that was uploaded under a different
+path or before the branch existed, and that file keeps exporting: the project held three named
+en.json - the live one and two left from earlier layouts - so every build carried all three and a
+29-language export came back with 56 entries. Whichever the API happens to list first is then a
+coin toss for any tool that looks a file up by name.
+
 Run it after changing the translation pattern in crowdin.yml. Idempotent - it reports "already
 correct" and writes nothing when the two sides agree.
 
@@ -79,14 +85,22 @@ def main():
     pattern = wanted_pattern()
     print(f"{CONFIG} wants: {pattern}")
 
-    branches = [b for b in listing(f"/projects/{PROJECT}/branches") if b["name"] == BRANCH]
-    if not branches:
-        raise SystemExit(f"No '{BRANCH}' branch in the project.")
-    files = [f for f in listing(f"/projects/{PROJECT}/files", branchId=branches[0]["id"])
-             if f["name"] == SOURCE_FILE]
-    if not files:
-        raise SystemExit(f"No '{SOURCE_FILE}' under '{BRANCH}'.")
-    source = files[0]
+    everything = listing(f"/projects/{PROJECT}/files")
+    named = [f for f in everything if f["name"] == SOURCE_FILE]
+    if not named:
+        raise SystemExit(f"No '{SOURCE_FILE}' in the project.")
+
+    # The live file is the one carrying the most strings; an orphan is a snapshot of an older
+    # upload and can only be behind. Ties keep the most recently updated.
+    def freshness(f):
+        return (len(listing(f"/projects/{PROJECT}/strings", fileId=f["id"])), f.get("updatedAt", ""))
+
+    ranked = sorted(named, key=freshness, reverse=True)
+    source, orphans = ranked[0], ranked[1:]
+
+    print(f"Live source: id={source['id']} {source.get('path')}")
+    for f in orphans:
+        print(f"Orphan:      id={f['id']} {f.get('path')} (exports alongside the live file)")
 
     current = (source.get("exportOptions") or {}).get("exportPattern")
     project = call(f"/projects/{PROJECT}")["data"]
@@ -100,6 +114,8 @@ def main():
         changes.append("export pattern")
     if mapping:
         changes.append(f"languageMapping ({len(mapping)} entr(y/ies) to clear)")
+    if orphans:
+        changes.append(f"{len(orphans)} orphaned source file(s) to delete")
     if not changes:
         print("\nAlready correct - nothing to write.")
         return 0
@@ -118,6 +134,9 @@ def main():
         call(f"/projects/{PROJECT}", method="PATCH",
              body=[{"op": "replace", "path": "/languageMapping", "value": {}}])
         print("  languageMapping cleared")
+    for f in orphans:
+        call(f"/projects/{PROJECT}/files/{f['id']}", method="DELETE")
+        print(f"  deleted orphan id={f['id']} {f.get('path')}")
     return 0
 
 
