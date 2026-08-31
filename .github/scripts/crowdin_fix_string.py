@@ -31,10 +31,9 @@ LOCALIZATION = Path("Jellyfin2Samsung-CrossOS/Assets/Localization")
 SOURCE_FILE = "en.json"
 BRANCH = "beta"
 
-# crowdin.yml names the language files by %two_letters_code%, except for the two pairs that would
-# collide - pt-BR/pt-PT both being "pt", zh-CN/zh-TW both being "zh". Those two keep their full
-# code, and their partner keeps the two-letter file. Mirror that here or the wrong file is read.
-FULL_CODE_FILES = {"pt-PT", "zh-CN"}
+# crowdin.yml names every language file by its full locale (%locale%), so the repo file for a
+# language is simply <locale>.json - nl-NL.json, pt-BR.json, zh-TW.json. The short two-letter
+# naming this used to mirror is what collided pt-BR with pt-PT and zh-CN with zh-TW.
 
 TOKEN = os.environ.get("CROWDIN_PERSONAL_TOKEN", "")
 PROJECT = os.environ.get("CROWDIN_PROJECT_ID", "")
@@ -70,7 +69,7 @@ def listing(path, **params):
 
 def language_file(language):
     """The repo file a Crowdin language maps to, or None if the repo doesn't ship it."""
-    code = language["id"] if language["id"] in FULL_CODE_FILES else language["twoLettersCode"]
+    code = language.get("locale") or language["id"]
     path = LOCALIZATION / f"{code}.json"
     return path if path.exists() else None
 

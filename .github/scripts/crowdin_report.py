@@ -33,7 +33,9 @@ API = "https://api.crowdin.com/api/v2"
 LOCALIZATION = Path("Jellyfin2Samsung-CrossOS/Assets/Localization")
 SOURCE_FILE = "en.json"
 BRANCH = "beta"
-FULL_CODE_FILES = {"pt-PT", "zh-CN"}          # kept in step with crowdin.yml's languages_mapping
+# crowdin.yml names every language file by its full locale (%locale%), so the repo file for a
+# language is simply <locale>.json - nl-NL.json, pt-BR.json, zh-TW.json. The short two-letter
+# naming this used to mirror is what collided pt-BR with pt-PT and zh-CN with zh-TW.
 BRANCH_ID = None
 
 TOKEN = os.environ.get("CROWDIN_PERSONAL_TOKEN", "")
@@ -112,7 +114,7 @@ def main():
     branches = [b for b in listing(f"/projects/{PROJECT}/branches") if b["name"] == BRANCH]
     if not branches:
         raise SystemExit(f"No '{BRANCH}' branch in the project.")
-    source = source_file(everything)
+    source = source_file(listing(f"/projects/{PROJECT}/files"))
     file_id = source["id"]
     print(f"Source of truth: id={file_id} {source.get('path')}\n")
     global BRANCH_ID
@@ -132,7 +134,7 @@ def main():
         p = progress.get(code, {})
         phrases = p.get("phrases", {})
         translated, total = phrases.get("translated", 0), phrases.get("total", 0)
-        name = f"{code if code in FULL_CODE_FILES else languages[code]['twoLettersCode']}.json"
+        name = f"{languages[code].get('locale') or code}.json"
         path = LOCALIZATION / name
         note = "" if path.exists() else "  <- no such file in the repo"
         if not translated:
