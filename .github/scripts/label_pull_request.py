@@ -139,3 +139,5 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+# (smoke test - this branch is thrown away)
