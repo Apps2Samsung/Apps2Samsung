@@ -1,21 +1,23 @@
 # Crowdin sync for the language files both heads embed (see Apps2Samsung.Core/Localization).
 #
-# Every file is named by its full locale - nl-NL.json, pt-BR.json, zh-TW.json - because that is the
-# only naming that cannot collide. %two_letters_code% turned pt-BR and pt-PT both into pt.json and
-# zh-CN and zh-TW both into zh.json, and Crowdin resolves the export path server-side: it built one
-# file per collision and dropped the other language entirely, so pt-PT and zh-CN never once reached
-# this repo. A per-collision entry in the project's Language Mapping fixes one pair and waits for
-# the next; %locale% is unique for every language Crowdin has, so adding nl-BE tomorrow needs no
-# change here, in the project settings, or in the app.
+# Every file is named by its full locale - nl-NL.json, pt-BR.json, zh-TW.json - because that is
+# the only naming that cannot collide. Under %two_letters_code%, pt-BR and pt-PT both resolved to
+# pt.json and zh-CN and zh-TW both to zh.json; Crowdin builds that path server-side, so it kept
+# one file per pair and dropped the other language from every export. European Portuguese and
+# Simplified Chinese never reached this repo at all until #617. Mapping a language by hand fixes
+# one pair and waits for the next, so don't - %locale% is unique for every language Crowdin has,
+# and a new one needs no change here or in the project settings.
 #
-# The export pattern has to match on BOTH sides - Crowdin's own file setting builds the archive, and
-# this file only names where the CLI puts what it finds inside it. .github/workflows/crowdin-config
-# writes the server side from the value below, so they cannot drift.
+# The pattern below is also written onto the Crowdin file itself, by the "Crowdin config"
+# workflow. Crowdin's copy is what builds the archive and this one only places what the CLI finds
+# inside it, so the two have to agree.
 #
 # skip_untranslated_strings keeps a language file to what has actually been translated. Without it
-# every untranslated key is written out with its English text, which reads as a finished translation
-# in the file and in the picker, hides how much is really left, and buys nothing: the catalog already
-# falls back to English for a key a file doesn't carry.
+# every untranslated key is written out with its English text, which reads as a finished
+# translation in the file and in the picker and hides how much is really left. Nothing is lost:
+# the catalog already falls back to English for a key a file doesn't carry. The corollary is that
+# a string translated by hand in the repo must be pushed up (the upload_translations input on the
+# sync) or the next download proposes deleting it.
 files:
   - source: /Jellyfin2Samsung-CrossOS/Assets/Localization/en.json
     translation: /Jellyfin2Samsung-CrossOS/Assets/Localization/%locale%.json
