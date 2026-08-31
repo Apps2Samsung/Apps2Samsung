@@ -121,9 +121,13 @@ def main():
                            stringId=string_id, languageId=language["id"])
         approvals = listing(f"/projects/{PROJECT}/approvals",
                             stringId=string_id, languageId=language["id"])
-        if len(existing) == 1 and existing[0]["text"] == wanted and approvals:
+        # An approval is not required for Crowdin to export a string - export_only_approved is
+        # off, so the single stored translation is the one that ships. Text match is the test;
+        # demanding an approval too would report every language as needing a rewrite it doesn't.
+        if len(existing) == 1 and existing[0]["text"] == wanted:
             skipped += 1
-            print(f"{language['id']:>6}  ✓ already correct and approved")
+            state = "approved" if approvals else "unapproved, which still exports"
+            print(f"{language['id']:>6}  ✓ already matches the repo ({state})")
             continue
 
         current = existing[0]["text"] if existing else "(none)"
