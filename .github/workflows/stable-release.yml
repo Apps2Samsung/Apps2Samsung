@@ -137,37 +137,16 @@ jobs:
       - name: Prepare release notes
         shell: bash
         run: |
-          DATE=$(date +'%Y-%m-%d')
-
-          # Tidy GitHub's generated notes: drop the HTML comment + the redundant
-          # "What's Changed" heading, and shorten each
-          # "* <title> by @user in <url>/pull/N" line to "- <title> (#N)".
-          sed -E \
-            -e '/^<!--/d' \
-            -e "/^## What's Changed[[:space:]]*$/d" \
-            -e 's~^\* (.*) by @[^ ]+ in https?://github.com/[^ ]+/pull/([0-9]+)[[:space:]]*$~- \1 (#\2)~' \
-            CHANGELOG.md | cat -s > CHANGELOG.clean.md
-          mv CHANGELOG.clean.md CHANGELOG.md
-
-          {
-            echo "## 📦 ${VERSION_TAG} — ${DATE}"
-            echo ""
-            cat CHANGELOG.md
-            echo ""
-            echo ""
-            echo "| Platform | Status | Notes |"
-            echo "|----------|--------|-------|"
-            echo "| 🍎 macOS (.app + dmg) | ✅ Stable | ARM64 + Intel |"
-            echo "| 🍎 macOS (CLI) | ✅ Stable | Per-arch tar.gz |"
-            echo "| 🐧 Linux | ✅ Stable | x64 + ARM64 (tar.gz / .deb) |"
-            echo "| 🪟 Windows | ✅ Stable | CI-built |"
-            echo "| 🤖 Android (.apk) | ✅ Stable | Sideload; phone as installer head |"
-            echo ""
-            echo "---"
-            echo ""
-            echo "### 🛡️ Security Notice"
-            echo "Antivirus warnings may occur and are likely **false positives**."
-          } > RELEASE_NOTES.md
+          # Curated notes from .github/release-notes/<version>.md when there are any, the generated
+          # list when there aren't. See .github/scripts/build_release_notes.py.
+          python3 .github/scripts/build_release_notes.py \
+            --tag "$VERSION_TAG" \
+            --channel stable \
+            --generated CHANGELOG.md \
+            --date "$(date +'%Y-%m-%d')" \
+            --repo "$GITHUB_REPOSITORY" > RELEASE_NOTES.md
+          echo "--- release notes ---"
+          cat RELEASE_NOTES.md
 
       - uses: actions/setup-dotnet@v6
         with:

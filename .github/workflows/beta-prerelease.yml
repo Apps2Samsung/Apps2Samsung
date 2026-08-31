@@ -8,8 +8,9 @@ on:
       - 'docs/**'      # website (GitHub Pages) — deploys on its own, shouldn't trigger an app release
       - '.github/**'   # workflow / repo-meta changes shouldn't trigger an app release
       - 'fastlane/**'  # store-listing metadata (F-Droid/IzzyOnDroid) — not app code
-      - 'crowdin.yml'  # translation sync config — changing it ships nothing, but the build it fired
-                       # overwrote the curated release notes, which then had to be re-applied
+      - 'crowdin.yml'  # translation sync config — changing it ships nothing, and the build it
+                       # fired used to overwrite the curated release notes (they live in
+                       # .github/release-notes now, so a rebuild restores them instead)
   # Allow running the beta release manually (e.g. when a merge didn't fire the push trigger).
   workflow_dispatch:
 
@@ -100,32 +101,16 @@ jobs:
       - name: Prepare release notes
         shell: bash
         run: |
-          DATE=$(date +'%Y-%m-%d')
-
-          # Tidy GitHub's generated notes: drop the HTML comment + the redundant
-          # "What's Changed" heading, and shorten each
-          # "* <title> by @user in <url>/pull/N" line to "- <title> (#N)".
-          sed -E \
-            -e '/^<!--/d' \
-            -e "/^## What's Changed[[:space:]]*$/d" \
-            -e 's~^\* (.*) by @[^ ]+ in https?://github.com/[^ ]+/pull/([0-9]+)[[:space:]]*$~- \1 (#\2)~' \
-            CHANGELOG.md | cat -s > CHANGELOG.clean.md
-          mv CHANGELOG.clean.md CHANGELOG.md
-
-          {
-            echo "## 📦 ${VERSION_TAG} — ${DATE}"
-            echo ""
-            cat CHANGELOG.md
-            echo ""
-            echo ""
-            echo "| Platform | Status | Notes |"
-            echo "|----------|--------|-------|"
-            echo "| 🍎 macOS (.app + dmg) | ⚠️ Beta | ARM64 + Intel |"
-            echo "| 🍎 macOS (CLI) | ⚠️ Beta | Per-arch tar.gz |"
-            echo "| 🐧 Linux | ⚠️ Beta | x64 + ARM64 (tar.gz / .deb) |"
-            echo "| 🪟 Windows | ⚠️ Beta | CI-built |"
-            echo "| 🤖 Android (.apk) | ⚠️ Beta | Sideload; phone as installer head |"
-          } > RELEASE_NOTES.md
+          # Curated notes from .github/release-notes/<version>.md when there are any, the generated
+          # list when there aren't. See .github/scripts/build_release_notes.py.
+          python3 .github/scripts/build_release_notes.py \
+            --tag "$VERSION_TAG" \
+            --channel beta \
+            --generated CHANGELOG.md \
+            --date "$(date +'%Y-%m-%d')" \
+            --repo "$GITHUB_REPOSITORY" > RELEASE_NOTES.md
+          echo "--- release notes ---"
+          cat RELEASE_NOTES.md
 
       - uses: actions/setup-dotnet@v6
         with:
