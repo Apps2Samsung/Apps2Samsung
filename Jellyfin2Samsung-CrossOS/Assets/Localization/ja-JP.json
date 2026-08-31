@@ -410,5 +410,8 @@
   "statusSignedInTo": "{0} にサインインしました。パッケージに自動ログインされます。",
   "statusExportBackupFailed": "バックアップをエクスポートできませんでした: {0}",
   "statusImportedMobile": "インポートされた設定 + {0} 証明書ファイル。証明書はすでに復元されています。インポートされた設定を完全に適用するにはアプリを再起動してください。",
-  "statusImportBackupFailed": "バックアップをインポートできませんでした: {0}"
+  "statusImportBackupFailed": "バックアップをインポートできませんでした: {0}",
+  "lblSamsungAccountNoEmailTitle": "Samsung アカウントにメールアドレスがありません",
+  "statusSamsungAccountNoEmail": "お使いの Samsung アカウントにはメールアドレスが登録されていないため、署名証明書を作成できません。account.samsung.com を開いてメールアドレスを追加し、確認を済ませてから、もう一度お試しください。",
+  "lblOpenSamsungAccount": "Samsung アカウントを開く"
 }

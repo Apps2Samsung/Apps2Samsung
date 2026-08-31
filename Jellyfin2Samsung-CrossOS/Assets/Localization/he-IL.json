@@ -410,5 +410,8 @@
   "statusSignedInTo": "מחוברים ל-{0} - הכניסה האוטומטית תיצרב לחבילה.",
   "statusExportBackupFailed": "לא ניתן לייצא את הגיבוי: {0}",
   "statusImportedMobile": "יובאו ההגדרות ו-{0} קובצי אישור. האישורים כבר שוחזרו. הפעילו מחדש את האפליקציה כדי להחיל במלואן את ההגדרות שיובאו.",
-  "statusImportBackupFailed": "לא ניתן לייבא את הגיבוי: {0}"
+  "statusImportBackupFailed": "לא ניתן לייבא את הגיבוי: {0}",
+  "lblSamsungAccountNoEmailTitle": "לחשבון Samsung אין כתובת אימייל",
+  "statusSamsungAccountNoEmail": "לחשבון ה-Samsung שלך אין כתובת אימייל, ולא ניתן ליצור את אישור החתימה בלעדיה. פתחו את account.samsung.com, הוסיפו כתובת אימייל ואמתו אותה, ונסו שוב.",
+  "lblOpenSamsungAccount": "פתיחת חשבון Samsung"
 }

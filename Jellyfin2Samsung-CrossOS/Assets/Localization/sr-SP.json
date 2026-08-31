@@ -410,5 +410,8 @@
   "statusSignedInTo": "Пријављени сте на {0} - аутоматска пријава ће бити уграђена у пакет.",
   "statusExportBackupFailed": "Резервна копија није извезена: {0}",
   "statusImportedMobile": "Увезена су подешавања и {0} датотека сертификата. Сертификати су већ враћени. Рестартујте апликацију да се увезена подешавања потпуно примене.",
-  "statusImportBackupFailed": "Резервна копија није увезена: {0}"
+  "statusImportBackupFailed": "Резервна копија није увезена: {0}",
+  "lblSamsungAccountNoEmailTitle": "Samsung налог нема имејл адресу",
+  "statusSamsungAccountNoEmail": "Ваш Samsung налог нема имејл адресу, а сертификат за потписивање не може да се направи без ње. Отворите account.samsung.com, додајте и потврдите имејл адресу, па покушајте поново.",
+  "lblOpenSamsungAccount": "Отвори Samsung налог"
 }

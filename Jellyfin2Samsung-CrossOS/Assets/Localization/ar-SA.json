@@ -410,5 +410,8 @@
   "statusSignedInTo": "تسجيل الدخول إلى {0} - سيتم تخزين تسجيل الدخول التلقائي في الحزمة.",
   "statusExportBackupFailed": "تعذر تصدير النسخة الاحتياطية: {0}",
   "statusImportedMobile": "تم إستيراد الإعدادات + ملف (ملفات) الشهادة {0} . تم إستعادة الشهادات بالفعل. أعد تشغيل التطبيق لتطبيق الإعدادات المستوردة بالكامل.",
-  "statusImportBackupFailed": "تعذر استيراد النسخة الاحتياطية: {0}"
+  "statusImportBackupFailed": "تعذر استيراد النسخة الاحتياطية: {0}",
+  "lblSamsungAccountNoEmailTitle": "حساب Samsung لا يحتوي على عنوان بريد إلكتروني",
+  "statusSamsungAccountNoEmail": "لا يحتوي حساب Samsung الخاص بك على عنوان بريد إلكتروني، ولا يمكن إنشاء شهادة التوقيع بدونه. افتح account.samsung.com، وأضف عنوان بريد إلكتروني وتحقق منه، ثم أعد المحاولة.",
+  "lblOpenSamsungAccount": "فتح حساب Samsung"
 }

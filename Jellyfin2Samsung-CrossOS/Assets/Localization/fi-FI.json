@@ -410,5 +410,8 @@
   "statusSignedInTo": "Kirjautuneena sisään kohteeseen {0} - automaattikirjautuminen paistetaan pakettiin.",
   "statusExportBackupFailed": "Varmuuskopiota ei voitu viedä: {0}",
   "statusImportedMobile": "Tuodut asetukset + {0} sertifikaattitiedosto. Varmenteet on jo palautettu. Käynnistä sovellus uudelleen käyttääksesi tuotuja asetuksia kokonaan.",
-  "statusImportBackupFailed": "Ei voitu tuoda varmuuskopiota: {0}"
+  "statusImportBackupFailed": "Ei voitu tuoda varmuuskopiota: {0}",
+  "lblSamsungAccountNoEmailTitle": "Samsung-tilillä ei ole sähköpostiosoitetta",
+  "statusSamsungAccountNoEmail": "Samsung-tililläsi ei ole sähköpostiosoitetta, eikä allekirjoitusvarmennetta voi luoda ilman sitä. Avaa account.samsung.com, lisää ja vahvista sähköpostiosoite ja yritä uudelleen.",
+  "lblOpenSamsungAccount": "Avaa Samsung-tili"
 }

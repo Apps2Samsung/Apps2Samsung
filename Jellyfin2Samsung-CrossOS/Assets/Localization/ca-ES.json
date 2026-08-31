@@ -410,5 +410,8 @@
   "statusSignedInTo": "Sessió iniciada a {0} - l'inici de sessió automàtic s'incorporarà al paquet.",
   "statusExportBackupFailed": "No s'ha pogut exportar la còpia de seguretat: {0}",
   "statusImportedMobile": "S'han importat la configuració i {0} fitxers de certificat. Els certificats ja s'han restaurat. Reinicieu l'aplicació per aplicar del tot la configuració importada.",
-  "statusImportBackupFailed": "No s'ha pogut importar la còpia de seguretat: {0}"
+  "statusImportBackupFailed": "No s'ha pogut importar la còpia de seguretat: {0}",
+  "lblSamsungAccountNoEmailTitle": "El compte de Samsung no té cap adreça electrònica",
+  "statusSamsungAccountNoEmail": "El vostre compte de Samsung no té cap adreça electrònica i el certificat de signatura no es pot crear sense una. Obriu account.samsung.com, afegiu-hi una adreça electrònica i verifiqueu-la, i torneu-ho a provar.",
+  "lblOpenSamsungAccount": "Obre el compte de Samsung"
 }

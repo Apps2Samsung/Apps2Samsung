@@ -410,5 +410,8 @@
   "statusSignedInTo": "Aangemeld by {0} - outo-aanmelding word in die pakket ingebak.",
   "statusExportBackupFailed": "Kon nie die rugsteun uitvoer nie: {0}",
   "statusImportedMobile": "Instellings en {0} sertifikaatlêer(s) ingevoer. Sertifikate is reeds herstel. Herbegin die program om die ingevoerde instellings ten volle toe te pas.",
-  "statusImportBackupFailed": "Kon nie die rugsteun invoer nie: {0}"
+  "statusImportBackupFailed": "Kon nie die rugsteun invoer nie: {0}",
+  "lblSamsungAccountNoEmailTitle": "Samsung-rekening het geen e-posadres nie",
+  "statusSamsungAccountNoEmail": "Jou Samsung-rekening het nie 'n e-posadres nie, en die ondertekeningsertifikaat kan nie sonder een geskep word nie. Gaan na account.samsung.com, voeg 'n e-posadres by en verifieer dit, en probeer weer.",
+  "lblOpenSamsungAccount": "Open Samsung-rekening"
 }

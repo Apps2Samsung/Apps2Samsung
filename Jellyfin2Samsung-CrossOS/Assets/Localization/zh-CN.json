@@ -410,5 +410,8 @@
   "statusSignedInTo": "登录到 {0} - 自动登录将被保存在包中。",
   "statusExportBackupFailed": "无法导出备份: {0}",
   "statusImportedMobile": "导入的设置 + {0} 证书文件。证书已经恢复。重启应用以完全应用导入的设置。",
-  "statusImportBackupFailed": "无法导入备份: {0}"
+  "statusImportBackupFailed": "无法导入备份: {0}",
+  "lblSamsungAccountNoEmailTitle": "三星账户没有电子邮件地址",
+  "statusSamsungAccountNoEmail": "您的三星账户没有电子邮件地址，没有它就无法创建签名证书。请打开 account.samsung.com，添加并验证一个电子邮件地址，然后重试。",
+  "lblOpenSamsungAccount": "打开三星账户"
 }

@@ -410,5 +410,8 @@
   "statusSignedInTo": "Logga in på {0} - automatisk inloggning kommer att bakas in i paketet.",
   "statusExportBackupFailed": "Kunde inte exportera säkerhetskopian: {0}",
   "statusImportedMobile": "Importerade inställningar + {0} certifikatfil(er). Certifikat är redan återställda. Starta om appen för att fullt ut tillämpa de importerade inställningarna.",
-  "statusImportBackupFailed": "Kunde inte importera säkerhetskopian: {0}"
+  "statusImportBackupFailed": "Kunde inte importera säkerhetskopian: {0}",
+  "lblSamsungAccountNoEmailTitle": "Samsung-kontot har ingen e-postadress",
+  "statusSamsungAccountNoEmail": "Ditt Samsung-konto har ingen e-postadress, och signeringscertifikatet kan inte skapas utan en. Öppna account.samsung.com, lägg till och verifiera en e-postadress och försök igen.",
+  "lblOpenSamsungAccount": "Öppna Samsung-konto"
 }

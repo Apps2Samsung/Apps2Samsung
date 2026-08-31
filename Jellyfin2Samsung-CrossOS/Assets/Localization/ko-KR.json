@@ -410,5 +410,8 @@
   "statusSignedInTo": "{0}에 로그인됨 - 자동 로그인이 패키지에 포함됩니다.",
   "statusExportBackupFailed": "백업을 내보내지 못했습니다: {0}",
   "statusImportedMobile": "설정과 인증서 파일 {0}개를 가져왔습니다. 인증서는 이미 복원되었습니다. 가져온 설정을 완전히 적용하려면 앱을 다시 시작하세요.",
-  "statusImportBackupFailed": "백업을 가져오지 못했습니다: {0}"
+  "statusImportBackupFailed": "백업을 가져오지 못했습니다: {0}",
+  "lblSamsungAccountNoEmailTitle": "삼성 계정에 이메일 주소가 없습니다",
+  "statusSamsungAccountNoEmail": "삼성 계정에 이메일 주소가 등록되어 있지 않아 서명 인증서를 만들 수 없습니다. account.samsung.com에서 이메일 주소를 추가하고 인증한 후 다시 시도하세요.",
+  "lblOpenSamsungAccount": "삼성 계정 열기"
 }

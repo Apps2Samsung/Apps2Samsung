@@ -410,5 +410,8 @@
   "statusSignedInTo": "Accesso a {0} - l'accesso automatico sarà cotto nel pacchetto.",
   "statusExportBackupFailed": "Impossibile esportare il backup: {0}",
   "statusImportedMobile": "Impostazioni importate + file di certificato {0} . I certificati sono già stati ripristinati. Riavviare l'applicazione per applicare completamente le impostazioni importate.",
-  "statusImportBackupFailed": "Impossibile importare il backup: {0}"
+  "statusImportBackupFailed": "Impossibile importare il backup: {0}",
+  "lblSamsungAccountNoEmailTitle": "L'account Samsung non ha un indirizzo e-mail",
+  "statusSamsungAccountNoEmail": "Il tuo account Samsung non ha un indirizzo e-mail e il certificato di firma non può essere creato senza. Apri account.samsung.com, aggiungi e verifica un indirizzo e-mail, quindi riprova.",
+  "lblOpenSamsungAccount": "Apri account Samsung"
 }

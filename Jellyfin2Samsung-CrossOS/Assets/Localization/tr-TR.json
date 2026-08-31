@@ -410,5 +410,8 @@
   "statusSignedInTo": "{0} sunucusunda oturum açıldı - otomatik oturum açma pakete gömülecek.",
   "statusExportBackupFailed": "Yedek dışa aktarılamadı: {0}",
   "statusImportedMobile": "Ayarlar + {0} sertifika dosyası içe aktarıldı. Sertifikalar geri yüklendi. İçe aktarılan ayarların tamamen uygulanması için uygulamayı yeniden başlatın.",
-  "statusImportBackupFailed": "Yedek içe aktarılamadı: {0}"
+  "statusImportBackupFailed": "Yedek içe aktarılamadı: {0}",
+  "lblSamsungAccountNoEmailTitle": "Samsung hesabında e-posta adresi yok",
+  "statusSamsungAccountNoEmail": "Samsung hesabınızda bir e-posta adresi yok ve imzalama sertifikası bu olmadan oluşturulamaz. account.samsung.com adresini açın, bir e-posta adresi ekleyip doğrulayın ve tekrar deneyin.",
+  "lblOpenSamsungAccount": "Samsung hesabını aç"
 }
