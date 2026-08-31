@@ -13,7 +13,8 @@ on:
     paths:
       - 'Jellyfin2Samsung-CrossOS/**/*.cs'
       - 'Jellyfin2Samsung-CrossOS/**/*.axaml'
-      - 'Jellyfin2Samsung-CrossOS/Assets/Localization/en.json'
+      # Every language file, not just en.json: check D compares the translations against it.
+      - 'Jellyfin2Samsung-CrossOS/Assets/Localization/*.json'
 
 jobs:
   check-localization:
