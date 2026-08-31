@@ -410,5 +410,8 @@
   "statusSignedInTo": "Iniciado sesión en {0} - el inicio de sesión automático será pegado en el paquete.",
   "statusExportBackupFailed": "No se pudo exportar la copia de seguridad: {0}",
   "statusImportedMobile": "Ajustes importados + archivos de certificado {0} . Los certificados ya se han restaurado. Reinicie la aplicación para aplicar completamente la configuración importada.",
-  "statusImportBackupFailed": "No se pudo importar la copia de seguridad: {0}"
+  "statusImportBackupFailed": "No se pudo importar la copia de seguridad: {0}",
+  "lblSamsungAccountNoEmailTitle": "La cuenta de Samsung no tiene dirección de correo electrónico",
+  "statusSamsungAccountNoEmail": "Tu cuenta de Samsung no tiene una dirección de correo electrónico y el certificado de firma no se puede crear sin ella. Abre account.samsung.com, añade y verifica una dirección de correo electrónico e inténtalo de nuevo.",
+  "lblOpenSamsungAccount": "Abrir cuenta de Samsung"
 }

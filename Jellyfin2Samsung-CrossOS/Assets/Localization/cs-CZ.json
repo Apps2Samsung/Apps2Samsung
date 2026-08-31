@@ -410,5 +410,8 @@
   "statusSignedInTo": "Přihlášen do {0} - automatické přihlášení bude pečetěno do balíčku.",
   "statusExportBackupFailed": "Nelze exportovat zálohu: {0}",
   "statusImportedMobile": "Importovaná nastavení + soubor {0} certifikátů. Certifikáty jsou již obnoveny. Restartujte aplikaci pro plné použití importovaného nastavení.",
-  "statusImportBackupFailed": "Nelze importovat zálohu: {0}"
+  "statusImportBackupFailed": "Nelze importovat zálohu: {0}",
+  "lblSamsungAccountNoEmailTitle": "Účet Samsung nemá e-mailovou adresu",
+  "statusSamsungAccountNoEmail": "Váš účet Samsung nemá e-mailovou adresu a podpisový certifikát bez ní nelze vytvořit. Otevřete account.samsung.com, přidejte a ověřte e-mailovou adresu a zkuste to znovu.",
+  "lblOpenSamsungAccount": "Otevřít účet Samsung"
 }

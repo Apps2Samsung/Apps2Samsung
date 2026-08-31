@@ -410,5 +410,8 @@
   "statusSignedInTo": "Logget på {0} - auto-innlogging vil bli bakt i pakken.",
   "statusExportBackupFailed": "Kunne ikke eksportere sikkerhetskopiering: {0}",
   "statusImportedMobile": "Importerte innstillinger + {0} sertifikatfil(er). Sertifikater er allerede gjenopprettet. Start appen på nytt for å bruke de importerte innstillingene fullt ut.",
-  "statusImportBackupFailed": "Kunne ikke importere sikkerhetskopiering: {0}"
+  "statusImportBackupFailed": "Kunne ikke importere sikkerhetskopiering: {0}",
+  "lblSamsungAccountNoEmailTitle": "Samsung-kontoen har ingen e-postadresse",
+  "statusSamsungAccountNoEmail": "Samsung-kontoen din har ingen e-postadresse, og signeringssertifikatet kan ikke opprettes uten. Åpne account.samsung.com, legg til og bekreft en e-postadresse, og prøv igjen.",
+  "lblOpenSamsungAccount": "Åpne Samsung-konto"
 }

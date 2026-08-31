@@ -410,5 +410,8 @@
   "statusSignedInTo": "Đã đăng nhập vào {0} - thông tin tự động đăng nhập sẽ được nhúng vào gói.",
   "statusExportBackupFailed": "Không xuất được bản sao lưu: {0}",
   "statusImportedMobile": "Đã nhập cài đặt + {0} tệp chứng chỉ. Chứng chỉ đã được khôi phục. Khởi động lại ứng dụng để áp dụng đầy đủ các cài đặt đã nhập.",
-  "statusImportBackupFailed": "Không nhập được bản sao lưu: {0}"
+  "statusImportBackupFailed": "Không nhập được bản sao lưu: {0}",
+  "lblSamsungAccountNoEmailTitle": "Tài khoản Samsung không có địa chỉ email",
+  "statusSamsungAccountNoEmail": "Tài khoản Samsung của bạn không có địa chỉ email, và không thể tạo chứng chỉ ký nếu thiếu địa chỉ này. Hãy mở account.samsung.com, thêm và xác minh một địa chỉ email, rồi thử lại.",
+  "lblOpenSamsungAccount": "Mở tài khoản Samsung"
 }

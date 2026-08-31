@@ -410,5 +410,8 @@
   "statusSignedInTo": "Zalogowano do {0} - automatyczne logowanie zostanie wypieknięte w pakiecie.",
   "statusExportBackupFailed": "Nie można wyeksportować kopii zapasowej: {0}",
   "statusImportedMobile": "Zaimportowane ustawienia + pliki certyfikatów {0} . Certyfikaty są już przywrócone. Uruchom aplikację ponownie, aby w pełni zastosować zaimportowane ustawienia.",
-  "statusImportBackupFailed": "Nie można zaimportować kopii zapasowej: {0}"
+  "statusImportBackupFailed": "Nie można zaimportować kopii zapasowej: {0}",
+  "lblSamsungAccountNoEmailTitle": "Konto Samsung nie ma adresu e-mail",
+  "statusSamsungAccountNoEmail": "Twoje konto Samsung nie ma adresu e-mail, a bez niego nie można utworzyć certyfikatu podpisu. Otwórz account.samsung.com, dodaj i zweryfikuj adres e-mail, a następnie spróbuj ponownie.",
+  "lblOpenSamsungAccount": "Otwórz konto Samsung"
 }

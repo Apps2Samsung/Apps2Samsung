@@ -410,5 +410,8 @@
   "statusSignedInTo": "Bejelentkezve ide: {0} - az automatikus bejelentkezés bekerül a csomagba.",
   "statusExportBackupFailed": "Nem sikerült exportálni a mentést: {0}",
   "statusImportedMobile": "Beállítások és {0} tanúsítványfájl importálva. A tanúsítványok már visszaálltak. Az importált beállítások teljes érvényesítéséhez indítsa újra az alkalmazást.",
-  "statusImportBackupFailed": "Nem sikerült importálni a mentést: {0}"
+  "statusImportBackupFailed": "Nem sikerült importálni a mentést: {0}",
+  "lblSamsungAccountNoEmailTitle": "A Samsung-fiókhoz nem tartozik e-mail-cím",
+  "statusSamsungAccountNoEmail": "A Samsung-fiókjához nem tartozik e-mail-cím, az aláíró tanúsítvány pedig e nélkül nem hozható létre. Nyissa meg az account.samsung.com oldalt, adjon meg és erősítsen meg egy e-mail-címet, majd próbálja újra.",
+  "lblOpenSamsungAccount": "Samsung-fiók megnyitása"
 }

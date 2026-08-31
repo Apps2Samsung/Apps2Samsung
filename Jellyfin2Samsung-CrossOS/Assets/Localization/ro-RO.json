@@ -410,5 +410,8 @@
   "statusSignedInTo": "Conectat la {0} - autentificarea automată va fi coptă în pachet.",
   "statusExportBackupFailed": "Nu s-a putut exporta copia de rezervă: {0}",
   "statusImportedMobile": "Setările importate + fișierul (fișierele) de certificat {0} . Certificatele sunt deja restaurate. Reporniți aplicația pentru a aplica complet setările importate.",
-  "statusImportBackupFailed": "Nu s-a putut importa copia de rezervă: {0}"
+  "statusImportBackupFailed": "Nu s-a putut importa copia de rezervă: {0}",
+  "lblSamsungAccountNoEmailTitle": "Contul Samsung nu are o adresă de e-mail",
+  "statusSamsungAccountNoEmail": "Contul dvs. Samsung nu are o adresă de e-mail, iar certificatul de semnare nu poate fi creat fără ea. Deschideți account.samsung.com, adăugați și verificați o adresă de e-mail, apoi încercați din nou.",
+  "lblOpenSamsungAccount": "Deschide contul Samsung"
 }

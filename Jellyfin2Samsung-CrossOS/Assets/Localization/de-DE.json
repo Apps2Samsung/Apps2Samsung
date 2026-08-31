@@ -410,5 +410,8 @@
   "statusSignedInTo": "Bei {0} angemeldet - Auto-Login wird in das Paket gebacken.",
   "statusExportBackupFailed": "Konnte die Sicherung nicht exportieren: {0}",
   "statusImportedMobile": "Importierte Einstellungen + {0} Zertifikat(en). Zertifikate sind bereits wiederhergestellt. Starten Sie die App neu, um die importierten Einstellungen vollständig zu übernehmen.",
-  "statusImportBackupFailed": "Sicherung konnte nicht importiert werden: {0}"
+  "statusImportBackupFailed": "Sicherung konnte nicht importiert werden: {0}",
+  "lblSamsungAccountNoEmailTitle": "Samsung-Konto hat keine E-Mail-Adresse",
+  "statusSamsungAccountNoEmail": "Ihr Samsung-Konto hat keine E-Mail-Adresse, und ohne sie kann das Signaturzertifikat nicht erstellt werden. Öffnen Sie account.samsung.com, fügen Sie eine E-Mail-Adresse hinzu und bestätigen Sie sie, und versuchen Sie es erneut.",
+  "lblOpenSamsungAccount": "Samsung-Konto öffnen"
 }

@@ -410,5 +410,8 @@
   "statusSignedInTo": "已登入 {0} - 自動登入資訊會寫入套件。",
   "statusExportBackupFailed": "無法匯出備份：{0}",
   "statusImportedMobile": "已匯入設定與 {0} 個憑證檔案。憑證已還原。請重新啟動應用程式，讓匯入的設定完全生效。",
-  "statusImportBackupFailed": "無法匯入備份：{0}"
+  "statusImportBackupFailed": "無法匯入備份：{0}",
+  "lblSamsungAccountNoEmailTitle": "Samsung 帳戶沒有電子郵件地址",
+  "statusSamsungAccountNoEmail": "您的 Samsung 帳戶沒有電子郵件地址，沒有它就無法建立簽署憑證。請開啟 account.samsung.com，新增並驗證電子郵件地址，然後再試一次。",
+  "lblOpenSamsungAccount": "開啟 Samsung 帳戶"
 }

@@ -410,5 +410,8 @@
   "statusSignedInTo": "Aangemeld bij {0} - de automatische login wordt in het pakket gebakken.",
   "statusExportBackupFailed": "Kan de back-up niet exporteren: {0}",
   "statusImportedMobile": "Geïmporteerde instellingen + {0} certificaatbestand(en). Certificaten zijn al hersteld. Start de app opnieuw om de geïmporteerde instellingen volledig toe te passen.",
-  "statusImportBackupFailed": "Back-up kon niet worden geïmporteerd: {0}"
+  "statusImportBackupFailed": "Back-up kon niet worden geïmporteerd: {0}",
+  "lblSamsungAccountNoEmailTitle": "Samsung-account heeft geen e-mailadres",
+  "statusSamsungAccountNoEmail": "Je Samsung-account heeft geen e-mailadres, en zonder e-mailadres kan het ondertekeningscertificaat niet worden aangemaakt. Open account.samsung.com, voeg een e-mailadres toe en bevestig het, en probeer het opnieuw.",
+  "lblOpenSamsungAccount": "Samsung-account openen"
 }
