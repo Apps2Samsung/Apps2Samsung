@@ -55,7 +55,7 @@ jobs:
 
       - name: Upload sources and open a translations PR
         if: steps.creds.outputs.configured == 'true'
-        uses: crowdin/github-action@v2
+        uses: crowdin/github-action@v3
         with:
           # The strings live under Crowdin's own "beta" branch (its file is /beta/...en.json), while
           # crowdin.yml addresses the repo root. Without naming the branch the CLI compares the two
