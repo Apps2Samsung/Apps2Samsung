@@ -1,0 +1,58 @@
+name: Crowdin fix one string
+
+# Pushes ONE key's translations from the repo into Crowdin, in every language, replacing what
+# Crowdin holds - approval and all.
+#
+# crowdin-sync.yml only ever uploads sources, so a string corrected by hand in the repo never
+# reaches Crowdin and the next download hands the old revision straight back. Uploading the
+# translations doesn't settle it either: Crowdin exports an approved translation over a newer
+# unapproved one, so the import lands underneath the very text it was meant to replace. That is
+# PR #610 - alreadyInstalled reverted in 27 languages, two days after #603 fixed it.
+#
+# The blunt fix (upload_translations with auto_approve_imported) would approve every string in
+# all 29 files, including the machine translations that are explicitly not native-speaker
+# reviewed. This changes one key and leaves every other string's review state alone.
+#
+# Run it from the Actions tab, leave `apply` off for the first pass to see what it would do, then
+# run it again with `apply` on. Afterwards run Crowdin sync so the corrected text comes back down.
+
+on:
+  workflow_dispatch:
+    inputs:
+      key:
+        description: 'The en.json key to correct in Crowdin (e.g. alreadyInstalled)'
+        type: string
+        required: true
+      apply:
+        description: 'Write the changes. Off = report what would change and touch nothing.'
+        type: boolean
+        default: false
+
+concurrency:
+  # Shares the sync's group: a download running against a half-corrected string would commit it.
+  group: crowdin-sync
+  cancel-in-progress: false
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+      - name: Correct the string in Crowdin
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+          # Through the environment rather than interpolated into the script: the key is free text
+          # from whoever dispatches the run.
+          KEY: ${{ inputs.key }}
+          APPLY: ${{ inputs.apply }}
+        run: |
+          if [ -z "$CROWDIN_PROJECT_ID" ] || [ -z "$CROWDIN_PERSONAL_TOKEN" ]; then
+            echo "::error::CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN are not set."
+            exit 1
+          fi
+          [ "$APPLY" = "true" ] && apply=--apply || apply=
+          python3 .github/scripts/crowdin_fix_string.py "$KEY" $apply
