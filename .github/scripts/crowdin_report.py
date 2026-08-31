@@ -13,14 +13,20 @@ languages, since long before the CLI 5 upgrade):
     from the export archive entirely
   - the path crowdin.yml resolves for it is the file the app actually reads
 
-Nothing here writes. CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN in the environment.
+It also builds the translations export and lists what is actually inside the archive, which is
+the only way to see the difference between "Crowdin never produced this language" and "the CLI
+mapped it onto a path something else already took". A build is a transient artifact; no source
+or translation data is modified. CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN in the environment.
 """
+import io
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import zipfile
 from pathlib import Path
 
 API = "https://api.crowdin.com/api/v2"
@@ -28,15 +34,18 @@ LOCALIZATION = Path("Jellyfin2Samsung-CrossOS/Assets/Localization")
 SOURCE_FILE = "en.json"
 BRANCH = "beta"
 FULL_CODE_FILES = {"pt-PT", "zh-CN"}          # kept in step with crowdin.yml's languages_mapping
+BRANCH_ID = None
 
 TOKEN = os.environ.get("CROWDIN_PERSONAL_TOKEN", "")
 PROJECT = os.environ.get("CROWDIN_PROJECT_ID", "")
 
 
-def call(path, **params):
+def call(path, method="GET", body=None, **params):
     url = f"{API}{path}" + ("?" + urllib.parse.urlencode(params) if params else "")
     request = urllib.request.Request(
-        url, headers={"Authorization": f"Bearer {TOKEN}"})
+        url, method=method,
+        data=json.dumps(body).encode() if body is not None else None,
+        headers={"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(request) as response:
             return json.loads(response.read())
@@ -54,6 +63,24 @@ def listing(path, **params):
         offset += 500
 
 
+def archive_entries():
+    """Every path inside the translations export, as Crowdin builds it."""
+    build = call(f"/projects/{PROJECT}/translations/builds", method="POST",
+                 body={"branchId": BRANCH_ID, "skipUntranslatedStrings": True})["data"]
+    for _ in range(60):
+        if build["status"] in ("finished", "failed", "canceled"):
+            break
+        time.sleep(2)
+        build = call(f"/projects/{PROJECT}/translations/builds/{build['id']}")["data"]
+    if build["status"] != "finished":
+        raise SystemExit(f"Build {build['id']} ended as {build['status']}.")
+    url = call(f"/projects/{PROJECT}/translations/builds/{build['id']}/download")["data"]["url"]
+    with urllib.request.urlopen(url) as response:
+        blob = response.read()
+    with zipfile.ZipFile(io.BytesIO(blob)) as archive:
+        return sorted(i.filename for i in archive.infolist() if not i.is_dir())
+
+
 def main():
     if not TOKEN or not PROJECT:
         raise SystemExit("CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN are not set.")
@@ -67,6 +94,8 @@ def main():
     if not files:
         raise SystemExit(f"No '{SOURCE_FILE}' under '{BRANCH}'.")
     file_id = files[0]["id"]
+    global BRANCH_ID
+    BRANCH_ID = branches[0]["id"]
 
     progress = {p["languageId"]: p
                 for p in listing(f"/projects/{PROJECT}/files/{file_id}/languages/progress")}
@@ -95,6 +124,12 @@ def main():
     print(f"\n{len(shipped)} language files in the repo; {len(languages)} languages in Crowdin.")
     if silent:
         print(f"Never exported (nothing translated): {', '.join(silent)}")
+
+    entries = archive_entries()
+    print(f"\nTranslations export archive - {len(entries)} entr(y/ies) for {len(languages)} "
+          f"languages:")
+    for entry in entries:
+        print(f"  {entry}")
     return 0
 
 
