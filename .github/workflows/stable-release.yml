@@ -377,7 +377,25 @@ jobs:
     if: ${{ always() && needs.stable-release.result == 'success' }}
 
     steps:
+      # The explicit ref matters: without it a dispatched release built master's APK
+      # while every other job built the requested ref.
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
+
+      # ---------------- ANDROID versionCode ----------------
+      # One past the highest versionCode published on either channel, so both
+      # channels stay strictly increasing and beta <-> stable can always update in
+      # place. See the header of .github/scripts/android-version-code.sh for why the
+      # old github.run_number could (and did) go backwards.
+      #
+      # Runs before the build so a bad code fails in seconds instead of after a
+      # ten-minute publish.
+      - name: Compute Android versionCode
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: .github/scripts/android-version-code.sh compute stable
 
       - uses: actions/setup-dotnet@v6
         with:
@@ -391,32 +409,28 @@ jobs:
       - name: Install MAUI Android workload
         run: dotnet workload install maui-android
 
-      # Stable APKs should use a persistent signing key so users can update in place. Set the
-      # ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS secrets; without
-      # them we fall back to an ephemeral key (installable, but breaks in-place updates).
+      # The persistent signing key is required. The old fallback minted a throwaway
+      # key, which produces an APK that installs but can never update in place —
+      # Android rejects a signing-key change — so it is the same "users are stuck"
+      # failure as a versionCode downgrade, just with a different dialog.
       - name: Prepare Android signing key
         run: |
-          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
-            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$PWD/a2s.keystore"
-            echo "KS_PASS=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
-            echo "KS_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
-            echo "Using signing key from repo secrets."
-          else
-            keytool -genkeypair -v -keystore "$PWD/a2s.keystore" \
-              -alias a2s -keyalg RSA -keysize 2048 -validity 10000 \
-              -storepass apps2samsung -keypass apps2samsung \
-              -dname "CN=Apps2Samsung, O=MadeByPatrick, C=NL"
-            echo "KS_PASS=apps2samsung" >> "$GITHUB_ENV"
-            echo "KS_ALIAS=a2s" >> "$GITHUB_ENV"
-            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret set — signed the APK with an ephemeral key (in-place updates will fail)."
+          set -euo pipefail
+          if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not set. An APK signed with a throwaway key cannot update existing installs — set ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS."
+            exit 1
           fi
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$PWD/a2s.keystore"
+          echo "KS_PASS=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "KS_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
+          echo "Using signing key from repo secrets."
 
       - name: Build APK
         run: |
           dotnet publish Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj \
             -c Release -f net10.0-android \
             -p:ApplicationDisplayVersion=${{ needs.stable-release.outputs.VERSION }} \
-            -p:ApplicationVersion=${{ github.run_number }} \
+            -p:ApplicationVersion="$ANDROID_VERSION_CODE" \
             -p:AndroidKeyStore=true \
             -p:AndroidSigningKeyStore="$PWD/a2s.keystore" \
             -p:AndroidSigningKeyAlias="$KS_ALIAS" \
@@ -431,6 +445,22 @@ jobs:
             echo "❌ No APK produced"; exit 1
           fi
           cp "$APK" "dist/${PRODUCT_NAME}-${{ needs.stable-release.outputs.VERSION_TAG }}-android.apk"
+
+      # The -p: property above is only a request: prove the APK really carries the
+      # code we computed, so an MSBuild or .csproj change can never quietly ship a
+      # different one. Also logs the signing certificate.
+      - name: Verify APK versionCode and signer
+        shell: bash
+        env:
+          # SHA-256 of the release signing certificate (CN=Apps2Samsung, O=MadeByPatrick),
+          # taken from the published APKs. Android refuses an update signed by a different
+          # key just as hard as a versionCode downgrade, so this must never change — if
+          # this step fails, the ANDROID_KEYSTORE_* secrets were swapped, and the fix is to
+          # restore the original keystore, not to update this value.
+          EXPECTED_SIGNER_SHA256: bd4dee21ebeee1b0b690c612318808d27f35c46fa53ba31d256379a7fed7e107
+        run: |
+          .github/scripts/android-version-code.sh verify \
+            "dist/${PRODUCT_NAME}-${{ needs.stable-release.outputs.VERSION_TAG }}-android.apk"
 
       - uses: softprops/action-gh-release@v3
         with:
