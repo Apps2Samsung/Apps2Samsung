@@ -9,19 +9,20 @@
 #
 # and are stuck with what they have until they uninstall (losing their settings).
 #
-# Both channels derive it from the same repo-wide, monotonically growing number —
-# the commit count — plus a small per-channel offset:
+# So the code is simply one past the highest one already out there:
 #
-#     beta   = commits * 10 + 0
-#     stable = commits * 10 + 9
+#     versionCode = max(highest code published on either channel, LEGACY_FLOOR) + 1
 #
-# Why it cannot invert:
-#   * the commit count is a property of the REPO, so both workflows compute the
-#     same base for the same commit;
-#   * stable (+9) outranks the beta built from that same commit, so beta -> stable
-#     is always an upgrade;
-#   * a beta cut after that stable sits on at least one more commit, i.e. at least
-#     +10, so it outranks that stable too — stable -> beta is also an upgrade.
+# where the highest published code is read out of the APK assets of the newest beta
+# and the newest stable release. Whichever channel builds next takes the next
+# number, so beta -> stable and stable -> beta are both always upgrades, however
+# many builds one channel cuts between two of the other's.
+#
+# The number deliberately means nothing beyond "newer than anything published".
+# Deriving it from something in the repo instead — a commit count, say — reads
+# nicer but drifts: master carries one merge commit per release that beta never
+# sees, so the same tree counts differently on the two branches and the channels
+# pull apart again.
 #
 # What went wrong before: both workflows used ${{ github.run_number }}, which
 # counts runs PER WORKFLOW FILE, not per repo. Beta reached 298 while stable was
@@ -30,8 +31,8 @@
 # Usage:
 #   android-version-code.sh compute beta|stable
 #       Prints the versionCode and exports it as ANDROID_VERSION_CODE (through
-#       $GITHUB_ENV / $GITHUB_OUTPUT when running in Actions). Refuses to hand back
-#       a code that would downgrade anything already published.
+#       $GITHUB_ENV / $GITHUB_OUTPUT when running in Actions). Needs `gh` and an
+#       Android SDK with build-tools, since it reads the published APKs.
 #
 #   android-version-code.sh verify <apk> [expected-code]
 #       Asserts the built APK really carries that code — an MSBuild or .csproj
@@ -43,25 +44,10 @@
 #
 set -euo pipefail
 
-# Distance between two consecutive commits' codes. Also the width of the "same
-# commit, other channel" window that compute is allowed to step over (see below).
-STRIDE=10
-
-# Offsets must be < STRIDE, and stable must be the highest, so that stable
-# outranks every beta built from the same commit.
-OFFSET_BETA=0
-OFFSET_STABLE=9
-
-# A shallow checkout reports 1 commit, which would produce versionCode 10 and
-# downgrade every install out there. Anything under this means the job lost its
-# `fetch-depth: 0` on actions/checkout.
-MIN_COMMITS=100
-
 # High-water mark of the retired github.run_number scheme (beta was at 298 when it
 # was replaced). Any code at or below this is a downgrade for somebody, so it is a
 # hard floor. It also covers every release published before this script existed,
-# which is why the published-release check below only has to look at the newest
-# release per channel.
+# which is why reading the newest release per channel is enough.
 LEGACY_FLOOR=1000
 
 # Android's own ceiling for versionCode.
@@ -105,6 +91,7 @@ badging_field() {
 # whole release history. Everything older is covered by LEGACY_FLOOR.
 HIGHEST=0
 HIGHEST_TAG="(none)"
+READ_ANY=0
 compute_highest_published_code() {
   local gh_args=() newest tag apk code aapt2
 
@@ -143,62 +130,51 @@ compute_highest_published_code() {
           continue ;;
       esac
       log "  $tag -> versionCode $code"
+      READ_ANY=1
       if [ "$code" -gt "$HIGHEST" ]; then HIGHEST=$code; HIGHEST_TAG=$tag; fi
     done
   done
   rm -rf "$WORKDIR"; WORKDIR=""
+
+  # The next code is derived from these numbers and nothing else, so releases we
+  # cannot read are not a warning — falling back to the floor would republish a
+  # code from years ago and downgrade every install.
+  if [ "$READ_ANY" -eq 0 ]; then
+    die "could not read a versionCode from the APK of any published release ($(printf '%s ' $newest)) — refusing to guess the next one"
+  fi
 }
 
 cmd_compute() {
-  local channel="${1:-}" offset commits code behind
+  local channel="${1:-}" code floor
 
   case "$channel" in
-    beta)   offset=$OFFSET_BETA ;;
-    stable) offset=$OFFSET_STABLE ;;
+    beta|stable) ;;
     *) die "usage: $0 compute beta|stable" ;;
   esac
-
-  commits=$(git rev-list --count HEAD)
-  if [ "$commits" -lt "$MIN_COMMITS" ]; then
-    die "commit count $commits looks like a shallow checkout — this job needs 'fetch-depth: 0' on actions/checkout"
-  fi
-
-  code=$(( commits * STRIDE + offset ))
-  log "channel=$channel commits=$commits offset=$offset -> candidate versionCode $code"
-
-  if [ "$code" -le "$LEGACY_FLOOR" ]; then
-    die "versionCode $code is at or below the retired run_number scheme's high-water mark ($LEGACY_FLOOR) — publishing it would downgrade existing installs"
-  fi
 
   log "versionCodes already published on GitHub Releases:"
   compute_highest_published_code
   log "highest published:  $HIGHEST ($HIGHEST_TAG)"
 
-  if [ "$code" -le "$HIGHEST" ]; then
-    behind=$(( HIGHEST - code ))
-    if [ "$behind" -lt "$STRIDE" ]; then
-      # The one case the formula cannot rank on its own: building one channel from
-      # the very same commit the other channel was already published from —
-      # typically cutting a beta straight after a stable with no commit in
-      # between. Step over the published code instead of failing the release; the
-      # result is still strictly increasing, and the next commit's code is higher
-      # again either way.
-      code=$(( HIGHEST + 1 ))
-      warn "candidate versionCode was $behind behind the published $HIGHEST ($HIGHEST_TAG — same commit, other channel), so using $code instead. Land a commit before re-cutting this channel to keep codes aligned with the commit count."
-    else
-      die "versionCode $code is $behind behind the highest published code ($HIGHEST in $HIGHEST_TAG) — users on that build could not update, so refusing to publish. This normally means the release is building an older ref or a stale checkout; release from the tip of the branch instead."
-    fi
+  floor=$HIGHEST
+  if [ "$floor" -lt "$LEGACY_FLOOR" ]; then
+    # Only reachable until the first code from this scheme is published; after
+    # that the published codes are always the higher of the two.
+    floor=$LEGACY_FLOOR
+    log "nothing published above the legacy floor yet, so counting from $LEGACY_FLOOR"
   fi
+
+  code=$(( floor + 1 ))
 
   if [ "$code" -gt "$ANDROID_MAX_CODE" ]; then
     die "versionCode $code exceeds Android's maximum ($ANDROID_MAX_CODE)"
   fi
 
-  log "==> versionCode $code"
+  log "==> versionCode $code (channel=$channel)"
   if [ -n "${GITHUB_ENV:-}" ]; then    echo "ANDROID_VERSION_CODE=$code" >> "$GITHUB_ENV"; fi
   if [ -n "${GITHUB_OUTPUT:-}" ]; then echo "version-code=$code" >> "$GITHUB_OUTPUT"; fi
   if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
-    echo "Android \`versionCode\` for **$channel**: \`$code\` (commits=$commits, offset=$offset)" >> "$GITHUB_STEP_SUMMARY"
+    echo "Android \`versionCode\` for **$channel**: \`$code\` (one past $HIGHEST in $HIGHEST_TAG)" >> "$GITHUB_STEP_SUMMARY"
   fi
 }
 
