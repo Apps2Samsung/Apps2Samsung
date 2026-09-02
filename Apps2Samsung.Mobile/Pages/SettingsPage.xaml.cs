@@ -7,6 +7,7 @@ using Apps2Samsung.Backup;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Collections;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.ApplicationModel.DataTransfer;
@@ -32,6 +33,7 @@ public partial class SettingsPage : ContentPage
 
 		// Load current values without firing the change handlers.
 		_loaded = false;
+		LoadLanguages();
 		TokenEntry.Text = MobileSettings.GitHubToken;
 		DuidsEditor.Text = MobileSettings.ManualDuids;
 		RemoveOldSwitch.IsToggled = MobileSettings.DeletePreviousInstall;
@@ -66,7 +68,7 @@ public partial class SettingsPage : ContentPage
 		var logPath = Apps2Samsung.Diagnostics.FileLog.CurrentLogFile;
 		if (string.IsNullOrEmpty(logPath) || !File.Exists(logPath))
 		{
-			await DisplayAlert("Debug log", "No log file is available for this session yet.", "OK");
+			await DisplayAlert(L10n.Get("lblDebugLog"), L10n.Get("statusNoLogFile"), L10n.Get("btn_Close"));
 			return;
 		}
 
@@ -80,7 +82,7 @@ public partial class SettingsPage : ContentPage
 		}
 		catch (Exception ex)
 		{
-			await DisplayAlert("Debug log", $"Couldn't share the log: {ex.Message}", "OK");
+			await DisplayAlert(L10n.Get("lblDebugLog"), string.Format(L10n.Get("statusLogShareFailed"), ex.Message), L10n.Get("btn_Close"));
 		}
 	}
 
@@ -131,9 +133,9 @@ public partial class SettingsPage : ContentPage
 		catch (Exception ex)
 		{
 			await DisplayAlert(
-				"Export backup",
-				$"Couldn't export the backup: {ErrorText.Describe(ex, "backup/export")}",
-				"OK");
+				L10n.Get("lblExportBackup"),
+				string.Format(L10n.Get("statusExportBackupFailed"), ErrorText.Describe(ex, "backup/export")),
+				L10n.Get("lblOk"));
 		}
 	}
 
@@ -141,25 +143,13 @@ public partial class SettingsPage : ContentPage
 	{
 		try
 		{
-			// Accept .zip archives. FilePickerFileType is per-platform; on Android match by MIME + extension.
-			var zipTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-			{
-				[DevicePlatform.Android] = new[] { "application/zip", "application/octet-stream" },
-				[DevicePlatform.iOS] = new[] { "public.zip-archive" },
-				[DevicePlatform.MacCatalyst] = new[] { "public.zip-archive" },
-				[DevicePlatform.WinUI] = new[] { ".zip" },
-			});
-
-			var result = await FilePicker.Default.PickAsync(new PickOptions
-			{
-				PickerTitle = "Select an Apps2Samsung backup (.zip)",
-				FileTypes = zipTypes,
-			});
-			if (result is null)
+			// Some file managers hand a .zip to the picker as application/octet-stream.
+			var picked = await SafFilePicker.PickAsync("application/zip", "application/octet-stream");
+			if (picked is null)
 				return;
 
 			BackupImportResult import;
-			using (var stream = await result.OpenReadAsync())
+			using (var stream = File.OpenRead(picked.LocalPath))
 				import = BackupService.Import(stream, CertStorePath);
 
 			if (!string.IsNullOrEmpty(import.SettingsJson))
@@ -172,17 +162,17 @@ public partial class SettingsPage : ContentPage
 			OnAppearing();
 
 			await DisplayAlert(
-				"Import backup",
-				$"Imported settings + {import.CertificateFilesRestored} certificate file(s). Certificates are already restored. Restart the app to fully apply the imported settings.",
-				"OK");
+				L10n.Get("lblImportBackup"),
+				string.Format(L10n.Get("statusImportedMobile"), import.CertificateFilesRestored),
+				L10n.Get("lblOk"));
 		}
 		catch (Exception ex)
 		{
 			await DisplayAlert(
-				"Import backup",
-				$"Couldn't import the backup: {ErrorText.Describe(ex, "backup/import")}\n\n" +
-				"Settings \u2192 Diagnostics \u2192 Share debug log has the full details.",
-				"OK");
+				L10n.Get("lblImportBackup"),
+				string.Format(L10n.Get("statusImportBackupFailed"), ErrorText.Describe(ex, "backup/import"))
+					+ "\n\n" + L10n.Get("statusSeeDebugLog"),
+				L10n.Get("lblOk"));
 		}
 	}
 
@@ -402,4 +392,50 @@ public partial class SettingsPage : ContentPage
 
 		MobileSettings.TvAppChannelsJson = JsonSerializer.Serialize(channels);
 	}
+
+	// The picker lists the languages that actually have a translation file, shown by their own
+	// endonym where .NET knows one ("Nederlands", not "nl") so the list is readable to the person
+	// looking for their language.
+	private readonly List<string> _languageCodes = new();
+
+	private void LoadLanguages()
+	{
+		if (_languageCodes.Count > 0)
+			return;
+
+		_languageCodes.AddRange(L10n.AvailableLanguages);
+		LanguagePicker.ItemsSource = _languageCodes.Select(L10n.GetDisplayName).ToList();
+		LanguagePicker.SelectedIndex = _languageCodes.IndexOf(L10n.CurrentLanguage);
+	}
+
+	private async void OnLanguageChanged(object? sender, EventArgs e)
+	{
+		if (!_loaded || LanguagePicker.SelectedIndex < 0 || LanguagePicker.SelectedIndex >= _languageCodes.Count)
+			return;
+
+		var code = _languageCodes[LanguagePicker.SelectedIndex];
+		if (code == L10n.CurrentLanguage)
+			return;
+
+		L10n.SetLanguage(code);
+
+		// {l:Localize} resolves while a page is being built, so every page already on the stack - this
+		// one and the installer page under it - still holds the old language. Asking the user to
+		// restart didn't help: Android keeps the process alive when the app is closed and reopened, so
+		// the same page objects came back. Rebuild the stack instead, and land the user back on this
+		// page so they can see the switch took.
+
+		// Let the picker finish closing before the tree it lives in is swapped out from under it.
+		await Task.Yield();
+
+		var services = IPlatformApplication.Current!.Services;
+		var window = Application.Current?.Windows.FirstOrDefault();
+		if (window is null)
+			return;
+
+		var root = new NavigationPage(services.GetRequiredService<InstallerPage>());
+		window.Page = root;
+		await root.Navigation.PushAsync(new SettingsPage(), animated: false);
+	}
 }
+

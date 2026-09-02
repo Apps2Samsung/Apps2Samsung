@@ -6,7 +6,11 @@ name: PR build
 # on a normal dev machine — only surfaced *after* the merge, where it breaks the beta release.
 # Build both heads here instead, so a PR can't merge a head that doesn't compile.
 
-# Both jobs are required status checks on the Default ruleset, so there is deliberately no
+# The Linux packaging job builds the .deb/.rpm/AppImage the releases ship (#589). That packaging
+# used to live inline in the release workflows, where a mistake in it could only ever be found by
+# cutting a release; running it here means a PR proves it still produces the packages.
+
+# The two build jobs are required status checks on the Default ruleset, so there is deliberately no
 # `paths:` filter: a check that never runs is never reported, and a required check that is never
 # reported blocks the PR forever. A docs-only PR therefore pays ~3 minutes of Android build
 # rather than hanging.
@@ -24,9 +28,9 @@ jobs:
     name: Core + desktop
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
@@ -38,13 +42,13 @@ jobs:
     name: Mobile (Android)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
@@ -57,3 +61,79 @@ jobs:
       # code compiles. beta-prerelease.yml still does the real publish on merge.
       - name: Build
         run: dotnet build Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj -c Release -f net10.0-android
+
+  linux-packages:
+    name: Linux packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y librsvg2-bin dpkg-dev rpm
+          rsvg-convert -w 256 -h 256 jellyfin-tizen-logo.svg -o jellyfin.png
+          curl -fsSL -o /usr/local/bin/appimagetool \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          sudo chmod +x /usr/local/bin/appimagetool
+
+      # BOTH architectures, like the releases do. An earlier version of this job packaged x64 only,
+      # on the assumption that arm64 differed by "three metadata strings" — it doesn't: the aarch64
+      # rpm needs rpmbuild --target, and packaging x64 alone let that reach a release (#590).
+      - name: Publish and package (x64 + arm64)
+        run: |
+          for ARCH in x64 arm64; do
+            dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
+              -c Release -r linux-$ARCH -p:SelfContained=true -o publish/linux-$ARCH
+            # 0.0.0 rather than something like 0.0.0-pr: rpm forbids '-' in a version (it separates
+            # version from release), which is what the first run of this job discovered.
+            bash .github/scripts/package-linux.sh \
+              "publish/linux-$ARCH" "$ARCH" 0.0.0 v0.0.0-pr dist jellyfin.png
+          done
+
+      # A package that builds but is empty would still pass the step above, so assert the payload made
+      # it in, and that each package is tagged for the architecture it claims.
+      - name: Check the packages contain the app
+        run: |
+          set -euo pipefail
+          # Listings go to files first: `… | grep -q` exits on the first match, SIGPIPEs the writer,
+          # and pipefail then reports the whole pipeline as failed. Whether it trips depends on the
+          # listing fitting in the pipe buffer, which is why it passed locally and failed here.
+          for ARCH in x64 arm64; do
+            dpkg-deb -c dist/*-linux-$ARCH.deb > "deb-$ARCH.txt"
+            rpm -qlp dist/*-linux-$ARCH.rpm > "rpm-$ARCH.txt"
+            grep -q '/opt/apps2samsung/Apps2Samsung$' "deb-$ARCH.txt"
+            grep -qx '/opt/apps2samsung/Apps2Samsung' "rpm-$ARCH.txt"
+
+            # Present is not the same as whole. rpm's default post-install strip once reduced the
+            # x64 binary from 138 MB to 11 MB — a .NET single-file bundle with its payload cut off,
+            # which installs happily and then cannot run. Compare against the published binary.
+            EXPECTED=$(stat -c%s "publish/linux-$ARCH/Apps2Samsung")
+            IN_DEB=$(awk '$6=="./opt/apps2samsung/Apps2Samsung"{print $3}' "deb-$ARCH.txt")
+            IN_RPM=$(rpm -qp --qf '[%{FILENAMES} %{FILESIZES}\n]' dist/*-linux-$ARCH.rpm \
+              | awk '$1=="/opt/apps2samsung/Apps2Samsung"{print $2}')
+            echo "$ARCH: published=$EXPECTED deb=$IN_DEB rpm=$IN_RPM"
+            test "$IN_DEB" = "$EXPECTED"
+            test "$IN_RPM" = "$EXPECTED"
+          done
+
+          # The tags, not just the contents: a cross-built package that came out x86_64 would install
+          # on the wrong machines and fail on the right ones.
+          test "$(dpkg-deb -f dist/*-linux-x64.deb Architecture)" = amd64
+          test "$(dpkg-deb -f dist/*-linux-arm64.deb Architecture)" = arm64
+          test "$(rpm -qp --qf '%{ARCH}' dist/*-linux-x64.rpm)" = x86_64
+          test "$(rpm -qp --qf '%{ARCH}' dist/*-linux-arm64.rpm)" = aarch64
+          file -b dist/*-linux-arm64.AppImage | grep -q 'ARM aarch64'
+
+          # Only the x64 AppImage can be unpacked here: --appimage-extract runs the AppImage's own
+          # runtime, and the arm64 one is an aarch64 binary. Its payload is the same publish output
+          # the .deb and .rpm above were built from, and its runtime arch is asserted just above.
+          ./dist/*-linux-x64.AppImage --appimage-extract >/dev/null
+          test -x squashfs-root/AppRun
+          test -x squashfs-root/usr/bin/Apps2Samsung
+          test "$(stat -c%s squashfs-root/usr/bin/Apps2Samsung)" = "$(stat -c%s publish/linux-x64/Apps2Samsung)"
+          echo "deb, rpm and AppImage carry the whole app, for both architectures"

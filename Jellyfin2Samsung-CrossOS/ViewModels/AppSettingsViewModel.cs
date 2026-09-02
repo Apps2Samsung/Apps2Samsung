@@ -17,6 +17,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Apps2Samsung.Extensions;
 
 namespace Apps2Samsung.ViewModels
 {
@@ -135,7 +136,7 @@ namespace Apps2Samsung.ViewModels
                     .Select(code => new LanguageOption
                     {
                         Code = code,
-                        Name = GetLanguageDisplayName(code)
+                        Name = _localizationService.GetDisplayName(code)
                     })
                     .OrderBy(lang => lang.Name)
             );
@@ -275,18 +276,6 @@ namespace Apps2Samsung.ViewModels
             });
         }
 
-        private static string GetLanguageDisplayName(string code)
-        {
-            try
-            {
-                var name = new System.Globalization.CultureInfo(code).NativeName;
-                return string.IsNullOrEmpty(name) ? code : char.ToUpper(name[0]) + name.Substring(1);
-            }
-            catch
-            {
-                return code;
-            }
-        }
 
         [ObservableProperty]
         private string backupStatus = string.Empty;
@@ -322,11 +311,11 @@ namespace Apps2Samsung.ViewModels
                 await using (var stream = await file.OpenWriteAsync())
                     Apps2Samsung.Backup.BackupService.Export(stream, settingsJson, AppSettings.CertificatePath);
 
-                BackupStatus = "Backup exported.";
+                BackupStatus = "statusBackupExported".Localized();
             }
             catch (Exception ex)
             {
-                BackupStatus = $"Export failed: {ex.Message}";
+                BackupStatus = string.Format("statusExportFailed".Localized(), ex.Message);
                 Trace.WriteLine($"[Backup] export failed: {ex}");
             }
         }
@@ -362,11 +351,11 @@ namespace Apps2Samsung.ViewModels
                 if (!string.IsNullOrEmpty(result.SettingsJson))
                     MergeImportedSettings(result.SettingsJson!);
 
-                BackupStatus = $"Imported settings + {result.CertificateFilesRestored} certificate file(s). Restart the app to apply.";
+                BackupStatus = string.Format("statusImportedDesktop".Localized(), result.CertificateFilesRestored);
             }
             catch (Exception ex)
             {
-                BackupStatus = $"Import failed: {ex.Message}";
+                BackupStatus = string.Format("statusImportFailed".Localized(), ex.Message);
                 Trace.WriteLine($"[Backup] import failed: {ex}");
             }
         }

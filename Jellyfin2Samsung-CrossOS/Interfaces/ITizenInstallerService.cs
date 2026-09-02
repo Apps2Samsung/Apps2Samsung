@@ -9,18 +9,11 @@ namespace Apps2Samsung.Interfaces
 {
     public interface ITizenInstallerService
     {
-        /// <summary>
-        /// Path to the resolved TizenSdb executable, set by <see cref="EnsureTizenSdbAvailable"/>.
-        /// Null until that has run. Consumed by the desktop <c>ExeSdbEngine</c> to locate the binary.
-        /// </summary>
-        string? TizenSdbPath { get; }
-
         Task<string> GetTvNameAsync(string tvIpAddress);
-        Task<string> EnsureTizenSdbAvailable();
-        Task<string> DownloadPackageAsync(string downloadUrl, bool validateWgt = false);
+        Task<string> DownloadPackageAsync(string downloadUrl);
         Task<InstallResult> InstallPackageAsync(string packageUrl, string tvIpAddress, CancellationToken cancellationToken, ProgressCallback? progress = null, Action? onSamsungLoginStarted = null, bool? wasAlreadyInstalled = null);
 
-        /// <summary>Lists the apps installed on the TV (ensures the SDB binary, queries, parses).</summary>
+        /// <summary>Lists the apps installed on the TV (queries the TV and parses the reply).</summary>
         Task<IReadOnlyList<Apps2Samsung.Models.InstalledApp>> GetInstalledAppsAsync(string tvIpAddress);
 
         /// <summary>Uninstalls an app from the TV by its Tizen id. Returns the raw SDB result.</summary>

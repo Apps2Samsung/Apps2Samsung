@@ -44,8 +44,8 @@
 		<ApplicationId>nl.madebypatrick.apps2samsung</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>2.7.8</ApplicationDisplayVersion>
-		<ApplicationVersion>4</ApplicationVersion>
+		<ApplicationDisplayVersion>2.7.9</ApplicationDisplayVersion>
+		<ApplicationVersion>5</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 		<WindowsPackageType>None</WindowsPackageType>
@@ -81,15 +81,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<!-- The shared, UI-agnostic core (cert provisioning, TV network scan, ISdbEngine, models).
-		     A plain net10.0 library is consumable here and its IL runs on MonoVM at runtime. -->
+		<!-- The shared, UI-agnostic core (cert provisioning, TV network scan, the in-process
+		     ISdbEngine, models). A plain net10.0 library is consumable here and its IL runs on
+		     MonoVM at runtime; it also brings TizenSdb.Core in transitively, resolved to this
+		     head's net10.0-android asset. -->
 		<ProjectReference Include="..\Apps2Samsung.Core\Apps2Samsung.Core.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<!-- The SDB engine, in-process. Resolves the net10.0-android asset, which carries the
-		     Android-specific cert/socket branches. Backs InProcessSdbEngine (this head's ISdbEngine). -->
-		<PackageReference Include="TizenSdb.Core" Version="1.1.0" />
 	</ItemGroup>
 
 </Project>

@@ -17,6 +17,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Apps2Samsung.Extensions;
 
 namespace Apps2Samsung.ViewModels
 {
@@ -254,21 +255,8 @@ namespace Apps2Samsung.ViewModels
                 // scan, so the banner appears immediately on startup.
                 RefreshVpnWarning();
 
-                SetStatus("CheckingTizenSdb");
-
-                string tizenSdb = await _tizenInstaller.EnsureTizenSdbAvailable();
-
-                if (string.IsNullOrEmpty(tizenSdb))
-                {
-                    SetStatus("FailedTizenSdb");
-                    // Tizen SDB couldn't be downloaded (GitHub outage/rate-limit/no releases) and there's
-                    // no local copy — tell the user how to install it by hand instead of leaving them stuck.
-                    await _dialogService.ShowMessageAsync(
-                        L("FailedTizenSdb"),
-                        string.Format(L("TizenSdbManualDownload"), AppSettings.TizenSdbPath));
-                    return;
-                }
-
+                // A leftover Tizen SDK "sdb" server can hold the TV's single debug connection, which
+                // makes our own connect fail; clear those before scanning.
                 ProcessHelper.KillSdbServers();
 
                 await LoadReleasesAsync(token);
@@ -585,7 +573,7 @@ namespace Apps2Samsung.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync($"Failed to open build info window: {ex}");
+                await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("catalogTitle"), ex));
             }
         }
 
@@ -598,7 +586,7 @@ namespace Apps2Samsung.ViewModels
                     string.IsNullOrWhiteSpace(SelectedDevice.IpAddress) ||
                     SelectedDevice.IpAddress == L("lblOther"))
                 {
-                    await _dialogService.ShowMessageAsync("Installed apps", "Select a TV first.");
+                    await _dialogService.ShowMessageAsync(L("lblInstalledApps"), L("lblSelectTvFirst"));
                     return;
                 }
 
@@ -614,7 +602,7 @@ namespace Apps2Samsung.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync($"Failed to open installed apps: {ex}");
+                await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblInstalledApps"), ex));
             }
         }
 
@@ -627,7 +615,7 @@ namespace Apps2Samsung.ViewModels
                     string.IsNullOrWhiteSpace(SelectedDevice.IpAddress) ||
                     SelectedDevice.IpAddress == L("lblOther"))
                 {
-                    await _dialogService.ShowMessageAsync("TV information", "Select a TV first.");
+                    await _dialogService.ShowMessageAsync(L("lblTvInformation"), L("lblSelectTvFirst"));
                     return;
                 }
 
@@ -643,7 +631,46 @@ namespace Apps2Samsung.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync($"Failed to open TV information: {ex}");
+                await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblTvInformation"), ex));
+            }
+        }
+
+        /// <summary>
+        /// Opens the remote for the selected TV. Unlike the installer views this needs no Developer
+        /// Mode or debug port — only a TV on the network — so it is offered for any selected TV.
+        /// </summary>
+        [RelayCommand]
+        private async Task ShowRemoteAsync()
+        {
+            try
+            {
+                if (SelectedDevice is null ||
+                    string.IsNullOrWhiteSpace(SelectedDevice.IpAddress) ||
+                    SelectedDevice.IpAddress == L("lblOther"))
+                {
+                    await _dialogService.ShowMessageAsync(L("lblRemote"), L("lblRemoteSelectTvFirst"));
+                    return;
+                }
+
+                if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                    return;
+
+                var label = string.IsNullOrWhiteSpace(SelectedDevice.DisplayText)
+                    ? SelectedDevice.IpAddress
+                    : SelectedDevice.DisplayText;
+
+                // The scan knows the TV's MAC while it is awake; keep it so the remote can wake the
+                // set later, when it answers nothing at all.
+                if (!string.IsNullOrWhiteSpace(SelectedDevice.MacAddress))
+                    Helpers.Core.RemoteStore.SetMac(SelectedDevice.IpAddress, SelectedDevice.MacAddress!);
+
+                var vm = new RemoteViewModel(SelectedDevice.IpAddress, label);
+                var window = new Views.RemoteWindow(vm);
+                await window.ShowDialog(desktop.MainWindow);
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblRemote"), ex));
             }
         }
 
@@ -897,7 +924,7 @@ namespace Apps2Samsung.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync($"Failed to load devices: {ex}");
+                await _dialogService.ShowErrorAsync(string.Format("statusLoadDevicesFailed".Localized(), ex));
             }
             finally
             {

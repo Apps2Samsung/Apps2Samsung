@@ -114,6 +114,13 @@ namespace Apps2Samsung.Certificate
             if (string.IsNullOrEmpty(auth.access_token))
                 throw new InvalidOperationException("Failed to authenticate with the Samsung account.");
 
+            // The distributor CSR puts this address in the subject's emailAddress field. A Samsung
+            // account without one hands us null, which blows up inside BouncyCastle's X509Name as a
+            // bare "Object reference not set to an instance of an object" (issue #606) — so stop here
+            // and let the head tell the user to add and verify an address.
+            if (string.IsNullOrWhiteSpace(auth.inputEmailID))
+                throw new SamsungAccountEmailMissingException();
+
             var duids = BuildDistributorDuids(deviceDuid, manual, covered);
 
             string authorP12, distributorP12, password;

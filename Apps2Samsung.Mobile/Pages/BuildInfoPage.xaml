@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              x:Class="Apps2Samsung.Mobile.Pages.BuildInfoPage"
-             Title="App catalog"
+             Title="{l:Localize catalogTitle}"
              NavigationPage.HasNavigationBar="False"
              BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
 
@@ -42,21 +43,21 @@
                         <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
                                 BackgroundColor="Transparent" BorderWidth="0" Padding="0"
                                 WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
-                        <Label Grid.Column="1" Text="App catalog" TextColor="White" FontAttributes="Bold"
+                        <Label Grid.Column="1" Text="{l:Localize catalogTitle}" TextColor="White" FontAttributes="Bold"
                                VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
                     </Grid>
                 </Border>
 
-                <Label x:Name="StatusLabel" Text="Loading…" HorizontalOptions="Center" Opacity="0.7" />
+                <Label x:Name="StatusLabel" Text="{l:Localize lblLoading}" HorizontalOptions="Center" Opacity="0.7" />
                 <ActivityIndicator x:Name="Busy" IsRunning="True" HorizontalOptions="Center" Color="#2C3E50" />
 
                 <!-- Jellyfin builds -->
-                <Label x:Name="JellyfinHeader" Text="Jellyfin builds" FontAttributes="Bold" FontSize="14" IsVisible="False" />
+                <Label x:Name="JellyfinHeader" Text="{l:Localize catalogJellyfinBuilds}" FontAttributes="Bold" FontSize="14" IsVisible="False" />
                 <VerticalStackLayout x:Name="JellyfinList" Spacing="0"
                                      BindableLayout.ItemTemplate="{StaticResource RowTemplate}" />
 
                 <!-- Community apps -->
-                <Label x:Name="CommunityHeader" Text="Community apps" FontAttributes="Bold" FontSize="14" IsVisible="False" />
+                <Label x:Name="CommunityHeader" Text="{l:Localize catalogCommunityApps}" FontAttributes="Bold" FontSize="14" IsVisible="False" />
                 <VerticalStackLayout x:Name="CommunityList" Spacing="0"
                                      BindableLayout.ItemTemplate="{StaticResource RowTemplate}" />
 

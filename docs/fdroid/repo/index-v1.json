@@ -1,6 +1,6 @@
 {
   "repo": {
-    "timestamp": 1787302552000,
+    "timestamp": 1787847284000,
     "version": 20002,
     "name": "Apps2Samsung",
     "icon": "icon.png",
@@ -19,17 +19,17 @@
         "System"
       ],
       "changelog": "https://github.com/Apps2Samsung/Apps2Samsung/releases",
-      "suggestedVersionCode": "56",
+      "suggestedVersionCode": "57",
       "description": "Apps2Samsung is a cross-platform installer that sideloads Jellyfin and other\nweb and community apps onto Samsung Tizen TVs \u2014 no PC, no Tizen Studio, and no\nmanual sideloading.\n\nThis Android build is the mobile (phone) installer head: put the TV into\nDeveloper Mode, point the app at it over your local network, sign in once with a\nfree Samsung account to provision a signing certificate, and install.\n\nFeatures:\n\n* Finds Samsung Tizen TVs on your network, or connect directly by IP.\n* Installs Jellyfin (multiple build variants) and a catalog of community apps.\n* Give any app a custom launcher icon and a custom title.\n* Optional Jellyfin server pre-configuration: server URL, auto-login, custom CSS.\n* Uses a free Samsung account certificate \u2014 no paid developer account required.\n\nRequires a Samsung Tizen TV in Developer Mode on the same local network as the\nphone. Desktop versions for Windows, macOS and Linux are also available.",
       "issueTracker": "https://github.com/Apps2Samsung/Apps2Samsung/issues",
       "license": "MIT",
       "sourceCode": "https://github.com/Apps2Samsung/Apps2Samsung",
       "summary": "Install Jellyfin and other apps on your Samsung Tizen TV from your phone",
       "webSite": "https://apps2samsung.com",
-      "added": 1787302550000,
-      "icon": "nl.madebypatrick.apps2samsung.56.png",
+      "added": 1787847282000,
+      "icon": "nl.madebypatrick.apps2samsung.57.png",
       "packageName": "nl.madebypatrick.apps2samsung",
-      "lastUpdated": 1787302550000,
+      "lastUpdated": 1787847282000,
       "localized": {
         "en-US": {
           "description": "Apps2Samsung installs Jellyfin and other web and community apps onto your Samsung Tizen TV \u2014 no PC, no Tizen Studio, and no manual sideloading.\n\nThis is the mobile (phone) installer head of Apps2Samsung. Put your TV into Developer Mode, point the app at it over your local network, sign in once with a free Samsung account to provision a signing certificate, and install.\n\nFeatures:\n\n* Finds Samsung Tizen TVs on your network, or connect directly by IP.\n* Installs Jellyfin (multiple build variants) and a catalog of community apps.\n* Give any app a custom launcher icon and a custom title.\n* Optional Jellyfin server pre-configuration: server URL, auto-login, and custom CSS.\n* Uses a free Samsung account certificate \u2014 no paid developer account required.\n\nRequirements:\n\n* A Samsung Tizen TV in Developer Mode, on the same local network as your phone.\n\nDesktop versions for Windows, macOS and Linux are also available. Apps2Samsung is free and open source (MIT).\n",
@@ -49,9 +49,9 @@
   "packages": {
     "nl.madebypatrick.apps2samsung": [
       {
-        "added": 1787302550000,
-        "apkName": "Apps2Samsung-v2.7.7-android.apk",
-        "hash": "0fb43ba33cb5d6f040d494a57732bac1437dd057e53687f70edf423476b28760",
+        "added": 1787847282000,
+        "apkName": "Apps2Samsung-v2.7.8-android.apk",
+        "hash": "6cd5758339759267412e0abaa9e3d7510ca8052228337bbc60fe6fdfc42435b6",
         "hashType": "sha256",
         "minSdkVersion": 21,
         "nativecode": [
@@ -61,7 +61,7 @@
         "packageName": "nl.madebypatrick.apps2samsung",
         "sig": "2d23c42e1dd0b639f5d1fd1280b68b9c",
         "signer": "bd4dee21ebeee1b0b690c612318808d27f35c46fa53ba31d256379a7fed7e107",
-        "size": 35108283,
+        "size": 35710395,
         "targetSdkVersion": 36,
         "uses-permission": [
           [
@@ -77,8 +77,8 @@
             null
           ]
         ],
-        "versionCode": 56,
-        "versionName": "2.7.7"
+        "versionCode": 57,
+        "versionName": "2.7.8"
       }
     ]
   }

@@ -6,6 +6,7 @@ using Apps2Samsung.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using Apps2Samsung.Extensions;
 
 namespace Apps2Samsung.ViewModels
 {
@@ -43,7 +44,7 @@ namespace Apps2Samsung.ViewModels
         private async Task Load()
         {
             IsBusy = true;
-            StatusText = "Reading TV information…";
+            StatusText = "statusReadingTvInfo".Localized();
             try
             {
                 var info = await _installer.GetDeviceInfoAsync(_tvIp, _debugPortOpen);
@@ -57,7 +58,7 @@ namespace Apps2Samsung.ViewModels
             }
             catch (Exception ex)
             {
-                StatusText = $"Couldn't read TV information: {ex.Message}";
+                StatusText = string.Format("statusReadTvInfoFailed".Localized(), ex.Message);
             }
             finally
             {

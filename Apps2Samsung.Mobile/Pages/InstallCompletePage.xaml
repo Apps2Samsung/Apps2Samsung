@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              x:Class="Apps2Samsung.Mobile.Pages.InstallCompletePage"
-             Title="Installation successful"
+             Title="{l:Localize InstallationSuccessful}"
              BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
 
     <Grid Padding="20" VerticalOptions="Center">
@@ -17,7 +18,7 @@
                 <Label x:Name="MessageLabel" FontSize="16" FontAttributes="Bold"
                        HorizontalTextAlignment="Center" HorizontalOptions="Center" />
 
-                <Label Text="That was easy, right?" FontSize="14" Opacity="0.7"
+                <Label Text="{l:Localize lbleasyRight}" FontSize="14" Opacity="0.7"
                        HorizontalTextAlignment="Center" HorizontalOptions="Center" />
 
                 <!-- Ko-fi QR on a white tile -->
@@ -27,8 +28,8 @@
                 </Border>
 
                 <HorizontalStackLayout Spacing="12" HorizontalOptions="Center" Margin="0,8,0,0">
-                    <Button Text="🍺 Buy me a beer" Clicked="OnKoFiClicked" />
-                    <Button Text="Close" WidthRequest="100" Clicked="OnCloseClicked" />
+                    <Button Text="{l:Localize lblValidation}" Clicked="OnKoFiClicked" />
+                    <Button Text="{l:Localize btn_Close}" WidthRequest="100" Clicked="OnCloseClicked" />
                 </HorizontalStackLayout>
 
             </VerticalStackLayout>

@@ -1,0 +1,27 @@
+name: Crowdin report
+
+# Read-only. Prints what Crowdin holds per language and which repo file each one lands in, for
+# answering "why isn't this language syncing" - the sync itself says nothing when a language
+# never arrives, it just ships fewer files than the project has languages.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+      - name: Report
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        run: |
+          if [ -z "$CROWDIN_PROJECT_ID" ] || [ -z "$CROWDIN_PERSONAL_TOKEN" ]; then
+            echo "::error::CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN are not set."
+            exit 1
+          fi
+          python3 .github/scripts/crowdin_report.py | tee -a "$GITHUB_STEP_SUMMARY"

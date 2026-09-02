@@ -5,6 +5,7 @@ using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Services;
 using Apps2Samsung.Mobile.Catalog;
+using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Packaging;
 using Apps2Samsung.Update;
@@ -87,11 +88,11 @@ public partial class InstallerPage : ContentPage
 		// A catalog problem is more actionable than the scan result, so let it have the last word.
 		// (The "Custom WGT file" entry is always available, so an empty catalog isn't a dead end.)
 		if (catalog is null)
-			SetStatus("Couldn't load the app list — you can still install a custom .wgt.");
+			SetStatus(L10n.Get("statusCatalogUnavailable"));
 		else if (catalog.Releases.Count == 0)
-			SetStatus("No apps loaded (offline or GitHub rate-limited). Add a token in Settings, or install a custom .wgt.");
+			SetStatus(L10n.Get("statusCatalogEmpty"));
 		else if (catalog.Failed > 0)
-			SetStatus($"Ready — but {catalog.Failed} of {catalog.Total} app sources failed (likely GitHub rate limit). Add a GitHub token in Settings.");
+			SetStatus(string.Format(L10n.Get("statusCatalogPartial"), catalog.Failed, catalog.Total));
 
 		// Quietly check for a newer build (best-effort; never blocks the UI).
 		_ = CheckForUpdatesAsync();
@@ -111,9 +112,9 @@ public partial class InstallerPage : ContentPage
 				return;
 
 			var download = await DisplayAlert(
-				"Update available",
-				$"{result.LatestVersion} is available (you have v{current}). Download the new APK?",
-				"Download", "Later");
+				L10n.Get("UpdateAvailable"),
+				string.Format(L10n.Get("statusUpdateAvailableApk"), result.LatestVersion, current),
+				L10n.Get("lblDownload"), L10n.Get("lblLater"));
 
 			if (download)
 				await Launcher.Default.OpenAsync(result.DownloadUrl ?? result.ReleasesPageUrl);
@@ -126,7 +127,7 @@ public partial class InstallerPage : ContentPage
 
 	private async Task<CatalogService.CatalogResult?> LoadCatalogAsync()
 	{
-		SetStatus("Loading apps…");
+		SetStatus(L10n.Get("lblLoadingAppList"));
 		CatalogService.CatalogResult? result = null;
 		try
 		{
@@ -135,7 +136,7 @@ public partial class InstallerPage : ContentPage
 		}
 		catch (Exception ex)
 		{
-			SetStatus($"Couldn't load the app list: {ex.Message}");
+			SetStatus(string.Format(L10n.Get("statusCatalogFailed"), ex.Message));
 			_releases = new List<GitHubRelease>();
 		}
 
@@ -185,32 +186,30 @@ public partial class InstallerPage : ContentPage
 	{
 		try
 		{
-			var result = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "Select a .wgt package" });
-			if (result is null)
+			var picked = await SafFilePicker.PickAsync();
+			if (picked is null)
 			{
-				SetStatus("No file selected.");
+				SetStatus(L10n.Get("statusNoFileSelected"));
 				return false;
 			}
-			if (!result.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase))
+			if (!picked.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase))
 			{
-				SetStatus("Please choose a .wgt file.");
+				SetStatus(L10n.Get("statusChooseWgt"));
 				return false;
 			}
 
-			var dest = Path.Combine(FileSystem.CacheDirectory, result.FileName);
-			using (var src = await result.OpenReadAsync())
-			using (var dst = File.Create(dest))
-				await src.CopyToAsync(dst);
+			var dest = Path.Combine(FileSystem.CacheDirectory, picked.FileName);
+			File.Copy(picked.LocalPath, dest, overwrite: true);
 
 			_customWgtPath = dest;
-			VersionPicker.ItemsSource = new List<string> { result.FileName };
+			VersionPicker.ItemsSource = new List<string> { picked.FileName };
 			VersionPicker.SelectedIndex = 0;
-			SetStatus($"Custom package ready: {result.FileName}");
+			SetStatus(string.Format(L10n.Get("statusCustomPackageReady"), picked.FileName));
 			return true;
 		}
 		catch (Exception ex)
 		{
-			SetStatus($"Couldn't read the file: {ex.Message}");
+			SetStatus(string.Format(L10n.Get("statusFileUnreadable"), ex.Message));
 			return false;
 		}
 	}
@@ -253,7 +252,7 @@ public partial class InstallerPage : ContentPage
 		if (string.IsNullOrWhiteSpace(input) || !System.Net.IPAddress.TryParse(input.Trim(), out _))
 		{
 			if (!string.IsNullOrWhiteSpace(input))
-				SetStatus("That doesn't look like a valid IP address.");
+				SetStatus(L10n.Get("statusInvalidIp"));
 			// Move the selection off the manual entry (back to the first real TV, if any).
 			RebuildTvPicker(_tvIps.Count > 0 ? 0 : -1);
 			return;
@@ -273,14 +272,14 @@ public partial class InstallerPage : ContentPage
 			idx = _tvIps.Count - 1;
 		}
 		RebuildTvPicker(idx);
-		SetStatus($"Using TV at {ip}.");
+		SetStatus(string.Format(L10n.Get("statusUsingTvAt"), ip));
 	}
 
 	private async void OnShowInstalledAppsClicked(object? sender, EventArgs e)
 	{
 		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
 		{
-			SetStatus("Select a TV first (tap refresh to scan).");
+			SetStatus(L10n.Get("statusSelectTvFirst"));
 			return;
 		}
 		var tvIp = _tvIps[TvPicker.SelectedIndex];
@@ -292,7 +291,7 @@ public partial class InstallerPage : ContentPage
 	{
 		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
 		{
-			SetStatus("Select a TV first (tap refresh to scan).");
+			SetStatus(L10n.Get("statusSelectTvFirst"));
 			return;
 		}
 		var idx = TvPicker.SelectedIndex;
@@ -300,6 +299,20 @@ public partial class InstallerPage : ContentPage
 		var label = TvPicker.SelectedItem as string ?? tvIp;
 		var debugPortOpen = idx >= _tvDevices.Count || (_tvDevices[idx]?.DebugPortOpen ?? true);
 		await Navigation.PushAsync(new DeviceInfoPage(_sdb, tvIp, label, debugPortOpen));
+	}
+
+	// The remote needs only a TV on the network — no Developer Mode, no debug port — so it is
+	// offered for any selected TV, including one the installer itself couldn't use.
+	private async void OnShowRemoteClicked(object? sender, EventArgs e)
+	{
+		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
+		{
+			SetStatus(L10n.Get("statusSelectTvFirst"));
+			return;
+		}
+		var tvIp = _tvIps[TvPicker.SelectedIndex];
+		var label = TvPicker.SelectedItem as string ?? tvIp;
+		await Navigation.PushAsync(new RemotePage(tvIp, label));
 	}
 
 	private async void OnRefreshClicked(object? sender, EventArgs e) => await ScanAsync();
@@ -313,7 +326,7 @@ public partial class InstallerPage : ContentPage
 	private async Task ScanAsync()
 	{
 		RefreshBtn.IsEnabled = false;
-		SetStatus("Scanning for TVs…");
+		SetStatus(L10n.Get("statusScanningForTvs"));
 		try
 		{
 			// Keep not-ready TVs (REST API answered but the SDB debug port isn't up): they're shown
@@ -341,12 +354,12 @@ public partial class InstallerPage : ContentPage
 			RebuildTvPicker(_tvIps.Count > 0 ? (keep >= 0 ? keep : 0) : -1);
 
 			SetStatus(_tvIps.Count == 0
-				? "No TVs found. Enable Developer Mode on the TV and refresh, or tap the TV list to enter an IP manually."
+				? L10n.Get("statusNoTvsFoundHint")
 				: SelectedTvStatus());
 		}
 		catch (Exception ex)
 		{
-			SetStatus($"Scan failed: {ex.Message}");
+			SetStatus(string.Format(L10n.Get("statusScanFailed"), ex.Message));
 		}
 		finally
 		{
@@ -358,7 +371,7 @@ public partial class InstallerPage : ContentPage
 	{
 		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
 		{
-			SetStatus("Select a TV first (tap refresh to scan).");
+			SetStatus(L10n.Get("statusSelectTvFirst"));
 			return;
 		}
 
@@ -371,7 +384,7 @@ public partial class InstallerPage : ContentPage
 		}
 		else if (VersionPicker.SelectedIndex < 0 || VersionPicker.SelectedIndex >= _versions.Count)
 		{
-			SetStatus("Select an app and version first.");
+			SetStatus(L10n.Get("statusSelectAppFirst"));
 			return;
 		}
 
@@ -392,7 +405,8 @@ public partial class InstallerPage : ContentPage
 		foreach (var guard in guardResult.Guards)
 		{
 			bool continueAnyway = await DisplayAlert(
-				guard.DefaultTitle, guard.DefaultMessageWithDetail, "Continue", "Stop");
+				guard.DefaultTitle, guard.DefaultMessageWithDetail,
+				L10n.Get("keyContinue"), L10n.Get("keyStop"));
 			if (!continueAnyway)
 				return;
 		}
@@ -435,28 +449,46 @@ public partial class InstallerPage : ContentPage
 				}
 				catch (CertificateNotYetValidException notYetValid)
 				{
-					SetStatus("Waiting for the signing certificate to become valid…");
+					SetStatus(L10n.Get("certificateWaiting"));
 					var wait = new CertificateWaitPage(notYetValid.Result);
 					await Navigation.PushModalAsync(wait);
 					if (!await wait.Completion)
 					{
-						SetStatus("Installation cancelled — the signing certificate isn't valid yet.");
+						SetStatus(L10n.Get("certificateWaitCancelled"));
 						return;
 					}
 				}
 			}
 
-			SetStatus($"✓ Installed {appName}. Open the TV's Apps list to launch it.");
+			SetStatus("✓ " + string.Format(L10n.Get("statusInstalledOpenApps"), appName));
 			await Navigation.PushModalAsync(new InstallCompletePage(appName));
 		}
 		catch (TaskCanceledException)
 		{
-			SetStatus("Sign-in cancelled.");
+			SetStatus(L10n.Get("statusSignInCancelled"));
+		}
+		catch (SamsungAccountEmailMissingException)
+		{
+			// The Samsung account has no email, so the distributor CSR has nothing to put in its
+			// emailAddress field — this used to surface as a bare NullReferenceException (issue #606).
+			// Only the user can fix it, on their Samsung account page, so offer to open it.
+			SetStatus(L10n.Get("statusSamsungAccountNoEmail"));
+			var openAccount = await DisplayAlert(
+				L10n.Get("lblSamsungAccountNoEmailTitle"),
+				L10n.Get("statusSamsungAccountNoEmail"),
+				L10n.Get("lblOpenSamsungAccount"),
+				L10n.Get("btn_Close"));
+
+			if (openAccount)
+			{
+				try { await Launcher.Default.OpenAsync(SamsungAccountEmailMissingException.AccountUrl); }
+				catch (Exception ex) { System.Diagnostics.Trace.WriteLine($"[installer] Couldn't open the Samsung account page: {ex.Message}"); }
+			}
 		}
 		catch (Exception ex)
 		{
 			System.Diagnostics.Trace.WriteLine($"[installer] Install failed: {ex}");
-			SetStatus($"Install failed: {ex.Message}");
+			SetStatus(string.Format(L10n.Get("statusInstallFailed"), ex.Message));
 		}
 		finally
 		{

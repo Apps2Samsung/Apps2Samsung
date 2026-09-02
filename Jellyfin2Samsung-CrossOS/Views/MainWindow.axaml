@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:l="clr-namespace:Apps2Samsung.Extensions"
         x:Class="Apps2Samsung.Views.MainWindow"
+        Icon="/Assets/jelly2sams.png"
 		x:DataType="viewModels:MainWindowViewModel"
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
 		xmlns:helpers="clr-namespace:Apps2Samsung.Helpers.Converters"
@@ -163,6 +164,13 @@
 						<StackPanel Orientation="Horizontal" Spacing="6">
 							<fa:SymbolIcon Symbol="Important" Width="16" Height="16"/>
 							<TextBlock Text="{l:Localize lblTvInformation}" VerticalAlignment="Center"/>
+						</StackPanel>
+					</Button>
+					<Button HorizontalAlignment="Left" Padding="0" Background="Transparent" BorderThickness="0"
+							Command="{Binding ShowRemoteCommand}">
+						<StackPanel Orientation="Horizontal" Spacing="6">
+							<fa:SymbolIcon Symbol="Play" Width="16" Height="16"/>
+							<TextBlock Text="{l:Localize lblRemote}" VerticalAlignment="Center"/>
 						</StackPanel>
 					</Button>
 				</StackPanel>

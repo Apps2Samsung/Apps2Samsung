@@ -7,6 +7,7 @@ using Apps2Samsung.Catalog;
 using Apps2Samsung.Mobile.Catalog;
 using Apps2Samsung.Mobile.Services;
 using Microsoft.Maui.Storage;
+using Apps2Samsung.Mobile.Localization;
 
 namespace Apps2Samsung.Mobile.Pages;
 
@@ -171,23 +172,17 @@ public partial class AppIconsPage : ContentPage
 	{
 		try
 		{
-			var result = await FilePicker.Default.PickAsync(new PickOptions
-			{
-				PickerTitle = "Select a launcher icon (PNG)",
-				FileTypes = FilePickerFileType.Images,
-			});
-			if (result is null)
+			var picked = await SafFilePicker.PickAsync("image/*");
+			if (picked is null)
 				return;
 
-			// Copy into app data so the path stays valid after the picker URI is released.
+			// Copy into app data: the picker cache is cleared on the next pick.
 			var dir = Path.Combine(FileSystem.AppDataDirectory, "app-icons");
 			Directory.CreateDirectory(dir);
 			var baseName = string.Concat(row.Key.Select(c => char.IsLetterOrDigit(c) ? c : '_'));
 			if (string.IsNullOrWhiteSpace(baseName)) baseName = "icon";
-			var dest = Path.Combine(dir, baseName + Path.GetExtension(result.FileName));
-			using (var src = await result.OpenReadAsync())
-			using (var dst = File.Create(dest))
-				await src.CopyToAsync(dst);
+			var dest = Path.Combine(dir, baseName + Path.GetExtension(picked.FileName));
+			File.Copy(picked.LocalPath, dest, overwrite: true);
 
 			row.IconPath = dest;
 			row.IconSummary.Text = DescribeIcon(dest);
@@ -196,10 +191,10 @@ public partial class AppIconsPage : ContentPage
 		catch (Exception ex)
 		{
 			await DisplayAlert(
-				"App icons",
-				$"Couldn't set the icon: {ErrorText.Describe(ex, "app-icons/pick")}\n\n" +
-				"Settings \u2192 Diagnostics \u2192 Share debug log has the full details.",
-				"OK");
+				L10n.Get("lblAppIcons"),
+				string.Format(L10n.Get("statusSetIconFailed"), ErrorText.Describe(ex, "app-icons/pick"))
+					+ "\n\n" + L10n.Get("statusSeeDebugLog"),
+				L10n.Get("lblOk"));
 		}
 	}
 

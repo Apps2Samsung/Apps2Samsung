@@ -1,0 +1,62 @@
+# Watches the pinned dependencies so a new release doesn't sit unnoticed. The NuGet versions are
+# exact pins on purpose (a release must be reproducible, and what ships to users is decided at
+# build time now that the SDB engine is compiled in — see Apps2Samsung.Core.csproj), so something
+# has to open the bump: TizenSdb.Core 1.1.0 stayed pinned for three months and three patch
+# releases, including the port-forwarding support the mobile head was missing.
+version: 2
+
+updates:
+  # ---------------- NuGet ----------------
+  # Only the two projects that declare their own packages. The mobile head is left out: its
+  # packages come from the MAUI workload ($(MauiVersion)), and Dependabot can't restore a
+  # net10.0-android project without that workload installed.
+  - package-ecosystem: nuget
+    directories:
+      - "/Apps2Samsung.Core"
+      - "/Jellyfin2Samsung-CrossOS"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: deps
+    ignore:
+      # Avalonia 12 and FluentAvalonia 3 are migrations, not bumps — the first Dependabot attempt
+      # (#582) failed to build: BindingPlugins is no longer public, Avalonia.Controls.SaveFileDialog
+      # is gone (StorageProvider replaces it), and FluentAvalonia dropped SymbolIcon/Symbol. Drop
+      # these entries when someone does the port deliberately.
+      - dependency-name: "Avalonia*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "FluentAvaloniaUI"
+        update-types: ["version-update:semver-major"]
+      # Pre-1.0, so a "minor" is a breaking change: 0.21 -> 0.95 crosses a lot of them, and this one
+      # only runs on Linux, where CI can't exercise it. Patches still come through.
+      - dependency-name: "Tmds.DBus.Protocol"
+        update-types: ["version-update:semver-minor"]
+    groups:
+      # The SDB engine gets its own PR: it is the one dependency whose bump changes how the app
+      # talks to a TV, so it wants a run against real hardware before it goes to beta.
+      tizen-sdb:
+        patterns:
+          - "TizenSdb.*"
+      # Everything else can travel together — one PR a week at most.
+      nuget:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "TizenSdb.*"
+
+  # ---------------- GitHub Actions ----------------
+  # Keeps actions/checkout, setup-dotnet, softprops/action-gh-release, … from going stale.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: CI
+    groups:
+      actions:
+        patterns:
+          - "*"

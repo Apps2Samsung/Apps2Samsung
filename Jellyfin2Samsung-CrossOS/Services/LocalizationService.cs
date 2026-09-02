@@ -1,135 +1,47 @@
-﻿using Avalonia.Platform;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Localization;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
 
 namespace Apps2Samsung.Services
 {
+    /// <summary>
+    /// The desktop head's <see cref="ILocalizationService"/>: a thin adapter over the shared
+    /// <see cref="LocalizationCatalog"/>, which now owns the strings and the lookup so the mobile head
+    /// can use them too. What stays here is the desktop-specific part — persisting the language in
+    /// settings.json.
+    /// </summary>
     public class LocalizationService : ILocalizationService
     {
-        private const string DefaultLanguage = "en";
-        private const string LocalizationFolderUri = "avares://Apps2Samsung/Assets/Localization/";
-
-        private Dictionary<string, string> _currentStrings = new();
-        private readonly Dictionary<string, Dictionary<string, string>> _allStrings = new();
-        private string _currentLanguage = DefaultLanguage;
-
-        public string CurrentLanguage => _currentLanguage;
-        public IEnumerable<string> AvailableLanguages => _allStrings.Keys.OrderBy(x => x);
-        public event EventHandler? LanguageChanged;
+        private readonly LocalizationCatalog _catalog = new();
 
         public LocalizationService()
         {
-            LoadLanguages();
-        }
+            var stored = AppSettings.Default.Language;
+            _catalog.LanguageChanged += (_, _) => LanguageChanged?.Invoke(this, EventArgs.Empty);
+            _catalog.SetLanguage(_catalog.ResolveInitialLanguage(stored));
 
-        private void LoadLanguages()
-        {
-            _allStrings.Clear();
-
-            var folderUri = new Uri(LocalizationFolderUri);
-
-            try
+            // First run (no stored language): commit the detected one so the settings dropdown reflects
+            // it and it stays stable across launches (detect once, not "follow the OS forever").
+            // Existing installs already have a value, so an explicit choice is never overridden.
+            if (string.IsNullOrWhiteSpace(stored) && !string.IsNullOrWhiteSpace(_catalog.CurrentLanguage))
             {
-                var assetUris = AssetLoader.GetAssets(folderUri, null);
-
-                foreach (var assetUri in assetUris)
-                {
-                    if (!assetUri.AbsolutePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
-                        continue;
-
-                    var fileName = Path.GetFileNameWithoutExtension(assetUri.AbsolutePath);
-                    if (string.IsNullOrWhiteSpace(fileName))
-                        continue;
-
-                    TryLoadLanguage(fileName);
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"Failed to enumerate localization assets: {ex}");
-            }
-
-            // Always make sure English is attempted as fallback language
-            if (!_allStrings.ContainsKey(DefaultLanguage))
-            {
-                TryLoadLanguage(DefaultLanguage);
-            }
-
-            // Prefer the OS *display* language (CurrentUICulture) for detection.
-            var systemLang = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
-            var configLang = AppSettings.Default.Language;
-
-            var initialLang =
-                !string.IsNullOrWhiteSpace(configLang) && _allStrings.ContainsKey(configLang)
-                    ? configLang
-                    : _allStrings.ContainsKey(systemLang)
-                        ? systemLang
-                        : DefaultLanguage;
-
-            SetLanguage(initialLang);
-
-            // First run (no stored language): commit the detected language so the
-            // settings dropdown reflects it and it stays stable across launches
-            // (detect-once, not "follow the OS forever"). Existing installs already
-            // have a value, so this never overrides an explicit choice.
-            if (string.IsNullOrWhiteSpace(configLang) && !string.IsNullOrWhiteSpace(_currentLanguage))
-            {
-                AppSettings.Default.Language = _currentLanguage;
+                AppSettings.Default.Language = _catalog.CurrentLanguage;
                 AppSettings.Default.Save();
             }
         }
 
-        private void TryLoadLanguage(string lang)
-        {
-            try
-            {
-                var uri = new Uri($"{LocalizationFolderUri}{lang}.json");
+        public string CurrentLanguage => _catalog.CurrentLanguage;
 
-                using var asset = AssetLoader.Open(uri);
-                using var reader = new StreamReader(asset);
-                var json = reader.ReadToEnd();
+        public IEnumerable<string> AvailableLanguages => _catalog.AvailableLanguages;
 
-                var strings = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
-                if (strings != null)
-                {
-                    _allStrings[lang] = strings;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"Failed to load language {lang}: {ex}");
-            }
-        }
+        public string GetDisplayName(string languageCode) => _catalog.GetDisplayName(languageCode);
 
-        public string GetString(string key)
-        {
-            if (_currentStrings.TryGetValue(key, out var value))
-                return value;
+        public event EventHandler? LanguageChanged;
 
-            if (_allStrings.TryGetValue(DefaultLanguage, out var englishStrings) &&
-                englishStrings.TryGetValue(key, out var englishValue))
-                return englishValue;
+        public string GetString(string key) => _catalog.GetString(key);
 
-            return key;
-        }
-
-        public void SetLanguage(string languageCode)
-        {
-            if (!_allStrings.TryGetValue(languageCode, out var strings))
-            {
-                languageCode = DefaultLanguage;
-                strings = _allStrings.GetValueOrDefault(DefaultLanguage, new Dictionary<string, string>());
-            }
-
-            _currentLanguage = languageCode;
-            _currentStrings = strings;
-            LanguageChanged?.Invoke(this, EventArgs.Empty);
-        }
+        public void SetLanguage(string languageCode) => _catalog.SetLanguage(languageCode);
     }
 }

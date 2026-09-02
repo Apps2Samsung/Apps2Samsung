@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Apps2Samsung.Packaging;
 
 namespace Apps2Samsung.Helpers.Jellyfin.Fixes
 {
@@ -13,22 +14,10 @@ namespace Apps2Samsung.Helpers.Jellyfin.Fixes
     {
         private async Task<int> ResolveServicePortAsync(PackageWorkspace ws)
         {
-            var packageId = await ReadExtractedWgtPackageIdAsync(ws.Root);
+            var packageId = await WgtManifest.ReadExtractedJellyfinPackageIdAsync(ws.Root);
             return packageId == "JepZAARz4r" ? 8124 : 8123;
         }
 
-        // Inlined from the desktop FileHelper (which can't move to Core — it depends on Avalonia
-        // storage pickers). Reads the Tizen package id from an already-extracted wgt's config.xml.
-        private static async Task<string?> ReadExtractedWgtPackageIdAsync(string workspaceRoot)
-        {
-            var configPath = Path.Combine(workspaceRoot, "config.xml");
-            if (!File.Exists(configPath))
-                return null;
-
-            var configContent = await File.ReadAllTextAsync(configPath, Encoding.UTF8);
-            var match = RegexPatterns.WgtConfig.TizenApplicationId.Match(configContent);
-            return match.Success ? match.Groups["pkg"].Value : null;
-        }
         public async Task PatchPluginAsync(PackageWorkspace ws)
         {
             int servicePort = await ResolveServicePortAsync(ws);

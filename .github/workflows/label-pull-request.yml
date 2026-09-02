@@ -1,0 +1,39 @@
+name: Label pull requests
+
+# Puts a changelog category on a pull request so the release notes sort themselves.
+#
+# .github/release.yml groups the generated notes by label, and nothing was labelled - so every
+# release came out as one flat "Other changes" list with a new feature and a CI tweak side by
+# side. The labels it groups by didn't even exist in the repo until they were created by hand.
+#
+# The script labels only what it can tell for certain and stays quiet otherwise; see the comment
+# at the top of it. A label already on the pull request always wins.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, edited, synchronize, ready_for_review]
+
+# Only ever reads the pull request's metadata through the API - it does not check out or run any
+# code from the branch, which is what makes pull_request_target safe to use here. The elevated
+# token is needed so the label also lands on pull requests opened from a fork.
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: label-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks out the base branch, not the pull request - the script that runs is this repo's.
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+      - name: Choose a label
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 .github/scripts/label_pull_request.py

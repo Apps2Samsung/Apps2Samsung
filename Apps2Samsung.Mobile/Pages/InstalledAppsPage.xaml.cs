@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Sdb;
+using Apps2Samsung.Mobile.Localization;
 
 namespace Apps2Samsung.Mobile.Pages;
 
@@ -50,8 +51,9 @@ public partial class InstalledAppsPage : ContentPage
 		id = id.Trim();
 
 		var confirm = await DisplayAlert(
-			"Remove leftover",
-			$"Force-remove package \"{id}\" from {_tvLabel}?", "Remove", "Cancel");
+			L10n.Get("lblRemoveLeftoverTitle"),
+			string.Format(L10n.Get("statusConfirmForceRemove"), id, _tvLabel),
+			L10n.Get("lblRemove"), L10n.Get("lblCancel"));
 		if (!confirm)
 			return;
 
@@ -65,15 +67,15 @@ public partial class InstalledAppsPage : ContentPage
 			if (!ok)
 			{
 				SetBusy(false);
-				await DisplayAlert("Remove failed",
-					string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() : result.Error, "OK");
+				await DisplayAlert(L10n.Get("lblRemoveFailed"),
+					string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() : result.Error, L10n.Get("lblOk"));
 				return;
 			}
 		}
 		catch (Exception ex)
 		{
 			SetBusy(false);
-			await DisplayAlert("Remove failed", ex.Message, "OK");
+			await DisplayAlert(L10n.Get("lblRemoveFailed"), ex.Message, L10n.Get("lblOk"));
 			return;
 		}
 
@@ -131,9 +133,9 @@ public partial class InstalledAppsPage : ContentPage
 			return;
 
 		var confirm = await DisplayAlert(
-			"Uninstall app",
-			$"Remove \"{app.DisplayName}\" from {_tvLabel}?\n\n({app.TizenId})",
-			"Uninstall", "Cancel");
+			L10n.Get("lblUninstallApp"),
+			string.Format(L10n.Get("statusConfirmUninstall"), app.DisplayName, _tvLabel, app.TizenId),
+			L10n.Get("lblUninstall"), L10n.Get("lblCancel"));
 		if (!confirm)
 			return;
 
@@ -147,15 +149,15 @@ public partial class InstalledAppsPage : ContentPage
 			if (!ok)
 			{
 				SetBusy(false);
-				await DisplayAlert("Uninstall failed",
-					string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() : result.Error, "OK");
+				await DisplayAlert(L10n.Get("lblUninstallFailed"),
+					string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() : result.Error, L10n.Get("lblOk"));
 				return;
 			}
 		}
 		catch (Exception ex)
 		{
 			SetBusy(false);
-			await DisplayAlert("Uninstall failed", ex.Message, "OK");
+			await DisplayAlert(L10n.Get("lblUninstallFailed"), ex.Message, L10n.Get("lblOk"));
 			return;
 		}
 
@@ -174,17 +176,35 @@ public partial class InstalledAppsPage : ContentPage
 			var result = await _sdb.LaunchAsync(_tvIp, app.TizenId);
 			if (result.ExitCode != 0)
 			{
-				await DisplayAlert("Launch failed", result.Error, "OK");
+				await DisplayAlert(L10n.Get("lblLaunchFailed"), result.Error, L10n.Get("lblOk"));
 			}
 		}
 		catch (Exception ex)
 		{
-			await DisplayAlert("Launch failed", ex.Message, "OK");
+			await DisplayAlert(L10n.Get("lblLaunchFailed"), ex.Message, L10n.Get("lblOk"));
 		}
 		finally
 		{
 			SetBusy(false);
 		}
+	}
+
+	// Opens the app's console over the TV's web inspector. Confirmed first because attaching is not
+	// passive: the inspector only reports a port for the launch debug mode performs itself, so the app
+	// restarts and whatever the user was watching goes away.
+	private async void OnDebugClicked(object? sender, EventArgs e)
+	{
+		if (sender is not Button { BindingContext: InstalledApp app })
+			return;
+
+		var confirm = await DisplayAlert(
+			L10n.Get("lblDebugConsole"),
+			string.Format(L10n.Get("statusDebugConfirmRestart"), app.DisplayName),
+			L10n.Get("lblOk"), L10n.Get("lblCancel"));
+		if (!confirm)
+			return;
+
+		await Navigation.PushAsync(new DebugConsolePage(_sdb, _tvIp, app.TizenId, app.DisplayName));
 	}
 
 	private async void OnStopClicked(object? sender, EventArgs e)
@@ -198,12 +218,12 @@ public partial class InstalledAppsPage : ContentPage
 			var result = await _sdb.ShellAsync(_tvIp, $"0 was_kill {app.TizenId}");
 			if (result.ExitCode != 0)
 			{
-				await DisplayAlert("Stop failed", result.Error, "OK");
+				await DisplayAlert(L10n.Get("lblStopFailed"), result.Error, L10n.Get("lblOk"));
 			}
 		}
 		catch (Exception ex)
 		{
-			await DisplayAlert("Stop failed", ex.Message, "OK");
+			await DisplayAlert(L10n.Get("lblStopFailed"), ex.Message, L10n.Get("lblOk"));
 		}
 		finally
 		{

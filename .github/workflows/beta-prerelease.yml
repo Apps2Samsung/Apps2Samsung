@@ -8,6 +8,8 @@ on:
       - 'docs/**'      # website (GitHub Pages) — deploys on its own, shouldn't trigger an app release
       - '.github/**'   # workflow / repo-meta changes shouldn't trigger an app release
       - 'fastlane/**'  # store-listing metadata (F-Droid/IzzyOnDroid) — not app code
+      - 'crowdin.yml'  # translation sync config — changing it ships nothing, but the build it fired
+                       # overwrote the curated release notes, which then had to be re-applied
   # Allow running the beta release manually (e.g. when a merge didn't fire the push trigger).
   workflow_dispatch:
 
@@ -28,10 +30,11 @@ jobs:
 
     outputs:
       VERSION: ${{ env.VERSION }}
+      VERSION_BETA: ${{ env.VERSION_BETA }}
       VERSION_TAG: ${{ env.VERSION_TAG }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -47,8 +50,20 @@ jobs:
             exit 1
           fi
 
+          # VERSION      = 2.7.9        packaging fields that want a plain number (.deb, Info.plist)
+          # VERSION_BETA = 2.7.9-beta   the version the app itself reports (see the stamp step below)
+          # VERSION_TAG  = v2.7.9-beta  git tag, release name and asset file names
           echo "VERSION=${VERSION#v}" >> $GITHUB_ENV
+          echo "VERSION_BETA=${VERSION#v}-beta" >> $GITHUB_ENV
           echo "VERSION_TAG=${VERSION}-beta" >> $GITHUB_ENV
+
+      # ---------------- BETA MARKER (#578) ----------------
+      # The branch keeps a clean version (the Stable Release workflow rejects a "-beta" one), so
+      # CI adds the marker here — in the build tree only, never committed — and a beta build
+      # reports itself as "v2.7.9-beta" instead of claiming to be the stable v2.7.9.
+      - name: Stamp beta version
+        shell: bash
+        run: python3 .github/scripts/stamp-beta-version.py
 
       # ---------------- RELEASE NOTES ----------------
       # PR-based notes via GitHub's generate-notes API (categorised by
@@ -112,7 +127,7 @@ jobs:
             echo "| 🤖 Android (.apk) | ⚠️ Beta | Sideload; phone as installer head |"
           } > RELEASE_NOTES.md
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
@@ -129,83 +144,33 @@ jobs:
       # ---------------- LINUX (x64 + arm64) ----------------
       - name: Build Linux
         run: |
-          mkdir -p dist
           for ARCH in x64 arm64; do
             dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
               -c Release -r linux-$ARCH -p:SelfContained=true \
               -o publish/linux-$ARCH
-
-            tar -czf "dist/${PRODUCT_NAME}-${VERSION_TAG}-linux-$ARCH.tar.gz" \
-              -C publish/linux-$ARCH .
           done
 
-      # ---------------- LINUX ICON ----------------
-      - name: Linux icon
+      # ---------------- LINUX PACKAGES (tar.gz + deb + rpm + AppImage, x64 + arm64) ----------------
+      # One script for all of them, shared with the stable release and with the PR check that proves
+      # it still builds — see .github/scripts/package-linux.sh (#589).
+      - name: Linux packaging tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y librsvg2-bin
-          rsvg-convert -w 256 -h 256 \
-            jellyfin-tizen-logo.svg -o jellyfin.png
+          sudo apt-get install -y librsvg2-bin dpkg-dev rpm
+          rsvg-convert -w 256 -h 256 jellyfin-tizen-logo.svg -o jellyfin.png
+          curl -fsSL -o /usr/local/bin/appimagetool \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          sudo chmod +x /usr/local/bin/appimagetool
 
-      # ---------------- DEB (x64 + arm64) ----------------
-      - name: Build .deb
+      - name: Build Linux packages
         run: |
-          sudo apt-get install -y dpkg-dev
-
           for ARCH in x64 arm64; do
-            case $ARCH in
-              x64)   DEB_ARCH=amd64 ;;
-              arm64) DEB_ARCH=arm64 ;;
-            esac
-
-            PKG=deb-$ARCH
-            mkdir -p $PKG/opt/apps2samsung \
-                     $PKG/usr/share/{applications,icons/hicolor/256x256/apps}
-
-            cp -R publish/linux-$ARCH/. $PKG/opt/apps2samsung/
-            chmod +x $PKG/opt/apps2samsung/Apps2Samsung
-
-            # 🔥 quick+dirty: allow writes where your app writes
-            mkdir -p \
-              $PKG/opt/apps2samsung/Logs \
-              $PKG/opt/apps2samsung/Downloads \
-              $PKG/opt/apps2samsung/Assets/TizenSDB \
-              $PKG/opt/apps2samsung/Assets/Certificate
-            chmod -R 777 \
-              $PKG/opt/apps2samsung/Logs \
-              $PKG/opt/apps2samsung/Downloads \
-              $PKG/opt/apps2samsung/Assets/TizenSDB \
-              $PKG/opt/apps2samsung/Assets/Certificate
-
-            cp jellyfin.png $PKG/usr/share/icons/hicolor/256x256/apps/apps2samsung.png
-
-            cat > $PKG/usr/share/applications/apps2samsung.desktop <<EOF
-          [Desktop Entry]
-          Name=Apps2Samsung
-          Exec=/opt/apps2samsung/Apps2Samsung
-          Icon=apps2samsung
-          Type=Application
-          Categories=Utility;
-          EOF
-
-            mkdir -p $PKG/DEBIAN
-            cat > $PKG/DEBIAN/control <<EOF
-          Package: apps2samsung
-          Conflicts: jellyfin2samsung
-          Replaces: jellyfin2samsung
-          Provides: jellyfin2samsung
-          Version: ${VERSION}
-          Architecture: ${DEB_ARCH}
-          Maintainer: MadeByPatrick
-          Description: Apps2Samsung
-          EOF
-
-            dpkg-deb --build $PKG
-            mv $PKG.deb dist/${PRODUCT_NAME}-${VERSION_TAG}-linux-$ARCH.deb
+            bash .github/scripts/package-linux.sh \
+              "publish/linux-$ARCH" "$ARCH" "$VERSION" "$VERSION_TAG" dist jellyfin.png
           done
 
       # ---------------- RELEASE (UPDATE SAME TAG EVERY COMMIT) ----------------
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.VERSION_TAG }}
           target_commitish: ${{ github.sha }}
@@ -223,8 +188,14 @@ jobs:
     needs: beta-release
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+
+      # Fresh checkout — stamp the beta marker again (see the beta-release job).
+      - name: Stamp beta version
+        shell: bash
+        run: python3 .github/scripts/stamp-beta-version.py
+
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
@@ -353,7 +324,7 @@ jobs:
             -format UDZO \
             dist/${PRODUCT_NAME}-${{ needs.beta-release.outputs.VERSION_TAG }}-macos-x64.dmg
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.beta-release.outputs.VERSION_TAG }}
           name: ${{ needs.beta-release.outputs.VERSION_TAG }}
@@ -373,13 +344,19 @@ jobs:
     if: ${{ always() && needs.beta-release.result == 'success' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      # Fresh checkout — stamp the beta marker again (see the beta-release job). The APK's own
+      # versionName comes from the -p:ApplicationDisplayVersion below, not from this file.
+      - name: Stamp beta version
+        shell: bash
+        run: python3 .github/scripts/stamp-beta-version.py
+
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
@@ -413,7 +390,7 @@ jobs:
         run: |
           dotnet publish Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj \
             -c Release -f net10.0-android \
-            -p:ApplicationDisplayVersion=${{ needs.beta-release.outputs.VERSION }} \
+            -p:ApplicationDisplayVersion=${{ needs.beta-release.outputs.VERSION_BETA }} \
             -p:ApplicationVersion=${{ github.run_number }} \
             -p:AndroidKeyStore=true \
             -p:AndroidSigningKeyStore="$PWD/a2s.keystore" \
@@ -430,7 +407,7 @@ jobs:
           fi
           cp "$APK" "dist/${PRODUCT_NAME}-${{ needs.beta-release.outputs.VERSION_TAG }}-android.apk"
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.beta-release.outputs.VERSION_TAG }}
           name: ${{ needs.beta-release.outputs.VERSION_TAG }}

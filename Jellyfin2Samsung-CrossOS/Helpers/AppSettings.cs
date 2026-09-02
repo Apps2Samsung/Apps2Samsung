@@ -26,16 +26,6 @@ namespace Apps2Samsung.Helpers
         // Pre-2.5.1 location: next to the binary. Used once to migrate existing users' settings.
         private static readonly string LegacyFilePath = Path.Combine(FolderPath, FileName);
 
-        // Read-only Tizen SDB binary shipped inside the install folder/bundle.
-        public static readonly string BundledTizenSdbPath = Path.Combine(FolderPath, "Assets", "TizenSDB");
-        // Working dir the SDB binary actually runs from. The auto-updater replaces the binary here, so
-        // on macOS it must live OUTSIDE the .app bundle (writing there breaks the code signature and the
-        // TCC Local Network prompt, #498); it's seeded from BundledTizenSdbPath on first use. Windows/
-        // Linux run straight from the bundled copy, unchanged.
-        public static readonly string TizenSdbPath = OperatingSystem.IsMacOS()
-            ? Path.Combine(DataFolderPath, "TizenSDB")
-            : BundledTizenSdbPath;
-
         // Generated signing certificates live in the per-user data dir so they survive app/bundle
         // updates. A macOS .dmg (or an installer) replaces the whole install folder/bundle; if the
         // author cert lived there it would be wiped, a new one generated, and already-installed apps
@@ -47,14 +37,12 @@ namespace Apps2Samsung.Helpers
         public static readonly string ProfilePath = Path.Combine(FolderPath, "Assets", "TizenProfile");
         public static readonly string EsbuildPath = Path.Combine(FolderPath, "Assets", "esbuild");
 
-        // Downloaded-package (.wgt) cache. On macOS this must NOT live inside the .app bundle: writing
-        // there mutates the ad-hoc-signed bundle and breaks static signature validation (issue #498).
-        // Use ~/Library/Caches; Windows/Linux keep it next to the binary (unchanged).
-        public static readonly string DownloadPath = OperatingSystem.IsMacOS()
-            ? Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "Library", "Caches", "Apps2Samsung", "Downloads")
-            : Path.Combine(FolderPath, "Downloads");
+        // Downloaded-package (.wgt) cache. Not inside the install directory on macOS or Linux: writing
+        // into the ad-hoc-signed .app bundle breaks signature validation (#498), and a Linux package
+        // can be installed read-only — root-owned under /opt, or a squashfs mount in an AppImage, where
+        // the download itself would fail (#589). Windows keeps it next to the binary (unchanged).
+        public static readonly string DownloadPath =
+            Apps2Samsung.Portability.UserPaths.Cache(FolderPath, "Downloads");
 
         private static AppSettings? _instance;
 
@@ -137,6 +125,10 @@ namespace Apps2Samsung.Helpers
         public string ManualDuids { get; set; } = "";  // extra Tizen DUIDs to pre-authorize in the distributor cert (one per line / comma-separated)
         public string CustomAppIconsJson { get; set; } = "";  // JSON map { appKey -> "oblong" | custom launcher PNG path } applied to the wgt at install
         public string CustomAppTitlesJson { get; set; } = "";  // JSON map { appKey -> custom title } written into the wgt's config.xml <name> at install
+        // Remote control (#544), keyed by TV IP: the pairing token the TV handed back, and the MAC
+        // read from /api/v2/ while it was awake (the only way to wake it later). See RemoteStore.
+        public string RemoteTokensJson { get; set; } = "";
+        public string RemoteMacsJson { get; set; } = "";
 
         // ----- IAppConfig adapters (not serialized; map the interface onto existing state) -----
         [JsonIgnore]
@@ -157,9 +149,7 @@ namespace Apps2Samsung.Helpers
         [JsonIgnore]
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
         [JsonIgnore]
-        public string AppVersion { get; set; } = "v2.7.8";
-        [JsonIgnore]
-        public string TizenSdb { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-sdb/releases";
+        public string AppVersion { get; set; } = "v2.7.9";
         [JsonIgnore]
         public string JellyfinAvReleaseFork { get; set; } = "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases";
         [JsonIgnore]

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              x:Class="Apps2Samsung.Mobile.Pages.AppIconsPage"
-             Title="App icons"
+             Title="{l:Localize lblAppIcons}"
              NavigationPage.HasNavigationBar="False"
              BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
     <ScrollView>
@@ -18,15 +19,15 @@
                         <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
                                 BackgroundColor="Transparent" BorderWidth="0" Padding="0"
                                 WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
-                        <Label Grid.Column="1" Text="App icons" TextColor="White" FontAttributes="Bold"
+                        <Label Grid.Column="1" Text="{l:Localize lblAppIcons}" TextColor="White" FontAttributes="Bold"
                                VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
                     </Grid>
                 </Border>
 
                 <Label FontSize="12" Opacity="0.6"
-                       Text="Pick an app from the list and give it a custom launcher icon (PNG) and/or a custom title. Both are applied to that package when you install it. Leave either empty to keep the package's default." />
+                       Text="{l:Localize hintAppIconsPage}" />
 
-                <Label x:Name="StatusLabel" FontSize="12" Opacity="0.6" Text="Loading app list…" />
+                <Label x:Name="StatusLabel" FontSize="12" Opacity="0.6" Text="{l:Localize lblLoadingAppList}" />
 
                 <VerticalStackLayout x:Name="IconsContainer" Spacing="10" />
 

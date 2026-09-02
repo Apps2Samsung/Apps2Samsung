@@ -1,0 +1,95 @@
+name: Crowdin sync
+
+# Keeps Crowdin fed with the strings the app actually ships.
+#
+# The project synced through Crowdin's GitHub integration until 2026-06-01, then quietly stopped:
+# en.json held 161 keys then and 412 now, so every string added since - the whole mobile string set,
+# the Remote page, the install guards - was never offered to a translator. Reconnecting the
+# integration didn't move it either; its "Sync branch" left the source file on its June revision, and
+# the 251 missing strings only arrived after being uploaded through the API by hand.
+#
+# So the sync belongs to the repo rather than to an integration that can come loose without saying
+# so. Sources go up whenever en.json changes on beta; translations come back as a pull request.
+#
+# Needs two repository secrets - until they exist the job warns and skips rather than failing:
+#   CROWDIN_PROJECT_ID       numeric project id
+#   CROWDIN_PERSONAL_TOKEN   personal access token with the Projects scope
+
+on:
+  push:
+    branches: [beta]
+    paths:
+      - 'Jellyfin2Samsung-CrossOS/Assets/Localization/en.json'
+      - 'crowdin.yml'
+  # Translations trickle in after an upload, so also collect whatever is ready once a week.
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      upload_translations:
+        description: >-
+          Push the repo's language files UP to Crowdin before downloading. Off by default, and it
+          must stay off for the scheduled and push runs: Crowdin owns the translations, the repo is
+          downstream of it, and a download PR can sit open for days - during which the repo files
+          are OLDER than Crowdin's. Uploading on every run would eventually write that stale copy
+          over a translator's fresh edit, silently, inside Crowdin. Turn it on by hand for the one
+          case it is for: strings fixed directly in the repo that Crowdin still holds an earlier
+          revision of, which it otherwise keeps handing back (see PR #610).
+        type: boolean
+        default: false
+
+concurrency:
+  group: crowdin-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Check for Crowdin credentials
+        id: creds
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        run: |
+          if [ -z "$CROWDIN_PROJECT_ID" ] || [ -z "$CROWDIN_PERSONAL_TOKEN" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN are not set - skipping the sync."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.creds.outputs.configured == 'true'
+
+      - name: Upload sources and open a translations PR
+        if: steps.creds.outputs.configured == 'true'
+        uses: crowdin/github-action@v3
+        with:
+          # The strings live under Crowdin's own "beta" branch (its file is /beta/...en.json), while
+          # crowdin.yml addresses the repo root. Without naming the branch the CLI compares the two
+          # and drops what doesn't line up - "Downloaded translations don't match the current project
+          # configuration ... will be omitted".
+          crowdin_branch_name: beta
+          upload_sources: true
+          # Only ever true for a deliberate workflow_dispatch; `inputs` is null on schedule/push.
+          upload_translations: ${{ inputs.upload_translations || false }}
+          download_translations: true
+          localization_branch_name: l10n_beta
+          create_pull_request: true
+          pull_request_base_branch_name: beta
+          pull_request_title: 'i18n: new translations from Crowdin'
+          pull_request_body: |
+            Translations downloaded from Crowdin. Merging updates the language files both heads embed.
+          commit_message: 'i18n: new translations from Crowdin'
+        env:
+          # The default GITHUB_TOKEN pushes the branch fine but cannot open the pull request -
+          # "GitHub Actions is not permitted to create or approve pull requests" is an account-level
+          # setting, not something a workflow permission can grant. Use the same admin PAT the F-Droid
+          # and version-table workflows push with. See fdroid/README.md for when it has to be renewed.
+          GITHUB_TOKEN: ${{ secrets.CI_PUSH_TOKEN || secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

@@ -5,12 +5,13 @@
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
         xmlns:models="clr-namespace:Apps2Samsung.Models;assembly=Apps2Samsung.Core"
         x:Class="Apps2Samsung.Views.InstalledAppsWindow"
+        Icon="/Assets/jelly2sams.png"
         x:Name="Root"
         x:DataType="viewModels:InstalledAppsViewModel"
         Width="560" MinWidth="460"
         Height="620" MinHeight="420"
         WindowStartupLocation="CenterOwner"
-        Title="Installed apps">
+        Title="{l:Localize lblInstalledApps}">
 
     <Window.Styles>
         <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>

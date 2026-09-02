@@ -292,8 +292,12 @@ namespace Apps2Samsung.Services
                 await dialog.ShowDialog(window);
         }
 
-        public async Task<bool> ShowConfirmationAsync(string title, string message, string yesText = "Yes", string noText = "No", Window? owner = null)
+        // The defaults have to be compile-time constants, so they are empty here and filled in
+        // from the catalog below — otherwise an unlocalized "Yes"/"No" would ship.
+        public async Task<bool> ShowConfirmationAsync(string title, string message, string? yesText = null, string? noText = null, Window? owner = null)
         {
+            yesText ??= "keyYes".Localized();
+            noText ??= "keyNo".Localized();
             var window = owner ?? GetMainWindow();
             var tcs = new TaskCompletionSource<bool>();
             var isDarkMode = AppSettings.Default.DarkMode;
@@ -399,6 +403,59 @@ namespace Apps2Samsung.Services
 
             await dialog.ShowDialog(window);
             return await tcs.Task;
+        }
+
+        public async Task ShowMessageWithLinkAsync(string title, string message, string linkText, string url, string? closeText = null)
+        {
+            var window = GetMainWindow();
+            if (window == null)
+                return;
+
+            var isDarkMode = AppSettings.Default.DarkMode;
+            var foregroundBrush = GetThemeBrush("SystemControlForegroundBaseHighBrush", isDarkMode);
+
+            var tcs = new TaskCompletionSource<bool>();
+            var dialog = CreateStyledDialog(
+                title,
+                new TextBlock
+                {
+                    Text = message,
+                    TextWrapping = TextWrapping.Wrap,
+                    Foreground = foregroundBrush,
+                    FontSize = 14,
+                    Margin = new Thickness(0, 5, 0, 0)
+                },
+                showButtons: true,
+                tcs: tcs,
+                yesText: linkText,
+                noText: closeText ?? "btn_Close".Localized(),
+                // The link label is a sentence, not a "Yes" — let the button grow to fit it.
+                onButtonsCreated: (yes, no) =>
+                {
+                    yes.Width = double.NaN;
+                    yes.MinWidth = 90;
+                    yes.Padding = new Thickness(14, 0);
+                    no.Width = double.NaN;
+                    no.MinWidth = 90;
+                    no.Padding = new Thickness(14, 0);
+                });
+
+            // Closing via the window chrome never resolves the TCS on its own.
+            dialog.Closed += (_, _) => tcs.TrySetResult(false);
+
+            await dialog.ShowDialog(window);
+
+            if (await tcs.Task)
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"Failed to open URL '{url}': {ex}");
+                }
+            }
         }
 
         public async Task<string?> PromptForIpAsync()

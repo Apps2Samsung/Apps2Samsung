@@ -1,7 +1,4 @@
-using System.IO.Compression;
-using System.Linq;
 using System.Net.Http.Headers;
-using System.Xml.Linq;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
@@ -70,7 +67,7 @@ public sealed class WgtInstaller
 
 		// The Tizen app/package ids live in the package's config.xml; needed to remove an old
 		// version before install and/or launch the app afterwards.
-		var (appId, packageId) = ReadPackageIds(wgtPath);
+		var (appId, packageId) = await WgtManifest.ReadIdsAsync(wgtPath);
 
 		// Pre-install Tizen version gate (shared Core check, same as the desktop head): if the package
 		// declares a required_version newer than this TV, fail up front with a clear message instead of
@@ -235,35 +232,6 @@ public sealed class WgtInstaller
 
 		await ClearPartialIfFresh();
 		throw new InvalidOperationException($"Install failed: {Detail(failed.Error, failed.Output)}");
-	}
-
-	// Reads the Tizen application id and package id from the package's config.xml. A .wgt is a zip;
-	// its root config.xml carries <tizen:application id="<pkg>.<app>" package="<pkg>" .../>.
-	private static (string? AppId, string? PackageId) ReadPackageIds(string wgtPath)
-	{
-		try
-		{
-			using var zip = ZipFile.OpenRead(wgtPath);
-			var entry = zip.GetEntry("config.xml");
-			if (entry is null)
-				return (null, null);
-
-			using var stream = entry.Open();
-			var doc = XDocument.Load(stream);
-			XNamespace tizen = "http://tizen.org/ns/widgets";
-			var app = doc.Descendants(tizen + "application").FirstOrDefault();
-			if (app is null)
-				return (null, null);
-
-			var appId = app.Attribute("id")?.Value;
-			var packageId = app.Attribute("package")?.Value
-				?? appId?.Split('.').FirstOrDefault();
-			return (appId, packageId);
-		}
-		catch
-		{
-			return (null, null);
-		}
 	}
 
 	private static string Detail(string error, string output) =>

@@ -8,8 +8,16 @@ namespace Apps2Samsung.Interfaces
     {
         Task ShowMessageAsync(string title, string message);
         Task ShowErrorAsync(string message);
-        Task<bool> ShowConfirmationAsync(string title, string message, string yes, string no, Window? owner = null);
+        /// <summary>Confirmation prompt. Null button labels fall back to the localized Yes/No.</summary>
+        Task<bool> ShowConfirmationAsync(string title, string message, string? yes = null, string? no = null, Window? owner = null);
         Task<string?> PromptForIpAsync();
+
+        /// <summary>
+        /// A message dialog whose primary button opens <paramref name="url"/> in the system browser
+        /// before closing. Used where the fix lives on a web page the user has to visit (e.g. adding
+        /// a missing email to their Samsung account).
+        /// </summary>
+        Task ShowMessageWithLinkAsync(string title, string message, string linkText, string url, string? closeText = null);
 
         /// <summary>Prompts for a free-form line of text. Returns the entered text, or null if cancelled.</summary>
         Task<string?> PromptForTextAsync(string title, string message, string placeholder);

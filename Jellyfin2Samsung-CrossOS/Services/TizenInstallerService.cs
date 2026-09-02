@@ -17,7 +17,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,12 +28,10 @@ namespace Apps2Samsung.Services
         private readonly IDialogService _dialogService;
         private readonly AppSettings _appSettings;
         private readonly IEnumerable<IPackagePatcher> _packagePatchers;
-        private readonly ProcessHelper _processHelper;
         private readonly ISdbEngine _sdb;
         private readonly ISamsungLoginService _login;
         private readonly CertificateProvisioningService _provisioning;
 
-        public string? TizenSdbPath { get; private set; }
         public string? PackageCertificate { get; set; }
 
         public TizenInstallerService(
@@ -43,7 +40,6 @@ namespace Apps2Samsung.Services
             AppSettings appSettings,
             IEnumerable<IPackagePatcher> packagePatchers,
             JellyfinApiClient jellyfinApiClient,
-            ProcessHelper processHelper,
             ISdbEngine sdb,
             ISamsungLoginService samsungLogin,
             CertificateProvisioningService provisioning)
@@ -52,224 +48,26 @@ namespace Apps2Samsung.Services
             _dialogService = dialogService;
             _appSettings = appSettings;
             _packagePatchers = packagePatchers;
-            _processHelper = processHelper;
             _sdb = sdb;
             _login = samsungLogin;
             _provisioning = provisioning;
         }
 
-        #region TizenSdb Management
+        #region Package Download
 
-        public async Task<string> EnsureTizenSdbAvailable()
-        {
-            string tizenSdbPath = AppSettings.TizenSdbPath;
-
-            // On macOS the SDB runs from a writable per-user dir (see AppSettings.TizenSdbPath): the
-            // updater rewrites the binary and doing that inside the signed .app bundle breaks TCC
-            // (#498). Seed it from the read-only bundled copy on first use.
-            if (OperatingSystem.IsMacOS() && tizenSdbPath != AppSettings.BundledTizenSdbPath)
-            {
-                Directory.CreateDirectory(tizenSdbPath);
-                if (!Directory.EnumerateFileSystemEntries(tizenSdbPath).Any()
-                    && Directory.Exists(AppSettings.BundledTizenSdbPath))
-                {
-                    foreach (var src in Directory.GetFiles(AppSettings.BundledTizenSdbPath))
-                    {
-                        var dest = Path.Combine(tizenSdbPath, Path.GetFileName(src));
-                        File.Copy(src, dest, overwrite: true);
-                        await _processHelper.MakeExecutableAsync(dest);
-                    }
-                }
-            }
-
-            if (!Directory.Exists(tizenSdbPath))
-            {
-                throw new InvalidOperationException(
-                    $"Required component missing.\n\nExpected directory:\n{tizenSdbPath}\n\n" +
-                    "Please redownload the application."
-                );
-            }
-
-            var existingFile = Directory.GetFiles(tizenSdbPath, PlatformService.GetTizenSdbSearchPattern()).FirstOrDefault();
-            var latestVersion = string.Empty;
-
-            try
-            {
-                latestVersion = await GetLatestTizenSdbVersionAsync();
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"Failed to fetch Tizen SDB version: {ex}");
-            }
-
-            if (existingFile != null && !ShouldUpdateBinary(existingFile, latestVersion))
-            {
-                TizenSdbPath = existingFile;
-                return TizenSdbPath;
-            }
-
-            string? downloadedFile = await DownloadTizenSdbAsync();
-
-            // Couldn't fetch a fresh binary (offline / proxy / GitHub outage / no releases). Fall back
-            // to an existing copy if we have one; otherwise report failure (empty path) so the UI shows
-            // the FailedTizenSdb banner instead of crashing initialization (#547).
-            if (string.IsNullOrEmpty(downloadedFile))
-            {
-                if (existingFile != null && File.Exists(existingFile))
-                {
-                    Trace.WriteLine("[TizenSdb] Download unavailable — using the existing Tizen SDB binary.");
-                    await _processHelper.MakeExecutableAsync(existingFile);
-                    TizenSdbPath = existingFile;
-                    return TizenSdbPath;
-                }
-
-                Trace.WriteLine("[TizenSdb] Download unavailable and no existing binary — signalling failure.");
-                TizenSdbPath = null;
-                return string.Empty;
-            }
-
-            if (existingFile != null && File.Exists(existingFile))
-            {
-                await _processHelper.MakeExecutableAsync(existingFile);
-                File.Delete(existingFile);
-            }
-
-            string finalPath = Path.Combine(tizenSdbPath, PlatformService.GetTizenSdbFileName(latestVersion));
-            File.Move(downloadedFile, finalPath, true);
-            await _processHelper.MakeExecutableAsync(finalPath);
-
-            TizenSdbPath = finalPath;
-            return TizenSdbPath;
-        }
-
-        private static bool ShouldUpdateBinary(string existingFilePath, string latestVersion)
-        {
-            try
-            {
-                var fileName = Path.GetFileName(existingFilePath);
-                var match = RegexPatterns.Version.FileNameVersion.Match(fileName);
-
-                if (!match.Success)
-                    return true;
-
-                string currentVersion = match.Groups[1].Value;
-                return IsVersionGreater(latestVersion, currentVersion);
-            }
-            catch
-            {
-                return true;
-            }
-        }
-
-        private static bool IsVersionGreater(string latestVersion, string currentVersion)
-        {
-            var latest = Version.TryParse(latestVersion.TrimStart('v'), out var latestVer) ? latestVer : null;
-            var current = Version.TryParse(currentVersion.TrimStart('v'), out var currentVer) ? currentVer : null;
-
-            if (latest == null || current == null)
-                return false;
-
-            return latest > current;
-        }
-
-        private async Task<string> GetLatestTizenSdbVersionAsync()
-        {
-            using var timeoutCts = new CancellationTokenSource(
-                TimeSpan.FromSeconds(Constants.Defaults.HttpRequestTimeoutSeconds));
-
-            try
-            {
-                using var response = await _httpClient.GetAsync(
-                    AppSettings.Default.TizenSdb,
-                    timeoutCts.Token);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new HttpRequestException(
-                        $"GitHub returned {(int)response.StatusCode}");
-                }
-
-                var json = await response.Content.ReadAsStringAsync();
-                var releases = JsonSerializer.Deserialize<List<GitHubRelease>>(json, JsonSerializerOptionsProvider.Default);
-                // Skip drafts: GitHub sorts them to the top of the list once authenticated, but their
-                // assets aren't downloadable. Take the newest published release.
-                var firstRelease = releases?.FirstOrDefault(r => !r.Draft);
-
-                if (firstRelease == null)
-                    throw new InvalidOperationException("No releases found");
-
-                return firstRelease.TagName ?? Constants.Defaults.TizenSdbDefaultVersion;
-            }
-            catch (OperationCanceledException)
-            {
-                throw new TimeoutException("GitHub did not respond in time.");
-            }
-        }
-
-        /// <summary>
-        /// Downloads the platform Tizen SDB binary from the tizen-sdb GitHub releases. Returns the
-        /// downloaded file path, or <c>null</c> if it couldn't be fetched (GitHub unreachable/unstable,
-        /// rate-limited, no releases, or no matching asset). Never throws for those cases, so
-        /// <see cref="EnsureTizenSdbAvailable"/> can degrade to the FailedTizenSdb banner instead of
-        /// crashing initialization (#547).
-        /// </summary>
-        public async Task<string?> DownloadTizenSdbAsync()
-        {
-            try
-            {
-                var json = await _httpClient.GetStringAsync(AppSettings.Default.TizenSdb);
-                var releases = JsonSerializer.Deserialize<List<GitHubRelease>>(json, JsonSerializerOptionsProvider.Default);
-                // Skip drafts: GitHub sorts them to the top once authenticated, but a draft's asset
-                // browser_download_url 404s. Take the newest published release.
-                var firstRelease = releases?.FirstOrDefault(r => !r.Draft);
-                if (firstRelease is null)
-                {
-                    Trace.WriteLine("[TizenSdb] GitHub returned no releases for tizen-sdb — cannot download.");
-                    return null;
-                }
-
-                string nameMatch = PlatformService.GetAssetPlatformIdentifier();
-                var matchedAsset = firstRelease.Assets.FirstOrDefault(a =>
-                    !string.IsNullOrEmpty(a.FileName) &&
-                    a.FileName.Contains(nameMatch, StringComparison.OrdinalIgnoreCase));
-
-                if (matchedAsset is null)
-                {
-                    Trace.WriteLine($"[TizenSdb] No matching Tizen SDB asset for '{nameMatch}'.");
-                    return null;
-                }
-
-                return await DownloadPackageAsync(matchedAsset.DownloadUrl);
-            }
-            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
-            {
-                Trace.WriteLine("[TizenSdb] GitHub rate limit reached while fetching Tizen SDB. " +
-                    "Set a GitHub PAT in settings / GITHUB_TOKEN / 'gh auth login' to avoid this.");
-                return null;
-            }
-            catch (Exception ex)
-            {
-                // Offline, corporate proxy/firewall blocking api.github.com, a GitHub outage, a 404/504,
-                // or malformed JSON — degrade gracefully rather than taking down startup (#547).
-                Trace.WriteLine($"[TizenSdb] Could not download Tizen SDB: {ex.GetType().Name} — {ex.Message}");
-                return null;
-            }
-        }
-
-        // <paramref name="validateWgt"/>: the download is a .wgt (a zip) and should be verified
-        // as a valid archive. Off for non-archive downloads like the raw Tizen SDB binary.
-        public async Task<string> DownloadPackageAsync(string downloadUrl, bool validateWgt = false)
+        // Downloads a .wgt and verifies it is a valid archive before handing it back.
+        public async Task<string> DownloadPackageAsync(string downloadUrl)
         {
             var fileName = UrlHelper.GetFileNameFromUrl(downloadUrl);
             var localPath = Path.Combine(AppSettings.DownloadPath, fileName);
 
-            // Reuse a cached copy. For a .wgt, only if it's actually a valid archive: a previous
-            // download that was interrupted (network drop, VPN reset, app quit) can leave a
-            // truncated file here, and returning it blindly makes the patcher fail later with
+            // Reuse a cached copy, but only if it's actually a valid archive: a previous download
+            // that was interrupted (network drop, VPN reset, app quit) can leave a truncated file
+            // here, and returning it blindly makes the patcher fail later with
             // "End of Central Directory record could not be found". If corrupt, drop and re-download.
             if (File.Exists(localPath))
             {
-                if (!validateWgt || IsValidZipArchive(localPath))
+                if (IsValidZipArchive(localPath))
                     return localPath;
 
                 Trace.WriteLine($"[Download] Cached package is corrupt, re-downloading: {localPath}");
@@ -301,7 +99,7 @@ namespace Apps2Samsung.Services
                     throw new IOException($"Download incomplete: received {actual} of {expected.Value} bytes.");
 
                 // .wgt is a zip — if the trailer isn't there, the file is truncated/corrupt.
-                if (validateWgt && !IsValidZipArchive(tempPath))
+                if (!IsValidZipArchive(tempPath))
                     throw new InvalidDataException("Downloaded package is not a valid .wgt archive (corrupt or incomplete).");
 
                 File.Move(tempPath, localPath, overwrite: true);
@@ -360,18 +158,6 @@ namespace Apps2Samsung.Services
             Action? onSamsungLoginStarted = null,
             bool? wasAlreadyInstalled = null)
         {
-            if (TizenSdbPath is null)
-            {
-                progress?.Invoke(Constants.LocalizationKeys.InstallTizenSdb.Localized());
-                await EnsureTizenSdbAvailable();
-
-                if (TizenSdbPath is null)
-                {
-                    await _dialogService.ShowErrorAsync(Constants.LocalizationKeys.FailedTizenSdb.Localized());
-                    return InstallResult.FailureResult(Constants.LocalizationKeys.InstallTizenSdb.Localized());
-                }
-            }
-
             // Record whether the app was already on the TV BEFORE this run (once, on the outer call;
             // recursive retries carry the original value forward). This gates the fresh-install partial
             // cleanup in HandleInstallationResultAsync: we only clear a partial for an app that wasn't
@@ -492,7 +278,7 @@ namespace Apps2Samsung.Services
                         Trace.WriteLine($"Resign output: {resignResults.Output}");
                         progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
                         _appSettings.TryOverwrite = false;
-                        return InstallResult.FailureResult($"Package resigning failed: {resignResults.Output}");
+                        return InstallResult.FailureResult(string.Format("statusResignFailed".Localized(), resignResults.Output));
                     }
                 }
 
@@ -761,6 +547,24 @@ namespace Apps2Samsung.Services
                         P12Password = profile.Password
                     };
                 }
+                catch (SamsungAccountEmailMissingException)
+                {
+                    // Core's guard for a Samsung account with no email on it, which the distributor
+                    // CSR needs for its subject. Left to the generic handler below it would come out
+                    // as a bare error dialog, so show the account page instead (issue #606).
+                    Trace.WriteLine("[Cert] Samsung account has no email address; can't build the distributor CSR.");
+                    await _dialogService.ShowMessageWithLinkAsync(
+                        "lblSamsungAccountNoEmailTitle".Localized(),
+                        "statusSamsungAccountNoEmail".Localized(),
+                        "lblOpenSamsungAccount".Localized(),
+                        SamsungAccountEmailMissingException.AccountUrl);
+
+                    return new CertificateResult
+                    {
+                        Success = false,
+                        InstallResult = InstallResult.FailureResult("statusSamsungAccountNoEmail".Localized())
+                    };
+                }
                 catch (Exception ex)
                 {
                     Trace.WriteLine($"[Cert] Provisioning failed: {ex.Message}");
@@ -808,11 +612,30 @@ namespace Apps2Samsung.Services
 
                 if (string.IsNullOrEmpty(auth.access_token))
                 {
-                    await _dialogService.ShowErrorAsync("Failed to authenticate with Samsung account.");
+                    await _dialogService.ShowErrorAsync("statusSamsungAuthFailed".Localized());
                     return new CertificateResult
                     {
                         Success = false,
-                        InstallResult = InstallResult.FailureResult("Auth failed.")
+                        InstallResult = InstallResult.FailureResult("statusAuthFailed".Localized())
+                    };
+                }
+
+                // The distributor CSR needs the account's email for its subject. Samsung accounts
+                // without one hand us null, which used to surface as a bare "Object reference not set
+                // to an instance of an object" from inside BouncyCastle (issue #606). Point the user
+                // straight at their account page instead.
+                if (string.IsNullOrWhiteSpace(auth.inputEmailID))
+                {
+                    await _dialogService.ShowMessageWithLinkAsync(
+                        "lblSamsungAccountNoEmailTitle".Localized(),
+                        "statusSamsungAccountNoEmail".Localized(),
+                        "lblOpenSamsungAccount".Localized(),
+                        SamsungAccountEmailMissingException.AccountUrl);
+
+                    return new CertificateResult
+                    {
+                        Success = false,
+                        InstallResult = InstallResult.FailureResult("statusSamsungAccountNoEmail".Localized())
                     };
                 }
 
@@ -1018,7 +841,7 @@ namespace Apps2Samsung.Services
                     return;
                 try
                 {
-                    var pkgId = await FileHelper.ReadWgtPackageId(packageUrl);
+                    var pkgId = await WgtManifest.ReadPackageIdAsync(packageUrl);
                     if (!string.IsNullOrWhiteSpace(pkgId))
                         await _sdb.UninstallAsync(tvIpAddress, pkgId!);
                 }
@@ -1054,7 +877,8 @@ namespace Apps2Samsung.Services
 
                 _appSettings.TryOverwrite = false;
                 Trace.WriteLine("Installation failed, insufficient space!");
-                return InstallResult.FailureResult($"Installation failed: {Constants.LocalizationKeys.InsufficientSpace.Localized()}");
+                return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(),
+                    Constants.LocalizationKeys.InsufficientSpace.Localized()));
             }
 
             // Handle certificate mismatch: the installed copy was signed with a different
@@ -1104,16 +928,32 @@ namespace Apps2Samsung.Services
                 if (_appSettings.TryOverwrite)
                 {
                     _appSettings.TryOverwrite = false;
-                    // Give the package a fresh random id and retry. Only retry if the id was actually
-                    // rewritten — if the config couldn't be read/modified (previously silent for any
+
+                    // Preferred remedy: remove the copy we collide with and reinstall under the
+                    // package's own id. Renaming works too, but keeping the id is strictly better —
+                    // a package's service components (<tizen:service id="Pkg.Service">) and the app
+                    // code that launches them by literal id are only valid while the id stays what
+                    // the package was built with, and the TV keeps one app entry instead of two.
+                    if (await TryRemoveConflictingPackageAsync(tvIpAddress, packageUrl, progress))
+                        return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
+
+                    // Fallback: give the package a new id and retry. Only retry if the rename actually
+                    // happened — if config.xml couldn't be read/modified (previously silent for any
                     // non-".Jellyfin" variant like LiteFin, #400), retrying would hit the identical
                     // [118] conflict, so fall through to a clear failure instead.
-                    if (await FileHelper.ModifyWgtPackageId(packageUrl))
+                    var rename = await PackageIdRewriter.RandomizeAsync(packageUrl);
+                    if (rename is not null)
+                    {
+                        Trace.WriteLine(
+                            $"[Install] Renamed package {rename.OldId} -> {rename.NewId} across " +
+                            $"{rename.FilesChanged.Count} file(s) after a [118] conflict.");
                         return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
+                    }
                 }
 
                 _appSettings.TryOverwrite = false;
-                return InstallResult.FailureResult($"Installation failed: {Constants.LocalizationKeys.ModifyConfigRequired.Localized()}");
+                return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(),
+                    Constants.LocalizationKeys.ModifyConfigRequired.Localized()));
             }
 
             // Handle generic failure
@@ -1130,7 +970,7 @@ namespace Apps2Samsung.Services
                 _appSettings.TryOverwrite = false;
                 // Retries exhausted on a generic failure — clear any partial left by a fresh install.
                 await ClearPartialIfFresh();
-                return InstallResult.FailureResult($"Installation failed: {installResults.Output}");
+                return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(), installResults.Output));
             }
 
             // Handle success
@@ -1162,7 +1002,7 @@ namespace Apps2Samsung.Services
             _appSettings.TryOverwrite = false;
             // Retries exhausted on an unknown result — clear any partial left by a fresh install.
             await ClearPartialIfFresh();
-            return InstallResult.FailureResult($"Installation failed: {installResults.Output}");
+            return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(), installResults.Output));
         }
 
         #endregion
@@ -1177,7 +1017,6 @@ namespace Apps2Samsung.Services
 
         public async Task<IReadOnlyList<InstalledApp>> GetInstalledAppsAsync(string tvIpAddress)
         {
-            await EnsureTizenSdbAvailable();
             try
             {
                 var result = await _sdb.AppsAsync(tvIpAddress);
@@ -1191,7 +1030,6 @@ namespace Apps2Samsung.Services
 
         public async Task<TizenDeviceInfo> GetDeviceInfoAsync(string tvIpAddress, bool debugPortOpen)
         {
-            await EnsureTizenSdbAvailable();
             try
             {
                 return await Apps2Samsung.Sdb.TizenDeviceInfoService.GatherAsync(_sdb, tvIpAddress, debugPortOpen);
@@ -1204,7 +1042,6 @@ namespace Apps2Samsung.Services
 
         public async Task<ProcessResult> UninstallAppAsync(string tvIpAddress, string tizenId)
         {
-            await EnsureTizenSdbAvailable();
             try
             {
                 return await _sdb.UninstallAsync(tvIpAddress, tizenId);
@@ -1217,7 +1054,6 @@ namespace Apps2Samsung.Services
 
         public async Task LaunchAppAsync(string tvIpAddress, string tizenId)
         {
-            await EnsureTizenSdbAvailable();
             try
             {
                 var result = await _sdb.LaunchAsync(tvIpAddress, tizenId);
@@ -1232,7 +1068,6 @@ namespace Apps2Samsung.Services
 
         public async Task StopAppAsync(string tvIpAddress, string tizenId)
         {
-            await EnsureTizenSdbAvailable();
             try
             {
                 var result = await _sdb.ShellAsync(tvIpAddress, $"0 was_kill {tizenId}");
@@ -1253,34 +1088,13 @@ namespace Apps2Samsung.Services
             }
         }
 
+        // Debug-mode launch + inspector tunnel live in Core (Sdb/TizenAppDebugger), shared with the
+        // mobile head. Only what happens with the local port differs: here it is handed to Chrome's
+        // inspect page, which looks for 9222 specifically — hence the fixed port rather than a free one.
         public async Task<(int LocalPort, IAsyncDisposable ForwardSession)> DebugAppAsync(string tvIpAddress, string tizenId)
         {
-            await EnsureTizenSdbAvailable();
-            try
-            {
-                var result = await _sdb.ShellAsync(tvIpAddress, $"0 debug {tizenId}");
-                if (result.ExitCode != 0)
-                {
-                    string errorMsg = string.IsNullOrWhiteSpace(result.Error) ? result.Output : result.Error;
-                    throw new Exception($"Failed to start debug mode for {tizenId}: {errorMsg}");
-                }
-
-                var match = System.Text.RegularExpressions.Regex.Match(result.Output, @"port:\s*(\d+)");
-                if (!match.Success)
-                {
-                    throw new Exception($"Failed to detect the debug port from the device. Output: {result.Output}");
-                }
-                
-                int remotePort = int.Parse(match.Groups[1].Value);
-                int localPort = 9222;
-
-                var forwardSession = await _sdb.ForwardAsync(tvIpAddress, localPort, remotePort);
-                return (localPort, forwardSession);
-            }
-            finally
-            {
-                await _sdb.DisconnectAsync(tvIpAddress);
-            }
+            var session = await Apps2Samsung.Sdb.TizenAppDebugger.StartAsync(_sdb, tvIpAddress, tizenId, localPort: 9222);
+            return (session.LocalPort, session);
         }
 
         private async Task<(string tizenOs, string sdkToolPath)> FetchCapabilitiesAsync(string tvIpAddress)
@@ -1320,18 +1134,64 @@ namespace Apps2Samsung.Services
         private static string GetPackageAppTitle(string packageUrl)
             => Path.GetFileNameWithoutExtension(packageUrl).Split('-')[0];
 
+        /// <summary>
+        /// Removes the package we collide with on a [118] id conflict, so the install can be retried
+        /// under the package's own id instead of a renamed one. False when there was nothing to
+        /// remove or the TV refused — the caller then falls back to renaming.
+        /// </summary>
+        private async Task<bool> TryRemoveConflictingPackageAsync(
+            string tvIpAddress, string packageUrl, ProgressCallback? progress)
+        {
+            var packageId = await WgtManifest.ReadPackageIdAsync(packageUrl);
+            if (string.IsNullOrEmpty(packageId))
+                return false;
+
+            progress?.Invoke(Constants.LocalizationKeys.DeleteExistingVersion.Localized());
+            var uninstallResult = await UninstallPackageAsync(tvIpAddress, packageId!);
+
+            // Nothing installed under this id: the conflict is with something we can't address by
+            // removing it, so renaming is the only remaining remedy.
+            if (uninstallResult.Output.Contains(Constants.TizenErrorCodes.NotInstalled))
+            {
+                Trace.WriteLine($"[Install] Nothing installed as '{packageId}' to remove; will rename instead.");
+                return false;
+            }
+
+            var (stillInstalled, _) = await CheckForInstalledApp(tvIpAddress, packageUrl);
+            if (stillInstalled)
+            {
+                Trace.WriteLine($"[Install] Could not remove the conflicting '{packageId}'; will rename instead.");
+                progress?.Invoke(Constants.LocalizationKeys.DeleteExistingFailed.Localized());
+                return false;
+            }
+
+            progress?.Invoke(Constants.LocalizationKeys.DeleteExistingSuccess.Localized());
+            return true;
+        }
+
         private async Task<(bool isInstalled, string? appId)> CheckForInstalledApp(string tvIpAddress, string packageUrl)
         {
             var result = await _sdb.AppsAsync(tvIpAddress);
             var output = result?.Output ?? string.Empty;
 
             // Read what the WGT *claims* its app id is (best effort fallback for "no listing" cases)
-            var wgtAppId = await FileHelper.ReadWgtApplicationId(packageUrl);
+            var wgtAppId = await WgtManifest.ReadApplicationIdAsync(packageUrl);
 
             // Case 3: no listing -> assume installed, return WGT app id as best-effort
             if (string.IsNullOrWhiteSpace(output) ||
                 output.Contains("Could not retrieve app list", StringComparison.OrdinalIgnoreCase) ||
                 output.Contains("Remote closed channel", StringComparison.OrdinalIgnoreCase))
+            {
+                return (true, wgtAppId);
+            }
+
+            // Case 0: the app id the package declares is the reliable signal — look for it first.
+            // The title search below has to guess the title from the wgt filename, which misses
+            // whenever the two differ ("NuvioTV-Tizen-1.0.4.wgt" vs the TV's "Nuvio TV"). That miss
+            // reported a plainly-installed app as absent, so nothing was uninstalled and the install
+            // ran into a [118] id conflict it then "fixed" by renaming the package.
+            if (!string.IsNullOrWhiteSpace(wgtAppId) &&
+                RegexPatterns.TizenApp.CreateAppIdPresenceRegex(wgtAppId!).IsMatch(output))
             {
                 return (true, wgtAppId);
             }

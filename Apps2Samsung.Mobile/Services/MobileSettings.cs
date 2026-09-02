@@ -11,6 +11,7 @@ namespace Apps2Samsung.Mobile.Services;
 /// </summary>
 public static class MobileSettings
 {
+	private const string KeyLanguage = "language";
 	private const string KeyRemoveOld = "remove_old_version";
 	private const string KeyOpenAfter = "open_after_install";
 	private const string KeyKeepWgt = "keep_wgt_file";
@@ -29,6 +30,8 @@ public static class MobileSettings
 	private const string KeyJellyfinCustomCss = "jellyfin_custom_css";
 	private const string KeyJellyfinPatchYoutube = "jellyfin_patch_youtube";
 	private const string KeyJellyfinAccessToken = "jellyfin_access_token"; // SecureStorage
+	private const string KeyRemoteTokenPrefix = "remote_token_"; // one per TV, keyed by IP
+	private const string KeyRemoteMacPrefix = "remote_mac_"; // one per TV, keyed by IP
 
 	/// <summary>Uninstall the previous version before installing (desktop: "Remove old version").</summary>
 	public static bool DeletePreviousInstall
@@ -249,4 +252,45 @@ public static class MobileSettings
 	public static string[] ParseDuids() =>
 		ManualDuids.Split(new[] { '\n', '\r', ',', ';' },
 			StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+	/// <summary>
+	/// The UI language as a two-letter code. Empty until the first run has detected one, which is when
+	/// the shared catalog commits the OS language (see L10n) — the same detect-once behaviour as the
+	/// desktop head's AppSettings.Language.
+	/// </summary>
+	public static string Language
+	{
+		get => Preferences.Get(KeyLanguage, string.Empty);
+		set => Preferences.Set(KeyLanguage, value);
+	}
+
+	/// <summary>
+	/// The TV's remote-control pairing token, or null when this TV hasn't been paired yet. Kept in
+	/// <see cref="Preferences"/> rather than SecureStorage: it only authorizes button presses to one
+	/// TV on the local network, and it has to be readable synchronously while the remote page opens.
+	/// </summary>
+	public static string? GetRemoteToken(string tvIpAddress)
+	{
+		var token = Preferences.Get(KeyRemoteTokenPrefix + tvIpAddress, string.Empty);
+		return string.IsNullOrEmpty(token) ? null : token;
+	}
+
+	/// <summary>Stores the token the TV handed back, so the next session connects without prompting.</summary>
+	public static void SetRemoteToken(string tvIpAddress, string token) =>
+		Preferences.Set(KeyRemoteTokenPrefix + tvIpAddress, token);
+
+	/// <summary>
+	/// The TV's MAC, remembered from a moment when the set was awake. A sleeping TV answers nothing,
+	/// so this cache is what makes powering one back on possible at all (Wake-on-LAN).
+	/// </summary>
+	public static string? GetRemoteMac(string tvIpAddress)
+	{
+		var mac = Preferences.Get(KeyRemoteMacPrefix + tvIpAddress, string.Empty);
+		return string.IsNullOrEmpty(mac) ? null : mac;
+	}
+
+	/// <summary>Remembers the TV's MAC for a later wake.</summary>
+	public static void SetRemoteMac(string tvIpAddress, string macAddress) =>
+		Preferences.Set(KeyRemoteMacPrefix + tvIpAddress, macAddress);
 }
+
