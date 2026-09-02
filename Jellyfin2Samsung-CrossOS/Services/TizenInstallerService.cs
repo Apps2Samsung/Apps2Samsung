@@ -928,12 +928,27 @@ namespace Apps2Samsung.Services
                 if (_appSettings.TryOverwrite)
                 {
                     _appSettings.TryOverwrite = false;
-                    // Give the package a fresh random id and retry. Only retry if the id was actually
-                    // rewritten — if the config couldn't be read/modified (previously silent for any
+
+                    // Preferred remedy: remove the copy we collide with and reinstall under the
+                    // package's own id. Renaming works too, but keeping the id is strictly better —
+                    // a package's service components (<tizen:service id="Pkg.Service">) and the app
+                    // code that launches them by literal id are only valid while the id stays what
+                    // the package was built with, and the TV keeps one app entry instead of two.
+                    if (await TryRemoveConflictingPackageAsync(tvIpAddress, packageUrl, progress))
+                        return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
+
+                    // Fallback: give the package a new id and retry. Only retry if the rename actually
+                    // happened — if config.xml couldn't be read/modified (previously silent for any
                     // non-".Jellyfin" variant like LiteFin, #400), retrying would hit the identical
                     // [118] conflict, so fall through to a clear failure instead.
-                    if (await WgtConfigEditor.RandomizePackageIdAsync(packageUrl))
+                    var rename = await PackageIdRewriter.RandomizeAsync(packageUrl);
+                    if (rename is not null)
+                    {
+                        Trace.WriteLine(
+                            $"[Install] Renamed package {rename.OldId} -> {rename.NewId} across " +
+                            $"{rename.FilesChanged.Count} file(s) after a [118] conflict.");
                         return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
+                    }
                 }
 
                 _appSettings.TryOverwrite = false;
@@ -1139,6 +1154,41 @@ namespace Apps2Samsung.Services
         private static string GetPackageAppTitle(string packageUrl)
             => Path.GetFileNameWithoutExtension(packageUrl).Split('-')[0];
 
+        /// <summary>
+        /// Removes the package we collide with on a [118] id conflict, so the install can be retried
+        /// under the package's own id instead of a renamed one. False when there was nothing to
+        /// remove or the TV refused — the caller then falls back to renaming.
+        /// </summary>
+        private async Task<bool> TryRemoveConflictingPackageAsync(
+            string tvIpAddress, string packageUrl, ProgressCallback? progress)
+        {
+            var packageId = await WgtManifest.ReadPackageIdAsync(packageUrl);
+            if (string.IsNullOrEmpty(packageId))
+                return false;
+
+            progress?.Invoke(Constants.LocalizationKeys.DeleteExistingVersion.Localized());
+            var uninstallResult = await UninstallPackageAsync(tvIpAddress, packageId!);
+
+            // Nothing installed under this id: the conflict is with something we can't address by
+            // removing it, so renaming is the only remaining remedy.
+            if (uninstallResult.Output.Contains(Constants.TizenErrorCodes.NotInstalled))
+            {
+                Trace.WriteLine($"[Install] Nothing installed as '{packageId}' to remove; will rename instead.");
+                return false;
+            }
+
+            var (stillInstalled, _) = await CheckForInstalledApp(tvIpAddress, packageUrl);
+            if (stillInstalled)
+            {
+                Trace.WriteLine($"[Install] Could not remove the conflicting '{packageId}'; will rename instead.");
+                progress?.Invoke(Constants.LocalizationKeys.DeleteExistingFailed.Localized());
+                return false;
+            }
+
+            progress?.Invoke(Constants.LocalizationKeys.DeleteExistingSuccess.Localized());
+            return true;
+        }
+
         private async Task<(bool isInstalled, string? appId)> CheckForInstalledApp(string tvIpAddress, string packageUrl)
         {
             var result = await _sdb.AppsAsync(tvIpAddress);
@@ -1151,6 +1201,17 @@ namespace Apps2Samsung.Services
             if (string.IsNullOrWhiteSpace(output) ||
                 output.Contains("Could not retrieve app list", StringComparison.OrdinalIgnoreCase) ||
                 output.Contains("Remote closed channel", StringComparison.OrdinalIgnoreCase))
+            {
+                return (true, wgtAppId);
+            }
+
+            // Case 0: the app id the package declares is the reliable signal — look for it first.
+            // The title search below has to guess the title from the wgt filename, which misses
+            // whenever the two differ ("NuvioTV-Tizen-1.0.4.wgt" vs the TV's "Nuvio TV"). That miss
+            // reported a plainly-installed app as absent, so nothing was uninstalled and the install
+            // ran into a [118] id conflict it then "fixed" by renaming the package.
+            if (!string.IsNullOrWhiteSpace(wgtAppId) &&
+                RegexPatterns.TizenApp.CreateAppIdPresenceRegex(wgtAppId!).IsMatch(output))
             {
                 return (true, wgtAppId);
             }

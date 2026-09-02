@@ -82,6 +82,22 @@ namespace Apps2Samsung.Helpers.Core
                 RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
             /// <summary>
+            /// Creates a regex that finds an app in the TV's listing by its Tizen application id.
+            /// Preferred over the title search: the id is what the package declares and what the TV
+            /// keys its listing on, while a title has to be guessed from the wgt filename and misses
+            /// as soon as the two differ (e.g. "NuvioTV-Tizen-1.0.4.wgt" against a TV that reports
+            /// <c>app_title = Nuvio TV</c>).
+            /// </summary>
+            /// <param name="appId">The Tizen application id (<c>Pkg.App</c>) to search for.</param>
+            /// <returns>A regex instance matching the id's entry in an app listing.</returns>
+            public static Regex CreateAppIdPresenceRegex(string appId)
+            {
+                return new Regex(
+                    $@"app_tizen_id\s*=\s*{Regex.Escape(appId)}(?![A-Za-z0-9._])",
+                    RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            }
+
+            /// <summary>
             /// Creates a regex to find an app block by title.
             /// </summary>
             /// <param name="appTitle">The app title to search for.</param>
@@ -127,16 +143,6 @@ namespace Apps2Samsung.Helpers.Core
                 @"<tizen:application\s+id=""(?<pkg>[A-Za-z0-9]+)\.[A-Za-z0-9]+""\s+package=""\k<pkg>""",
                 RegexOptions.Compiled | RegexOptions.Multiline);
 
-            /// <summary>
-            /// Creates a pattern to match a specific package's Tizen application element (any app-name
-            /// suffix, not just <c>.Jellyfin</c>), so the id can be rewritten for any variant.
-            /// </summary>
-            /// <param name="packageId">The package ID to match.</param>
-            /// <returns>The pattern string.</returns>
-            public static string CreatePackageIdReplacePattern(string packageId)
-            {
-                return $@"<tizen:application\s+id=""{packageId}\.[A-Za-z0-9]+""\s+package=""{packageId}""";
-            }
         }
 
         /// <summary>
