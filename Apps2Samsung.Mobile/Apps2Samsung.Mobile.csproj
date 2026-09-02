@@ -43,7 +43,12 @@
 		<!-- App Identifier -->
 		<ApplicationId>nl.madebypatrick.apps2samsung</ApplicationId>
 
-		<!-- Versions -->
+		<!-- Versions. These are placeholders for local and PR builds only: both release
+		     workflows override them on the dotnet publish command line, and
+		     ApplicationVersion (the Android versionCode) is computed by
+		     .github/scripts/android-version-code.sh so it can never go backwards.
+		     A release build verifies the published APK against that value, so raising
+		     the number here has no effect on what users get. -->
 		<ApplicationDisplayVersion>2.7.9</ApplicationDisplayVersion>
 		<ApplicationVersion>5</ApplicationVersion>
 
