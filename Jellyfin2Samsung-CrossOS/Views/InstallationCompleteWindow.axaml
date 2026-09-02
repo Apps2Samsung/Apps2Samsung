@@ -5,6 +5,7 @@
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
         mc:Ignorable="d"
         x:Class="Apps2Samsung.InstallationCompleteWindow"
+        Icon="/Assets/jelly2sams.png"
         x:DataType="viewModels:InstallationCompleteViewModel"
         Title="{Binding Title}"
         WindowStartupLocation="CenterScreen"

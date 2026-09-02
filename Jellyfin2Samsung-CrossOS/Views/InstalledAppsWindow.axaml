@@ -5,6 +5,7 @@
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
         xmlns:models="clr-namespace:Apps2Samsung.Models;assembly=Apps2Samsung.Core"
         x:Class="Apps2Samsung.Views.InstalledAppsWindow"
+        Icon="/Assets/jelly2sams.png"
         x:Name="Root"
         x:DataType="viewModels:InstalledAppsViewModel"
         Width="560" MinWidth="460"
