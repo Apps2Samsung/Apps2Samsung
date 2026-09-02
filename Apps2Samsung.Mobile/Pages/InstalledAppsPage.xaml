@@ -76,6 +76,10 @@
                                         BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
                                         BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
                                         TextColor="{AppThemeBinding Light=#2C3E50, Dark=#ECEFF1}" />
+                                <Button Text="🐞" ToolTipProperties.Text="{l:Localize lblDebugConsole}" Clicked="OnDebugClicked" FontSize="18"
+                                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
+                                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=#ECEFF1}" />
                                 <Button Text="🗑️" ToolTipProperties.Text="{l:Localize lblUninstall}" Clicked="OnUninstallClicked" FontSize="18"
                                         IsVisible="{Binding IsRemovable}"
                                         BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"

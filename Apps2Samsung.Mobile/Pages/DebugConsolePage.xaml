@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             x:Class="Apps2Samsung.Mobile.Pages.DebugConsolePage"
+             Title="{l:Localize lblDebugConsole}"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="12" RowSpacing="10">
+
+        <!-- Header banner with a back affordance -->
+        <Border Grid.Row="0" BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+            <Grid ColumnDefinitions="44,*,44" ColumnSpacing="4" VerticalOptions="Center">
+                <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
+                        BackgroundColor="Transparent" BorderWidth="0" Padding="0"
+                        WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
+                <Label Grid.Column="1" Text="{l:Localize lblDebugConsole}" TextColor="White" FontAttributes="Bold"
+                       VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                <Button Grid.Column="2" x:Name="ShareBtn" Text="📤" FontSize="18" TextColor="White"
+                        ToolTipProperties.Text="{l:Localize lblShareDebugLog}"
+                        BackgroundColor="Transparent" BorderWidth="0" Padding="0"
+                        WidthRequest="44" HeightRequest="44" Clicked="OnShareClicked" />
+            </Grid>
+        </Border>
+
+        <!-- Which app, and whether we're still attached -->
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,*" ColumnSpacing="8">
+            <Border Grid.Column="0" x:Name="StatusPill" BackgroundColor="#7F8C8D" Padding="8,3"
+                    StrokeThickness="0" StrokeShape="RoundRectangle 10" VerticalOptions="Center">
+                <Label x:Name="StatusLabel" Text="{l:Localize statusDebugDetached}" TextColor="White"
+                       FontSize="11" FontAttributes="Bold" />
+            </Border>
+            <Label Grid.Column="1" x:Name="SubtitleLabel" FontSize="12" Opacity="0.6"
+                   VerticalOptions="Center" LineBreakMode="TailTruncation" />
+        </Grid>
+
+        <!-- Log output. Dark regardless of theme: it is a console, and the level colours are
+             tuned for a dark ground. The CollectionView is the only scroller here on purpose —
+             nesting it in a ScrollView gives it unbounded height to measure against and it stops
+             scrolling. "monospace" is an Android font-family alias rather than a registered font,
+             which is fine while this head is Android-only. -->
+        <Border Grid.Row="2" BackgroundColor="#12161A" StrokeThickness="1" StrokeShape="RoundRectangle 8"
+                Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#333}" Padding="2">
+            <CollectionView x:Name="LogList">
+                <CollectionView.EmptyView>
+                    <Label x:Name="EmptyLabel" Text="{l:Localize lblDebugNoOutput}" Padding="14"
+                           TextColor="#7A8691" FontSize="12" HorizontalTextAlignment="Center"
+                           VerticalOptions="Center" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="62,*" ColumnSpacing="8" Padding="8,3">
+                            <Label Grid.Column="0" Text="{Binding Clock}" FontSize="10.5"
+                                   FontFamily="monospace" TextColor="#5C6773" VerticalOptions="Start" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="1">
+                                <Label Text="{Binding Text}" FontSize="12.5" FontFamily="monospace"
+                                       TextColor="{Binding Color}" />
+                                <Label Text="{Binding Origin}" FontSize="10" FontFamily="monospace"
+                                       TextColor="#5C6773" IsVisible="{Binding HasOrigin}"
+                                       LineBreakMode="HeadTruncation" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Border>
+
+        <!-- Expression prompt -->
+        <Grid Grid.Row="3" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <Border Grid.Column="0" StrokeThickness="1" StrokeShape="RoundRectangle 8"
+                    Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}" Padding="8,0">
+                <Entry x:Name="EvalEntry" Placeholder="{l:Localize lblDebugEvaluate}" FontFamily="monospace"
+                       FontSize="13" BackgroundColor="Transparent" IsEnabled="False"
+                       ReturnType="Send" Completed="OnEvaluateClicked" />
+            </Border>
+            <Button Grid.Column="1" x:Name="EvalBtn" Text="▸" FontSize="18" IsEnabled="False"
+                    BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,6"
+                    BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                    TextColor="{AppThemeBinding Light=#2C3E50, Dark=#ECEFF1}"
+                    Clicked="OnEvaluateClicked" />
+        </Grid>
+
+        <!-- Busy overlay, shown while attaching -->
+        <ActivityIndicator Grid.Row="2" x:Name="Busy" IsRunning="False" IsVisible="False"
+                           VerticalOptions="Center" HorizontalOptions="Center" Color="#2C3E50" />
+
+    </Grid>
+
+</ContentPage>

@@ -189,6 +189,24 @@ public partial class InstalledAppsPage : ContentPage
 		}
 	}
 
+	// Opens the app's console over the TV's web inspector. Confirmed first because attaching is not
+	// passive: the inspector only reports a port for the launch debug mode performs itself, so the app
+	// restarts and whatever the user was watching goes away.
+	private async void OnDebugClicked(object? sender, EventArgs e)
+	{
+		if (sender is not Button { BindingContext: InstalledApp app })
+			return;
+
+		var confirm = await DisplayAlert(
+			L10n.Get("lblDebugConsole"),
+			string.Format(L10n.Get("statusDebugConfirmRestart"), app.DisplayName),
+			L10n.Get("lblOk"), L10n.Get("lblCancel"));
+		if (!confirm)
+			return;
+
+		await Navigation.PushAsync(new DebugConsolePage(_sdb, _tvIp, app.TizenId, app.DisplayName));
+	}
+
 	private async void OnStopClicked(object? sender, EventArgs e)
 	{
 		if (sender is not Button { BindingContext: InstalledApp app })
