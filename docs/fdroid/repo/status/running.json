@@ -10,7 +10,7 @@
     "--verbose"
   ],
   "disabled": [],
-  "endTimestamp": 1788349612090,
+  "endTimestamp": 1788356969054,
   "failedBuilds": {},
   "jarsigner": "/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64/bin/jarsigner",
   "keytool": "/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64/bin/keytool",
@@ -24,14 +24,14 @@
     "nl.madebypatrick.apps2samsung"
   ],
   "stages": {
-    "delete_disabled_builds": 1788349605319,
-    "index.make repo": 1788349608827,
-    "prepare_apps repo": 1788349606834,
-    "process_apks": 1788349605319,
-    "read_added_date_from_all_apks": 1788349606834,
-    "remove_apks": 1788349606834,
-    "scan_repo_files": 1788349606833
+    "delete_disabled_builds": 1788356962209,
+    "index.make repo": 1788356965902,
+    "prepare_apps repo": 1788356963809,
+    "process_apks": 1788356962209,
+    "read_added_date_from_all_apks": 1788356963808,
+    "remove_apks": 1788356963808,
+    "scan_repo_files": 1788356963807
   },
-  "startTimestamp": 1788349605000,
+  "startTimestamp": 1788356962000,
   "subcommand": "update"
 }
