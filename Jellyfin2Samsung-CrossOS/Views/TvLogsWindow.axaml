@@ -4,6 +4,7 @@
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
         xmlns:helpers="clr-namespace:Apps2Samsung.Helpers.Converters"
         x:Class="Apps2Samsung.Views.TvLogsWindow"
+        Icon="/Assets/jelly2sams.png"
         x:DataType="viewModels:TvLogsViewModel"
         Width="900"
         Height="650"

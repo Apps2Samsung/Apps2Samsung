@@ -50,6 +50,10 @@ trap 'rm -rf "$WORK"' EXIT
 # The app is self-contained, so every package ships the same tree; only the metadata differs.
 chmod +x "$PUBLISH_DIR/$PRODUCT"
 
+# StartupWMClass has to match the WM_CLASS the running window reports, or the desktop can't tell that
+# the window belongs to this entry and shows a generic icon in the taskbar/dock instead of Icon= above
+# (#627). Avalonia takes WM_CLASS from Application.Name, which App.axaml pins to the same string as
+# $PRODUCT — keep the two in step.
 desktop_entry() {
     cat <<EOF
 [Desktop Entry]
@@ -60,6 +64,7 @@ Exec=$1
 Icon=$APP_ID
 Terminal=false
 Categories=Utility;
+StartupWMClass=$PRODUCT
 EOF
 }
 

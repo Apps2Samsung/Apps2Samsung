@@ -8,6 +8,7 @@
         d:DesignWidth="480"
         d:DesignHeight="420"
         x:Class="Apps2Samsung.Views.UpdateDialog"
+        Icon="/Assets/jelly2sams.png"
         x:DataType="viewModels:UpdateDialogViewModel"
         Width="480"
         MinHeight="360"

@@ -20,9 +20,6 @@
 	<CFBundleSignature>????</CFBundleSignature>
 	<CFBundleExecutable>Apps2Samsung</CFBundleExecutable>
 	<CFBundleIconFile>jelly2sams.icns</CFBundleIconFile>
-	<!-- Linux desktop entry info -->
-	<LinuxDesktopFile>true</LinuxDesktopFile>
-	<LinuxDesktopFileName>apps2samsung.desktop</LinuxDesktopFileName>
 	<PackageId>Apps2Samsung</PackageId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

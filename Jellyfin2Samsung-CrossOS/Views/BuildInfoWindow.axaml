@@ -3,6 +3,7 @@
         xmlns:l="clr-namespace:Apps2Samsung.Extensions"
         xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
         x:Class="Apps2Samsung.Views.BuildInfoWindow"
+        Icon="/Assets/jelly2sams.png"
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
         x:DataType="viewModels:BuildInfoViewModel"
         SizeToContent="WidthAndHeight"

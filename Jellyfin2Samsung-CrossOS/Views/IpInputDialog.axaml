@@ -8,6 +8,7 @@
         d:DesignWidth="420"
         d:DesignHeight="220"
         x:Class="Apps2Samsung.IpInputDialog"
+        Icon="/Assets/jelly2sams.png"
         x:DataType="viewModels:IpInputDialogViewModel"
         Width="420"
         Height="250"
