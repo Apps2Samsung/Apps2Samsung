@@ -236,6 +236,17 @@ namespace Apps2Samsung.Remote
 
             appId = appId.Trim();
 
+            // Tizen suspends an app rather than closing it, so a set that ran this app earlier still
+            // answers the status query "true" before we have launched anything. Left alone that reads
+            // as an instant verified success on every relaunch while the screen never changes, which
+            // is what a hospitality set was seen doing: an app opened once could not be opened again
+            // until the TV restarted. Close it first so the status query means something again.
+            if (await IsRunningAsync(tvIpAddress, appId, cancellationToken).ConfigureAwait(false) == true)
+            {
+                await TerminateAsync(tvIpAddress, appId, cancellationToken).ConfigureAwait(false);
+                await WaitForStoppedAsync(tvIpAddress, appId, cancellationToken).ConfigureAwait(false);
+            }
+
             // 1. The channel. It reports delivery only, so the TV's own status endpoint is what turns
             //    that into a launch — where the set answers it at all.
             if (await client.EmitAsync("ed.apps.launch", new JsonObject
@@ -302,6 +313,26 @@ namespace Apps2Samsung.Remote
             }
         }
 
+        /// <summary>
+        /// Asks the TV to close <paramref name="appId"/>. False when the set doesn't serve the
+        /// endpoint, which several do not — a relaunch is then still worth attempting.
+        /// </summary>
+        public static Task<bool> TerminateAsync(string tvIpAddress, string appId, CancellationToken cancellationToken = default) =>
+            DeleteAsync($"http://{tvIpAddress}:{RestPort}/api/v2/applications/{Uri.EscapeDataString(appId)}", cancellationToken);
+
+        // Closing is not instant either. Waiting matters more than the result: launching while the old
+        // instance is still going is the case this whole detour exists to avoid.
+        private static async Task WaitForStoppedAsync(string tvIpAddress, string appId, CancellationToken cancellationToken)
+        {
+            for (var attempt = 0; attempt < 3; attempt++)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).ConfigureAwait(false);
+
+                if (await IsRunningAsync(tvIpAddress, appId, cancellationToken).ConfigureAwait(false) != true)
+                    return;
+            }
+        }
+
         // An app takes a moment to come up, so a single immediate query would read "not running" on a
         // launch that is working. Poll briefly; give up as soon as the set shows it doesn't answer.
         private static async Task<bool?> WaitForRunningAsync(string tvIpAddress, string appId, CancellationToken cancellationToken)
@@ -329,6 +360,20 @@ namespace Apps2Samsung.Remote
             catch (Exception ex)
             {
                 Trace.WriteLine($"[remote] POST {url} failed: {ex.Message}");
+                return false;
+            }
+        }
+
+        private static async Task<bool> DeleteAsync(string url, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var response = await Http.DeleteAsync(url, cancellationToken).ConfigureAwait(false);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[remote] DELETE {url} failed: {ex.Message}");
                 return false;
             }
         }
