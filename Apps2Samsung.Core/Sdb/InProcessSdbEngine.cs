@@ -148,9 +148,24 @@ namespace Apps2Samsung.Sdb
 
         public async Task<ProcessResult> LaunchAsync(string tvIpAddress, string appId) => await RunConnected(tvIpAddress, $"launch {tvIpAddress} \"{appId}\"", async device =>
         {
-            await device.LaunchAppAsync(appId);
-            return "App launched.";
+            // Sent here rather than through the engine's LaunchAppAsync, which discards the reply: the
+            // TV refuses a launch in text, with no failing status, the way it refuses an install. A
+            // flat "App launched." therefore read as success on every attempt — tolerable while this
+            // only opened the user's own sideloaded app, wrong now that the toolbox aims it at
+            // platform apps the set may well refuse (#641).
+            var reply = (await device.ShellCommandAsync($"0 was_execute {appId}")).Trim();
+            if (IsLaunchRefusal(reply))
+                throw new Exception($"The TV would not open {appId}: {reply}");
+
+            return string.IsNullOrEmpty(reply) ? "App launched." : reply;
         });
+
+        // A launch that worked answers with the launcher's own line or nothing at all; a refusal names
+        // itself. Kept narrow — an app id is echoed back in either case, so anything broader than these
+        // would trip over ids containing e.g. "error".
+        private static bool IsLaunchRefusal(string reply) =>
+            reply.Length > 0 && new[] { "fail", "denied", "not permitted", "no such", "not exist", "not found" }
+                .Any(marker => reply.Contains(marker, StringComparison.OrdinalIgnoreCase));
 
         public async Task<ProcessResult> ResignAsync(string packagePath, string authorP12, string distributorP12, string certPass)
         {

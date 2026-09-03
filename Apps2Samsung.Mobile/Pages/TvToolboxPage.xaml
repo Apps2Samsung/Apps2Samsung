@@ -115,6 +115,36 @@
                     </VerticalStackLayout>
                 </Border>
 
+                <!-- ============ Hidden system apps ============ -->
+                <!-- Not part of the list above: these are the TV's own menus, addressed by ID because
+                     the key combination that used to open them has stopped answering. They go over
+                     SDB, so they stay usable with the channel down (#641). -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxSystemApps}" />
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxSystemAppsHint}" />
+
+                        <VerticalStackLayout x:Name="SystemAppList" Spacing="10">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" Padding="0,4">
+                                        <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="14" />
+                                            <Label Text="{Binding AppId}" FontSize="11" Opacity="0.55" />
+                                            <Label Text="{Binding Description}" FontSize="11" Opacity="0.55" />
+                                            <Label Text="{l:Localize lblToolboxSystemAppCaution}" FontSize="11"
+                                                   TextColor="#C77700" IsVisible="{Binding IsCaution}" />
+                                        </VerticalStackLayout>
+                                        <Button Grid.Column="1" Style="{StaticResource Action}" WidthRequest="88"
+                                                Text="{l:Localize lblToolboxLaunch}"
+                                                CommandParameter="{Binding}" Clicked="OnLaunchSystemAppClicked" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
                 <!-- ============ Service menu ============ -->
                 <Border Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="8">

@@ -24,6 +24,10 @@ namespace Apps2Samsung.ViewModels
     public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         private readonly ITizenInstallerService _tizenInstaller;
+
+        // Handed to the toolbox so a system app can be launched over the developer channel, which is
+        // the only one that reaches a platform app (#641).
+        private readonly ISdbEngine _sdbEngine;
         private readonly IDialogService _dialogService;
         private readonly INetworkService _networkService;
         private readonly ILocalizationService _localizationService;
@@ -107,6 +111,7 @@ namespace Apps2Samsung.ViewModels
 
         public MainWindowViewModel(
             ITizenInstallerService tizenInstaller,
+            ISdbEngine sdbEngine,
             IDialogService dialogService,
             INetworkService networkService,
             ILocalizationService localizationService,
@@ -120,6 +125,7 @@ namespace Apps2Samsung.ViewModels
         )
         {
             _tizenInstaller = tizenInstaller;
+            _sdbEngine = sdbEngine;
             _dialogService = dialogService;
             _networkService = networkService;
             _packageHelper = packageHelper;
@@ -704,7 +710,7 @@ namespace Apps2Samsung.ViewModels
                 if (!string.IsNullOrWhiteSpace(SelectedDevice.MacAddress))
                     Helpers.Core.RemoteStore.SetMac(SelectedDevice.IpAddress, SelectedDevice.MacAddress!);
 
-                var vm = new TvToolboxViewModel(SelectedDevice.IpAddress, label);
+                var vm = new TvToolboxViewModel(SelectedDevice.IpAddress, label, _sdbEngine);
                 var window = new Views.TvToolboxWindow(vm);
                 await window.ShowDialog(desktop.MainWindow);
             }

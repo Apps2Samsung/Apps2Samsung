@@ -326,7 +326,7 @@ public partial class InstallerPage : ContentPage
 		}
 		var tvIp = _tvIps[TvPicker.SelectedIndex];
 		var label = TvPicker.SelectedItem as string ?? tvIp;
-		await Navigation.PushAsync(new TvToolboxPage(tvIp, label));
+		await Navigation.PushAsync(new TvToolboxPage(_sdb, tvIp, label));
 	}
 
 	private async void OnRefreshClicked(object? sender, EventArgs e) => await ScanAsync();

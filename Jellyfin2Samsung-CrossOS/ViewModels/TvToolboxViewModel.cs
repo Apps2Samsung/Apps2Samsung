@@ -1,6 +1,7 @@
 using Apps2Samsung.Catalog;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Interfaces;
 using Apps2Samsung.Remote;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -14,9 +15,13 @@ namespace Apps2Samsung.ViewModels
 {
     /// <summary>
     /// The TV toolbox (#635): opening an app by id, and sending a documented service-menu key
-    /// combination. Both go over the remote channel, so neither needs Developer Mode — which is the
-    /// point, since the sets this is for (hospitality firmware, a dead or numberless remote) have no
-    /// Developer Mode to switch on.
+    /// combination. The key combinations go over the remote channel, which needs no Developer Mode —
+    /// the point, since the sets this is for (hospitality firmware, a dead or numberless remote) may
+    /// have none to switch on.
+    /// <para>
+    /// The system-app list is the exception: the TV's own menus were never store apps, so no deep link
+    /// addresses them and they go over SDB where the set has Developer Mode on (#641).
+    /// </para>
     /// <para>
     /// Its own screen rather than a panel under the remote's keys: these aren't remote buttons, and the
     /// app list is not the installed-apps list (that one goes over SDB, needs Developer Mode, and
@@ -27,6 +32,11 @@ namespace Apps2Samsung.ViewModels
     public partial class TvToolboxViewModel : ViewModelBase, IAsyncDisposable
     {
         private readonly string _tvIp;
+
+        // The developer channel, where this head has one. Null is a route missing, not a failure: the
+        // toolbox is offered for any TV on the network, Developer Mode or not.
+        private readonly ISdbEngine? _sdb;
+
         private SamsungRemoteClient? _remote;
 
         // The full list behind the filtered one shown.
@@ -48,6 +58,13 @@ namespace Apps2Samsung.ViewModels
 
         /// <summary>What the filter box currently leaves visible.</summary>
         public ObservableCollection<ToolboxApp> Apps { get; } = new();
+
+        /// <summary>
+        /// The built-in apps a hospitality set hides — the hotel menu above all (#641). Fixed, not
+        /// filtered: it is a short list of ids to try in order, not something to search.
+        /// </summary>
+        public IReadOnlyList<SamsungSystemAppRow> SystemApps { get; } =
+            SamsungSystemApps.Rows(key => key.Localized());
 
         [ObservableProperty]
         private string statusText = string.Empty;
@@ -83,10 +100,11 @@ namespace Apps2Samsung.ViewModels
 
         public event Action? OnRequestClose;
 
-        public TvToolboxViewModel(string tvIp, string tvLabel)
+        public TvToolboxViewModel(string tvIp, string tvLabel, ISdbEngine? sdb = null)
         {
             _tvIp = tvIp;
             TvLabel = tvLabel;
+            _sdb = sdb;
             Sequences = SamsungRemoteSequences.Sendable.Select(s => new ToolboxSequence(s)).ToList();
             StandbySequences = SamsungRemoteSequences.StandbyOnly.Select(s => new ToolboxSequence(s)).ToList();
             StandbySteps = SamsungRemoteSequences.StandbyStepKeys.Select(k => k.Localized()).ToList();
@@ -187,6 +205,10 @@ namespace Apps2Samsung.ViewModels
             app is null ? Task.CompletedTask : LaunchAsync(app.Target);
 
         [RelayCommand]
+        private Task LaunchSystemApp(SamsungSystemAppRow? row) =>
+            row is null ? Task.CompletedTask : LaunchAsync(row.Target);
+
+        [RelayCommand]
         private Task LaunchManual()
         {
             var id = ManualAppId?.Trim();
@@ -200,7 +222,10 @@ namespace Apps2Samsung.ViewModels
         private async Task LaunchAsync(SamsungRemoteLaunchTarget target)
         {
             var remote = _remote;
-            if (remote is null)
+
+            // A system app is launched over SDB, which is a different channel entirely — so an
+            // unpaired set only blocks the launches that actually need the remote one.
+            if (remote is null && _sdb is null)
             {
                 StatusText = "lblRemoteNotConnected".Localized();
                 return;
@@ -213,7 +238,7 @@ namespace Apps2Samsung.ViewModels
             try
             {
                 StatusText = string.Format("lblToolboxLaunching".Localized(), target.Name);
-                var result = await SamsungRemoteApps.LaunchAsync(remote, _tvIp, target);
+                var result = await SamsungRemoteApps.LaunchAsync(remote, _tvIp, target, _sdb);
 
                 StatusText = result switch
                 {
@@ -224,7 +249,7 @@ namespace Apps2Samsung.ViewModels
                     _ => string.Format("lblToolboxLaunchFailed".Localized(), target.Name),
                 };
 
-                IsConnected = remote.IsConnected;
+                IsConnected = remote?.IsConnected == true;
             }
             finally
             {
