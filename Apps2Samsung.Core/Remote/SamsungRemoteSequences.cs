@@ -127,6 +127,23 @@ namespace Apps2Samsung.Remote
                     Precondition: SamsungRemoteSequencePrecondition.Awake),
 
                 new SamsungRemoteSequence(
+                    Id: "hotel-option-documented",
+                    NameKey: "lblToolboxSeqHotelOptionDoc",
+                    DescriptionKey: "lblToolboxSeqHotelOptionDocDesc",
+                    Keys: new[]
+                    {
+                        SamsungRemoteKeys.Mute,
+                        SamsungRemoteKeys.Up,
+                        SamsungRemoteKeys.Down,
+                        SamsungRemoteKeys.Enter,
+                    },
+                    // This is the sequence Samsung's own hospitality manual gives (HU7000F/HU8000F
+                    // installation guide, "Setting the Hotel Option menu"). The 1-1-9 combos above are
+                    // the general Samsung ones and are not what these sets document, so try this first
+                    // on anything with an HG model number.
+                    Precondition: SamsungRemoteSequencePrecondition.Awake),
+
+                new SamsungRemoteSequence(
                     Id: "hotel-option-alt",
                     NameKey: "lblToolboxSeqHotelOptionAlt",
                     DescriptionKey: "lblToolboxSeqHotelOptionAltDesc",
