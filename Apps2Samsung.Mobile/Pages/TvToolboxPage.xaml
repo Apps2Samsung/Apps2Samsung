@@ -31,6 +31,17 @@
             <Setter Property="FontSize" Value="11" />
             <Setter Property="Opacity" Value="0.55" />
         </Style>
+        <!-- Notices are read, not skimmed past, so they keep full opacity and get a border. -->
+        <Style x:Key="Notice" TargetType="Border">
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 6" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+        </Style>
+        <Style x:Key="Step" TargetType="Label">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Margin" Value="4,0" />
+        </Style>
     </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,Auto,*" Margin="12" RowSpacing="10">
@@ -57,6 +68,11 @@
             <VerticalStackLayout Spacing="10">
 
                 <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxOwnerNote}" />
+
+                <!-- Only on a set the probe called hospitality: no Smart Hub, so no app store (#639) -->
+                <Border x:Name="HospitalityNotice" Style="{StaticResource Notice}" Stroke="#C77700" IsVisible="False">
+                    <Label FontSize="12" Text="{l:Localize lblToolboxHospitality}" />
+                </Border>
 
                 <!-- ============ Open an app ============ -->
                 <Border Style="{StaticResource Card}">
@@ -134,7 +150,42 @@
                                    Text="{Binding Source={x:Reference GapSlider}, Path=Value, StringFormat='{0:0} ms'}" />
                         </Grid>
                         <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxGapHint}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- ============ Combinations that start from standby ============ -->
+                <!-- Printed rather than offered: a sleeping set serves no channel, so a button for one
+                     of these could never fire. They are also the sequences most likely to rescue a
+                     locked set, which is why they are here at all (#639). -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxStandbySequences}" />
                         <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxStandbyNote}" />
+
+                        <VerticalStackLayout x:Name="StandbySequenceList" Spacing="10">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="14" />
+                                        <Label Text="{Binding Keys}" FontSize="11" Opacity="0.75" />
+                                        <Label Text="{Binding Description}" FontSize="11" Opacity="0.55" />
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <Label FontSize="12" Text="{l:Localize lblToolboxStandbyHowTo}" />
+                        <VerticalStackLayout x:Name="StandbyStepList" Spacing="3">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Label Style="{StaticResource Step}" Text="{Binding}" />
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <Border Style="{StaticResource Notice}" Stroke="#B3261E">
+                            <Label FontSize="12" Text="{l:Localize lblToolboxStandbyWarning}" />
+                        </Border>
                     </VerticalStackLayout>
                 </Border>
 

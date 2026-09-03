@@ -42,11 +42,17 @@ namespace Apps2Samsung.Remote
     /// True when this connection was the one that made the TV show its "allow this device?" prompt —
     /// what separates "you declined it" from "the channel is closed" in a failure message.
     /// </param>
+    /// <param name="Capability">
+    /// What the probe found out about the set. Carried through because the probe is the only place
+    /// some of it is readable — <see cref="SamsungRemoteCapability.IsHospitality"/> in particular,
+    /// which a screen wants to say something about (#639). Unsupported when the set never answered.
+    /// </param>
     public sealed record RemoteSessionResult(
         RemoteSessionOutcome Outcome,
         SamsungRemoteClient? Client,
         string TvName,
-        bool WasFirstPairing)
+        bool WasFirstPairing,
+        SamsungRemoteCapability Capability)
     {
         public bool Connected => Outcome == RemoteSessionOutcome.Connected && Client is not null;
     }
@@ -131,13 +137,14 @@ namespace Apps2Samsung.Remote
                     firstPairing ? RemoteSessionOutcome.PairingRefused : RemoteSessionOutcome.NoChannel,
                     Client: null,
                     capability.Name,
-                    firstPairing);
+                    firstPairing,
+                    capability);
             }
 
-            return new RemoteSessionResult(RemoteSessionOutcome.Connected, client, capability.Name, firstPairing);
+            return new RemoteSessionResult(RemoteSessionOutcome.Connected, client, capability.Name, firstPairing, capability);
         }
 
         private static RemoteSessionResult Failed(RemoteSessionOutcome outcome, SamsungRemoteCapability capability) =>
-            new(outcome, Client: null, capability.Name, WasFirstPairing: false);
+            new(outcome, Client: null, capability.Name, WasFirstPairing: false, capability);
     }
 }

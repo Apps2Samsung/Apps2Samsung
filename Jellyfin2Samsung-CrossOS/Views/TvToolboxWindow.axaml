@@ -32,6 +32,16 @@
             <Setter Property="Opacity" Value="0.6"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
+        <!-- Notices are read, not skimmed past, so they keep full opacity and get a border. -->
+        <Style Selector="Border.notice">
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="10,8"/>
+        </Style>
+        <Style Selector="Border.notice > TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
     </Window.Styles>
 
     <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" Padding="16">
@@ -58,6 +68,12 @@
 
             <TextBlock DockPanel.Dock="Top" Classes="hint" Text="{l:Localize lblToolboxOwnerNote}"
                        Margin="0,0,0,10"/>
+
+            <!-- Only on a set the probe called hospitality: no Smart Hub, so no app store (#639) -->
+            <Border DockPanel.Dock="Top" Classes="notice" BorderBrush="#C77700" Margin="0,0,0,10"
+                    IsVisible="{Binding IsHospitality}">
+                <TextBlock Text="{l:Localize lblToolboxHospitality}"/>
+            </Border>
 
             <ScrollViewer>
                 <StackPanel Spacing="8">
@@ -149,7 +165,42 @@
                                    Text="{Binding GapMs, StringFormat='{}{0:0} ms'}"/>
                     </Grid>
                     <TextBlock Classes="hint" Text="{l:Localize lblToolboxGapHint}"/>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxStandbyNote}" Margin="0,0,0,8"/>
+
+                    <!-- ============ Combinations that start from standby ============ -->
+                    <!-- Printed rather than offered: a sleeping set serves no channel, so a button for
+                         one of these could never fire. They are also the sequences most likely to
+                         rescue a locked set, which is why they are here at all (#639). -->
+                    <TextBlock Classes="section" Text="{l:Localize lblToolboxStandbySequences}" Margin="0,12,0,0"/>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxStandbyNote}"/>
+
+                    <ItemsControl ItemsSource="{Binding StandbySequences}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="viewModels:ToolboxSequence">
+                                <Border Margin="0,3" Padding="10" CornerRadius="8"
+                                        Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
+                                        <TextBlock Text="{Binding Keys}" FontSize="11" Opacity="0.75"/>
+                                        <TextBlock Text="{Binding Description}" FontSize="11" Opacity="0.55"
+                                                   TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock Text="{l:Localize lblToolboxStandbyHowTo}" FontSize="12" Margin="0,6,0,0"/>
+                    <ItemsControl ItemsSource="{Binding StandbySteps}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <TextBlock Text="{Binding}" FontSize="12" TextWrapping="Wrap" Margin="4,2"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Border Classes="notice" BorderBrush="#B3261E" Margin="0,4,0,8">
+                        <TextBlock Text="{l:Localize lblToolboxStandbyWarning}"/>
+                    </Border>
 
                 </StackPanel>
             </ScrollViewer>

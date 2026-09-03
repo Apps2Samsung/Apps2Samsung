@@ -36,11 +36,20 @@ public partial class TvToolboxPage : ContentPage
 		_tvIp = tvIp;
 		_tvLabel = tvLabel;
 
-		// Only the combinations this channel can deliver; the standby ones are covered by the note
-		// under the slider (see SamsungRemoteSequences).
+		// Buttons only for the combinations this channel can deliver.
 		BindableLayout.SetItemsSource(
 			SequenceList,
 			SamsungRemoteSequences.Sendable.Select(s => new ToolboxSequenceRow(s)).ToList());
+
+		// The standby ones get printed instead: a sleeping set serves no channel, so a button for one
+		// could never fire, and they are the sequences most likely to rescue a locked set (#639).
+		BindableLayout.SetItemsSource(
+			StandbySequenceList,
+			SamsungRemoteSequences.StandbyOnly.Select(s => new ToolboxSequenceRow(s)).ToList());
+
+		BindableLayout.SetItemsSource(
+			StandbyStepList,
+			SamsungRemoteSequences.StandbyStepKeys.Select(L10n.Get).ToList());
 	}
 
 	protected override async void OnAppearing()
@@ -76,6 +85,10 @@ public partial class TvToolboxPage : ContentPage
 	{
 		var progress = new Progress<string>(key => SetStatus($"{_tvLabel} — {L10n.Get(key)}"));
 		var session = await RemoteSession.ConnectAsync(_tvIp, RemoteCredentials.Instance, progress);
+
+		// Read off the probe, which happens even on the runs that then fail to open the channel — a
+		// refused pairing still told us what kind of set this is.
+		HospitalityNotice.IsVisible = session.Capability.Supported && session.Capability.IsHospitality;
 
 		if (!session.Connected)
 		{

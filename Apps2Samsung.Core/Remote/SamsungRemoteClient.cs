@@ -88,6 +88,7 @@ namespace Apps2Samsung.Remote
                 // TokenAuthSupport ("true"/"false") marks the sets that want wss + a pairing token.
                 var tokenAuth = device["TokenAuthSupport"]?.ToString();
                 var powerState = device["PowerState"]?.ToString();
+                var support = ParseIsSupport(device["isSupport"]);
 
                 return new SamsungRemoteCapability
                 {
@@ -100,6 +101,12 @@ namespace Apps2Samsung.Remote
                     // Reported for wired sets too, despite the name. Worth caching: it is what a
                     // later Wake-on-LAN needs, and a sleeping TV won't tell us any more (#544).
                     MacAddress = device["wifiMac"]?.ToString() ?? string.Empty,
+                    // EDEN is Smart Hub, launcher and store in one, and the one isSupport flag that
+                    // has held up across sets: false on a hospitality HG43U800F, true on a consumer
+                    // UE55RU7020 (#639). Nothing else in isSupport is read, deliberately —
+                    // DMP_DRM_PLAYREADY and DMP_DRM_WIDEVINE both read false on a set that plays
+                    // Netflix, so they say nothing about DRM.
+                    HasAppStore = SupportFlag(support, "EDEN_available"),
                 };
             }
             catch (Exception ex)
@@ -107,6 +114,51 @@ namespace Apps2Samsung.Remote
                 Trace.WriteLine($"[remote] probe of {tvIpAddress} failed: {ex.Message}");
                 return SamsungRemoteCapability.Unsupported;
             }
+        }
+
+        /// <summary>
+        /// Pulls the <c>isSupport</c> object out of the probe payload. It arrives as a JSON
+        /// <i>string</i> whose content is itself a JSON object, so it takes two passes to read — and a
+        /// set that gets it wrong (or omits it) simply reports nothing rather than failing the probe.
+        /// </summary>
+        private static JsonObject? ParseIsSupport(JsonNode? node)
+        {
+            if (node is null)
+                return null;
+
+            // Already an object on firmware that doesn't double-encode it.
+            if (node is JsonObject direct)
+                return direct;
+
+            try
+            {
+                var inner = node.ToString();
+                return string.IsNullOrWhiteSpace(inner) ? null : JsonNode.Parse(inner) as JsonObject;
+            }
+            catch (JsonException ex)
+            {
+                Trace.WriteLine($"[remote] isSupport did not parse: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Reads one <c>isSupport</c> flag. The values are quoted ("true"/"false") on every set seen so
+        /// far, so a straight bool read isn't enough. Null means the set didn't report the flag, which
+        /// is not the same as the feature being off — only an explicit false is that.
+        /// </summary>
+        private static bool? SupportFlag(JsonObject? support, string name)
+        {
+            if (support is null || !support.TryGetPropertyValue(name, out var value) || value is null)
+                return null;
+
+            var text = value.ToString();
+            if (string.Equals(text, "true", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (string.Equals(text, "false", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            return null;
         }
 
         /// <summary>
@@ -465,5 +517,23 @@ namespace Apps2Samsung.Remote
 
         /// <summary>The TV's MAC, for <see cref="SamsungRemoteWake"/>. Only readable while awake.</summary>
         public string MacAddress { get; init; } = string.Empty;
+
+        /// <summary>
+        /// Whether the set has EDEN — Samsung's Smart Hub framework, launcher and app store in one —
+        /// from the probe's <c>isSupport.EDEN_available</c>. Null when the set didn't report the flag:
+        /// that is "we don't know", not "there is no store", so only an explicit false is worth
+        /// telling the user about.
+        /// </summary>
+        public bool? HasAppStore { get; init; }
+
+        /// <summary>
+        /// A hospitality set — hotel, hospital or care-home firmware, with no Smart Hub and no app
+        /// store, which is why store apps on one neither install nor launch (#639). True when the
+        /// probe says EDEN is absent, or when the model number carries Samsung's <c>HG</c>
+        /// hospitality prefix (e.g. <c>HG43U800FAULXL</c>) — the flag alone would miss a set that
+        /// doesn't report isSupport at all.
+        /// </summary>
+        public bool IsHospitality =>
+            HasAppStore == false || Model.StartsWith("HG", StringComparison.OrdinalIgnoreCase);
     }
 }
