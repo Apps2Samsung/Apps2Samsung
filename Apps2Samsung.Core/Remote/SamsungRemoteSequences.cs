@@ -14,7 +14,11 @@ namespace Apps2Samsung.Remote
         /// <summary>The set only has to be awake and on the network.</summary>
         Awake,
 
-        /// <summary>The set must be awake and showing a live TV source, not an app or an HDMI input.</summary>
+        /// <summary>
+        /// The set must be awake and showing a live TV source. Kept for sequences that genuinely need
+        /// the tuner in front; <c>hotel-option</c> turned out not to be one of them, so do not reach
+        /// for this without having watched a set refuse the sequence from another source.
+        /// </summary>
         LiveTv,
 
         /// <summary>
@@ -118,7 +122,9 @@ namespace Apps2Samsung.Remote
                         SamsungRemoteKeys.Digit(9),
                         SamsungRemoteKeys.Enter,
                     },
-                    Precondition: SamsungRemoteSequencePrecondition.LiveTv),
+                    // #635 assumed this needed the tuner in front. It doesn't: sent over the network to
+                    // a UE55RU7020 sitting on HDMI1, it opened the Hotel Option menu straight away.
+                    Precondition: SamsungRemoteSequencePrecondition.Awake),
 
                 new SamsungRemoteSequence(
                     Id: "hotel-option-alt",
