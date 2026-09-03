@@ -187,9 +187,40 @@ namespace Apps2Samsung.Remote
                     Precondition: SamsungRemoteSequencePrecondition.Standby),
             });
 
-        /// <summary>The combinations this channel can actually deliver — what the UI offers.</summary>
+        /// <summary>The combinations this channel can actually deliver — what the UI offers as buttons.</summary>
         public static IReadOnlyList<SamsungRemoteSequence> Sendable { get; } =
             new ReadOnlyCollection<SamsungRemoteSequence>(All.Where(s => s.CanSendOverNetwork).ToList());
+
+        /// <summary>
+        /// The combinations that start from standby. No button can ever fire one, but they are the
+        /// sequences most likely to rescue a genuinely locked set, so the UI prints them as
+        /// instructions for the physical remote instead of hiding them (#639).
+        /// <para>
+        /// Why they matter: the Hotel Option menu can be switched off outright (<c>Menu OSD &gt; Menu
+        /// Display: OFF</c>, which installers routinely apply), and that kills every
+        /// <c>hotel-option</c> combination above while leaving the lower-level Service Menu reachable.
+        /// </para>
+        /// </summary>
+        public static IReadOnlyList<SamsungRemoteSequence> StandbyOnly { get; } =
+            new ReadOnlyCollection<SamsungRemoteSequence>(All.Where(s => !s.CanSendOverNetwork).ToList());
+
+        /// <summary>
+        /// How to enter one of <see cref="StandbyOnly"/> by hand, in order, as en.json keys both heads
+        /// resolve. Here rather than in either head's markup so the two print the same steps.
+        /// <para>
+        /// The detail that decides whether it works is step 3: the whole combination has to go in
+        /// inside about three seconds, and speed is what people get wrong.
+        /// </para>
+        /// </summary>
+        public static readonly IReadOnlyList<string> StandbyStepKeys = new ReadOnlyCollection<string>(
+            new[]
+            {
+                "lblToolboxStandbyStep1",
+                "lblToolboxStandbyStep2",
+                "lblToolboxStandbyStep3",
+                "lblToolboxStandbyStep4",
+                "lblToolboxStandbyStep5",
+            });
 
         public static SamsungRemoteSequence? Find(string id) =>
             All.FirstOrDefault(s => string.Equals(s.Id, id, StringComparison.OrdinalIgnoreCase));

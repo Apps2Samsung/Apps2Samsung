@@ -34,8 +34,17 @@ namespace Apps2Samsung.ViewModels
 
         public string TvLabel { get; }
 
-        /// <summary>The combinations this channel can deliver; the standby ones can't be sent at all.</summary>
+        /// <summary>The combinations this channel can deliver, as buttons.</summary>
         public IReadOnlyList<ToolboxSequence> Sequences { get; }
+
+        /// <summary>
+        /// The combinations that start from standby. No button can reach them — a sleeping set serves
+        /// nothing — so they are printed with <see cref="StandbySteps"/> for the physical remote (#639).
+        /// </summary>
+        public IReadOnlyList<ToolboxSequence> StandbySequences { get; }
+
+        /// <summary>How to enter one of <see cref="StandbySequences"/> by hand, in order.</summary>
+        public IReadOnlyList<string> StandbySteps { get; }
 
         /// <summary>What the filter box currently leaves visible.</summary>
         public ObservableCollection<ToolboxApp> Apps { get; } = new();
@@ -64,6 +73,14 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private bool isCatalogueOffline;
 
+        /// <summary>
+        /// The probe says this is a hospitality set. Worth one line of its own: no Smart Hub means no
+        /// app store, which is the single most confusing thing about these TVs — the apps aren't
+        /// hidden, there is no store to hide them in (#639).
+        /// </summary>
+        [ObservableProperty]
+        private bool isHospitality;
+
         public event Action? OnRequestClose;
 
         public TvToolboxViewModel(string tvIp, string tvLabel)
@@ -71,6 +88,8 @@ namespace Apps2Samsung.ViewModels
             _tvIp = tvIp;
             TvLabel = tvLabel;
             Sequences = SamsungRemoteSequences.Sendable.Select(s => new ToolboxSequence(s)).ToList();
+            StandbySequences = SamsungRemoteSequences.StandbyOnly.Select(s => new ToolboxSequence(s)).ToList();
+            StandbySteps = SamsungRemoteSequences.StandbyStepKeys.Select(k => k.Localized()).ToList();
         }
 
         [RelayCommand]
@@ -107,6 +126,10 @@ namespace Apps2Samsung.ViewModels
         {
             var progress = new Progress<string>(key => StatusText = key.Localized());
             var session = await RemoteSession.ConnectAsync(_tvIp, RemoteStore.Credentials.Instance, progress);
+
+            // Read off the probe, which happens even on the runs that then fail to open the channel —
+            // a refused pairing still told us what kind of set this is.
+            IsHospitality = session.Capability.Supported && session.Capability.IsHospitality;
 
             if (!session.Connected)
             {
