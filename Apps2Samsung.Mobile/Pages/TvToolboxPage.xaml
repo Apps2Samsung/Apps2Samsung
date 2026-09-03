@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             x:Class="Apps2Samsung.Mobile.Pages.TvToolboxPage"
+             Title="{l:Localize lblToolbox}"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+
+    <ContentPage.Resources>
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 10" />
+            <Setter Property="Stroke" Value="{AppThemeBinding Light=#E2E2E2, Dark=#333}" />
+            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark=#1F1F1F}" />
+        </Style>
+        <Style x:Key="Action" TargetType="Button">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="HeightRequest" Value="44" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="BackgroundColor" Value="#2C3E50" />
+            <Setter Property="TextColor" Value="White" />
+            <Setter Property="Padding" Value="10,0" />
+        </Style>
+        <Style x:Key="Section" TargetType="Label">
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="15" />
+        </Style>
+        <Style x:Key="Hint" TargetType="Label">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Opacity" Value="0.55" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="12" RowSpacing="10">
+
+        <!-- Header banner with a back affordance -->
+        <Border Grid.Row="0" BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+            <Grid ColumnDefinitions="44,*,44" ColumnSpacing="4" VerticalOptions="Center">
+                <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
+                        BackgroundColor="Transparent" BorderWidth="0" Padding="0"
+                        WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
+                <Label Grid.Column="1" Text="{l:Localize lblToolbox}" TextColor="White" FontAttributes="Bold"
+                       VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                <Button Grid.Column="2" Text="⟳" FontSize="18" TextColor="White"
+                        BackgroundColor="Transparent" BorderWidth="0" Padding="0"
+                        WidthRequest="44" HeightRequest="44" Clicked="OnReloadClicked" />
+            </Grid>
+        </Border>
+
+        <!-- Which TV, and whether the channel is up -->
+        <Label Grid.Row="1" x:Name="StatusLabel" FontSize="12" Opacity="0.7"
+               Text="{l:Localize lblRemoteConnecting}" />
+
+        <ScrollView Grid.Row="2">
+            <VerticalStackLayout Spacing="10">
+
+                <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxOwnerNote}" />
+
+                <!-- ============ Open an app ============ -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxApps}" />
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxAppsHint}" />
+                        <Label x:Name="OfflineHint" Style="{StaticResource Hint}" IsVisible="False"
+                               Text="{l:Localize lblToolboxAppsOffline}" />
+
+                        <SearchBar x:Name="AppSearch" Placeholder="{l:Localize lblToolboxFilter}"
+                                   TextChanged="OnFilterChanged" />
+
+                        <VerticalStackLayout x:Name="AppList" Spacing="4">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="36,*,Auto" ColumnSpacing="10" Padding="0,4">
+                                        <Image Grid.Column="0" WidthRequest="36" HeightRequest="36" Aspect="AspectFit"
+                                               VerticalOptions="Center" Source="{Binding IconUrl}" />
+                                        <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="14"
+                                                   LineBreakMode="TailTruncation" />
+                                            <Label Text="{Binding Subtitle}" FontSize="11" Opacity="0.55"
+                                                   LineBreakMode="TailTruncation" />
+                                        </VerticalStackLayout>
+                                        <Button Grid.Column="2" Style="{StaticResource Action}" WidthRequest="88"
+                                                Text="{l:Localize lblToolboxLaunch}"
+                                                CommandParameter="{Binding}" Clicked="OnLaunchAppClicked" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <!-- An ID from a forum post or a manual, for an app in neither list -->
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Entry Grid.Column="0" x:Name="ManualAppIdEntry" Keyboard="Text"
+                                   Placeholder="{l:Localize lblToolboxManualPlaceholder}" />
+                            <Button Grid.Column="1" Style="{StaticResource Action}" WidthRequest="88"
+                                    Text="{l:Localize lblToolboxLaunch}" Clicked="OnLaunchManualClicked" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- ============ Service menu ============ -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxSequences}" />
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxSequencesHint}" />
+
+                        <VerticalStackLayout x:Name="SequenceList" Spacing="10">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="14" />
+                                            <Label Text="{Binding Keys}" FontSize="11" Opacity="0.75" />
+                                            <Label Text="{Binding Description}" FontSize="11" Opacity="0.55" />
+                                            <Label Text="{Binding Caveat}" FontSize="11" Opacity="0.75"
+                                                   IsVisible="{Binding HasCaveat}" />
+                                        </VerticalStackLayout>
+                                        <Button Grid.Column="1" Style="{StaticResource Action}" WidthRequest="88"
+                                                VerticalOptions="Center" Text="{l:Localize lblToolboxSend}"
+                                                CommandParameter="{Binding}" Clicked="OnSendSequenceClicked" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <!-- Timing is the whole reason for sending these over the network -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                            <Label Grid.Column="0" FontSize="12" Opacity="0.7" VerticalOptions="Center"
+                                   Text="{l:Localize lblToolboxGap}" />
+                            <Slider Grid.Column="1" x:Name="GapSlider" Minimum="100" Maximum="600" Value="250"
+                                    VerticalOptions="Center" />
+                            <Label Grid.Column="2" FontSize="12" Opacity="0.8" VerticalOptions="Center"
+                                   Text="{Binding Source={x:Reference GapSlider}, Path=Value, StringFormat='{0:0} ms'}" />
+                        </Grid>
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxGapHint}" />
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxStandbyNote}" />
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>

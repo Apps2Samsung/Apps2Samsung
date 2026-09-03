@@ -1,4 +1,5 @@
 using Apps2Samsung.Helpers;
+using Apps2Samsung.Remote;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,6 +27,34 @@ namespace Apps2Samsung.Helpers.Core
 
         public static void SetMac(string tvIpAddress, string macAddress) =>
             AppSettings.Default.RemoteMacsJson = Write(AppSettings.Default.RemoteMacsJson, tvIpAddress, macAddress);
+
+        /// <summary>
+        /// The same store behind Core's <see cref="IRemoteCredentialStore"/>, so
+        /// <see cref="RemoteSession"/> can pair and wake on this head's behalf without knowing where
+        /// the values live.
+        /// </summary>
+        public sealed class Credentials : IRemoteCredentialStore
+        {
+            public static readonly Credentials Instance = new();
+
+            public string? GetToken(string tvIpAddress) => RemoteStore.GetToken(tvIpAddress);
+            public void SetToken(string tvIpAddress, string token) => RemoteStore.SetToken(tvIpAddress, token);
+            public string? GetMac(string tvIpAddress) => RemoteStore.GetMac(tvIpAddress);
+            public void SetMac(string tvIpAddress, string macAddress) => RemoteStore.SetMac(tvIpAddress, macAddress);
+        }
+
+        /// <summary>
+        /// What this head says when a connection attempt ends short of an open channel. The two heads
+        /// word the "never seen this TV awake" case differently, so the key is picked here rather than
+        /// in Core.
+        /// </summary>
+        public static string StatusKeyFor(RemoteSessionOutcome outcome) => outcome switch
+        {
+            RemoteSessionOutcome.NoMacToWake => "lblRemoteWakeNoMac",
+            RemoteSessionOutcome.WakeFailed => "lblRemoteWakeFailed",
+            RemoteSessionOutcome.PairingRefused => "lblRemotePairFailed",
+            _ => "lblRemoteNoChannel",
+        };
 
         private static Dictionary<string, string> Read(string json)
         {

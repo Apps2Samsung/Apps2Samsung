@@ -135,23 +135,32 @@ namespace Apps2Samsung.Remote
         }
 
         /// <summary>
-        /// The list the toolbox offers: what the TV reports installed, merged with the community
-        /// catalogue by app id. Both heads show the same thing, so the merge lives here.
+        /// The list the toolbox shows, before the TV has said anything: every app in the community
+        /// catalogue, ready to launch by id.
         /// <para>
-        /// The catalogue rows are the point of the merge — a hospitality set hides its OTT apps from
-        /// the launcher, and several sets don't answer the installed-app query at all, so a list of
-        /// only what the TV admits to would be empty exactly when it is needed.
+        /// This is the primary source, not a fallback. <c>ed.installedApp.get</c> was dropped from
+        /// Tizen somewhere around 2020 — older sets answer it, most current ones never reply — and a
+        /// hospitality set hides its apps from the launcher precisely when you need one. A list that
+        /// waited for the TV would therefore be empty exactly in the case this feature exists for, so
+        /// the catalogue renders first and <see cref="Merge"/> folds in whatever the set volunteers.
         /// </para>
         /// </summary>
-        public static async Task<IReadOnlyList<SamsungRemoteLaunchTarget>> BuildLauncherListAsync(
-            SamsungRemoteClient client,
-            CancellationToken cancellationToken = default)
-        {
-            var installed = await ListInstalledAsync(client, cancellationToken).ConfigureAwait(false);
-            var catalogue = await Catalog.SamsungTvAppCatalog.GetAsync(cancellationToken).ConfigureAwait(false);
+        public static async Task<IReadOnlyList<SamsungRemoteLaunchTarget>> CatalogueTargetsAsync(
+            CancellationToken cancellationToken = default) =>
+            Merge(await Catalog.SamsungTvAppCatalog.GetAsync(cancellationToken).ConfigureAwait(false), reported: null);
 
-            // Icons: the TV reports a path inside its own filesystem, which is of no use to us, so the
-            // catalogue's store URL is the icon wherever it knows the app.
+        /// <summary>
+        /// Merges what the TV reported with the community catalogue, by app id. Pure, so a head can
+        /// re-run it when a late answer arrives without re-fetching anything.
+        /// </summary>
+        public static IReadOnlyList<SamsungRemoteLaunchTarget> Merge(
+            IReadOnlyList<Catalog.SamsungTvApp> catalogue,
+            IReadOnlyList<SamsungRemoteInstalledApp>? reported)
+        {
+            ArgumentNullException.ThrowIfNull(catalogue);
+
+            // Icons: what the TV calls an icon is a path inside its own filesystem, so the catalogue's
+            // store URL is the icon wherever it knows the app.
             var icons = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var app in catalogue)
             {
@@ -161,10 +170,10 @@ namespace Apps2Samsung.Remote
                     icons[id] = app.IconUrl;
             }
 
-            var targets = new List<SamsungRemoteLaunchTarget>(installed.Count + catalogue.Count);
+            var targets = new List<SamsungRemoteLaunchTarget>(catalogue.Count + (reported?.Count ?? 0));
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var app in installed)
+            foreach (var app in reported ?? Array.Empty<SamsungRemoteInstalledApp>())
             {
                 if (!seen.Add(app.AppId))
                     continue;
@@ -197,7 +206,7 @@ namespace Apps2Samsung.Remote
                 .ToList();
         }
 
-        /// <summary>Launches a row of <see cref="BuildLauncherListAsync"/>, name and all.</summary>
+        /// <summary>Launches a row of the list, name and all.</summary>
         public static Task<SamsungRemoteLaunchResult> LaunchAsync(
             SamsungRemoteClient client,
             string tvIpAddress,

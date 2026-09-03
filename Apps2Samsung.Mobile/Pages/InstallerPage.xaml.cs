@@ -315,6 +315,20 @@ public partial class InstallerPage : ContentPage
 		await Navigation.PushAsync(new RemotePage(tvIp, label));
 	}
 
+	// Same story as the remote: the toolbox rides the network channel, so it is offered for any TV
+	// on the network, Developer Mode or not.
+	private async void OnShowTvToolboxClicked(object? sender, EventArgs e)
+	{
+		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
+		{
+			SetStatus(L10n.Get("statusSelectTvFirst"));
+			return;
+		}
+		var tvIp = _tvIps[TvPicker.SelectedIndex];
+		var label = TvPicker.SelectedItem as string ?? tvIp;
+		await Navigation.PushAsync(new TvToolboxPage(tvIp, label));
+	}
+
 	private async void OnRefreshClicked(object? sender, EventArgs e) => await ScanAsync();
 
 	private async void OnSettingsClicked(object? sender, EventArgs e) =>
