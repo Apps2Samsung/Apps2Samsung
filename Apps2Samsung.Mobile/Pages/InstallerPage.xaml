@@ -83,7 +83,7 @@
                      columns keep this a single row whatever the font scale or the wording these
                      strings come back with from Crowdin - a long translation wraps inside its own
                      chip - and the borders match the pickers above. -->
-                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
                     <Button Grid.Column="0" Text="{l:Localize lblInstalledApps}"
                             Clicked="OnShowInstalledAppsClicked"
                             FontSize="12" LineBreakMode="WordWrap"
@@ -102,6 +102,14 @@
                             Padding="4,8" MinimumHeightRequest="44" />
                     <Button Grid.Column="2" Text="{l:Localize lblRemote}"
                             Clicked="OnShowRemoteClicked"
+                            FontSize="12" LineBreakMode="WordWrap"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}"
+                            BorderWidth="1" CornerRadius="8"
+                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                            Padding="4,8" MinimumHeightRequest="44" />
+                    <Button Grid.Column="3" Text="{l:Localize lblToolbox}"
+                            Clicked="OnShowTvToolboxClicked"
                             FontSize="12" LineBreakMode="WordWrap"
                             BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}"
                             BorderWidth="1" CornerRadius="8"

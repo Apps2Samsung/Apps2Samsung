@@ -1,0 +1,160 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:Apps2Samsung.Extensions"
+        xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+        x:Class="Apps2Samsung.Views.TvToolboxWindow"
+        x:Name="Root"
+        x:DataType="viewModels:TvToolboxViewModel"
+        Width="560" MinWidth="480"
+        Height="700" MinHeight="560"
+        WindowStartupLocation="CenterOwner"
+        Icon="/Assets/jelly2sams.png"
+        Title="{l:Localize lblToolbox}">
+
+    <Window.Styles>
+        <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>
+        <StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+        <StyleInclude Source="avares://Apps2Samsung/Styles/TextBlocks.axaml"/>
+
+        <Style Selector="Button.action">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Background" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="TextBlock.section">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+        <Style Selector="TextBlock.hint">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Opacity" Value="0.6"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+    </Window.Styles>
+
+    <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" Padding="16">
+        <DockPanel LastChildFill="True">
+
+            <!-- Header: what this is, which TV, and whether the channel is up -->
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                <StackPanel Grid.Column="0" Spacing="2">
+                    <TextBlock Text="{l:Localize lblToolbox}" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding TvLabel}" FontSize="12" Opacity="0.6"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+                    <Button Content="↻" Command="{Binding LoadCommand}"
+                            ToolTip.Tip="{l:Localize lblRemoteReconnect}"/>
+                    <Button Content="✕" Command="{Binding CloseCommand}"/>
+                </StackPanel>
+            </Grid>
+
+            <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" Height="3" Margin="0,8,0,8"
+                         IsVisible="{Binding IsBusy}"/>
+
+            <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" FontSize="12" Opacity="0.8"
+                       TextWrapping="Wrap" Margin="0,0,0,8"/>
+
+            <TextBlock DockPanel.Dock="Top" Classes="hint" Text="{l:Localize lblToolboxOwnerNote}"
+                       Margin="0,0,0,10"/>
+
+            <ScrollViewer>
+                <StackPanel Spacing="8">
+
+                    <!-- ============ Open an app ============ -->
+                    <TextBlock Classes="section" Text="{l:Localize lblToolboxApps}"/>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxAppsHint}"/>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxAppsOffline}"
+                               IsVisible="{Binding IsCatalogueOffline}"/>
+
+                    <TextBox Text="{Binding AppFilter}" Watermark="{l:Localize lblToolboxFilter}"/>
+
+                    <!-- Fixed height so the list scrolls inside the screen instead of pushing the
+                         service-menu section off the bottom. -->
+                    <Border Height="260" CornerRadius="8" Padding="2"
+                            Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}">
+                        <ScrollViewer>
+                            <ItemsControl ItemsSource="{Binding Apps}" IsEnabled="{Binding IsConnected}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="viewModels:ToolboxApp">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Margin="8,5">
+                                            <Image Grid.Column="0" Width="28" Height="28" Stretch="UniformToFill"
+                                                   VerticalAlignment="Center" Source="{Binding IconBitmap}"/>
+                                            <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBlock Text="{Binding AppId}" FontSize="11" Opacity="0.55"/>
+                                                    <TextBlock Text="{Binding Origin}" FontSize="11" Opacity="0.55"
+                                                               IsVisible="{Binding HasOrigin}"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <Button Grid.Column="2" FontSize="12" VerticalAlignment="Center"
+                                                    Content="{l:Localize lblToolboxLaunch}"
+                                                    Command="{ReflectionBinding $parent[Window].DataContext.LaunchAppCommand}"
+                                                    CommandParameter="{Binding}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- An id from a forum post or a manual, for an app in neither list -->
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" IsEnabled="{Binding IsConnected}">
+                        <TextBox Grid.Column="0" Text="{Binding ManualAppId}"
+                                 Watermark="{l:Localize lblToolboxManualPlaceholder}"/>
+                        <Button Grid.Column="1" Classes="action" Width="90"
+                                Content="{l:Localize lblToolboxLaunch}"
+                                Command="{Binding LaunchManualCommand}"/>
+                    </Grid>
+
+                    <!-- ============ Service menu ============ -->
+                    <TextBlock Classes="section" Text="{l:Localize lblToolboxSequences}" Margin="0,12,0,0"/>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxSequencesHint}"/>
+
+                    <ItemsControl ItemsSource="{Binding Sequences}" IsEnabled="{Binding IsConnected}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="viewModels:ToolboxSequence">
+                                <Border Margin="0,3" Padding="10" CornerRadius="8"
+                                        Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                        <StackPanel Grid.Column="0" Spacing="2">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
+                                            <TextBlock Text="{Binding Keys}" FontSize="11" Opacity="0.75"/>
+                                            <TextBlock Text="{Binding Description}" FontSize="11" Opacity="0.55"
+                                                       TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding Caveat}" FontSize="11" Opacity="0.75"
+                                                       TextWrapping="Wrap" IsVisible="{Binding HasCaveat}"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Classes="action" Width="90" VerticalAlignment="Center"
+                                                Content="{l:Localize lblToolboxSend}"
+                                                Command="{ReflectionBinding $parent[Window].DataContext.SendSequenceCommand}"
+                                                CommandParameter="{Binding}"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Timing is the whole reason for sending these over the network -->
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Margin="0,4,0,0"
+                          IsEnabled="{Binding IsConnected}">
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="12" Opacity="0.7"
+                                   Text="{l:Localize lblToolboxGap}"/>
+                        <Slider Grid.Column="1" Minimum="100" Maximum="600" TickFrequency="50"
+                                IsSnapToTickEnabled="True" Value="{Binding GapMs}"/>
+                        <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="12" Opacity="0.8"
+                                   Text="{Binding GapMs, StringFormat='{}{0:0} ms'}"/>
+                    </Grid>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxGapHint}"/>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxStandbyNote}" Margin="0,0,0,8"/>
+
+                </StackPanel>
+            </ScrollViewer>
+
+        </DockPanel>
+    </Border>
+
+</Window>

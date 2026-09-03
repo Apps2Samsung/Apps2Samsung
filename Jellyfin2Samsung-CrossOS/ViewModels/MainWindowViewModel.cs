@@ -674,6 +674,46 @@ namespace Apps2Samsung.ViewModels
             }
         }
 
+        /// <summary>
+        /// Opens the TV toolbox (#635): launching an app by id and sending a documented service-menu
+        /// combination. Like the remote it rides the remote channel, so it needs no Developer Mode and
+        /// is offered for any TV on the network — including one the installer itself couldn't use.
+        /// </summary>
+        [RelayCommand]
+        private async Task ShowTvToolboxAsync()
+        {
+            try
+            {
+                if (SelectedDevice is null ||
+                    string.IsNullOrWhiteSpace(SelectedDevice.IpAddress) ||
+                    SelectedDevice.IpAddress == L("lblOther"))
+                {
+                    await _dialogService.ShowMessageAsync(L("lblToolbox"), L("lblRemoteSelectTvFirst"));
+                    return;
+                }
+
+                if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                    return;
+
+                var label = string.IsNullOrWhiteSpace(SelectedDevice.DisplayText)
+                    ? SelectedDevice.IpAddress
+                    : SelectedDevice.DisplayText;
+
+                // The scan knows the TV's MAC while it is awake; keep it so a sleeping set can still
+                // be woken later (same store the remote uses).
+                if (!string.IsNullOrWhiteSpace(SelectedDevice.MacAddress))
+                    Helpers.Core.RemoteStore.SetMac(SelectedDevice.IpAddress, SelectedDevice.MacAddress!);
+
+                var vm = new TvToolboxViewModel(SelectedDevice.IpAddress, label);
+                var window = new Views.TvToolboxWindow(vm);
+                await window.ShowDialog(desktop.MainWindow);
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblToolbox"), ex));
+            }
+        }
+
         [RelayCommand]
         private async Task BrowseWgtAsync()
         {
