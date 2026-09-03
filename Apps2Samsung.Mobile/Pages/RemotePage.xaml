@@ -125,6 +125,93 @@
                 <Label x:Name="TextHintLabel" FontSize="11" Opacity="0.5"
                        Text="{l:Localize lblRemoteTextLiveHint}" />
 
+                <!-- TV toolbox (#635): the two things a stuck remote can't do - a documented key
+                     combination with exact timing, and launching an app the TV's launcher hides. The
+                     phone is the better host for it: it is what you are holding when the remote died. -->
+                <Border Margin="0,12,0,0" Padding="12" StrokeThickness="1" StrokeShape="RoundRectangle 10"
+                        Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
+                        BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
+                    <VerticalStackLayout Spacing="8">
+
+                        <Label Text="{l:Localize lblToolbox}" FontAttributes="Bold" FontSize="15" />
+                        <Label Text="{l:Localize lblToolboxOwnerNote}" FontSize="11" Opacity="0.55" />
+                        <Label x:Name="ToolboxStatusLabel" FontSize="12" Opacity="0.85" IsVisible="False" />
+
+                        <!-- Service-menu combinations -->
+                        <Label Text="{l:Localize lblToolboxSequences}" FontSize="12" Opacity="0.6" Margin="0,4,0,0" />
+                        <VerticalStackLayout x:Name="SequenceList" Spacing="8">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="14" />
+                                            <Label Text="{Binding Keys}" FontSize="11" Opacity="0.75" />
+                                            <Label Text="{Binding Description}" FontSize="11" Opacity="0.55" />
+                                            <Label Text="{Binding Caveat}" FontSize="11" Opacity="0.75"
+                                                   IsVisible="{Binding HasCaveat}" />
+                                        </VerticalStackLayout>
+                                        <Button Grid.Column="1" Style="{StaticResource Accent}" FontSize="14"
+                                                WidthRequest="84" HeightRequest="44" VerticalOptions="Center"
+                                                Text="{l:Localize lblToolboxSend}"
+                                                CommandParameter="{Binding}" Clicked="OnSendSequenceClicked" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <!-- Timing is the whole reason for doing this over the network, so it is adjustable -->
+                        <Label Text="{l:Localize lblToolboxGap}" FontSize="12" Opacity="0.6" Margin="0,4,0,0" />
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Slider Grid.Column="0" x:Name="GapSlider" Minimum="100" Maximum="600" Value="250"
+                                    VerticalOptions="Center" />
+                            <Label Grid.Column="1" FontSize="12" Opacity="0.8" VerticalOptions="Center"
+                                   Text="{Binding Source={x:Reference GapSlider}, Path=Value, StringFormat='{0:0} ms'}" />
+                        </Grid>
+                        <Label Text="{l:Localize lblToolboxGapHint}" FontSize="11" Opacity="0.5" />
+                        <Label Text="{l:Localize lblToolboxStandbyNote}" FontSize="11" Opacity="0.5" />
+
+                        <!-- Launch an app by ID -->
+                        <Label Text="{l:Localize lblToolboxApps}" FontSize="12" Opacity="0.6" Margin="0,8,0,0" />
+                        <Label Text="{l:Localize lblToolboxAppsHint}" FontSize="11" Opacity="0.5" />
+                        <Button x:Name="LoadAppsBtn" Style="{StaticResource Accent}" FontSize="14"
+                                HorizontalOptions="Start" WidthRequest="140"
+                                Text="{l:Localize lblToolboxLoadApps}" Clicked="OnLoadAppsClicked" />
+
+                        <VerticalStackLayout x:Name="ToolboxAppList" Spacing="6">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="40,*,Auto" ColumnSpacing="10">
+                                        <Image Grid.Column="0" WidthRequest="40" HeightRequest="40" Aspect="AspectFit"
+                                               VerticalOptions="Center" Source="{Binding IconUrl}" />
+                                        <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="14"
+                                                   LineBreakMode="TailTruncation" />
+                                            <Label Text="{Binding AppId}" FontSize="11" Opacity="0.55"
+                                                   LineBreakMode="TailTruncation" />
+                                            <Label Text="{Binding Origin}" FontSize="11" Opacity="0.55"
+                                                   IsVisible="{Binding HasOrigin}" />
+                                        </VerticalStackLayout>
+                                        <Button Grid.Column="2" Style="{StaticResource Key}" FontSize="14"
+                                                WidthRequest="84" HeightRequest="44" VerticalOptions="Center"
+                                                Text="{l:Localize lblToolboxLaunch}"
+                                                CommandParameter="{Binding}" Clicked="OnLaunchAppClicked" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <!-- An ID from a forum post or a manual, for an app in neither list -->
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Entry Grid.Column="0" x:Name="ManualAppIdEntry" Keyboard="Text"
+                                   Placeholder="{l:Localize lblToolboxManualPlaceholder}" />
+                            <Button Grid.Column="1" Style="{StaticResource Accent}" FontSize="14"
+                                    WidthRequest="84" Text="{l:Localize lblToolboxLaunch}"
+                                    Clicked="OnLaunchManualClicked" />
+                        </Grid>
+
+                    </VerticalStackLayout>
+                </Border>
+
             </VerticalStackLayout>
         </ScrollView>
 

@@ -32,4 +32,12 @@
     <EmbeddedResource Include="..\Jellyfin2Samsung-CrossOS\Assets\Localization\*.json"
                       LogicalName="Apps2Samsung.Core.Localization.%(Filename).json" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Offline copy of the community app-ID catalogue (Catalog/SamsungTvAppCatalog): the launcher
+         list and the installed-apps icons both come from tizen-community-packages, and a phone with
+         no network still has to show something. Embedded rather than per-head assets for the same
+         reason the language files are. Refreshed by hand from the upstream file. -->
+    <EmbeddedResource Include="Catalog\Data\samsung-tv-app-ids.json"
+                      LogicalName="Apps2Samsung.Core.Catalog.samsung-tv-app-ids.json" />
+  </ItemGroup>
 </Project>
