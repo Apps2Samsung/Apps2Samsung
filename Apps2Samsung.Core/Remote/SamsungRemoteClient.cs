@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
@@ -36,6 +37,11 @@ namespace Apps2Samsung.Remote
         private readonly string _clientName;
         private readonly bool _secure;
         private readonly SemaphoreSlim _gate = new(1, 1);
+
+        // Requests waiting for the TV to answer, keyed by the event name it will answer with (the
+        // channel has no correlation id, so the event name is the correlation). One request per event
+        // at a time: a second supersedes the first, which then completes with null.
+        private readonly ConcurrentDictionary<string, TaskCompletionSource<JsonNode?>> _pending = new();
 
         private ClientWebSocket? _socket;
         private CancellationTokenSource? _receiveCts;
@@ -160,17 +166,94 @@ namespace Apps2Samsung.Remote
         /// has dropped. Returns false when the press could not be delivered.
         /// </summary>
         public Task<bool> SendKeyAsync(string key, CancellationToken cancellationToken = default) =>
+            SendRemoteKeyAsync(key, "Click", cancellationToken);
+
+        /// <summary>
+        /// Holds a key down without releasing it — the press half of a Click. Paired with
+        /// <see cref="SendKeyReleaseAsync"/> it reproduces a held button, which is what a service-menu
+        /// combo needs when a set only reacts to a key being held rather than tapped. A set that is
+        /// left holding a key keeps repeating it, so every press must get its release.
+        /// </summary>
+        public Task<bool> SendKeyPressAsync(string key, CancellationToken cancellationToken = default) =>
+            SendRemoteKeyAsync(key, "Press", cancellationToken);
+
+        /// <summary>Releases a key held by <see cref="SendKeyPressAsync"/>.</summary>
+        public Task<bool> SendKeyReleaseAsync(string key, CancellationToken cancellationToken = default) =>
+            SendRemoteKeyAsync(key, "Release", cancellationToken);
+
+        private Task<bool> SendRemoteKeyAsync(string key, string command, CancellationToken cancellationToken) =>
             SendAsync(new JsonObject
             {
                 ["method"] = "ms.remote.control",
                 ["params"] = new JsonObject
                 {
-                    ["Cmd"] = "Click",
+                    ["Cmd"] = command,
                     ["DataOfCmd"] = key,
                     ["Option"] = "false",
                     ["TypeOfRemote"] = "SendRemoteKey",
                 },
-            }, $"key {key}", cancellationToken);
+            }, $"key {key} ({command})", cancellationToken);
+
+        /// <summary>
+        /// Sends one of the channel's <c>ms.channel.emit</c> messages to the TV's host process — the
+        /// second half of the channel, next to the key presses: app launches and the installed-app
+        /// query travel this way (see <see cref="SamsungRemoteApps"/>). Reports delivery only; use
+        /// <see cref="RequestAsync"/> when the TV answers with an event worth reading.
+        /// </summary>
+        public Task<bool> EmitAsync(string eventName, JsonObject? data = null, CancellationToken cancellationToken = default)
+        {
+            var parameters = new JsonObject
+            {
+                ["event"] = eventName,
+                ["to"] = "host",
+            };
+            if (data is not null)
+                parameters["data"] = data;
+
+            return SendAsync(new JsonObject
+            {
+                ["method"] = "ms.channel.emit",
+                ["params"] = parameters,
+            }, $"emit {eventName}", cancellationToken);
+        }
+
+        /// <summary>
+        /// Emits <paramref name="eventName"/> and waits for the TV to answer with an event of the same
+        /// name, returning the whole message. Null when the send failed, the wait ran out, or the
+        /// connection dropped — sets differ in what they implement, and a set that doesn't know an
+        /// event simply never answers rather than saying so.
+        /// </summary>
+        public async Task<JsonNode?> RequestAsync(string eventName, JsonObject? data, TimeSpan timeout, CancellationToken cancellationToken = default)
+        {
+            // Connect before registering: a reconnect from inside the send would tear the socket down
+            // first, and tearing it down is what fails every request waiting on it.
+            if (!IsConnected && !await ConnectAsync(cancellationToken).ConfigureAwait(false))
+                return null;
+
+            var pending = new TaskCompletionSource<JsonNode?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            // A second request for the same event supersedes the first rather than both waiting on one
+            // answer, which only one of them could ever receive.
+            if (_pending.TryRemove(eventName, out var superseded))
+                superseded.TrySetResult(null);
+            _pending[eventName] = pending;
+
+            try
+            {
+                if (!await EmitAsync(eventName, data, cancellationToken).ConfigureAwait(false))
+                    return null;
+
+                using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeoutCts.CancelAfter(timeout);
+                using var registration = timeoutCts.Token.Register(() => pending.TrySetResult(null));
+                return await pending.Task.ConfigureAwait(false);
+            }
+            finally
+            {
+                // Only remove our own registration: a superseding request may already own the slot.
+                if (_pending.TryGetValue(eventName, out var current) && ReferenceEquals(current, pending))
+                    _pending.TryRemove(eventName, out _);
+            }
+        }
 
         /// <summary>
         /// Types text into whatever field the TV has focused — the phone keyboard standing in for the
@@ -256,6 +339,11 @@ namespace Apps2Samsung.Remote
                 var node = JsonNode.Parse(message);
                 var eventName = node?["event"]?.ToString();
 
+                // An answer someone is waiting on (installed-app list, app status). Still traced below,
+                // so the raw reply stays visible in the log.
+                if (eventName is not null && _pending.TryRemove(eventName, out var pending))
+                    pending.TrySetResult(node);
+
                 switch (eventName)
                 {
                     case "ms.channel.connect":
@@ -315,6 +403,13 @@ namespace Apps2Samsung.Remote
 
         private async Task DropAsync()
         {
+            // The answers these were waiting for can no longer arrive on this socket.
+            foreach (var eventName in _pending.Keys)
+            {
+                if (_pending.TryRemove(eventName, out var pending))
+                    pending.TrySetResult(null);
+            }
+
             var socket = _socket;
             var cts = _receiveCts;
             _socket = null;

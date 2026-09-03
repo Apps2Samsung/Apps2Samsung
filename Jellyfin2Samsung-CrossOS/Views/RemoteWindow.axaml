@@ -132,6 +132,103 @@
                     </Grid>
                     <TextBlock Text="{l:Localize lblRemoteTextHint}" FontSize="11" Opacity="0.5" TextWrapping="Wrap"/>
 
+                    <!-- TV toolbox (#635): the two things a stuck remote can't do — a documented key
+                         combination with exact timing, and launching an app the TV's launcher hides. -->
+                    <Expander Header="{l:Localize lblToolbox}" Margin="0,8,0,0" HorizontalAlignment="Stretch">
+                        <StackPanel Spacing="10" Margin="0,6,0,0">
+
+                            <TextBlock Text="{l:Localize lblToolboxOwnerNote}" FontSize="11" Opacity="0.6"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding ToolboxStatus}" FontSize="12" Opacity="0.8"
+                                       TextWrapping="Wrap" IsVisible="{Binding ToolboxStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                            <!-- Service-menu combinations -->
+                            <TextBlock Text="{l:Localize lblToolboxSequences}" FontSize="12" Opacity="0.6"/>
+                            <ItemsControl ItemsSource="{Binding Sequences}" IsEnabled="{Binding !IsToolboxBusy}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="viewModels:ToolboxSequence">
+                                        <Border Margin="0,3" Padding="10"
+                                                Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                                                CornerRadius="8">
+                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                                <StackPanel Grid.Column="0" Spacing="2">
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
+                                                    <TextBlock Text="{Binding Keys}" FontSize="11" Opacity="0.75"
+                                                               FontFamily="{DynamicResource ContentControlThemeFontFamily}"/>
+                                                    <TextBlock Text="{Binding Description}" FontSize="11" Opacity="0.55"
+                                                               TextWrapping="Wrap"/>
+                                                    <TextBlock Text="{Binding Caveat}" FontSize="11" Opacity="0.75"
+                                                               TextWrapping="Wrap" IsVisible="{Binding HasCaveat}"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="1" FontSize="13" VerticalAlignment="Center"
+                                                        Content="{l:Localize lblToolboxSend}"
+                                                        Command="{ReflectionBinding $parent[Window].DataContext.SendSequenceCommand}"
+                                                        CommandParameter="{Binding}"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <!-- Timing is the whole reason for doing this over the network, so it is adjustable -->
+                            <TextBlock Text="{l:Localize lblToolboxGap}" FontSize="12" Opacity="0.6" Margin="0,4,0,0"/>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <Slider Grid.Column="0" Minimum="100" Maximum="600" TickFrequency="50"
+                                        IsSnapToTickEnabled="True" Value="{Binding GapMs}"/>
+                                <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="12" Opacity="0.8"
+                                           Text="{Binding GapMs, StringFormat='{}{0:0} ms'}"/>
+                            </Grid>
+                            <TextBlock Text="{l:Localize lblToolboxGapHint}" FontSize="11" Opacity="0.5" TextWrapping="Wrap"/>
+                            <TextBlock Text="{l:Localize lblToolboxStandbyNote}" FontSize="11" Opacity="0.5" TextWrapping="Wrap"/>
+
+                            <!-- Launch an app by id -->
+                            <TextBlock Text="{l:Localize lblToolboxApps}" FontSize="12" Opacity="0.6" Margin="0,8,0,0"/>
+                            <TextBlock Text="{l:Localize lblToolboxAppsHint}" FontSize="11" Opacity="0.5" TextWrapping="Wrap"/>
+                            <Button Classes="keyAccent" FontSize="13" HorizontalAlignment="Left" Width="120"
+                                    Content="{l:Localize lblToolboxLoadApps}"
+                                    IsEnabled="{Binding !IsToolboxBusy}"
+                                    Command="{Binding LoadAppsCommand}"/>
+
+                            <ItemsControl ItemsSource="{Binding Apps}" IsEnabled="{Binding !IsToolboxBusy}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="viewModels:ToolboxApp">
+                                        <Border Margin="0,3" Padding="10"
+                                                Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                                                CornerRadius="8">
+                                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                                <Image Grid.Column="0" Width="32" Height="32" Stretch="UniformToFill"
+                                                       VerticalAlignment="Center" Source="{Binding IconBitmap}"/>
+                                                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding AppId}" FontSize="11" Opacity="0.55"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding Origin}" FontSize="11" Opacity="0.55"
+                                                               IsVisible="{Binding HasOrigin}"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="2" FontSize="13" VerticalAlignment="Center"
+                                                        Content="{l:Localize lblToolboxLaunch}"
+                                                        Command="{ReflectionBinding $parent[Window].DataContext.LaunchAppCommand}"
+                                                        CommandParameter="{Binding}"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <!-- An id from a forum post or a manual, for an app in neither list -->
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                                <TextBox Grid.Column="0" Text="{Binding ManualAppId}"
+                                         Watermark="{l:Localize lblToolboxManualPlaceholder}"/>
+                                <Button Grid.Column="1" Classes="keyAccent" FontSize="13" Width="80"
+                                        Content="{l:Localize lblToolboxLaunch}"
+                                        IsEnabled="{Binding !IsToolboxBusy}"
+                                        Command="{Binding LaunchManualCommand}"/>
+                            </Grid>
+
+                        </StackPanel>
+                    </Expander>
+
                 </StackPanel>
             </ScrollViewer>
 
