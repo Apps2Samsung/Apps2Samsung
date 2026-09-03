@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:l="clr-namespace:Apps2Samsung.Extensions"
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+        xmlns:remote="clr-namespace:Apps2Samsung.Remote;assembly=Apps2Samsung.Core"
         x:Class="Apps2Samsung.Views.TvToolboxWindow"
         x:Name="Root"
         x:DataType="viewModels:TvToolboxViewModel"
@@ -125,6 +126,38 @@
                                 Content="{l:Localize lblToolboxLaunch}"
                                 Command="{Binding LaunchManualCommand}"/>
                     </Grid>
+
+                    <!-- ============ Hidden system apps ============ -->
+                    <!-- Not part of the list above: these are the TV's own menus, addressed by id
+                         because the key combination that used to open them has stopped answering.
+                         They go over SDB, so they stay enabled with the channel down (#641). -->
+                    <TextBlock Classes="section" Text="{l:Localize lblToolboxSystemApps}" Margin="0,12,0,0"/>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxSystemAppsHint}"/>
+
+                    <ItemsControl ItemsSource="{Binding SystemApps}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="remote:SamsungSystemAppRow">
+                                <Border Margin="0,3" Padding="10" CornerRadius="8"
+                                        Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                        <StackPanel Grid.Column="0" Spacing="2">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
+                                            <TextBlock Text="{Binding AppId}" FontSize="11" Opacity="0.55"/>
+                                            <TextBlock Text="{Binding Description}" FontSize="11" Opacity="0.55"
+                                                       TextWrapping="Wrap"/>
+                                            <TextBlock Text="{l:Localize lblToolboxSystemAppCaution}" FontSize="11"
+                                                       Foreground="#C77700" TextWrapping="Wrap"
+                                                       IsVisible="{Binding IsCaution}"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Classes="action" Width="90" VerticalAlignment="Center"
+                                                Content="{l:Localize lblToolboxLaunch}"
+                                                Command="{ReflectionBinding $parent[Window].DataContext.LaunchSystemAppCommand}"
+                                                CommandParameter="{Binding}"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
                     <!-- ============ Service menu ============ -->
                     <TextBlock Classes="section" Text="{l:Localize lblToolboxSequences}" Margin="0,12,0,0"/>

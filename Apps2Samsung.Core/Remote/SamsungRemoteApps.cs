@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Apps2Samsung.Interfaces;
 
 namespace Apps2Samsung.Remote
 {
@@ -27,7 +28,7 @@ namespace Apps2Samsung.Remote
         public string DisplayName => string.IsNullOrWhiteSpace(Name) ? AppId : Name;
     }
 
-    /// <summary>Which of the three launch paths got the app open.</summary>
+    /// <summary>Which of the launch paths got the app open.</summary>
     public enum SamsungRemoteLaunchRoute
     {
         None,
@@ -37,6 +38,12 @@ namespace Apps2Samsung.Remote
         Rest,
         /// <summary>DIAL on port 8080 — by app name, not by id.</summary>
         Dial,
+
+        /// <summary>
+        /// <c>0 was_execute</c> over SDB. The only route that addresses the platform's own launcher
+        /// rather than the store's, and the only one that needs Developer Mode (#641).
+        /// </summary>
+        Sdb,
     }
 
     /// <summary>
@@ -70,16 +77,24 @@ namespace Apps2Samsung.Remote
         bool ReportedByTv);
 
     /// <summary>
-    /// Lists and launches the TV's apps over the remote channel (#635) — no Developer Mode, unlike the
-    /// SDB listing in <c>Sdb/TizenInstalledApps</c>. That is the point of it: hospitality firmware
+    /// Lists and launches the TV's apps by id (#635). That is the point of it: hospitality firmware
     /// ships the OTT apps and the hotel launcher merely hides them, so launching one by id reaches an
     /// app the on-screen UI won't show. The same holds for regional and pre-installed apps on an
     /// ordinary set.
     /// <para>
-    /// Firmware coverage varies wildly, so a launch is tried three ways: the channel's
-    /// <c>ed.apps.launch</c>, then the REST endpoint, then DIAL. Each attempt is checked against the
-    /// TV's own app-status endpoint where the set answers it; where it doesn't, a delivered message is
-    /// reported as an unverified success rather than claimed as a launch.
+    /// Firmware coverage varies wildly, so a launch is tried every way this app can reach a TV: the
+    /// channel's <c>ed.apps.launch</c>, the REST endpoint, DIAL, and — where the caller has an
+    /// <see cref="ISdbEngine"/> — <c>0 was_execute</c> over SDB. The first three need no Developer
+    /// Mode, which is why they lead for an ordinary app; SDB leads for a
+    /// <see cref="SamsungSystemApps">system app</see>, which was never in a store for a deep link or a
+    /// DIAL name to address. Each attempt is checked against the TV's own app-status endpoint where the
+    /// set answers it; where it doesn't, a delivered message is reported as an unverified success
+    /// rather than claimed as a launch.
+    /// </para>
+    /// <para>
+    /// Listing still goes over the channel alone. <c>Sdb/TizenInstalledApps</c> is the other listing —
+    /// it needs Developer Mode and reports what is really installed, where this one is a catalogue of
+    /// ids to try.
     /// </para>
     /// </summary>
     public static class SamsungRemoteApps
@@ -208,33 +223,44 @@ namespace Apps2Samsung.Remote
 
         /// <summary>Launches a row of the list, name and all.</summary>
         public static Task<SamsungRemoteLaunchResult> LaunchAsync(
-            SamsungRemoteClient client,
+            SamsungRemoteClient? client,
             string tvIpAddress,
             SamsungRemoteLaunchTarget target,
+            ISdbEngine? sdb = null,
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(target);
-            return LaunchAsync(client, tvIpAddress, target.AppId, target.Name, target.AppType, cancellationToken);
+            return LaunchAsync(client, tvIpAddress, target.AppId, target.Name, target.AppType, sdb, cancellationToken);
         }
 
         /// <summary>
-        /// Opens <paramref name="appId"/> on the TV, trying the channel, then REST, then DIAL.
-        /// <paramref name="dialName"/> is the app's registered DIAL name (e.g. "Netflix") — DIAL
-        /// addresses apps by name, so without one that last fallback is skipped.
+        /// Opens <paramref name="appId"/> on the TV, trying the channel, then REST, then DIAL, with SDB
+        /// either side of them depending on the app. <paramref name="dialName"/> is the app's
+        /// registered DIAL name (e.g. "Netflix") — DIAL addresses apps by name, so without one that
+        /// fallback is skipped. <paramref name="sdb"/> is null where the caller has no engine, and a
+        /// set with Developer Mode off simply fails that attempt and carries on.
         /// </summary>
         public static async Task<SamsungRemoteLaunchResult> LaunchAsync(
-            SamsungRemoteClient client,
+            SamsungRemoteClient? client,
             string tvIpAddress,
             string appId,
             string? dialName = null,
             int appType = 0,
+            ISdbEngine? sdb = null,
             CancellationToken cancellationToken = default)
         {
-            ArgumentNullException.ThrowIfNull(client);
+            // Null client is a route missing, not a bad call: only the first of the four needs the
+            // channel, and a set that refuses to pair can still answer REST, DIAL or SDB.
             if (string.IsNullOrWhiteSpace(appId))
                 return SamsungRemoteLaunchResult.Failed;
 
             appId = appId.Trim();
+
+            // A hotel or factory menu is not a store app, so a deep link and a DIAL name have nothing
+            // to address it by: for those, SDB is the route rather than the fallback.
+            var sdbFirst = SamsungSystemApps.IsSystemApp(appId);
+            if (sdbFirst && await SdbLaunchedAsync(sdb, tvIpAddress, appId).ConfigureAwait(false))
+                return await SdbResultAsync(tvIpAddress, appId, cancellationToken).ConfigureAwait(false);
 
             // Tizen suspends an app rather than closing it, so a set that ran this app earlier still
             // answers the status query "true" before we have launched anything. Left alone that reads
@@ -249,7 +275,7 @@ namespace Apps2Samsung.Remote
 
             // 1. The channel. It reports delivery only, so the TV's own status endpoint is what turns
             //    that into a launch — where the set answers it at all.
-            if (await client.EmitAsync("ed.apps.launch", new JsonObject
+            if (client is not null && await client.EmitAsync("ed.apps.launch", new JsonObject
                 {
                     ["appId"] = appId,
                     ["action_type"] = ActionTypeFor(appId, appType),
@@ -283,7 +309,48 @@ namespace Apps2Samsung.Remote
                 return new SamsungRemoteLaunchResult(true, SamsungRemoteLaunchRoute.Dial, Verified: false);
             }
 
+            // 4. SDB, for an ordinary app the three network routes couldn't open. Last because it costs
+            //    a connection to the TV's developer port to find out it isn't available.
+            if (!sdbFirst && await SdbLaunchedAsync(sdb, tvIpAddress, appId).ConfigureAwait(false))
+                return await SdbResultAsync(tvIpAddress, appId, cancellationToken).ConfigureAwait(false);
+
             return SamsungRemoteLaunchResult.Failed;
+        }
+
+        /// <summary>
+        /// Whether the developer channel took the launch. False whenever that channel isn't there to
+        /// ask — no engine, Developer Mode off, the TV not listening on the port — which is a route
+        /// unavailable rather than an error, so the caller falls through to the next one.
+        /// </summary>
+        private static async Task<bool> SdbLaunchedAsync(ISdbEngine? sdb, string tvIpAddress, string appId)
+        {
+            if (sdb is null)
+                return false;
+
+            try
+            {
+                var result = await sdb.LaunchAsync(tvIpAddress, appId).ConfigureAwait(false);
+                if (result.ExitCode == 0)
+                    return true;
+
+                Trace.WriteLine($"[remote] SDB would not open {appId}: {result.Output}");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[remote] SDB launch of {appId} failed: {ex.Message}");
+                return false;
+            }
+        }
+
+        // SDB reports the launcher's own answer, which is a better signal than any of the network
+        // routes give — but a system app is exactly the kind the status endpoint stays quiet about, so
+        // it still goes through the same check as the rest rather than claiming a verified launch.
+        private static async Task<SamsungRemoteLaunchResult> SdbResultAsync(
+            string tvIpAddress, string appId, CancellationToken cancellationToken)
+        {
+            var running = await WaitForRunningAsync(tvIpAddress, appId, cancellationToken).ConfigureAwait(false);
+            return new SamsungRemoteLaunchResult(true, SamsungRemoteLaunchRoute.Sdb, Verified: running == true);
         }
 
         /// <summary>

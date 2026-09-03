@@ -1,4 +1,5 @@
 using Apps2Samsung.Catalog;
+using Apps2Samsung.Interfaces;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Remote;
@@ -7,10 +8,14 @@ namespace Apps2Samsung.Mobile.Pages;
 
 /// <summary>
 /// The TV toolbox (#635): opening an app by ID, and sending a documented service-menu key combination.
-/// Both ride the <c>samsung.remote.control</c> channel, so neither needs Developer Mode — which is the
-/// point, since the sets this exists for (hospitality firmware, a dead or numberless remote) have no
-/// Developer Mode to switch on. The phone is the natural host: it is what you are holding when the
-/// remote has died.
+/// The key combinations ride the <c>samsung.remote.control</c> channel, which needs no Developer Mode —
+/// the point, since the sets this exists for (hospitality firmware, a dead or numberless remote) may
+/// have none to switch on. The phone is the natural host: it is what you are holding when the remote
+/// has died.
+/// <para>
+/// The system-app list is the exception: the TV's own menus were never store apps, so no deep link
+/// addresses them and they go over SDB where the set has Developer Mode on (#641).
+/// </para>
 /// <para>
 /// Its own page rather than a panel under the remote's keys: these are not remote buttons. And the app
 /// list here is not the Installed apps page — that one goes over SDB, needs Developer Mode, and reports
@@ -21,6 +26,10 @@ public partial class TvToolboxPage : ContentPage
 {
 	private readonly string _tvIp;
 	private readonly string _tvLabel;
+
+	// The developer channel, where the phone has one. Null is a route missing, not a failure: the
+	// toolbox is offered for any TV on the network, Developer Mode or not.
+	private readonly ISdbEngine? _sdb;
 	private SamsungRemoteClient? _remote;
 
 	// The full list behind the filtered one shown.
@@ -30,11 +39,16 @@ public partial class TvToolboxPage : ContentPage
 	// presses with the first one's, which is not a combination the TV was ever shown.
 	private bool _busy;
 
-	public TvToolboxPage(string tvIp, string tvLabel)
+	public TvToolboxPage(ISdbEngine? sdb, string tvIp, string tvLabel)
 	{
 		InitializeComponent();
 		_tvIp = tvIp;
 		_tvLabel = tvLabel;
+		_sdb = sdb;
+
+		// The TV's own menus, addressed by id (#641). Fixed, not filtered: a short list to try in
+		// order, not something to search.
+		BindableLayout.SetItemsSource(SystemAppList, SamsungSystemApps.Rows(L10n.Get));
 
 		// Buttons only for the combinations this channel can deliver.
 		BindableLayout.SetItemsSource(
@@ -130,6 +144,12 @@ public partial class TvToolboxPage : ContentPage
 		BindableLayout.SetItemsSource(AppList, matches.Select(t => new ToolboxAppRow(t)).ToList());
 	}
 
+	private async void OnLaunchSystemAppClicked(object? sender, EventArgs e)
+	{
+		if (sender is Button { BindingContext: SamsungSystemAppRow row })
+			await LaunchAsync(row.Target);
+	}
+
 	private async void OnLaunchAppClicked(object? sender, EventArgs e)
 	{
 		if (sender is Button button && button.CommandParameter is ToolboxAppRow row)
@@ -150,7 +170,10 @@ public partial class TvToolboxPage : ContentPage
 	private async Task LaunchAsync(SamsungRemoteLaunchTarget target)
 	{
 		var remote = _remote;
-		if (remote is null)
+
+		// A system app is launched over SDB, which is a different channel entirely — so an unpaired
+		// set only blocks the launches that actually need the remote one.
+		if (remote is null && _sdb is null)
 		{
 			SetStatus(L10n.Get("lblRemoteNotConnected"));
 			return;
@@ -163,7 +186,7 @@ public partial class TvToolboxPage : ContentPage
 		try
 		{
 			SetStatus(string.Format(L10n.Get("lblToolboxLaunching"), target.Name));
-			var result = await SamsungRemoteApps.LaunchAsync(remote, _tvIp, target);
+			var result = await SamsungRemoteApps.LaunchAsync(remote, _tvIp, target, _sdb);
 
 			SetStatus(result switch
 			{
