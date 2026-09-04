@@ -117,8 +117,9 @@
 
                 <!-- ============ Hidden system apps ============ -->
                 <!-- Not part of the list above: these are the TV's own menus, addressed by ID because
-                     the key combination that used to open them has stopped answering. They go over
-                     SDB, so they stay usable with the channel down (#641). -->
+                     the key combination that used to open them has stopped answering. They launch
+                     through the debug agent below (#34); without it the SDB attempt still runs so the
+                     TV's own refusal is what the user reads (#641). -->
                 <Border Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="8">
                         <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxSystemApps}" />
@@ -141,6 +142,71 @@
                                     </Grid>
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- ============ Debug agent ============ -->
+                <!-- The route that reaches the rows above (#34): an app of ours on the TV, driven over
+                     the web inspector, asking the platform's own application manager. Also the one
+                     honest app list a hospitality set has. Needs Developer Mode. -->
+                <Border x:Name="AgentCard" Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxAgent}" />
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxAgentHint}" />
+                        <Label x:Name="AgentNeedsSdbHint" Style="{StaticResource Hint}" IsVisible="False"
+                               Text="{l:Localize lblToolboxAgentNeedsSdb}" />
+
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Button Grid.Column="0" x:Name="AttachAgentBtn" Style="{StaticResource Action}"
+                                    Text="{l:Localize lblToolboxAgentAttach}" Clicked="OnAttachAgentClicked" />
+                            <Button Grid.Column="1" x:Name="DetachAgentBtn" Style="{StaticResource Action}" WidthRequest="100"
+                                    Text="{l:Localize lblToolboxAgentDetach}" Clicked="OnDetachAgentClicked" IsEnabled="False" />
+                        </Grid>
+                        <Label x:Name="AgentStatusLabel" FontSize="12" Opacity="0.8" />
+
+                        <VerticalStackLayout x:Name="AgentSection" Spacing="8" IsVisible="False">
+                            <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxAgentApps}" />
+                            <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxAgentAppsHint}" />
+
+                            <SearchBar x:Name="AgentSearch" Placeholder="{l:Localize lblToolboxFilter}"
+                                       TextChanged="OnAgentFilterChanged" />
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <Label Grid.Column="0" FontSize="12" Opacity="0.7" VerticalOptions="Center"
+                                       Text="{l:Localize lblToolboxAgentHiddenOnly}" />
+                                <Switch Grid.Column="1" x:Name="AgentHiddenOnly" Toggled="OnAgentFilterChanged" />
+                            </Grid>
+
+                            <VerticalStackLayout x:Name="AgentAppList" Spacing="4">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" Padding="0,4">
+                                            <VerticalStackLayout Grid.Column="0" Spacing="1" VerticalOptions="Center">
+                                                <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="14"
+                                                       LineBreakMode="TailTruncation" />
+                                                <Label Text="{Binding Subtitle}" FontSize="11" Opacity="0.55"
+                                                       LineBreakMode="TailTruncation" />
+                                            </VerticalStackLayout>
+                                            <Button Grid.Column="1" Style="{StaticResource Action}" WidthRequest="80"
+                                                    Text="{l:Localize lblToolboxLaunch}"
+                                                    CommandParameter="{Binding}" Clicked="OnLaunchAgentAppClicked" />
+                                            <Button Grid.Column="2" Style="{StaticResource Action}" WidthRequest="100"
+                                                    Text="{l:Localize lblToolboxAgentAppControl}"
+                                                    CommandParameter="{Binding}" Clicked="OnLaunchAgentAppControlClicked" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+
+                            <!-- Anything not a button yet, straight into the agent -->
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <Entry Grid.Column="0" x:Name="AgentExpression" Keyboard="Text"
+                                       Placeholder="{l:Localize lblToolboxAgentEvaluatePlaceholder}" />
+                                <Button Grid.Column="1" Style="{StaticResource Action}" WidthRequest="100"
+                                        Text="{l:Localize lblToolboxAgentEvaluate}" Clicked="OnEvaluateAgentClicked" />
+                            </Grid>
+                            <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxAgentEvaluateHint}" />
+                            <Label x:Name="AgentExpressionResult" FontSize="11" FontFamily="monospace" LineBreakMode="WordWrap" />
                         </VerticalStackLayout>
                     </VerticalStackLayout>
                 </Border>

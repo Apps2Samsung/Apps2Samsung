@@ -326,7 +326,17 @@ public partial class InstallerPage : ContentPage
 		}
 		var tvIp = _tvIps[TvPicker.SelectedIndex];
 		var label = TvPicker.SelectedItem as string ?? tvIp;
-		await Navigation.PushAsync(new TvToolboxPage(_sdb, tvIp, label));
+
+		// The toolbox's debug agent is a .wgt like any other: the normal pipeline (certificate, resign,
+		// push) puts it on the TV when the set doesn't have it yet (#34).
+		Func<string, Action<string>, Task<bool>> installWgt = async (wgtPath, report) =>
+		{
+			var cert = await _certProvisioner.ProvisionAsync(tvIp, false, report);
+			await _installer.InstallAsync(tvIp, wgtPath, cert, report);
+			return true;
+		};
+
+		await Navigation.PushAsync(new TvToolboxPage(_sdb, tvIp, label, installWgt));
 	}
 
 	private async void OnRefreshClicked(object? sender, EventArgs e) => await ScanAsync();

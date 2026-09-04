@@ -40,4 +40,12 @@
     <EmbeddedResource Include="Catalog\Data\samsung-tv-app-ids.json"
                       LogicalName="Apps2Samsung.Core.Catalog.samsung-tv-app-ids.json" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- The Apps2Samsung Debug agent (Agent/DebugAgentPackage): a three-file Tizen web app the
+         toolbox installs on a TV with Developer Mode and drives over the web inspector, to reach the
+         apps neither the remote channel nor SDB can launch (tizen-community-packages#34). Embedded so
+         the agent a build installs is the one its client code was written against. -->
+    <EmbeddedResource Include="Agent\Wgt\*"
+                      LogicalName="Apps2Samsung.Core.DebugAgent.%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>

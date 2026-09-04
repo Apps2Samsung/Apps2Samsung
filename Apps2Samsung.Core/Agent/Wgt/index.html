@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Apps2Samsung Debug</title>
+<style>
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #101418; color: #dce3ea;
+             font-family: Arial, Helvetica, sans-serif; overflow: hidden; }
+body { padding: 28px 40px; box-sizing: border-box; }
+h1 { margin: 0 0 4px 0; font-size: 30px; color: #ecf0f1; }
+#platform { color: #8e99a4; font-size: 16px; margin-bottom: 14px; }
+#hint { color: #8e99a4; font-size: 15px; margin-bottom: 10px; }
+#layout { display: -webkit-box; display: flex; height: calc(100% - 120px); }
+#list { -webkit-box-flex: 0; flex: 0 0 46%; overflow: hidden; margin-right: 24px; }
+#log { -webkit-box-flex: 1; flex: 1 1 auto; overflow: hidden; font-family: Consolas, "Courier New", monospace;
+       font-size: 15px; line-height: 1.4; white-space: pre-wrap; word-break: break-all; }
+.row { padding: 6px 10px; font-size: 18px; border-radius: 6px; }
+.row .id { color: #8e99a4; font-size: 14px; }
+.row.sel { background: #2c3e50; color: #fff; }
+.ok { color: #70ff70; } .err { color: #ff7070; } .warn { color: #ffd35a; } .dim { color: #8e99a4; }
+</style>
+</head>
+<body>
+<h1>Apps2Samsung Debug <span id="version" class="dim"></span></h1>
+<div id="platform">starting…</div>
+<div id="hint">Driven from Apps2Samsung on your PC or phone. By hand: UP/DOWN pick · ENTER launch · RIGHT launch via app control · RETURN exit.</div>
+<div id="layout">
+  <div id="list"></div>
+  <div id="log"></div>
+</div>
+<script>
+(function () {
+"use strict";
+
+/* ------------------------------------------------------------------------------------------
+   The agent API. Everything Apps2Samsung does on this TV goes through window.A2S, evaluated
+   over the web inspector (Runtime.evaluate, returnByValue). Rules for every function here:
+     - ES5 plus Promise, no fetch, no modules: the oldest engine this app meets is Tizen 3.0's
+       Chrome 47-era WebKit (required_version in config.xml), which has Promise and little else.
+     - Results are plain JSON-serialisable values, never DOM nodes or Tizen objects.
+     - Nothing throws to the caller: an error becomes {error:{name,message,code}}.
+     - Every call is mirrored to console.log as JSON, so the DevTools console shows the same.
+   launch()/launchControl() resolve on the platform's success/error CALLBACK, not on return,
+   because the return value of tizen.application.launch says nothing about the outcome.
+   ------------------------------------------------------------------------------------------ */
+
+var VERSION = "0.1.0";
+
+function err(e) {
+    return { error: { name: e && e.name || "Error", message: e && e.message || String(e), code: e && e.code } };
+}
+
+function appInfo(a) {
+    if (!a) return null;
+    var cats = [];
+    try { for (var i = 0; i < (a.categories || []).length; i++) cats.push(String(a.categories[i])); } catch (x) {}
+    return { id: a.id, name: a.name, packageId: a.packageId, version: a.version, show: !!a.show,
+             iconPath: a.iconPath || "", categories: cats };
+}
+
+function log(what, value, cls) {
+    var text;
+    try { text = typeof value === "string" ? value : JSON.stringify(value); } catch (x) { text = String(value); }
+    try { console.log("[A2S] " + what + " " + text); } catch (x) {}
+    var el = document.getElementById("log");
+    var div = document.createElement("div");
+    div.className = cls || "";
+    div.textContent = what + " " + text;
+    el.appendChild(div);
+    while (el.childNodes.length > 60) el.removeChild(el.firstChild);
+    el.scrollTop = el.scrollHeight;
+}
+
+
+/* A launch outcome arrives in a callback, so the caller gets a Promise that settles there
+   (Runtime.evaluate with awaitPromise waits for it). */
+function deferred(run) {
+    return new Promise(function (resolve) { run(resolve); });
+}
+
+function launchResult(ok, e) {
+    return ok ? { ok: true } : { ok: false, name: e && e.name || "Error", message: e && e.message || String(e), code: e && e.code };
+}
+
+window.A2S = {
+    version: VERSION,
+
+    platform: function () {
+        var out = { agent: VERSION, tizen: null, model: null, firmware: null,
+                    userAgent: navigator.userAgent, screen: [window.innerWidth, window.innerHeight] };
+        try { out.tizen = tizen.systeminfo.getCapability("http://tizen.org/feature/platform.version"); } catch (e) {}
+        try { out.model = webapis.productinfo.getRealModel(); } catch (e) {}
+        try { if (!out.model) out.model = webapis.productinfo.getModel(); } catch (e) {}
+        try { out.firmware = webapis.productinfo.getFirmware(); } catch (e) {}
+        log("platform", out, "dim");
+        return out;
+    },
+
+    apps: function () {
+        try {
+            var list = tizen.application.getAppsInfo();
+            var out = [];
+            for (var i = 0; i < list.length; i++) out.push(appInfo(list[i]));
+            log("apps", out.length + " installed", "dim");
+            return out;
+        } catch (e) { log("apps", err(e), "err"); return err(e); }
+    },
+
+    app: function (id) {
+        try { var a = appInfo(tizen.application.getAppInfo(id)); log("app " + id, a, "dim"); return a; }
+        catch (e) { var r = err(e); log("app " + id, r, "warn"); return r; }
+    },
+
+    launch: function (id) {
+        return deferred(function (done) {
+            try {
+                tizen.application.launch(id,
+                    function () { var r = launchResult(true); log("launch " + id, r, "ok"); done(r); },
+                    function (e) { var r = launchResult(false, e); log("launch " + id, r, "err"); done(r); });
+            } catch (e) { var r = launchResult(false, e); log("launch " + id, r, "err"); done(r); }
+        });
+    },
+
+    launchControl: function (id, operation, uri, mime) {
+        operation = operation || "http://tizen.org/appcontrol/operation/main";
+        return deferred(function (done) {
+            try {
+                var control = new tizen.ApplicationControl(operation, uri || null, mime || null, null, []);
+                tizen.application.launchAppControl(control, id,
+                    function () { var r = launchResult(true); r.operation = operation; log("launchControl " + id, r, "ok"); done(r); },
+                    function (e) { var r = launchResult(false, e); r.operation = operation; log("launchControl " + id, r, "err"); done(r); },
+                    { onsuccess: function (data) { log("launchControl reply " + id, data || null, "dim"); },
+                      onfailure: function () { log("launchControl reply " + id, "failure", "warn"); } });
+            } catch (e) { var r = launchResult(false, e); r.operation = operation; log("launchControl " + id, r, "err"); done(r); }
+        });
+    },
+
+    running: function () {
+        try {
+            var list = tizen.application.getAppsContext();
+            var out = [];
+            for (var i = 0; i < list.length; i++) out.push({ appId: list[i].appId, id: list[i].id });
+            log("running", out, "dim");
+            return out;
+        } catch (e) { log("running", err(e), "err"); return err(e); }
+    },
+
+    self: function () {
+        try { return appInfo(tizen.application.getCurrentApplication().appInfo); } catch (e) { return err(e); }
+    }
+};
+
+
+/* ------------------------------------------------------------------------------------------
+   On-screen fallback, for running the agent by hand: the ids the toolbox lists, UP/DOWN to pick,
+   ENTER to launch, RIGHT to launch via app control. Same list as Core's SamsungSystemApps.
+   ------------------------------------------------------------------------------------------ */
+var candidates = [
+    ["Hotel Option menu", "com.samsung.ep.coba.hotel"],
+    ["Hotel quick settings", "com.samsung.ep.hotel-quicksetting-editor"],
+    ["Hotel cloning", "org.tizen.ephotel-cloning"],
+    ["Cloning", "org.tizen.cloning"],
+    ["Samsung Apps store", "com.samsung.tv.store"],
+    ["Apps", "org.volt.apps"],
+    ["Settings", "com.samsung.tv.coba.setting"],
+    ["Easy setup", "org.tizen.MenuEasySetup"],
+    ["Software update", "org.tizen.tv.swu-standalone"],
+    ["Factory menu", "org.tizen.factory"],
+    ["Hotel factory menu", "org.tizen.ep-hotel-factory"],
+    ["Hotel security", "org.tizen.ep-hotel-security"],
+    ["Smart Hub reset", "org.tizen.smarthub-reset"],
+    ["Initial setup wizard", "com.samsung.tv.wizard"]
+];
+var selected = 0;
+
+function renderList() {
+    var el = document.getElementById("list");
+    el.innerHTML = "";
+    for (var i = 0; i < candidates.length; i++) {
+        var div = document.createElement("div");
+        div.className = "row" + (i === selected ? " sel" : "");
+        div.innerHTML = candidates[i][0] + "<br><span class='id'>" + candidates[i][1] + "</span>";
+        el.appendChild(div);
+    }
+}
+
+function settle(promise) {
+    // The callback writes the log line; a look at the contexts afterwards shows whether the app came up.
+    promise.then(function () { setTimeout(function () { window.A2S.running(); }, 1500); });
+}
+
+document.addEventListener("keydown", function (e) {
+    var k = e.keyCode;
+    if (k === 38) { selected = (selected + candidates.length - 1) % candidates.length; renderList(); }
+    else if (k === 40) { selected = (selected + 1) % candidates.length; renderList(); }
+    else if (k === 13) { settle(window.A2S.launch(candidates[selected][1])); }
+    else if (k === 39) { settle(window.A2S.launchControl(candidates[selected][1])); }
+    else if (k === 10009 || k === 461) { try { tizen.application.getCurrentApplication().exit(); } catch (x) {} }
+    else { return; }
+    e.preventDefault();
+}, false);
+
+document.getElementById("version").textContent = "v" + VERSION;
+renderList();
+try {
+    var p = window.A2S.platform();
+    document.getElementById("platform").textContent =
+        (p.model || "unknown model") + " · Tizen " + (p.tizen || "?") + (p.firmware ? " · " + p.firmware : "");
+    var apps = window.A2S.apps();
+    if (apps && apps.length !== undefined) {
+        var hidden = 0;
+        for (var i = 0; i < apps.length; i++) if (!apps[i].show) hidden++;
+        log("ready", apps.length + " apps installed, " + hidden + " marked hidden. Waiting for Apps2Samsung.", "ok");
+    }
+} catch (e) { log("startup", err(e), "err"); }
+})();
+</script>
+</body>
+</html>
