@@ -119,6 +119,26 @@ namespace Apps2Samsung.Sdb
                     sb.AppendLine($"  Testing '{cmd}': FAILED - {ex.Message}");
                 }
             }
+
+            // Which shell verbs this TV's sdbd recognises (TizenSdb.Core's SdbShellVerbs). sdbd is a
+            // fixed vocabulary, not a shell, and the launcher verb the tooling uses only resolves Smart
+            // Hub apps (tizen-community-packages#34); whether a set exposes a verb that reaches the
+            // platform's own launcher is a question no log had answered. Every probe carries an id
+            // that does not exist, so nothing on the TV changes. Appended after the "Testing" lines
+            // so the diagnose parser, which keys on the vd_appuninstall line, is unaffected — and so a
+            // user's debug log carries the answer without anyone asking for it.
+            try
+            {
+                var probes = await device.ProbeShellVerbsAsync();
+                sb.AppendLine($"  sdbd verbs: {probes.Count(p => p.Accepted)} of {probes.Count} probes accepted");
+                foreach (var probe in probes)
+                    sb.AppendLine(SdbShellVerbs.Format(probe));
+            }
+            catch (Exception ex)
+            {
+                sb.AppendLine($"  sdbd verbs: probe failed - {ex.Message}");
+            }
+
             return sb.ToString();
         });
 

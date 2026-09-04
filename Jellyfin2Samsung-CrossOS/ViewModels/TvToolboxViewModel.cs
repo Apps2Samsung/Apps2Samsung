@@ -452,18 +452,42 @@ namespace Apps2Samsung.ViewModels
             IsBusy = true;
             try
             {
+                // App control goes to an operation the target actually registers, when the probe finds
+                // one; `main` is only the guess for a target that registers none of the probed set.
+                string? operation = null;
+                if (control)
+                {
+                    StatusText = string.Format("lblToolboxAgentProbing".Localized(), name);
+                    operation = (await agent.ProbeAppControlsAsync(appId)).FirstOrDefault();
+                }
+
                 StatusText = string.Format("lblToolboxAgentLaunching".Localized(), name);
                 var result = control
-                    ? await agent.LaunchControlAsync(appId)
+                    ? await agent.LaunchControlAsync(appId, operation ?? DebugAgentClient.MainOperation)
                     : await agent.LaunchAsync(appId);
 
-                StatusText = result.State switch
+                var status = result.State switch
                 {
                     DebugAgentLaunchState.Launched => string.Format("lblToolboxAgentLaunched".Localized(), name),
                     DebugAgentLaunchState.LaunchedNoContext => string.Format("lblToolboxAgentLaunchedNoContext".Localized(), name),
                     DebugAgentLaunchState.Refused => string.Format("lblToolboxAgentLaunchRefused".Localized(), name, result.ErrorName, result.ErrorMessage),
                     _ => string.Format("lblToolboxAgentUnresponsive".Localized(), name),
                 };
+                if (control)
+                    status += " " + string.Format("lblToolboxAgentOperationUsed".Localized(), operation ?? DebugAgentClient.MainOperation);
+
+                // A refusal or a launch that went nowhere is the moment to learn what the target does
+                // answer to: the operations it registers decide the next attempt.
+                if (!control && result.State is DebugAgentLaunchState.Refused or DebugAgentLaunchState.LaunchedNoContext)
+                {
+                    StatusText = status;
+                    var operations = await agent.ProbeAppControlsAsync(appId);
+                    status += " " + (operations.Count > 0
+                        ? string.Format("lblToolboxAgentOperations".Localized(), name, string.Join(", ", operations.Select(ShortOperation)))
+                        : string.Format("lblToolboxAgentOperationsNone".Localized(), name, DebugAgentClient.ProbedOperationCount));
+                }
+
+                StatusText = status;
             }
             catch (Exception ex)
             {
@@ -474,6 +498,10 @@ namespace Apps2Samsung.ViewModels
                 IsBusy = false;
             }
         }
+
+        // "http://tizen.org/appcontrol/operation/main" reads as "tizen.org/main" in a status line.
+        private static string ShortOperation(string operation) =>
+            operation.Replace("http://", string.Empty).Replace("/appcontrol/operation/", "/");
 
         /// <summary>Runs <see cref="AgentExpression"/> inside the agent and shows what came back, verbatim.</summary>
         [RelayCommand]

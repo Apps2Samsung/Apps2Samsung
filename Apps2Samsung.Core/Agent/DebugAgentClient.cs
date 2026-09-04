@@ -95,6 +95,12 @@ namespace Apps2Samsung.Agent
     /// </summary>
     public sealed class DebugAgentClient : IAsyncDisposable
     {
+        /// <summary>The operation a plain app-control launch uses when nothing better is known.</summary>
+        public const string MainOperation = "http://tizen.org/appcontrol/operation/main";
+
+        /// <summary>How many operations the agent's <c>appControls()</c> probes — mirrors its OPERATIONS list.</summary>
+        public const int ProbedOperationCount = 25;
+
         /// <summary>How long one evaluation may take before the agent counts as unresponsive.</summary>
         public static readonly TimeSpan EvaluateTimeout = TimeSpan.FromSeconds(8);
 
@@ -242,6 +248,37 @@ namespace Apps2Samsung.Agent
                 .ToList();
         }
 
+        /// <summary>
+        /// The app control operations <paramref name="appId"/> registers for, out of the list the agent
+        /// probes with <c>findAppControl()</c>. Empty means none of them — which is what a bare
+        /// <see cref="LaunchAsync"/> refusal plus an empty list adds up to: no entry point from a user app.
+        /// A non-empty list is the operation to hand <see cref="LaunchControlAsync"/>.
+        /// </summary>
+        public async Task<IReadOnlyList<string>> ProbeAppControlsAsync(string appId, CancellationToken ct = default)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(appId);
+
+            // Twenty-five sequential IPC round trips on the TV: well past the single-call timeout.
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeout.CancelAfter(TimeSpan.FromSeconds(45));
+            JsonNode? node;
+            try
+            {
+                node = await _console.EvaluateValueAsync($"A2S.appControls({Js(appId)})", timeout.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+            {
+                throw Unresponsive();
+            }
+
+            return (node?["operations"] as JsonArray)?
+                .Select(Str)
+                .Where(op => !string.IsNullOrEmpty(op))
+                .Select(op => op!)
+                .ToList()
+                ?? new List<string>();
+        }
+
         /// <summary><c>tizen.application.launch(id)</c>, then a look at the app contexts.</summary>
         public Task<DebugAgentLaunchResult> LaunchAsync(string appId, CancellationToken ct = default) =>
             LaunchCoreAsync(appId, $"A2S.launch({Js(appId)})", ct);
@@ -252,7 +289,7 @@ namespace Apps2Samsung.Agent
         /// a bare launch, or the other way round.
         /// </summary>
         public Task<DebugAgentLaunchResult> LaunchControlAsync(
-            string appId, string operation = "http://tizen.org/appcontrol/operation/main", CancellationToken ct = default) =>
+            string appId, string operation = MainOperation, CancellationToken ct = default) =>
             LaunchCoreAsync(appId, $"A2S.launchControl({Js(appId)}, {Js(operation)})", ct);
 
         private async Task<DebugAgentLaunchResult> LaunchCoreAsync(string appId, string expression, CancellationToken ct)
