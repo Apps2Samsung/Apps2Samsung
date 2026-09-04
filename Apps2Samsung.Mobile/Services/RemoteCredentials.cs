@@ -11,8 +11,8 @@ public sealed class RemoteCredentials : IRemoteCredentialStore
 {
 	public static readonly RemoteCredentials Instance = new();
 
-	public string? GetToken(string tvIpAddress) => MobileSettings.GetRemoteToken(tvIpAddress);
-	public void SetToken(string tvIpAddress, string token) => MobileSettings.SetRemoteToken(tvIpAddress, token);
+	public string? GetToken(string tvKey) => MobileSettings.GetRemoteToken(tvKey);
+	public void SetToken(string tvKey, string token) => MobileSettings.SetRemoteToken(tvKey, token);
 	public string? GetMac(string tvIpAddress) => MobileSettings.GetRemoteMac(tvIpAddress);
 	public void SetMac(string tvIpAddress, string macAddress) => MobileSettings.SetRemoteMac(tvIpAddress, macAddress);
 

@@ -351,6 +351,7 @@
   "lblRemoteConnecting": "Connecting to the TV...",
   "lblRemoteConnected": "Connected.",
   "lblRemotePairPrompt": "Accept the prompt on the TV to pair this computer.",
+  "lblRemotePairPromptAgain": "The TV is asking to allow this device again. Accept it, then on the TV set Device Connection Manager > Access Notification to \"First Time Only\" so it stops asking.",
   "lblRemotePairFailed": "Pairing wasn't accepted. Use the reconnect button to try again.",
   "lblRemoteNoChannel": "Couldn't open the remote channel on this TV.",
   "lblRemoteNotConnected": "Not connected - use the reconnect button.",
