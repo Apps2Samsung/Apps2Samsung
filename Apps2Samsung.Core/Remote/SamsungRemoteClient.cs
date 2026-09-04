@@ -96,6 +96,9 @@ namespace Apps2Samsung.Remote
                     UsesToken = string.Equals(tokenAuth, "true", StringComparison.OrdinalIgnoreCase),
                     Name = device["name"]?.ToString() ?? string.Empty,
                     Model = device["modelName"]?.ToString() ?? string.Empty,
+                    // "uuid:…", fixed for the life of the set. What the pairing token is filed
+                    // under, so a new DHCP lease doesn't cost the user another prompt.
+                    DeviceId = device["id"]?.ToString() ?? string.Empty,
                     // Absent on older sets; only "standby" is a definite "asleep".
                     IsAwake = !string.Equals(powerState, "standby", StringComparison.OrdinalIgnoreCase),
                     // Reported for wired sets too, despite the name. Worth caching: it is what a
@@ -511,6 +514,12 @@ namespace Apps2Samsung.Remote
         public string Name { get; init; } = string.Empty;
 
         public string Model { get; init; } = string.Empty;
+
+        /// <summary>
+        /// The set's own id from the probe (<c>uuid:…</c>). Stable across reboots and address
+        /// changes, unlike the IP the user picked it by. Empty when the set didn't report one.
+        /// </summary>
+        public string DeviceId { get; init; } = string.Empty;
 
         /// <summary>False when the TV reported standby — keys won't reach it until it is woken.</summary>
         public bool IsAwake { get; init; } = true;
