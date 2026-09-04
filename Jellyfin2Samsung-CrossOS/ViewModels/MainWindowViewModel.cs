@@ -710,7 +710,17 @@ namespace Apps2Samsung.ViewModels
                 if (!string.IsNullOrWhiteSpace(SelectedDevice.MacAddress))
                     Helpers.Core.RemoteStore.SetMac(SelectedDevice.IpAddress, SelectedDevice.MacAddress!);
 
-                var vm = new TvToolboxViewModel(SelectedDevice.IpAddress, label, _sdbEngine);
+                // The toolbox's debug agent is a .wgt like any other: the normal pipeline (certificate,
+                // resign, push) puts it on the TV when the set doesn't have it yet (#34).
+                var tvIp = SelectedDevice.IpAddress;
+                Func<string, Action<string>, Task<bool>> installWgt = async (wgtPath, report) =>
+                {
+                    using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                    var result = await _tizenInstaller.InstallPackageAsync(wgtPath, tvIp, timeout.Token, message => report(message));
+                    return result.Success;
+                };
+
+                var vm = new TvToolboxViewModel(tvIp, label, _sdbEngine, installWgt);
                 var window = new Views.TvToolboxWindow(vm);
                 await window.ShowDialog(desktop.MainWindow);
             }

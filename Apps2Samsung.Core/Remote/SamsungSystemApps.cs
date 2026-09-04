@@ -41,22 +41,23 @@ namespace Apps2Samsung.Remote
     /// </para>
     /// <para>
     /// The ids were read off a Samsung HG43U800FAULXL (Tizen 9.0, 2025 "RoseL" hospitality firmware),
-    /// which reported 474 installed packages against the handful its launcher shows. They are not
-    /// promises: ids move between generations, and a set that never had the app will simply say so.
-    /// Nothing here defeats a Security Mode PIN — these open the menu, they do not unlock it.
+    /// which reported 474 installed packages against the handful its launcher shows. Its full
+    /// <c>getAppsInfo()</c> dump confirms every id here is installed there, the two wizard ids
+    /// included (<c>com.samsung.tv.wizard</c> and <c>org.tizen.wizard</c> are both present; a
+    /// different set's dump has only the latter). They are not promises: ids move between
+    /// generations, and a set that never had the app will simply say so. Nothing here defeats a
+    /// Security Mode PIN — these open the menu, they do not unlock it.
     /// </para>
     /// <para>
-    /// Which transport reaches them is the open question. The remote channel launches store apps by
-    /// deep link and is unlikely to open a platform-owned one; SDB's <c>0 was_execute</c> is the
-    /// better bet but wants Developer Mode. <see cref="SamsungRemoteApps.LaunchAsync"/> therefore tries
-    /// SDB first for these and the channel first for everything else.
-    /// </para>
-    /// <para>
-    /// Untested against real hardware, and one thing to expect: <c>was_execute</c> is the web app
-    /// launcher. The CoBA entries here are web apps and should be in its reach; a native menu such as
-    /// <c>org.tizen.factory</c> may need a verb we don't have. A row that opens nothing on every set
-    /// belongs out of this list, so what comes back from the first hospitality set to try it decides
-    /// what stays.
+    /// How they are reached, settled by that set's log: <b>not</b> over SDB and not over the remote
+    /// channel. <c>0 was_execute</c> is the Smart Hub launcher — it resolves an id against the Smart
+    /// Hub app database (what <c>vd_applist</c> prints) and answers <c>launch failed[400]</c> for
+    /// anything else, and none of these is a Smart Hub app; web or native makes no difference. The
+    /// channel and REST go through the same launcher and add a "try again" toast. What does reach them
+    /// is the platform's application manager, from inside a sideloaded app — which is what
+    /// <see cref="Agent.DebugAgentClient">the debug agent</see> is for. These rows therefore launch
+    /// through the agent when it is attached; without it the SDB attempt still runs, so the user at
+    /// least sees the TV's verdict instead of a toast.
     /// </para>
     /// </summary>
     public static class SamsungSystemApps
@@ -143,13 +144,6 @@ namespace Apps2Samsung.Remote
                     "lblSysAppWizardDesc",
                     SamsungSystemAppRisk.Caution),
             });
-
-        private static readonly HashSet<string> Ids =
-            new(All.Select(a => a.AppId), StringComparer.OrdinalIgnoreCase);
-
-        /// <summary>Whether an id is one of these — which is what decides the launch order.</summary>
-        public static bool IsSystemApp(string? appId) =>
-            !string.IsNullOrWhiteSpace(appId) && Ids.Contains(appId.Trim());
 
         /// <summary>
         /// The list as both heads show it: text already resolved, and the launch target to hand back to

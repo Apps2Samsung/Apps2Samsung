@@ -130,7 +130,8 @@
                     <!-- ============ Hidden system apps ============ -->
                     <!-- Not part of the list above: these are the TV's own menus, addressed by id
                          because the key combination that used to open them has stopped answering.
-                         They go over SDB, so they stay enabled with the channel down (#641). -->
+                         They launch through the debug agent below (#34); without it the SDB attempt
+                         still runs so the TV's own refusal is what the user reads (#641). -->
                     <TextBlock Classes="section" Text="{l:Localize lblToolboxSystemApps}" Margin="0,12,0,0"/>
                     <TextBlock Classes="hint" Text="{l:Localize lblToolboxSystemAppsHint}"/>
 
@@ -158,6 +159,84 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+
+                    <!-- ============ Debug agent ============ -->
+                    <!-- The route that reaches the rows above (#34): an app of ours on the TV, driven
+                         over the web inspector, asking the platform's own application manager. Also
+                         the one honest app list a hospitality set has. Needs Developer Mode. -->
+                    <TextBlock Classes="section" Text="{l:Localize lblToolboxAgent}" Margin="0,12,0,0"/>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxAgentHint}"/>
+
+                    <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8" IsEnabled="{Binding HasSdb}">
+                        <Button Grid.Column="0" Classes="action" Width="120"
+                                Content="{l:Localize lblToolboxAgentAttach}"
+                                Command="{Binding AttachAgentCommand}"/>
+                        <Button Grid.Column="1" Width="90"
+                                Content="{l:Localize lblToolboxAgentDetach}"
+                                Command="{Binding DetachAgentCommand}"
+                                IsEnabled="{Binding IsAgentAttached}"/>
+                        <TextBlock Grid.Column="2" Text="{Binding AgentStatus}" FontSize="12" Opacity="0.8"
+                                   TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </Grid>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxAgentNeedsSdb}"
+                               IsVisible="{Binding !HasSdb}"/>
+
+                    <StackPanel Spacing="8" IsVisible="{Binding IsAgentAttached}">
+                        <TextBlock Classes="section" Text="{l:Localize lblToolboxAgentApps}"/>
+                        <TextBlock Classes="hint" Text="{l:Localize lblToolboxAgentAppsHint}"/>
+
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <TextBox Grid.Column="0" Text="{Binding AgentFilter}" Watermark="{l:Localize lblToolboxFilter}"/>
+                            <CheckBox Grid.Column="1" Content="{l:Localize lblToolboxAgentHiddenOnly}"
+                                      IsChecked="{Binding AgentHiddenOnly}" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <Border Height="300" CornerRadius="8" Padding="2"
+                                Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}">
+                            <ScrollViewer>
+                                <ItemsControl ItemsSource="{Binding AgentApps}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="viewModels:ToolboxAgentApp">
+                                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" Margin="8,5">
+                                                <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
+                                                                   TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding HiddenLabel}" FontSize="11" Foreground="#C77700"
+                                                                   VerticalAlignment="Center" IsVisible="{Binding IsHidden}"/>
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="{Binding AppId}" FontSize="11" Opacity="0.55"/>
+                                                        <TextBlock Text="{Binding Version}" FontSize="11" Opacity="0.55"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <Button Grid.Column="1" FontSize="12" VerticalAlignment="Center"
+                                                        Content="{l:Localize lblToolboxLaunch}"
+                                                        Command="{ReflectionBinding $parent[Window].DataContext.LaunchAgentAppCommand}"
+                                                        CommandParameter="{Binding}"/>
+                                                <Button Grid.Column="2" FontSize="12" VerticalAlignment="Center"
+                                                        Content="{l:Localize lblToolboxAgentAppControl}"
+                                                        Command="{ReflectionBinding $parent[Window].DataContext.LaunchAgentAppControlCommand}"
+                                                        CommandParameter="{Binding}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+
+                        <!-- Anything not a button yet, straight into the agent -->
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                            <TextBox Grid.Column="0" Text="{Binding AgentExpression}"
+                                     Watermark="{l:Localize lblToolboxAgentEvaluatePlaceholder}"/>
+                            <Button Grid.Column="1" Classes="action" Width="90"
+                                    Content="{l:Localize lblToolboxAgentEvaluate}"
+                                    Command="{Binding EvaluateAgentCommand}"/>
+                        </Grid>
+                        <TextBlock Classes="hint" Text="{l:Localize lblToolboxAgentEvaluateHint}"/>
+                        <SelectableTextBlock Text="{Binding AgentExpressionResult}" FontSize="11" FontFamily="Consolas,Menlo,monospace"
+                                             TextWrapping="Wrap" MaxHeight="160"/>
+                    </StackPanel>
 
                     <!-- ============ Service menu ============ -->
                     <TextBlock Classes="section" Text="{l:Localize lblToolboxSequences}" Margin="0,12,0,0"/>
