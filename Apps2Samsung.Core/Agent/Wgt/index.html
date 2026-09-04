@@ -23,7 +23,7 @@ h1 { margin: 0 0 4px 0; font-size: 30px; color: #ecf0f1; }
 <body>
 <h1>Apps2Samsung Debug <span id="version" class="dim"></span></h1>
 <div id="platform">starting…</div>
-<div id="hint">Driven from Apps2Samsung on your PC or phone. By hand: UP/DOWN pick · ENTER launch · RIGHT launch via app control · RETURN exit.</div>
+<div id="hint">Driven from Apps2Samsung on your PC or phone. By hand: UP/DOWN pick · ENTER launch · RIGHT launch via app control · LEFT probe app controls · RETURN exit.</div>
 <div id="layout">
   <div id="list"></div>
   <div id="log"></div>
@@ -44,7 +44,40 @@ h1 { margin: 0 0 4px 0; font-size: 30px; color: #ecf0f1; }
    because the return value of tizen.application.launch says nothing about the outcome.
    ------------------------------------------------------------------------------------------ */
 
-var VERSION = "0.1.0";
+var VERSION = "0.2.0";
+
+/* Operations an app may register an app control for. A bare launch() that the platform refuses can
+   still go through as an app control aimed at an operation the target actually handles, so these are
+   probed with findAppControl() to learn what a target answers to. The tizen.org ones are the platform
+   set; the samsung.com ones are guesses at what a CoBA/hotel app might register, and cost nothing when
+   wrong: an unknown operation simply matches no app. */
+var OPERATIONS = [
+    "http://tizen.org/appcontrol/operation/main",
+    "http://tizen.org/appcontrol/operation/default",
+    "http://tizen.org/appcontrol/operation/view",
+    "http://tizen.org/appcontrol/operation/pick",
+    "http://tizen.org/appcontrol/operation/create",
+    "http://tizen.org/appcontrol/operation/edit",
+    "http://tizen.org/appcontrol/operation/compose",
+    "http://tizen.org/appcontrol/operation/share",
+    "http://tizen.org/appcontrol/operation/multi_share",
+    "http://tizen.org/appcontrol/operation/share_text",
+    "http://tizen.org/appcontrol/operation/search",
+    "http://tizen.org/appcontrol/operation/download",
+    "http://tizen.org/appcontrol/operation/setting",
+    "http://tizen.org/appcontrol/operation/configure",
+    "http://tizen.org/appcontrol/operation/menu",
+    "http://tizen.org/appcontrol/operation/hotel",
+    "http://samsung.com/appcontrol/operation/eden_resume",
+    "http://samsung.com/appcontrol/operation/setting",
+    "http://samsung.com/appcontrol/operation/menu",
+    "http://samsung.com/appcontrol/operation/hotel",
+    "http://samsung.com/appcontrol/operation/hotel_menu",
+    "http://samsung.com/appcontrol/operation/hotel_option",
+    "http://samsung.com/appcontrol/operation/factory",
+    "http://samsung.com/appcontrol/operation/coba",
+    "http://samsung.com/appcontrol/operation/coba_setting"
+];
 
 function err(e) {
     return { error: { name: e && e.name || "Error", message: e && e.message || String(e), code: e && e.code } };
@@ -135,6 +168,52 @@ window.A2S = {
         });
     },
 
+    /* The app ids registered for one operation: [{id, name}], or {error}. */
+    handlers: function (operation) {
+        return new Promise(function (resolve) {
+            try {
+                tizen.application.findAppControl(new tizen.ApplicationControl(operation, null, null, null, []),
+                    function (infos) {
+                        var out = [];
+                        for (var i = 0; i < infos.length; i++) out.push({ id: infos[i].id, name: infos[i].name });
+                        log("handlers " + operation, out, "dim");
+                        resolve(out);
+                    },
+                    function (e) { var r = err(e); log("handlers " + operation, r, "warn"); resolve(r); });
+            } catch (e) { var r = err(e); log("handlers " + operation, r, "warn"); resolve(r); }
+        });
+    },
+
+    /* Which of OPERATIONS (or the given list) `id` registers for: {appId, operations:[...], probed: n}.
+       Sequential on purpose: findAppControl is an IPC round trip each, and a burst of twenty-five
+       has been seen to make the platform drop some. */
+    appControls: function (id, operations) {
+        operations = operations || OPERATIONS;
+        return new Promise(function (resolve) {
+            var out = { appId: id, operations: [], probed: operations.length };
+            var i = 0;
+            function next() {
+                if (i >= operations.length) {
+                    log("appControls " + id, out, out.operations.length ? "ok" : "warn");
+                    resolve(out);
+                    return;
+                }
+                var op = operations[i++];
+                try {
+                    tizen.application.findAppControl(new tizen.ApplicationControl(op, null, null, null, []),
+                        function (infos) {
+                            for (var k = 0; k < infos.length; k++) {
+                                if (infos[k].id === id) { out.operations.push(op); break; }
+                            }
+                            next();
+                        },
+                        function () { next(); });
+                } catch (e) { next(); }
+            }
+            next();
+        });
+    },
+
     running: function () {
         try {
             var list = tizen.application.getAppsContext();
@@ -195,6 +274,7 @@ document.addEventListener("keydown", function (e) {
     else if (k === 40) { selected = (selected + 1) % candidates.length; renderList(); }
     else if (k === 13) { settle(window.A2S.launch(candidates[selected][1])); }
     else if (k === 39) { settle(window.A2S.launchControl(candidates[selected][1])); }
+    else if (k === 37) { window.A2S.appControls(candidates[selected][1]); }
     else if (k === 10009 || k === 461) { try { tizen.application.getCurrentApplication().exit(); } catch (x) {} }
     else { return; }
     e.preventDefault();

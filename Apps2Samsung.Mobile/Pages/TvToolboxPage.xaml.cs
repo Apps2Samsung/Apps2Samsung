@@ -380,18 +380,42 @@ public partial class TvToolboxPage : ContentPage
 		_busy = true;
 		try
 		{
+			// App control goes to an operation the target actually registers, when the probe finds one;
+			// `main` is only the guess for a target that registers none of the probed set.
+			string? operation = null;
+			if (control)
+			{
+				SetStatus(string.Format(L10n.Get("lblToolboxAgentProbing"), name));
+				operation = (await agent.ProbeAppControlsAsync(appId)).FirstOrDefault();
+			}
+
 			SetStatus(string.Format(L10n.Get("lblToolboxAgentLaunching"), name));
 			var result = control
-				? await agent.LaunchControlAsync(appId)
+				? await agent.LaunchControlAsync(appId, operation ?? DebugAgentClient.MainOperation)
 				: await agent.LaunchAsync(appId);
 
-			SetStatus(result.State switch
+			var status = result.State switch
 			{
 				DebugAgentLaunchState.Launched => string.Format(L10n.Get("lblToolboxAgentLaunched"), name),
 				DebugAgentLaunchState.LaunchedNoContext => string.Format(L10n.Get("lblToolboxAgentLaunchedNoContext"), name),
 				DebugAgentLaunchState.Refused => string.Format(L10n.Get("lblToolboxAgentLaunchRefused"), name, result.ErrorName, result.ErrorMessage),
 				_ => string.Format(L10n.Get("lblToolboxAgentUnresponsive"), name),
-			});
+			};
+			if (control)
+				status += " " + string.Format(L10n.Get("lblToolboxAgentOperationUsed"), operation ?? DebugAgentClient.MainOperation);
+
+			// A refusal or a launch that went nowhere is the moment to learn what the target does
+			// answer to: the operations it registers decide the next attempt.
+			if (!control && result.State is DebugAgentLaunchState.Refused or DebugAgentLaunchState.LaunchedNoContext)
+			{
+				SetStatus(status);
+				var operations = await agent.ProbeAppControlsAsync(appId);
+				status += " " + (operations.Count > 0
+					? string.Format(L10n.Get("lblToolboxAgentOperations"), name, string.Join(", ", operations.Select(ShortOperation)))
+					: string.Format(L10n.Get("lblToolboxAgentOperationsNone"), name, DebugAgentClient.ProbedOperationCount));
+			}
+
+			SetStatus(status);
 		}
 		catch (Exception ex)
 		{
@@ -402,6 +426,10 @@ public partial class TvToolboxPage : ContentPage
 			_busy = false;
 		}
 	}
+
+	// "http://tizen.org/appcontrol/operation/main" reads as "tizen.org/main" in a status line.
+	private static string ShortOperation(string operation) =>
+		operation.Replace("http://", string.Empty).Replace("/appcontrol/operation/", "/");
 
 	/// <summary>Runs the typed expression inside the agent and shows what came back, verbatim.</summary>
 	private async void OnEvaluateAgentClicked(object? sender, EventArgs e)
