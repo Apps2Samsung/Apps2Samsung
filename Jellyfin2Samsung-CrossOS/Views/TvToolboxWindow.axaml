@@ -9,7 +9,8 @@
         Width="560" MinWidth="480"
         Height="700" MinHeight="560"
         WindowStartupLocation="CenterOwner"
-        Icon="/Assets/jelly2sams.png"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        Icon="{x:Static appicon:AppIcon.Current}"
         Title="{l:Localize lblToolbox}">
 
     <Window.Styles>
