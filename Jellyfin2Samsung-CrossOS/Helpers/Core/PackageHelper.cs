@@ -56,6 +56,10 @@ namespace Apps2Samsung.Helpers.Core
                 return false;
             }
 
+            // The device list is a scan snapshot; re-read the TV's Developer-Mode fields now so a
+            // Developer-Mode IP corrected on the TV since the scan isn't still flagged as a mismatch.
+            await TizenDeveloperInfo.RefreshAsync(_networkService, selectedDevice, cancellationToken);
+
             // Shared pre-install guards: Developer Mode off, a Developer-Mode IP pointing at another
             // machine (or typed back to front), a TV on another subnet, and a TV whose install service
             // isn't up yet. Same checks and wording as the mobile head — see Core InstallGuards.
@@ -63,7 +67,13 @@ namespace Apps2Samsung.Helpers.Core
                 selectedDevice,
                 new InstallGuardOptions
                 {
-                    LocalIps = _networkService.GetRelevantLocalIPs().Select(ip => ip.ToString()).ToList(),
+                    // GetRelevantLocalIPs folds the hand-typed TV address (UserCustomIP) into the list
+                    // for the scan's benefit; it is not one of this machine's IPs, so keep it out of
+                    // the "this device" side of the comparison.
+                    LocalIps = _networkService.GetRelevantLocalIPs()
+                        .Select(ip => ip.ToString())
+                        .Where(ip => ip != AppSettings.Default.UserCustomIP)
+                        .ToList(),
                     ConfiguredLocalIp = AppSettings.Default.LocalIp,
                     ReversedIpReading = AppSettings.Default.RTLReading,
                 },

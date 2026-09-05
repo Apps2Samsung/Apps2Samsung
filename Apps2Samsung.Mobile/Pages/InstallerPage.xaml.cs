@@ -414,6 +414,10 @@ public partial class InstallerPage : ContentPage
 
 		var tvIp = _tvIps[TvPicker.SelectedIndex];
 
+		// The device list is a scan snapshot; re-read the TV's Developer-Mode fields now so a
+		// Developer-Mode IP corrected on the TV since the scan isn't still flagged as a mismatch.
+		await TizenDeveloperInfo.RefreshAsync(_networkService, _tvDevices[TvPicker.SelectedIndex]);
+
 		// Shared pre-install guards (Core): a TV that still needs a restart, Developer Mode off, a
 		// Developer-Mode IP pointing at another device or typed back to front, a TV on another subnet.
 		// Same checks and wording as the desktop head — each one is Continue/Stop, never a hard block.
