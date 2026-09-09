@@ -481,7 +481,11 @@ jobs:
     # (the Linux tarballs the stable-release job uploaded), so it doesn't join the upload
     # serialisation the macOS/Android jobs need and can run alongside them.
     needs: stable-release
-    if: needs.stable-release.result == 'success'
+    # Gated on the AUR_PUBLISH repository variable (Settings → Secrets and variables → Actions →
+    # Variables): the AUR closed account registration in June 2026 after a malware wave, so until
+    # our account exists there is nothing to push to and this job would only paint every stable
+    # release red. Set AUR_PUBLISH=true once the account has the AUR_SSH_PRIVATE_KEY's public half.
+    if: needs.stable-release.result == 'success' && vars.AUR_PUBLISH == 'true'
     env:
       VERSION: ${{ needs.stable-release.outputs.VERSION }}
       VERSION_TAG: ${{ needs.stable-release.outputs.VERSION_TAG }}
