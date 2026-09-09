@@ -160,6 +160,7 @@ jobs:
             echo "| 🍎 macOS (.app + dmg) | ✅ Stable | ARM64 + Intel |"
             echo "| 🍎 macOS (CLI) | ✅ Stable | Per-arch tar.gz |"
             echo "| 🐧 Linux | ✅ Stable | x64 + ARM64 (tar.gz / .deb) |"
+            echo "| 🐧 Arch Linux (AUR) | ✅ Stable | [apps2samsung](https://aur.archlinux.org/packages/apps2samsung), published by this release |"
             echo "| 🪟 Windows | ✅ Stable | CI-built |"
             echo "| 🤖 Android (.apk) | ✅ Stable | Sideload; phone as installer head |"
             echo ""
@@ -469,3 +470,86 @@ jobs:
           prerelease: false
           overwrite_files: true
           files: dist/*
+
+# ======================================================
+# ARCH LINUX (AUR: apps2samsung)
+# ======================================================
+  aur:
+    name: AUR package
+    runs-on: ubuntu-latest
+    # Publishes the apps2samsung PKGBUILD to the AUR for this release. It only *reads* the release
+    # (the Linux tarballs the stable-release job uploaded), so it doesn't join the upload
+    # serialisation the macOS/Android jobs need and can run alongside them.
+    needs: stable-release
+    if: needs.stable-release.result == 'success'
+    env:
+      VERSION: ${{ needs.stable-release.outputs.VERSION }}
+      VERSION_TAG: ${{ needs.stable-release.outputs.VERSION_TAG }}
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
+
+      # The exact files the PKGBUILD points users at, fetched from where they will fetch them — not
+      # the build job's dist/ folder — so the checksums describe what is actually on the release, and
+      # a bad upload fails here rather than on every Arch user's machine.
+      - name: Download the published sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p aur/src
+          RAW="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${VERSION_TAG}"
+          REL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${VERSION_TAG}"
+          fetch() { curl -fsSL --retry 5 --retry-all-errors --retry-delay 10 -o "aur/src/$1" "$2"; }
+          fetch "apps2samsung-${VERSION}-LICENSE" "$RAW/LICENSE"
+          fetch "apps2samsung-${VERSION}.svg"     "$RAW/jellyfin-tizen-logo.svg"
+          for ARCH in x64 arm64; do
+            fetch "Apps2Samsung-${VERSION_TAG}-linux-${ARCH}.tar.gz" \
+                  "$REL/Apps2Samsung-${VERSION_TAG}-linux-${ARCH}.tar.gz"
+          done
+          ls -la aur/src
+
+      # What the AUR has now decides pkgrel: a re-run of this workflow rebuilds the tarballs and so
+      # changes their checksums, and Arch users only pick that up if pkgrel goes up. A 404 means the
+      # package isn't on the AUR yet — the first push creates it.
+      - name: Render PKGBUILD
+        id: render
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! curl -fsSL -o aur/current.SRCINFO \
+               "https://aur.archlinux.org/cgit/aur.git/plain/.SRCINFO?h=apps2samsung"; then
+            rm -f aur/current.SRCINFO
+            echo "apps2samsung is not on the AUR yet — this run creates it"
+          fi
+          .github/scripts/aur-pkgbuild.sh "$VERSION" aur/src aur/pkg aur/current.SRCINFO
+          echo "----- PKGBUILD -----"; cat aur/pkg/PKGBUILD
+
+      # The key belongs to the AUR account that owns the package (AUR → My Account → SSH Public Key).
+      - name: Check AUR credentials
+        if: steps.render.outputs.changed == 'true'
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          if [ -z "$AUR_SSH_PRIVATE_KEY" ]; then
+            echo "::error::AUR_SSH_PRIVATE_KEY is not set — add the private half of the SSH key registered on the AUR account that owns apps2samsung."
+            exit 1
+          fi
+
+      # test: true builds the package from the rendered PKGBUILD first (downloading the release
+      # tarball like a user would), so a PKGBUILD that doesn't build never reaches the AUR. The
+      # action regenerates .SRCINFO itself.
+      - name: Publish to the AUR
+        if: steps.render.outputs.changed == 'true'
+        uses: KSXGitHub/github-actions-deploy-aur@v4.2.0
+        with:
+          pkgname: apps2samsung
+          pkgbuild: aur/pkg/PKGBUILD
+          test: true
+          test_flags: --clean --cleanbuild --nodeps --noconfirm
+          commit_username: PatrickSt1991
+          commit_email: patrick@madebypatrick.nl
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: "Update to ${{ env.VERSION_TAG }} (${{ env.VERSION }}-${{ steps.render.outputs.pkgrel }})"
+          ssh_keyscan_types: rsa,ecdsa,ed25519
