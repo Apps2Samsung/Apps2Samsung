@@ -36,6 +36,18 @@
       }
     },
     {
+      "id": "tizentube",
+      "url": "https://api.github.com/repos/reisxd/TizenTube/releases",
+      "prefix": "",
+      "displayName": "TizenTube",
+      "take": 1,
+      "buildInfo": {
+        "name": "TizenTube",
+        "description": "TizenTube enhances your favourite streaming websites viewing experience by removing ads and adding support for Sponsorblock.",
+        "previewImage": "https://raw.githubusercontent.com/reisxd/TizenTube/main/.github/assets/TizenTube%20Standalone%20Banner.png"
+      }
+    },
+    {
       "id": "jellyfin-avplay",
       "url": "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases",
       "prefix": "",

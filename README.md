@@ -17,7 +17,7 @@
 
 <p align="center">
   <b>Apps2Samsung</b> is a small cross-platform tool that side-loads <b>any app</b> onto <b>Samsung devices running Tizen OS</b> — Smart TVs, projectors and smart monitors —
-  <a href="https://jellyfin.org">Jellyfin</a>, Moonlight, Moonfin, Litefin and the whole <a href="https://github.com/Apps2Samsung/tizen-community-packages">community catalog</a>, or your own <code>.wgt</code>.
+  <a href="https://jellyfin.org">Jellyfin</a>, Moonlight, Moonfin, Litefin, TizenTube and the whole <a href="https://github.com/Apps2Samsung/tizen-community-packages">community catalog</a>, or your own <code>.wgt</code>.
   <br/>
   It handles device detection, certificates, and installation so you don’t have to fight with Tizen Studio or manual sideloading.
   <br/><br/>
@@ -152,6 +152,8 @@ Special thanks to:
   https://github.com/Moonfin-Client/Smart-TV
 - **@MoazSalem** — for the Litefin client and related work  
   https://github.com/MoazSalem/litefin/
+- **@reisxd** — for TizenTube and related work  
+  https://github.com/reisxd/TizenTube
 
 ---
 
