@@ -1,0 +1,79 @@
+# Maintainer: Patrick Stel <patrick@madebypatrick.nl>
+#
+# Official Apps2Samsung package, published to the AUR by the Stable Release workflow in
+# github.com/Apps2Samsung/Apps2Samsung (.github/workflows/stable-release.yml). Do not edit the copy
+# on the AUR by hand: the next release overwrites it. Change the template in the repo instead
+# (.github/aur/PKGBUILD); the @…@ markers below are filled in by .github/scripts/aur-pkgbuild.sh.
+#
+# Installs the same self-contained Linux build the .deb and .rpm ship, in the same layout
+# (/opt/apps2samsung), so the three stay interchangeable.
+
+pkgname=apps2samsung
+pkgver=@PKGVER@
+pkgrel=@PKGREL@
+pkgdesc="Install Jellyfin, Moonlight and other apps on Samsung Tizen TVs, projectors and smart monitors"
+arch=('x86_64' 'aarch64')
+url="https://apps2samsung.com"
+license=('MIT')
+# The payload is a self-contained .NET/Avalonia build, so only its native hosts are needed: ICU and
+# OpenSSL for the runtime, X11 + fontconfig + Mesa for the Skia-backed UI, gcc-libs for libSkiaSharp.
+depends=('gcc-libs' 'icu' 'openssl' 'zlib'
+         'libx11' 'libice' 'libsm' 'libxcursor' 'libxext' 'libxi' 'libxrandr'
+         'fontconfig' 'mesa')
+optdepends=('vulkan-icd-loader: Vulkan rendering')
+provides=('jellyfin2samsung')
+# apps2samsung-bin is a third-party package of the same app; jellyfin2samsung* is the pre-rename name.
+conflicts=('apps2samsung-bin' 'jellyfin2samsung' 'jellyfin2samsung-bin')
+# !strip is not optional: the app is a .NET single-file bundle — the program is appended to the host
+# executable — and strip throws that payload away, leaving a binary that installs and cannot run
+# (the .rpm learnt this the hard way, see .github/scripts/package-linux.sh).
+options=('!strip' '!debug')
+
+_repo="https://github.com/Apps2Samsung/Apps2Samsung"
+_raw="https://raw.githubusercontent.com/Apps2Samsung/Apps2Samsung/v${pkgver}"
+source=("${pkgname}-${pkgver}-LICENSE::${_raw}/LICENSE"
+        "${pkgname}-${pkgver}.svg::${_raw}/jellyfin-tizen-logo.svg")
+source_x86_64=("Apps2Samsung-v${pkgver}-linux-x64.tar.gz::${_repo}/releases/download/v${pkgver}/Apps2Samsung-v${pkgver}-linux-x64.tar.gz")
+source_aarch64=("Apps2Samsung-v${pkgver}-linux-arm64.tar.gz::${_repo}/releases/download/v${pkgver}/Apps2Samsung-v${pkgver}-linux-arm64.tar.gz")
+sha256sums=('@SHA256_LICENSE@'
+            '@SHA256_ICON@')
+sha256sums_x86_64=('@SHA256_X86_64@')
+sha256sums_aarch64=('@SHA256_AARCH64@')
+# The tarball has no top-level directory: it unpacks straight into $srcdir.
+noextract=("Apps2Samsung-v${pkgver}-linux-x64.tar.gz" "Apps2Samsung-v${pkgver}-linux-arm64.tar.gz")
+
+prepare() {
+    mkdir -p "$srcdir/app"
+    tar -xzf "$srcdir"/Apps2Samsung-v${pkgver}-linux-*.tar.gz -C "$srcdir/app"
+    # Debug symbols are no use to a user and are what makes the tarball big.
+    rm -f "$srcdir"/app/*.pdb
+}
+
+package() {
+    install -d "$pkgdir/opt/$pkgname"
+    cp -a "$srcdir/app/." "$pkgdir/opt/$pkgname/"
+    chmod 755 "$pkgdir/opt/$pkgname/Apps2Samsung"
+
+    install -d "$pkgdir/usr/bin"
+    ln -s "/opt/$pkgname/Apps2Samsung" "$pkgdir/usr/bin/$pkgname"
+
+    install -Dm644 "$srcdir/${pkgname}-${pkgver}.svg" \
+        "$pkgdir/usr/share/icons/hicolor/scalable/apps/$pkgname.svg"
+    install -Dm644 "$srcdir/${pkgname}-${pkgver}-LICENSE" \
+        "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+
+    # Same entry as the .deb/.rpm (package-linux.sh). StartupWMClass must equal the WM_CLASS the
+    # window reports — Avalonia takes it from Application.Name in App.axaml — or the desktop shows
+    # a generic icon for the running window (#627).
+    install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/$pkgname.desktop" <<-DESKTOP
+	[Desktop Entry]
+	Type=Application
+	Name=Apps2Samsung
+	Comment=Install apps on Samsung Tizen TVs
+	Exec=/opt/$pkgname/Apps2Samsung
+	Icon=$pkgname
+	Terminal=false
+	Categories=Utility;
+	StartupWMClass=Apps2Samsung
+	DESKTOP
+}

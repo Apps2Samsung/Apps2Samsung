@@ -50,6 +50,16 @@ The phone app is the mobile installer head — run the whole install from your p
 - **F-Droid** — add our repository in the F-Droid app (Settings → Repositories → Add): `https://apps2samsung.com/fdroid/repo`. It serves the latest **stable** and updates automatically. Works in F-Droid, Droid-ify and Neo Store.
 - **Direct** — grab the `-android.apk` from any [release](https://github.com/Apps2Samsung/Apps2Samsung/releases) and sideload it.
 
+### 🐧 Arch Linux (AUR)
+
+The official [`apps2samsung`](https://aur.archlinux.org/packages/apps2samsung) package is published by this repo's release workflow, so it follows every **stable** release:
+
+```sh
+yay -S apps2samsung      # or paru -S apps2samsung
+```
+
+It installs the same build as the `.deb`/`.rpm` (x86_64 and aarch64). Other Linux distros: take the `.AppImage`, `.deb`, `.rpm` or `.tar.gz` from the [releases](https://github.com/Apps2Samsung/Apps2Samsung/releases).
+
 ---
 
 ## ✨ What It Does
