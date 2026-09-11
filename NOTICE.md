@@ -76,6 +76,7 @@ property of the respective projects, and is used for identification only:
 - **Litefin** — icon, https://github.com/MoazSalem/litefin
 - **TVapp** — icon, https://github.com/KaashDev/TVapp
 - **Moonfin** — name, https://github.com/Moonfin-Client/Smart-TV
+- **TizenTube** — name and banner, https://github.com/reisxd/TizenTube
 
 *Samsung*, *Tizen* and related marks are trademarks of Samsung Electronics Co., Ltd.
 Apps2Samsung is not affiliated with, endorsed by, or sponsored by Samsung Electronics.

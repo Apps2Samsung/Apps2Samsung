@@ -457,8 +457,9 @@ namespace Apps2Samsung.Services
             // per-package via the manifest).
             // Partner if the global toggle is on, OR the selected package's manifest declares it, OR
             // the package itself declares a partner-level privilege (e.g. vpnservice in a .wgt's
-            // config.xml, drminfo in a .tpk's tizen-manifest.xml) — the automatic binding: a package
-            // that needs a restricted API must declare it, so we don't track cert levels per package.
+            // config.xml, drminfo in a .tpk's tizen-manifest.xml) or a Partner-only launch setting
+            // (on-boot="true" / auto-restart="true") — the automatic binding: a package that needs a
+            // restricted API or launch mode must declare it, so we don't track cert levels per package.
             var partnerPrivilege = Apps2Samsung.Packaging.WgtPrivileges.FindPartnerPrivilege(packageUrl);
 
             // The package can only be installed Partner-signed, and there's no Partner certificate yet:
