@@ -14,6 +14,15 @@ namespace Apps2Samsung.Helpers.Core
     {
         private readonly string? _token;
 
+        // Set once GitHub has answered 401 to the token. A bearer token GitHub rejects is expired,
+        // revoked or mistyped, and stays that way for the rest of the run — so after the first
+        // rejection every request goes out unauthenticated straight away instead of each one being
+        // sent twice and logging the same warning (one launch produced dozens of those lines).
+        private int _tokenRejected;
+
+        /// <summary>True once the configured token has been rejected by GitHub this run.</summary>
+        public bool TokenRejected => Volatile.Read(ref _tokenRejected) != 0;
+
         public GitHubAuthHandler(string? token)
             : base(CreateInnerHandler())
         {
@@ -72,18 +81,25 @@ namespace Apps2Samsung.Helpers.Core
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            if (!string.IsNullOrEmpty(_token) && IsGitHubRequest(request.RequestUri))
+            if (!string.IsNullOrEmpty(_token) && !TokenRejected && IsGitHubRequest(request.RequestUri))
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _token);
             }
 
             var response = await base.SendAsync(request, cancellationToken);
 
-            // Token is expired or revoked — retry unauthenticated for public endpoints
+            // Token is expired or revoked — retry this request unauthenticated (the endpoints we use
+            // are public) and stop offering the token for the rest of the run.
             if (response.StatusCode == HttpStatusCode.Unauthorized &&
                 request.Headers.Authorization != null)
             {
-                Trace.TraceWarning("[GitHubAuth] Token rejected (401) — retrying without authorization");
+                if (Interlocked.Exchange(ref _tokenRejected, 1) == 0)
+                {
+                    Trace.TraceWarning("[GitHubAuth] GitHub rejected the token (401). Continuing without " +
+                                       "authorization for this session (60 requests/hour). Replace or clear the " +
+                                       "GitHub token in Settings, or GITHUB_TOKEN / gh auth, to authenticate again.");
+                }
+                response.Dispose();
                 var retry = new HttpRequestMessage(request.Method, request.RequestUri);
                 foreach (var header in request.Headers)
                 {

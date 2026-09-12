@@ -49,7 +49,7 @@
 		     .github/scripts/android-version-code.sh so it can never go backwards.
 		     A release build verifies the published APK against that value, so raising
 		     the number here has no effect on what users get. -->
-		<ApplicationDisplayVersion>2.7.9</ApplicationDisplayVersion>
+		<ApplicationDisplayVersion>2.8.0</ApplicationDisplayVersion>
 		<ApplicationVersion>5</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->

@@ -24,6 +24,10 @@ namespace Apps2Samsung.ViewModels
     public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         private readonly ITizenInstallerService _tizenInstaller;
+
+        // Handed to the toolbox so a system app can be launched over the developer channel, which is
+        // the only one that reaches a platform app (#641).
+        private readonly ISdbEngine _sdbEngine;
         private readonly IDialogService _dialogService;
         private readonly INetworkService _networkService;
         private readonly ILocalizationService _localizationService;
@@ -107,6 +111,7 @@ namespace Apps2Samsung.ViewModels
 
         public MainWindowViewModel(
             ITizenInstallerService tizenInstaller,
+            ISdbEngine sdbEngine,
             IDialogService dialogService,
             INetworkService networkService,
             ILocalizationService localizationService,
@@ -120,6 +125,7 @@ namespace Apps2Samsung.ViewModels
         )
         {
             _tizenInstaller = tizenInstaller;
+            _sdbEngine = sdbEngine;
             _dialogService = dialogService;
             _networkService = networkService;
             _packageHelper = packageHelper;
@@ -671,6 +677,56 @@ namespace Apps2Samsung.ViewModels
             catch (Exception ex)
             {
                 await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblRemote"), ex));
+            }
+        }
+
+        /// <summary>
+        /// Opens the TV toolbox (#635): launching an app by id and sending a documented service-menu
+        /// combination. Like the remote it rides the remote channel, so it needs no Developer Mode and
+        /// is offered for any TV on the network — including one the installer itself couldn't use.
+        /// </summary>
+        [RelayCommand]
+        private async Task ShowTvToolboxAsync()
+        {
+            try
+            {
+                if (SelectedDevice is null ||
+                    string.IsNullOrWhiteSpace(SelectedDevice.IpAddress) ||
+                    SelectedDevice.IpAddress == L("lblOther"))
+                {
+                    await _dialogService.ShowMessageAsync(L("lblToolbox"), L("lblRemoteSelectTvFirst"));
+                    return;
+                }
+
+                if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                    return;
+
+                var label = string.IsNullOrWhiteSpace(SelectedDevice.DisplayText)
+                    ? SelectedDevice.IpAddress
+                    : SelectedDevice.DisplayText;
+
+                // The scan knows the TV's MAC while it is awake; keep it so a sleeping set can still
+                // be woken later (same store the remote uses).
+                if (!string.IsNullOrWhiteSpace(SelectedDevice.MacAddress))
+                    Helpers.Core.RemoteStore.SetMac(SelectedDevice.IpAddress, SelectedDevice.MacAddress!);
+
+                // The toolbox's debug agent is a .wgt like any other: the normal pipeline (certificate,
+                // resign, push) puts it on the TV when the set doesn't have it yet (#34).
+                var tvIp = SelectedDevice.IpAddress;
+                Func<string, Action<string>, Task<bool>> installWgt = async (wgtPath, report) =>
+                {
+                    using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                    var result = await _tizenInstaller.InstallPackageAsync(wgtPath, tvIp, timeout.Token, message => report(message));
+                    return result.Success;
+                };
+
+                var vm = new TvToolboxViewModel(tvIp, label, _sdbEngine, installWgt);
+                var window = new Views.TvToolboxWindow(vm);
+                await window.ShowDialog(desktop.MainWindow);
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblToolbox"), ex));
             }
         }
 

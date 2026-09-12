@@ -12,8 +12,5 @@
   
     <Application.Styles>
         <FluentTheme />
-		<Style Selector="Window">
-			<Setter Property="Icon" Value="avares://Apps2Samsung/Assets/jelly2sams.ico" />
-		</Style>
     </Application.Styles>
 </Application>

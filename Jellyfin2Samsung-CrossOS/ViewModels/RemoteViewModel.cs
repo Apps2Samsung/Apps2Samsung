@@ -50,7 +50,8 @@ namespace Apps2Samsung.ViewModels
 
         /// <summary>
         /// Opens the channel, waking the TV first when it isn't answering and we know its MAC. Called
-        /// when the window opens, and again by the reconnect button.
+        /// when the window opens, and again by the reconnect button. The sequence itself lives in
+        /// Core (<see cref="RemoteSession"/>) — the TV toolbox needs the same one.
         /// </summary>
         [RelayCommand]
         private async Task Connect()
@@ -58,46 +59,16 @@ namespace Apps2Samsung.ViewModels
             IsBusy = true;
             try
             {
-                StatusText = "lblRemoteConnecting".Localized();
+                var progress = new Progress<string>(key => StatusText = key.Localized());
+                var session = await RemoteSession.ConnectAsync(_tvIp, RemoteStore.Credentials.Instance, progress);
 
-                var capability = await SamsungRemoteClient.ProbeAsync(_tvIp);
-
-                // A sleeping TV serves neither the REST API nor the remote channel, so "no answer"
-                // and "standby" are one situation: nothing works until the set is woken.
-                if (!capability.Supported || !capability.IsAwake)
+                if (!session.Connected)
                 {
-                    capability = await TryWakeAsync(capability);
-                    if (!capability.Supported || !capability.IsAwake)
-                        return;
-                }
-
-                // Remember the MAC while it is readable — a sleeping TV won't tell us later.
-                if (!string.IsNullOrEmpty(capability.MacAddress))
-                    RemoteStore.SetMac(_tvIp, capability.MacAddress);
-
-                var stored = RemoteStore.GetToken(_tvIp);
-                var client = new SamsungRemoteClient(_tvIp, token: stored, secure: capability.UsesToken);
-                client.TokenIssued += token => RemoteStore.SetToken(_tvIp, token);
-
-                var firstPairing = capability.UsesToken && string.IsNullOrEmpty(stored);
-                if (firstPairing)
-                    StatusText = "lblRemotePairPrompt".Localized();
-
-                // A first pairing needs someone to walk to the TV and accept the prompt.
-                using var cts = new CancellationTokenSource(firstPairing
-                    ? TimeSpan.FromSeconds(60)
-                    : TimeSpan.FromSeconds(10));
-
-                if (!await client.ConnectAsync(cts.Token))
-                {
-                    await client.DisposeAsync();
-                    StatusText = firstPairing
-                        ? "lblRemotePairFailed".Localized()
-                        : "lblRemoteNoChannel".Localized();
+                    StatusText = RemoteStore.StatusKeyFor(session.Outcome).Localized();
                     return;
                 }
 
-                _remote = client;
+                _remote = session.Client;
                 IsConnected = true;
                 StatusText = "lblRemoteConnected".Localized();
             }
@@ -105,26 +76,6 @@ namespace Apps2Samsung.ViewModels
             {
                 IsBusy = false;
             }
-        }
-
-        private async Task<SamsungRemoteCapability> TryWakeAsync(SamsungRemoteCapability capability)
-        {
-            var mac = RemoteStore.GetMac(_tvIp);
-            if (string.IsNullOrEmpty(mac))
-            {
-                // Never seen this TV awake, so there is no MAC to wake it with.
-                StatusText = "lblRemoteWakeNoMac".Localized();
-                return capability;
-            }
-
-            StatusText = "lblRemoteWaking".Localized();
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
-            if (await SamsungRemoteWake.WakeAndWaitAsync(_tvIp, mac, TimeSpan.FromSeconds(40), cts.Token))
-                return await SamsungRemoteClient.ProbeAsync(_tvIp);
-
-            // Wake-on-LAN needs the TV's own network-standby setting on, and a LAN that passes broadcast.
-            StatusText = "lblRemoteWakeFailed".Localized();
-            return capability;
         }
 
         /// <summary>Sends one key code (the buttons pass it as the command parameter).</summary>

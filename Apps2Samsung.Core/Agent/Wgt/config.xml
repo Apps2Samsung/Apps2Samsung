@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets"
+        id="https://github.com/Apps2Samsung/Apps2Samsung/debug-agent" version="0.1.0" viewmodes="maximized">
+    <name>Apps2Samsung Debug</name>
+    <icon src="icon.png"/>
+    <content src="index.html"/>
+    <feature name="http://tizen.org/feature/screen.size.all"/>
+    <!-- background-support on: the agent must keep answering after it has launched another app and
+         that app has taken the screen. hwkey-event on: the Return key reaches the page, for the
+         on-screen fallback. -->
+    <tizen:setting screen-orientation="landscape" context-menu="disable" background-support="enable"
+                   encryption="disable" install-location="auto" hwkey-event="enable"/>
+    <!-- A 10-character package id, stable: the desktop and mobile heads address the agent by it.
+         required_version 3.0: the API below relies on Promise, which the 2.3/2.4 WebKit engines lack. -->
+    <tizen:application id="A2SDebug01.Agent" package="A2SDebug01" required_version="3.0"/>
+    <!-- The one privilege that matters: tizen.application.launch(). Listing and app contexts need none. -->
+    <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
+    <tizen:profile name="tv-samsung"/>
+</widget>

@@ -57,80 +57,28 @@ public partial class RemotePage : ContentPage
 			await remote.DisposeAsync();
 	}
 
+	/// <summary>
+	/// Opens the channel: probe, wake the set if it is asleep and we know its MAC, pair on first use.
+	/// The sequence itself lives in Core (<see cref="RemoteSession"/>), shared with the desktop head
+	/// and with the TV toolbox.
+	/// </summary>
 	private async Task ConnectAsync()
 	{
-		SetStatus($"{_tvLabel} — {L10n.Get("lblRemoteConnecting")}");
+		var progress = new Progress<string>(key => SetStatus($"{_tvLabel} — {L10n.Get(key)}"));
+		var session = await RemoteSession.ConnectAsync(_tvIp, RemoteCredentials.Instance, progress);
 
-		var capability = await SamsungRemoteClient.ProbeAsync(_tvIp);
-
-		// A sleeping TV serves neither the REST API nor the remote channel, so "no answer" and
-		// "standby" are the same situation: nothing works until the set is woken. If we cached its
-		// MAC while it was awake, we can do that ourselves.
-		if (!capability.Supported || !capability.IsAwake)
+		if (!session.Connected)
 		{
-			capability = await TryWakeAsync(capability);
-			if (!capability.Supported || !capability.IsAwake)
-				return;
-		}
-
-		// Remember the MAC while we can read it — a sleeping TV won't tell us later.
-		if (!string.IsNullOrEmpty(capability.MacAddress))
-			MobileSettings.SetRemoteMac(_tvIp, capability.MacAddress);
-
-		var stored = MobileSettings.GetRemoteToken(_tvIp);
-		var client = new SamsungRemoteClient(_tvIp, token: stored, secure: capability.UsesToken);
-		client.TokenIssued += token => MobileSettings.SetRemoteToken(_tvIp, token);
-
-		// No stored token on a token-auth set means the TV is about to prompt — say so, then give the
-		// user time to walk over and accept it.
-		if (capability.UsesToken && string.IsNullOrEmpty(stored))
-			SetStatus($"{_tvLabel} — {L10n.Get("lblRemotePairPrompt")}");
-
-		var timeout = capability.UsesToken && string.IsNullOrEmpty(stored)
-			? TimeSpan.FromSeconds(60)
-			: TimeSpan.FromSeconds(10);
-
-		using var cts = new CancellationTokenSource(timeout);
-		if (!await client.ConnectAsync(cts.Token))
-		{
-			await client.DisposeAsync();
-			SetStatus($"{_tvLabel} — " + (capability.UsesToken && string.IsNullOrEmpty(stored)
-				? L10n.Get("lblRemotePairFailed")
-				: L10n.Get("lblRemoteNoChannel")));
+			SetStatus($"{_tvLabel} — {L10n.Get(RemoteCredentials.StatusKeyFor(session.Outcome))}");
 			return;
 		}
 
-		_remote = client;
+		_remote = session.Client;
 		// Nothing is known about what sits in the TV's text field on a new connection, so start from
 		// "unmirrored" and let the first keystroke transmit in full.
 		_mirroredText = string.Empty;
-		var name = string.IsNullOrWhiteSpace(capability.Name) ? _tvLabel : capability.Name;
+		var name = string.IsNullOrWhiteSpace(session.TvName) ? _tvLabel : session.TvName;
 		SetStatus($"{name} — {L10n.Get("lblRemoteConnected")}");
-	}
-
-	/// <summary>
-	/// Wakes the TV with a magic packet, if we know its MAC, and waits for it to come up. Returns the
-	/// re-probed capability, and sets the status when it couldn't be done — the caller only continues
-	/// when the TV is actually awake.
-	/// </summary>
-	private async Task<SamsungRemoteCapability> TryWakeAsync(SamsungRemoteCapability capability)
-	{
-		var mac = MobileSettings.GetRemoteMac(_tvIp);
-		if (string.IsNullOrEmpty(mac))
-		{
-			// Never seen this TV awake, so there is no MAC to wake it with.
-			SetStatus($"{_tvLabel} — {L10n.Get("lblRemoteNoAnswerNoMac")}");
-			return capability;
-		}
-
-		SetStatus($"{_tvLabel} — {L10n.Get("lblRemoteWaking")}");
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
-		if (await SamsungRemoteWake.WakeAndWaitAsync(_tvIp, mac, TimeSpan.FromSeconds(40), cts.Token))
-			return await SamsungRemoteClient.ProbeAsync(_tvIp);
-
-		// Wake-on-LAN needs the TV's own network-standby setting on, and a LAN that passes broadcast.
-		SetStatus($"{_tvLabel} — {L10n.Get("lblRemoteWakeFailed")}");
-		return capability;
 	}
 
 	private async void OnKeyClicked(object? sender, EventArgs e)
