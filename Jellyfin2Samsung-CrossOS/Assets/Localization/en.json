@@ -536,5 +536,7 @@
   "statusImportBackupFailed": "Couldn't import the backup: {0}",
   "lblSamsungAccountNoEmailTitle": "Samsung account has no email address",
   "statusSamsungAccountNoEmail": "Your Samsung account doesn't have an email address on it, and the signing certificate can't be created without one. Open account.samsung.com, add and verify an email address, then try again.",
-  "lblOpenSamsungAccount": "Open Samsung account"
+  "lblOpenSamsungAccount": "Open Samsung account",
+  "lblSslWarningTitle": "Secure connection could not be verified",
+  "statusSslWarning": "The security certificate of {0} could not be verified ({1}). Usually a firewall, DNS filter or proxy on your network is blocking or intercepting this address, or this system's root certificates are out of date. Allow {0} in your firewall or DNS filter, or update the system's root certificates, then try again. Samsung sign-in and downloads may fail until this is fixed."
 }
