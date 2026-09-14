@@ -34,6 +34,9 @@ public partial class TvToolboxPage : ContentPage
 	// toolbox is offered for any TV on the network, Developer Mode or not.
 	private readonly ISdbEngine? _sdb;
 	private SamsungRemoteClient? _remote;
+	// From the probe: a consumer set that reports Smart Hub, whose app-status endpoint can be trusted
+	// to say "no such app" (see SamsungRemoteApps.LaunchAsync).
+	private bool _isConsumerSet;
 
 	// How this head puts a .wgt on the TV — certificate, resign, push — so the agent installs like
 	// any package. Null where the caller has no installer; the agent then has to be on the set already.
@@ -118,6 +121,8 @@ public partial class TvToolboxPage : ContentPage
 		// Read off the probe, which happens even on the runs that then fail to open the channel — a
 		// refused pairing still told us what kind of set this is.
 		HospitalityNotice.IsVisible = session.Capability.Supported && session.Capability.IsHospitality;
+		_isConsumerSet = session.Capability.Supported && session.Capability.IsConsumer;
+		ConsumerNotice.IsVisible = _isConsumerSet;
 
 		if (!session.Connected)
 		{
@@ -208,7 +213,7 @@ public partial class TvToolboxPage : ContentPage
 		try
 		{
 			SetStatus(string.Format(L10n.Get("lblToolboxLaunching"), target.Name));
-			var result = await SamsungRemoteApps.LaunchAsync(remote, _tvIp, target, _sdb);
+			var result = await SamsungRemoteApps.LaunchAsync(remote, _tvIp, target, _sdb, trustNotInstalled: _isConsumerSet);
 
 			SetStatus(result switch
 			{
@@ -217,6 +222,7 @@ public partial class TvToolboxPage : ContentPage
 				// behaviour, and not something to dress up as a confirmed launch.
 				{ Succeeded: true } => string.Format(L10n.Get("lblToolboxLaunchSent"), target.Name),
 				// The launcher's own verdicts, in its words: no route below it can do better.
+				{ NotInstalled: true } => string.Format(L10n.Get("lblToolboxLaunchNotInstalled"), target.Name),
 				{ NotASmartHubApp: true } => string.Format(L10n.Get("lblToolboxLaunchNotSmartHub"), target.Name, result.TvReply),
 				{ TvReply: not null } => string.Format(L10n.Get("lblToolboxLaunchRefused"), target.Name, result.TvReply),
 				_ => string.Format(L10n.Get("lblToolboxLaunchFailed"), target.Name),

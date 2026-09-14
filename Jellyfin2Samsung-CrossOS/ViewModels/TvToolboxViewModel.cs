@@ -139,6 +139,11 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private bool isHospitality;
 
+        // From the probe: an ordinary set with Smart Hub. Shows the consumer notice, and vouches for
+        // the app-status endpoint so a 404 can be reported as "not on this TV".
+        [ObservableProperty]
+        private bool isConsumer;
+
         public event Action? OnRequestClose;
 
         public TvToolboxViewModel(
@@ -191,6 +196,7 @@ namespace Apps2Samsung.ViewModels
             // Read off the probe, which happens even on the runs that then fail to open the channel —
             // a refused pairing still told us what kind of set this is.
             IsHospitality = session.Capability.Supported && session.Capability.IsHospitality;
+            IsConsumer = session.Capability.Supported && session.Capability.IsConsumer;
 
             if (!session.Connected)
             {
@@ -285,7 +291,7 @@ namespace Apps2Samsung.ViewModels
             try
             {
                 StatusText = string.Format("lblToolboxLaunching".Localized(), target.Name);
-                var result = await SamsungRemoteApps.LaunchAsync(remote, _tvIp, target, _sdb);
+                var result = await SamsungRemoteApps.LaunchAsync(remote, _tvIp, target, _sdb, trustNotInstalled: IsConsumer);
 
                 StatusText = result switch
                 {
@@ -294,6 +300,7 @@ namespace Apps2Samsung.ViewModels
                     // behaviour, and not something to dress up as a confirmed launch.
                     { Succeeded: true } => string.Format("lblToolboxLaunchSent".Localized(), target.Name),
                     // The launcher's own verdicts, in its words: no route below it can do better.
+                    { NotInstalled: true } => string.Format("lblToolboxLaunchNotInstalled".Localized(), target.Name),
                     { NotASmartHubApp: true } => string.Format("lblToolboxLaunchNotSmartHub".Localized(), target.Name, result.TvReply),
                     { TvReply: not null } => string.Format("lblToolboxLaunchRefused".Localized(), target.Name, result.TvReply),
                     _ => string.Format("lblToolboxLaunchFailed".Localized(), target.Name),

@@ -463,6 +463,8 @@
   "lblToolboxLaunchFailed": "Couldn't launch {0} - the TV took none of the launch paths.",
   "lblToolboxManualPlaceholder": "App ID, e.g. 3201907018807",
   "lblToolboxHospitality": "This is a hospitality set (hotel firmware). It has no Smart Hub and no app store, which is why apps from the store neither install nor launch on it - launching by ID below is the way in.",
+  "lblToolboxConsumer": "This is a regular consumer TV with Smart Hub, not hospitality (hotel) firmware. The hidden system apps and the hotel-menu combinations below exist for hotel sets; on this TV most of them open nothing, and that is expected. An app from the list only opens if it is installed on this TV.",
+  "lblToolboxLaunchNotInstalled": "{0} is not on this TV: the TV's app manager does not know this ID, so there is nothing to launch. A store app has to be installed from the TV's own store first; a hidden system app is a hospitality-firmware menu that a consumer set usually does not have.",
   "lblToolboxStandbySequences": "Combinations that start from standby",
   "lblToolboxStandbyHowTo": "Enter these on the physical remote:",
   "lblToolboxStandbyStep1": "1. Switch the TV off with its own remote.",
