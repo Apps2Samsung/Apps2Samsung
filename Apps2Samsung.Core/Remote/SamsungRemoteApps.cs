@@ -62,15 +62,36 @@ namespace Apps2Samsung.Remote
     /// no other route here can open it either (see <see cref="Sdb.TizenLaunchVerdict.NotASmartHubApp"/>).
     /// A caller shows this as such rather than as a generic failure — the fix is the debug agent, not a retry.
     /// </param>
+    /// <param name="NotInstalled">
+    /// The TV's own app manager answered 404 for the id before anything was launched: there is no such
+    /// app on this set, so no route was tried. Only reported where the caller said the endpoint can be
+    /// trusted (a consumer set that reports Smart Hub); a store app that isn't installed and a
+    /// hospitality menu that a consumer set doesn't carry both end up here.
+    /// </param>
     public sealed record SamsungRemoteLaunchResult(
         bool Succeeded,
         SamsungRemoteLaunchRoute Route,
         bool Verified,
         string? TvReply = null,
-        bool NotASmartHubApp = false)
+        bool NotASmartHubApp = false,
+        bool NotInstalled = false)
     {
         public static readonly SamsungRemoteLaunchResult Failed =
             new(false, SamsungRemoteLaunchRoute.None, false);
+
+        public static readonly SamsungRemoteLaunchResult NotOnTv =
+            new(false, SamsungRemoteLaunchRoute.None, false, NotInstalled: true);
+    }
+
+    /// <summary>What <c>GET /api/v2/applications/{id}</c> said about an app.</summary>
+    public enum SamsungRemoteAppStatus
+    {
+        /// <summary>No usable answer: the set doesn't serve the endpoint, hangs on it, or errored.</summary>
+        Unknown,
+        /// <summary>404: the TV's app manager has no app under this id.</summary>
+        NotInstalled,
+        Stopped,
+        Running,
     }
 
     /// <summary>
@@ -246,10 +267,11 @@ namespace Apps2Samsung.Remote
             string tvIpAddress,
             SamsungRemoteLaunchTarget target,
             ISdbEngine? sdb = null,
+            bool trustNotInstalled = false,
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(target);
-            return LaunchAsync(client, tvIpAddress, target.AppId, target.Name, target.AppType, sdb, cancellationToken);
+            return LaunchAsync(client, tvIpAddress, target.AppId, target.Name, target.AppType, sdb, trustNotInstalled, cancellationToken);
         }
 
         /// <summary>
@@ -258,6 +280,9 @@ namespace Apps2Samsung.Remote
         /// registered DIAL name (e.g. "Netflix") — DIAL addresses apps by name, so without one that
         /// fallback is skipped. <paramref name="sdb"/> is null where the caller has no engine, and a
         /// set with Developer Mode off simply fails that attempt and carries on.
+        /// <paramref name="trustNotInstalled"/> says the TV's app-status endpoint can be believed when
+        /// it answers 404 (a consumer set that reports Smart Hub): the launch then stops with
+        /// <see cref="SamsungRemoteLaunchResult.NotInstalled"/> instead of "sent, check the screen".
         /// </summary>
         public static async Task<SamsungRemoteLaunchResult> LaunchAsync(
             SamsungRemoteClient? client,
@@ -266,6 +291,7 @@ namespace Apps2Samsung.Remote
             string? dialName = null,
             int appType = 0,
             ISdbEngine? sdb = null,
+            bool trustNotInstalled = false,
             CancellationToken cancellationToken = default)
         {
             // Null client is a route missing, not a bad call: only the first of the four needs the
@@ -301,7 +327,20 @@ namespace Apps2Samsung.Remote
             // as an instant verified success on every relaunch while the screen never changes, which
             // is what a hospitality set was seen doing: an app opened once could not be opened again
             // until the TV restarted. Close it first so the status query means something again.
-            if (await IsRunningAsync(tvIpAddress, appId, cancellationToken).ConfigureAwait(false) == true)
+            var status = await GetStatusAsync(tvIpAddress, appId, cancellationToken).ConfigureAwait(false);
+
+            // A 404 from the app manager is the TV saying there is no such app: a store app that was
+            // never installed, or a hospitality menu on a consumer set that doesn't carry it. Firing
+            // three launch paths at it only produces "Sent, check the screen" for a screen that will
+            // never change. Trusted only where the caller vouched for the endpoint (a consumer set that
+            // reports Smart Hub); an older or hospitality set keeps the old behaviour.
+            if (trustNotInstalled && status == SamsungRemoteAppStatus.NotInstalled)
+            {
+                Trace.WriteLine($"[remote] {tvIpAddress} has no app {appId} (404 from the app-status endpoint); nothing to launch.");
+                return SamsungRemoteLaunchResult.NotOnTv;
+            }
+
+            if (status == SamsungRemoteAppStatus.Running)
             {
                 await TerminateAsync(tvIpAddress, appId, cancellationToken).ConfigureAwait(false);
                 await WaitForStoppedAsync(tvIpAddress, appId, cancellationToken).ConfigureAwait(false);
@@ -309,21 +348,31 @@ namespace Apps2Samsung.Remote
 
             // 1. The channel. It reports delivery only, so the TV's own status endpoint is what turns
             //    that into a launch — where the set answers it at all.
-            if (client is not null && await client.EmitAsync("ed.apps.launch", new JsonObject
+            if (client is not null)
+            {
+                var delivered = await client.EmitAsync("ed.apps.launch", new JsonObject
                 {
                     ["appId"] = appId,
                     ["action_type"] = ActionTypeFor(appId, appType),
-                }, cancellationToken).ConfigureAwait(false))
-            {
-                var running = await WaitForRunningAsync(tvIpAddress, appId, cancellationToken).ConfigureAwait(false);
-                if (running == true)
-                    return new SamsungRemoteLaunchResult(true, SamsungRemoteLaunchRoute.Channel, Verified: true);
+                }, cancellationToken).ConfigureAwait(false);
 
-                // The set doesn't answer the status query: the message went out and nothing contradicts
-                // it, so stop here rather than firing two more launches at a TV that may be opening the
-                // app right now.
-                if (running is null)
-                    return new SamsungRemoteLaunchResult(true, SamsungRemoteLaunchRoute.Channel, Verified: false);
+                if (delivered)
+                {
+                    var running = await WaitForRunningAsync(tvIpAddress, appId, cancellationToken).ConfigureAwait(false);
+                    Trace.WriteLine($"[remote] ed.apps.launch {appId} delivered over the channel; running={Describe(running)}");
+                    if (running == true)
+                        return new SamsungRemoteLaunchResult(true, SamsungRemoteLaunchRoute.Channel, Verified: true);
+
+                    // The set doesn't answer the status query: the message went out and nothing contradicts
+                    // it, so stop here rather than firing two more launches at a TV that may be opening the
+                    // app right now.
+                    if (running is null)
+                        return new SamsungRemoteLaunchResult(true, SamsungRemoteLaunchRoute.Channel, Verified: false);
+                }
+                else
+                {
+                    Trace.WriteLine($"[remote] ed.apps.launch {appId}: the channel did not take the message.");
+                }
             }
 
             // 2. REST. A set that answered the status query above answers this too, and some firmware
@@ -332,6 +381,7 @@ namespace Apps2Samsung.Remote
                 .ConfigureAwait(false))
             {
                 var running = await WaitForRunningAsync(tvIpAddress, appId, cancellationToken).ConfigureAwait(false);
+                Trace.WriteLine($"[remote] REST launch of {appId} accepted; running={Describe(running)}");
                 return new SamsungRemoteLaunchResult(true, SamsungRemoteLaunchRoute.Rest, Verified: running == true);
             }
 
@@ -340,11 +390,15 @@ namespace Apps2Samsung.Remote
                 await PostAsync($"http://{tvIpAddress}:{DialPort}/ws/apps/{Uri.EscapeDataString(dialName.Trim())}", cancellationToken)
                     .ConfigureAwait(false))
             {
+                Trace.WriteLine($"[remote] DIAL launch of {dialName} accepted (unverified).");
                 return new SamsungRemoteLaunchResult(true, SamsungRemoteLaunchRoute.Dial, Verified: false);
             }
 
+            Trace.WriteLine($"[remote] no launch path took {appId} on {tvIpAddress}.");
             return SamsungRemoteLaunchResult.Failed;
         }
+
+        private static string Describe(bool? running) => running is null ? "unknown" : running.Value ? "true" : "false";
 
         /// <summary>
         /// The launcher's verdict on <c>0 was_execute</c>, with the TV's own words. <see
@@ -387,13 +441,26 @@ namespace Apps2Samsung.Remote
         /// Whether the TV reports the app as running: true/false when it answered, null when it doesn't
         /// serve the status endpoint (a 404, or no answer at all) and the question can't be settled.
         /// </summary>
-        public static async Task<bool?> IsRunningAsync(string tvIpAddress, string appId, CancellationToken cancellationToken = default)
+        public static async Task<bool?> IsRunningAsync(string tvIpAddress, string appId, CancellationToken cancellationToken = default) =>
+            await GetStatusAsync(tvIpAddress, appId, cancellationToken).ConfigureAwait(false) switch
+            {
+                SamsungRemoteAppStatus.Running => true,
+                SamsungRemoteAppStatus.Stopped => false,
+                _ => null,
+            };
+
+        /// <summary>
+        /// What the TV's app manager says about <paramref name="appId"/>. A 404 is kept apart from "no
+        /// answer": on a set that serves the endpoint it is the TV stating there is no such app, which
+        /// is the one thing worth telling a user whose launch "did nothing".
+        /// </summary>
+        public static async Task<SamsungRemoteAppStatus> GetStatusAsync(string tvIpAddress, string appId, CancellationToken cancellationToken = default)
         {
             // A set that let the status query time out once will do it every time (the endpoint
             // exists and hangs — Tizen 9 hospitality firmware does exactly this), and each check costs
             // the full HTTP timeout. Remember per TV, for the life of the process.
             if (StatusEndpointHangs.ContainsKey(tvIpAddress))
-                return null;
+                return SamsungRemoteAppStatus.Unknown;
 
             try
             {
@@ -401,13 +468,22 @@ namespace Apps2Samsung.Remote
                     .GetAsync($"http://{tvIpAddress}:{RestPort}/api/v2/applications/{Uri.EscapeDataString(appId)}", cancellationToken)
                     .ConfigureAwait(false);
 
-                if (response.StatusCode == HttpStatusCode.NotFound || !response.IsSuccessStatusCode)
-                    return null;
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                    return SamsungRemoteAppStatus.NotInstalled;
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Trace.WriteLine($"[remote] status of {appId} on {tvIpAddress}: HTTP {(int)response.StatusCode}");
+                    return SamsungRemoteAppStatus.Unknown;
+                }
 
                 var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
                 // Reported as a bool by most firmware and as "true"/"false" by some.
                 var running = JsonNode.Parse(json)?["running"]?.ToString();
-                return bool.TryParse(running, out var isRunning) ? isRunning : null;
+                if (!bool.TryParse(running, out var isRunning))
+                    return SamsungRemoteAppStatus.Unknown;
+
+                return isRunning ? SamsungRemoteAppStatus.Running : SamsungRemoteAppStatus.Stopped;
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
@@ -416,12 +492,12 @@ namespace Apps2Samsung.Remote
                 // row on the set in #34.
                 if (StatusEndpointHangs.TryAdd(tvIpAddress, 0))
                     Trace.WriteLine($"[remote] {tvIpAddress} does not answer the app-status query; skipping it for the rest of this session.");
-                return null;
+                return SamsungRemoteAppStatus.Unknown;
             }
             catch (Exception ex)
             {
                 Trace.WriteLine($"[remote] status of {appId} on {tvIpAddress} is unknown: {ex.Message}");
-                return null;
+                return SamsungRemoteAppStatus.Unknown;
             }
         }
 
@@ -467,6 +543,8 @@ namespace Apps2Samsung.Remote
             try
             {
                 using var response = await Http.PostAsync(url, content: null, cancellationToken).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                    Trace.WriteLine($"[remote] POST {url} → HTTP {(int)response.StatusCode}");
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)

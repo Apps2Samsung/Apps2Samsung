@@ -544,5 +544,15 @@ namespace Apps2Samsung.Remote
         /// </summary>
         public bool IsHospitality =>
             HasAppStore == false || Model.StartsWith("HG", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// An ordinary consumer set: the probe says Smart Hub (EDEN) is present and the model is not
+        /// an <c>HG</c>. On one of these the toolbox's hospitality tools (the hidden system apps, the
+        /// hotel-menu combinations) mostly open nothing, which is expected rather than a fault, and
+        /// the app-status endpoint is trustworthy enough that a 404 means "not on this TV". False
+        /// when the set didn't report the flag: unknown is not consumer.
+        /// </summary>
+        public bool IsConsumer =>
+            HasAppStore == true && !Model.StartsWith("HG", StringComparison.OrdinalIgnoreCase);
     }
 }

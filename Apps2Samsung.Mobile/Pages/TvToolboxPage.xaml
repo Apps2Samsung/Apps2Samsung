@@ -74,6 +74,12 @@
                     <Label FontSize="12" Text="{l:Localize lblToolboxHospitality}" />
                 </Border>
 
+                <!-- The opposite case: an ordinary set with Smart Hub, on which the hospitality tools below
+                     are expected to open nothing. Said up front, so a dead Launch button isn't a mystery. -->
+                <Border x:Name="ConsumerNotice" Style="{StaticResource Notice}" Stroke="#3B7DD8" IsVisible="False">
+                    <Label FontSize="12" Text="{l:Localize lblToolboxConsumer}" />
+                </Border>
+
                 <!-- ============ Open an app ============ -->
                 <Border Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="8">

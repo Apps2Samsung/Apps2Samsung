@@ -77,6 +77,13 @@
                 <TextBlock Text="{l:Localize lblToolboxHospitality}"/>
             </Border>
 
+            <!-- The opposite case: an ordinary set with Smart Hub, on which the hospitality tools below
+                 are expected to open nothing. Said up front, so a dead Launch button isn't a mystery. -->
+            <Border DockPanel.Dock="Top" Classes="notice" BorderBrush="#3B7DD8" Margin="0,0,0,10"
+                    IsVisible="{Binding IsConsumer}">
+                <TextBlock Text="{l:Localize lblToolboxConsumer}"/>
+            </Border>
+
             <ScrollViewer>
                 <StackPanel Spacing="8">
 

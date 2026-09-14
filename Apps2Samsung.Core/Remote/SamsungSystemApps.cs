@@ -147,7 +147,7 @@ namespace Apps2Samsung.Remote
 
         /// <summary>
         /// The list as both heads show it: text already resolved, and the launch target to hand back to
-        /// <see cref="SamsungRemoteApps.LaunchAsync(SamsungRemoteClient, string, SamsungRemoteLaunchTarget, ISdbEngine?, System.Threading.CancellationToken)"/>.
+        /// <see cref="SamsungRemoteApps.LaunchAsync(SamsungRemoteClient, string, SamsungRemoteLaunchTarget, ISdbEngine?, bool, System.Threading.CancellationToken)"/>.
         /// Built here rather than per head so the two don't drift.
         /// </summary>
         public static IReadOnlyList<SamsungSystemAppRow> Rows(Func<string, string> localize)
