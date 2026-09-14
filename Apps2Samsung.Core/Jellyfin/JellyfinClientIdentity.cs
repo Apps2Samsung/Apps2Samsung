@@ -12,6 +12,11 @@ namespace Apps2Samsung.Helpers.API
     /// so the id has to be stable for one install and different between installs: with a single
     /// hard-coded id every copy of the installer shared one token per user, and a logout or a
     /// "revoke device" on one machine silently broke the others.
+    /// <para>
+    /// The move from the legacy X-Emby-Authorization header to this one (#655) was diagnosed and first
+    /// written by Zach J Murphy (zacjmurphy) in his fork Apps2Samsung-Jellyfin12; #658 adapted it to
+    /// Core.
+    /// </para>
     /// </summary>
     public static class JellyfinClientIdentity
     {
