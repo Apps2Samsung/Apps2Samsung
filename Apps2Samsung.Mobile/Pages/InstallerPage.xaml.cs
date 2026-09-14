@@ -315,6 +315,30 @@ public partial class InstallerPage : ContentPage
 		await Navigation.PushAsync(new RemotePage(tvIp, label));
 	}
 
+	// Same story as the remote: the toolbox rides the network channel, so it is offered for any TV
+	// on the network, Developer Mode or not.
+	private async void OnShowTvToolboxClicked(object? sender, EventArgs e)
+	{
+		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
+		{
+			SetStatus(L10n.Get("statusSelectTvFirst"));
+			return;
+		}
+		var tvIp = _tvIps[TvPicker.SelectedIndex];
+		var label = TvPicker.SelectedItem as string ?? tvIp;
+
+		// The toolbox's debug agent is a .wgt like any other: the normal pipeline (certificate, resign,
+		// push) puts it on the TV when the set doesn't have it yet (#34).
+		Func<string, Action<string>, Task<bool>> installWgt = async (wgtPath, report) =>
+		{
+			var cert = await _certProvisioner.ProvisionAsync(tvIp, false, report);
+			await _installer.InstallAsync(tvIp, wgtPath, cert, report);
+			return true;
+		};
+
+		await Navigation.PushAsync(new TvToolboxPage(_sdb, tvIp, label, installWgt));
+	}
+
 	private async void OnRefreshClicked(object? sender, EventArgs e) => await ScanAsync();
 
 	private async void OnSettingsClicked(object? sender, EventArgs e) =>
@@ -389,6 +413,10 @@ public partial class InstallerPage : ContentPage
 		}
 
 		var tvIp = _tvIps[TvPicker.SelectedIndex];
+
+		// The device list is a scan snapshot; re-read the TV's Developer-Mode fields now so a
+		// Developer-Mode IP corrected on the TV since the scan isn't still flagged as a mismatch.
+		await TizenDeveloperInfo.RefreshAsync(_networkService, _tvDevices[TvPicker.SelectedIndex]);
 
 		// Shared pre-install guards (Core): a TV that still needs a restart, Developer Mode off, a
 		// Developer-Mode IP pointing at another device or typed back to front, a TV on another subnet.

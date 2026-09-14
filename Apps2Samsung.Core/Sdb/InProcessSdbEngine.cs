@@ -119,6 +119,26 @@ namespace Apps2Samsung.Sdb
                     sb.AppendLine($"  Testing '{cmd}': FAILED - {ex.Message}");
                 }
             }
+
+            // Which shell verbs this TV's sdbd recognises (TizenSdb.Core's SdbShellVerbs). sdbd is a
+            // fixed vocabulary, not a shell, and the launcher verb the tooling uses only resolves Smart
+            // Hub apps (tizen-community-packages#34); whether a set exposes a verb that reaches the
+            // platform's own launcher is a question no log had answered. Every probe carries an id
+            // that does not exist, so nothing on the TV changes. Appended after the "Testing" lines
+            // so the diagnose parser, which keys on the vd_appuninstall line, is unaffected — and so a
+            // user's debug log carries the answer without anyone asking for it.
+            try
+            {
+                var probes = await device.ProbeShellVerbsAsync();
+                sb.AppendLine($"  sdbd verbs: {probes.Count(p => p.Accepted)} of {probes.Count} probes accepted");
+                foreach (var probe in probes)
+                    sb.AppendLine(SdbShellVerbs.Format(probe));
+            }
+            catch (Exception ex)
+            {
+                sb.AppendLine($"  sdbd verbs: probe failed - {ex.Message}");
+            }
+
             return sb.ToString();
         });
 
@@ -148,8 +168,29 @@ namespace Apps2Samsung.Sdb
 
         public async Task<ProcessResult> LaunchAsync(string tvIpAddress, string appId) => await RunConnected(tvIpAddress, $"launch {tvIpAddress} \"{appId}\"", async device =>
         {
-            await device.LaunchAppAsync(appId);
-            return "App launched.";
+            // Sent here rather than through the engine's LaunchAppAsync, which discards the reply: the
+            // TV refuses a launch in text, with no failing status, the way it refuses an install. A
+            // flat "App launched." therefore read as success on every attempt — tolerable while this
+            // only opened the user's own sideloaded app, wrong now that the toolbox aims it at
+            // platform apps the set may well refuse (#641). The raw reply travels back in either
+            // case, so the caller can show the user what the TV actually said.
+            var reply = (await device.ShellCommandAsync($"0 was_execute {appId}")).Trim();
+
+            switch (TizenLaunchReply.Parse(reply))
+            {
+                case TizenLaunchVerdict.NotASmartHubApp:
+                case TizenLaunchVerdict.Refused:
+                    throw new Exception($"The TV would not open {appId}: {reply}");
+
+                case TizenLaunchVerdict.Unknown when reply.Length == 0:
+                    // Silence is not a launch. The launcher names every outcome it knows about, so an
+                    // empty reply means the verb never reached it (a dropped connection, sdbd cutting
+                    // the shell short) — and a claimed success here is what hid every refusal before.
+                    throw new Exception($"The TV gave no answer to the launch of {appId}.");
+
+                default:
+                    return reply;
+            }
         });
 
         public async Task<ProcessResult> ResignAsync(string packagePath, string authorP12, string distributorP12, string certPass)

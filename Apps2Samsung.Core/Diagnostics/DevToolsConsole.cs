@@ -91,6 +91,30 @@ namespace Apps2Samsung.Diagnostics
             return RenderRemoteObject(response?["result"]);
         }
 
+        /// <summary>
+        /// Evaluates <paramref name="expression"/> and returns its value as JSON rather than as text —
+        /// for a caller that wants to read the result, not show it. A promise is awaited first. An
+        /// exception in the expression is thrown here as <see cref="DevToolsEvaluationException"/>,
+        /// unlike <see cref="EvaluateAsync"/>, because for a programmatic caller it is a failure.
+        /// Returns null for <c>undefined</c>, <c>null</c>, and anything the inspector could not
+        /// serialise by value.
+        /// </summary>
+        public async Task<JsonNode?> EvaluateValueAsync(string expression, CancellationToken ct = default)
+        {
+            var response = await SendCommandAsync("Runtime.evaluate", new JsonObject
+            {
+                ["expression"] = expression,
+                ["returnByValue"] = true,
+                ["awaitPromise"] = true,
+            }, ct);
+
+            if (response?["exceptionDetails"] is JsonNode failure)
+                throw new DevToolsEvaluationException(RenderException(failure));
+
+            // Detached from the response so the caller can keep it; a node has one parent.
+            return response?["result"]?["value"]?.DeepClone();
+        }
+
         private async Task<JsonNode?> SendCommandAsync(string method, JsonObject? parameters, CancellationToken ct)
         {
             var id = Interlocked.Increment(ref _nextId);
@@ -373,5 +397,11 @@ namespace Apps2Samsung.Diagnostics
             _sendLock.Dispose();
             _stopping.Dispose();
         }
+    }
+
+    /// <summary>The evaluated expression threw in the page; the message is the rendered exception.</summary>
+    public sealed class DevToolsEvaluationException : Exception
+    {
+        public DevToolsEvaluationException(string message) : base(message) { }
     }
 }

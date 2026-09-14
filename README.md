@@ -17,7 +17,7 @@
 
 <p align="center">
   <b>Apps2Samsung</b> is a small cross-platform tool that side-loads <b>any app</b> onto <b>Samsung devices running Tizen OS</b> — Smart TVs, projectors and smart monitors —
-  <a href="https://jellyfin.org">Jellyfin</a>, Moonlight, Moonfin, Litefin and the whole <a href="https://github.com/Apps2Samsung/tizen-community-packages">community catalog</a>, or your own <code>.wgt</code>.
+  <a href="https://jellyfin.org">Jellyfin</a>, Moonlight, Moonfin, Litefin, TizenTube and the whole <a href="https://github.com/Apps2Samsung/tizen-community-packages">community catalog</a>, or your own <code>.wgt</code>.
   <br/>
   It handles device detection, certificates, and installation so you don’t have to fight with Tizen Studio or manual sideloading.
   <br/><br/>
@@ -35,7 +35,7 @@
 | Channel    | Version                                                             | Notes                        |
 |------------|---------------------------------------------------------------------|------------------------------|
 | **Stable** | [v2.7.9](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v2.7.9)                                        | Recommended for most users   |
-| **Beta**   | [N/A](#)                                            | Includes new features        |
+| **Beta**   | [v2.8.0-beta](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v2.8.0-beta)                                            | Includes new features        |
 
 <!-- versions:end -->
 
@@ -49,6 +49,16 @@ The phone app is the mobile installer head — run the whole install from your p
   [Add to Obtainium](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/Apps2Samsung/Apps2Samsung), or paste `https://github.com/Apps2Samsung/Apps2Samsung` into Obtainium's *Add App*.
 - **F-Droid** — add our repository in the F-Droid app (Settings → Repositories → Add): `https://apps2samsung.com/fdroid/repo`. It serves the latest **stable** and updates automatically. Works in F-Droid, Droid-ify and Neo Store.
 - **Direct** — grab the `-android.apk` from any [release](https://github.com/Apps2Samsung/Apps2Samsung/releases) and sideload it.
+
+### 🐧 Arch Linux (AUR)
+
+The official [`apps2samsung`](https://aur.archlinux.org/packages/apps2samsung) package is published by this repo's release workflow, so it follows every **stable** release:
+
+```sh
+yay -S apps2samsung      # or paru -S apps2samsung
+```
+
+It installs the same build as the `.deb`/`.rpm` (x86_64 and aarch64). Other Linux distros: take the `.AppImage`, `.deb`, `.rpm` or `.tar.gz` from the [releases](https://github.com/Apps2Samsung/Apps2Samsung/releases).
 
 ---
 
@@ -152,6 +162,8 @@ Special thanks to:
   https://github.com/Moonfin-Client/Smart-TV
 - **@MoazSalem** — for the Litefin client and related work  
   https://github.com/MoazSalem/litefin/
+- **@reisxd** — for TizenTube and related work  
+  https://github.com/reisxd/TizenTube
 
 ---
 

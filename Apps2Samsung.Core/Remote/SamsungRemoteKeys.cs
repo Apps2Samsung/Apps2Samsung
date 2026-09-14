@@ -22,6 +22,9 @@ namespace Apps2Samsung.Remote
         public const string Back = "KEY_RETURN";
         public const string Home = "KEY_HOME";
         public const string Menu = "KEY_MENU";
+        /// <summary>The info banner. Not on the remote UI, but the first key of the service-menu
+        /// sequence in <see cref="SamsungRemoteSequences"/>.</summary>
+        public const string Info = "KEY_INFO";
         public const string Exit = "KEY_EXIT";
         public const string Source = "KEY_SOURCE";
 

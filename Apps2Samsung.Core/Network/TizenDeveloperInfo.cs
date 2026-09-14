@@ -83,6 +83,76 @@ namespace Apps2Samsung.Services
         }
 
         /// <summary>
+        /// Re-reads the Developer-Mode fields of a TV the user is about to install to and updates
+        /// <paramref name="device"/> in place. The device list comes from a scan that may be minutes
+        /// old, and the Developer-Mode IP is exactly what people change between scanning and
+        /// installing: they see the "IP Mismatch" warning, correct the IP on the TV, and press
+        /// Install again. Judged by the scan's snapshot, the guards then keep warning about an IP the
+        /// TV no longer has. Call this right before <see cref="InstallGuards.Evaluate"/>.
+        ///
+        /// Only ever improves on the snapshot: a TV that doesn't answer keeps its scanned values, and
+        /// the debug-port state is re-probed only when the scan saw it closed, so a TV restarted since
+        /// then loses its stale "restart required" — a slow probe can never add one.
+        /// </summary>
+        public static async Task RefreshAsync(INetworkService network, NetworkDevice? device, CancellationToken cancellationToken = default)
+        {
+            // Placeholder picker entries ("Other…") carry no address to ask.
+            if (device is null || !IPAddress.TryParse(device.IpAddress, out _))
+                return;
+
+            try
+            {
+                if (!device.DebugPortOpen &&
+                    await IsPortOpenAsync(network, device.IpAddress, Constants.Ports.TizenDevPort, cancellationToken))
+                {
+                    device.DebugPortOpen = true;
+                }
+
+                if (!await IsPortOpenAsync(network, device.IpAddress, Constants.Ports.SamsungTvApiPort, cancellationToken))
+                    return;
+
+                var fresh = await ReadAsync(device, cancellationToken);
+
+                // ReadAsync's fallback (no/invalid answer) leaves DeveloperMode blank; a real Samsung
+                // answer always carries "0" or "1". Don't wipe good scan data with a failed read.
+                if (string.IsNullOrEmpty(fresh.DeveloperMode))
+                    return;
+
+                if (fresh.DeveloperMode != device.DeveloperMode || fresh.DeveloperIP != device.DeveloperIP)
+                {
+                    Trace.WriteLine($"[TizenApi] {device.IpAddress}: Developer Mode changed since the scan " +
+                                    $"(mode {device.DeveloperMode}→{fresh.DeveloperMode}, IP {device.DeveloperIP}→{fresh.DeveloperIP}).");
+                }
+                device.DeveloperMode = fresh.DeveloperMode;
+                device.DeveloperIP = fresh.DeveloperIP;
+                if (string.IsNullOrEmpty(device.DeviceName))
+                    device.DeviceName = fresh.DeviceName;
+                if (string.IsNullOrEmpty(device.ModelName))
+                    device.ModelName = fresh.ModelName;
+                if (string.IsNullOrEmpty(device.MacAddress))
+                    device.MacAddress = fresh.MacAddress;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Best effort: the guards fall back to the scan's snapshot.
+                Trace.WriteLine($"[TizenApi] Couldn't refresh Developer Mode info for {device.IpAddress}: {ex.Message}");
+            }
+        }
+
+        // One port probe with the scan's per-probe budget, so a TV that has gone to standby since the
+        // scan can't stall the Install button for the full TCP connect timeout.
+        private static async Task<bool> IsPortOpenAsync(INetworkService network, string ip, int port, CancellationToken cancellationToken)
+        {
+            using var timeout = new CancellationTokenSource(Constants.Defaults.NetworkScanTimeoutMs);
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token, cancellationToken);
+            return await network.IsPortOpenAsync(ip, port, linked.Token);
+        }
+
+        /// <summary>
         /// Reads <c>/api/v2/</c> for one device. Never throws: a host that doesn't answer, or answers
         /// with something that isn't the Samsung TV API, comes back as a copy of the input with the
         /// Developer-Mode fields blank.

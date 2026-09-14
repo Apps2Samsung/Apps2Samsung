@@ -144,8 +144,12 @@ namespace Apps2Samsung.Services
                     VerticalContentAlignment = VerticalAlignment.Center
                 };
 
-                yesButton.Click += (_, _) => { tcs.SetResult(true); dialog.Close(); };
-                noButton.Click += (_, _) => { tcs.SetResult(false); dialog.Close(); };
+                // Click is raised while the PointerReleased that caused it is still being routed. Closing
+                // the window synchronously here disposes its PlatformImpl mid-route, and the rest of that
+                // input event then lands on a dead window ("[Control] PlatformImpl is null, couldn't
+                // handle input"). Let the event finish first, then close.
+                yesButton.Click += (_, _) => { tcs.SetResult(true); Dispatcher.UIThread.Post(dialog.Close); };
+                noButton.Click += (_, _) => { tcs.SetResult(false); Dispatcher.UIThread.Post(dialog.Close); };
 
                 buttons.Children.Add(yesButton);
                 buttons.Children.Add(noButton);
