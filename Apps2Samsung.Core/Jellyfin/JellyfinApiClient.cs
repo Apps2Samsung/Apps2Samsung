@@ -108,10 +108,20 @@ namespace Apps2Samsung.Helpers.API
         /// </summary>
         private void SetupHeaders(string accessToken)
         {
+            ApplyAuthorizationHeader(JellyfinClientIdentity.AuthorizationHeader(accessToken));
+        }
+
+        /// <summary>
+        /// Resets the default headers to the user agent plus the given MediaBrowser Authorization value.
+        /// Added without validation on purpose: the MediaBrowser scheme's comma-separated
+        /// <c>Key="value"</c> parameters are not a standard RFC 7235 credential, so the value must
+        /// reach the wire verbatim rather than through the header parser's reading of it.
+        /// </summary>
+        private void ApplyAuthorizationHeader(string authorizationHeader)
+        {
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.Api.UserAgent);
-            _httpClient.DefaultRequestHeaders.Add("Authorization",
-                string.Format(Constants.Api.MediaBrowserAuthHeader, accessToken));
+            _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", authorizationHeader);
         }
 
         /// <summary>
@@ -125,8 +135,9 @@ namespace Apps2Samsung.Helpers.API
                 serverUrl = UrlHelper.NormalizeServerUrl(serverUrl);
                 var authUrl = $"{serverUrl}/Users/AuthenticateByName";
 
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("X-Emby-Authorization", Constants.Api.EmbyAuthHeader);
+                // No token yet: the header only carries the client identity. Jellyfin 12 refuses the
+                // login without it and no longer reads the legacy X-Emby-Authorization header (#655).
+                ApplyAuthorizationHeader(JellyfinClientIdentity.AuthorizationHeader());
 
                 var authPayload = new
                 {
@@ -137,31 +148,33 @@ namespace Apps2Samsung.Helpers.API
                 var json = JsonSerializer.Serialize(authPayload);
                 using var content = new StringContent(json, Encoding.UTF8, Constants.Api.JsonContentType);
 
+                Trace.WriteLine($"[Auth] Authenticating '{username}' at {authUrl} as {JellyfinClientIdentity.Client}/{JellyfinClientIdentity.Device} ({JellyfinClientIdentity.DeviceId})");
                 var response = await _httpClient.PostAsync(authUrl, content);
+                var responseJson = await response.Content.ReadAsStringAsync();
 
-                if (response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode)
                 {
-                    var responseJson = await response.Content.ReadAsStringAsync();
-                    var authResponse = JsonNode.Parse(responseJson);
-
-                    var accessToken = authResponse?["AccessToken"]?.GetValue<string>();
-                    var userId = authResponse?["User"]?["Id"]?.GetValue<string>();
-                    var isAdmin = authResponse?["User"]?["Policy"]?["IsAdministrator"]?.GetValue<bool>() ?? false;
-
-                    Trace.WriteLine($"[Auth] User authenticated. IsAdmin: {isAdmin}");
-
-                    return (accessToken, userId, isAdmin, null);
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    Trace.WriteLine($"Authentication failed: {response.StatusCode} - {errorContent}");
+                    Trace.WriteLine($"[Auth] Authentication failed: HTTP {(int)response.StatusCode} {response.StatusCode} - {responseJson}");
                     return (null, null, false, $"Authentication failed: {response.StatusCode}");
                 }
+
+                var authResponse = JsonNode.Parse(responseJson);
+                var accessToken = authResponse?["AccessToken"]?.GetValue<string>();
+                var userId = authResponse?["User"]?["Id"]?.GetValue<string>();
+                var isAdmin = authResponse?["User"]?["Policy"]?["IsAdministrator"]?.GetValue<bool>() ?? false;
+
+                if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(userId))
+                {
+                    Trace.WriteLine($"[Auth] Authentication succeeded but the response lacks a token or user id: {responseJson}");
+                    return (null, null, false, "Authentication succeeded but Jellyfin did not return an access token or user id.");
+                }
+
+                Trace.WriteLine($"[Auth] User authenticated. IsAdmin: {isAdmin}");
+                return (accessToken, userId, isAdmin, null);
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"Authentication error: {ex}");
+                Trace.WriteLine($"[Auth] Authentication error: {ex}");
                 return (null, null, false, ex.Message);
             }
         }
