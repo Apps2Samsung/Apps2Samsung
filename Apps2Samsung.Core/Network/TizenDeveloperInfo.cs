@@ -67,9 +67,8 @@ namespace Apps2Samsung.Services
                 }
 
                 var samsungDevice = await ReadAsync(device, cancellationToken);
-                // ReadAsync returns a fresh object, so carry over the debug-port state (installable?)
-                // and the SDB name when REST didn't supply its own.
-                samsungDevice.DebugPortOpen = device.DebugPortOpen;
+                // ReadAsync returns a fresh object (keeping the debug-port state), so carry over the
+                // SDB name and the rest when REST didn't supply its own.
                 if (string.IsNullOrEmpty(samsungDevice.DeviceName))
                     samsungDevice.DeviceName = device.DeviceName;
                 if (string.IsNullOrEmpty(samsungDevice.Manufacturer))
@@ -185,6 +184,9 @@ namespace Apps2Samsung.Services
                 return new NetworkDevice
                 {
                     IpAddress = deviceNode["ip"]?.GetValue<string>() ?? device.IpAddress,
+                    // Whether the TV is installable was decided by the port probe, not by /api/v2/;
+                    // carry it over so a "not ready" TV doesn't come back as ready (its default).
+                    DebugPortOpen = device.DebugPortOpen,
                     DeviceName = WebUtility.HtmlDecode(deviceNode["name"]?.GetValue<string>() ?? string.Empty),
                     ModelName = deviceNode["modelName"]?.GetValue<string>() ?? string.Empty,
                     Manufacturer = deviceNode["type"]?.GetValue<string>() ?? string.Empty,
@@ -220,6 +222,7 @@ namespace Apps2Samsung.Services
             return new NetworkDevice
             {
                 IpAddress = device.IpAddress,
+                DebugPortOpen = device.DebugPortOpen,
                 DeviceName = device.DeviceName,
                 Manufacturer = device.Manufacturer,
                 DeveloperMode = string.Empty,
