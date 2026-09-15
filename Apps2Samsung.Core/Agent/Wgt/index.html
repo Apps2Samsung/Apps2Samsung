@@ -42,9 +42,13 @@ h1 { margin: 0 0 4px 0; font-size: 30px; color: #ecf0f1; }
      - Every call is mirrored to console.log as JSON, so the DevTools console shows the same.
    launch()/launchControl() resolve on the platform's success/error CALLBACK, not on return,
    because the return value of tizen.application.launch says nothing about the outcome.
+   apps()/running() are Promises for a plainer reason: tizen.application.getAppsInfo() and
+   getAppsContext() only exist in callback form. Called bare they throw TypeMismatchError
+   ("Cannot convert undefined to function"), which agent 0.2.0 did on every set and the toolbox
+   then read as "0 apps installed".
    ------------------------------------------------------------------------------------------ */
 
-var VERSION = "0.2.0";
+var VERSION = "0.3.0";
 
 /* Operations an app may register an app control for. A bare launch() that the platform refuses can
    still go through as an app control aimed at an operation the target actually handles, so these are
@@ -129,14 +133,20 @@ window.A2S = {
         return out;
     },
 
+    /* Every installed app as [{id, name, packageId, version, show, iconPath, categories}], or {error}. */
     apps: function () {
-        try {
-            var list = tizen.application.getAppsInfo();
-            var out = [];
-            for (var i = 0; i < list.length; i++) out.push(appInfo(list[i]));
-            log("apps", out.length + " installed", "dim");
-            return out;
-        } catch (e) { log("apps", err(e), "err"); return err(e); }
+        return deferred(function (done) {
+            try {
+                tizen.application.getAppsInfo(
+                    function (list) {
+                        var out = [];
+                        for (var i = 0; i < list.length; i++) out.push(appInfo(list[i]));
+                        log("apps", out.length + " installed", "dim");
+                        done(out);
+                    },
+                    function (e) { var r = err(e); log("apps", r, "err"); done(r); });
+            } catch (e) { var r = err(e); log("apps", r, "err"); done(r); }
+        });
     },
 
     app: function (id) {
@@ -214,14 +224,20 @@ window.A2S = {
         });
     },
 
+    /* The live app contexts as [{appId, id}], or {error}. */
     running: function () {
-        try {
-            var list = tizen.application.getAppsContext();
-            var out = [];
-            for (var i = 0; i < list.length; i++) out.push({ appId: list[i].appId, id: list[i].id });
-            log("running", out, "dim");
-            return out;
-        } catch (e) { log("running", err(e), "err"); return err(e); }
+        return deferred(function (done) {
+            try {
+                tizen.application.getAppsContext(
+                    function (list) {
+                        var out = [];
+                        for (var i = 0; i < list.length; i++) out.push({ appId: list[i].appId, id: list[i].id });
+                        log("running", out, "dim");
+                        done(out);
+                    },
+                    function (e) { var r = err(e); log("running", r, "err"); done(r); });
+            } catch (e) { var r = err(e); log("running", r, "err"); done(r); }
+        });
     },
 
     self: function () {
@@ -286,12 +302,13 @@ try {
     var p = window.A2S.platform();
     document.getElementById("platform").textContent =
         (p.model || "unknown model") + " · Tizen " + (p.tizen || "?") + (p.firmware ? " · " + p.firmware : "");
-    var apps = window.A2S.apps();
-    if (apps && apps.length !== undefined) {
-        var hidden = 0;
-        for (var i = 0; i < apps.length; i++) if (!apps[i].show) hidden++;
-        log("ready", apps.length + " apps installed, " + hidden + " marked hidden. Waiting for Apps2Samsung.", "ok");
-    }
+    window.A2S.apps().then(function (apps) {
+        if (apps && apps.length !== undefined) {
+            var hidden = 0;
+            for (var i = 0; i < apps.length; i++) if (!apps[i].show) hidden++;
+            log("ready", apps.length + " apps installed, " + hidden + " marked hidden. Waiting for Apps2Samsung.", "ok");
+        }
+    });
 } catch (e) { log("startup", err(e), "err"); }
 })();
 </script>

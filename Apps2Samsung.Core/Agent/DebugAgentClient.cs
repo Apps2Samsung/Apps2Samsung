@@ -74,6 +74,20 @@ namespace Apps2Samsung.Agent
     }
 
     /// <summary>
+    /// The agent is not on the TV and could not be put there. <see cref="Key"/> is the localization
+    /// key for the status line, resolved by each head like the progress keys.
+    /// </summary>
+    public sealed class DebugAgentInstallException : Exception
+    {
+        public string Key { get; }
+
+        public DebugAgentInstallException(string key, string message) : base(message)
+        {
+            Key = key;
+        }
+    }
+
+    /// <summary>
     /// The desktop and mobile end of the Apps2Samsung Debug agent: a sideloaded web app on the TV
     /// that launches other apps from the inside, with <c>tizen.application.launch()</c>, and reports
     /// what the platform answered (tizen-community-packages#34).
@@ -126,6 +140,16 @@ namespace Apps2Samsung.Agent
         /// <summary>The <c>A2S.version</c> the running agent reported.</summary>
         public string AgentVersion { get; }
 
+        /// <summary>
+        /// True when the TV runs an agent older than the one this build embeds
+        /// (<see cref="DebugAgentPackage.Version"/>). Newer is not outdated: a TV that met a later
+        /// build keeps its agent, since Tizen refuses to install a lower version over it anyway.
+        /// </summary>
+        public bool IsOutdated =>
+            Version.TryParse(AgentVersion, out var onTv)
+            && Version.TryParse(DebugAgentPackage.Version, out var embedded)
+            && onTv < embedded;
+
         /// <summary>Raised once when the inspector connection ends, off the UI thread.</summary>
         public event Action<string?>? Disconnected;
 
@@ -139,6 +163,57 @@ namespace Apps2Samsung.Agent
             var listed = await sdb.AppsAsync(tvIp).ConfigureAwait(false);
             return TizenInstalledApps.Parse(listed.Output)
                 .Any(a => string.Equals(a.TizenId, DebugAgentPackage.AppId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// The whole way in, as both heads want it: install the agent when the TV lacks it, attach,
+        /// and when what answers is older than this build's agent, install over it and attach again.
+        /// The version check is what makes a fix in the agent reach a TV that already has one —
+        /// <see cref="IsInstalledAsync"/> alone would keep serving the old copy forever.
+        /// </summary>
+        /// <param name="installWgt">
+        /// The head's installer: path of the .wgt in, its own progress text out, true on success.
+        /// Null when this head cannot install (no certificate flow at hand).
+        /// </param>
+        /// <param name="installReport">Where the installer's own progress text goes (the status line).</param>
+        /// <exception cref="DebugAgentInstallException">Not installed and not installable, or the install failed.</exception>
+        /// <exception cref="InvalidOperationException">As <see cref="AttachAsync"/>.</exception>
+        public static async Task<DebugAgentClient> AttachCurrentAsync(
+            ISdbEngine sdb,
+            string tvIp,
+            Func<string, Action<string>, Task<bool>>? installWgt,
+            Action<string> installReport,
+            IProgress<string>? progress = null,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(sdb);
+            ArgumentException.ThrowIfNullOrWhiteSpace(tvIp);
+            ArgumentNullException.ThrowIfNull(installReport);
+
+            if (!await IsInstalledAsync(sdb, tvIp).ConfigureAwait(false))
+                await InstallAsync(installWgt, installReport, progress).ConfigureAwait(false);
+
+            var agent = await AttachAsync(sdb, tvIp, progress, ct).ConfigureAwait(false);
+            if (!agent.IsOutdated || installWgt is null)
+                return agent;
+
+            Trace.WriteLine($"[agent] TV runs agent v{agent.AgentVersion}, this build embeds v{DebugAgentPackage.Version}: updating");
+            await agent.DisposeAsync().ConfigureAwait(false);
+            progress?.Report("lblToolboxAgentUpdating");
+            await InstallAsync(installWgt, installReport, progress).ConfigureAwait(false);
+            return await AttachAsync(sdb, tvIp, progress, ct).ConfigureAwait(false);
+        }
+
+        private static async Task InstallAsync(
+            Func<string, Action<string>, Task<bool>>? installWgt, Action<string> installReport, IProgress<string>? progress)
+        {
+            if (installWgt is null)
+                throw new DebugAgentInstallException("lblToolboxAgentNotInstalled", "The debug agent is not installed on this TV, and this head cannot install it.");
+
+            progress?.Report("lblToolboxAgentInstalling");
+            var wgt = await DebugAgentPackage.WriteAsync(DebugAgentPackage.DefaultDirectory).ConfigureAwait(false);
+            if (!await installWgt(wgt, installReport).ConfigureAwait(false))
+                throw new DebugAgentInstallException("lblToolboxAgentInstallFailed", "The debug agent could not be installed on the TV.");
         }
 
         /// <summary>
@@ -216,11 +291,12 @@ namespace Apps2Samsung.Agent
         }
 
         /// <summary>Every app installed on the TV, hidden ones included, sorted by name.</summary>
+        /// <exception cref="InvalidOperationException">The platform refused the listing; the message carries its words.</exception>
         public async Task<IReadOnlyList<DebugAgentApp>> ListAppsAsync(CancellationToken ct = default)
         {
             var node = await CallAsync("A2S.apps()", ct).ConfigureAwait(false);
             if (node is not JsonArray items)
-                return Array.Empty<DebugAgentApp>();
+                throw PlatformRefused("getAppsInfo", node);
 
             return items
                 .Select(item => new DebugAgentApp(
@@ -236,11 +312,12 @@ namespace Apps2Samsung.Agent
         }
 
         /// <summary>The app contexts the platform currently has — what is really running.</summary>
+        /// <exception cref="InvalidOperationException">The platform refused the listing; the message carries its words.</exception>
         public async Task<IReadOnlyList<DebugAgentContext>> RunningAsync(CancellationToken ct = default)
         {
             var node = await CallAsync("A2S.running()", ct).ConfigureAwait(false);
             if (node is not JsonArray items)
-                return Array.Empty<DebugAgentContext>();
+                throw PlatformRefused("getAppsContext", node);
 
             return items
                 .Select(item => new DebugAgentContext(Str(item?["appId"]) ?? string.Empty, Str(item?["id"]) ?? string.Empty))
@@ -332,6 +409,12 @@ namespace Apps2Samsung.Agent
             {
                 return new DebugAgentLaunchResult(DebugAgentLaunchState.AgentUnresponsive, null, null, Array.Empty<DebugAgentContext>());
             }
+            catch (InvalidOperationException ex) when (ex is not ObjectDisposedException)
+            {
+                // The launch was accepted; only the look at the contexts failed. Say so rather than
+                // turn a platform quirk in getAppsContext() into a refused launch.
+                return new DebugAgentLaunchResult(DebugAgentLaunchState.LaunchedNoContext, "ContextListingFailed", ex.Message, Array.Empty<DebugAgentContext>());
+            }
         }
 
         /// <summary>
@@ -373,6 +456,18 @@ namespace Apps2Samsung.Agent
             {
                 throw Unresponsive();
             }
+        }
+
+        // The agent answers a listing with an array, or with {error:{name,message,code}} carrying the
+        // platform's own words. Anything else (null, a string) is the agent misbehaving; both are
+        // worth reading in the status line rather than passing off as an empty TV.
+        private static InvalidOperationException PlatformRefused(string call, JsonNode? node)
+        {
+            var error = node?["error"];
+            var detail = error is null
+                ? (node is null ? "no answer" : node.ToJsonString())
+                : $"{Str(error["name"]) ?? "Error"}: {Str(error["message"]) ?? error.ToJsonString()}";
+            return new InvalidOperationException($"The TV's application manager refused {call}(): {detail}");
         }
 
         private static DebugAgentUnresponsiveException Unresponsive() => new(
