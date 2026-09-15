@@ -259,25 +259,11 @@ public partial class TvToolboxPage : ContentPage
 		{
 			await DetachAgentAsync();
 
-			if (!await DebugAgentClient.IsInstalledAsync(_sdb, _tvIp))
-			{
-				if (_installWgt is null)
-				{
-					SetAgentStatus(L10n.Get("lblToolboxAgentNotInstalled"));
-					return;
-				}
-
-				SetAgentStatus(L10n.Get("lblToolboxAgentInstalling"));
-				var wgt = await DebugAgentPackage.WriteAsync(DebugAgentPackage.DefaultDirectory);
-				if (!await _installWgt(wgt, message => MainThread.BeginInvokeOnMainThread(() => SetAgentStatus(message))))
-				{
-					SetAgentStatus(L10n.Get("lblToolboxAgentInstallFailed"));
-					return;
-				}
-			}
-
 			var progress = new Progress<string>(key => SetAgentStatus(L10n.Get(key)));
-			var agent = await DebugAgentClient.AttachAsync(_sdb, _tvIp, progress);
+			var agent = await DebugAgentClient.AttachCurrentAsync(
+				_sdb, _tvIp, _installWgt,
+				message => MainThread.BeginInvokeOnMainThread(() => SetAgentStatus(message)),
+				progress);
 			agent.Disconnected += OnAgentDisconnected;
 			_agent = agent;
 
@@ -289,6 +275,11 @@ public partial class TvToolboxPage : ContentPage
 			DetachAgentBtn.IsEnabled = true;
 			SetAgentStatus(string.Format(L10n.Get("lblToolboxAgentAttached"),
 				agent.AgentVersion, _agentApps.Count, _agentApps.Count(a => !a.Show), platform.Tizen ?? "?"));
+		}
+		catch (DebugAgentInstallException ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[toolbox] agent install: {ex.Message}");
+			SetAgentStatus(L10n.Get(ex.Key));
 		}
 		catch (Exception ex)
 		{

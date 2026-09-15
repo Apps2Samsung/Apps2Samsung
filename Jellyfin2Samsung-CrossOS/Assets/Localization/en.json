@@ -384,6 +384,7 @@
   "lblToolboxAgentStopping": "Stopping a previous agent...",
   "lblToolboxAgentStarting": "Starting the agent in debug mode...",
   "lblToolboxAgentConnecting": "Connecting to the agent...",
+  "lblToolboxAgentUpdating": "The TV runs an older debug agent. Installing this build's...",
   "lblToolboxAgentAttached": "Agent v{0} attached. {1} apps installed, {2} of them hidden. Tizen {3}.",
   "lblToolboxAgentFailed": "Debug agent: {0}",
   "lblToolboxAgentDisconnected": "The agent connection ended: {0}",

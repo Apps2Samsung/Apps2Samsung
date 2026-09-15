@@ -339,25 +339,9 @@ namespace Apps2Samsung.ViewModels
             {
                 await DetachAgentCoreAsync();
 
-                if (!await DebugAgentClient.IsInstalledAsync(_sdb, _tvIp))
-                {
-                    if (_installWgt is null)
-                    {
-                        AgentStatus = "lblToolboxAgentNotInstalled".Localized();
-                        return;
-                    }
-
-                    AgentStatus = "lblToolboxAgentInstalling".Localized();
-                    var wgt = await DebugAgentPackage.WriteAsync(DebugAgentPackage.DefaultDirectory);
-                    if (!await _installWgt(wgt, message => AgentStatus = message))
-                    {
-                        AgentStatus = "lblToolboxAgentInstallFailed".Localized();
-                        return;
-                    }
-                }
-
                 var progress = new Progress<string>(key => AgentStatus = key.Localized());
-                var agent = await DebugAgentClient.AttachAsync(_sdb, _tvIp, progress);
+                var agent = await DebugAgentClient.AttachCurrentAsync(
+                    _sdb, _tvIp, _installWgt, message => AgentStatus = message, progress);
                 agent.Disconnected += OnAgentDisconnected;
                 _agent = agent;
 
@@ -368,6 +352,11 @@ namespace Apps2Samsung.ViewModels
                 IsAgentAttached = true;
                 AgentStatus = string.Format("lblToolboxAgentAttached".Localized(),
                     agent.AgentVersion, _agentApps.Count, _agentApps.Count(a => !a.Show), platform.Tizen ?? "?");
+            }
+            catch (DebugAgentInstallException ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[toolbox] agent install: {ex.Message}");
+                AgentStatus = ex.Key.Localized();
             }
             catch (Exception ex)
             {
