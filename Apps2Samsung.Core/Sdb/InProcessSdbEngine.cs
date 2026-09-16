@@ -215,10 +215,11 @@ namespace Apps2Samsung.Sdb
 
         public async Task<ProcessResult> InstallAsync(string tvIpAddress, string packagePath, string sdkToolPath)
         {
-            // TizenSdb.Core's TizenInstaller pushes Path.GetFileName(packagePath), then runs
-            // `0 vd_appinstall {appId} {remotePath}` with no quotes around the path (#668).
-            // Windows copy names like "foo (1).wgt" put a space in that remote filename and the
-            // TV splits the shell command. Stage a space-free temp copy so the remote basename is safe.
+            // TizenSdb.Core pushes Path.GetFileName(packagePath) as the remote path, then runs
+            // `0 vd_appinstall {appId} {remotePath}` with no quotes (#668). A Windows copy name
+            // like "foo (1).wgt" lands a space in that basename; sdbd splits the shell command and
+            // the install fails even though the bytes are fine. Stage under a space-free temp name
+            // so the remote basename stays one token.
             string? stagedPath = null;
             try
             {
