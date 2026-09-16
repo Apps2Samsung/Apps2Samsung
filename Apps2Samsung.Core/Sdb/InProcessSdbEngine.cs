@@ -213,12 +213,44 @@ namespace Apps2Samsung.Sdb
             return result;
         }
 
-        public async Task<ProcessResult> InstallAsync(string tvIpAddress, string packagePath, string sdkToolPath) =>
-            await RunCapturingDeviceLog(tvIpAddress, $"install {tvIpAddress} \"{packagePath}\" {sdkToolPath}", device =>
+        public async Task<ProcessResult> InstallAsync(string tvIpAddress, string packagePath, string sdkToolPath)
+        {
+            // TizenSdb.Core's TizenInstaller pushes Path.GetFileName(packagePath), then runs
+            // `0 vd_appinstall {appId} {remotePath}` with no quotes around the path (#668).
+            // Windows copy names like "foo (1).wgt" put a space in that remote filename and the
+            // TV splits the shell command. Stage a space-free temp copy so the remote basename is safe.
+            string? stagedPath = null;
+            try
             {
-                var installer = new TizenInstaller(packagePath, device, sdkToolPath);
-                return installer.InstallApp();
-            });
+                var path = packagePath;
+                var fileName = Path.GetFileName(packagePath);
+                if (fileName.IndexOfAny([' ', '\t']) >= 0)
+                {
+                    stagedPath = Path.Combine(
+                        Path.GetTempPath(),
+                        "a2s-install-" + Guid.NewGuid().ToString("N") + Path.GetExtension(packagePath));
+                    File.Copy(packagePath, stagedPath, overwrite: true);
+                    path = stagedPath;
+                }
+
+                return await RunCapturingDeviceLog(tvIpAddress, $"install {tvIpAddress} \"{path}\" {sdkToolPath}", device =>
+                {
+                    var installer = new TizenInstaller(path, device, sdkToolPath);
+                    return installer.InstallApp();
+                });
+            }
+            finally
+            {
+                if (stagedPath is not null)
+                {
+                    try { File.Delete(stagedPath); }
+                    catch (Exception ex)
+                    {
+                        Trace.WriteLine($"[sdb] Could not delete staged install copy '{stagedPath}': {ex.Message}");
+                    }
+                }
+            }
+        }
 
         public async Task<ProcessResult> UninstallAsync(string tvIpAddress, string packageId) => await RunConnected(tvIpAddress, $"uninstall {tvIpAddress} {packageId}", async device =>
         {
