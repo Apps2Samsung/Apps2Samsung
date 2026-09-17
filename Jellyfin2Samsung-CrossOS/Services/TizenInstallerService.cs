@@ -864,20 +864,14 @@ namespace Apps2Samsung.Services
                 return InstallResult.FailureResult(Constants.LocalizationKeys.ConnectionInterrupted.Localized());
             }
 
-            // Handle insufficient space error
+            // [116] "download failed": the TV has no room for the package. A re-sign + re-push of the
+            // same file cannot create space, so don't loop through the overwrite retry — tell the user
+            // straight away (#666). Same rule as the mobile head's WgtInstaller.
             if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsInsufficientSpace(installResults.Output))
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
-
-                if (_appSettings.TryOverwrite)
-                {
-                    Trace.WriteLine("Installation failed, insufficient space! retrying with remove previous version");
-                    _appSettings.TryOverwrite = false;
-                    return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
-                }
-
                 _appSettings.TryOverwrite = false;
-                Trace.WriteLine("Installation failed, insufficient space!");
+                Trace.WriteLine($"[Install] Insufficient space on {tvIpAddress}: {installResults.Output}");
                 return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(),
                     Constants.LocalizationKeys.InsufficientSpace.Localized()));
             }
