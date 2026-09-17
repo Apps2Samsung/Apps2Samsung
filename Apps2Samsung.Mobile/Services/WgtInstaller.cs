@@ -218,6 +218,15 @@ public sealed class WgtInstaller
 				throw new InvalidOperationException(
 					"The TV already has this app signed with a different certificate. Remove it on the TV (Apps → delete), then install again.");
 
+			// [116] after the old copy is gone: the TV really is out of room (#666). Without this the
+			// user only got the raw wascmd dump and had no way to know storage was the problem.
+			if (TizenInstallDiagnostics.IsInsufficientSpace(retry.Output))
+			{
+				await ClearPartialIfFresh();
+				throw new InvalidOperationException(
+					"Not enough free space on the TV [116]. Remove some apps on the TV (Settings → Support → Device Care → Manage Storage), then install again.");
+			}
+
 			await ClearPartialIfFresh();
 			throw new InvalidOperationException($"Install failed: {Detail(retry.Error, retry.Output)}");
 		}
