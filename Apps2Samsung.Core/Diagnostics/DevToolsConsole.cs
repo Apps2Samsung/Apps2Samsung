@@ -58,6 +58,14 @@ namespace Apps2Samsung.Diagnostics
         /// <summary>Attaches to a target from <see cref="DevToolsInspector.ListTargetsAsync"/>.</summary>
         public async Task ConnectAsync(Uri webSocketUrl, CancellationToken ct = default)
         {
+            // No keep-alive pings. ClientWebSocket sends one every 30 s by default, and the inspector
+            // server in the TV's Chromium (net::HttpServer) does not understand a ping frame: it treats
+            // it as a protocol error and drops the socket on the spot, which surfaced as "the remote
+            // party closed the WebSocket connection without completing the close handshake" exactly
+            // 30 s after every attach. Nothing needs the pings — the SDB tunnel underneath keeps the
+            // TCP session alive, and a dead TV shows up as a failed send or receive anyway.
+            _socket.Options.KeepAliveInterval = TimeSpan.Zero;
+
             await _socket.ConnectAsync(webSocketUrl, ct);
             _receiveLoop = Task.Run(() => ReceiveLoopAsync(_stopping.Token));
 
@@ -181,6 +189,13 @@ namespace Apps2Samsung.Diagnostics
             catch (OperationCanceledException)
             {
                 // Disposing — not an error.
+            }
+            catch (WebSocketException ex) when (ex.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely)
+            {
+                // The TV cut the socket without a close frame. With the pings above gone, that is what
+                // an app exiting, crashing, or being relaunched looks like from here.
+                reason = "The TV dropped the inspector connection (the app exited or was relaunched).";
+                Trace.WriteLine($"[devtools] receive loop ended: {ex}");
             }
             catch (Exception ex)
             {
