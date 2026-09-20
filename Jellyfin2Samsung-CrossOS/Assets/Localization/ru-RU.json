@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "Удалить \"{0}\" из {1}?\n\n({2})",
   "lblDebugStarted": "Отладка началась",
   "statusDebugStarted": "Приложение запущено в режиме отладки на ТВ, с отладчиком переадресован на локальный хост:{0}.\n\nИнспектор не может быть открыт для вас - откройте 'chrome://inspect' или 'edge://inspect' в вашем браузере, чтобы прикрепить к телевизору.",
+  "lblDebugClearLog": "Clear",
   "lblRemoveLeftoverTitle": "Удалить остаток",
   "statusRemoveLeftoverPrompt": "Введите идентификатор пакета слева/частичной установки для удаления:",
   "statusConfirmForceRemove": "Принудительно удалить пакет \"{0}\" из {1}?",

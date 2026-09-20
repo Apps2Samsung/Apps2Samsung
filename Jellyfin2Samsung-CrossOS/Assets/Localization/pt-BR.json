@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "Remover \"{0}\" de {1}?\n\n({2})",
   "lblDebugStarted": "Depuração iniciada",
   "statusDebugStarted": "O app está em execução no modo de depuração na TV, com o depurador encaminhado para localhost:{0}.\n\nO inspetor não pôde ser aberto para você - abra 'chrome://inspect' ou 'edge://inspect' no seu navegador para anexar à TV.",
+  "lblDebugClearLog": "Clear",
   "lblRemoveLeftoverTitle": "Remover sobra",
   "statusRemoveLeftoverPrompt": "Insira o ID do pacote de uma instalação restante/parcial para remover:",
   "statusConfirmForceRemove": "Forçar o pacote \"{0}\" de {1}?",

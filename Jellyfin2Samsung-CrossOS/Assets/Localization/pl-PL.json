@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "Usunąć \"{0}\" z {1}?\n\n({2})",
   "lblDebugStarted": "Debugowanie rozpoczęte",
   "statusDebugStarted": "Aplikacja działa teraz w trybie debugowania w telewizorze, a debugger został przekazany do localhost:{0}.\n\nNie można dla Ciebie otworzyć inspektora - otwórz 'chrome://inspect' lub 'edge://inspect' w swojej przeglądarce, aby dołączyć do telewizora.",
+  "lblDebugClearLog": "Clear",
   "lblRemoveLeftoverTitle": "Usuń pozostałość",
   "statusRemoveLeftoverPrompt": "Wprowadź identyfikator pakietu reszta/częściową instalację, aby usunąć:",
   "statusConfirmForceRemove": "Wymuś usunięcie paczki \"{0}\" z {1}?",

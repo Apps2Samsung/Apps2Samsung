@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "Видалити «{0}» з {1}?\n\n({2})",
   "lblDebugStarted": "Налагодження почалося",
   "statusDebugStarted": "Додаток наразі працює в режимі налагодження на телевізорі, з налагоджувачем переведеним на localhost:{0}.\n\nінспектор не зміг бути відкритий для вас - відкрийте 'chrome://inspect' або 'edge://inspect' у вашому браузері щоб додати телевізор.",
+  "lblDebugClearLog": "Clear",
   "lblRemoveLeftoverTitle": "Видалити залишок",
   "statusRemoveLeftoverPrompt": "Введіть ідентифікатор пакета зліва/часткового встановлення до видалення:",
   "statusConfirmForceRemove": "Примусово видалити пакунок \"{0}\" з {1}?",

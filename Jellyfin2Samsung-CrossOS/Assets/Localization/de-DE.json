@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "\"{0}\" von {1}entfernen ?\n\n({2})",
   "lblDebugStarted": "Debug gestartet",
   "statusDebugStarted": "Die App läuft jetzt im Debug-Modus auf dem Fernseher, der Debugger wird an localhost weitergeleitet:{0}.\n\nDer Inspektor konnte nicht für Sie geöffnet werden - öffnen Sie 'chrome://inspect' oder 'edge://inspect' in Ihrem Browser, um ihn an den Fernseher anzuhängen.",
+  "lblDebugClearLog": "Leeren",
   "lblRemoveLeftoverTitle": "Überbleibsel entfernen",
   "statusRemoveLeftoverPrompt": "Geben Sie die Paket-Id eines zu löschenden Rest/Teil-Installations:",
   "statusConfirmForceRemove": "Paket \"{0}\" von {1} erzwingen ?",

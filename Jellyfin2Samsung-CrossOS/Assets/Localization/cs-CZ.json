@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "Odstranit \"{0}\" z {1}?\n\n({2})",
   "lblDebugStarted": "Ladění zahájeno",
   "statusDebugStarted": "Aplikace nyní běží v režimu ladění v televizi a debugger je přeposílán na localhost:{0}.\n\nInspektor pro vás nemohl být otevřen - otevřete v prohlížeči 'chrome://inspect' nebo 'edge://inspect' pro připojení k televizoru.",
+  "lblDebugClearLog": "Clear",
   "lblRemoveLeftoverTitle": "Odebrat zleva",
   "statusRemoveLeftoverPrompt": "Zadejte ID balíčku, který chcete odstranit:",
   "statusConfirmForceRemove": "Vynutit odstranění balíčku \"{0}\" z {1}?",

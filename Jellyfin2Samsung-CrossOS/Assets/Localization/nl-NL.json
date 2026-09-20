@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "Verwijder \"{0}\" uit {1}?\n\n({2})",
   "lblDebugStarted": "Foutopsporing gestart",
   "statusDebugStarted": "De app draait nu in debugmodus op de TV, met de debugger doorgestuurd naar localhost:{0}.\n\nDe inspector kon niet voor jou worden geopend - Open 'chrome://inspect' of 'edge://inspect' in je browser om aan de TV toe te voegen.",
+  "lblDebugClearLog": "Wissen",
   "lblRemoveLeftoverTitle": "Verwijder resttover",
   "statusRemoveLeftoverPrompt": "Voer het pakket-id van een te verwijderen installatie/gedeeltelijke installatie in:",
   "statusConfirmForceRemove": "Forceer pakket \"{0}\" uit {1}?",

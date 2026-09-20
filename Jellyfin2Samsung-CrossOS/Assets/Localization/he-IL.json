@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "להסיר את \"{0}\" מ-{1}?\n\n({2})",
   "lblDebugStarted": "הניפוי החל",
   "statusDebugStarted": "האפליקציה פועלת כעת במצב ניפוי בטלוויזיה, והמנפה מנותב ל-localhost:{0}.\n\nלא ניתן היה לפתוח עבורכם את המפקח - פתחו ‎'chrome://inspect'‎ או ‎'edge://inspect'‎ בדפדפן כדי להתחבר לטלוויזיה.",
+  "lblDebugClearLog": "Clear",
   "lblRemoveLeftoverTitle": "הסרת שאריות",
   "statusRemoveLeftoverPrompt": "הזינו את מזהה החבילה של ההתקנה השיורית/החלקית שברצונכם להסיר:",
   "statusConfirmForceRemove": "להסיר בכפייה את החבילה \"{0}\" מ-{1}?",

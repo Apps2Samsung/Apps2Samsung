@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "Xoá \"{0}\" khỏi {1}?\n\n({2})",
   "lblDebugStarted": "Đã bắt đầu gỡ lỗi",
   "statusDebugStarted": "Ứng dụng đang chạy ở chế độ gỡ lỗi trên TV, với trình gỡ lỗi được chuyển tiếp tới localhost:{0}.\n\nKhông mở được trình kiểm tra giúp bạn - hãy mở 'chrome://inspect' hoặc 'edge://inspect' trong trình duyệt để kết nối tới TV.",
+  "lblDebugClearLog": "Clear",
   "lblRemoveLeftoverTitle": "Xoá phần còn sót",
   "statusRemoveLeftoverPrompt": "Nhập mã gói của bản cài còn sót/dở dang cần xoá:",
   "statusConfirmForceRemove": "Buộc xoá gói \"{0}\" khỏi {1}?",
