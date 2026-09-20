@@ -362,6 +362,7 @@
   "lblRemoteWakeFailed": "A TV não acordou. Verifique \"Ligar com celular\" nas configurações de rede.",
   "lblRemoteSelectTvFirst": "Selecione uma TV primeiro.",
   "lblRemoteNoAnswerNoMac": "Sem resposta. Ligue a TV com seu próprio controle remoto uma vez, então esta página pode acordá-la.",
+  "lblToolboxStagingClear": "Limpar",
   "lblSysAppSettings": "Confirgurações",
   "lblToolboxSend": "Mandar",
   "lblToolboxLaunching": "Iniciando {0}...",

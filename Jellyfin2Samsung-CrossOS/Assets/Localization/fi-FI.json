@@ -362,6 +362,7 @@
   "lblRemoteWakeFailed": "Televisio ei herännyt. Tarkista \"Power On with Mobile\" verkkoasetuksissaan.",
   "lblRemoteSelectTvFirst": "Valitse TV ensin.",
   "lblRemoteNoAnswerNoMac": "Ei vastausta. Vaihda TV omalla kaukosäätimellä, sitten tämä sivu voi herättää sen.",
+  "lblToolboxStagingClear": "Clear",
   "lblSysAppSettings": "Asetukset",
   "lblToolboxSend": "Lähetä",
   "lblToolboxLaunching": "Käynnistetään {0}...",

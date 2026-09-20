@@ -362,6 +362,7 @@
   "lblRemoteWakeFailed": "Η τηλεόραση δεν ξυπνήθηκε. Ελέγξτε το \"Power On with Mobile\" στις ρυθμίσεις δικτύου της.",
   "lblRemoteSelectTvFirst": "Επιλέξτε μια τηλεόραση πρώτα.",
   "lblRemoteNoAnswerNoMac": "Δεν υπάρχει απάντηση. Ενεργοποιήστε την τηλεόραση με το δικό της τηλεχειριστήριο μία φορά, τότε αυτή η σελίδα μπορεί να την ξυπνήσει.",
+  "lblToolboxStagingClear": "Clear",
   "lblSysAppSettings": "Ρυθμίσεις",
   "lblToolboxSend": "Αποστολή",
   "lblToolboxLaunching": "Εκκίνηση {0}...",

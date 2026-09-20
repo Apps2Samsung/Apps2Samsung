@@ -362,6 +362,7 @@
   "lblRemoteWakeFailed": "Tv'et vågnede ikke. Tjek \"Tænd med Mobile\" i dets netværksindstillinger.",
   "lblRemoteSelectTvFirst": "Vælg først et tv.",
   "lblRemoteNoAnswerNoMac": "Intet svar. Slå TV til med sin egen fjernbetjening én gang, så denne side kan vække det.",
+  "lblToolboxStagingClear": "Ryd",
   "lblSysAppSettings": "Indstillinger",
   "lblToolboxSend": "Send",
   "lblToolboxLaunching": "Start {0}...",

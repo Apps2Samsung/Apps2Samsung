@@ -362,6 +362,7 @@
   "lblRemoteWakeFailed": "Der Fernseher hat nicht gewartet. Überprüfen Sie \"Einschalten mit Mobil\" in den Netzwerkeinstellungen.",
   "lblRemoteSelectTvFirst": "Wählen Sie zuerst einen Fernseher.",
   "lblRemoteNoAnswerNoMac": "Keine Antwort. Schalten Sie den Fernseher einmal mit eigener Fernbedienung ein, dann kann diese Seite aufwachen.",
+  "lblToolboxStagingClear": "Leeren",
   "lblSysAppSettings": "Einstellungen",
   "lblToolboxSend": "Senden",
   "lblToolboxLaunching": "Starte {0}...",

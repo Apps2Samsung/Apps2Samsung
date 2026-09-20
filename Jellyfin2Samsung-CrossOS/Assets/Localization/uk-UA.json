@@ -362,6 +362,7 @@
   "lblRemoteWakeFailed": "Телевізор не прокинувся. Перевірте \"Увімкнути живлення з Mobile\" у своїх налаштуваннях мережі.",
   "lblRemoteSelectTvFirst": "Спочатку виберіть телевізор.",
   "lblRemoteNoAnswerNoMac": "Жодної відповіді. Увімкніть телевізор за допомогою власного віддаленого разу, сторінка може його будувати.",
+  "lblToolboxStagingClear": "Clear",
   "lblSysAppSettings": "Налаштування",
   "lblToolboxSend": "Відправити",
   "lblToolboxLaunching": "Запуск {0}...",

@@ -362,6 +362,7 @@
   "lblRemoteWakeFailed": "El televisor no se ha despertado. Compruebe \"Encender con móvil\" en sus ajustes de red.",
   "lblRemoteSelectTvFirst": "Seleccione primero un televisor.",
   "lblRemoteNoAnswerNoMac": "No hay respuesta. Encienda el televisor con su propio control remoto, entonces esta página puede despertarlo.",
+  "lblToolboxStagingClear": "Clear",
   "lblSysAppSettings": "Ajustes",
   "lblToolboxSend": "Enviar",
   "lblToolboxLaunching": "Iniciando {0}...",

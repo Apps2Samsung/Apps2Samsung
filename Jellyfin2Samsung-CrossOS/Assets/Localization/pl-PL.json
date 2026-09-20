@@ -362,6 +362,7 @@
   "lblRemoteWakeFailed": "Telewizor nie wybudził. Zaznacz \"Włącz przez komórkę\" w ustawieniach sieci.",
   "lblRemoteSelectTvFirst": "Najpierw wybierz telewizor.",
   "lblRemoteNoAnswerNoMac": "Brak odpowiedzi. Przełącz telewizor z własnym pilotem, a ta strona może go obudzić.",
+  "lblToolboxStagingClear": "Clear",
   "lblSysAppSettings": "Ustawienia",
   "lblToolboxSend": "Wyślij",
   "lblToolboxLaunching": "Uruchamianie {0}...",
