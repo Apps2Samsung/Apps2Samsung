@@ -111,8 +111,16 @@ namespace Apps2Samsung.Helpers.Core
         public static class Api
         {
             public const string UserAgent = "SamsungJellyfinInstaller/1.0";
-            public const string MediaBrowserAuthHeader = "MediaBrowser Token=\"{0}\"";
-            public const string EmbyAuthHeader = "MediaBrowser Client=\"Samsung Jellyfin Installer\", Device=\"PC\", DeviceId=\"samsungjellyfin\", Version=\"1.0.0\"";
+
+            // Jellyfin's "MediaBrowser" authorization scheme. Since Jellyfin 12 the client identity
+            // (Client/Device/DeviceId/Version) must travel in the standard Authorization header:
+            // the old X-Emby-Authorization header is only honoured when the server admin enables
+            // "legacy authorization", and /Users/AuthenticateByName rejects a login without an
+            // identity (#655). Jellyfin 10.8+ accepts the same header, so one format serves both.
+            // {0} client, {1} device name, {2} device id, {3} app version, {4} access token.
+            public const string MediaBrowserClientName = "Apps2Samsung";
+            public const string MediaBrowserAuthHeader = "MediaBrowser Client=\"{0}\", Device=\"{1}\", DeviceId=\"{2}\", Version=\"{3}\"";
+            public const string MediaBrowserAuthHeaderWithToken = MediaBrowserAuthHeader + ", Token=\"{4}\"";
             public const string JsonContentType = "application/json";
         }
 

@@ -1,4 +1,5 @@
 using Apps2Samsung.Catalog;
+using Apps2Samsung.Agent;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
@@ -9,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Apps2Samsung.ViewModels
@@ -20,7 +22,9 @@ namespace Apps2Samsung.ViewModels
     /// have none to switch on.
     /// <para>
     /// The system-app list is the exception: the TV's own menus were never store apps, so no deep link
-    /// addresses them and they go over SDB where the set has Developer Mode on (#641).
+    /// addresses them — and, it turned out, SDB's launcher refuses them too (#641, then #34). They go
+    /// through the debug agent: a small app of ours on the TV that asks the platform directly. The
+    /// agent also yields the one honest app list a hospitality set has, hidden flags and all.
     /// </para>
     /// <para>
     /// Its own screen rather than a panel under the remote's keys: these aren't remote buttons, and the
@@ -39,8 +43,18 @@ namespace Apps2Samsung.ViewModels
 
         private SamsungRemoteClient? _remote;
 
+        // How this head puts a .wgt on the TV — certificate, resign, push — so the agent installs
+        // like any package. Null where the head can't (no installer wired up); the agent then has to
+        // be on the set already.
+        private readonly Func<string, Action<string>, Task<bool>>? _installWgt;
+
+        private DebugAgentClient? _agent;
+
         // The full list behind the filtered one shown.
         private IReadOnlyList<SamsungRemoteLaunchTarget> _targets = Array.Empty<SamsungRemoteLaunchTarget>();
+
+        // Everything the agent reported installed, behind the filtered AgentApps.
+        private IReadOnlyList<DebugAgentApp> _agentApps = Array.Empty<DebugAgentApp>();
 
         public string TvLabel { get; }
 
@@ -65,6 +79,37 @@ namespace Apps2Samsung.ViewModels
         /// </summary>
         public IReadOnlyList<SamsungSystemAppRow> SystemApps { get; } =
             SamsungSystemApps.Rows(key => key.Localized());
+
+        /// <summary>What the agent-app filter currently leaves visible.</summary>
+        public ObservableCollection<ToolboxAgentApp> AgentApps { get; } = new();
+
+        /// <summary>Whether this head has a developer channel to reach the agent over at all.</summary>
+        public bool HasSdb => _sdb is not null;
+
+        [ObservableProperty]
+        private bool isAgentAttached;
+
+        /// <summary>The agent's own status line, separate from the channel's.</summary>
+        [ObservableProperty]
+        private string agentStatus = string.Empty;
+
+        /// <summary>The install-leftovers card's own status line.</summary>
+        [ObservableProperty]
+        private string stagingStatus = string.Empty;
+
+        [ObservableProperty]
+        private string agentFilter = string.Empty;
+
+        /// <summary>Show only the apps the platform flags as hidden — the set the launcher won't.</summary>
+        [ObservableProperty]
+        private bool agentHiddenOnly;
+
+        /// <summary>An expression to run inside the agent, for what isn't a button yet.</summary>
+        [ObservableProperty]
+        private string agentExpression = string.Empty;
+
+        [ObservableProperty]
+        private string agentExpressionResult = string.Empty;
 
         [ObservableProperty]
         private string statusText = string.Empty;
@@ -98,13 +143,20 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private bool isHospitality;
 
+        // From the probe: an ordinary set with Smart Hub. Shows the consumer notice, and vouches for
+        // the app-status endpoint so a 404 can be reported as "not on this TV".
+        [ObservableProperty]
+        private bool isConsumer;
+
         public event Action? OnRequestClose;
 
-        public TvToolboxViewModel(string tvIp, string tvLabel, ISdbEngine? sdb = null)
+        public TvToolboxViewModel(
+            string tvIp, string tvLabel, ISdbEngine? sdb = null, Func<string, Action<string>, Task<bool>>? installWgt = null)
         {
             _tvIp = tvIp;
             TvLabel = tvLabel;
             _sdb = sdb;
+            _installWgt = installWgt;
             Sequences = SamsungRemoteSequences.Sendable.Select(s => new ToolboxSequence(s)).ToList();
             StandbySequences = SamsungRemoteSequences.StandbyOnly.Select(s => new ToolboxSequence(s)).ToList();
             StandbySteps = SamsungRemoteSequences.StandbyStepKeys.Select(k => k.Localized()).ToList();
@@ -148,6 +200,7 @@ namespace Apps2Samsung.ViewModels
             // Read off the probe, which happens even on the runs that then fail to open the channel —
             // a refused pairing still told us what kind of set this is.
             IsHospitality = session.Capability.Supported && session.Capability.IsHospitality;
+            IsConsumer = session.Capability.Supported && session.Capability.IsConsumer;
 
             if (!session.Connected)
             {
@@ -204,9 +257,13 @@ namespace Apps2Samsung.ViewModels
         private Task LaunchApp(ToolboxApp? app) =>
             app is null ? Task.CompletedTask : LaunchAsync(app.Target);
 
+        // Through the agent where it is attached: that is the route that reaches these. Without it
+        // the SDB attempt still runs, so the user sees the TV's own refusal rather than a toast.
         [RelayCommand]
         private Task LaunchSystemApp(SamsungSystemAppRow? row) =>
-            row is null ? Task.CompletedTask : LaunchAsync(row.Target);
+            row is null ? Task.CompletedTask
+            : _agent is not null ? LaunchViaAgentAsync(row.AppId, row.Name, control: false)
+            : LaunchAsync(row.Target);
 
         [RelayCommand]
         private Task LaunchManual()
@@ -238,7 +295,7 @@ namespace Apps2Samsung.ViewModels
             try
             {
                 StatusText = string.Format("lblToolboxLaunching".Localized(), target.Name);
-                var result = await SamsungRemoteApps.LaunchAsync(remote, _tvIp, target, _sdb);
+                var result = await SamsungRemoteApps.LaunchAsync(remote, _tvIp, target, _sdb, trustNotInstalled: IsConsumer);
 
                 StatusText = result switch
                 {
@@ -246,6 +303,10 @@ namespace Apps2Samsung.ViewModels
                     // The message went out and the set never says what became of it — common firmware
                     // behaviour, and not something to dress up as a confirmed launch.
                     { Succeeded: true } => string.Format("lblToolboxLaunchSent".Localized(), target.Name),
+                    // The launcher's own verdicts, in its words: no route below it can do better.
+                    { NotInstalled: true } => string.Format("lblToolboxLaunchNotInstalled".Localized(), target.Name),
+                    { NotASmartHubApp: true } => string.Format("lblToolboxLaunchNotSmartHub".Localized(), target.Name, result.TvReply),
+                    { TvReply: not null } => string.Format("lblToolboxLaunchRefused".Localized(), target.Name, result.TvReply),
                     _ => string.Format("lblToolboxLaunchFailed".Localized(), target.Name),
                 };
 
@@ -254,6 +315,255 @@ namespace Apps2Samsung.ViewModels
             finally
             {
                 IsBusy = false;
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------
+        // Install leftovers
+        // ---------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Empties the TV's install staging folder, where every package this app ever pushed is still
+        /// sitting. On request only: nothing in the install flow calls this.
+        /// </summary>
+        [RelayCommand]
+        private async Task ClearStaging()
+        {
+            if (_sdb is null)
+            {
+                StagingStatus = "lblToolboxStagingNeedsSdb".Localized();
+                return;
+            }
+
+            if (IsBusy)
+                return;
+
+            IsBusy = true;
+            try
+            {
+                StagingStatus = "lblToolboxStagingClearing".Localized();
+                var result = await _sdb.ClearInstallStagingAsync(_tvIp);
+                StagingStatus = result.ExitCode == 0
+                    ? "lblToolboxStagingCleared".Localized()
+                    : string.Format("lblToolboxStagingFailed".Localized(),
+                        string.IsNullOrWhiteSpace(result.Error) ? result.Output.Trim() : result.Error.Trim());
+            }
+            catch (Exception ex)
+            {
+                StagingStatus = string.Format("lblToolboxStagingFailed".Localized(), ex.Message);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------
+        // The debug agent (#34)
+        // ---------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Installs the agent if the TV doesn't list it, starts it in debug mode, attaches, and reads
+        /// the platform and the app list. Every step reports into <see cref="AgentStatus"/>.
+        /// </summary>
+        [RelayCommand]
+        private async Task AttachAgent()
+        {
+            if (_sdb is null)
+            {
+                AgentStatus = "lblToolboxAgentNeedsSdb".Localized();
+                return;
+            }
+
+            if (IsBusy)
+                return;
+
+            IsBusy = true;
+            try
+            {
+                await DetachAgentCoreAsync();
+
+                var progress = new Progress<string>(key => AgentStatus = key.Localized());
+                var agent = await DebugAgentClient.AttachCurrentAsync(
+                    _sdb, _tvIp, _installWgt, message => AgentStatus = message, progress);
+                agent.Disconnected += OnAgentDisconnected;
+                _agent = agent;
+
+                var platform = await agent.PlatformAsync();
+                _agentApps = await agent.ListAppsAsync();
+                ApplyAgentFilter();
+
+                IsAgentAttached = true;
+                AgentStatus = string.Format("lblToolboxAgentAttached".Localized(),
+                    agent.AgentVersion, _agentApps.Count, _agentApps.Count(a => !a.Show), platform.Tizen ?? "?");
+            }
+            catch (DebugAgentInstallException ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[toolbox] agent install: {ex.Message}");
+                AgentStatus = ex.Key.Localized();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[toolbox] agent attach failed: {ex}");
+                AgentStatus = string.Format("lblToolboxAgentFailed".Localized(), ex.Message);
+                await DetachAgentCoreAsync();
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task DetachAgent()
+        {
+            await DetachAgentCoreAsync();
+            AgentStatus = "lblToolboxAgentDetached".Localized();
+        }
+
+        private async Task DetachAgentCoreAsync()
+        {
+            var agent = _agent;
+            _agent = null;
+            IsAgentAttached = false;
+            _agentApps = Array.Empty<DebugAgentApp>();
+            AgentApps.Clear();
+
+            if (agent is not null)
+            {
+                agent.Disconnected -= OnAgentDisconnected;
+                await agent.DisposeAsync();
+            }
+        }
+
+        // Raised off the UI thread by the inspector's receive loop.
+        private void OnAgentDisconnected(string? reason) =>
+            Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+            {
+                if (_agent is null)
+                    return;
+                await DetachAgentCoreAsync();
+                AgentStatus = string.Format("lblToolboxAgentDisconnected".Localized(), reason ?? string.Empty);
+            });
+
+        partial void OnAgentFilterChanged(string value) => ApplyAgentFilter();
+        partial void OnAgentHiddenOnlyChanged(bool value) => ApplyAgentFilter();
+
+        private void ApplyAgentFilter()
+        {
+            var filter = AgentFilter?.Trim() ?? string.Empty;
+            var matches = _agentApps.Where(a =>
+                (!AgentHiddenOnly || !a.Show) &&
+                (string.IsNullOrEmpty(filter) ||
+                 a.DisplayName.Contains(filter, StringComparison.CurrentCultureIgnoreCase) ||
+                 a.Id.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                 a.PackageId.Contains(filter, StringComparison.OrdinalIgnoreCase)));
+
+            AgentApps.Clear();
+            foreach (var app in matches)
+                AgentApps.Add(new ToolboxAgentApp(app, "lblToolboxAgentHidden".Localized()));
+        }
+
+        [RelayCommand]
+        private Task LaunchAgentApp(ToolboxAgentApp? app) =>
+            app is null ? Task.CompletedTask : LaunchViaAgentAsync(app.AppId, app.Name, control: false);
+
+        [RelayCommand]
+        private Task LaunchAgentAppControl(ToolboxAgentApp? app) =>
+            app is null ? Task.CompletedTask : LaunchViaAgentAsync(app.AppId, app.Name, control: true);
+
+        /// <summary>
+        /// One launch through the agent, reported in the platform's own terms: accepted and running,
+        /// accepted with no context, refused with the error's name, or the agent gone quiet because
+        /// something took the screen.
+        /// </summary>
+        private async Task LaunchViaAgentAsync(string appId, string name, bool control)
+        {
+            var agent = _agent;
+            if (agent is null)
+            {
+                StatusText = "lblToolboxAgentNotAttached".Localized();
+                return;
+            }
+
+            if (IsBusy)
+                return;
+
+            IsBusy = true;
+            try
+            {
+                // App control goes to an operation the target actually registers, when the probe finds
+                // one; `main` is only the guess for a target that registers none of the probed set.
+                string? operation = null;
+                if (control)
+                {
+                    StatusText = string.Format("lblToolboxAgentProbing".Localized(), name);
+                    operation = (await agent.ProbeAppControlsAsync(appId)).FirstOrDefault();
+                }
+
+                StatusText = string.Format("lblToolboxAgentLaunching".Localized(), name);
+                var result = control
+                    ? await agent.LaunchControlAsync(appId, operation ?? DebugAgentClient.MainOperation)
+                    : await agent.LaunchAsync(appId);
+
+                var status = result.State switch
+                {
+                    DebugAgentLaunchState.Launched => string.Format("lblToolboxAgentLaunched".Localized(), name),
+                    DebugAgentLaunchState.LaunchedNoContext => string.Format("lblToolboxAgentLaunchedNoContext".Localized(), name),
+                    DebugAgentLaunchState.Refused => string.Format("lblToolboxAgentLaunchRefused".Localized(), name, result.ErrorName, result.ErrorMessage),
+                    _ => string.Format("lblToolboxAgentUnresponsive".Localized(), name),
+                };
+                if (control)
+                    status += " " + string.Format("lblToolboxAgentOperationUsed".Localized(), operation ?? DebugAgentClient.MainOperation);
+
+                // A refusal or a launch that went nowhere is the moment to learn what the target does
+                // answer to: the operations it registers decide the next attempt.
+                if (!control && result.State is DebugAgentLaunchState.Refused or DebugAgentLaunchState.LaunchedNoContext)
+                {
+                    StatusText = status;
+                    var operations = await agent.ProbeAppControlsAsync(appId);
+                    status += " " + (operations.Count > 0
+                        ? string.Format("lblToolboxAgentOperations".Localized(), name, string.Join(", ", operations.Select(ShortOperation)))
+                        : string.Format("lblToolboxAgentOperationsNone".Localized(), name, DebugAgentClient.ProbedOperationCount));
+                }
+
+                StatusText = status;
+            }
+            catch (Exception ex)
+            {
+                StatusText = string.Format("lblToolboxAgentFailed".Localized(), ex.Message);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        // "http://tizen.org/appcontrol/operation/main" reads as "tizen.org/main" in a status line.
+        private static string ShortOperation(string operation) =>
+            operation.Replace("http://", string.Empty).Replace("/appcontrol/operation/", "/");
+
+        /// <summary>Runs <see cref="AgentExpression"/> inside the agent and shows what came back, verbatim.</summary>
+        [RelayCommand]
+        private async Task EvaluateAgent()
+        {
+            var agent = _agent;
+            var expression = AgentExpression?.Trim();
+            if (agent is null)
+            {
+                AgentExpressionResult = "lblToolboxAgentNotAttached".Localized();
+                return;
+            }
+            if (string.IsNullOrEmpty(expression))
+                return;
+
+            try
+            {
+                AgentExpressionResult = await agent.EvaluateAsync(expression);
+            }
+            catch (Exception ex)
+            {
+                AgentExpressionResult = ex.Message;
             }
         }
 
@@ -304,6 +614,8 @@ namespace Apps2Samsung.ViewModels
 
         public async ValueTask DisposeAsync()
         {
+            await DetachAgentCoreAsync();
+
             var remote = _remote;
             _remote = null;
             IsConnected = false;
@@ -332,6 +644,25 @@ namespace Apps2Samsung.ViewModels
         public string Caveat { get; }
         public bool HasCaveat => !string.IsNullOrEmpty(Caveat);
         public string Keys { get; }
+    }
+
+    /// <summary>One row of the agent's app list: what the platform reports installed.</summary>
+    public sealed class ToolboxAgentApp
+    {
+        public ToolboxAgentApp(DebugAgentApp app, string hiddenLabel)
+        {
+            App = app;
+            HiddenLabel = app.Show ? string.Empty : hiddenLabel;
+        }
+
+        public DebugAgentApp App { get; }
+        public string Name => App.DisplayName;
+        public string AppId => App.Id;
+        public string Version => App.Version;
+        public bool IsHidden => !App.Show;
+
+        /// <summary>"hidden" for an app the platform's launcher does not show; empty for the rest.</summary>
+        public string HiddenLabel { get; }
     }
 
     /// <summary>One row of the app list.</summary>

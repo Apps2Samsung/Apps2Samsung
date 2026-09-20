@@ -10,23 +10,30 @@ namespace Apps2Samsung.Helpers.Core
     /// <summary>
     /// Remembers, per TV, the two things the remote can't rediscover on its own: the pairing token
     /// (without it the TV re-prompts every session) and the MAC captured while the set was awake
-    /// (without it a sleeping set can't be woken). Stored as JSON maps keyed by IP in settings.json,
-    /// the same shape the custom-icon/title maps use. The mobile head keeps the equivalent in its
-    /// Preferences store.
+    /// (without it a sleeping set can't be woken). Stored as JSON maps in settings.json, the same
+    /// shape the custom-icon/title maps use; <see cref="RemoteSession"/> picks the key (the set's
+    /// own id for tokens, the IP for MACs). The mobile head keeps the equivalent in its Preferences
+    /// store.
     /// </summary>
     public static class RemoteStore
     {
-        public static string? GetToken(string tvIpAddress) =>
-            Read(AppSettings.Default.RemoteTokensJson).GetValueOrDefault(tvIpAddress);
+        public static string? GetToken(string tvKey) =>
+            Read(AppSettings.Default.RemoteTokensJson).GetValueOrDefault(tvKey);
 
-        public static void SetToken(string tvIpAddress, string token) =>
-            AppSettings.Default.RemoteTokensJson = Write(AppSettings.Default.RemoteTokensJson, tvIpAddress, token);
+        public static void SetToken(string tvKey, string token)
+        {
+            AppSettings.Default.RemoteTokensJson = Write(AppSettings.Default.RemoteTokensJson, tvKey, token);
+            AppSettings.Default.Save();
+        }
 
         public static string? GetMac(string tvIpAddress) =>
             Read(AppSettings.Default.RemoteMacsJson).GetValueOrDefault(tvIpAddress);
 
-        public static void SetMac(string tvIpAddress, string macAddress) =>
+        public static void SetMac(string tvIpAddress, string macAddress)
+        {
             AppSettings.Default.RemoteMacsJson = Write(AppSettings.Default.RemoteMacsJson, tvIpAddress, macAddress);
+            AppSettings.Default.Save();
+        }
 
         /// <summary>
         /// The same store behind Core's <see cref="IRemoteCredentialStore"/>, so
@@ -37,8 +44,8 @@ namespace Apps2Samsung.Helpers.Core
         {
             public static readonly Credentials Instance = new();
 
-            public string? GetToken(string tvIpAddress) => RemoteStore.GetToken(tvIpAddress);
-            public void SetToken(string tvIpAddress, string token) => RemoteStore.SetToken(tvIpAddress, token);
+            public string? GetToken(string tvKey) => RemoteStore.GetToken(tvKey);
+            public void SetToken(string tvKey, string token) => RemoteStore.SetToken(tvKey, token);
             public string? GetMac(string tvIpAddress) => RemoteStore.GetMac(tvIpAddress);
             public void SetMac(string tvIpAddress, string macAddress) => RemoteStore.SetMac(tvIpAddress, macAddress);
         }
@@ -75,13 +82,14 @@ namespace Apps2Samsung.Helpers.Core
             }
         }
 
+        // Returns the updated map; the caller assigns it and then saves. (Saving in here, before the
+        // assignment, wrote the *previous* map to disk — a token only survived a restart if some
+        // other setting happened to be saved later in the session.)
         private static string Write(string json, string key, string value)
         {
             var map = Read(json);
             map[key] = value;
-            var updated = JsonSerializer.Serialize(map);
-            AppSettings.Default.Save();
-            return updated;
+            return JsonSerializer.Serialize(map);
         }
     }
 }

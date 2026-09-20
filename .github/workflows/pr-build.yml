@@ -137,3 +137,41 @@ jobs:
           test -x squashfs-root/usr/bin/Apps2Samsung
           test "$(stat -c%s squashfs-root/usr/bin/Apps2Samsung)" = "$(stat -c%s publish/linux-x64/Apps2Samsung)"
           echo "deb, rpm and AppImage carry the whole app, for both architectures"
+
+      # The AUR package is rendered from .github/aur/PKGBUILD by the stable release and built by
+      # makepkg on every Arch user's machine. Prove here that the template still renders and builds,
+      # from the tarballs this job just produced: makepkg uses a source file that already sits next
+      # to the PKGBUILD instead of downloading it, which is how v0.0.0 can build without a release.
+      - name: AUR PKGBUILD renders and builds
+        run: |
+          set -euo pipefail
+          mkdir -p aur/src
+          cp LICENSE aur/src/apps2samsung-0.0.0-LICENSE
+          cp jellyfin-tizen-logo.svg aur/src/apps2samsung-0.0.0.svg
+          for ARCH in x64 arm64; do
+            cp "dist/Apps2Samsung-v0.0.0-pr-linux-$ARCH.tar.gz" "aur/src/Apps2Samsung-v0.0.0-linux-$ARCH.tar.gz"
+          done
+          .github/scripts/aur-pkgbuild.sh 0.0.0 aur/src aur/pkg
+          cp aur/src/* aur/pkg/
+
+          # makepkg refuses to run as root, hence the builder user. The size check is the same one
+          # the deb/rpm get above: a stripped .NET single-file bundle installs fine and cannot run.
+          docker run --rm -v "$PWD/aur/pkg:/build" \
+            -e EXPECTED="$(stat -c%s publish/linux-x64/Apps2Samsung)" \
+            archlinux:base-devel bash -c '
+              set -euo pipefail
+              useradd -m builder && chown -R builder /build && cd /build
+              su builder -c "makepkg --printsrcinfo > .SRCINFO && makepkg -f --nodeps --noconfirm"
+              PKG=$(ls apps2samsung-0.0.0-1-x86_64.pkg.tar.*)
+              tar -tf "$PKG" > pkg.txt
+              grep -qx "opt/apps2samsung/Apps2Samsung" pkg.txt
+              grep -qx "usr/bin/apps2samsung" pkg.txt
+              grep -qx "usr/share/applications/apps2samsung.desktop" pkg.txt
+              grep -qx "usr/share/icons/hicolor/scalable/apps/apps2samsung.svg" pkg.txt
+              grep -qx "usr/share/licenses/apps2samsung/LICENSE" pkg.txt
+              if grep -q "\.pdb$" pkg.txt; then echo "::error::debug symbols ended up in the package"; exit 1; fi
+              IN_PKG=$(tar -xOf "$PKG" opt/apps2samsung/Apps2Samsung | wc -c)
+              echo "published=$EXPECTED aur=$IN_PKG"
+              test "$IN_PKG" = "$EXPECTED"
+              echo "AUR package builds and carries the whole app"
+            '

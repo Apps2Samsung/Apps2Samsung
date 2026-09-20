@@ -54,32 +54,31 @@ namespace Apps2Samsung.Services
         {
             try
             {
-                using var cts = new CancellationTokenSource(NetworkScanTimeoutMs);
-                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-                    cts.Token, cancellationToken);
+                // Same bar as the network scan (see FindTizenTvsAsync), so the manual and the
+                // discovered paths always agree on a TV (#523): a TV on the SDB debug port (26101)
+                // is ready to install to; a TV that answers only on the 8001 REST API is listed as
+                // "not ready" — it's a real Samsung TV, just without (active) Developer Mode. The
+                // manual path used to accept 26101 only, so a Developer-Mode-off TV that the scan
+                // missed could not be rescued by typing its IP either, and the Remote / TV toolbox
+                // — which don't need Developer Mode at all — were unreachable (#663).
+                var ports = await ProbeTvPortsAsync(ip, cancellationToken);
+                if (!ports.DebugPortOpen && !ports.ApiPortOpen)
+                    return null;
 
-                // Accept a TV on the SDB debug port (26101) alone — the same bar the network scan
-                // uses (see FindTizenTvsAsync). Manual entry previously ALSO required the 8001 REST
-                // API to be open, so a TV that's reachable and developer-ready on 26101 but whose
-                // 8001 is closed/firewalled/slow (the two probes shared one 1s budget) was wrongly
-                // rejected as "Invalid device IP" — even though the exact same TV would have been
-                // accepted by the scan. Match the scan so the manual and discovered paths agree (#523).
-                if (await IsPortOpenAsync(ip, TizenDevPort, linkedCts.Token))
+                var device = new NetworkDevice
                 {
-                    var manufacturer = await GetManufacturerFromIp(ip);
-                    var device = new NetworkDevice
-                    {
-                        IpAddress = ip,
-                        Manufacturer = manufacturer
-                    };
+                    IpAddress = ip,
+                    DebugPortOpen = ports.DebugPortOpen
+                };
 
-                    if (manufacturer?.Contains("Samsung", StringComparison.OrdinalIgnoreCase) == true)
+                if (ports.DebugPortOpen)
+                {
+                    device.Manufacturer = await GetManufacturerFromIp(ip);
+                    if (device.Manufacturer?.Contains("Samsung", StringComparison.OrdinalIgnoreCase) == true)
                         device.DeviceName = await GetTvNameAsync(ip);
-
-                    return device;
                 }
 
-                return null;
+                return device;
             }
             catch (Exception ex)
             {
@@ -109,10 +108,8 @@ namespace Apps2Samsung.Services
                     {
                         try
                         {
-                            using var cts = new CancellationTokenSource(NetworkScanTimeoutMs);
-                            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-                                cts.Token, cancellationToken);
-                            if (await IsPortOpenAsync(ip, TizenDevPort, linkedCts.Token))
+                            var ports = await ProbeTvPortsAsync(ip, cancellationToken);
+                            if (ports.DebugPortOpen)
                             {
                                 var manufacturer = await GetManufacturerFromIp(ip);
                                 var device = new NetworkDevice
@@ -130,11 +127,14 @@ namespace Apps2Samsung.Services
                                 }
                             }
                             // Debug port closed, but the TV REST API (8001) answers: the TV is
-                            // there but not ready (Developer Mode not fully active). Surface it as
-                            // "not ready" so the user gets an actionable hint instead of "no devices".
-                            // TizenDeveloperInfo enriches it via /api/v2/ (name, developerMode, developerIP).
-                            else if (await IsPortOpenAsync(ip, SamsungTvApiPort, linkedCts.Token))
+                            // there but not ready (Developer Mode off or not fully active). Surface
+                            // it as "not ready" so the user gets an actionable hint instead of "no
+                            // devices" — and so the Remote / TV toolbox, which don't need Developer
+                            // Mode, can reach it. TizenDeveloperInfo enriches it via /api/v2/
+                            // (name, developerMode, developerIP).
+                            else if (ports.ApiPortOpen)
                             {
+                                Trace.WriteLine($"[Scan] {ip}: debug port {TizenDevPort} closed, REST API {SamsungTvApiPort} open — listed as not ready.");
                                 var device = new NetworkDevice
                                 {
                                     IpAddress = ip,
@@ -192,6 +192,36 @@ namespace Apps2Samsung.Services
                 .Distinct()
                 .Select(IPAddress.Parse); // Convert back to IPAddress
         }
+        /// <summary>
+        /// Probes the two ports that identify a Samsung TV — the SDB debug port (26101) and the REST
+        /// API (8001) — for one host. The probes run concurrently and each gets its OWN
+        /// <see cref="NetworkScanTimeoutMs"/> budget.
+        ///
+        /// They used to run one after the other under a single shared 1 s budget, which silently
+        /// dropped every TV with Developer Mode off: some sets (e.g. a 2021 Tizen 6 AU7000) take
+        /// ~1.03 s to send the RST for the closed 26101, so the shared token was already cancelled
+        /// by the time the 8001 probe started, and that probe "failed" via
+        /// OperationCanceledException although the port answers in ~30 ms. The TV then never showed
+        /// up at all — not even as "not ready" — and the manual-IP path rejected it too (#663).
+        /// Running both probes side by side keeps the per-host scan time at one budget instead of two.
+        /// </summary>
+        private async Task<(bool DebugPortOpen, bool ApiPortOpen)> ProbeTvPortsAsync(string ip, CancellationToken cancellationToken)
+        {
+            var debugProbe = ProbeWithTimeoutAsync(ip, TizenDevPort, cancellationToken);
+            var apiProbe = ProbeWithTimeoutAsync(ip, SamsungTvApiPort, cancellationToken);
+            await Task.WhenAll(debugProbe, apiProbe);
+            return (debugProbe.Result, apiProbe.Result);
+        }
+
+        // One port probe under its own per-probe timeout, linked to the caller's token so a
+        // cancelled scan still stops every in-flight connect immediately.
+        private async Task<bool> ProbeWithTimeoutAsync(string ip, int port, CancellationToken cancellationToken)
+        {
+            using var timeout = new CancellationTokenSource(NetworkScanTimeoutMs);
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token, cancellationToken);
+            return await IsPortOpenAsync(ip, port, linked.Token);
+        }
+
         public async Task<bool> IsPortOpenAsync(string ip, int port, CancellationToken ct)
         {
             try

@@ -119,6 +119,26 @@ namespace Apps2Samsung.Sdb
                     sb.AppendLine($"  Testing '{cmd}': FAILED - {ex.Message}");
                 }
             }
+
+            // Which shell verbs this TV's sdbd recognises (TizenSdb.Core's SdbShellVerbs). sdbd is a
+            // fixed vocabulary, not a shell, and the launcher verb the tooling uses only resolves Smart
+            // Hub apps (tizen-community-packages#34); whether a set exposes a verb that reaches the
+            // platform's own launcher is a question no log had answered. Every probe carries an id
+            // that does not exist, so nothing on the TV changes. Appended after the "Testing" lines
+            // so the diagnose parser, which keys on the vd_appuninstall line, is unaffected — and so a
+            // user's debug log carries the answer without anyone asking for it.
+            try
+            {
+                var probes = await device.ProbeShellVerbsAsync();
+                sb.AppendLine($"  sdbd verbs: {probes.Count(p => p.Accepted)} of {probes.Count} probes accepted");
+                foreach (var probe in probes)
+                    sb.AppendLine(SdbShellVerbs.Format(probe));
+            }
+            catch (Exception ex)
+            {
+                sb.AppendLine($"  sdbd verbs: probe failed - {ex.Message}");
+            }
+
             return sb.ToString();
         });
 
@@ -152,20 +172,26 @@ namespace Apps2Samsung.Sdb
             // TV refuses a launch in text, with no failing status, the way it refuses an install. A
             // flat "App launched." therefore read as success on every attempt — tolerable while this
             // only opened the user's own sideloaded app, wrong now that the toolbox aims it at
-            // platform apps the set may well refuse (#641).
+            // platform apps the set may well refuse (#641). The raw reply travels back in either
+            // case, so the caller can show the user what the TV actually said.
             var reply = (await device.ShellCommandAsync($"0 was_execute {appId}")).Trim();
-            if (IsLaunchRefusal(reply))
-                throw new Exception($"The TV would not open {appId}: {reply}");
 
-            return string.IsNullOrEmpty(reply) ? "App launched." : reply;
+            switch (TizenLaunchReply.Parse(reply))
+            {
+                case TizenLaunchVerdict.NotASmartHubApp:
+                case TizenLaunchVerdict.Refused:
+                    throw new Exception($"The TV would not open {appId}: {reply}");
+
+                case TizenLaunchVerdict.Unknown when reply.Length == 0:
+                    // Silence is not a launch. The launcher names every outcome it knows about, so an
+                    // empty reply means the verb never reached it (a dropped connection, sdbd cutting
+                    // the shell short) — and a claimed success here is what hid every refusal before.
+                    throw new Exception($"The TV gave no answer to the launch of {appId}.");
+
+                default:
+                    return reply;
+            }
         });
-
-        // A launch that worked answers with the launcher's own line or nothing at all; a refusal names
-        // itself. Kept narrow — an app id is echoed back in either case, so anything broader than these
-        // would trip over ids containing e.g. "error".
-        private static bool IsLaunchRefusal(string reply) =>
-            reply.Length > 0 && new[] { "fail", "denied", "not permitted", "no such", "not exist", "not found" }
-                .Any(marker => reply.Contains(marker, StringComparison.OrdinalIgnoreCase));
 
         public async Task<ProcessResult> ResignAsync(string packagePath, string authorP12, string distributorP12, string certPass)
         {
@@ -221,6 +247,16 @@ namespace Apps2Samsung.Sdb
         public async Task<ProcessResult> ShellAsync(string tvIpAddress, string command) => await RunConnected(tvIpAddress, $"shell {tvIpAddress} {command}", async device =>
         {
             return await device.ShellCommandAsync(command);
+        });
+
+        // sdbd's own "0 rmfile" verb (TizenSdb.Core's SdbShellVerbs.RemoveStagedPackages), which the
+        // TV expands to rm -f over sdk_tools/*.wgt|*.tpk|*.rpm (and sdk_tools/tmp/*.wgt). No argument:
+        // it cannot be aimed at one file, and it reaches nothing outside that directory. Samsung's sdb
+        // sends it after each install; this app never did, so the packages it pushed have been piling
+        // up there. Sent on request only (the toolbox), never behind an install.
+        public async Task<ProcessResult> ClearInstallStagingAsync(string tvIpAddress) => await RunConnected(tvIpAddress, $"rmfile {tvIpAddress}", async device =>
+        {
+            return await device.RemoveStagedPackagesAsync();
         });
 
         /// <summary>

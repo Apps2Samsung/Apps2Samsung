@@ -30,7 +30,7 @@ public static class MobileSettings
 	private const string KeyJellyfinCustomCss = "jellyfin_custom_css";
 	private const string KeyJellyfinPatchYoutube = "jellyfin_patch_youtube";
 	private const string KeyJellyfinAccessToken = "jellyfin_access_token"; // SecureStorage
-	private const string KeyRemoteTokenPrefix = "remote_token_"; // one per TV, keyed by IP
+	private const string KeyRemoteTokenPrefix = "remote_token_"; // one per TV, keyed by the set's id (IP on older builds/sets)
 	private const string KeyRemoteMacPrefix = "remote_mac_"; // one per TV, keyed by IP
 
 	/// <summary>Uninstall the previous version before installing (desktop: "Remove old version").</summary>
@@ -269,15 +269,15 @@ public static class MobileSettings
 	/// <see cref="Preferences"/> rather than SecureStorage: it only authorizes button presses to one
 	/// TV on the local network, and it has to be readable synchronously while the remote page opens.
 	/// </summary>
-	public static string? GetRemoteToken(string tvIpAddress)
+	public static string? GetRemoteToken(string tvKey)
 	{
-		var token = Preferences.Get(KeyRemoteTokenPrefix + tvIpAddress, string.Empty);
+		var token = Preferences.Get(KeyRemoteTokenPrefix + tvKey, string.Empty);
 		return string.IsNullOrEmpty(token) ? null : token;
 	}
 
 	/// <summary>Stores the token the TV handed back, so the next session connects without prompting.</summary>
-	public static void SetRemoteToken(string tvIpAddress, string token) =>
-		Preferences.Set(KeyRemoteTokenPrefix + tvIpAddress, token);
+	public static void SetRemoteToken(string tvKey, string token) =>
+		Preferences.Set(KeyRemoteTokenPrefix + tvKey, token);
 
 	/// <summary>
 	/// The TV's MAC, remembered from a moment when the set was awake. A sleeping TV answers nothing,

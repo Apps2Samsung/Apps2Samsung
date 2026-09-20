@@ -29,6 +29,10 @@ namespace Apps2Samsung.ViewModels
         // the only one that reaches a platform app (#641).
         private readonly ISdbEngine _sdbEngine;
         private readonly IDialogService _dialogService;
+
+        // SSL warnings (#656) raised before the main window opened; shown by InitializeAsync.
+        private readonly List<string> _pendingSslWarnings = new();
+        private bool _windowOpened;
         private readonly INetworkService _networkService;
         private readonly ILocalizationService _localizationService;
         private readonly IThemeService _themeService;
@@ -139,6 +143,20 @@ namespace Apps2Samsung.ViewModels
             _addLatestRelease = new AddLatestRelease(httpClient);
             _providerManifestService = new ProviderManifestService(httpClient);
 
+            // A server certificate that failed validation (#656): tell the user, once per host, the
+            // way the other warnings are shown. Fired from the HTTP stack, so hop to the UI thread;
+            // and the dialog needs the main window, so anything raised before it opened waits in
+            // _pendingSslWarnings until InitializeAsync (which the window's Opened event calls).
+            GitHubAuthHandler.CertificateValidationIssue += (host, errors) =>
+                Dispatcher.UIThread.Post(() =>
+                {
+                    var message = string.Format("statusSslWarning".Localized(), host, errors);
+                    if (_windowOpened)
+                        _ = _dialogService.ShowMessageAsync(L("lblSslWarningTitle"), message);
+                    else
+                        _pendingSslWarnings.Add(message);
+                });
+
             _localizationService.LanguageChanged += OnLanguageChanged;
             _themeService.ThemeChanged += OnThemeChanged;
 
@@ -246,6 +264,11 @@ namespace Apps2Samsung.ViewModels
 
         public async Task InitializeAsync()
         {
+            _windowOpened = true;
+            foreach (var message in _pendingSslWarnings)
+                await _dialogService.ShowMessageAsync(L("lblSslWarningTitle"), message);
+            _pendingSslWarnings.Clear();
+
             // Create a new CTS for initialization that can be cancelled when update dialog shows
             _initializationCts?.Cancel();
             _initializationCts?.Dispose();
@@ -710,7 +733,17 @@ namespace Apps2Samsung.ViewModels
                 if (!string.IsNullOrWhiteSpace(SelectedDevice.MacAddress))
                     Helpers.Core.RemoteStore.SetMac(SelectedDevice.IpAddress, SelectedDevice.MacAddress!);
 
-                var vm = new TvToolboxViewModel(SelectedDevice.IpAddress, label, _sdbEngine);
+                // The toolbox's debug agent is a .wgt like any other: the normal pipeline (certificate,
+                // resign, push) puts it on the TV when the set doesn't have it yet (#34).
+                var tvIp = SelectedDevice.IpAddress;
+                Func<string, Action<string>, Task<bool>> installWgt = async (wgtPath, report) =>
+                {
+                    using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                    var result = await _tizenInstaller.InstallPackageAsync(wgtPath, tvIp, timeout.Token, message => report(message));
+                    return result.Success;
+                };
+
+                var vm = new TvToolboxViewModel(tvIp, label, _sdbEngine, installWgt);
                 var window = new Views.TvToolboxWindow(vm);
                 await window.ShowDialog(desktop.MainWindow);
             }

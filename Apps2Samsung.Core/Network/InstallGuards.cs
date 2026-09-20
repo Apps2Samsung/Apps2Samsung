@@ -53,7 +53,8 @@ namespace Apps2Samsung.Services
         public IReadOnlyCollection<string> LocalIps { get; init; } = Array.Empty<string>();
 
         /// <summary>The local IP the user picked (desktop NIC selection) or the phone's own IP.
-        /// Only used for the subnet comparison; empty skips it.</summary>
+        /// Used for the subnet comparison (empty skips it) and named as "this device" in the
+        /// IP-mismatch guard instead of the whole <see cref="LocalIps"/> list.</summary>
         public string? ConfiguredLocalIp { get; init; }
 
         /// <summary>The desktop's "Reverse IP (for Arabic/Hebrew)" setting: those TVs render the IP
@@ -162,11 +163,19 @@ namespace Apps2Samsung.Services
 
             if (ipMismatch)
             {
+                // Name the interface the user picked in settings as "this device". Listing every
+                // adapter (Hyper-V/WSL virtual switches, VPNs) reads as if the machine has three IPs
+                // and hides the one that matters. The full list is only the fallback when nothing is
+                // picked, or the picked address no longer exists on this machine.
+                var configured = options.ConfiguredLocalIp;
+                var thisDevice = !string.IsNullOrEmpty(configured) && localIps.Contains(configured!)
+                    ? configured!
+                    : string.Join(", ", localIps);
                 guards.Add(new InstallGuard(
                     InstallGuardKind.DeveloperIpMismatch,
                     "guardIpMismatchTitle", "DeveloperIPMismatch",
                     "IP Mismatch", DeveloperIpMismatchDefault,
-                    $"TV Developer Mode IP: {device.DeveloperIP} • this device: {string.Join(", ", localIps)}"));
+                    $"TV Developer Mode IP: {device.DeveloperIP} • this device: {thisDevice}"));
             }
 
             return new InstallGuardResult(guards, correctedTvIp);

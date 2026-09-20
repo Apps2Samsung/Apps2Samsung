@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Collections.Concurrent;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Threading;
@@ -13,6 +14,27 @@ namespace Apps2Samsung.Helpers.Core
     public class GitHubAuthHandler : DelegatingHandler
     {
         private readonly string? _token;
+
+        // Set once GitHub has answered 401 to the token. A bearer token GitHub rejects is expired,
+        // revoked or mistyped, and stays that way for the rest of the run — so after the first
+        // rejection every request goes out unauthenticated straight away instead of each one being
+        // sent twice and logging the same warning (one launch produced dozens of those lines).
+        private int _tokenRejected;
+
+        /// <summary>True once the configured token has been rejected by GitHub this run.</summary>
+        public bool TokenRejected => Volatile.Read(ref _tokenRejected) != 0;
+
+        /// <summary>
+        /// Raised, once per host per run and off the UI thread, when a server certificate fails
+        /// validation: host name and the validation errors. The UI turns it into the warning popup
+        /// the user asked for in #656 — until then the only trace was a log line, and on a platform
+        /// where the connection is then refused the user saw a bare exception a step later. Most of
+        /// the time the fix is on their side: a firewall, DNS filter or proxy that intercepts or
+        /// blocks the address, or stale root certificates.
+        /// </summary>
+        public static event Action<string, SslPolicyErrors>? CertificateValidationIssue;
+
+        private static readonly ConcurrentDictionary<string, byte> ReportedHosts = new(StringComparer.OrdinalIgnoreCase);
 
         public GitHubAuthHandler(string? token)
             : base(CreateInnerHandler())
@@ -37,33 +59,39 @@ namespace Apps2Samsung.Helpers.Core
                 try { handler.SslProtocols = SslProtocols.Tls12; } catch { /* fall back to OS default */ }
             }
 
-            // Accept chain/name validation issues for the specific hosts we talk to on platforms
-            // whose trust store / TLS stack is unreliable: Linux (no unified store integration for
-            // these) and legacy Windows (7/8 — stale root certificates). Scoped to our known hosts,
-            // and only where the OS is already outside the supported set. Modern Windows/macOS keep
-            // full validation.
+            // Validation runs everywhere so that a failing certificate is reported to the user (#656)
+            // instead of surfacing as a bare exception a step later. The decision is unchanged:
+            // chain/name issues are accepted for the specific hosts we talk to, on platforms whose
+            // trust store / TLS stack is unreliable — Linux (no unified store integration for these)
+            // and legacy Windows (7/8 — stale root certificates). Modern Windows/macOS keep full
+            // validation and the request fails as before; the popup now says why.
             var legacyWindows = OperatingSystem.IsWindows() && !OperatingSystem.IsWindowsVersionAtLeast(10);
-            if ((!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS()) || legacyWindows)
+            var acceptKnownHosts = (!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS()) || legacyWindows;
+
+            handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
             {
-                handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
-                {
-                    if (errors == SslPolicyErrors.None)
-                        return true;
+                if (errors == SslPolicyErrors.None)
+                    return true;
 
-                    var host = message.RequestUri?.Host ?? string.Empty;
-                    if (host.EndsWith("samsung.com", StringComparison.OrdinalIgnoreCase) ||
-                        host.EndsWith("samsungqbe.com", StringComparison.OrdinalIgnoreCase) ||
-                        host.EndsWith("tizen.org", StringComparison.OrdinalIgnoreCase) ||
-                        host.EndsWith("github.com", StringComparison.OrdinalIgnoreCase) ||
-                        host.EndsWith("githubusercontent.com", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Trace.TraceWarning($"[SSL] Accepting cert with validation issue for {host} ({errors})");
-                        return true;
-                    }
+                var host = message.RequestUri?.Host ?? string.Empty;
+                var knownHost =
+                    host.EndsWith("samsung.com", StringComparison.OrdinalIgnoreCase) ||
+                    host.EndsWith("samsungqbe.com", StringComparison.OrdinalIgnoreCase) ||
+                    host.EndsWith("tizen.org", StringComparison.OrdinalIgnoreCase) ||
+                    host.EndsWith("github.com", StringComparison.OrdinalIgnoreCase) ||
+                    host.EndsWith("githubusercontent.com", StringComparison.OrdinalIgnoreCase);
 
-                    return false;
-                };
-            }
+                var accept = acceptKnownHosts && knownHost;
+                Trace.TraceWarning(accept
+                    ? $"[SSL] Accepting cert with validation issue for {host} ({errors})"
+                    : $"[SSL] Certificate validation failed for {host} ({errors})");
+
+                // One popup per host per run: a single broken chain fires this on every request.
+                if (ReportedHosts.TryAdd(host, 0))
+                    CertificateValidationIssue?.Invoke(host, errors);
+
+                return accept;
+            };
 
             return handler;
         }
@@ -72,18 +100,25 @@ namespace Apps2Samsung.Helpers.Core
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            if (!string.IsNullOrEmpty(_token) && IsGitHubRequest(request.RequestUri))
+            if (!string.IsNullOrEmpty(_token) && !TokenRejected && IsGitHubRequest(request.RequestUri))
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _token);
             }
 
             var response = await base.SendAsync(request, cancellationToken);
 
-            // Token is expired or revoked — retry unauthenticated for public endpoints
+            // Token is expired or revoked — retry this request unauthenticated (the endpoints we use
+            // are public) and stop offering the token for the rest of the run.
             if (response.StatusCode == HttpStatusCode.Unauthorized &&
                 request.Headers.Authorization != null)
             {
-                Trace.TraceWarning("[GitHubAuth] Token rejected (401) — retrying without authorization");
+                if (Interlocked.Exchange(ref _tokenRejected, 1) == 0)
+                {
+                    Trace.TraceWarning("[GitHubAuth] GitHub rejected the token (401). Continuing without " +
+                                       "authorization for this session (60 requests/hour). Replace or clear the " +
+                                       "GitHub token in Settings, or GITHUB_TOKEN / gh auth, to authenticate again.");
+                }
+                response.Dispose();
                 var retry = new HttpRequestMessage(request.Method, request.RequestUri);
                 foreach (var header in request.Headers)
                 {

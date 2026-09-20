@@ -58,6 +58,14 @@ namespace Apps2Samsung.Diagnostics
         /// <summary>Attaches to a target from <see cref="DevToolsInspector.ListTargetsAsync"/>.</summary>
         public async Task ConnectAsync(Uri webSocketUrl, CancellationToken ct = default)
         {
+            // No keep-alive pings. ClientWebSocket sends one every 30 s by default, and the inspector
+            // server in the TV's Chromium (net::HttpServer) does not understand a ping frame: it treats
+            // it as a protocol error and drops the socket on the spot, which surfaced as "the remote
+            // party closed the WebSocket connection without completing the close handshake" exactly
+            // 30 s after every attach. Nothing needs the pings — the SDB tunnel underneath keeps the
+            // TCP session alive, and a dead TV shows up as a failed send or receive anyway.
+            _socket.Options.KeepAliveInterval = TimeSpan.Zero;
+
             await _socket.ConnectAsync(webSocketUrl, ct);
             _receiveLoop = Task.Run(() => ReceiveLoopAsync(_stopping.Token));
 
@@ -89,6 +97,30 @@ namespace Apps2Samsung.Diagnostics
                 return RenderException(failure);
 
             return RenderRemoteObject(response?["result"]);
+        }
+
+        /// <summary>
+        /// Evaluates <paramref name="expression"/> and returns its value as JSON rather than as text —
+        /// for a caller that wants to read the result, not show it. A promise is awaited first. An
+        /// exception in the expression is thrown here as <see cref="DevToolsEvaluationException"/>,
+        /// unlike <see cref="EvaluateAsync"/>, because for a programmatic caller it is a failure.
+        /// Returns null for <c>undefined</c>, <c>null</c>, and anything the inspector could not
+        /// serialise by value.
+        /// </summary>
+        public async Task<JsonNode?> EvaluateValueAsync(string expression, CancellationToken ct = default)
+        {
+            var response = await SendCommandAsync("Runtime.evaluate", new JsonObject
+            {
+                ["expression"] = expression,
+                ["returnByValue"] = true,
+                ["awaitPromise"] = true,
+            }, ct);
+
+            if (response?["exceptionDetails"] is JsonNode failure)
+                throw new DevToolsEvaluationException(RenderException(failure));
+
+            // Detached from the response so the caller can keep it; a node has one parent.
+            return response?["result"]?["value"]?.DeepClone();
         }
 
         private async Task<JsonNode?> SendCommandAsync(string method, JsonObject? parameters, CancellationToken ct)
@@ -157,6 +189,13 @@ namespace Apps2Samsung.Diagnostics
             catch (OperationCanceledException)
             {
                 // Disposing — not an error.
+            }
+            catch (WebSocketException ex) when (ex.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely)
+            {
+                // The TV cut the socket without a close frame. With the pings above gone, that is what
+                // an app exiting, crashing, or being relaunched looks like from here.
+                reason = "The TV dropped the inspector connection (the app exited or was relaunched).";
+                Trace.WriteLine($"[devtools] receive loop ended: {ex}");
             }
             catch (Exception ex)
             {
@@ -373,5 +412,11 @@ namespace Apps2Samsung.Diagnostics
             _sendLock.Dispose();
             _stopping.Dispose();
         }
+    }
+
+    /// <summary>The evaluated expression threw in the page; the message is the rendered exception.</summary>
+    public sealed class DevToolsEvaluationException : Exception
+    {
+        public DevToolsEvaluationException(string message) : base(message) { }
     }
 }
