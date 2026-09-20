@@ -217,6 +217,21 @@
                     </VerticalStackLayout>
                 </Border>
 
+                <!-- ============ Install leftovers ============ -->
+                <!-- sdbd's "0 rmfile": empties the staging folder every install pushes into and never
+                     clears. Installed apps are not involved. Needs Developer Mode. -->
+                <Border x:Name="StagingCard" Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxStaging}" />
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxStagingHint}" />
+                        <Label x:Name="StagingNeedsSdbHint" Style="{StaticResource Hint}" IsVisible="False"
+                               Text="{l:Localize lblToolboxStagingNeedsSdb}" />
+                        <Button x:Name="ClearStagingBtn" Style="{StaticResource Action}" HorizontalOptions="Start" WidthRequest="120"
+                                Text="{l:Localize lblToolboxStagingClear}" Clicked="OnClearStagingClicked" />
+                        <Label x:Name="StagingStatusLabel" FontSize="12" Opacity="0.8" />
+                    </VerticalStackLayout>
+                </Border>
+
                 <!-- ============ Service menu ============ -->
                 <Border Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="8">

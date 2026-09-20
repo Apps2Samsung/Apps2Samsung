@@ -246,6 +246,21 @@
                                              TextWrapping="Wrap" MaxHeight="160"/>
                     </StackPanel>
 
+                    <!-- ============ Install leftovers ============ -->
+                    <!-- sdbd's "0 rmfile": empties the staging folder every install pushes into and
+                         never clears. Installed apps are not involved. Needs Developer Mode. -->
+                    <TextBlock Classes="section" Text="{l:Localize lblToolboxStaging}" Margin="0,12,0,0"/>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxStagingHint}"/>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsEnabled="{Binding HasSdb}">
+                        <Button Grid.Column="0" Classes="action" Width="120"
+                                Content="{l:Localize lblToolboxStagingClear}"
+                                Command="{Binding ClearStagingCommand}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding StagingStatus}" FontSize="12" Opacity="0.8"
+                                   TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </Grid>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxStagingNeedsSdb}"
+                               IsVisible="{Binding !HasSdb}"/>
+
                     <!-- ============ Service menu ============ -->
                     <TextBlock Classes="section" Text="{l:Localize lblToolboxSequences}" Margin="0,12,0,0"/>
                     <TextBlock Classes="hint" Text="{l:Localize lblToolboxSequencesHint}"/>
