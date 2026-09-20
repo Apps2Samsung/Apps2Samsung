@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "要從 {1} 移除「{0}」嗎？\n\n（{2}）",
   "lblDebugStarted": "偵錯已開始",
   "statusDebugStarted": "應用程式正在電視上以偵錯模式執行，偵錯工具已轉送至 localhost:{0}。\n\n無法為您開啟檢查器 - 請在瀏覽器開啟 'chrome://inspect' 或 'edge://inspect' 以連接電視。",
+  "lblDebugClearLog": "Clear",
   "lblRemoveLeftoverTitle": "移除殘留項目",
   "statusRemoveLeftoverPrompt": "請輸入要移除的殘留／未完成安裝的套件 ID：",
   "statusConfirmForceRemove": "要從 {1} 強制移除套件「{0}」嗎？",

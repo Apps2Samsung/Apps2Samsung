@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "Poista \"{0}\" {1}?\n\n({2})",
   "lblDebugStarted": "Vianetsintä aloitettu",
   "statusDebugStarted": "Sovellus on nyt käynnissä vianjäljitystilassa televisiossa, ja debuggeri on siirretty eteenpäin localhost:{0}.\n\nTarkastajaa ei voitu avata sinulle - avaa 'chrome://inspect' tai 'edge://inspect' selaimessasi liittääksesi televisioon.",
+  "lblDebugClearLog": "Clear",
   "lblRemoveLeftoverTitle": "Poista jäännös",
   "statusRemoveLeftoverPrompt": "Syötä jäljellä olevan / osittaisen asennuksen paketin tunnus poistaaksesi:",
   "statusConfirmForceRemove": "Pakotteiden poistaminen paketti \"{0}\" {1}?",

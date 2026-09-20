@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "إزالة \"{0}\" من {1}؟\n\n({2})",
   "lblDebugStarted": "بدأ التصحيح",
   "statusDebugStarted": "يعمل التطبيق الآن في وضع التصحيح على التلفزيون، مع إعادة توجيه تصحيح الأخطاء إلى المضيف المحلي:{0}.\n\nتعذر فتح المفتش لك - فتح 'chrome://inspect' أو 'edge://inspect' في المتصفح الخاص بك لإرفاقه إلى التلفزيون.",
+  "lblDebugClearLog": "Clear",
   "lblRemoveLeftoverTitle": "إزالة من اليسار",
   "statusRemoveLeftoverPrompt": "أدخل معرف الحزمة من التثبيت المتبقي/الجزئي لإزالتها:",
   "statusConfirmForceRemove": "إزالة قسرية الحزمة \"{0}\" من {1}؟",

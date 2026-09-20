@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "Remove \"{0}\" from {1}?\n\n({2})",
   "lblDebugStarted": "Εκκίνηση αποσφαλμάτωσης",
   "statusDebugStarted": "Η εφαρμογή εκτελείται τώρα σε λειτουργία αποσφαλμάτωσης στην τηλεόραση, με τον αποσφαλματωτή να προωθείται στον localhost:{0}.\n\nΟ επιθεωρητής δεν μπορούσε να ανοίξει για εσάς - ανοίξτε το 'chrome://inspect' ή το 'edge://inspect' στο πρόγραμμα περιήγησής σας για να επισυνάψετε στην τηλεόραση.",
+  "lblDebugClearLog": "Clear",
   "lblRemoveLeftoverTitle": "Αφαίρεση υπολειμμάτων",
   "statusRemoveLeftoverPrompt": "Εισάγετε το αναγνωριστικό πακέτου ενός υπόλοιπου/μερικής εγκατάστασης για αφαίρεση:",
   "statusConfirmForceRemove": "Force-remove package \"{0}\" from {1}?",

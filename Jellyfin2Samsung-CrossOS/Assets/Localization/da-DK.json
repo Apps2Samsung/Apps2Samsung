@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "Fjern \"{0}\" fra {1}?\n\n({2})",
   "lblDebugStarted": "Fejlfinding startet",
   "statusDebugStarted": "Appen kører nu i fejlfindingstilstand på tv, med debuggeren videresendt til localhost:{0}.\n\nInspektøren kunne ikke åbnes for dig - åbn 'chrome://inspt' eller 'edge://inspt' i din browser for at vedhæfte til TV.",
+  "lblDebugClearLog": "Ryd",
   "lblRemoveLeftoverTitle": "Fjern rester",
   "statusRemoveLeftoverPrompt": "Indtast pakkenummeret for en rest/delvis installation for at fjerne:",
   "statusConfirmForceRemove": "Tving fjern pakke \"{0}\" fra {1}?",

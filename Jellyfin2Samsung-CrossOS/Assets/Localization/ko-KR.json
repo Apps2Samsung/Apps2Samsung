@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "{1}에서 \"{0}\"을(를) 삭제할까요?\n\n({2})",
   "lblDebugStarted": "디버그 시작됨",
   "statusDebugStarted": "앱이 TV에서 디버그 모드로 실행 중이며, 디버거가 localhost:{0}으로 전달되었습니다.\n\n인스펙터를 자동으로 열지 못했습니다. 브라우저에서 'chrome://inspect' 또는 'edge://inspect'를 열어 TV에 연결하세요.",
+  "lblDebugClearLog": "Clear",
   "lblRemoveLeftoverTitle": "잔여 설치 제거",
   "statusRemoveLeftoverPrompt": "제거할 잔여/미완료 설치의 패키지 ID를 입력하세요:",
   "statusConfirmForceRemove": "{1}에서 \"{0}\" 패키지를 강제로 제거할까요?",

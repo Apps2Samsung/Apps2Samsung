@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "Уклонити „{0}“ са {1}?\n\n({2})",
   "lblDebugStarted": "Отклањање грешака покренуто",
   "statusDebugStarted": "Апликација сада ради на телевизору у режиму за отклањање грешака, а дебагер је прослеђен на localhost:{0}.\n\nИнспектор није могао да се отвори - отворите 'chrome://inspect' или 'edge://inspect' у прегледачу да се повежете са телевизором.",
+  "lblDebugClearLog": "Clear",
   "lblRemoveLeftoverTitle": "Уклони остатке",
   "statusRemoveLeftoverPrompt": "Унесите ID пакета заосталог/недовршеног инсталирања које треба уклонити:",
   "statusConfirmForceRemove": "Присилно уклонити пакет „{0}“ са {1}?",

@@ -374,6 +374,7 @@
   "statusConfirmUninstall": "Verwyder \"{0}\" van {1}?\n\n({2})",
   "lblDebugStarted": "Ontfouting begin",
   "statusDebugStarted": "Die program loop nou in ontfoutmodus op die TV, met die ontfouter aangestuur na localhost:{0}.\n\nDie inspekteur kon nie vir jou oopgemaak word nie - maak 'chrome://inspect' of 'edge://inspect' in jou blaaier oop om aan die TV te koppel.",
+  "lblDebugClearLog": "Clear",
   "lblRemoveLeftoverTitle": "Verwyder oorblyfsel",
   "statusRemoveLeftoverPrompt": "Voer die pakket-ID in van die oorblywende/halwe installasie wat verwyder moet word:",
   "statusConfirmForceRemove": "Verwyder pakket \"{0}\" geforseerd van {1}?",

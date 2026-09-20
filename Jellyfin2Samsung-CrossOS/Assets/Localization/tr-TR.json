@@ -382,6 +382,7 @@
   "statusConfirmUninstall": "\"{0}\" {1} cihazından kaldırılsın mı?\n\n({2})",
   "lblDebugStarted": "Hata ayıklama başladı",
   "statusDebugStarted": "Uygulama şimdi TV'de hata ayıklama modunda çalışıyor ve hata ayıklayıcı localhost:{0} adresine yönlendirildi.\n\nİnceleyici sizin için açılamadı - TV'ye bağlanmak için tarayıcınızda 'chrome://inspect' veya 'edge://inspect' adresini açın.",
+  "lblDebugClearLog": "Temizle",
   "lblRemoveLeftoverTitle": "Artıkları kaldır",
   "statusRemoveLeftoverPrompt": "Kaldırılacak artık/yarım kalmış kurulumun paket kimliğini girin:",
   "statusConfirmForceRemove": "\"{0}\" paketi {1} cihazından zorla kaldırılsın mı?",
