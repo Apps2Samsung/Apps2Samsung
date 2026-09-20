@@ -93,6 +93,10 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private string agentStatus = string.Empty;
 
+        /// <summary>The install-leftovers card's own status line.</summary>
+        [ObservableProperty]
+        private string stagingStatus = string.Empty;
+
         [ObservableProperty]
         private string agentFilter = string.Empty;
 
@@ -307,6 +311,46 @@ namespace Apps2Samsung.ViewModels
                 };
 
                 IsConnected = remote?.IsConnected == true;
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        // ---------------------------------------------------------------------------------------
+        // Install leftovers
+        // ---------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Empties the TV's install staging folder, where every package this app ever pushed is still
+        /// sitting. On request only: nothing in the install flow calls this.
+        /// </summary>
+        [RelayCommand]
+        private async Task ClearStaging()
+        {
+            if (_sdb is null)
+            {
+                StagingStatus = "lblToolboxStagingNeedsSdb".Localized();
+                return;
+            }
+
+            if (IsBusy)
+                return;
+
+            IsBusy = true;
+            try
+            {
+                StagingStatus = "lblToolboxStagingClearing".Localized();
+                var result = await _sdb.ClearInstallStagingAsync(_tvIp);
+                StagingStatus = result.ExitCode == 0
+                    ? "lblToolboxStagingCleared".Localized()
+                    : string.Format("lblToolboxStagingFailed".Localized(),
+                        string.IsNullOrWhiteSpace(result.Error) ? result.Output.Trim() : result.Error.Trim());
+            }
+            catch (Exception ex)
+            {
+                StagingStatus = string.Format("lblToolboxStagingFailed".Localized(), ex.Message);
             }
             finally
             {

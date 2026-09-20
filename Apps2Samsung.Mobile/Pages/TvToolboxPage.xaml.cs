@@ -62,6 +62,8 @@ public partial class TvToolboxPage : ContentPage
 		_installWgt = installWgt;
 		AgentCard.IsEnabled = sdb is not null;
 		AgentNeedsSdbHint.IsVisible = sdb is null;
+		StagingCard.IsEnabled = sdb is not null;
+		StagingNeedsSdbHint.IsVisible = sdb is null;
 
 		// The TV's own menus, addressed by id (#641). Fixed, not filtered: a short list to try in
 		// order, not something to search.
@@ -227,6 +229,45 @@ public partial class TvToolboxPage : ContentPage
 				{ TvReply: not null } => string.Format(L10n.Get("lblToolboxLaunchRefused"), target.Name, result.TvReply),
 				_ => string.Format(L10n.Get("lblToolboxLaunchFailed"), target.Name),
 			});
+		}
+		finally
+		{
+			_busy = false;
+		}
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Install leftovers
+	// ---------------------------------------------------------------------------------------------
+
+	/// <summary>
+	/// Empties the TV's install staging folder, where every package this app ever pushed is still
+	/// sitting. On request only: nothing in the install flow calls this.
+	/// </summary>
+	private async void OnClearStagingClicked(object? sender, EventArgs e)
+	{
+		if (_sdb is null)
+		{
+			StagingStatusLabel.Text = L10n.Get("lblToolboxStagingNeedsSdb");
+			return;
+		}
+
+		if (_busy)
+			return;
+
+		_busy = true;
+		try
+		{
+			StagingStatusLabel.Text = L10n.Get("lblToolboxStagingClearing");
+			var result = await _sdb.ClearInstallStagingAsync(_tvIp);
+			StagingStatusLabel.Text = result.ExitCode == 0
+				? L10n.Get("lblToolboxStagingCleared")
+				: string.Format(L10n.Get("lblToolboxStagingFailed"),
+					string.IsNullOrWhiteSpace(result.Error) ? result.Output.Trim() : result.Error.Trim());
+		}
+		catch (Exception ex)
+		{
+			StagingStatusLabel.Text = string.Format(L10n.Get("lblToolboxStagingFailed"), ex.Message);
 		}
 		finally
 		{
