@@ -1,0 +1,118 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:Apps2Samsung.Extensions"
+        xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+        xmlns:diag="clr-namespace:Apps2Samsung.Diagnostics;assembly=Apps2Samsung.Core"
+        x:Class="Apps2Samsung.Views.DebugConsoleWindow"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        x:Name="Root"
+        x:DataType="viewModels:DebugConsoleViewModel"
+        Width="900" MinWidth="560"
+        Height="640" MinHeight="380"
+        WindowStartupLocation="CenterOwner"
+        Title="{Binding WindowTitle}">
+
+    <Window.Styles>
+        <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>
+        <StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+        <StyleInclude Source="avares://Apps2Samsung/Styles/TextBlocks.axaml"/>
+    </Window.Styles>
+
+    <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" Padding="16">
+        <DockPanel LastChildFill="True">
+
+            <!-- Header: title, status pill, which page is being inspected -->
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+                <StackPanel Grid.Column="0" Spacing="6">
+                    <TextBlock Text="{l:Localize lblDebugConsole}" FontSize="18" FontWeight="SemiBold"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <Border CornerRadius="10" Padding="8,3" Background="{Binding StatusBrush}" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding StatusText}" FontSize="11" FontWeight="SemiBold" Foreground="White"/>
+                        </Border>
+                        <TextBlock Text="{Binding Subtitle}" FontSize="12" Opacity="0.6" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+                    <!-- Only shown when the TV reports more than one page for the app -->
+                    <ComboBox ItemsSource="{Binding Targets}" SelectedItem="{Binding SelectedTarget}"
+                              IsVisible="{Binding HasMultipleTargets}" MinWidth="180"
+                              ToolTip.Tip="{l:Localize lblDebugPickTarget}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="diag:DevToolsTarget">
+                                <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button Content="{l:Localize lblDebugOpenInBrowser}" Command="{Binding OpenInBrowserCommand}"
+                            IsEnabled="{Binding CanOpenInBrowser}"
+                            ToolTip.Tip="{l:Localize hintDebugOpenInBrowser}"/>
+                    <Button Content="✕" Command="{Binding CloseCommand}"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Expression prompt -->
+            <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,8,0,0">
+                <TextBox Grid.Column="0" x:Name="EvalBox" Text="{Binding Expression}" Watermark="{l:Localize lblDebugEvaluate}"
+                         FontFamily="Consolas,Menlo,DejaVu Sans Mono,monospace" FontSize="13"
+                         IsEnabled="{Binding CanEvaluate}" KeyDown="OnEvalKeyDown"/>
+                <Button Grid.Column="1" Content="▸" Command="{Binding EvaluateCommand}" IsEnabled="{Binding CanEvaluate}"
+                        MinWidth="44" ToolTip.Tip="{l:Localize lblDebugEvaluate}"/>
+            </Grid>
+
+            <!-- Log actions -->
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
+                <Button Content="{l:Localize lblDebugClearLog}" Command="{Binding ClearLogCommand}" IsEnabled="{Binding HasRows}"/>
+                <Button Content="{l:Localize lblDebugCopyLog}" Command="{Binding CopyLogCommand}"
+                        CommandParameter="{Binding #Root}" IsEnabled="{Binding HasRows}"/>
+                <Button Content="{l:Localize lblSaveLogs}" Command="{Binding SaveLogCommand}"
+                        CommandParameter="{Binding #Root}" IsEnabled="{Binding HasRows}"/>
+            </StackPanel>
+
+            <!-- Busy bar while attaching -->
+            <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" Height="3" Margin="0,0,0,6"
+                         IsVisible="{Binding IsAttaching}"/>
+
+            <!-- Log output. Dark regardless of theme: it is a console, and the level colours are
+                 tuned for a dark ground. Mirrors the phone's console row for row. -->
+            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1"
+                    Background="#12161A" CornerRadius="4" Padding="2">
+                <Grid>
+                    <TextBlock Text="{l:Localize lblDebugNoOutput}" Foreground="#7A8691" FontSize="12"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap"
+                               TextAlignment="Center" Margin="24" IsVisible="{Binding !HasRows}"/>
+                    <ListBox x:Name="LogList" ItemsSource="{Binding Rows}" Background="Transparent"
+                             SelectionMode="Single" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.Styles>
+                            <Style Selector="ListBoxItem">
+                                <Setter Property="Padding" Value="8,2"/>
+                                <Setter Property="MinHeight" Value="0"/>
+                            </Style>
+                        </ListBox.Styles>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="viewModels:ConsoleRowViewModel">
+                                <Grid ColumnDefinitions="64,*" ColumnSpacing="8">
+                                    <TextBlock Grid.Column="0" Text="{Binding Clock}" FontSize="11"
+                                               FontFamily="Consolas,Menlo,DejaVu Sans Mono,monospace"
+                                               Foreground="#5C6773" VerticalAlignment="Top"/>
+                                    <StackPanel Grid.Column="1" Spacing="1">
+                                        <SelectableTextBlock Text="{Binding Text}" FontSize="12.5"
+                                                             FontFamily="Consolas,Menlo,DejaVu Sans Mono,monospace"
+                                                             Foreground="{Binding Brush}" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding Origin}" FontSize="10"
+                                                   FontFamily="Consolas,Menlo,DejaVu Sans Mono,monospace"
+                                                   Foreground="#5C6773" IsVisible="{Binding HasOrigin}"
+                                                   TextTrimming="PrefixCharacterEllipsis"/>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+        </DockPanel>
+    </Border>
+</Window>
