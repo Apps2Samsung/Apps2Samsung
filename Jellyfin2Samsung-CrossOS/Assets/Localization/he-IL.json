@@ -362,6 +362,7 @@
   "lblRemoteWakeFailed": "הטלוויזיה לא התעוררה. בדקו את ההגדרה \"הפעלה באמצעות נייד\" בהגדרות הרשת שלה.",
   "lblRemoteSelectTvFirst": "בחרו תחילה טלוויזיה.",
   "lblRemoteNoAnswerNoMac": "אין מענה. הדליקו את הטלוויזיה פעם אחת עם השלט שלה, ואז הדף הזה יוכל להעיר אותה.",
+  "lblToolboxStagingClear": "Clear",
   "lblSysAppSettings": "הגדרות",
   "lblToolboxSend": "שלח",
   "lblToolboxLaunching": "מפעיל את {0}...",

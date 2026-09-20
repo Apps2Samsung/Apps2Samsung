@@ -362,6 +362,7 @@
   "lblRemoteWakeFailed": "The room was very small and the bathroom was very small.",
   "lblRemoteSelectTvFirst": "Сначала выберите телевизор.",
   "lblRemoteNoAnswerNoMac": "Нет ответа. Включите телевизор с его собственным пультом один раз, затем эта страница может пробудить его.",
+  "lblToolboxStagingClear": "Clear",
   "lblSysAppSettings": "Настройки",
   "lblToolboxSend": "Отправить",
   "lblToolboxLaunching": "Запуск {0}...",

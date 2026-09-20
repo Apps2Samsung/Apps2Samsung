@@ -362,6 +362,7 @@
   "lblRemoteWakeFailed": "Die TV het nie wakker geword nie. Gaan \"Power On with Mobile\" in sy netwerkinstellings na.",
   "lblRemoteSelectTvFirst": "Kies eers 'n TV.",
   "lblRemoteNoAnswerNoMac": "Geen antwoord nie. Skakel die TV een keer met sy eie afstandbeheer aan, dan kan hierdie bladsy dit wakker maak.",
+  "lblToolboxStagingClear": "Clear",
   "lblSysAppSettings": "Instellings",
   "lblToolboxSend": "Stuur",
   "lblToolboxLaunching": "Begin {0}...",
