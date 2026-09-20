@@ -37,10 +37,10 @@ namespace Apps2Samsung.Sdb
     /// Puts an installed app into web-inspector debug mode and tunnels the inspector back to this
     /// device, so a DevTools client can attach to it.
     ///
-    /// Shared by both heads because only the last step differs: the desktop hands the local port to
-    /// Chrome's <c>chrome://inspect</c>, while the mobile head speaks the DevTools protocol itself
-    /// (see <c>Apps2Samsung.Diagnostics.DevToolsInspector</c>) — Chrome on Android has no
-    /// <c>chrome://inspect</c> to hand off to.
+    /// Shared by both heads: each attaches its own <see cref="Apps2Samsung.Diagnostics.DevToolsConsole"/>
+    /// to the tunnelled inspector (see <c>Apps2Samsung.Diagnostics.DevToolsInspector</c>). The
+    /// desktop can additionally open the TV-hosted DevTools frontend in a browser; Chrome on Android
+    /// has no <c>chrome://inspect</c> to hand off to, so the phone never does.
     /// </summary>
     public static class TizenAppDebugger
     {
