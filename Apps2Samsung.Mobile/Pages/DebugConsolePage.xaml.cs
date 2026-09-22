@@ -43,6 +43,10 @@ public partial class DebugConsolePage : ContentPage
     private DevToolsConsole? _serviceConsole;
     private string _serviceId = string.Empty;
     private bool _serviceBusy;
+    private bool _networkEnabled;
+
+    // What a network line is tagged with, the way a service's lines are tagged with its id.
+    private static readonly string NetworkSource = L10n.Get("lblDebugNetwork");
 
     public DebugConsolePage(ISdbEngine sdb, string tvIp, string tizenId, string appName)
     {
@@ -105,6 +109,7 @@ public partial class DebugConsolePage : ContentPage
             var console = new DevToolsConsole();
             console.EntryReceived += OnEntryReceived;
             console.Disconnected += OnDisconnected;
+            console.NetworkRequestCompleted += OnNetworkRequestCompleted;
             await console.ConnectAsync(target.WebSocketUrl);
             _console = console;
 
@@ -166,6 +171,7 @@ public partial class DebugConsolePage : ContentPage
         {
             _console.EntryReceived -= OnEntryReceived;
             _console.Disconnected -= OnDisconnected;
+            _console.NetworkRequestCompleted -= OnNetworkRequestCompleted;
             try { await _console.DisposeAsync(); } catch (Exception ex) { Trace.WriteLine($"[debug] console teardown: {ex.Message}"); }
             _console = null;
         }
@@ -251,6 +257,42 @@ public partial class DebugConsolePage : ContentPage
                 null));
         }
     }
+
+    /// <summary>
+    /// Turns the inspector's request timings on or off. Off to begin with, and deliberately: a page
+    /// loading a grid of posters reports several events per image, all of them over the SDB tunnel.
+    /// </summary>
+    private async void OnNetworkClicked(object? sender, EventArgs e)
+    {
+        var console = _console;
+        if (console is null)
+            return;
+
+        var enabled = !_networkEnabled;
+        try
+        {
+            await console.SetNetworkEnabledAsync(enabled);
+            _networkEnabled = enabled;
+            NetworkBtn.Text = L10n.Get(enabled ? "lblDebugNetworkOn" : "lblDebugNetwork");
+            Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Debug,
+                L10n.Get(enabled ? "statusNetworkOn" : "statusNetworkOff"), null, NetworkSource));
+        }
+        catch (Exception ex)
+        {
+            Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Error,
+                string.Format(L10n.Get("statusNetworkFailed"), ex.Message), null, NetworkSource));
+        }
+    }
+
+    // Raised off the UI thread when a request finishes. A failure or an error status is a red line:
+    // those are the ones being looked for when someone turns this on.
+    private void OnNetworkRequestCompleted(NetworkRequest request) =>
+        MainThread.BeginInvokeOnMainThread(() => Append(new ConsoleEntry(
+            request.Started,
+            request.Failed ? ConsoleLevel.Error : ConsoleLevel.Log,
+            request.Summary(),
+            null,
+            NetworkSource)));
 
     /// <summary>
     /// Attaches a second console to a packaged service of the app, or drops the one that is attached.

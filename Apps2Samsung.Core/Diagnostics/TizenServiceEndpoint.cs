@@ -59,24 +59,18 @@ namespace Apps2Samsung.Diagnostics
         private const int ConnectAttempts = 3;
         private static readonly TimeSpan ConnectDelay = TimeSpan.FromMilliseconds(400);
 
-        // Property and field names whose value is a credential often enough that it is masked before
-        // the body is ever shown, copied or exported. Matched anywhere in the name, case-insensitively,
-        // so authToken, X-Api-Key and refresh_secret are all covered. Deliberately narrow around
-        // "session": a session id is a credential, a session count is a diagnostic.
-        private const string SecretNames =
-            "token|password|passwd|secret|api[-_ ]?key|apikey|authoriz|credential|cookie|passphrase|" +
-            "private[-_ ]?key|session[-_ ]?(?:id|key|token)";
-
+        // The same names the rest of the console masks (a URL's query, say), so one transcript does
+        // not mask a token in one line and print it in the next.
         private static readonly Regex SecretName = new(
-            SecretNames, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            SensitiveNames.Pattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         // The same idea for a body that is not JSON: `name: value` / `name=value`, one per line.
         private static readonly Regex SecretAssignment = new(
-            @"(?im)^(?<name>[^\r\n:=]*(?:" + SecretNames + @")[^\r\n:=]*)(?<sep>\s*[:=]\s*)(?<value>\S.*)$",
+            @"(?im)^(?<name>[^\r\n:=]*(?:" + SensitiveNames.Pattern + @")[^\r\n:=]*)(?<sep>\s*[:=]\s*)(?<value>\S.*)$",
             RegexOptions.Compiled);
 
         /// <summary>What a masked value is replaced with, in JSON and in plain text alike.</summary>
-        public const string MaskedValue = "••• masked •••";
+        public const string MaskedValue = SensitiveNames.MaskedValue;
 
         // Indented, and without the default escaping of everything outside ASCII: this JSON is read,
         // copied into an issue and exported as text — never served — so "é" and the mask's bullets

@@ -37,7 +37,7 @@
 
         <!-- A packaged service: its own console (it runs in its own process, so the app's console
              never shows it), and a query against an endpoint it serves on the TV's loopback. -->
-        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="8">
+        <Grid Grid.Row="2" ColumnDefinitions="*,*,*" ColumnSpacing="8">
             <Button Grid.Column="0" x:Name="ServiceBtn" Text="{l:Localize lblServiceLog}" FontSize="12"
                     BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="10,6"
                     BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
@@ -48,6 +48,11 @@
                     BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
                     TextColor="{AppThemeBinding Light=#2C3E50, Dark=#ECEFF1}"
                     Clicked="OnEndpointClicked" />
+            <Button Grid.Column="2" x:Name="NetworkBtn" Text="{l:Localize lblDebugNetwork}" FontSize="12"
+                    BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="10,6"
+                    BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                    TextColor="{AppThemeBinding Light=#2C3E50, Dark=#ECEFF1}"
+                    Clicked="OnNetworkClicked" />
         </Grid>
 
         <!-- Log output. Dark regardless of theme: it is a console, and the level colours are
