@@ -59,6 +59,9 @@ namespace Apps2Samsung.ViewModels
         /// <summary>Ids installed under the app's own package — what a packaged service is called, when the TV lists it.</summary>
         public ObservableCollection<string> ServiceSuggestions { get; } = new();
 
+        // What a network line is tagged with, the way a service's lines are tagged with its id.
+        private static readonly string NetworkSource = "lblDebugNetwork".Localized();
+
         public string AppName => _app.DisplayName;
         public string TizenId => _app.TizenId;
         public string WindowTitle => $"{"lblDebugConsole".Localized()} · {_app.DisplayName}";
@@ -112,6 +115,10 @@ namespace Apps2Samsung.ViewModels
 
         [ObservableProperty]
         private string endpointPath = "/diagnostics";
+
+        /// <summary>Whether the inspector reports request timings; off until asked for.</summary>
+        [ObservableProperty]
+        private bool networkEnabled;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(CanQueryEndpoint))]
@@ -211,8 +218,14 @@ namespace Apps2Samsung.ViewModels
             var console = new DevToolsConsole();
             console.EntryReceived += OnEntryReceived;
             console.Disconnected += OnDisconnected;
+            console.NetworkRequestCompleted += OnNetworkRequestCompleted;
             await console.ConnectAsync(target.WebSocketUrl);
             _console = console;
+
+            // The switch survives a target change: the user asked for timings, not for timings on one
+            // particular page.
+            if (NetworkEnabled)
+                await console.SetNetworkEnabledAsync(true);
 
             _switchingTarget = true;
             SelectedTarget = target;
@@ -261,6 +274,7 @@ namespace Apps2Samsung.ViewModels
 
             _console.EntryReceived -= OnEntryReceived;
             _console.Disconnected -= OnDisconnected;
+            _console.NetworkRequestCompleted -= OnNetworkRequestCompleted;
             try { await _console.DisposeAsync(); }
             catch (Exception ex) { Trace.WriteLine($"[debug] console teardown: {ex.Message}"); }
             _console = null;
@@ -473,6 +487,41 @@ namespace Apps2Samsung.ViewModels
                 string.Format("statusServiceLogEnded".Localized(), id,
                     reason ?? "statusServiceLogEndedQuietly".Localized()), null, id));
         });
+
+        partial void OnNetworkEnabledChanged(bool value) => _ = ApplyNetworkAsync(value);
+
+        /// <summary>
+        /// Turns request timings on or off on the attached console. Nothing to apply while detached —
+        /// the switch is read again on the next attach.
+        /// </summary>
+        private async Task ApplyNetworkAsync(bool enabled)
+        {
+            var console = _console;
+            if (console is null)
+                return;
+
+            try
+            {
+                await console.SetNetworkEnabledAsync(enabled);
+                Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Debug,
+                    (enabled ? "statusNetworkOn" : "statusNetworkOff").Localized(), null, NetworkSource));
+            }
+            catch (Exception ex)
+            {
+                Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Error,
+                    string.Format("statusNetworkFailed".Localized(), ex.Message), null, NetworkSource));
+            }
+        }
+
+        // Raised off the UI thread when a request finishes. A failure or an error status is a red line:
+        // those are the ones being looked for when someone turns this on.
+        private void OnNetworkRequestCompleted(NetworkRequest request) => Dispatcher.UIThread.Post(() =>
+            Append(new ConsoleEntry(
+                request.Started,
+                request.Failed ? ConsoleLevel.Error : ConsoleLevel.Log,
+                request.Summary(),
+                null,
+                NetworkSource)));
 
         /// <summary>
         /// GETs a path from a port on the TV's loopback address and writes the answer into the

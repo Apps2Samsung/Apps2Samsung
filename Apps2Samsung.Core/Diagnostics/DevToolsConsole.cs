@@ -55,8 +55,19 @@ namespace Apps2Samsung.Diagnostics
         private Task? _receiveLoop;
         private int _nextId;
 
+        private readonly DevToolsNetworkTracker _network = new();
+
         /// <summary>Raised for every console line, off the UI thread — marshal before touching the UI.</summary>
         public event Action<ConsoleEntry>? EntryReceived;
+
+        /// <summary>
+        /// Raised for every request the app finishes, off the UI thread, once network reporting is on
+        /// (<see cref="SetNetworkEnabledAsync"/>).
+        /// </summary>
+        public event Action<NetworkRequest>? NetworkRequestCompleted;
+
+        /// <summary>Whether the Network domain is reporting; off until asked for.</summary>
+        public bool IsNetworkEnabled { get; private set; }
 
         /// <summary>Raised once when the connection ends, with the reason (null = closed on request).</summary>
         public event Action<string?>? Disconnected;
@@ -80,6 +91,22 @@ namespace Apps2Samsung.Diagnostics
             // a blank screen when the app's own logging says nothing.
             await SendCommandAsync("Runtime.enable", null, ct);
             await SendCommandAsync("Log.enable", null, ct);
+        }
+
+        /// <summary>
+        /// Turns the Network domain on or off. Off by default, and deliberately: an app loading a grid
+        /// of posters produces several events per image, all of them crossing the SDB tunnel, and
+        /// nobody watching a console for a log line wants to pay for that. On, every finished request
+        /// arrives at <see cref="NetworkRequestCompleted"/> with its timings.
+        /// </summary>
+        public async Task SetNetworkEnabledAsync(bool enabled, CancellationToken ct = default)
+        {
+            await SendCommandAsync(enabled ? "Network.enable" : "Network.disable", null, ct);
+            IsNetworkEnabled = enabled;
+
+            // What was in flight at the switch can never be completed now, so it is not kept.
+            if (!enabled)
+                _network.Reset();
         }
 
         /// <summary>
@@ -248,7 +275,17 @@ namespace Apps2Samsung.Diagnostics
                 return;
             }
 
-            var entry = ToEntry(Str(message["method"]), message["params"]);
+            var method = Str(message["method"]);
+
+            // The Network domain is its own stream: timings, not console lines.
+            if (method is not null && method.StartsWith("Network.", StringComparison.Ordinal))
+            {
+                if (_network.Handle(method, message["params"]) is NetworkRequest request)
+                    NetworkRequestCompleted?.Invoke(request);
+                return;
+            }
+
+            var entry = ToEntry(method, message["params"]);
             if (entry is not null)
                 EntryReceived?.Invoke(entry);
         }

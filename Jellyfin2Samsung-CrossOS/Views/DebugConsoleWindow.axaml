@@ -46,6 +46,8 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
+                    <CheckBox Content="{l:Localize lblDebugNetwork}" IsChecked="{Binding NetworkEnabled}"
+                              VerticalAlignment="Center" ToolTip.Tip="{l:Localize hintDebugNetwork}"/>
                     <Button Content="{l:Localize lblDebugOpenInBrowser}" Command="{Binding OpenInBrowserCommand}"
                             IsEnabled="{Binding CanOpenInBrowser}"
                             ToolTip.Tip="{l:Localize hintDebugOpenInBrowser}"/>
