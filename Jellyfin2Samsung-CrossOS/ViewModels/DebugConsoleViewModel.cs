@@ -47,8 +47,17 @@ namespace Apps2Samsung.ViewModels
         private bool _switchingTarget;
         private bool _detaching;
 
+        // A packaged service runs in its own process, so its console is its own debug session next to
+        // the app's: a second tunnel, a second protocol connection, one shared transcript.
+        private IAsyncDisposable? _serviceSession;
+        private DevToolsConsole? _serviceConsole;
+        private string _attachedServiceId = string.Empty;
+
         public ObservableCollection<ConsoleRowViewModel> Rows { get; } = new();
         public ObservableCollection<DevToolsTarget> Targets { get; } = new();
+
+        /// <summary>Ids installed under the app's own package — what a packaged service is called, when the TV lists it.</summary>
+        public ObservableCollection<string> ServiceSuggestions { get; } = new();
 
         public string AppName => _app.DisplayName;
         public string TizenId => _app.TizenId;
@@ -83,10 +92,41 @@ namespace Apps2Samsung.ViewModels
         [NotifyPropertyChangedFor(nameof(CanOpenInBrowser))]
         private DevToolsTarget? selectedTarget;
 
+        /// <summary>The packaged service to attach a second console to; free text, since the TV's listing may not name it.</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CanAttachService))]
+        private string serviceId = string.Empty;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CanAttachService))]
+        private bool isServiceBusy;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsServiceDetached))]
+        private bool isServiceAttached;
+
+        /// <summary>Port the service listens on, on the TV's own loopback address.</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CanQueryEndpoint))]
+        private string endpointPort = string.Empty;
+
+        [ObservableProperty]
+        private string endpointPath = "/diagnostics";
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CanQueryEndpoint))]
+        private bool isQueryingEndpoint;
+
         public bool HasMultipleTargets => Targets.Count > 1;
         public bool HasRows => Rows.Count > 0;
         public bool CanEvaluate => IsAttached && !IsAttaching;
         public bool CanOpenInBrowser => SelectedTarget is not null && !IsAttaching;
+        public bool CanAttachService => !IsServiceBusy && !string.IsNullOrWhiteSpace(ServiceId);
+        public bool CanQueryEndpoint => !IsQueryingEndpoint && ParsedEndpointPort is not null;
+        public bool IsServiceDetached => !IsServiceAttached;
+
+        private int? ParsedEndpointPort =>
+            int.TryParse(EndpointPort?.Trim(), out var port) && port is >= 1 and <= 65535 ? port : null;
 
         /// <summary>Raised once the console is streaming, with the local inspector port.</summary>
         public event Action<int>? Attached;
@@ -148,6 +188,7 @@ namespace Apps2Samsung.ViewModels
                 // first and let the picker in the header switch — no modal question on the way in.
                 await ConnectAsync(targets[0]);
                 Attached?.Invoke(port);
+                _ = LoadServiceSuggestionsAsync();
             }
             catch (Exception ex)
             {
@@ -234,12 +275,20 @@ namespace Apps2Samsung.ViewModels
             _detaching = true;
 
             await CloseConsoleAsync();
+            await CloseServiceConsoleAsync();
 
             if (_session is not null)
             {
                 try { await _session.DisposeAsync(); }
                 catch (Exception ex) { Trace.WriteLine($"[debug] tunnel teardown: {ex.Message}"); }
                 _session = null;
+            }
+
+            if (_serviceSession is not null)
+            {
+                try { await _serviceSession.DisposeAsync(); }
+                catch (Exception ex) { Trace.WriteLine($"[debug] service tunnel teardown: {ex.Message}"); }
+                _serviceSession = null;
             }
 
             SetStatus(ConsoleStatus.Detached);
@@ -269,6 +318,209 @@ namespace Apps2Samsung.ViewModels
             Rows.Add(new ConsoleRowViewModel(entry));
             while (Rows.Count > MaxRows)
                 Rows.RemoveAt(0);
+        }
+
+        // The TV lists what is installed; a packaged service, when it lists one, is an id under the
+        // app's own package. Best-effort and in the background: the console is already streaming, and
+        // the field takes a typed id just as well.
+        private async Task LoadServiceSuggestionsAsync()
+        {
+            try
+            {
+                var installed = await _installer.GetInstalledAppsAsync(_tvIp);
+                var siblings = TizenPackageServices.SiblingIdsOf(installed, _app.TizenId);
+                if (siblings.Count == 0)
+                    return;
+
+                Dispatcher.UIThread.Post(() =>
+                {
+                    foreach (var id in siblings)
+                        ServiceSuggestions.Add(id);
+
+                    if (string.IsNullOrWhiteSpace(ServiceId))
+                        ServiceId = siblings[0];
+                });
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[debug] service suggestions for {_app.TizenId}: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Attaches a second console to a packaged service of the app. The service is relaunched in
+        /// debug mode the same way the app was, because that is the only launch the TV hands an
+        /// inspector port to — so this restarts the service, and with it whatever the app was getting
+        /// from it.
+        /// </summary>
+        [RelayCommand]
+        private async Task AttachService()
+        {
+            var id = ServiceId?.Trim() ?? string.Empty;
+            if (id.Length == 0 || IsServiceBusy || _detaching)
+                return;
+
+            IsServiceBusy = true;
+            try
+            {
+                await CloseServiceConsoleAsync();
+                await CloseServiceTunnelAsync();
+
+                // Same reason as the app: debug mode only reports a port for the launch it performs.
+                try
+                {
+                    await _installer.StopAppAsync(_tvIp, id);
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"[debug] pre-stop of service {id} failed (continuing): {ex.Message}");
+                }
+
+                var (port, session) = await _installer.DebugAppAsync(_tvIp, id, localPort: 0);
+                _serviceSession = session;
+
+                var targets = await DevToolsInspector.ListTargetsAsync(port);
+                var console = new DevToolsConsole();
+                console.EntryReceived += OnServiceEntryReceived;
+                console.Disconnected += OnServiceDisconnected;
+                await console.ConnectAsync(targets[0].WebSocketUrl);
+
+                _serviceConsole = console;
+                _attachedServiceId = id;
+                IsServiceAttached = true;
+                Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Info,
+                    string.Format("statusServiceLogAttached".Localized(), id), null, id));
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[debug] attach to service {id} failed: {ex}");
+                Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Error,
+                    string.Format("statusServiceLogAttachFailed".Localized(), id, ex.Message), null, id));
+                await CloseServiceConsoleAsync();
+                await CloseServiceTunnelAsync();
+            }
+            finally
+            {
+                IsServiceBusy = false;
+            }
+        }
+
+        /// <summary>Drops the service console and its tunnel; the app's console is untouched.</summary>
+        [RelayCommand]
+        private async Task DetachService()
+        {
+            if (IsServiceBusy)
+                return;
+
+            IsServiceBusy = true;
+            try
+            {
+                var id = _attachedServiceId;
+                await CloseServiceConsoleAsync();
+                await CloseServiceTunnelAsync();
+
+                if (id.Length > 0)
+                {
+                    Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Debug,
+                        string.Format("statusServiceLogDetached".Localized(), id), null, id));
+                }
+            }
+            finally
+            {
+                IsServiceBusy = false;
+            }
+        }
+
+        private async Task CloseServiceConsoleAsync()
+        {
+            if (_serviceConsole is null)
+            {
+                IsServiceAttached = false;
+                return;
+            }
+
+            _serviceConsole.EntryReceived -= OnServiceEntryReceived;
+            _serviceConsole.Disconnected -= OnServiceDisconnected;
+            try { await _serviceConsole.DisposeAsync(); }
+            catch (Exception ex) { Trace.WriteLine($"[debug] service console teardown: {ex.Message}"); }
+            _serviceConsole = null;
+            IsServiceAttached = false;
+        }
+
+        private async Task CloseServiceTunnelAsync()
+        {
+            if (_serviceSession is null)
+                return;
+
+            try { await _serviceSession.DisposeAsync(); }
+            catch (Exception ex) { Trace.WriteLine($"[debug] service tunnel teardown: {ex.Message}"); }
+            _serviceSession = null;
+        }
+
+        // Raised off the UI thread by the service's receive loop. Tagged with the service id so the
+        // two processes stay apart in the one transcript.
+        private void OnServiceEntryReceived(ConsoleEntry entry) =>
+            Dispatcher.UIThread.Post(() => Append(entry with { Source = _attachedServiceId }));
+
+        private void OnServiceDisconnected(string? reason) => Dispatcher.UIThread.Post(() =>
+        {
+            var id = _attachedServiceId;
+            IsServiceAttached = false;
+
+            // A service that exits is exactly what this console is here to show, so the reason is a
+            // line in the log rather than a dialog.
+            Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Error,
+                string.Format("statusServiceLogEnded".Localized(), id,
+                    reason ?? "statusServiceLogEndedQuietly".Localized()), null, id));
+        });
+
+        /// <summary>
+        /// GETs a path from a port on the TV's loopback address and writes the answer into the
+        /// transcript — the diagnostics endpoint a packaged service publishes for itself, which
+        /// otherwise takes a shell on the TV that a retail set does not hand out.
+        /// </summary>
+        [RelayCommand]
+        private async Task QueryEndpoint()
+        {
+            if (ParsedEndpointPort is not int port || IsQueryingEndpoint)
+                return;
+
+            var path = TizenServiceEndpoint.NormalizePath(EndpointPath);
+            var source = $"127.0.0.1:{port}";
+            IsQueryingEndpoint = true;
+            try
+            {
+                Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Debug,
+                    $"> GET http://{source}{path}", null, source));
+
+                var result = await _installer.QueryServiceEndpointAsync(_tvIp, port, path);
+
+                Append(new ConsoleEntry(DateTimeOffset.Now,
+                    result.IsSuccess ? ConsoleLevel.Info : ConsoleLevel.Warning,
+                    string.Format("statusServiceEndpointAnswered".Localized(),
+                        result.StatusCode, result.ReasonPhrase ?? string.Empty,
+                        (int)result.Duration.TotalMilliseconds), null, source));
+
+                if (!string.IsNullOrWhiteSpace(result.Body))
+                    Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Log, result.Body, null, source));
+
+                if (result.Masked)
+                {
+                    Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Debug,
+                        "statusServiceEndpointMasked".Localized(), null, source));
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[debug] endpoint query {source}{path} failed: {ex}");
+                Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Error,
+                    string.Format("statusServiceEndpointFailed".Localized(), $"{source}{path}", ex.Message),
+                    null, source));
+            }
+            finally
+            {
+                IsQueryingEndpoint = false;
+            }
         }
 
         [RelayCommand]
@@ -384,6 +636,10 @@ namespace Apps2Samsung.ViewModels
         public string? Origin => _entry.Origin;
         public bool HasOrigin => !string.IsNullOrEmpty(_entry.Origin);
 
+        /// <summary>Which process this line came from; empty for the app's own console.</summary>
+        public string? Source => _entry.Source;
+        public bool HasSource => !string.IsNullOrEmpty(_entry.Source);
+
         // Same level colours as the phone's console, tuned for the dark ground the log sits on.
         public IBrush Brush => _entry.Level switch
         {
@@ -397,8 +653,9 @@ namespace Apps2Samsung.ViewModels
         public string AsTextLine()
         {
             var level = _entry.Level.ToString().ToUpperInvariant();
+            var source = HasSource ? $"[{_entry.Source}] " : string.Empty;
             var origin = HasOrigin ? $"   ({_entry.Origin})" : string.Empty;
-            return $"{Clock} {level,-7} {_entry.Text}{origin}";
+            return $"{Clock} {level,-7} {source}{_entry.Text}{origin}";
         }
 
         private static readonly IBrush ErrorBrush = new SolidColorBrush(Color.Parse("#FF6B6B"));

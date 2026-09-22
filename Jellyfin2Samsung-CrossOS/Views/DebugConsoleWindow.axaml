@@ -71,6 +71,41 @@
                         CommandParameter="{Binding #Root}" IsEnabled="{Binding HasRows}"/>
             </StackPanel>
 
+            <!-- A packaged service: its own console (it runs in its own process, so the app's console
+                 never shows it), and a query against an endpoint it serves on the TV's loopback. -->
+            <Border DockPanel.Dock="Top" Margin="0,0,0,8" Padding="10,8" CornerRadius="4"
+                    Background="{DynamicResource SystemControlBackgroundListLowBrush}"
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1">
+                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto" RowSpacing="6" ColumnSpacing="8">
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:Localize lblServiceLog}"
+                               FontSize="12" VerticalAlignment="Center"/>
+                    <AutoCompleteBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding ServiceSuggestions}"
+                                     Text="{Binding ServiceId, Mode=TwoWay}" FilterMode="Contains"
+                                     MinimumPrefixLength="0" Watermark="{l:Localize lblServiceIdHint}"
+                                     ToolTip.Tip="{l:Localize hintServiceLog}"/>
+                    <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                        <Button Content="{l:Localize lblServiceAttach}" Command="{Binding AttachServiceCommand}"
+                                IsEnabled="{Binding CanAttachService}" IsVisible="{Binding IsServiceDetached}"
+                                ToolTip.Tip="{l:Localize hintServiceLog}"/>
+                        <Button Content="{l:Localize lblServiceDetach}" Command="{Binding DetachServiceCommand}"
+                                IsVisible="{Binding IsServiceAttached}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{l:Localize lblServiceEndpoint}"
+                               FontSize="12" VerticalAlignment="Center"/>
+                    <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="96,*" ColumnSpacing="8">
+                        <TextBox Grid.Column="0" Text="{Binding EndpointPort}"
+                                 Watermark="{l:Localize lblServiceEndpointPort}"/>
+                        <TextBox Grid.Column="1" Text="{Binding EndpointPath}"
+                                 Watermark="{l:Localize lblServiceEndpointPath}"/>
+                    </Grid>
+                    <Button Grid.Row="1" Grid.Column="2" Content="{l:Localize lblServiceQuery}"
+                            Command="{Binding QueryEndpointCommand}" IsEnabled="{Binding CanQueryEndpoint}"
+                            ToolTip.Tip="{l:Localize hintServiceEndpoint}"/>
+                </Grid>
+            </Border>
+
             <!-- Busy bar while attaching -->
             <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" Height="3" Margin="0,0,0,6"
                          IsVisible="{Binding IsAttaching}"/>
@@ -98,6 +133,10 @@
                                                FontFamily="Consolas,Menlo,DejaVu Sans Mono,monospace"
                                                Foreground="#5C6773" VerticalAlignment="Top"/>
                                     <StackPanel Grid.Column="1" Spacing="1">
+                                        <TextBlock Text="{Binding Source}" FontSize="10" FontWeight="SemiBold"
+                                                   FontFamily="Consolas,Menlo,DejaVu Sans Mono,monospace"
+                                                   Foreground="#8E99A4" IsVisible="{Binding HasSource}"
+                                                   TextTrimming="CharacterEllipsis"/>
                                         <SelectableTextBlock Text="{Binding Text}" FontSize="12.5"
                                                              FontFamily="Consolas,Menlo,DejaVu Sans Mono,monospace"
                                                              Foreground="{Binding Brush}" TextWrapping="Wrap"/>

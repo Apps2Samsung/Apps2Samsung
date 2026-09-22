@@ -37,6 +37,13 @@ public partial class DebugConsolePage : ContentPage
     private bool _detaching;
     private bool _scrollQueued;
 
+    // A packaged service runs in its own process, so its console is its own debug session next to the
+    // app's: a second tunnel, a second protocol connection, one shared transcript.
+    private TizenDebugSession? _serviceSession;
+    private DevToolsConsole? _serviceConsole;
+    private string _serviceId = string.Empty;
+    private bool _serviceBusy;
+
     public DebugConsolePage(ISdbEngine sdb, string tvIp, string tizenId, string appName)
     {
         InitializeComponent();
@@ -169,6 +176,8 @@ public partial class DebugConsolePage : ContentPage
             _session = null;
         }
 
+        await CloseServiceAsync();
+
         _detaching = false;
     }
 
@@ -243,6 +252,223 @@ public partial class DebugConsolePage : ContentPage
         }
     }
 
+    /// <summary>
+    /// Attaches a second console to a packaged service of the app, or drops the one that is attached.
+    /// The service is relaunched in debug mode the same way the app was, because that is the only
+    /// launch the TV hands an inspector port to — so this restarts the service, and with it whatever
+    /// the app was getting from it.
+    /// </summary>
+    private async void OnServiceLogClicked(object? sender, EventArgs e)
+    {
+        if (_serviceBusy)
+            return;
+
+        if (_serviceConsole is not null)
+        {
+            var attached = _serviceId;
+            _serviceBusy = true;
+            try
+            {
+                await CloseServiceAsync();
+                Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Debug,
+                    string.Format(L10n.Get("statusServiceLogDetached"), attached), null, attached));
+            }
+            finally
+            {
+                _serviceBusy = false;
+                UpdateServiceButton();
+            }
+            return;
+        }
+
+        var suggestion = await SuggestServiceIdAsync();
+        var id = await DisplayPromptAsync(
+            L10n.Get("lblServiceLog"),
+            L10n.Get("hintServiceLog"),
+            L10n.Get("lblOk"),
+            L10n.Get("lblCancel"),
+            placeholder: L10n.Get("lblServiceIdHint"),
+            initialValue: suggestion);
+
+        id = id?.Trim() ?? string.Empty;
+        if (id.Length == 0)
+            return;
+
+        _serviceBusy = true;
+        SetBusy(true);
+        try
+        {
+            // Same reason as the app: debug mode only reports a port for the launch it performs.
+            try
+            {
+                await _sdb.ShellAsync(_tvIp, $"0 was_kill {id}");
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[debug] pre-stop of service {id} failed (continuing): {ex.Message}");
+            }
+
+            _serviceSession = await TizenAppDebugger.StartAsync(_sdb, _tvIp, id);
+
+            var targets = await DevToolsInspector.ListTargetsAsync(_serviceSession.LocalPort);
+            var console = new DevToolsConsole();
+            console.EntryReceived += OnServiceEntryReceived;
+            console.Disconnected += OnServiceDisconnected;
+            await console.ConnectAsync(targets[0].WebSocketUrl);
+
+            _serviceConsole = console;
+            _serviceId = id;
+            Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Info,
+                string.Format(L10n.Get("statusServiceLogAttached"), id), null, id));
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[debug] attach to service {id} failed: {ex}");
+            Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Error,
+                string.Format(L10n.Get("statusServiceLogAttachFailed"), id, ex.Message), null, id));
+            await CloseServiceAsync();
+        }
+        finally
+        {
+            _serviceBusy = false;
+            SetBusy(false);
+            UpdateServiceButton();
+        }
+    }
+
+    // The TV lists what is installed; a packaged service, when it lists one, is an id under the app's
+    // own package. Only ever a suggestion — the prompt takes a typed id just as well.
+    private async Task<string> SuggestServiceIdAsync()
+    {
+        if (_serviceId.Length > 0)
+            return _serviceId;
+
+        try
+        {
+            var listed = await _sdb.AppsAsync(_tvIp);
+            var siblings = TizenPackageServices.SiblingIdsOf(TizenInstalledApps.Parse(listed?.Output), _tizenId);
+            return siblings.Count > 0 ? siblings[0] : string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[debug] service suggestions for {_tizenId}: {ex.Message}");
+            return string.Empty;
+        }
+    }
+
+    private async Task CloseServiceAsync()
+    {
+        if (_serviceConsole is not null)
+        {
+            _serviceConsole.EntryReceived -= OnServiceEntryReceived;
+            _serviceConsole.Disconnected -= OnServiceDisconnected;
+            try { await _serviceConsole.DisposeAsync(); }
+            catch (Exception ex) { Trace.WriteLine($"[debug] service console teardown: {ex.Message}"); }
+            _serviceConsole = null;
+        }
+
+        if (_serviceSession is not null)
+        {
+            try { await _serviceSession.DisposeAsync(); }
+            catch (Exception ex) { Trace.WriteLine($"[debug] service tunnel teardown: {ex.Message}"); }
+            _serviceSession = null;
+        }
+    }
+
+    // Raised off the UI thread by the service's receive loop. Tagged with the service id so the two
+    // processes stay apart in the one transcript.
+    private void OnServiceEntryReceived(ConsoleEntry entry) =>
+        MainThread.BeginInvokeOnMainThread(() => Append(entry with { Source = _serviceId }));
+
+    private void OnServiceDisconnected(string? reason) => MainThread.BeginInvokeOnMainThread(() =>
+    {
+        // A service that exits is exactly what this console is here to show, so the reason is a line
+        // in the log rather than an alert.
+        Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Error,
+            string.Format(L10n.Get("statusServiceLogEnded"), _serviceId,
+                reason ?? L10n.Get("statusServiceLogEndedQuietly")), null, _serviceId));
+        UpdateServiceButton();
+    });
+
+    private void UpdateServiceButton() =>
+        ServiceBtn.Text = _serviceConsole is not null
+            ? L10n.Get("lblServiceDetach")
+            : L10n.Get("lblServiceLog");
+
+    /// <summary>
+    /// GETs a path from a port on the TV's loopback address and writes the answer into the transcript —
+    /// the diagnostics endpoint a packaged service publishes for itself, which otherwise takes a shell
+    /// on the TV that a retail set does not hand out.
+    /// </summary>
+    private async void OnEndpointClicked(object? sender, EventArgs e)
+    {
+        var typedPort = await DisplayPromptAsync(
+            L10n.Get("lblServiceEndpoint"),
+            L10n.Get("hintServiceEndpoint"),
+            L10n.Get("lblOk"),
+            L10n.Get("lblCancel"),
+            placeholder: L10n.Get("lblServiceEndpointPort"),
+            keyboard: Keyboard.Numeric);
+
+        if (string.IsNullOrWhiteSpace(typedPort))
+            return;
+
+        if (!int.TryParse(typedPort.Trim(), out var port) || port is < 1 or > 65535)
+        {
+            await DisplayAlert(L10n.Get("lblServiceEndpoint"), L10n.Get("statusServicePortInvalid"), L10n.Get("lblOk"));
+            return;
+        }
+
+        var typedPath = await DisplayPromptAsync(
+            L10n.Get("lblServiceEndpoint"),
+            L10n.Get("lblServiceEndpointPathAsk"),
+            L10n.Get("lblOk"),
+            L10n.Get("lblCancel"),
+            placeholder: L10n.Get("lblServiceEndpointPath"),
+            initialValue: L10n.Get("lblServiceEndpointPath"));
+
+        if (typedPath is null)
+            return;
+
+        var path = TizenServiceEndpoint.NormalizePath(typedPath);
+        var source = $"127.0.0.1:{port}";
+
+        SetBusy(true);
+        try
+        {
+            Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Debug,
+                $"> GET http://{source}{path}", null, source));
+
+            var result = await TizenServiceEndpoint.QueryAsync(_sdb, _tvIp, port, path);
+
+            Append(new ConsoleEntry(DateTimeOffset.Now,
+                result.IsSuccess ? ConsoleLevel.Info : ConsoleLevel.Warning,
+                string.Format(L10n.Get("statusServiceEndpointAnswered"),
+                    result.StatusCode, result.ReasonPhrase ?? string.Empty,
+                    (int)result.Duration.TotalMilliseconds), null, source));
+
+            if (!string.IsNullOrWhiteSpace(result.Body))
+                Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Log, result.Body, null, source));
+
+            if (result.Masked)
+            {
+                Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Debug,
+                    L10n.Get("statusServiceEndpointMasked"), null, source));
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[debug] endpoint query {source}{path} failed: {ex}");
+            Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Error,
+                string.Format(L10n.Get("statusServiceEndpointFailed"), $"{source}{path}", ex.Message),
+                null, source));
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+    }
+
     // Matches Settings → Diagnostics → "Share debug log": Android has no save dialog, so the
     // transcript goes to a cache file and out through the share sheet.
     private async void OnShareClicked(object? sender, EventArgs e)
@@ -307,6 +533,10 @@ public partial class DebugConsolePage : ContentPage
         public string? Origin => _entry.Origin;
         public bool HasOrigin => !string.IsNullOrEmpty(_entry.Origin);
 
+        /// <summary>Which process this line came from; empty for the app's own console.</summary>
+        public string? Source => _entry.Source;
+        public bool HasSource => !string.IsNullOrEmpty(_entry.Source);
+
         public Color Color => _entry.Level switch
         {
             ConsoleLevel.Error => Color.FromArgb("#FF6B6B"),
@@ -319,8 +549,9 @@ public partial class DebugConsolePage : ContentPage
         public string AsTextLine()
         {
             var level = _entry.Level.ToString().ToUpperInvariant();
+            var source = HasSource ? $"[{_entry.Source}] " : string.Empty;
             var origin = HasOrigin ? $"   ({_entry.Origin})" : string.Empty;
-            return $"{Clock} {level,-7} {_entry.Text}{origin}";
+            return $"{Clock} {level,-7} {source}{_entry.Text}{origin}";
         }
     }
 }
