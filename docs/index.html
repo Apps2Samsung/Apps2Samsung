@@ -4,14 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <title>Apps2Samsung — Install any app on your Samsung TV, from your desktop or phone</title>
-  <meta name="description" content="Free, open-source installer that side-loads any app onto Samsung Smart TVs, projectors and smart monitors — Jellyfin, Moonlight, TizenTube, Chiaki and 49+ community Tizen apps. Manage what's installed, use your device as a TV remote. Windows, macOS, Linux and Android, in 30 languages." />
+  <title>Apps2Samsung: Install any app on your Samsung TV, from your desktop or phone</title>
+  <meta name="description" content="Free, open-source installer that side-loads any app onto Samsung Smart TVs, projectors and smart monitors: Jellyfin, Moonlight, TizenTube, Chiaki and 49+ community Tizen apps. Manage what's installed, use your device as a TV remote. Windows, macOS, Linux and Android, in 30 languages." />
   <meta name="keywords" content="Samsung TV app installer, install apps Samsung TV, Samsung TV sideload, Jellyfin Samsung TV, Jellyfin Tizen, install Jellyfin, Moonlight Samsung TV, Moonfin, Litefin, TizenTube, TizenBrew, Chiaki, AVPlay, Tizen community apps, Samsung TV remote app, install apps from phone, Apps2Samsung, Jellyfin2Samsung, Patrick Stel" />
   <link rel="canonical" href="https://apps2samsung.com/" />
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Apps2Samsung — Install any app on your Samsung TV" />
-  <meta property="og:description" content="Side-load Jellyfin, Moonlight, TizenTube and 49+ community Tizen apps onto your Samsung TV, manage what's installed, and use your device as a remote. Windows, macOS, Linux — and your Android phone." />
+  <meta property="og:title" content="Apps2Samsung: Install any app on your Samsung TV" />
+  <meta property="og:description" content="Side-load Jellyfin, Moonlight, TizenTube and 49+ community Tizen apps onto your Samsung TV, manage what's installed, and use your device as a remote. Windows, macOS, Linux, and your Android phone." />
   <meta property="og:image" content="https://apps2samsung.com/og-image.png" />
   <meta property="og:image:width" content="512" />
   <meta property="og:image:height" content="512" />
@@ -20,7 +20,7 @@
   <meta property="og:site_name" content="Apps2Samsung" />
 
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Apps2Samsung — Install any app on your Samsung TV">
+  <meta name="twitter:title" content="Apps2Samsung: Install any app on your Samsung TV">
   <meta name="twitter:description" content="Side-load Jellyfin, Moonlight, TizenTube and the whole community Tizen catalog onto Samsung TVs from Windows, macOS, Linux or your Android phone.">
   <meta name="twitter:image" content="https://apps2samsung.com/og-image.png">
 
@@ -37,12 +37,109 @@
     "applicationCategory": "UtilitiesApplication",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
     "author": { "@type": "Person", "name": "Patrick Stel" },
-    "description": "Cross-platform installer that side-loads any app onto Samsung Smart TVs, projectors and smart monitors — Jellyfin, Moonlight and the whole community Tizen catalog. Manages installed apps and doubles as a TV remote. Runs on desktop and on Android.",
+    "description": "Cross-platform installer that side-loads any app onto Samsung Smart TVs, projectors and smart monitors: Jellyfin, Moonlight and the whole community Tizen catalog. Manages installed apps and doubles as a TV remote. Runs on desktop and on Android.",
     "url": "https://apps2samsung.com/",
     "license": "https://opensource.org/licenses/MIT",
     "downloadUrl": "https://github.com/Apps2Samsung/Apps2Samsung/releases",
     "softwareHelp": "https://github.com/Apps2Samsung/Apps2Samsung/wiki",
     "image": "https://apps2samsung.com/og-image.png"
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Which TVs are supported?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Samsung Smart TVs, projectors and smart monitors running Tizen (roughly 2015 and newer). Older Orsay models are no longer supported; the unmaintained legacy Orsay installer remains available as-is."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need a Samsung account?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Samsung's own developer flow requires signing in once so Apps2Samsung can create the signing certificate your TV needs. That certificate is then reused across installs, so you won't be asked again for the same TV. Installing to several TVs? Add their device IDs (DUIDs) in Settings and one certificate covers them all."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need Developer Mode on the TV?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "For installing, yes. Enable Developer Mode on your Samsung TV (Apps → type 12345 → toggle on, set your computer/phone's IP), then scan for it in Apps2Samsung. This is the standard Tizen side-loading requirement, and if something is off, the app tells you which part. The remote does not need Developer Mode."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does the remote need Developer Mode too?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. The remote rides Samsung's own remote-control channel, so it works on any TV that's awake on the same network, including sets you can't install to. The first connection asks you to accept a prompt on the TV; after that it's silent, and the app can even wake a sleeping TV over the network."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is this safe? Is it official?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Apps2Samsung uses Samsung's own developer/side-load mechanism, the same one Tizen Studio uses, so it doesn't jailbreak or modify your TV's firmware. It's fully open source, so you can read exactly what it does. It isn't affiliated with Samsung or Jellyfin."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which Linux package should I take?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The AppImage if you're not sure: it runs on any distro without root. Otherwise the .deb (Debian/Ubuntu), the .rpm (Fedora/openSUSE) or the .tar.gz. All four come in x64 and ARM64. On Arch Linux, install apps2samsung from the AUR (yay -S apps2samsung), published by our release workflow. On NixOS, clone the repo and run nix-shell."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I move my setup to another device?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Backup & restore exports your settings and signing certificates to one file that you can import on another PC, a Mac or your phone, so you don't have to sign in to Samsung again."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What languages does it speak?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "30, all fully translated: from Dutch, German and French to Japanese, Arabic, Ukrainian and both Chinese scripts. It follows your system language and can be switched at any time in Settings. Help out on Crowdin."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What does it cost?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Nothing. It's free and MIT-licensed, with no accounts or telemetry. If it saved you time, a 🍺 coffee is always appreciated."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I add my own app?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Absolutely: use the Custom WGT/TPK option to install a local package, web or native. Community apps live in the open tizen-community-packages repo, and contributions are welcome."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Something went wrong. Where do I get help?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The app can export a debug log (Settings → Diagnostics) to attach to a report. Then open an issue, check the wiki FAQ, or come and ask on Discord."
+        }
+      }
+    ]
   }
   </script>
 
@@ -217,6 +314,9 @@
     .dlrow a{ color:var(--green); text-decoration:none; border-bottom:1px solid rgba(74,222,128,.3); font-size:.9rem }
     .dlrow a:hover{ border-bottom-color:var(--green) }
     .dlrow .sz{ color:var(--dim); font-size:.78rem }
+    /* One download is a link and its size together; they must not wrap apart. */
+    .dlitem{ display:inline-flex; align-items:baseline; gap:6px; white-space:nowrap }
+    .dlrow .links{ display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px }
     .note{ color:var(--dim); font-size:.82rem; margin-top:10px }
     code{ background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:1px 6px; font-size:.86em }
 
@@ -242,6 +342,58 @@
     .foot a:hover{ color:var(--text) }
     .foot h5{ margin:0 0 8px; font-size:.78rem; text-transform:uppercase; letter-spacing:.1em; color:var(--dim) }
     .copy{ margin-top:30px; font-size:.85rem; color:var(--dim) }
+
+    /* ---------- anchors clear the sticky nav ---------- */
+    section[id], #top{ scroll-margin-top:84px }
+
+    /* ---------- keyboard focus ---------- */
+    :focus-visible{ outline:2px solid var(--cyan); outline-offset:3px; border-radius:8px }
+
+    /* ---------- nav: active section, and a menu on small screens ---------- */
+    .nav-links a.active{ color:var(--text) }
+    .nav-links a{ position:relative; padding-bottom:3px }
+    .nav-links a.active::after{ content:""; position:absolute; left:0; right:0; bottom:-2px; height:2px;
+      border-radius:2px; background:var(--cyan) }
+    .nav-toggle{ display:none; width:40px; height:40px; border-radius:10px; cursor:pointer;
+      background:var(--surface); border:1px solid var(--border2); color:var(--text); font-size:1.1rem;
+      align-items:center; justify-content:center }
+    .nav-toggle:hover{ background:var(--surface2) }
+    @media(max-width:960px){
+      .nav-toggle{ display:inline-flex }
+      .nav-cta .btn.ghost{ display:none }
+      .nav-links.open{ display:flex; flex-direction:column; gap:0; position:absolute; top:64px; left:0; right:0;
+        margin:0; padding:4px 22px 14px; background:rgba(11,17,25,.97); border-bottom:1px solid var(--border);
+        backdrop-filter:blur(12px) }
+      .nav-links.open a{ padding:13px 0; border-top:1px solid var(--border); font-size:1rem }
+    }
+
+    /* ---------- copy-to-clipboard for the repository addresses ---------- */
+    .copyline{ display:flex; align-items:center; gap:9px; flex-wrap:wrap }
+    .copybtn{ border:1px solid var(--border2); background:var(--surface); color:var(--muted); cursor:pointer;
+      border-radius:999px; padding:4px 12px; font-size:.78rem; font-weight:650; font-family:inherit;
+      transition:color .2s,border-color .2s }
+    .copybtn:hover{ color:var(--text); border-color:var(--cyan) }
+    .copybtn.done{ color:var(--green); border-color:rgba(74,222,128,.55) }
+
+    /* ---------- stars in the nav ---------- */
+    .stars{ font-variant-numeric:tabular-nums; color:var(--muted); font-weight:700 }
+
+    /* ---------- back to top ---------- */
+    .totop{ position:fixed; right:18px; bottom:18px; z-index:60; width:44px; height:44px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center; text-decoration:none; font-size:1.1rem;
+      color:var(--text); background:rgba(14,22,33,.9); border:1px solid var(--border2);
+      backdrop-filter:blur(8px); opacity:0; pointer-events:none; transition:opacity .25s ease,background .2s }
+    .totop.show{ opacity:1; pointer-events:auto }
+    .totop:hover{ background:var(--blue); border-color:transparent }
+
+    /* ---------- reveal on scroll (the class is added by script, so no script means nothing hidden) ---------- */
+    .reveal{ opacity:0; transform:translateY(14px); transition:opacity .55s ease,transform .55s ease }
+    .reveal.in{ opacity:1; transform:none }
+    @media(prefers-reduced-motion:reduce){
+      html{ scroll-behavior:auto }
+      .reveal,.reveal.in{ opacity:1; transform:none; transition:none }
+      .card:hover,.btn:hover,.btn.primary:hover,.btn.ghost:hover{ transform:none }
+    }
   </style>
 </head>
 <body>
@@ -263,7 +415,7 @@
         </svg>
         <b>Apps2Samsung</b>
       </a>
-      <nav class="nav-links">
+      <nav class="nav-links" id="navLinks">
         <a href="#features">Features</a>
         <a href="#apps">Apps</a>
         <a href="#remote">Remote</a>
@@ -272,8 +424,9 @@
         <a href="#faq">FAQ</a>
       </nav>
       <div class="nav-cta">
-        <a class="btn ghost sm" href="https://github.com/Apps2Samsung/Apps2Samsung" target="_blank" rel="noopener">GitHub ★</a>
+        <a class="btn ghost sm" href="https://github.com/Apps2Samsung/Apps2Samsung" target="_blank" rel="noopener">GitHub ★ <span class="stars" id="starCount"></span></a>
         <a class="btn primary sm" href="#download">Download</a>
+        <button class="nav-toggle" id="navToggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="navLinks">☰</button>
       </div>
     </div>
   </header>
@@ -285,7 +438,7 @@
       <div>
         <span class="eyebrow">Free &amp; open source · No PC-to-TV cables</span>
         <h1>Put <span class="accent">any app</span> on your Samsung TV.</h1>
-        <p class="sub">Apps2Samsung side-loads Jellyfin, Moonlight, TizenTube and the whole community Tizen catalog onto Samsung Smart TVs, projectors and monitors — from your <b>computer</b> or straight from your <b>Android phone</b>. It handles the Samsung developer certificate for you, keeps track of what's installed, and doubles as a <b>TV remote</b>.</p>
+        <p class="sub">Apps2Samsung side-loads Jellyfin, Moonlight, TizenTube and the whole community Tizen catalog onto Samsung Smart TVs, projectors and monitors, from your <b>computer</b> or straight from your <b>Android phone</b>. It handles the Samsung developer certificate for you, keeps track of what's installed, and doubles as a <b>TV remote</b>.</p>
         <div class="hero-cta">
           <a class="btn primary" id="heroDownload" href="#download">⬇️ <span id="heroDownloadLabel">Download</span></a>
           <a class="btn ghost" href="#apps">Browse the app catalog</a>
@@ -296,7 +449,7 @@
           <span class="pill" data-os="linux">🐧 Linux</span>
           <span class="pill" data-os="android">🤖 Android</span>
         </div>
-        <div class="verline">Latest release <b id="latestVersion">checking…</b> · <b id="releaseDate">—</b><span id="betaLine"></span></div>
+        <div class="verline">Latest release <b id="latestVersion">checking…</b> · <b id="releaseDate">…</b><span id="betaLine"></span></div>
       </div>
 
       <div class="stage">
@@ -327,9 +480,9 @@
   <!-- ============ STAT STRIP ============ -->
   <div class="wrap">
     <div class="statstrip">
-      <div><b>49+</b><span>community apps</span></div>
-      <div><b>30</b><span>languages</span></div>
-      <div><b>4</b><span>platforms</span></div>
+      <div><b data-count="49" data-suffix="+">49+</b><span>community apps</span></div>
+      <div><b data-count="30">30</b><span>languages</span></div>
+      <div><b data-count="4">4</b><span>platforms</span></div>
       <div><b>MIT</b><span>open source, no telemetry</span></div>
     </div>
   </div>
@@ -341,8 +494,8 @@
       <div>
         <span class="eyebrow">On your phone</span>
         <h3>The whole installer, from the couch</h3>
-        <p>The Android app is a full installer head, not a companion: scan for your TV, sign in to Samsung, pick an app and install — plus the app catalog, installed-apps management, Jellyfin settings, TVapp channels, backup &amp; restore and the remote. No laptop, no cables.</p>
-        <p style="margin-top:.7em;font-size:.95em;opacity:.85">Auto-updates: add our <b>F-Droid</b> repository — <code>https://apps2samsung.com/fdroid/repo</code> — in F-Droid, Droid-ify or Neo Store, or one-tap with <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/Apps2Samsung/Apps2Samsung">Obtainium</a>. Both track new stable releases automatically.</p>
+        <p>The Android app is a full installer head, not a companion: scan for your TV, sign in to Samsung, pick an app and install, plus the app catalog, installed-apps management, Jellyfin settings, TVapp channels, backup &amp; restore and the remote. No laptop, no cables.</p>
+        <p style="margin-top:.7em;font-size:.95em;opacity:.85">Auto-updates: add our <b>F-Droid</b> repository, <code>https://apps2samsung.com/fdroid/repo</code> <button class="copybtn" type="button" data-copy="https://apps2samsung.com/fdroid/repo">Copy</button>, in F-Droid, Droid-ify or Neo Store, or one-tap with <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/Apps2Samsung/Apps2Samsung">Obtainium</a>. Both track new stable releases automatically.</p>
       </div>
       <a class="btn primary" href="#download">Get the Android app</a>
     </div>
@@ -352,19 +505,19 @@
   <div class="wrap">
     <section id="features">
       <span class="eyebrow">Why Apps2Samsung</span>
-      <h2 class="section">Everything the fiddly way used to need — automated.</h2>
-      <p class="lead">Side-loading a Tizen app normally means Tizen Studio, certificates and command-line tools. Apps2Samsung does all of it behind one button — and then keeps being useful long after the install.</p>
+      <h2 class="section">Everything the fiddly way used to need, automated.</h2>
+      <p class="lead">Side-loading a Tizen app normally means Tizen Studio, certificates and command-line tools. Apps2Samsung does all of it behind one button, and then keeps being useful long after the install.</p>
       <div class="grid g3" style="margin-top:34px">
-        <div class="card"><span class="ic">🔎</span><h4>Automatic TV discovery</h4><p>Scans your network and lists the Samsung TVs ready to receive an install — or type an IP manually. If a TV isn't ready, it tells you exactly why: Developer Mode off, wrong IP, reversed IP, or a TV that needs a power cycle.</p></div>
-        <div class="card"><span class="ic">🔐</span><h4>Sign in to Samsung once</h4><p>Generates the developer certificate for you and reuses it per TV. Pre-authorize extra TVs by DUID so one certificate covers them all, and switch between Public and Partner certificates when an app needs restricted privileges — it's turned on automatically when it's required.</p></div>
-        <div class="card"><span class="ic">📋</span><h4>Manage what's installed</h4><p>List the apps on a TV with their real icons, then uninstall, launch or stop any of them — or force-remove a leftover package by id when an install went sideways.</p></div>
-        <div class="card"><span class="ic">🎛️</span><h4>Use it as a TV remote</h4><p>D-pad, playback, volume, channel, power and typing straight from your phone or desktop — over Samsung's own remote channel, so it works on any TV on the network, Developer Mode or not.</p></div>
-        <div class="card"><span class="ic">🎬</span><h4>Jellyfin, ready to watch</h4><p>Bake in your server URL and auto-login, pick a JellyThemes community theme or your own CSS, set playback preferences, patch in supported server plugins and fix YouTube trailers (error 153) — all at install time.</p></div>
-        <div class="card"><span class="ic">📺</span><h4>Your own IPTV channels</h4><p>Add name + m3u8 stream pairs and their play order — validated and written into the TVapp package before it's installed.</p></div>
+        <div class="card"><span class="ic">🔎</span><h4>Automatic TV discovery</h4><p>Scans your network and lists the Samsung TVs ready to receive an install, or type an IP manually. If a TV isn't ready, it tells you exactly why: Developer Mode off, wrong IP, reversed IP, or a TV that needs a power cycle.</p></div>
+        <div class="card"><span class="ic">🔐</span><h4>Sign in to Samsung once</h4><p>Generates the developer certificate for you and reuses it per TV. Pre-authorize extra TVs by DUID so one certificate covers them all, and switch between Public and Partner certificates when an app needs restricted privileges; it is turned on automatically when it's required.</p></div>
+        <div class="card"><span class="ic">📋</span><h4>Manage what's installed</h4><p>List the apps on a TV with their real icons, then uninstall, launch or stop any of them, or force-remove a leftover package by id when an install went sideways.</p></div>
+        <div class="card"><span class="ic">🎛️</span><h4>Use it as a TV remote</h4><p>D-pad, playback, volume, channel, power and typing straight from your phone or desktop, over Samsung's own remote channel, so it works on any TV on the network, Developer Mode or not.</p></div>
+        <div class="card"><span class="ic">🎬</span><h4>Jellyfin, ready to watch</h4><p>Bake in your server URL and auto-login, pick a JellyThemes community theme or your own CSS, set playback preferences, patch in supported server plugins and fix YouTube trailers (error 153), all at install time.</p></div>
+        <div class="card"><span class="ic">📺</span><h4>Your own IPTV channels</h4><p>Add name + m3u8 stream pairs and their play order, validated and written into the TVapp package before it's installed.</p></div>
         <div class="card"><span class="ic">🎨</span><h4>Custom icons and titles</h4><p>Give any app your own PNG launcher icon, a wide 16:9 tile for Tizen 5.5 sets, or a different name on the TV. Remembered per app and applied as it installs.</p></div>
-        <div class="card"><span class="ic">🩺</span><h4>TV info and live logs</h4><p>Read a TV's DUID, Tizen version, model and Developer Mode state, stream its debug log in a console you can save, or launch an app in debug mode and watch its console live — forwarded to <code>chrome://inspect</code> on the desktop, or read right inside the Android app.</p></div>
-        <div class="card"><span class="ic">💾</span><h4>Backup &amp; restore</h4><p>Export your settings and signing certificates to a single file and bring them to another PC, a Mac or your phone — no second round of Samsung logins.</p></div>
-        <div class="card"><span class="ic">🌍</span><h4>Speaks your language</h4><p>30 fully translated languages, picked from your system automatically and switchable on the spot — no restart.</p></div>
+        <div class="card"><span class="ic">🩺</span><h4>TV info and a real debug console</h4><p>Read a TV's DUID, Tizen version, model and Developer Mode state, then launch any app in debug mode and watch it live, on the desktop and on the phone alike: the app's console, a packaged service's own log next to it, request timings that tell a slow download apart from slow decoding, and a query against an endpoint the app serves on the TV itself. Save or share the whole transcript.</p></div>
+        <div class="card"><span class="ic">💾</span><h4>Backup &amp; restore</h4><p>Export your settings and signing certificates to a single file and bring them to another PC, a Mac or your phone, with no second round of Samsung logins.</p></div>
+        <div class="card"><span class="ic">🌍</span><h4>Speaks your language</h4><p>30 fully translated languages, picked from your system automatically and switchable on the spot, with no restart.</p></div>
         <div class="card"><span class="ic">🛟</span><h4>Resilient installs</h4><p>Plain-language errors instead of Tizen codes: it spots active VPNs, subnet mismatches and certificates that aren't valid yet (with a countdown), and recovers from the common failures on its own.</p></div>
         <div class="card"><span class="ic">💙</span><h4>Free &amp; open source</h4><p>MIT-licensed, no accounts, no telemetry. Built in the open on GitHub, with an in-app updater and an optional beta channel.</p></div>
       </div>
@@ -376,20 +529,20 @@
     <section id="apps">
       <span class="eyebrow">The catalog</span>
       <h2 class="section">49+ apps you can install</h2>
-      <p class="lead">The app pulls the newest builds live from the community package catalog and shows them with descriptions and previews — here are some highlights. Or bring your own <code>.wgt</code>/<code>.tpk</code>.</p>
+      <p class="lead">The app pulls the newest builds live from the community package catalog and shows them with descriptions and previews; here are some highlights. Or bring your own <code>.wgt</code>/<code>.tpk</code>.</p>
       <div class="grid g3" style="margin-top:34px">
-        <div class="card app"><div class="badge">🪼</div><div><h4>Jellyfin <span class="tag">many builds</span></h4><p>The open-source media system, straight from jeppevinkel's Tizen builds (SmartHub, OSA, GrayFix, OblongIcon…) — plus the AVPlay variants and a 10.8.z build for older sets. Tick <em>Show all Jellyfin versions</em> to choose from the newest five instead of just the latest.</p></div></div>
+        <div class="card app"><div class="badge">🪼</div><div><h4>Jellyfin <span class="tag">many builds</span></h4><p>The open-source media system, straight from jeppevinkel's Tizen builds (SmartHub, OSA, GrayFix, OblongIcon…), plus the AVPlay variants and a 10.8.z build for older sets. Tick <em>Show all Jellyfin versions</em> to choose from the newest five instead of just the latest.</p></div></div>
         <div class="card app"><div class="badge">🌙</div><div><h4>Moonfin</h4><p>A premium Jellyfin and Emby client built with the Enact framework for Samsung Smart TVs.</p></div></div>
         <div class="card app"><div class="badge">🪶</div><div><h4>Litefin</h4><p>Lightweight Jellyfin client for a premium feel even on legacy hardware.</p></div></div>
-        <div class="card app"><div class="badge">🎞️</div><div><h4>Pelagica &amp; Fladder</h4><p>More Jellyfin clients — a modern web/TV client, and a Flutter-built native <code>.tpk</code>.</p></div></div>
+        <div class="card app"><div class="badge">🎞️</div><div><h4>Pelagica &amp; Fladder</h4><p>More Jellyfin clients: a modern web/TV client, and a Flutter-built native <code>.tpk</code>.</p></div></div>
         <div class="card app"><div class="badge">🎮</div><div><h4>Moonlight <span class="tag">4 builds</span></h4><p>Low-latency game streaming (NVIDIA GameStream / Sunshine), including the no-gamemode and Tizen 5.5+ forks.</p></div></div>
         <div class="card app"><div class="badge">🎯</div><div><h4>Chiaki</h4><p>PlayStation Remote Play on the big screen, open source.</p></div></div>
         <div class="card app"><div class="badge">▶️</div><div><h4>TizenTube</h4><p>YouTube without ads, with SponsorBlock support.</p></div></div>
         <div class="card app"><div class="badge">🧰</div><div><h4>TizenBrew</h4><p>Modded websites and newer apps without fighting Tizen Studio.</p></div></div>
         <div class="card app"><div class="badge">🌐</div><div><h4>Overscan</h4><p>A real web browser for your TV: desktop user agent, JavaScript on, D-pad cursor.</p></div></div>
-        <div class="card app"><div class="badge">📺</div><div><h4>TVapp <span class="tag">fixed fork</span></h4><p>IPTV player — configure your own m3u8 channels and their order before installing. The community fork fixes channel switching.</p></div></div>
+        <div class="card app"><div class="badge">📺</div><div><h4>TVapp <span class="tag">fixed fork</span></h4><p>IPTV player: configure your own m3u8 channels and their order before installing. The community fork fixes channel switching.</p></div></div>
         <div class="card app"><div class="badge">📡</div><div><h4>FCast, Beam-TV &amp; RTSP viewer</h4><p>Cast to the TV, play USB/DLNA media, or put your IP cameras on screen.</p></div></div>
-        <div class="card app"><div class="badge">➕</div><div><h4>Custom WGT / TPK</h4><p>Bring your own package — perfect for builds you maintain yourself. Native <code>.tpk</code> apps install too, not just web <code>.wgt</code>.</p></div></div>
+        <div class="card app"><div class="badge">➕</div><div><h4>Custom WGT / TPK</h4><p>Bring your own package, perfect for builds you maintain yourself. Native <code>.tpk</code> apps install too, not just web <code>.wgt</code>.</p></div></div>
       </div>
 
       <p class="lead" style="margin-top:38px">…and everything else in the <a href="https://github.com/Apps2Samsung/tizen-community-packages" target="_blank" rel="noopener" style="color:var(--green)">community package catalog</a>, kept up to date automatically:</p>
@@ -417,13 +570,13 @@
         <div>
           <span class="eyebrow">More than an installer</span>
           <h2 class="section">Lost the remote? Use this one.</h2>
-          <p class="lead">Apps2Samsung talks to your TV over Samsung's own remote-control channel — the same one Samsung's apps use. Pair once by accepting the prompt on the TV, and the phone or desktop app becomes a full remote.</p>
+          <p class="lead">Apps2Samsung talks to your TV over Samsung's own remote-control channel, the same one Samsung's apps use. Pair once by accepting the prompt on the TV, and the phone or desktop app becomes a full remote.</p>
           <ul class="ticks">
             <li>D-pad and OK, Back, Home, Menu and Source</li>
             <li>Playback: previous, rewind, play/pause, forward, next, stop</li>
-            <li>Volume, mute, channel, and power — a sleeping TV is woken over the network</li>
+            <li>Volume, mute, channel, and power; a sleeping TV is woken over the network</li>
             <li>Type with your keyboard and watch the text appear on the TV as you go</li>
-            <li>No Developer Mode needed — it works on any awake TV on your network</li>
+            <li>No Developer Mode needed: it works on any awake TV on your network</li>
           </ul>
         </div>
         <div class="remotebox" aria-hidden="true">
@@ -447,9 +600,9 @@
       <span class="eyebrow">Three steps</span>
       <h2 class="section">From download to watching, in minutes</h2>
       <div class="steps" style="margin-top:40px">
-        <div class="step"><h4>Pick your TV</h4><p>Open the app on your computer or phone. It scans your network and lists Samsung TVs in developer mode — or enter the IP yourself.</p></div>
-        <div class="step"><h4>Choose an app</h4><p>Select Jellyfin, Moonlight, or anything from the catalog — and the exact version. Configure Jellyfin's server and theme, or your TVapp channels, if you like.</p></div>
-        <div class="step"><h4>Sign in once &amp; install</h4><p>Sign in to your Samsung account so the app can create the signing certificate. It's reused next time — then it installs to your TV.</p></div>
+        <div class="step"><h4>Pick your TV</h4><p>Open the app on your computer or phone. It scans your network and lists Samsung TVs in developer mode, or enter the IP yourself.</p></div>
+        <div class="step"><h4>Choose an app</h4><p>Select Jellyfin, Moonlight, or anything from the catalog, and the exact version. Configure Jellyfin's server and theme, or your TVapp channels, if you like.</p></div>
+        <div class="step"><h4>Sign in once &amp; install</h4><p>Sign in to your Samsung account so the app can create the signing certificate. It's reused next time, then it installs to your TV.</p></div>
       </div>
       <div class="video" style="margin-top:44px">
         <iframe src="https://www.youtube.com/embed/_8mSV5pW-ic" title="How to install Jellyfin on a Samsung TV"
@@ -463,7 +616,7 @@
     <section id="languages" style="padding-top:20px">
       <span class="eyebrow">In your language</span>
       <h2 class="section">Fully translated into 30 languages</h2>
-      <p class="lead">Every screen, every message — not just the menus. Apps2Samsung starts in your system language and you can switch at any time without restarting.</p>
+      <p class="lead">Every screen, every message, not just the menus. Apps2Samsung starts in your system language and you can switch at any time without restarting.</p>
       <div class="chips">
         <span class="chip">Afrikaans</span><span class="chip">العربية</span><span class="chip">Català</span><span class="chip">Čeština</span>
         <span class="chip">Dansk</span><span class="chip">Deutsch</span><span class="chip">Ελληνικά</span><span class="chip">English</span>
@@ -483,7 +636,7 @@
     <section id="download">
       <span class="eyebrow">Get it</span>
       <h2 class="section">Download Apps2Samsung</h2>
-      <p class="lead">Free, open source, and cross-platform. Grab the build for your system — the recommended one for your device is highlighted.</p>
+      <p class="lead">Free, open source, and cross-platform. Grab the build for your system; the recommended one for your device is highlighted.</p>
       <div class="hero-cta" style="margin:24px 0 30px">
         <a class="btn primary" id="downloadBtn" href="#" target="_blank" rel="noopener">⬇️ <span id="downloadLabel">Download</span></a>
         <a class="btn ghost" href="https://github.com/Apps2Samsung/Apps2Samsung/releases" target="_blank" rel="noopener">All releases on GitHub</a>
@@ -496,33 +649,35 @@
       <div class="grid g3" style="margin-top:18px">
         <!-- Android via F-Droid -->
         <div class="card">
-          <h4 style="margin:0 0 6px">🤖 Android — F-Droid repository</h4>
+          <h4 style="margin:0 0 6px">🤖 Android via F-Droid</h4>
           <p style="margin:0 0 12px; color:var(--muted); font-size:.9rem">
             Add our repository in F-Droid, Droid-ify or Neo Store (Settings → Repositories → Add) and the app updates itself with every new stable release.
           </p>
-          <p style="margin:0"><code>https://apps2samsung.com/fdroid/repo</code></p>
+          <p class="copyline" style="margin:0"><code>https://apps2samsung.com/fdroid/repo</code>
+            <button class="copybtn" type="button" data-copy="https://apps2samsung.com/fdroid/repo">Copy</button></p>
         </div>
         <!-- Android via Obtainium: install + auto-update straight from GitHub releases -->
         <div class="card">
-          <h4 style="margin:0 0 6px">📲 Android — Obtainium</h4>
+          <h4 style="margin:0 0 6px">📲 Android via Obtainium</h4>
           <p style="margin:0 0 12px; color:var(--muted); font-size:.9rem">
-            <a href="https://github.com/ImranR98/Obtainium" target="_blank" rel="noopener" style="color:var(--green)">Obtainium</a> tracks the GitHub releases directly — no store account needed.
+            <a href="https://github.com/ImranR98/Obtainium" target="_blank" rel="noopener" style="color:var(--green)">Obtainium</a> tracks the GitHub releases directly, with no store account needed.
           </p>
           <a class="btn primary sm" target="_blank" rel="noopener"
              href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/Apps2Samsung/Apps2Samsung">➕ Add to Obtainium</a>
-          <p class="note" style="margin-top:10px">Or tap <em>Add App</em> and paste <code>https://github.com/Apps2Samsung/Apps2Samsung</code>.</p>
+          <p class="note copyline" style="margin-top:10px">Or tap <em>Add App</em> and paste <code>https://github.com/Apps2Samsung/Apps2Samsung</code>
+            <button class="copybtn" type="button" data-copy="https://github.com/Apps2Samsung/Apps2Samsung">Copy</button></p>
         </div>
         <!-- Desktop formats -->
         <div class="card">
           <h4 style="margin:0 0 6px">🖥️ Desktop formats</h4>
           <p style="margin:0; color:var(--muted); font-size:.9rem">
             Windows: <code>.msi</code> installer or a portable <code>.zip</code>. macOS: <code>.dmg</code> (Apple Silicon and Intel).
-            Linux: <code>.AppImage</code> that runs anywhere without root, plus <code>.deb</code>, <code>.rpm</code> and a plain <code>.tar.gz</code> — x64 and ARM64.
+            Linux: <code>.AppImage</code> that runs anywhere without root, plus <code>.deb</code>, <code>.rpm</code> and a plain <code>.tar.gz</code>, in x64 and ARM64.
             Arch Linux: <code>apps2samsung</code> on the <a href="https://aur.archlinux.org/packages/apps2samsung" target="_blank" rel="noopener" style="color:var(--green)">AUR</a>, updated with every stable release.
           </p>
         </div>
       </div>
-      <p class="note" style="margin-top:14px">The list above shows the newest <b>stable</b> release. Beta builds ship first and carry the newest features — grab one from the <a href="https://github.com/Apps2Samsung/Apps2Samsung/releases" target="_blank" rel="noopener" style="color:var(--green)">releases page</a>, or switch the in-app updater to the beta channel in Settings.</p>
+      <p class="note" style="margin-top:14px">The list above shows the newest <b>stable</b> release. Beta builds ship first and carry the newest features; grab one from the <a href="https://github.com/Apps2Samsung/Apps2Samsung/releases" target="_blank" rel="noopener" style="color:var(--green)">releases page</a>, or switch the in-app updater to the beta channel in Settings.</p>
     </section>
   </div>
 
@@ -532,17 +687,17 @@
       <span class="eyebrow">Good to know</span>
       <h2 class="section">Frequently asked</h2>
       <div style="margin-top:30px">
-        <details open><summary>Which TVs are supported?</summary><p>Samsung Smart TVs, projectors and smart monitors running <b>Tizen</b> (roughly 2015 and newer). Older <b>Orsay</b> models are no longer supported — the unmaintained <a href="https://github.com/Apps2Samsung/Jellyfin-Orsay-Installer/releases" target="_blank" rel="noopener">legacy Orsay installer</a> remains available as-is.</p></details>
-        <details><summary>Do I need a Samsung account?</summary><p>Yes — Samsung's own developer flow requires signing in once so Apps2Samsung can create the signing certificate your TV needs. That certificate is then reused across installs, so you won't be asked again for the same TV. Installing to several TVs? Add their device IDs (DUIDs) in Settings and one certificate covers them all.</p></details>
-        <details><summary>Do I need Developer Mode on the TV?</summary><p>For installing, yes. Enable Developer Mode on your Samsung TV (Apps → type 12345 → toggle on, set your computer/phone's IP), then scan for it in Apps2Samsung. This is the standard Tizen side-loading requirement — and if something is off, the app tells you which part. The <b>remote</b> does not need Developer Mode.</p></details>
-        <details><summary>Does the remote need Developer Mode too?</summary><p>No. The remote rides Samsung's own remote-control channel, so it works on any TV that's awake on the same network — including sets you can't install to. The first connection asks you to accept a prompt on the TV; after that it's silent, and the app can even wake a sleeping TV over the network.</p></details>
-        <details><summary>Is this safe? Is it official?</summary><p>Apps2Samsung uses Samsung's own developer/side-load mechanism — the same one Tizen Studio uses — it doesn't jailbreak or modify your TV's firmware. It's fully open source, so you can read exactly what it does. It isn't affiliated with Samsung or Jellyfin.</p></details>
-        <details><summary>Which Linux package should I take?</summary><p>The <b>AppImage</b> if you're not sure: it runs on any distro without root. Otherwise the <code>.deb</code> (Debian/Ubuntu), the <code>.rpm</code> (Fedora/openSUSE) or the <code>.tar.gz</code>. All four come in x64 and ARM64. On Arch Linux, install <code>apps2samsung</code> from the <a href="https://aur.archlinux.org/packages/apps2samsung" target="_blank" rel="noopener">AUR</a> (<code>yay -S apps2samsung</code>) — it's published by our release workflow. On NixOS, clone the repo and run <code>nix-shell</code>.</p></details>
-        <details><summary>Can I move my setup to another device?</summary><p>Yes — <b>Backup &amp; restore</b> exports your settings and signing certificates to one file that you can import on another PC, a Mac or your phone, so you don't have to sign in to Samsung again.</p></details>
+        <details open><summary>Which TVs are supported?</summary><p>Samsung Smart TVs, projectors and smart monitors running <b>Tizen</b> (roughly 2015 and newer). Older <b>Orsay</b> models are no longer supported; the unmaintained <a href="https://github.com/Apps2Samsung/Jellyfin-Orsay-Installer/releases" target="_blank" rel="noopener">legacy Orsay installer</a> remains available as-is.</p></details>
+        <details><summary>Do I need a Samsung account?</summary><p>Yes. Samsung's own developer flow requires signing in once so Apps2Samsung can create the signing certificate your TV needs. That certificate is then reused across installs, so you won't be asked again for the same TV. Installing to several TVs? Add their device IDs (DUIDs) in Settings and one certificate covers them all.</p></details>
+        <details><summary>Do I need Developer Mode on the TV?</summary><p>For installing, yes. Enable Developer Mode on your Samsung TV (Apps → type 12345 → toggle on, set your computer/phone's IP), then scan for it in Apps2Samsung. This is the standard Tizen side-loading requirement, and if something is off, the app tells you which part. The <b>remote</b> does not need Developer Mode.</p></details>
+        <details><summary>Does the remote need Developer Mode too?</summary><p>No. The remote rides Samsung's own remote-control channel, so it works on any TV that's awake on the same network, including sets you can't install to. The first connection asks you to accept a prompt on the TV; after that it's silent, and the app can even wake a sleeping TV over the network.</p></details>
+        <details><summary>Is this safe? Is it official?</summary><p>Apps2Samsung uses Samsung's own developer/side-load mechanism, the same one Tizen Studio uses, so it doesn't jailbreak or modify your TV's firmware. It's fully open source, so you can read exactly what it does. It isn't affiliated with Samsung or Jellyfin.</p></details>
+        <details><summary>Which Linux package should I take?</summary><p>The <b>AppImage</b> if you're not sure: it runs on any distro without root. Otherwise the <code>.deb</code> (Debian/Ubuntu), the <code>.rpm</code> (Fedora/openSUSE) or the <code>.tar.gz</code>. All four come in x64 and ARM64. On Arch Linux, install <code>apps2samsung</code> from the <a href="https://aur.archlinux.org/packages/apps2samsung" target="_blank" rel="noopener">AUR</a> (<code>yay -S apps2samsung</code>), published by our release workflow. On NixOS, clone the repo and run <code>nix-shell</code>.</p></details>
+        <details><summary>Can I move my setup to another device?</summary><p>Yes. <b>Backup &amp; restore</b> exports your settings and signing certificates to one file that you can import on another PC, a Mac or your phone, so you don't have to sign in to Samsung again.</p></details>
         <details><summary>What languages does it speak?</summary><p>30, all fully translated: from Dutch, German and French to Japanese, Arabic, Ukrainian and both Chinese scripts. It follows your system language and can be switched at any time in Settings. Help out on <a href="https://crowdin.com/project/jellyfin2samsung" target="_blank" rel="noopener">Crowdin</a>.</p></details>
         <details><summary>What does it cost?</summary><p>Nothing. It's free and MIT-licensed, with no accounts or telemetry. If it saved you time, a <a href="https://ko-fi.com/patrickstel" target="_blank" rel="noopener">🍺 coffee</a> is always appreciated.</p></details>
-        <details><summary>Can I add my own app?</summary><p>Absolutely — use the <b>Custom WGT/TPK</b> option to install a local package, web or native. Community apps live in the open <a href="https://github.com/Apps2Samsung/tizen-community-packages" target="_blank" rel="noopener">tizen-community-packages</a> repo, and contributions are welcome.</p></details>
-        <details><summary>Something went wrong — where do I get help?</summary><p>The app can export a debug log (Settings → Diagnostics) to attach to a report. Then open an <a href="https://github.com/Apps2Samsung/Apps2Samsung/issues" target="_blank" rel="noopener">issue</a>, check the <a href="https://github.com/Apps2Samsung/Apps2Samsung/wiki/FAQ" target="_blank" rel="noopener">wiki FAQ</a>, or come and ask on <a href="https://discord.gg/7mga3zh8Cv" target="_blank" rel="noopener">Discord</a>.</p></details>
+        <details><summary>Can I add my own app?</summary><p>Absolutely: use the <b>Custom WGT/TPK</b> option to install a local package, web or native. Community apps live in the open <a href="https://github.com/Apps2Samsung/tizen-community-packages" target="_blank" rel="noopener">tizen-community-packages</a> repo, and contributions are welcome.</p></details>
+        <details><summary>Something went wrong. Where do I get help?</summary><p>The app can export a debug log (Settings → Diagnostics) to attach to a report. Then open an <a href="https://github.com/Apps2Samsung/Apps2Samsung/issues" target="_blank" rel="noopener">issue</a>, check the <a href="https://github.com/Apps2Samsung/Apps2Samsung/wiki/FAQ" target="_blank" rel="noopener">wiki FAQ</a>, or come and ask on <a href="https://discord.gg/7mga3zh8Cv" target="_blank" rel="noopener">Discord</a>.</p></details>
       </div>
     </section>
   </div>
@@ -561,7 +716,7 @@
               <linearGradient id="fInner" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00A4DC"/><stop offset="1" stop-color="#5B2C83"/></linearGradient></defs>
             </svg><b>Apps2Samsung</b>
           </a>
-          <p style="font-size:.88rem; color:var(--dim); margin:0">Install any app on your Samsung TV — from your desktop or your phone.</p>
+          <p style="font-size:.88rem; color:var(--dim); margin:0">Install any app on your Samsung TV, from your desktop or your phone.</p>
         </div>
         <div>
           <h5>Project</h5>
@@ -591,6 +746,8 @@
     </div>
   </footer>
 
+  <a class="totop" id="toTop" href="#top" aria-label="Back to top">↑</a>
+
   <script>
   (async function(){
     const owner='Apps2Samsung', repo='Apps2Samsung';
@@ -603,7 +760,7 @@
     };
     const OS_LABEL={ win:'🪟 Windows', macos:'🍎 macOS', linux:'🐧 Linux', android:'🤖 Android' };
     const ARCH_LABEL={ x64:'x64 / Intel', arm64:'ARM64', apk:'.apk' };
-    // Linux: AppImage first — it runs on any distro without root, so it is the safest pick when the
+    // Linux: AppImage comes first because it runs on any distro without root, so it is the safest pick when the
     // page can't know which distro this is; then the native packages, tar.gz last (#589).
     const PREF={ win:['msi','zip'], macos:['dmg','tar.gz'], linux:['appimage','deb','rpm','tar.gz'], android:['apk'] };
     const OS_ORDER=['win','macos','linux','android'];
@@ -685,22 +842,150 @@
 
       let html='';
       for(const o of OS_ORDER){ if(!groups[o]) continue; const isDet=(o===os);
-        html+=`<div class="dl-card${isDet?' detected':''}"><strong>${OS_LABEL[o]}${isDet?' — your system':''}</strong>`;
+        html+=`<div class="dl-card${isDet?' detected':''}"><strong>${OS_LABEL[o]}${isDet?' · your system':''}</strong>`;
         for(const ar of ARCH_ORDER){ const list=groups[o][ar]; if(!list||!list.length) continue;
-          const links=list.map(it=>{ const sz=fmtSize(it.size); return `<a href="${it.url}">.${it.ext}</a>${sz?` <span class="sz">${sz}</span>`:''}`; }).join(' · ');
+          const links=list.map(it=>{ const sz=fmtSize(it.size); return `<span class="dlitem"><a href="${it.url}">.${it.ext}</a>${sz?`<span class="sz">${sz}</span>`:''}</span>`; }).join('');
           const arLabel = ar==='apk' ? 'Sideload' : (ARCH_LABEL[ar]||ar);
-          html+=`<div class="dlrow"><span class="arch">${arLabel}</span> ${links}</div>`;
+          html+=`<div class="dlrow"><span class="arch">${arLabel}</span><span class="links">${links}</span></div>`;
         }
         html+='</div>';
       }
-      els.all.innerHTML = html || `<div class="dl-card"><span>No platform builds found — <a href="${releasesUrl()}" style="color:var(--green)">see the releases page</a>.</span></div>`;
-      if(os==='macos' && !sure){ els.note.textContent='macOS chip type can’t be detected in this browser — defaulted to Apple Silicon (ARM64). On an Intel Mac, pick the x64 build above.'; }
+      els.all.innerHTML = html || `<div class="dl-card"><span>No platform builds found. <a href="${releasesUrl()}" style="color:var(--green)">see the releases page</a>.</span></div>`;
+      if(os==='macos' && !sure){ els.note.textContent='macOS chip type can’t be detected in this browser, so this defaulted to Apple Silicon (ARM64). On an Intel Mac, pick the x64 build above.'; }
     }catch(e){
       els.ver.textContent='unavailable'; els.date.textContent='n/a';
       setPrimary(releasesUrl(), 'View downloads on GitHub');
-      els.all.innerHTML=`<div class="dl-card"><span>Couldn’t load builds right now — <a href="${releasesUrl()}" style="color:var(--green)">open the releases page</a>.</span></div>`;
+      els.all.innerHTML=`<div class="dl-card"><span>Couldn’t load builds right now. <a href="${releasesUrl()}" style="color:var(--green)">open the releases page</a>.</span></div>`;
     }
     document.getElementById('year').textContent=new Date().getFullYear();
+  })();
+  </script>
+
+  <script>
+  // Page furniture: the menu on small screens, the section the nav points at, the reveal as you
+  // scroll, and the two conveniences that save typing a URL off a screen. All of it is added here
+  // rather than in the markup, so a browser that runs no script still gets the whole page.
+  (function(){
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* ---- menu ---- */
+    const toggle = document.getElementById('navToggle');
+    const links  = document.getElementById('navLinks');
+    if (toggle && links){
+      toggle.addEventListener('click', () => {
+        const open = links.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.textContent = open ? '✕' : '☰';
+      });
+      // A tap on a link is a navigation, so the menu closes behind it.
+      links.addEventListener('click', e => {
+        if (e.target.tagName === 'A'){
+          links.classList.remove('open');
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.textContent = '☰';
+        }
+      });
+    }
+
+    /* ---- which section the nav highlights ---- */
+    const navFor = new Map();
+    document.querySelectorAll('.nav-links a[href^="#"]').forEach(a => {
+      const target = document.getElementById(a.getAttribute('href').slice(1));
+      if (target) navFor.set(target, a);
+    });
+    if (navFor.size && 'IntersectionObserver' in window){
+      // The section that owns the middle of the viewport wins, which is what a reader would say is
+      // "the one I am looking at" even when two are on screen.
+      const seen = new Set();
+      const spy = new IntersectionObserver(entries => {
+        entries.forEach(entry => entry.isIntersecting ? seen.add(entry.target) : seen.delete(entry.target));
+        let best = null;
+        seen.forEach(section => { if (!best || section.offsetTop < best.offsetTop) best = section; });
+        navFor.forEach((link, section) => link.classList.toggle('active', section === best));
+      }, { rootMargin: '-45% 0px -45% 0px' });
+      navFor.forEach((_, section) => spy.observe(section));
+    }
+
+    /* ---- reveal on scroll ---- */
+    const targets = document.querySelectorAll('.card, .step, .statstrip, .band, .remotebox, .video, .dl-card, .chips');
+    if (!reduced && 'IntersectionObserver' in window){
+      targets.forEach(el => el.classList.add('reveal'));
+      const shower = new IntersectionObserver((entries, self) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('in');
+          self.unobserve(entry.target);
+        });
+      }, { rootMargin: '0px 0px -8% 0px' });
+      targets.forEach(el => shower.observe(el));
+    }
+
+    /* ---- the numbers count up once, when they are first on screen ---- */
+    const numbers = document.querySelectorAll('[data-count]');
+    if (numbers.length && !reduced && 'IntersectionObserver' in window){
+      const counter = new IntersectionObserver((entries, self) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          self.unobserve(entry.target);
+
+          const el = entry.target;
+          const to = Number(el.dataset.count) || 0;
+          const suffix = el.dataset.suffix || '';
+          const started = performance.now();
+          const duration = 900;
+
+          (function step(now){
+            const progress = Math.min((now - started) / duration, 1);
+            // Ease out, so it lands softly rather than stopping dead.
+            el.textContent = Math.round(to * (1 - Math.pow(1 - progress, 3))) + suffix;
+            if (progress < 1) requestAnimationFrame(step);
+          })(started);
+        });
+      }, { rootMargin: '0px 0px -10% 0px' });
+      numbers.forEach(el => counter.observe(el));
+    }
+
+    /* ---- copy a repository address ---- */
+    document.querySelectorAll('.copybtn').forEach(button => {
+      button.addEventListener('click', async () => {
+        const text = button.dataset.copy || '';
+        try{
+          await navigator.clipboard.writeText(text);
+        }catch(e){
+          // Older browsers, and any page served without a secure context.
+          const field = document.createElement('textarea');
+          field.value = text; field.setAttribute('readonly', '');
+          field.style.position = 'fixed'; field.style.opacity = '0';
+          document.body.appendChild(field); field.select();
+          try{ document.execCommand('copy'); }catch(err){}
+          field.remove();
+        }
+        const was = button.textContent;
+        button.textContent = 'Copied'; button.classList.add('done');
+        setTimeout(() => { button.textContent = was; button.classList.remove('done'); }, 1600);
+      });
+    });
+
+    /* ---- back to top ---- */
+    const toTop = document.getElementById('toTop');
+    if (toTop){
+      const follow = () => toTop.classList.toggle('show', window.scrollY > 700);
+      window.addEventListener('scroll', follow, { passive:true });
+      follow();
+    }
+
+    /* ---- the star count, which says more than a star does ---- */
+    const stars = document.getElementById('starCount');
+    if (stars){
+      fetch('https://api.github.com/repos/Apps2Samsung/Apps2Samsung', { headers:{ 'Accept':'application/vnd.github+json' } })
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(repo => {
+          const count = repo.stargazers_count;
+          if (typeof count !== 'number') return;
+          stars.textContent = count >= 1000 ? (count / 1000).toFixed(1) + 'k' : String(count);
+        })
+        .catch(() => {});
+    }
   })();
   </script>
 </body>
