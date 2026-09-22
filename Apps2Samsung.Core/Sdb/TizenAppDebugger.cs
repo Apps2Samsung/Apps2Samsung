@@ -1,8 +1,6 @@
 using Apps2Samsung.Interfaces;
 using System;
 using System.Diagnostics;
-using System.Net;
-using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -88,29 +86,11 @@ namespace Apps2Samsung.Sdb
             }
 
             if (localPort == 0)
-                localPort = FindFreeLocalPort();
+                localPort = LocalPorts.FindFree();
 
             Trace.WriteLine($"[debug] {tizenId} inspector on TV port {remotePort} → local {localPort}");
             var forward = await sdb.ForwardAsync(tvIpAddress, localPort, remotePort);
             return new TizenDebugSession(localPort, remotePort, forward);
-        }
-
-        // Ask the OS for an unused port by binding port 0 and reading back what it assigned. There is
-        // an unavoidable race between releasing it here and the tunnel claiming it, but the
-        // alternative — a hardcoded port — collides far more often on a phone, where nothing
-        // guarantees a well-known debug port is free.
-        private static int FindFreeLocalPort()
-        {
-            var listener = new TcpListener(IPAddress.Loopback, 0);
-            listener.Start();
-            try
-            {
-                return ((IPEndPoint)listener.LocalEndpoint).Port;
-            }
-            finally
-            {
-                listener.Stop();
-            }
         }
     }
 }

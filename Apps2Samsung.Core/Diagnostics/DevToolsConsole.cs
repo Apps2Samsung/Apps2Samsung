@@ -27,7 +27,13 @@ namespace Apps2Samsung.Diagnostics
     /// <param name="Level">Severity, for colouring and filtering.</param>
     /// <param name="Text">The rendered message.</param>
     /// <param name="Origin">Script and line it came from, when the protocol said; else null.</param>
-    public sealed record ConsoleEntry(DateTimeOffset Timestamp, ConsoleLevel Level, string Text, string? Origin);
+    /// <param name="Source">
+    /// Which process the line came from, when the console shows more than one. Null is the app itself;
+    /// a packaged service's console tags its lines with the service id so the two streams stay apart
+    /// in one transcript.
+    /// </param>
+    public sealed record ConsoleEntry(
+        DateTimeOffset Timestamp, ConsoleLevel Level, string Text, string? Origin, string? Source = null);
 
     /// <summary>
     /// A console attached to an app running on the TV, over the Chrome DevTools Protocol.
