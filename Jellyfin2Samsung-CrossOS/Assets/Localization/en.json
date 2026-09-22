@@ -514,6 +514,7 @@
   "lblServiceDetach": "Detach service",
   "statusServiceLogAttached": "Attached to the service {0}. Its output follows, tagged with its id.",
   "statusServiceLogAttachFailed": "Couldn't attach to the service {0}: {1}",
+  "statusServiceLogAttachHint": "A service the TV isn't running has no console to attach to. Service endpoint, aimed at the port it should be listening on, says the same thing from the other side: a refused connection means nothing is there.",
   "statusServiceLogDetached": "Detached from the service {0}. It is still running on the TV.",
   "statusServiceLogEnded": "The service {0} stopped answering: {1}",
   "statusServiceLogEndedQuietly": "the TV closed the connection without saying why",

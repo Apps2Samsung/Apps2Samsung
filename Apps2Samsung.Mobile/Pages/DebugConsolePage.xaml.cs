@@ -368,6 +368,8 @@ public partial class DebugConsolePage : ContentPage
             Trace.WriteLine($"[debug] attach to service {id} failed: {ex}");
             Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Error,
                 string.Format(L10n.Get("statusServiceLogAttachFailed"), id, ex.Message), null, id));
+            Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Info,
+                L10n.Get("statusServiceLogAttachHint"), null, id));
             await CloseServiceAsync();
         }
         finally
