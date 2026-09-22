@@ -410,6 +410,8 @@ namespace Apps2Samsung.ViewModels
                 Trace.WriteLine($"[debug] attach to service {id} failed: {ex}");
                 Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Error,
                     string.Format("statusServiceLogAttachFailed".Localized(), id, ex.Message), null, id));
+                Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Info,
+                    "statusServiceLogAttachHint".Localized(), null, id));
                 await CloseServiceConsoleAsync();
                 await CloseServiceTunnelAsync();
             }
