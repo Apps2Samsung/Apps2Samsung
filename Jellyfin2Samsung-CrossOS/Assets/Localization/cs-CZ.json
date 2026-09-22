@@ -323,7 +323,7 @@
   "lblDebugLog": "Protokol ladění",
   "statusNoLogFile": "Pro tuto relaci zatím není k dispozici žádný soubor protokolu.",
   "statusLogShareFailed": "Nelze sdílet protokol: {0}",
-  "lblRemote": "Vzdálené",
+  "lblRemote": "Ovladač",
   "lblRemotePower": "Napájení (vypne televizor; spací televize se automaticky probudí)",
   "lblRemoteReconnect": "Znovu připojit",
   "lblRemoteOk": "OK",
