@@ -335,6 +335,10 @@
     details p{ margin:0 0 16px; color:var(--muted); font-size:.94rem }
     details a{ color:var(--green) }
 
+    /* ---------- faq ---------- */
+    .faq-grid{ display:grid; grid-template-columns:1fr 1fr; gap:0 18px; align-items:start; margin-top:30px }
+    @media(max-width:820px){ .faq-grid{ grid-template-columns:1fr } }
+
     /* ---------- footer ---------- */
     footer{ border-top:1px solid var(--border); padding:44px 0 60px; color:var(--muted) }
     .foot{ display:flex; flex-wrap:wrap; gap:26px; justify-content:space-between; align-items:flex-start }
@@ -683,10 +687,10 @@
 
   <!-- ============ FAQ ============ -->
   <div class="wrap">
-    <section id="faq" style="max-width:820px">
+    <section id="faq">
       <span class="eyebrow">Good to know</span>
       <h2 class="section">Frequently asked</h2>
-      <div style="margin-top:30px">
+      <div class="faq-grid">
         <details open><summary>Which TVs are supported?</summary><p>Samsung Smart TVs, projectors and smart monitors running <b>Tizen</b> (roughly 2015 and newer). Older <b>Orsay</b> models are no longer supported; the unmaintained <a href="https://github.com/Apps2Samsung/Jellyfin-Orsay-Installer/releases" target="_blank" rel="noopener">legacy Orsay installer</a> remains available as-is.</p></details>
         <details><summary>Do I need a Samsung account?</summary><p>Yes. Samsung's own developer flow requires signing in once so Apps2Samsung can create the signing certificate your TV needs. That certificate is then reused across installs, so you won't be asked again for the same TV. Installing to several TVs? Add their device IDs (DUIDs) in Settings and one certificate covers them all.</p></details>
         <details><summary>Do I need Developer Mode on the TV?</summary><p>For installing, yes. Enable Developer Mode on your Samsung TV (Apps → type 12345 → toggle on, set your computer/phone's IP), then scan for it in Apps2Samsung. This is the standard Tizen side-loading requirement, and if something is off, the app tells you which part. The <b>remote</b> does not need Developer Mode.</p></details>
