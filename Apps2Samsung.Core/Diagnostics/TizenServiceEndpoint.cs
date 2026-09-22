@@ -88,7 +88,8 @@ namespace Apps2Samsung.Diagnostics
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">The port is not a TCP port number.</exception>
         /// <exception cref="HttpRequestException">
-        /// Nothing answered on that port — the usual case when the service failed to start.
+        /// Nothing answered on that port — the usual case when the service failed to start. Its
+        /// message says so; the socket error it wrapped is the inner exception.
         /// </exception>
         public static async Task<ServiceEndpointResult> QueryAsync(
             ISdbEngine sdb, string tvIpAddress, int port, string path, CancellationToken ct = default)
@@ -107,7 +108,7 @@ namespace Apps2Samsung.Diagnostics
                 var address = $"http://127.0.0.1:{localPort}{path}";
                 var started = Stopwatch.StartNew();
 
-                using var response = await GetWithRetryAsync(http, address, ct);
+                using var response = await GetWithRetryAsync(http, address, port, ct);
                 var body = await response.Content.ReadAsStringAsync(ct);
                 var elapsed = started.Elapsed;
 
@@ -128,8 +129,15 @@ namespace Apps2Samsung.Diagnostics
             }
         }
 
+        // A forwarded port cannot report a refusal, and the raw socket error hides that. sdb accepts
+        // the connection at this end and only dials the port on the TV once the first byte goes out,
+        // so a port with nothing behind it comes back as the tunnel being torn down - "Connection
+        // reset by peer", the same wording a dying SDB link produces. Passed through as-is it reads
+        // as this tool breaking rather than as an answer: the reporter in #545 was asked to tell a
+        // refusal from a reset on two ports, which is a distinction this route can never show, and
+        // both came back identical. Say what it means instead.
         private static async Task<HttpResponseMessage> GetWithRetryAsync(
-            HttpClient http, string address, CancellationToken ct)
+            HttpClient http, string address, int port, CancellationToken ct)
         {
             for (var attempt = 1; ; attempt++)
             {
@@ -140,6 +148,14 @@ namespace Apps2Samsung.Diagnostics
                 catch (HttpRequestException) when (attempt < ConnectAttempts)
                 {
                     await Task.Delay(ConnectDelay, ct);
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new HttpRequestException(
+                        $"Nothing is listening on port {port} on the TV: {ConnectAttempts} attempts " +
+                        $"over the forward were closed without an answer. A forwarded port cannot " +
+                        $"report a refusal, so this is what a service that never started looks like. " +
+                        $"Socket error: {ex.Message}", ex);
                 }
             }
         }
