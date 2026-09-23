@@ -383,7 +383,6 @@
   "lblToolboxStagingClear": "Clear",
   "lblToolboxStagingNeedsSdb": "Vymazání dočasné složky vyžaduje v televizoru režim pro vývojáře a vývojářské připojení z této aplikace.",
   "lblToolboxStagingClearing": "Mazání dočasné složky v televizoru...",
-  "lblToolboxStagingCleared": "Dočasná složka byla vymazána.",
   "lblToolboxStagingFailed": "Dočasnou složku se nepodařilo vymazat: {0}",
   "lblToolboxAgentNotInstalled": "Ladicí agent není v tomto televizoru nainstalován a nelze jej odtud nainstalovat.",
   "lblToolboxAgentInstalling": "Instalování ladicího agenta do televizoru...",
