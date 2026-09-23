@@ -56,19 +56,6 @@ namespace Apps2Samsung.Sdb
             "shell:pwd", "shell:whoami", "0 vd_applist", "0 vd_appuninstall test", "pkgcmd -l",
         };
 
-        // Transient SDB transport hiccups: the TV drops the connection mid-read. These are races on the
-        // SDB link, not real failures — a quick retry almost always succeeds. This is why a single reset
-        // on the device-info read produced a spurious "TV Name could not be found" even though the TV
-        // was just discovered (#524). Retried ONLY for the idempotent read/query commands below — never
-        // for install/uninstall/resign, which aren't safe to blindly repeat.
-        private static readonly string[] TransientTransportErrors =
-        {
-            "forcibly closed by the remote host",
-            "Remote closed stream while reading",
-            "Unable to read data from the transport connection",
-            "Connection reset by peer",
-        };
-
         public async Task<ProcessResult> DevicesAsync(string tvIpAddress) => await RunWithRetry(tvIpAddress, $"devices {tvIpAddress}", device =>
         {
             var parts = device.DeviceId.Split("::", StringSplitOptions.RemoveEmptyEntries);
@@ -244,6 +231,13 @@ namespace Apps2Samsung.Sdb
                 return installer.PermitInstallApp();
             });
 
+        // No verdict is read off the reply: the verb is new, its vocabulary unknown beyond the one
+        // refusal seen so far, and the point of the button is to show the user the TV's own words.
+        public async Task<ProcessResult> ExecuteAsync(string tvIpAddress, string appId) => await RunConnected(tvIpAddress, $"execute {tvIpAddress} \"{appId}\"", async device =>
+        {
+            return (await device.ShellCommandAsync($"0 execute {appId}")).Trim();
+        });
+
         public async Task<ProcessResult> ShellAsync(string tvIpAddress, string command) => await RunConnected(tvIpAddress, $"shell {tvIpAddress} {command}", async device =>
         {
             return await device.ShellCommandAsync(command);
@@ -372,28 +366,21 @@ namespace Apps2Samsung.Sdb
                 }
             }, logOutput: false);
 
-        // As RunConnected, but retries a transient transport failure on a fresh connection (#524).
-        // Only for idempotent reads/queries — see TransientTransportErrors.
+        // As RunConnected, but retries a transient transport failure on a fresh connection: the TV
+        // drops the link mid-read, which is a race on it rather than a real failure, and a single such
+        // reset on the device-info read is what produced a spurious "TV Name could not be found" for a
+        // TV that had just been discovered (#524). Only for idempotent reads/queries — never for
+        // install/uninstall/resign, which aren't safe to blindly repeat. See SdbTransportErrors.
         private async Task<ProcessResult> RunWithRetry(
             string ip, string command, Func<SdbTcpDevice, Task<string>> body, int attempts = 3)
         {
             var result = await RunConnected(ip, command, body);
-            for (int i = 1; i < attempts && IsTransientTransportError(result); i++)
+            for (int i = 1; i < attempts && SdbTransportErrors.IsTransient(result); i++)
             {
                 await Task.Delay(400 * i).ConfigureAwait(false); // brief backoff before retrying the reset
                 result = await RunConnected(ip, command, body);
             }
             return result;
-        }
-
-        private static bool IsTransientTransportError(ProcessResult result)
-        {
-            if (result.ExitCode == 0)
-                return false;
-
-            var text = $"{result.Error} {result.Output}";
-            return !string.IsNullOrWhiteSpace(text) &&
-                TransientTransportErrors.Any(marker => text.Contains(marker, StringComparison.OrdinalIgnoreCase));
         }
 
         // Samsung sdbd sometimes closes a freshly-opened connection mid-handshake

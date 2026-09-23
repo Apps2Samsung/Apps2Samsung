@@ -158,11 +158,10 @@ namespace Apps2Samsung.Services
             Action? onSamsungLoginStarted = null,
             bool? wasAlreadyInstalled = null)
         {
-            // Record whether the app was already on the TV BEFORE this run (once, on the outer call;
-            // recursive retries carry the original value forward). This gates the fresh-install partial
-            // cleanup in HandleInstallationResultAsync: we only clear a partial for an app that wasn't
-            // there to begin with, never a pre-existing working app. If we can't tell, assume installed
-            // (fail safe — never uninstall).
+            // Record whether the app was already on the TV BEFORE this run. This gates the fresh-install
+            // partial cleanup in HandleInstallationResultAsync: we only clear a partial for an app that
+            // wasn't there to begin with, never a pre-existing working app. If we can't tell, assume
+            // installed (fail safe — never uninstall).
             if (wasAlreadyInstalled is null)
             {
                 try
@@ -176,10 +175,35 @@ namespace Apps2Samsung.Services
                 }
             }
 
+            // Everything the retry logic may flip lives in this per-run object, seeded from the user's
+            // settings. The settings themselves are never written by the installer: an earlier version
+            // used AppSettings.TryOverwrite as the one-shot retry budget and left it false (and saved it)
+            // after any failure, so the NEXT install of an already-present app died in PrepareDeviceAsync
+            // with "Deletion not allowed" while the Overwrite toggle still showed on.
+            var run = new InstallRun
+            {
+                RetryAvailable = _appSettings.TryOverwrite,
+                ForceLogin = _appSettings.ForceSamsungLogin,
+                DeletePrevious = _appSettings.DeletePreviousInstall,
+                WasAlreadyInstalled = wasAlreadyInstalled.Value,
+            };
+
+            return await RunInstallAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
+        }
+
+        // One install attempt. Retries re-enter here with the same InstallRun (budget already spent).
+        private async Task<InstallResult> RunInstallAsync(
+            string packageUrl,
+            string tvIpAddress,
+            CancellationToken cancellationToken,
+            ProgressCallback? progress,
+            Action? onSamsungLoginStarted,
+            InstallRun run)
+        {
             try
             {
                 // Step 1: Prepare device and check for existing installations
-                var prepareResult = await PrepareDeviceAsync(tvIpAddress, packageUrl, progress, cancellationToken);
+                var prepareResult = await PrepareDeviceAsync(tvIpAddress, packageUrl, progress, run);
                 if (!prepareResult.Success)
                     return prepareResult;
 
@@ -210,7 +234,8 @@ namespace Apps2Samsung.Services
                     packageUrl,
                     progress,
                     cancellationToken,
-                    onSamsungLoginStarted);
+                    onSamsungLoginStarted,
+                    run);
 
                 if (!certificateResult.Success)
                     return certificateResult.InstallResult;
@@ -246,7 +271,6 @@ namespace Apps2Samsung.Services
                     if (!proceed)
                     {
                         // Cancelled during the wait — a deliberate stop, not a failed install.
-                        _appSettings.TryOverwrite = false;
                         progress?.Invoke(Constants.LocalizationKeys.CertificateWaitCancelled.Localized());
                         return InstallResult.FailureResult(
                             Constants.LocalizationKeys.CertificateWaitCancelled.Localized());
@@ -277,7 +301,6 @@ namespace Apps2Samsung.Services
                     {
                         Trace.WriteLine($"Resign output: {resignResults.Output}");
                         progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
-                        _appSettings.TryOverwrite = false;
                         return InstallResult.FailureResult(string.Format("statusResignFailed".Localized(), resignResults.Output));
                     }
                 }
@@ -292,12 +315,11 @@ namespace Apps2Samsung.Services
                     progress,
                     cancellationToken,
                     onSamsungLoginStarted,
-                    wasAlreadyInstalled.Value);
+                    run);
             }
             catch (Exception ex)
             {
                 progress?.Invoke($"Installation error: {ex}");
-                _appSettings.TryOverwrite = false;
 
                 // Surface the innermost cause too — outer messages like "The SSL connection could
                 // not be established, see inner exception" are useless on their own (e.g. an old
@@ -323,9 +345,11 @@ namespace Apps2Samsung.Services
             string tvIpAddress,
             string packageUrl,
             ProgressCallback? progress,
-            CancellationToken cancellationToken)
+            InstallRun run)
         {
-            if (_appSettings.TryOverwrite)
+            // While the overwrite retry is still available we push straight away and let the TV's
+            // answer decide; only once that has been spent do we diagnose / remove the old copy.
+            if (run.RetryAvailable)
                 return InstallResult.SuccessResult();
 
             progress?.Invoke(Constants.LocalizationKeys.DiagnoseTv.Localized());
@@ -345,7 +369,7 @@ namespace Apps2Samsung.Services
 
             if (canDelete && alreadyInstalled)
             {
-                if (_appSettings.DeletePreviousInstall)
+                if (run.DeletePrevious)
                 {
                     progress?.Invoke(Constants.LocalizationKeys.DeleteExistingVersion.Localized());
                     var uninstallResult = await UninstallPackageAsync(tvIpAddress, appId!);
@@ -412,7 +436,8 @@ namespace Apps2Samsung.Services
             string packageUrl,
             ProgressCallback? progress,
             CancellationToken cancellationToken,
-            Action? onSamsungLoginStarted)
+            Action? onSamsungLoginStarted,
+            InstallRun run)
         {
             var fileName = Path.GetFileName(packageUrl);
             bool manualResign = !fileName.Contains(Constants.AppIdentifiers.JellyfinAppName, StringComparison.OrdinalIgnoreCase);
@@ -423,7 +448,7 @@ namespace Apps2Samsung.Services
             bool requiresResign = deviceInfo.TizenVersion >= certVersion ||
                                   deviceInfo.TizenVersion <= pushVersion ||
                                   !string.IsNullOrEmpty(_appSettings.JellyfinIP) ||
-                                  _appSettings.ForceSamsungLogin ||
+                                  run.ForceLogin ||
                                   manualResign;
 
             if (!requiresResign)
@@ -515,7 +540,7 @@ namespace Apps2Samsung.Services
                         storePath: AppSettings.CertificatePath,
                         caPath: caPath,
                         manualDuids: ParseDuids(_appSettings.ManualDuids),
-                        forceLogin: _appSettings.ForceSamsungLogin,
+                        forceLogin: run.ForceLogin,
                         onLoginStarting: () =>
                         {
                             progress?.Invoke(Constants.LocalizationKeys.SamsungLogin.Localized());
@@ -583,7 +608,7 @@ namespace Apps2Samsung.Services
             // for the level, or it's missing/expired). Because the folder is level-specific, switching
             // Public<->Partner naturally has no author yet and generates a fresh profile without
             // touching the other level.
-            bool needsFullProfile = _appSettings.ForceSamsungLogin ||
+            bool needsFullProfile = run.ForceLogin ||
                                     (!isBundledJellyfin && !hasAuthor);
 
             // DUIDs the user manually pre-authorized + DUIDs already covered by THIS level's distributor
@@ -831,14 +856,14 @@ namespace Apps2Samsung.Services
             ProgressCallback? progress,
             CancellationToken cancellationToken,
             Action? onSamsungLoginStarted,
-            bool wasAlreadyInstalled)
+            InstallRun run)
         {
             // Best-effort cleanup of a partial left behind by a FRESH failed install. Guarded on
-            // wasAlreadyInstalled: only clear a package that wasn't on the TV before this run — never
+            // WasAlreadyInstalled: only clear a package that wasn't on the TV before this run — never
             // uninstall a pre-existing working app on a failed reinstall. Swallows all errors.
             async Task ClearPartialIfFresh()
             {
-                if (wasAlreadyInstalled)
+                if (run.WasAlreadyInstalled)
                     return;
                 try
                 {
@@ -858,26 +883,18 @@ namespace Apps2Samsung.Services
             // instead of looping a re-sign+re-push over the same broken route.
             if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsTransportLost(installResults.Output))
             {
-                _appSettings.TryOverwrite = false;
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
                 Trace.WriteLine($"[Install] Transport connection lost to {tvIpAddress}: {installResults.Output}");
                 return InstallResult.FailureResult(Constants.LocalizationKeys.ConnectionInterrupted.Localized());
             }
 
-            // Handle insufficient space error
+            // [116] "download failed": the TV has no room for the package. A re-sign + re-push of the
+            // same file cannot create space, so don't loop through the overwrite retry — tell the user
+            // straight away (#666). Same rule as the mobile head's WgtInstaller.
             if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsInsufficientSpace(installResults.Output))
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
-
-                if (_appSettings.TryOverwrite)
-                {
-                    Trace.WriteLine("Installation failed, insufficient space! retrying with remove previous version");
-                    _appSettings.TryOverwrite = false;
-                    return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
-                }
-
-                _appSettings.TryOverwrite = false;
-                Trace.WriteLine("Installation failed, insufficient space!");
+                Trace.WriteLine($"[Install] Insufficient space on {tvIpAddress}: {installResults.Output}");
                 return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(),
                     Constants.LocalizationKeys.InsufficientSpace.Localized()));
             }
@@ -889,16 +906,17 @@ namespace Apps2Samsung.Services
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
 
                 // On TVs that allow SDB uninstall, remove the old copy and reinstall automatically.
-                if (_appSettings.TryOverwrite && await GetTvDiagnoseAsync(tvIpAddress))
+                // Removing the old copy is the whole fix; the certificate we just signed with is fine,
+                // so the retry deliberately does NOT force a fresh Samsung login (that would mint yet
+                // another author certificate and re-create this exact mismatch on every other TV).
+                if (run.RetryAvailable && await GetTvDiagnoseAsync(tvIpAddress))
                 {
-                    _appSettings.TryOverwrite = false;
-                    _appSettings.ForceSamsungLogin = true;
-                    _appSettings.DeletePreviousInstall = true;
-                    return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
+                    run.RetryAvailable = false;
+                    run.DeletePrevious = true;
+                    return await RunInstallAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
                 }
 
                 // Overwrite can't help and the TV can't remove it over USB -> tell the user to delete it manually.
-                _appSettings.TryOverwrite = false;
                 var certMessage = string.Format(
                     Constants.LocalizationKeys.CertificateMismatch.Localized(),
                     GetPackageAppTitle(packageUrl));
@@ -912,7 +930,6 @@ namespace Apps2Samsung.Services
             // Give the user a clear reason instead of a raw error code.
             if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsApiVersionMismatch(installResults.Output))
             {
-                _appSettings.TryOverwrite = false;
                 var apiMessage = Constants.LocalizationKeys.ApiVersionMismatch.Localized();
                 progress?.Invoke(apiMessage);
                 Trace.WriteLine($"[Install] API-version incompatibility ([118, -4]) on {tvIpAddress}: {installResults.Output}");
@@ -926,9 +943,9 @@ namespace Apps2Samsung.Services
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
 
-                if (_appSettings.TryOverwrite)
+                if (run.RetryAvailable)
                 {
-                    _appSettings.TryOverwrite = false;
+                    run.RetryAvailable = false;
 
                     // Preferred remedy: remove the copy we collide with and reinstall under the
                     // package's own id. Renaming works too, but keeping the id is strictly better —
@@ -936,7 +953,7 @@ namespace Apps2Samsung.Services
                     // code that launches them by literal id are only valid while the id stays what
                     // the package was built with, and the TV keeps one app entry instead of two.
                     if (await TryRemoveConflictingPackageAsync(tvIpAddress, packageUrl, progress))
-                        return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
+                        return await RunInstallAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
 
                     // Fallback: give the package a new id and retry. Only retry if the rename actually
                     // happened — if config.xml couldn't be read/modified (previously silent for any
@@ -948,11 +965,10 @@ namespace Apps2Samsung.Services
                         Trace.WriteLine(
                             $"[Install] Renamed package {rename.OldId} -> {rename.NewId} across " +
                             $"{rename.FilesChanged.Count} file(s) after a [118] conflict.");
-                        return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
+                        return await RunInstallAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
                     }
                 }
 
-                _appSettings.TryOverwrite = false;
                 return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(),
                     Constants.LocalizationKeys.ModifyConfigRequired.Localized()));
             }
@@ -962,13 +978,12 @@ namespace Apps2Samsung.Services
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
 
-                if (_appSettings.TryOverwrite)
+                if (run.RetryAvailable)
                 {
-                    _appSettings.TryOverwrite = false;
-                    return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
+                    run.RetryAvailable = false;
+                    return await RunInstallAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
                 }
 
-                _appSettings.TryOverwrite = false;
                 // Retries exhausted on a generic failure — clear any partial left by a fresh install.
                 await ClearPartialIfFresh();
                 return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(), installResults.Output));
@@ -994,13 +1009,12 @@ namespace Apps2Samsung.Services
             // Unknown result - retry if possible
             progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
 
-            if (_appSettings.TryOverwrite)
+            if (run.RetryAvailable)
             {
-                _appSettings.TryOverwrite = false;
-                return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, wasAlreadyInstalled);
+                run.RetryAvailable = false;
+                return await RunInstallAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
             }
 
-            _appSettings.TryOverwrite = false;
             // Retries exhausted on an unknown result — clear any partial left by a fresh install.
             await ClearPartialIfFresh();
             return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(), installResults.Output));
@@ -1029,11 +1043,11 @@ namespace Apps2Samsung.Services
             }
         }
 
-        public async Task<TizenDeviceInfo> GetDeviceInfoAsync(string tvIpAddress, bool debugPortOpen)
+        public async Task<TizenDeviceInfo> GetDeviceInfoAsync(string tvIpAddress, bool debugPortOpen, string? localIp = null)
         {
             try
             {
-                return await Apps2Samsung.Sdb.TizenDeviceInfoService.GatherAsync(_sdb, tvIpAddress, debugPortOpen);
+                return await Apps2Samsung.Sdb.TizenDeviceInfoService.GatherAsync(_sdb, tvIpAddress, debugPortOpen, localIp);
             }
             finally
             {
@@ -1092,11 +1106,16 @@ namespace Apps2Samsung.Services
         // Debug-mode launch + inspector tunnel live in Core (Sdb/TizenAppDebugger), shared with the
         // mobile head. Only what happens with the local port differs: here it is handed to Chrome's
         // inspect page, which looks for 9222 specifically — hence the fixed port rather than a free one.
-        public async Task<(int LocalPort, IAsyncDisposable ForwardSession)> DebugAppAsync(string tvIpAddress, string tizenId)
+        public async Task<(int LocalPort, IAsyncDisposable ForwardSession)> DebugAppAsync(
+            string tvIpAddress, string tizenId, int localPort = 9222)
         {
-            var session = await Apps2Samsung.Sdb.TizenAppDebugger.StartAsync(_sdb, tvIpAddress, tizenId, localPort: 9222);
+            var session = await Apps2Samsung.Sdb.TizenAppDebugger.StartAsync(_sdb, tvIpAddress, tizenId, localPort);
             return (session.LocalPort, session);
         }
+
+        public Task<Apps2Samsung.Diagnostics.ServiceEndpointResult> QueryServiceEndpointAsync(
+            string tvIpAddress, int port, string path, CancellationToken cancellationToken = default) =>
+            Apps2Samsung.Diagnostics.TizenServiceEndpoint.QueryAsync(_sdb, tvIpAddress, port, path, cancellationToken);
 
         private async Task<(string tizenOs, string sdkToolPath)> FetchCapabilitiesAsync(string tvIpAddress)
         {
@@ -1260,6 +1279,24 @@ namespace Apps2Samsung.Services
         #endregion
 
         #region Helper Classes
+
+        // Mutable state for ONE InstallPackageAsync call (and its internal retries). Seeded from the
+        // user's settings and then flipped freely by the retry logic, so the settings stay exactly as
+        // the user left them.
+        private sealed class InstallRun
+        {
+            /// <summary>One-shot overwrite retry budget (seeded from the Overwrite existing version setting).</summary>
+            public bool RetryAvailable { get; set; }
+
+            /// <summary>Mint a fresh Samsung profile instead of reusing one (seeded from Force Samsung certificate).</summary>
+            public bool ForceLogin { get; set; }
+
+            /// <summary>Uninstall the existing copy before installing (seeded from Remove old version).</summary>
+            public bool DeletePrevious { get; set; }
+
+            /// <summary>Whether the app was on the TV before this run started.</summary>
+            public bool WasAlreadyInstalled { get; set; }
+        }
 
         private class DeviceInfo
         {

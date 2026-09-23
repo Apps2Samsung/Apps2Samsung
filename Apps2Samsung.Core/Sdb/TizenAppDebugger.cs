@@ -1,8 +1,7 @@
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
 using System;
 using System.Diagnostics;
-using System.Net;
-using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -37,16 +36,20 @@ namespace Apps2Samsung.Sdb
     /// Puts an installed app into web-inspector debug mode and tunnels the inspector back to this
     /// device, so a DevTools client can attach to it.
     ///
-    /// Shared by both heads because only the last step differs: the desktop hands the local port to
-    /// Chrome's <c>chrome://inspect</c>, while the mobile head speaks the DevTools protocol itself
-    /// (see <c>Apps2Samsung.Diagnostics.DevToolsInspector</c>) — Chrome on Android has no
-    /// <c>chrome://inspect</c> to hand off to.
+    /// Shared by both heads: each attaches its own <see cref="Apps2Samsung.Diagnostics.DevToolsConsole"/>
+    /// to the tunnelled inspector (see <c>Apps2Samsung.Diagnostics.DevToolsInspector</c>). The
+    /// desktop can additionally open the TV-hosted DevTools frontend in a browser; Chrome on Android
+    /// has no <c>chrome://inspect</c> to hand off to, so the phone never does.
     /// </summary>
     public static class TizenAppDebugger
     {
         // The TV answers `0 debug <id>` with a report carrying the inspector's port, e.g.
         // "... launch_app is ... port: 43287". The number is the TV's port, not a local one.
         private static readonly Regex PortPattern = new(@"port:\s*(\d+)", RegexOptions.Compiled);
+
+        // Tries for `0 debug` when the link keeps dying. Three is what the engine's own connect retry
+        // uses, and a TV that drops three fresh connections in a row is not having a race.
+        private const int DebugAttempts = 3;
 
         /// <summary>
         /// Relaunches <paramref name="tizenId"/> in debug mode and tunnels its inspector to
@@ -55,7 +58,10 @@ namespace Apps2Samsung.Sdb
         /// </summary>
         /// <remarks>
         /// The app must not be running: the TV hands out an inspector port only for the launch that
-        /// `0 debug` performs itself, so callers stop the app first.
+        /// `0 debug` performs itself, so callers stop the app first. That stop is why this reconnects
+        /// before asking: sdbd answers a `0 was_kill` for an id it will not accept by closing the whole
+        /// connection (PR #659), which leaves the pooled one dead and would make this command fail as a
+        /// socket error without ever reaching the TV.
         /// </remarks>
         public static async Task<TizenDebugSession> StartAsync(
             ISdbEngine sdb, string tvIpAddress, string tizenId, int localPort = 0)
@@ -63,12 +69,19 @@ namespace Apps2Samsung.Sdb
             int remotePort;
             try
             {
-                var result = await sdb.ShellAsync(tvIpAddress, $"0 debug {tizenId}");
+                var result = await AskForDebugPortAsync(sdb, tvIpAddress, tizenId);
                 if (result.ExitCode != 0)
                 {
                     var error = string.IsNullOrWhiteSpace(result.Error) ? result.Output : result.Error;
-                    throw new InvalidOperationException(
-                        $"The TV refused to start debug mode for {tizenId}: {error}");
+
+                    // Distinguished on purpose: a TV that keeps dropping the link has not said no to
+                    // debug mode, it has said nothing at all, and the two want different next steps.
+                    throw new InvalidOperationException(SdbTransportErrors.IsTransient(result)
+                        ? $"The TV closed the connection instead of answering the request to start debug mode " +
+                          $"for {tizenId}, on {DebugAttempts} fresh connections in a row. Its sdbd does that for " +
+                          $"an id it won't launch, so this reads as the TV not running that id at all rather " +
+                          $"than as a refusal it worded. Last transport error: {error}"
+                        : $"The TV refused to start debug mode for {tizenId}: {error}");
                 }
 
                 var match = PortPattern.Match(result.Output ?? string.Empty);
@@ -88,28 +101,39 @@ namespace Apps2Samsung.Sdb
             }
 
             if (localPort == 0)
-                localPort = FindFreeLocalPort();
+                localPort = LocalPorts.FindFree();
 
             Trace.WriteLine($"[debug] {tizenId} inspector on TV port {remotePort} → local {localPort}");
             var forward = await sdb.ForwardAsync(tvIpAddress, localPort, remotePort);
             return new TizenDebugSession(localPort, remotePort, forward);
         }
 
-        // Ask the OS for an unused port by binding port 0 and reading back what it assigned. There is
-        // an unavoidable race between releasing it here and the tunnel claiming it, but the
-        // alternative — a hardcoded port — collides far more often on a phone, where nothing
-        // guarantees a well-known debug port is free.
-        private static int FindFreeLocalPort()
+        /// <summary>
+        /// Asks the TV for an inspector port, on a connection of this command's own.
+        /// </summary>
+        /// <remarks>
+        /// The caller's pre-stop may have killed the pooled connection (see <see cref="StartAsync"/>),
+        /// and sdbd is known to close a freshly-opened one mid-handshake right after a previous one was
+        /// torn down, so the first try can die without the TV having seen the command. `0 debug` is safe
+        /// to repeat — it launches an app that is meant to be launched — so it is retried on a fresh
+        /// connection, and only a result that survives that is worth reporting.
+        /// </remarks>
+        private static async Task<ProcessResult> AskForDebugPortAsync(
+            ISdbEngine sdb, string tvIpAddress, string tizenId)
         {
-            var listener = new TcpListener(IPAddress.Loopback, 0);
-            listener.Start();
-            try
+            ProcessResult result;
+            for (int attempt = 1; ; attempt++)
             {
-                return ((IPEndPoint)listener.LocalEndpoint).Port;
-            }
-            finally
-            {
-                listener.Stop();
+                // Drop the pooled connection first: reusing one the pre-stop may have killed is the
+                // failure this guards against.
+                await sdb.DisconnectAsync(tvIpAddress);
+
+                result = await sdb.ShellAsync(tvIpAddress, $"0 debug {tizenId}");
+                if (attempt >= DebugAttempts || !SdbTransportErrors.IsTransient(result))
+                    return result;
+
+                Trace.WriteLine($"[debug] {tizenId}: link died on attempt {attempt}, retrying");
+                await Task.Delay(400 * attempt);
             }
         }
     }

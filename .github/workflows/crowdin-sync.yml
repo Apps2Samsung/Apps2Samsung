@@ -65,6 +65,17 @@ jobs:
       - uses: actions/checkout@v7
         if: steps.creds.outputs.configured == 'true'
 
+      # The action reuses l10n_beta when it exists and stacks commits on it, while every translations
+      # PR is squash-merged - so those commits never reach beta and the branch's merge base drifts one
+      # PR further back each cycle. It ends in conflicts that mean nothing: the same block added on
+      # both sides, plus one new line from Crowdin inside it (#677). Start every run from beta
+      # instead: drop the branch and let the action recreate it from the checkout. A translations PR
+      # still open at that point is closed and replaced by the new one - fine for a branch nobody
+      # edits by hand.
+      - name: Start the translations branch from beta
+        if: steps.creds.outputs.configured == 'true'
+        run: git push origin --delete l10n_beta || echo "No l10n_beta to drop."
+
       - name: Upload sources and open a translations PR
         if: steps.creds.outputs.configured == 'true'
         uses: crowdin/github-action@v3

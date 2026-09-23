@@ -7,6 +7,27 @@
              NavigationPage.HasNavigationBar="False"
              BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
 
+    <ContentPage.Resources>
+        <!-- One bordered 44×36 button per row action, with a 16 px monochrome icon centred on it. -->
+        <Style x:Key="RowActionButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="BorderWidth" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="WidthRequest" Value="44" />
+            <Setter Property="HeightRequest" Value="36" />
+            <Setter Property="BorderColor" Value="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}" />
+        </Style>
+        <Style x:Key="RowActionIcon" TargetType="Path">
+            <Setter Property="Aspect" Value="Uniform" />
+            <Setter Property="WidthRequest" Value="16" />
+            <Setter Property="HeightRequest" Value="16" />
+            <Setter Property="HorizontalOptions" Value="Center" />
+            <Setter Property="VerticalOptions" Value="Center" />
+            <Setter Property="InputTransparent" Value="True" />
+        </Style>
+    </ContentPage.Resources>
+
     <Grid RowDefinitions="Auto,Auto,*" Margin="12" RowSpacing="10">
 
         <!-- Header banner with a back affordance -->
@@ -67,24 +88,32 @@
                                     <Label Text="{Binding SizeDisplay}" FontSize="11" Opacity="0.55" />
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
+                            <!-- Row actions. The same Material Design Icons paths the desktop head draws, so an
+                                 app row looks identical on both: emoji rendered differently per device and
+                                 FluentAvalonia's symbol font isn't available here. The Path sits over a plain
+                                 Button (MAUI buttons can't host content); the click handlers still get the
+                                 Button, whose BindingContext is the app. -->
                             <HorizontalStackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
-                                <Button Text="▶" ToolTipProperties.Text="{l:Localize lblRun}" Clicked="OnLaunchClicked" FontSize="18"
-                                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
-                                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=#ECEFF1}" />
-                                <Button Text="⏹" ToolTipProperties.Text="{l:Localize keyStop}" Clicked="OnStopClicked" FontSize="18"
-                                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
-                                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=#ECEFF1}" />
-                                <Button Text="🐞" ToolTipProperties.Text="{l:Localize lblDebugConsole}" Clicked="OnDebugClicked" FontSize="18"
-                                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
-                                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                        TextColor="{AppThemeBinding Light=#2C3E50, Dark=#ECEFF1}" />
-                                <Button Text="🗑️" ToolTipProperties.Text="{l:Localize lblUninstall}" Clicked="OnUninstallClicked" FontSize="18"
-                                        IsVisible="{Binding IsRemovable}"
-                                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
-                                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                        TextColor="{AppThemeBinding Light=#B00020, Dark=#FF6B6B}" />
+                                <Grid>
+                                    <Button ToolTipProperties.Text="{l:Localize lblRun}" Clicked="OnLaunchClicked" Style="{StaticResource RowActionButton}" />
+                                    <Path Data="M8,5.14V19.14L19,12.14L8,5.14Z" Style="{StaticResource RowActionIcon}"
+                                          Fill="{AppThemeBinding Light=#2C3E50, Dark=#ECEFF1}" />
+                                </Grid>
+                                <Grid>
+                                    <Button ToolTipProperties.Text="{l:Localize keyStop}" Clicked="OnStopClicked" Style="{StaticResource RowActionButton}" />
+                                    <Path Data="M18,18H6V6H18V18Z" Style="{StaticResource RowActionIcon}"
+                                          Fill="{AppThemeBinding Light=#2C3E50, Dark=#ECEFF1}" />
+                                </Grid>
+                                <Grid>
+                                    <Button ToolTipProperties.Text="{l:Localize lblDebugConsole}" Clicked="OnDebugClicked" Style="{StaticResource RowActionButton}" />
+                                    <Path Data="M14,12H10V10H14M14,16H10V14H14M20,8H17.19C16.74,7.22 16.12,6.55 15.37,6.04L17,4.41L15.59,3L13.42,5.17C12.96,5.06 12.5,5 12,5C11.5,5 11.04,5.06 10.59,5.17L8.41,3L7,4.41L8.62,6.04C7.88,6.55 7.26,7.22 6.81,8H4V10H6.09C6.04,10.33 6,10.66 6,11V12H4V14H6V15C6,15.34 6.04,15.67 6.09,16H4V18H6.81C7.85,19.79 9.78,21 12,21C14.22,21 16.15,19.79 17.19,18H20V16H17.91C17.96,15.67 18,15.34 18,15V14H20V12H18V11C18,10.66 17.96,10.33 17.91,10H20V8Z" Style="{StaticResource RowActionIcon}"
+                                          Fill="{AppThemeBinding Light=#2C3E50, Dark=#ECEFF1}" />
+                                </Grid>
+                                <Grid IsVisible="{Binding IsRemovable}">
+                                    <Button ToolTipProperties.Text="{l:Localize lblUninstall}" Clicked="OnUninstallClicked" Style="{StaticResource RowActionButton}" />
+                                    <Path Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" Style="{StaticResource RowActionIcon}"
+                                          Fill="{AppThemeBinding Light=#B00020, Dark=#FF6B6B}" />
+                                </Grid>
                             </HorizontalStackLayout>
                         </Grid>
                     </Border>

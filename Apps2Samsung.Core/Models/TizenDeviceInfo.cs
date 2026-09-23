@@ -9,6 +9,8 @@ namespace Apps2Samsung.Models
     /// Everything we can report about a connected TV, gathered by
     /// <see cref="Apps2Samsung.Sdb.TizenDeviceInfoService"/> and shown by both heads' "TV information"
     /// view. Values are best-effort — anything the TV didn't report shows as "—".
+    /// <paramref name="LocalIp"/> is this computer's / this phone's own LAN address, listed next to the
+    /// TV's Developer-host IP so a mismatch is visible at a glance.
     /// </summary>
     public sealed record TizenDeviceInfo(
         string IpAddress,
@@ -20,7 +22,8 @@ namespace Apps2Samsung.Models
         string SdkToolPath,
         string DeveloperMode,
         string DeveloperIp,
-        bool DebugPortOpen)
+        bool DebugPortOpen,
+        string? LocalIp = null)
     {
         private static string Dash(string? s) => string.IsNullOrWhiteSpace(s) ? "—" : s.Trim();
 
@@ -42,6 +45,7 @@ namespace Apps2Samsung.Models
             new("DUID", Dash(Duid)),
             new("Developer mode", DeveloperModeDisplay),
             new("Developer host IP", Dash(DeveloperIp)),
+            new("Local IP", Dash(LocalIp)),
             new("Debug port (26101)", DebugPortOpen ? "Open" : "Closed"),
             new("SDK tool path", Dash(SdkToolPath)),
         };

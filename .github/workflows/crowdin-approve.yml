@@ -1,0 +1,73 @@
+name: Crowdin approve translations
+
+# Approves whatever Crowdin holds unapproved, so the approved count keeps up with the translated
+# one without anyone clicking through 580 strings per language.
+#
+# Crowdin cannot do this by itself. Its auto-approve settings only cover strings written by
+# auto-translation or by an upload; a translation typed in the editor stays unapproved until
+# somebody approves it, which is why Czech sat at 100% translated and 14% approved.
+#
+# Read the header of .github/scripts/crowdin_approve.py before widening this: approving every
+# language means the tick no longer distinguishes a native-speaker review from a machine
+# translation, and it re-arms the PR #610 failure - Crowdin exports an approved translation over
+# a newer unapproved one, so a string fixed by hand in the repo comes back stale until
+# crowdin-fix-string is run for it. Set `languages` to the ones actually reviewed if that matters
+# more than a full green bar.
+#
+# The weekly run writes. A manual run does not unless `apply` is ticked, so the Actions tab is
+# also how to see what a run would touch.
+#
+# Uses the same two secrets as the sync:
+#   CROWDIN_PROJECT_ID       numeric project id
+#   CROWDIN_PERSONAL_TOKEN   personal access token with the Projects scope
+
+on:
+  # Half an hour ahead of the Monday sync, so a week's translations are approved before the
+  # download PR is opened.
+  schedule:
+    - cron: '30 5 * * 1'
+  workflow_dispatch:
+    inputs:
+      languages:
+        description: >-
+          Comma-separated languages to approve, by Crowdin id or locale (cs, nl-NL, pt-BR).
+          Empty = every target language.
+        type: string
+        default: ''
+      apply:
+        description: 'Write the approvals. Off = report what would be approved and touch nothing.'
+        type: boolean
+        default: false
+
+concurrency:
+  # Shares the sync's group: approvals decide which revision of a string Crowdin exports, so they
+  # have no business landing halfway through a download.
+  group: crowdin-sync
+  cancel-in-progress: false
+
+jobs:
+  approve:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+      - name: Approve unapproved translations
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+          # Through the environment rather than interpolated into the script: free text from
+          # whoever dispatches the run.
+          LANGUAGES: ${{ inputs.languages }}
+          # `inputs` is null on a scheduled run, so the weekly one applies and a dispatch only
+          # does when it was asked to.
+          APPLY: ${{ inputs.apply || github.event_name == 'schedule' }}
+        run: |
+          if [ -z "$CROWDIN_PROJECT_ID" ] || [ -z "$CROWDIN_PERSONAL_TOKEN" ]; then
+            echo "::error::CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN are not set."
+            exit 1
+          fi
+          [ "$APPLY" = "true" ] && apply=--apply || apply=
+          [ -n "$LANGUAGES" ] && languages="--languages $LANGUAGES" || languages=
+          python3 .github/scripts/crowdin_approve.py $apply $languages

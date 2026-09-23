@@ -19,6 +19,7 @@ namespace Apps2Samsung.ViewModels
         private readonly ITizenInstallerService _installer;
         private readonly string _tvIp;
         private readonly bool _debugPortOpen;
+        private readonly string? _localIp;
 
         public string TvLabel { get; }
 
@@ -32,12 +33,14 @@ namespace Apps2Samsung.ViewModels
 
         public event Action? OnRequestClose;
 
-        public DeviceInfoViewModel(ITizenInstallerService installer, string tvIp, string tvLabel, bool debugPortOpen)
+        /// <param name="localIp">This computer's own LAN IP, shown next to the TV's Developer-host IP.</param>
+        public DeviceInfoViewModel(ITizenInstallerService installer, string tvIp, string tvLabel, bool debugPortOpen, string? localIp = null)
         {
             _installer = installer;
             _tvIp = tvIp;
             TvLabel = tvLabel;
             _debugPortOpen = debugPortOpen;
+            _localIp = localIp;
         }
 
         [RelayCommand]
@@ -47,7 +50,7 @@ namespace Apps2Samsung.ViewModels
             StatusText = "statusReadingTvInfo".Localized();
             try
             {
-                var info = await _installer.GetDeviceInfoAsync(_tvIp, _debugPortOpen);
+                var info = await _installer.GetDeviceInfoAsync(_tvIp, _debugPortOpen, _localIp);
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     Rows.Clear();

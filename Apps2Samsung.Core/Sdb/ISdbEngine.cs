@@ -33,6 +33,16 @@ namespace Apps2Samsung.Interfaces
         /// <summary>Launches an installed app by id.</summary>
         Task<ProcessResult> LaunchAsync(string tvIpAddress, string appId);
 
+        /// <summary>
+        /// <c>0 execute &lt;appId&gt;</c>: sdbd's other launcher verb, found by the verb probe on a 2019
+        /// retail set. Unlike <see cref="LaunchAsync"/> (<c>was_execute</c>, the Smart Hub launcher) it
+        /// answers in the platform's own words, e.g. "The app with ID: x is not available for the user
+        /// 5001", so it is the verb to try for a service or an id Smart Hub does not know. Success is
+        /// the TV's reply, verbatim and unparsed; firmware without the verb closes the channel, which
+        /// comes back as a failed result.
+        /// </summary>
+        Task<ProcessResult> ExecuteAsync(string tvIpAddress, string appId);
+
         /// <summary>Re-signs a .wgt with the given author/distributor PKCS#12 certificates.</summary>
         Task<ProcessResult> ResignAsync(string packagePath, string authorP12, string distributorP12, string certPass);
 

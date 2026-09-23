@@ -195,12 +195,21 @@ public sealed class WgtInstaller
 			throw new InvalidOperationException(
 				"The TV refused this package ([118, -4]). Either the app needs a newer Tizen than this TV, or it needs Partner signing / a privilege your certificate doesn't allow. If other apps install fine, turn on Partner signing in Settings and retry, or try an older build.");
 
-		bool certMismatch = TizenInstallDiagnostics.IsCertificateMismatch(output);
-		bool outOfSpace = TizenInstallDiagnostics.IsInsufficientSpace(output);
+		// [116] "download failed": the TV has no room for the package. Uninstalling and pushing the
+		// same file again cannot create space, and the raw wascmd dump it used to end in gave the
+		// user no clue what was wrong (#666). Stop here with the actual reason.
+		if (TizenInstallDiagnostics.IsInsufficientSpace(output))
+		{
+			await ClearPartialIfFresh();
+			throw new InvalidOperationException(
+				"Not enough free space on the TV [116]. Remove some apps on the TV (Settings → Support → Device Care → Manage Storage), then install again.");
+		}
 
-		// Recoverable by removing the old copy first: certificate mismatch, insufficient space,
-		// package-id conflict, or a generic failure. Try exactly one clean reinstall.
-		bool recoverable = certMismatch || outOfSpace ||
+		bool certMismatch = TizenInstallDiagnostics.IsCertificateMismatch(output);
+
+		// Recoverable by removing the old copy first: certificate mismatch, package-id conflict, or a
+		// generic failure. Try exactly one clean reinstall.
+		bool recoverable = certMismatch ||
 						   TizenInstallDiagnostics.IsPackageIdConflict(output) ||
 						   TizenInstallDiagnostics.IsGenericFailure(output);
 
@@ -226,9 +235,6 @@ public sealed class WgtInstaller
 		if (certMismatch)
 			throw new InvalidOperationException(
 				"The TV already has this app signed with a different certificate. Remove it on the TV (Apps → delete) and install again, or enable \"Override existing app\" in Settings.");
-		if (outOfSpace)
-			throw new InvalidOperationException(
-				"Not enough free space on the TV [116]. Remove some apps and try again, or enable \"Override existing app\" in Settings.");
 
 		await ClearPartialIfFresh();
 		throw new InvalidOperationException($"Install failed: {Detail(failed.Error, failed.Output)}");

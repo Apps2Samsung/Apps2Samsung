@@ -27,7 +27,13 @@ namespace Apps2Samsung.Diagnostics
     /// <param name="Level">Severity, for colouring and filtering.</param>
     /// <param name="Text">The rendered message.</param>
     /// <param name="Origin">Script and line it came from, when the protocol said; else null.</param>
-    public sealed record ConsoleEntry(DateTimeOffset Timestamp, ConsoleLevel Level, string Text, string? Origin);
+    /// <param name="Source">
+    /// Which process the line came from, when the console shows more than one. Null is the app itself;
+    /// a packaged service's console tags its lines with the service id so the two streams stay apart
+    /// in one transcript.
+    /// </param>
+    public sealed record ConsoleEntry(
+        DateTimeOffset Timestamp, ConsoleLevel Level, string Text, string? Origin, string? Source = null);
 
     /// <summary>
     /// A console attached to an app running on the TV, over the Chrome DevTools Protocol.
@@ -49,8 +55,19 @@ namespace Apps2Samsung.Diagnostics
         private Task? _receiveLoop;
         private int _nextId;
 
+        private readonly DevToolsNetworkTracker _network = new();
+
         /// <summary>Raised for every console line, off the UI thread — marshal before touching the UI.</summary>
         public event Action<ConsoleEntry>? EntryReceived;
+
+        /// <summary>
+        /// Raised for every request the app finishes, off the UI thread, once network reporting is on
+        /// (<see cref="SetNetworkEnabledAsync"/>).
+        /// </summary>
+        public event Action<NetworkRequest>? NetworkRequestCompleted;
+
+        /// <summary>Whether the Network domain is reporting; off until asked for.</summary>
+        public bool IsNetworkEnabled { get; private set; }
 
         /// <summary>Raised once when the connection ends, with the reason (null = closed on request).</summary>
         public event Action<string?>? Disconnected;
@@ -58,6 +75,14 @@ namespace Apps2Samsung.Diagnostics
         /// <summary>Attaches to a target from <see cref="DevToolsInspector.ListTargetsAsync"/>.</summary>
         public async Task ConnectAsync(Uri webSocketUrl, CancellationToken ct = default)
         {
+            // No keep-alive pings. ClientWebSocket sends one every 30 s by default, and the inspector
+            // server in the TV's Chromium (net::HttpServer) does not understand a ping frame: it treats
+            // it as a protocol error and drops the socket on the spot, which surfaced as "the remote
+            // party closed the WebSocket connection without completing the close handshake" exactly
+            // 30 s after every attach. Nothing needs the pings — the SDB tunnel underneath keeps the
+            // TCP session alive, and a dead TV shows up as a failed send or receive anyway.
+            _socket.Options.KeepAliveInterval = TimeSpan.Zero;
+
             await _socket.ConnectAsync(webSocketUrl, ct);
             _receiveLoop = Task.Run(() => ReceiveLoopAsync(_stopping.Token));
 
@@ -66,6 +91,22 @@ namespace Apps2Samsung.Diagnostics
             // a blank screen when the app's own logging says nothing.
             await SendCommandAsync("Runtime.enable", null, ct);
             await SendCommandAsync("Log.enable", null, ct);
+        }
+
+        /// <summary>
+        /// Turns the Network domain on or off. Off by default, and deliberately: an app loading a grid
+        /// of posters produces several events per image, all of them crossing the SDB tunnel, and
+        /// nobody watching a console for a log line wants to pay for that. On, every finished request
+        /// arrives at <see cref="NetworkRequestCompleted"/> with its timings.
+        /// </summary>
+        public async Task SetNetworkEnabledAsync(bool enabled, CancellationToken ct = default)
+        {
+            await SendCommandAsync(enabled ? "Network.enable" : "Network.disable", null, ct);
+            IsNetworkEnabled = enabled;
+
+            // What was in flight at the switch can never be completed now, so it is not kept.
+            if (!enabled)
+                _network.Reset();
         }
 
         /// <summary>
@@ -182,6 +223,13 @@ namespace Apps2Samsung.Diagnostics
             {
                 // Disposing — not an error.
             }
+            catch (WebSocketException ex) when (ex.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely)
+            {
+                // The TV cut the socket without a close frame. With the pings above gone, that is what
+                // an app exiting, crashing, or being relaunched looks like from here.
+                reason = "The TV dropped the inspector connection (the app exited or was relaunched).";
+                Trace.WriteLine($"[devtools] receive loop ended: {ex}");
+            }
             catch (Exception ex)
             {
                 reason = ex.Message;
@@ -227,7 +275,17 @@ namespace Apps2Samsung.Diagnostics
                 return;
             }
 
-            var entry = ToEntry(Str(message["method"]), message["params"]);
+            var method = Str(message["method"]);
+
+            // The Network domain is its own stream: timings, not console lines.
+            if (method is not null && method.StartsWith("Network.", StringComparison.Ordinal))
+            {
+                if (_network.Handle(method, message["params"]) is NetworkRequest request)
+                    NetworkRequestCompleted?.Invoke(request);
+                return;
+            }
+
+            var entry = ToEntry(method, message["params"]);
             if (entry is not null)
                 EntryReceived?.Invoke(entry);
         }

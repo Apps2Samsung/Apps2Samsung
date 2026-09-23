@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets"
-        id="https://github.com/Apps2Samsung/Apps2Samsung/debug-agent" version="0.1.0" viewmodes="maximized">
+        id="https://github.com/Apps2Samsung/Apps2Samsung/debug-agent" version="0.4.1" viewmodes="maximized">
     <name>Apps2Samsung Debug</name>
     <icon src="icon.png"/>
     <content src="index.html"/>
@@ -13,7 +13,11 @@
     <!-- A 10-character package id, stable: the desktop and mobile heads address the agent by it.
          required_version 3.0: the API below relies on Promise, which the 2.3/2.4 WebKit engines lack. -->
     <tizen:application id="A2SDebug01.Agent" package="A2SDebug01" required_version="3.0"/>
-    <!-- The one privilege that matters: tizen.application.launch(). Listing and app contexts need none. -->
+    <!-- application.launch: tizen.application.launch(). Listing and app contexts need none.
+         filesystem.read/write: A2S.staging() and A2S.clearStaging() read and empty sdbd's install
+         staging folder. Both public-level, so an author certificate covers them. -->
     <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
+    <tizen:privilege name="http://tizen.org/privilege/filesystem.read"/>
+    <tizen:privilege name="http://tizen.org/privilege/filesystem.write"/>
     <tizen:profile name="tv-samsung"/>
 </widget>

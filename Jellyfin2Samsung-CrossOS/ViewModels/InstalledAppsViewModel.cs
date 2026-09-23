@@ -38,13 +38,15 @@ namespace Apps2Samsung.ViewModels
 
         public bool IsProgressVisible => IsBusy || IsDebugging;
 
-        private IAsyncDisposable? _activeForwardSession;
-        private InstalledApp? _debuggedApp;
+        private DebugConsoleViewModel? _debugConsole;
 
         [ObservableProperty]
         private string statusText = string.Empty;
 
         public event Action? OnRequestClose;
+
+        /// <summary>The window hosts the console (it needs an owner window); the view model just asks for it.</summary>
+        public event Action<DebugConsoleViewModel>? OnRequestDebugConsole;
 
         public InstalledAppsViewModel(ITizenInstallerService installer, IDialogService dialogService, string tvIp, string tvLabel)
         {
@@ -192,86 +194,42 @@ namespace Apps2Samsung.ViewModels
             }
         }
 
+        // Opens the debug console for an app: the same log-streaming console the Android head has,
+        // instead of the old "forward the port and hope Chrome's chrome://inspect finds it" handoff.
+        // The console window owns the stop → relaunch-in-debug → tunnel → attach lifecycle; this
+        // view model only tracks that one is open so the list stays parked meanwhile.
         [RelayCommand]
         private async Task Debug(InstalledApp? app)
         {
-            if (app is null || IsBusy) return;
-            IsBusy = true;
-            
-            try 
-            { 
-                await _installer.StopAppAsync(_tvIp, app.TizenId); 
-            } 
-            catch { /* Ignore if it's not running */ }
-            
-            StatusText = string.Format("statusStartingDebug".Localized(), app.DisplayName);
-            try
-            {
-                var (port, session) = await _installer.DebugAppAsync(_tvIp, app.TizenId);
-                _activeForwardSession = session;
-                _debuggedApp = app;
-                IsDebugging = true;
+            if (app is null || IsBusy || IsDebugging) return;
 
+            var console = new DebugConsoleViewModel(_installer, _dialogService, _tvIp, app);
+            console.Attached += port =>
                 StatusText = string.Format("statusDebugging".Localized(), app.DisplayName, port);
-
-                bool opened = false;
-                Exception? lastError = null;
-
-                try
-                {
-                    if (OperatingSystem.IsWindows())
-                    {
-                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("cmd", "/c start chrome \"chrome://inspect\"") { CreateNoWindow = true });
-                    }
-                    else if (OperatingSystem.IsMacOS())
-                    {
-                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("open", "-a \"Google Chrome\" \"chrome://inspect\"") { UseShellExecute = false });
-                    }
-                    else
-                    {
-                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("google-chrome", "\"chrome://inspect\"") { UseShellExecute = false });
-                    }
-                    opened = true;
-                }
-                catch (Exception ex1)
-                {
-                    lastError = ex1;
-                    try
-                    {
-                        if (OperatingSystem.IsWindows())
-                        {
-                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("cmd", "/c start msedge \"edge://inspect\"") { CreateNoWindow = true });
-                        }
-                        else if (OperatingSystem.IsMacOS())
-                        {
-                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("open", "-a \"Microsoft Edge\" \"edge://inspect\"") { UseShellExecute = false });
-                        }
-                        else
-                        {
-                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("microsoft-edge", "\"edge://inspect\"") { UseShellExecute = false });
-                        }
-                        opened = true;
-                    }
-                    catch (Exception ex2)
-                    {
-                        lastError = ex2;
-                    }
-                }
-
-                if (!opened)
-                {
-                    await _dialogService.ShowMessageAsync("lblDebugStarted".Localized(),
-                        string.Format("statusDebugStarted".Localized(), port));
-                }
-            }
-            catch (Exception ex)
+            console.Detached += () =>
             {
-                await _dialogService.ShowErrorAsync(ex.Message);
-            }
-            finally
+                if (!ReferenceEquals(_debugConsole, console)) return;
+                _debugConsole = null;
+                IsDebugging = false;
+                StatusText = string.Empty;
+            };
+
+            _debugConsole = console;
+            IsDebugging = true;
+            StatusText = string.Format("statusStartingDebug".Localized(), app.DisplayName);
+
+            if (OnRequestDebugConsole is null)
             {
-                IsBusy = false;
+                // No window to host it (shouldn't happen outside the designer) — don't leave the
+                // list parked on a console that will never open.
+                _debugConsole = null;
+                IsDebugging = false;
+                StatusText = string.Empty;
+                await _dialogService.ShowErrorAsync("statusDebugAttachFailed".Localized());
+                return;
             }
+
+            OnRequestDebugConsole.Invoke(console);
         }
 
         // A partial/failed install can leave a package dir that vd_applist never lists, so it can't be
@@ -327,29 +285,17 @@ namespace Apps2Samsung.ViewModels
         [RelayCommand]
         private void Close() => OnRequestClose?.Invoke();
 
+        // Closing the console window detaches and raises Detached, which clears IsDebugging above.
         [RelayCommand]
-        private async Task StopDebug()
+        private Task StopDebug()
         {
-            if (!IsDebugging || _debuggedApp == null) return;
-            
-            if (_activeForwardSession != null)
-            {
-                await _activeForwardSession.DisposeAsync();
-                _activeForwardSession = null;
-            }
-            
-            IsDebugging = false;
-            _debuggedApp = null;
-            StatusText = string.Empty;
+            _debugConsole?.CloseCommand.Execute(null);
+            return Task.CompletedTask;
         }
 
         public void Dispose()
         {
-            if (_activeForwardSession != null)
-            {
-                try { _activeForwardSession.DisposeAsync().AsTask().Wait(); } catch { }
-                _activeForwardSession = null;
-            }
+            _debugConsole?.CloseCommand.Execute(null);
         }
 
     }
