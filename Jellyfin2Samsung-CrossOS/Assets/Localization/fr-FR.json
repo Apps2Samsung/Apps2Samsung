@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "Sélectionnez d'abord un téléviseur.",
   "lblRemoteNoAnswerNoMac": "Pas de réponse. Allumez le téléviseur avec sa propre télécommande, puis cette page peut le réveiller.",
   "lblToolboxStagingClear": "Effacer",
+  "lblToolboxStagingRefresh": "Rafraîchir",
   "lblSysAppSettings": "Réglages",
   "lblToolboxSend": "Envoyer",
   "lblToolboxLaunching": "Lancement de {0}...",

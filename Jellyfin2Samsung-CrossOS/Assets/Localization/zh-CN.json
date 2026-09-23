@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "请先选择电视。",
   "lblRemoteNoAnswerNoMac": "没有答案。用自己的远程切换电视一次，然后此页面可以唤醒它。",
   "lblToolboxStagingClear": "清空",
+  "lblToolboxStagingRefresh": "刷新",
   "lblSysAppSettings": "设置",
   "lblToolboxSend": "发送",
   "lblToolboxLaunching": "正在启动 {0}...",

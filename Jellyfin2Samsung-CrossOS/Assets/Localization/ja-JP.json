@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "最初にテレビを選択してください。",
   "lblRemoteNoAnswerNoMac": "答えがありません。テレビを自分のリモコンでオンにすると、このページがスリープ解除できます。",
   "lblToolboxStagingClear": "Clear",
+  "lblToolboxStagingRefresh": "更新",
   "lblSysAppSettings": "設定",
   "lblToolboxSend": "送信",
   "lblToolboxLaunching": "{0} を起動中...",

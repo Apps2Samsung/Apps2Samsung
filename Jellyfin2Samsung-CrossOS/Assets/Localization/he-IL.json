@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "בחרו תחילה טלוויזיה.",
   "lblRemoteNoAnswerNoMac": "אין מענה. הדליקו את הטלוויזיה פעם אחת עם השלט שלה, ואז הדף הזה יוכל להעיר אותה.",
   "lblToolboxStagingClear": "Clear",
+  "lblToolboxStagingRefresh": "רענון",
   "lblSysAppSettings": "הגדרות",
   "lblToolboxSend": "שלח",
   "lblToolboxLaunching": "מפעיל את {0}...",
