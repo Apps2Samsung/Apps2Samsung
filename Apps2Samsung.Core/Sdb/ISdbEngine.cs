@@ -48,12 +48,6 @@ namespace Apps2Samsung.Interfaces
         /// <summary>Executes a generic shell command on the TV.</summary>
         Task<ProcessResult> ShellAsync(string tvIpAddress, string command);
 
-        /// <summary>
-        /// Empties the TV's install staging directory, where every pushed package lands and stays
-        /// (<c>/home/owner/share/tmp/sdk_tools</c>). Installed apps are untouched.
-        /// </summary>
-        Task<ProcessResult> ClearInstallStagingAsync(string tvIpAddress);
-
         /// <summary>Forwards a local TCP port to a remote TCP port on the TV.</summary>
         Task<IAsyncDisposable> ForwardAsync(string tvIpAddress, int localPort, int remotePort);
     }

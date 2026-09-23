@@ -1,6 +1,7 @@
 using Apps2Samsung.Catalog;
 using Apps2Samsung.Agent;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Remote;
@@ -62,8 +63,6 @@ public partial class TvToolboxPage : ContentPage
 		_installWgt = installWgt;
 		AgentCard.IsEnabled = sdb is not null;
 		AgentNeedsSdbHint.IsVisible = sdb is null;
-		StagingCard.IsEnabled = sdb is not null;
-		StagingNeedsSdbHint.IsVisible = sdb is null;
 
 		// The TV's own menus, addressed by id (#641). Fixed, not filtered: a short list to try in
 		// order, not something to search.
@@ -237,18 +236,79 @@ public partial class TvToolboxPage : ContentPage
 	}
 
 	// ---------------------------------------------------------------------------------------------
-	// Install leftovers
+	// Install leftovers — through the agent (sdbd's own "0 rmfile" deletes nothing on retail firmware)
 	// ---------------------------------------------------------------------------------------------
 
+	/// <summary>Reads the staging folder again. Read-only; the list and the status line follow.</summary>
+	private async void OnRefreshStagingClicked(object? sender, EventArgs e)
+	{
+		var agent = _agent;
+		if (agent is null)
+		{
+			StagingStatusLabel.Text = L10n.Get("lblToolboxStagingNeedsAgent");
+			return;
+		}
+
+		if (_busy)
+			return;
+
+		_busy = true;
+		try
+		{
+			await RefreshStagingAsync(agent);
+		}
+		finally
+		{
+			_busy = false;
+		}
+	}
+
+	private async Task RefreshStagingAsync(DebugAgentClient agent)
+	{
+		if (!agent.SupportsStaging)
+		{
+			BindableLayout.SetItemsSource(StagedFileList, Array.Empty<ToolboxStagedFileRow>());
+			ClearStagingBtn.IsEnabled = false;
+			StagingStatusLabel.Text = string.Format(L10n.Get("lblToolboxStagingAgentTooOld"), agent.AgentVersion, DebugAgentClient.StagingSince);
+			return;
+		}
+
+		try
+		{
+			StagingStatusLabel.Text = L10n.Get("lblToolboxStagingListing");
+			var listing = await LoadStagedFilesAsync(agent);
+			var packages = listing.Packages.ToList();
+			StagingStatusLabel.Text = listing.Errors.Count > 0 && listing.Files.Count == 0
+				? string.Format(L10n.Get("lblToolboxStagingFailed"), string.Join("; ", listing.Errors))
+				: packages.Count == 0
+					? L10n.Get("lblToolboxStagingEmpty")
+					: string.Format(L10n.Get("lblToolboxStagingSummary"), packages.Count, InstalledApp.FormatSize(listing.PackageBytes));
+		}
+		catch (Exception ex)
+		{
+			StagingStatusLabel.Text = string.Format(L10n.Get("lblToolboxStagingFailed"), ex.Message);
+		}
+	}
+
+	private async Task<DebugAgentStaging> LoadStagedFilesAsync(DebugAgentClient agent)
+	{
+		var listing = await agent.ListStagingAsync();
+		var kept = L10n.Get("lblToolboxStagingKept");
+		BindableLayout.SetItemsSource(StagedFileList, listing.Files.Select(f => new ToolboxStagedFileRow(f, kept)).ToList());
+		ClearStagingBtn.IsEnabled = listing.Packages.Any();
+		return listing;
+	}
+
 	/// <summary>
-	/// Empties the TV's install staging folder, where every package this app ever pushed is still
-	/// sitting. On request only: nothing in the install flow calls this.
+	/// Deletes the package files in the TV's staging folder, where every package this app ever pushed
+	/// is still sitting. On request only: nothing in the install flow calls this.
 	/// </summary>
 	private async void OnClearStagingClicked(object? sender, EventArgs e)
 	{
-		if (_sdb is null)
+		var agent = _agent;
+		if (agent is null)
 		{
-			StagingStatusLabel.Text = L10n.Get("lblToolboxStagingNeedsSdb");
+			StagingStatusLabel.Text = L10n.Get("lblToolboxStagingNeedsAgent");
 			return;
 		}
 
@@ -259,11 +319,15 @@ public partial class TvToolboxPage : ContentPage
 		try
 		{
 			StagingStatusLabel.Text = L10n.Get("lblToolboxStagingClearing");
-			var result = await _sdb.ClearInstallStagingAsync(_tvIp);
-			StagingStatusLabel.Text = result.ExitCode == 0
-				? L10n.Get("lblToolboxStagingCleared")
-				: string.Format(L10n.Get("lblToolboxStagingFailed"),
-					string.IsNullOrWhiteSpace(result.Error) ? result.Output.Trim() : result.Error.Trim());
+			var result = await agent.ClearStagingAsync();
+			var status = result.Failed.Count == 0
+				? string.Format(L10n.Get("lblToolboxStagingCleared"), result.Deleted.Count, InstalledApp.FormatSize(result.FreedBytes))
+				: string.Format(L10n.Get("lblToolboxStagingPartial"), result.Deleted.Count, result.Failed.Count, string.Join("; ", result.Failed));
+
+			// Show what is left, but keep the verdict: the clear is the news here, not the listing.
+			try { await LoadStagedFilesAsync(agent); }
+			catch (Exception ex) { System.Diagnostics.Trace.WriteLine($"[toolbox] staging re-list after clear: {ex.Message}"); }
+			StagingStatusLabel.Text = status;
 		}
 		catch (Exception ex)
 		{
@@ -316,6 +380,11 @@ public partial class TvToolboxPage : ContentPage
 			DetachAgentBtn.IsEnabled = true;
 			SetAgentStatus(string.Format(L10n.Get("lblToolboxAgentAttached"),
 				agent.AgentVersion, _agentApps.Count, _agentApps.Count(a => !a.Show), platform.Tizen ?? "?"));
+
+			// Read-only, and the one look at the folder that tells whether a clear is worth a tap.
+			StagingNeedsAgentHint.IsVisible = false;
+			StagingSection.IsVisible = true;
+			await RefreshStagingAsync(agent);
 		}
 		catch (DebugAgentInstallException ex)
 		{
@@ -349,6 +418,11 @@ public partial class TvToolboxPage : ContentPage
 		BindableLayout.SetItemsSource(AgentAppList, Array.Empty<ToolboxAgentAppRow>());
 		AgentSection.IsVisible = false;
 		DetachAgentBtn.IsEnabled = false;
+		BindableLayout.SetItemsSource(StagedFileList, Array.Empty<ToolboxStagedFileRow>());
+		StagingSection.IsVisible = false;
+		StagingNeedsAgentHint.IsVisible = true;
+		ClearStagingBtn.IsEnabled = false;
+		StagingStatusLabel.Text = string.Empty;
 
 		if (agent is not null)
 		{
@@ -589,6 +663,26 @@ public sealed class ToolboxAgentAppRow
 	public string AppId => App.Id;
 	public string Subtitle { get; }
 	public bool IsHidden => !App.Show;
+}
+
+/// <summary>One file in the TV's install staging folder, as the agent listed it.</summary>
+public sealed class ToolboxStagedFileRow
+{
+	public ToolboxStagedFileRow(DebugAgentStagedFile file, string keptLabel)
+	{
+		File = file;
+		var detail = InstalledApp.FormatSize(file.Size);
+		if (file.Modified is { } modified)
+			detail += $" · {modified.LocalDateTime:g}";
+		// A file a clear leaves alone (not a package) says so, so the list and the count agree.
+		if (!file.IsPackage)
+			detail += $" · {keptLabel}";
+		Detail = detail;
+	}
+
+	public DebugAgentStagedFile File { get; }
+	public string Name => File.Name;
+	public string Detail { get; }
 }
 
 /// <summary>One row of the app list.</summary>
