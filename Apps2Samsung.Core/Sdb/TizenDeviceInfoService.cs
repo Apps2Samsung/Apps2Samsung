@@ -21,7 +21,9 @@ namespace Apps2Samsung.Sdb
     {
         private const int SamsungTvApiPort = 8001;
 
-        public static async Task<TizenDeviceInfo> GatherAsync(ISdbEngine sdb, string ip, bool debugPortOpen)
+        /// <param name="localIp">This computer's / phone's own LAN IP, shown alongside the TV's
+        /// Developer-host IP. Null or empty renders as "—".</param>
+        public static async Task<TizenDeviceInfo> GatherAsync(ISdbEngine sdb, string ip, bool debugPortOpen, string? localIp = null)
         {
             // ---- SDB: DUID + capabilities (Tizen version, SDK tool path) ----
             string duid = string.Empty;
@@ -73,7 +75,8 @@ namespace Apps2Samsung.Sdb
                 SdkToolPath: sdkToolPath,
                 DeveloperMode: developerMode,
                 DeveloperIp: developerIp,
-                DebugPortOpen: debugPortOpen);
+                DebugPortOpen: debugPortOpen,
+                LocalIp: localIp);
         }
     }
 }
