@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "Hãy chọn một TV trước.",
   "lblRemoteNoAnswerNoMac": "Không có phản hồi. Hãy bật TV bằng điều khiển của nó một lần, sau đó trang này có thể đánh thức nó.",
   "lblToolboxStagingClear": "Clear",
+  "lblToolboxStagingRefresh": "Làm mới",
   "lblSysAppSettings": "Cài đặt",
   "lblToolboxSend": "Gửi",
   "lblToolboxLaunching": "Đang khởi chạy {0}...",

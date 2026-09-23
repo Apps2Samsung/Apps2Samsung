@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "Seleccione primero un televisor.",
   "lblRemoteNoAnswerNoMac": "No hay respuesta. Encienda el televisor con su propio control remoto, entonces esta página puede despertarlo.",
   "lblToolboxStagingClear": "Clear",
+  "lblToolboxStagingRefresh": "Refrescar",
   "lblSysAppSettings": "Ajustes",
   "lblToolboxSend": "Enviar",
   "lblToolboxLaunching": "Iniciando {0}...",

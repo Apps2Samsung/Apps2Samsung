@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "Прво изаберите телевизор.",
   "lblRemoteNoAnswerNoMac": "Нема одговора. Укључите телевизор једном његовим даљинским, после тога ова страница може да га буди.",
   "lblToolboxStagingClear": "Clear",
+  "lblToolboxStagingRefresh": "Освежи",
   "lblSysAppSettings": "Подешавања",
   "lblToolboxSend": "Пошаљи",
   "lblToolboxLaunching": "Покретање {0}...",

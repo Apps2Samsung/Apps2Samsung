@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "Selecteer eerst een TV.",
   "lblRemoteNoAnswerNoMac": "Geen antwoord. Schakel de TV één keer aan met zijn eigen afstandsbediening, dan kan deze pagina hem wakker maken.",
   "lblToolboxStagingClear": "Wissen",
+  "lblToolboxStagingRefresh": "Vernieuwen",
   "lblSysAppSettings": "Instellingen",
   "lblToolboxSend": "Verzenden",
   "lblToolboxLaunching": "Starten van {0}...",

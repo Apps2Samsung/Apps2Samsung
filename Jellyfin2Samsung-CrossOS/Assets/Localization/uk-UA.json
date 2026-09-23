@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "Спочатку виберіть телевізор.",
   "lblRemoteNoAnswerNoMac": "Жодної відповіді. Увімкніть телевізор за допомогою власного віддаленого разу, сторінка може його будувати.",
   "lblToolboxStagingClear": "Clear",
+  "lblToolboxStagingRefresh": "Оновити",
   "lblSysAppSettings": "Налаштування",
   "lblToolboxSend": "Відправити",
   "lblToolboxLaunching": "Запуск {0}...",

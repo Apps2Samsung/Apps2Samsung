@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "Najpierw wybierz telewizor.",
   "lblRemoteNoAnswerNoMac": "Brak odpowiedzi. Przełącz telewizor z własnym pilotem, a ta strona może go obudzić.",
   "lblToolboxStagingClear": "Clear",
+  "lblToolboxStagingRefresh": "Odśwież",
   "lblSysAppSettings": "Ustawienia",
   "lblToolboxSend": "Wyślij",
   "lblToolboxLaunching": "Uruchamianie {0}...",
