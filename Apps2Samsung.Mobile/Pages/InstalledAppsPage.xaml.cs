@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Apps2Samsung.Agent;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Sdb;
@@ -12,9 +11,7 @@ namespace Apps2Samsung.Mobile.Pages;
 /// <summary>
 /// A quick overview of the apps installed on a TV (parsed from the shared <c>vd_applist</c> query via
 /// <see cref="TizenInstalledApps"/>), with a per-app uninstall for user-removable apps. Read-only for
-/// system apps. Also the home of the install-leftovers card: sdbd's staging folder, where every
-/// package ever pushed still sits, read and cleared by the debug agent — the same storage
-/// housekeeping as the uninstalls, and like them SDB-only.
+/// system apps.
 /// </summary>
 public partial class InstalledAppsPage : ContentPage
 {
@@ -22,31 +19,18 @@ public partial class InstalledAppsPage : ContentPage
 	private readonly string _tvIp;
 	private readonly string _tvLabel;
 
-	// This head's installer, so the debug agent behind the leftovers card installs like any package
-	// when the TV lacks it. Null where the caller has none; the agent then has to be on the set.
-	private readonly Func<string, Action<string>, Task<bool>>? _installWgt;
-	private DebugAgentClient? _agent;
-	private bool _stagingBusy;
-
-	public InstalledAppsPage(ISdbEngine sdb, string tvIp, string tvLabel, Func<string, Action<string>, Task<bool>>? installWgt = null)
+	public InstalledAppsPage(ISdbEngine sdb, string tvIp, string tvLabel)
 	{
 		InitializeComponent();
 		_sdb = sdb;
 		_tvIp = tvIp;
 		_tvLabel = tvLabel;
-		_installWgt = installWgt;
 	}
 
 	protected override async void OnAppearing()
 	{
 		base.OnAppearing();
 		await LoadAsync();
-	}
-
-	protected override async void OnDisappearing()
-	{
-		base.OnDisappearing();
-		await DetachAgentAsync();
 	}
 
 	private async void OnBackClicked(object? sender, EventArgs e) => await Navigation.PopAsync();
@@ -255,171 +239,4 @@ public partial class InstalledAppsPage : ContentPage
 		if (status is not null)
 			CountLabel.Text = status;
 	}
-
-	// ---------------------------------------------------------------------------------------------
-	// Install leftovers. sdbd pushes every package to /home/owner/share/tmp/sdk_tools and leaves it
-	// there; its own "0 rmfile" verb deletes nothing on retail firmware. The debug agent runs on the
-	// TV as that folder's owner, so it lists and clears the folder itself. Attached on the first tap
-	// (installed first if the TV lacks it) and kept until the page closes.
-	// ---------------------------------------------------------------------------------------------
-
-	/// <summary>Reads the staging folder: attaches the agent if needed, then lists. Read-only.</summary>
-	private async void OnCheckStagingClicked(object? sender, EventArgs e)
-	{
-		if (_stagingBusy)
-			return;
-
-		_stagingBusy = true;
-		try
-		{
-			var agent = await AttachAgentAsync();
-			if (agent is null)
-				return;
-
-			StagingStatusLabel.Text = L10n.Get("lblToolboxStagingListing");
-			var listing = await LoadStagedFilesAsync(agent);
-			var packages = listing.Packages.ToList();
-			StagingStatusLabel.Text = listing.Errors.Count > 0 && listing.Files.Count == 0
-				? string.Format(L10n.Get("lblToolboxStagingFailed"), string.Join("; ", listing.Errors))
-				: packages.Count == 0
-					? L10n.Get("lblToolboxStagingEmpty")
-					: string.Format(L10n.Get("lblToolboxStagingSummary"), packages.Count, InstalledApp.FormatSize(listing.PackageBytes));
-		}
-		catch (Exception ex)
-		{
-			StagingStatusLabel.Text = string.Format(L10n.Get("lblToolboxStagingFailed"), ex.Message);
-		}
-		finally
-		{
-			_stagingBusy = false;
-		}
-	}
-
-	/// <summary>
-	/// Deletes the package files in the staging folder — nothing else in there, and no installed app.
-	/// On request only: nothing in the install flow calls this.
-	/// </summary>
-	private async void OnClearStagingClicked(object? sender, EventArgs e)
-	{
-		if (_stagingBusy)
-			return;
-
-		_stagingBusy = true;
-		try
-		{
-			var agent = await AttachAgentAsync();
-			if (agent is null)
-				return;
-
-			StagingStatusLabel.Text = L10n.Get("lblToolboxStagingClearing");
-			var result = await agent.ClearStagingAsync();
-			var status = result.Failed.Count == 0
-				? string.Format(L10n.Get("lblToolboxStagingCleared"), result.Deleted.Count, InstalledApp.FormatSize(result.FreedBytes))
-				: string.Format(L10n.Get("lblToolboxStagingPartial"), result.Deleted.Count, result.Failed.Count, string.Join("; ", result.Failed));
-
-			// Show what is left, but keep the verdict: the clear is the news here, not the listing.
-			try { await LoadStagedFilesAsync(agent); }
-			catch (Exception ex) { System.Diagnostics.Trace.WriteLine($"[installed-apps] staging re-list after clear: {ex.Message}"); }
-			StagingStatusLabel.Text = status;
-		}
-		catch (Exception ex)
-		{
-			StagingStatusLabel.Text = string.Format(L10n.Get("lblToolboxStagingFailed"), ex.Message);
-		}
-		finally
-		{
-			_stagingBusy = false;
-		}
-	}
-
-	// The attached agent, attaching (and installing) on the first call. Null, with the reason in the
-	// status line, when the agent could not be put on the TV or is too old for this.
-	private async Task<DebugAgentClient?> AttachAgentAsync()
-	{
-		if (_agent is not null)
-			return _agent;
-
-		try
-		{
-			var progress = new Progress<string>(key => StagingStatusLabel.Text = L10n.Get(key));
-			var agent = await DebugAgentClient.AttachCurrentAsync(
-				_sdb, _tvIp, _installWgt,
-				message => MainThread.BeginInvokeOnMainThread(() => StagingStatusLabel.Text = message),
-				progress);
-			agent.Disconnected += OnAgentDisconnected;
-			_agent = agent;
-
-			if (!agent.SupportsStaging)
-			{
-				StagingStatusLabel.Text = string.Format(L10n.Get("lblToolboxStagingAgentTooOld"), agent.AgentVersion, DebugAgentClient.StagingSince);
-				await DetachAgentAsync();
-				return null;
-			}
-
-			return agent;
-		}
-		catch (DebugAgentInstallException ex)
-		{
-			System.Diagnostics.Trace.WriteLine($"[installed-apps] agent install: {ex.Message}");
-			StagingStatusLabel.Text = L10n.Get(ex.Key);
-			return null;
-		}
-		catch (Exception ex)
-		{
-			System.Diagnostics.Trace.WriteLine($"[installed-apps] agent attach failed: {ex}");
-			StagingStatusLabel.Text = string.Format(L10n.Get("lblToolboxAgentFailed"), ex.Message);
-			return null;
-		}
-	}
-
-	private async Task<DebugAgentStaging> LoadStagedFilesAsync(DebugAgentClient agent)
-	{
-		var listing = await agent.ListStagingAsync();
-		var kept = L10n.Get("lblToolboxStagingKept");
-		BindableLayout.SetItemsSource(StagedFileList, listing.Files.Select(f => new StagedFileRow(f, kept)).ToList());
-		StagedFileScroll.IsVisible = true;
-		ClearStagingBtn.IsEnabled = listing.Packages.Any();
-		return listing;
-	}
-
-	private async Task DetachAgentAsync()
-	{
-		var agent = _agent;
-		_agent = null;
-		if (agent is not null)
-		{
-			agent.Disconnected -= OnAgentDisconnected;
-			await agent.DisposeAsync();
-		}
-	}
-
-	// Raised off the UI thread by the inspector's receive loop. The list stays; the next tap simply
-	// attaches again.
-	private void OnAgentDisconnected(string? reason) => MainThread.BeginInvokeOnMainThread(async () =>
-	{
-		if (_agent is null)
-			return;
-		await DetachAgentAsync();
-		StagingStatusLabel.Text = string.Format(L10n.Get("lblToolboxAgentDisconnected"), reason ?? string.Empty);
-	});
-}
-
-/// <summary>One file in the TV's install staging folder, as the agent listed it.</summary>
-public sealed class StagedFileRow
-{
-	public StagedFileRow(DebugAgentStagedFile file, string keptLabel)
-	{
-		File = file;
-		var detail = InstalledApp.FormatSize(file.Size);
-		if (file.Modified is { } modified)
-			detail += $" · {modified.LocalDateTime:g}";
-		// A file a clear leaves alone (not a package) says so, so the list and the count agree.
-		if (!file.IsPackage)
-			detail += $" · {keptLabel}";
-		Detail = detail;
-	}
-
-	public DebugAgentStagedFile File { get; }
-	public string Name => File.Name;
-	public string Detail { get; }
 }

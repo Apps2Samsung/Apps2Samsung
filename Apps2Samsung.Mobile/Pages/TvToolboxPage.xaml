@@ -222,6 +222,43 @@
                     </VerticalStackLayout>
                 </Border>
 
+                <!-- ============ Install leftovers ============ -->
+                <!-- sdbd pushes every package to /home/owner/share/tmp/sdk_tools and leaves it there; its own
+                     "0 rmfile" verb is accepted but deletes nothing on retail firmware. The agent runs as that
+                     folder's owner, so it lists and clears the folder itself. Only package files go; installed
+                     apps are not involved. Needs the agent attached. -->
+                <Border x:Name="StagingCard" Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxStaging}" />
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxStagingHint}" />
+                        <Label x:Name="StagingNeedsAgentHint" Style="{StaticResource Hint}"
+                               Text="{l:Localize lblToolboxStagingNeedsAgent}" />
+
+                        <VerticalStackLayout x:Name="StagingSection" Spacing="8" IsVisible="False">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <Button Grid.Column="0" x:Name="ClearStagingBtn" Style="{StaticResource Action}"
+                                        Text="{l:Localize lblToolboxStagingClear}" Clicked="OnClearStagingClicked" IsEnabled="False" />
+                                <Button Grid.Column="1" x:Name="RefreshStagingBtn" Style="{StaticResource Action}" WidthRequest="100"
+                                        Text="{l:Localize lblToolboxStagingRefresh}" Clicked="OnRefreshStagingClicked" />
+                            </Grid>
+                            <Label x:Name="StagingStatusLabel" FontSize="12" Opacity="0.8" />
+
+                            <VerticalStackLayout x:Name="StagedFileList" Spacing="2">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                            <Label Grid.Column="0" Text="{Binding Name}" FontSize="12"
+                                                   LineBreakMode="TailTruncation" VerticalOptions="Center" />
+                                            <Label Grid.Column="1" Text="{Binding Detail}" FontSize="11" Opacity="0.55"
+                                                   VerticalOptions="Center" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
                 <!-- ============ Service menu ============ -->
                 <Border Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="8">
