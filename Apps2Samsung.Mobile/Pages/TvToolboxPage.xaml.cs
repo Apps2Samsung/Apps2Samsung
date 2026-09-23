@@ -63,6 +63,7 @@ public partial class TvToolboxPage : ContentPage
 		_installWgt = installWgt;
 		AgentCard.IsEnabled = sdb is not null;
 		AgentNeedsSdbHint.IsVisible = sdb is null;
+		ExecuteManualBtn.IsEnabled = sdb is not null;
 
 		// The TV's own menus, addressed by id (#641). Fixed, not filtered: a short list to try in
 		// order, not something to search.
@@ -193,6 +194,47 @@ public partial class TvToolboxPage : ContentPage
 
 		// No name to go with it, so the DIAL attempt is out; the other two paths take an ID.
 		await LaunchAsync(new SamsungRemoteLaunchTarget(id, id, IconUrl: null, AppType: 0, ReportedByTv: false));
+	}
+
+	/// <summary>
+	/// <c>0 execute &lt;id&gt;</c> over SDB, the platform launcher rather than Smart Hub's, with the TV's
+	/// reply shown as it came. For a service or an ID <c>was_execute</c> answers [400] to.
+	/// </summary>
+	private async void OnExecuteManualClicked(object? sender, EventArgs e)
+	{
+		var id = ManualAppIdEntry.Text?.Trim();
+		if (string.IsNullOrEmpty(id))
+			return;
+
+		if (_sdb is null)
+		{
+			SetStatus(L10n.Get("lblToolboxExecuteNeedsSdb"));
+			return;
+		}
+
+		if (_busy)
+			return;
+
+		_busy = true;
+		try
+		{
+			SetStatus(string.Format(L10n.Get("lblToolboxExecuteSending"), id));
+			var result = await _sdb.ExecuteAsync(_tvIp, id);
+			var reply = (result.ExitCode == 0 ? result.Output : (string.IsNullOrWhiteSpace(result.Error) ? result.Output : result.Error)).Trim();
+			SetStatus(result.ExitCode != 0
+				? string.Format(L10n.Get("lblToolboxExecuteFailed"), id, reply)
+				: reply.Length == 0
+					? string.Format(L10n.Get("lblToolboxExecuteNoAnswer"), id)
+					: string.Format(L10n.Get("lblToolboxExecuteReply"), id, reply.Replace("\r", string.Empty).Replace("\n", " | ")));
+		}
+		catch (Exception ex)
+		{
+			SetStatus(string.Format(L10n.Get("lblToolboxExecuteFailed"), id, ex.Message));
+		}
+		finally
+		{
+			_busy = false;
+		}
 	}
 
 	private async Task LaunchAsync(SamsungRemoteLaunchTarget target)

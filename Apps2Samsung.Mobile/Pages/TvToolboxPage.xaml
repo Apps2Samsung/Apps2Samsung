@@ -111,13 +111,18 @@
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
 
-                        <!-- An ID from a forum post or a manual, for an app in neither list -->
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <!-- An ID from a forum post or a manual, for an app in neither list. Launch goes the
+                             usual routes; "0 execute" is sdbd's other launcher verb, which answers in the
+                             platform's own words - for a service, or an ID Smart Hub does not know. -->
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                             <Entry Grid.Column="0" x:Name="ManualAppIdEntry" Keyboard="Text"
                                    Placeholder="{l:Localize lblToolboxManualPlaceholder}" />
                             <Button Grid.Column="1" Style="{StaticResource Action}" WidthRequest="88"
                                     Text="{l:Localize lblToolboxLaunch}" Clicked="OnLaunchManualClicked" />
+                            <Button Grid.Column="2" x:Name="ExecuteManualBtn" Style="{StaticResource Action}" WidthRequest="96"
+                                    Text="{l:Localize lblToolboxExecute}" Clicked="OnExecuteManualClicked" />
                         </Grid>
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxExecuteHint}" />
                     </VerticalStackLayout>
                 </Border>
 

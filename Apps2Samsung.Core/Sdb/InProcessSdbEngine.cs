@@ -231,6 +231,13 @@ namespace Apps2Samsung.Sdb
                 return installer.PermitInstallApp();
             });
 
+        // No verdict is read off the reply: the verb is new, its vocabulary unknown beyond the one
+        // refusal seen so far, and the point of the button is to show the user the TV's own words.
+        public async Task<ProcessResult> ExecuteAsync(string tvIpAddress, string appId) => await RunConnected(tvIpAddress, $"execute {tvIpAddress} \"{appId}\"", async device =>
+        {
+            return (await device.ShellCommandAsync($"0 execute {appId}")).Trim();
+        });
+
         public async Task<ProcessResult> ShellAsync(string tvIpAddress, string command) => await RunConnected(tvIpAddress, $"shell {tvIpAddress} {command}", async device =>
         {
             return await device.ShellCommandAsync(command);
