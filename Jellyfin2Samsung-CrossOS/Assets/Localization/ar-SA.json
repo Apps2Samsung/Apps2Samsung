@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "حدد التلفزيون أولاً.",
   "lblRemoteNoAnswerNoMac": "لا إجابة. قم بتبديل التلفزيون مرة واحدة عن بُعد، ثم يمكن لهذه الصفحة إيقاظه.",
   "lblToolboxStagingClear": "Clear",
+  "lblToolboxStagingRefresh": "تحديث",
   "lblSysAppSettings": "الإعدادات",
   "lblToolboxSend": "إرسال",
   "lblToolboxLaunching": "إطلاق {0}...",

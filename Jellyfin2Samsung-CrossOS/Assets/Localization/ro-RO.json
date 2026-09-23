@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "Selectaţi mai întâi un televizor.",
   "lblRemoteNoAnswerNoMac": "Nici un răspuns. Activaţi televizorul o singură dată, apoi această pagină îl poate activa.",
   "lblToolboxStagingClear": "Clear",
+  "lblToolboxStagingRefresh": "Împrospătează",
   "lblSysAppSettings": "Setări",
   "lblToolboxSend": "Trimite",
   "lblToolboxLaunching": "Lansare {0}...",

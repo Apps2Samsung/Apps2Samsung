@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "Kies eers 'n TV.",
   "lblRemoteNoAnswerNoMac": "Geen antwoord nie. Skakel die TV een keer met sy eie afstandbeheer aan, dan kan hierdie bladsy dit wakker maak.",
   "lblToolboxStagingClear": "Clear",
+  "lblToolboxStagingRefresh": "Verfris",
   "lblSysAppSettings": "Instellings",
   "lblToolboxSend": "Stuur",
   "lblToolboxLaunching": "Begin {0}...",

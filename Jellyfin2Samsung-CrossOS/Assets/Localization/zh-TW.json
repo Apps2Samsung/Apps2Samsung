@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "請先選擇電視。",
   "lblRemoteNoAnswerNoMac": "沒有回應。請先用電視自己的遙控器開機一次，之後這個頁面就能喚醒它。",
   "lblToolboxStagingClear": "Clear",
+  "lblToolboxStagingRefresh": "重新整理",
   "lblSysAppSettings": "設定",
   "lblToolboxSend": "傳送",
   "lblToolboxLaunching": "正在啟動 {0}...",
