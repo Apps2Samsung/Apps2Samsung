@@ -284,6 +284,48 @@ namespace Apps2Samsung.ViewModels
             return LaunchAsync(new SamsungRemoteLaunchTarget(id, id, IconUrl: null, AppType: 0, ReportedByTv: false));
         }
 
+        /// <summary>
+        /// <c>0 execute &lt;id&gt;</c> over SDB, the platform launcher rather than Smart Hub's, with the
+        /// TV's reply shown as it came. For a service or an id <c>was_execute</c> answers [400] to.
+        /// </summary>
+        [RelayCommand]
+        private async Task ExecuteManual()
+        {
+            var id = ManualAppId?.Trim();
+            if (string.IsNullOrEmpty(id))
+                return;
+
+            if (_sdb is null)
+            {
+                StatusText = "lblToolboxExecuteNeedsSdb".Localized();
+                return;
+            }
+
+            if (IsBusy)
+                return;
+
+            IsBusy = true;
+            try
+            {
+                StatusText = string.Format("lblToolboxExecuteSending".Localized(), id);
+                var result = await _sdb.ExecuteAsync(_tvIp, id);
+                var reply = (result.ExitCode == 0 ? result.Output : (string.IsNullOrWhiteSpace(result.Error) ? result.Output : result.Error)).Trim();
+                StatusText = result.ExitCode != 0
+                    ? string.Format("lblToolboxExecuteFailed".Localized(), id, reply)
+                    : reply.Length == 0
+                        ? string.Format("lblToolboxExecuteNoAnswer".Localized(), id)
+                        : string.Format("lblToolboxExecuteReply".Localized(), id, reply.Replace("\r", string.Empty).Replace("\n", " | "));
+            }
+            catch (Exception ex)
+            {
+                StatusText = string.Format("lblToolboxExecuteFailed".Localized(), id, ex.Message);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
         private async Task LaunchAsync(SamsungRemoteLaunchTarget target)
         {
             var remote = _remote;

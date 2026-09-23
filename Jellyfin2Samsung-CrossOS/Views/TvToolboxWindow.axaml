@@ -126,14 +126,24 @@
                         </ScrollViewer>
                     </Border>
 
-                    <!-- An id from a forum post or a manual, for an app in neither list -->
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" IsEnabled="{Binding IsConnected}">
+                    <!-- An id from a forum post or a manual, for an app in neither list. Launch goes the
+                         usual routes (remote channel / was_execute); "0 execute" is sdbd's other launcher
+                         verb, which answers in the platform's own words — for a service, or an id Smart
+                         Hub does not know. Needs Developer Mode. -->
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
                         <TextBox Grid.Column="0" Text="{Binding ManualAppId}"
                                  Watermark="{l:Localize lblToolboxManualPlaceholder}"/>
                         <Button Grid.Column="1" Classes="action" Width="90"
                                 Content="{l:Localize lblToolboxLaunch}"
-                                Command="{Binding LaunchManualCommand}"/>
+                                Command="{Binding LaunchManualCommand}"
+                                IsEnabled="{Binding IsConnected}"/>
+                        <Button Grid.Column="2" Width="90"
+                                Content="{l:Localize lblToolboxExecute}"
+                                Command="{Binding ExecuteManualCommand}"
+                                IsEnabled="{Binding HasSdb}"
+                                ToolTip.Tip="{l:Localize lblToolboxExecuteHint}"/>
                     </Grid>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxExecuteHint}"/>
 
                     <!-- ============ Hidden system apps ============ -->
                     <!-- Not part of the list above: these are the TV's own menus, addressed by id
