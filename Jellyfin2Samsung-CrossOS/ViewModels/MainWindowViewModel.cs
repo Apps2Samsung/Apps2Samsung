@@ -625,10 +625,7 @@ namespace Apps2Samsung.ViewModels
                 var label = string.IsNullOrWhiteSpace(SelectedDevice.DisplayText)
                     ? SelectedDevice.IpAddress
                     : SelectedDevice.DisplayText;
-                // The leftovers card's debug agent installs like any package when the TV lacks it.
-                var vm = new InstalledAppsViewModel(
-                    _tizenInstaller, _dialogService, SelectedDevice.IpAddress, label,
-                    _sdbEngine, InstallWgtFor(SelectedDevice.IpAddress));
+                var vm = new InstalledAppsViewModel(_tizenInstaller, _dialogService, SelectedDevice.IpAddress, label);
                 var window = new Views.InstalledAppsWindow(vm);
                 await window.ShowDialog(desktop.MainWindow);
             }
@@ -673,17 +670,6 @@ namespace Apps2Samsung.ViewModels
                 await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblTvInformation"), ex));
             }
         }
-
-        /// <summary>
-        /// How the debug agent gets onto <paramref name="tvIp"/> when a window needs it: the normal
-        /// pipeline (certificate, resign, push), path of the .wgt in, progress text out, true on success.
-        /// </summary>
-        private Func<string, Action<string>, Task<bool>> InstallWgtFor(string tvIp) => async (wgtPath, report) =>
-        {
-            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-            var result = await _tizenInstaller.InstallPackageAsync(wgtPath, tvIp, timeout.Token, message => report(message));
-            return result.Success;
-        };
 
         /// <summary>
         /// Opens the remote for the selected TV. Unlike the installer views this needs no Developer
@@ -757,7 +743,14 @@ namespace Apps2Samsung.ViewModels
                 // The toolbox's debug agent is a .wgt like any other: the normal pipeline (certificate,
                 // resign, push) puts it on the TV when the set doesn't have it yet (#34).
                 var tvIp = SelectedDevice.IpAddress;
-                var vm = new TvToolboxViewModel(tvIp, label, _sdbEngine, InstallWgtFor(tvIp));
+                Func<string, Action<string>, Task<bool>> installWgt = async (wgtPath, report) =>
+                {
+                    using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                    var result = await _tizenInstaller.InstallPackageAsync(wgtPath, tvIp, timeout.Token, message => report(message));
+                    return result.Success;
+                };
+
+                var vm = new TvToolboxViewModel(tvIp, label, _sdbEngine, installWgt);
                 var window = new Views.TvToolboxWindow(vm);
                 await window.ShowDialog(desktop.MainWindow);
             }
