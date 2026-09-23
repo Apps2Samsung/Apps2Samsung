@@ -236,16 +236,6 @@ namespace Apps2Samsung.Sdb
             return await device.ShellCommandAsync(command);
         });
 
-        // sdbd's own "0 rmfile" verb (TizenSdb.Core's SdbShellVerbs.RemoveStagedPackages), which the
-        // TV expands to rm -f over sdk_tools/*.wgt|*.tpk|*.rpm (and sdk_tools/tmp/*.wgt). No argument:
-        // it cannot be aimed at one file, and it reaches nothing outside that directory. Samsung's sdb
-        // sends it after each install; this app never did, so the packages it pushed have been piling
-        // up there. Sent on request only (the toolbox), never behind an install.
-        public async Task<ProcessResult> ClearInstallStagingAsync(string tvIpAddress) => await RunConnected(tvIpAddress, $"rmfile {tvIpAddress}", async device =>
-        {
-            return await device.RemoveStagedPackagesAsync();
-        });
-
         /// <summary>
         /// Opens a local→TV TCP tunnel (used to attach a debugger to a running app). Unlike every other
         /// call this gets its OWN connection instead of the pooled one: the tunnel outlives the call that
