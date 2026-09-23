@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "Сначала выберите телевизор.",
   "lblRemoteNoAnswerNoMac": "Нет ответа. Включите телевизор с его собственным пультом один раз, затем эта страница может пробудить его.",
   "lblToolboxStagingClear": "Clear",
+  "lblToolboxStagingRefresh": "Обновить",
   "lblSysAppSettings": "Настройки",
   "lblToolboxSend": "Отправить",
   "lblToolboxLaunching": "Запуск {0}...",

@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "Valitse TV ensin.",
   "lblRemoteNoAnswerNoMac": "Ei vastausta. Vaihda TV omalla kaukosäätimellä, sitten tämä sivu voi herättää sen.",
   "lblToolboxStagingClear": "Clear",
+  "lblToolboxStagingRefresh": "Päivitä",
   "lblSysAppSettings": "Asetukset",
   "lblToolboxSend": "Lähetä",
   "lblToolboxLaunching": "Käynnistetään {0}...",

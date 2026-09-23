@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "Vælg først et tv.",
   "lblRemoteNoAnswerNoMac": "Intet svar. Slå TV til med sin egen fjernbetjening én gang, så denne side kan vække det.",
   "lblToolboxStagingClear": "Ryd",
+  "lblToolboxStagingRefresh": "Opdater",
   "lblSysAppSettings": "Indstillinger",
   "lblToolboxSend": "Send",
   "lblToolboxLaunching": "Start {0}...",

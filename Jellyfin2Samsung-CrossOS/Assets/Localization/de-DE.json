@@ -363,6 +363,7 @@
   "lblRemoteSelectTvFirst": "Wählen Sie zuerst einen Fernseher.",
   "lblRemoteNoAnswerNoMac": "Keine Antwort. Schalten Sie den Fernseher einmal mit eigener Fernbedienung ein, dann kann diese Seite aufwachen.",
   "lblToolboxStagingClear": "Leeren",
+  "lblToolboxStagingRefresh": "Aktualisieren",
   "lblSysAppSettings": "Einstellungen",
   "lblToolboxSend": "Senden",
   "lblToolboxLaunching": "Starte {0}...",
