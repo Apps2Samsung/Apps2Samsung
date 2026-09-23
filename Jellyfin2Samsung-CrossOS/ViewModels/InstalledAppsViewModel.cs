@@ -1,6 +1,7 @@
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Apps2Samsung.Agent;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using System;
@@ -14,13 +15,21 @@ namespace Apps2Samsung.ViewModels
     /// <summary>
     /// Lists the apps installed on a TV (via <see cref="ITizenInstallerService.GetInstalledAppsAsync"/>,
     /// which shares the Core parser with the mobile head) and offers a per-app uninstall for
-    /// user-removable apps.
+    /// user-removable apps. Also the home of the install-leftovers card: sdbd's staging folder, where
+    /// every package ever pushed still sits, read and cleared by the debug agent — the same
+    /// storage housekeeping as the uninstalls above, and like them SDB-only.
     /// </summary>
     public partial class InstalledAppsViewModel : ViewModelBase, IDisposable
     {
         private readonly ITizenInstallerService _installer;
         private readonly IDialogService _dialogService;
         private readonly string _tvIp;
+
+        // The developer channel and this head's installer, for the debug agent behind the leftovers
+        // card. Null where the caller has neither; the card then stays hidden.
+        private readonly ISdbEngine? _sdb;
+        private readonly Func<string, Action<string>, Task<bool>>? _installWgt;
+        private DebugAgentClient? _agent;
         private static readonly System.Net.Http.HttpClient _http = new();
         private static readonly System.Collections.Generic.Dictionary<string, Avalonia.Media.Imaging.Bitmap?> _bitmapCache = new(StringComparer.OrdinalIgnoreCase);
 
@@ -43,17 +52,39 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private string statusText = string.Empty;
 
+        /// <summary>Whether the leftovers card can work at all: it needs the developer channel.</summary>
+        public bool HasSdb => _sdb is not null;
+
+        /// <summary>The leftovers card's own status line.</summary>
+        [ObservableProperty]
+        private string stagingStatus = string.Empty;
+
+        /// <summary>The staging folder's contents as the agent last listed them.</summary>
+        public ObservableCollection<StagedFileRow> StagedFiles { get; } = new();
+
+        /// <summary>Whether there is anything a clear would delete — what enables the Clear button.</summary>
+        [ObservableProperty]
+        private bool hasStagedPackages;
+
+        /// <summary>Set once the folder has been read, so the (possibly empty) list is shown.</summary>
+        [ObservableProperty]
+        private bool isStagingListed;
+
         public event Action? OnRequestClose;
 
         /// <summary>The window hosts the console (it needs an owner window); the view model just asks for it.</summary>
         public event Action<DebugConsoleViewModel>? OnRequestDebugConsole;
 
-        public InstalledAppsViewModel(ITizenInstallerService installer, IDialogService dialogService, string tvIp, string tvLabel)
+        public InstalledAppsViewModel(
+            ITizenInstallerService installer, IDialogService dialogService, string tvIp, string tvLabel,
+            ISdbEngine? sdb = null, Func<string, Action<string>, Task<bool>>? installWgt = null)
         {
             _installer = installer;
             _dialogService = dialogService;
             _tvIp = tvIp;
             TvLabel = tvLabel;
+            _sdb = sdb;
+            _installWgt = installWgt;
         }
 
         [RelayCommand]
@@ -282,6 +313,163 @@ namespace Apps2Samsung.ViewModels
             await Load();
         }
 
+        // ---------------------------------------------------------------------------------------
+        // Install leftovers. sdbd pushes every package to /home/owner/share/tmp/sdk_tools and leaves
+        // it there; its own "0 rmfile" verb deletes nothing on retail firmware. The debug agent runs
+        // on the TV as that folder's owner, so it lists and clears the folder itself. The agent is
+        // attached on the first click (installed first if the TV lacks it) and kept until this window
+        // closes.
+        // ---------------------------------------------------------------------------------------
+
+        /// <summary>Reads the staging folder: attaches the agent if needed, then lists. Read-only.</summary>
+        [RelayCommand]
+        private async Task CheckStaging()
+        {
+            if (IsBusy || IsDebugging)
+                return;
+
+            IsBusy = true;
+            try
+            {
+                var agent = await AttachAgentAsync();
+                if (agent is null)
+                    return;
+
+                StagingStatus = "lblToolboxStagingListing".Localized();
+                var listing = await LoadStagedFilesAsync(agent);
+                var packages = listing.Packages.ToList();
+                StagingStatus = listing.Errors.Count > 0 && listing.Files.Count == 0
+                    ? string.Format("lblToolboxStagingFailed".Localized(), string.Join("; ", listing.Errors))
+                    : packages.Count == 0
+                        ? "lblToolboxStagingEmpty".Localized()
+                        : string.Format("lblToolboxStagingSummary".Localized(), packages.Count, InstalledApp.FormatSize(listing.PackageBytes));
+            }
+            catch (Exception ex)
+            {
+                StagingStatus = string.Format("lblToolboxStagingFailed".Localized(), ex.Message);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        /// <summary>
+        /// Deletes the package files in the staging folder — nothing else in there, and no installed
+        /// app. On request only: nothing in the install flow calls this.
+        /// </summary>
+        [RelayCommand]
+        private async Task ClearStaging()
+        {
+            if (IsBusy || IsDebugging)
+                return;
+
+            IsBusy = true;
+            try
+            {
+                var agent = await AttachAgentAsync();
+                if (agent is null)
+                    return;
+
+                StagingStatus = "lblToolboxStagingClearing".Localized();
+                var result = await agent.ClearStagingAsync();
+                var status = result.Failed.Count == 0
+                    ? string.Format("lblToolboxStagingCleared".Localized(), result.Deleted.Count, InstalledApp.FormatSize(result.FreedBytes))
+                    : string.Format("lblToolboxStagingPartial".Localized(), result.Deleted.Count, result.Failed.Count, string.Join("; ", result.Failed));
+
+                // Show what is left, but keep the verdict: the clear is the news here, not the listing.
+                try { await LoadStagedFilesAsync(agent); }
+                catch (Exception ex) { System.Diagnostics.Trace.WriteLine($"[installed-apps] staging re-list after clear: {ex.Message}"); }
+                StagingStatus = status;
+            }
+            catch (Exception ex)
+            {
+                StagingStatus = string.Format("lblToolboxStagingFailed".Localized(), ex.Message);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        // The attached agent, attaching (and installing) on the first call. Null, with the reason in
+        // the status line, when there is no developer channel or the agent could not be put on the TV.
+        private async Task<DebugAgentClient?> AttachAgentAsync()
+        {
+            if (_agent is not null)
+                return _agent;
+
+            if (_sdb is null)
+            {
+                StagingStatus = "lblToolboxAgentNeedsSdb".Localized();
+                return null;
+            }
+
+            try
+            {
+                var progress = new Progress<string>(key => StagingStatus = key.Localized());
+                var agent = await DebugAgentClient.AttachCurrentAsync(
+                    _sdb, _tvIp, _installWgt, message => StagingStatus = message, progress);
+                agent.Disconnected += OnAgentDisconnected;
+                _agent = agent;
+
+                if (!agent.SupportsStaging)
+                {
+                    StagingStatus = string.Format("lblToolboxStagingAgentTooOld".Localized(), agent.AgentVersion, DebugAgentClient.StagingSince);
+                    await DetachAgentAsync();
+                    return null;
+                }
+
+                return agent;
+            }
+            catch (DebugAgentInstallException ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[installed-apps] agent install: {ex.Message}");
+                StagingStatus = ex.Key.Localized();
+                return null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[installed-apps] agent attach failed: {ex}");
+                StagingStatus = string.Format("lblToolboxAgentFailed".Localized(), ex.Message);
+                return null;
+            }
+        }
+
+        private async Task<DebugAgentStaging> LoadStagedFilesAsync(DebugAgentClient agent)
+        {
+            var listing = await agent.ListStagingAsync();
+            var kept = "lblToolboxStagingKept".Localized();
+            StagedFiles.Clear();
+            foreach (var file in listing.Files)
+                StagedFiles.Add(new StagedFileRow(file, kept));
+            HasStagedPackages = listing.Packages.Any();
+            IsStagingListed = true;
+            return listing;
+        }
+
+        private async Task DetachAgentAsync()
+        {
+            var agent = _agent;
+            _agent = null;
+            if (agent is not null)
+            {
+                agent.Disconnected -= OnAgentDisconnected;
+                await agent.DisposeAsync();
+            }
+        }
+
+        // Raised off the UI thread by the inspector's receive loop. The list stays; the next click
+        // simply attaches again.
+        private void OnAgentDisconnected(string? reason) =>
+            Dispatcher.UIThread.Post(async () =>
+            {
+                if (_agent is null)
+                    return;
+                await DetachAgentAsync();
+                StagingStatus = string.Format("lblToolboxAgentDisconnected".Localized(), reason ?? string.Empty);
+            });
+
         [RelayCommand]
         private void Close() => OnRequestClose?.Invoke();
 
@@ -296,6 +484,7 @@ namespace Apps2Samsung.ViewModels
         public void Dispose()
         {
             _debugConsole?.CloseCommand.Execute(null);
+            _ = DetachAgentAsync();
         }
 
     }
@@ -336,6 +525,27 @@ namespace Apps2Samsung.ViewModels
                 cache[App.IconUrl] = null;
             }
         }
+    }
+
+    /// <summary>One file in the TV's install staging folder, as the agent listed it.</summary>
+    public sealed class StagedFileRow
+    {
+        public StagedFileRow(DebugAgentStagedFile file, string keptLabel)
+        {
+            File = file;
+            var detail = InstalledApp.FormatSize(file.Size);
+            if (file.Modified is { } modified)
+                detail += $" · {modified.LocalDateTime:g}";
+            // A file a clear leaves alone (not a package) says so, so the list and the count agree.
+            if (!file.IsPackage)
+                detail += $" · {keptLabel}";
+            Detail = detail;
+        }
+
+        public DebugAgentStagedFile File { get; }
+        public string Name => File.Name;
+        public bool IsPackage => File.IsPackage;
+        public string Detail { get; }
     }
 }
 

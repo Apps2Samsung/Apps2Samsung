@@ -256,43 +256,6 @@
                                              TextWrapping="Wrap" MaxHeight="160"/>
                     </StackPanel>
 
-                    <!-- ============ Install leftovers ============ -->
-                    <!-- sdbd pushes every package to /home/owner/share/tmp/sdk_tools and leaves it there;
-                         its own "0 rmfile" verb is accepted but deletes nothing on retail firmware. The
-                         agent runs as that folder's owner, so it lists and clears the folder itself. Only
-                         package files go; installed apps are not involved. Needs the agent attached. -->
-                    <TextBlock Classes="section" Text="{l:Localize lblToolboxStaging}" Margin="0,12,0,0"/>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxStagingHint}"/>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxStagingNeedsAgent}"
-                               IsVisible="{Binding !IsAgentAttached}"/>
-
-                    <StackPanel Spacing="8" IsVisible="{Binding IsAgentAttached}">
-                        <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
-                            <Button Grid.Column="0" Classes="action" Width="120"
-                                    Content="{l:Localize lblToolboxStagingClear}"
-                                    Command="{Binding ClearStagingCommand}"
-                                    IsEnabled="{Binding HasStagedPackages}"/>
-                            <Button Grid.Column="1" Width="90"
-                                    Content="{l:Localize lblToolboxStagingRefresh}"
-                                    Command="{Binding RefreshStagingCommand}"/>
-                            <TextBlock Grid.Column="2" Text="{Binding StagingStatus}" FontSize="12" Opacity="0.8"
-                                       TextWrapping="Wrap" VerticalAlignment="Center"/>
-                        </Grid>
-
-                        <ItemsControl ItemsSource="{Binding StagedFiles}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="viewModels:ToolboxStagedFile">
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="8,2">
-                                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="12"
-                                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="1" Text="{Binding Detail}" FontSize="11" Opacity="0.55"
-                                                   VerticalAlignment="Center"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-
                     <!-- ============ Service menu ============ -->
                     <TextBlock Classes="section" Text="{l:Localize lblToolboxSequences}" Margin="0,12,0,0"/>
                     <TextBlock Classes="hint" Text="{l:Localize lblToolboxSequencesHint}"/>

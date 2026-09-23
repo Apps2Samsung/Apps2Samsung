@@ -28,7 +28,7 @@
         </Style>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="12" RowSpacing="10">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="12" RowSpacing="10">
 
         <!-- Header banner with a back affordance -->
         <Border Grid.Row="0" BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
@@ -50,8 +50,42 @@
         <!-- Subtitle: count / status -->
         <Label Grid.Row="1" x:Name="CountLabel" FontSize="12" Opacity="0.6" Text="{l:Localize lblLoading}" />
 
+        <!-- Install leftovers: sdbd's staging folder, where every pushed package still sits. Read and
+             cleared by the debug agent (attached on the first tap). Only package files go. -->
+        <Border Grid.Row="2" x:Name="StagingCard" Padding="12,10" StrokeThickness="1" StrokeShape="RoundRectangle 8"
+                Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
+                BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
+            <VerticalStackLayout Spacing="6">
+                <Label Text="{l:Localize lblToolboxStaging}" FontAttributes="Bold" FontSize="14" />
+                <Label Text="{l:Localize lblToolboxStagingHint}" FontSize="11" Opacity="0.6" />
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                    <Button Grid.Column="0" x:Name="CheckStagingBtn" FontSize="12" HeightRequest="36"
+                            BackgroundColor="#2C3E50" TextColor="White" CornerRadius="6"
+                            Text="{l:Localize lblToolboxStagingCheck}" Clicked="OnCheckStagingClicked" />
+                    <Button Grid.Column="1" x:Name="ClearStagingBtn" FontSize="12" HeightRequest="36"
+                            BackgroundColor="#2C3E50" TextColor="White" CornerRadius="6"
+                            Text="{l:Localize lblToolboxStagingClear}" Clicked="OnClearStagingClicked" IsEnabled="False" />
+                </Grid>
+                <Label x:Name="StagingStatusLabel" FontSize="12" Opacity="0.8" />
+                <ScrollView x:Name="StagedFileScroll" MaximumHeightRequest="160" IsVisible="False">
+                    <VerticalStackLayout x:Name="StagedFileList" Spacing="2">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <Label Grid.Column="0" Text="{Binding Name}" FontSize="12"
+                                           LineBreakMode="TailTruncation" VerticalOptions="Center" />
+                                    <Label Grid.Column="1" Text="{Binding Detail}" FontSize="11" Opacity="0.55"
+                                           VerticalOptions="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </ScrollView>
+            </VerticalStackLayout>
+        </Border>
+
         <!-- App list -->
-        <CollectionView Grid.Row="2" x:Name="AppsList">
+        <CollectionView Grid.Row="3" x:Name="AppsList">
             <CollectionView.EmptyView>
                 <Label x:Name="EmptyLabel" Text="{l:Localize lblNoAppsToShow}" Padding="16"
                        HorizontalTextAlignment="Center" Opacity="0.6" />
@@ -122,7 +156,7 @@
         </CollectionView>
 
         <!-- Busy overlay -->
-        <ActivityIndicator Grid.Row="2" x:Name="Busy" IsRunning="False" IsVisible="False"
+        <ActivityIndicator Grid.Row="3" x:Name="Busy" IsRunning="False" IsVisible="False"
                            VerticalOptions="Center" HorizontalOptions="Center" Color="#2C3E50" />
 
     </Grid>
