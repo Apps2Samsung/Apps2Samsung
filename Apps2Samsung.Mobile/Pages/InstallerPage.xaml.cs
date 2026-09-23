@@ -69,9 +69,6 @@ public partial class InstallerPage : ContentPage
 
 		// Shows the app version (ApplicationDisplayVersion), so it stays in sync with the build.
 		VersionLabel.Text = $"v{AppInfo.Current.VersionString}";
-
-		var ip = NetworkInfo.GetLocalIPv4();
-		PhoneIpLabel.Text = ip is null ? "📱 This phone: offline" : $"📱 This phone: {ip}";
 	}
 
 	protected override async void OnAppearing()

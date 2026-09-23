@@ -654,7 +654,14 @@ namespace Apps2Samsung.ViewModels
                 var label = string.IsNullOrWhiteSpace(SelectedDevice.DisplayText)
                     ? SelectedDevice.IpAddress
                     : SelectedDevice.DisplayText;
-                var vm = new DeviceInfoViewModel(_tizenInstaller, SelectedDevice.IpAddress, label, SelectedDevice.DebugPortOpen);
+                // This computer's IP: the interface chosen in Settings, else whatever the OS routes out of.
+                var localIp = AppSettings.Default.LocalIp;
+                if (string.IsNullOrWhiteSpace(localIp))
+                {
+                    try { localIp = _networkService.GetLocalIPAddress(); }
+                    catch { localIp = null; }
+                }
+                var vm = new DeviceInfoViewModel(_tizenInstaller, SelectedDevice.IpAddress, label, SelectedDevice.DebugPortOpen, localIp);
                 var window = new Views.DeviceInfoWindow(vm);
                 await window.ShowDialog(desktop.MainWindow);
             }

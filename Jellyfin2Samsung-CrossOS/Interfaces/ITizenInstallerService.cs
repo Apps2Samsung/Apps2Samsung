@@ -22,7 +22,7 @@ namespace Apps2Samsung.Interfaces
 
         /// <summary>Gathers the TV's details (DUID, Tizen version, developer mode/IP, …) for the
         /// "TV information" view, using the shared Core gatherer.</summary>
-        Task<Apps2Samsung.Models.TizenDeviceInfo> GetDeviceInfoAsync(string tvIpAddress, bool debugPortOpen);
+        Task<Apps2Samsung.Models.TizenDeviceInfo> GetDeviceInfoAsync(string tvIpAddress, bool debugPortOpen, string? localIp = null);
 
         Task LaunchAppAsync(string tvIpAddress, string tizenId);
         Task StopAppAsync(string tvIpAddress, string tizenId);

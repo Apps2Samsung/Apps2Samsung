@@ -1,13 +1,15 @@
 using System;
 using System.Threading.Tasks;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Sdb;
 
 namespace Apps2Samsung.Mobile.Pages;
 
 /// <summary>
 /// Shows a TV's details (DUID, Tizen version, developer mode/IP, IP, …) gathered by the shared Core
-/// <see cref="TizenDeviceInfoService"/> — the same data the desktop head shows.
+/// <see cref="TizenDeviceInfoService"/> — the same data the desktop head shows. The phone's own LAN IP
+/// is listed too, next to the TV's Developer-host IP, so a mismatch is visible at a glance.
 /// </summary>
 public partial class DeviceInfoPage : ContentPage
 {
@@ -41,7 +43,7 @@ public partial class DeviceInfoPage : ContentPage
 		SetBusy(true, "Reading TV information…");
 		try
 		{
-			var info = await TizenDeviceInfoService.GatherAsync(_sdb, _tvIp, _debugPortOpen);
+			var info = await TizenDeviceInfoService.GatherAsync(_sdb, _tvIp, _debugPortOpen, NetworkInfo.GetLocalIPv4());
 			RowsList.ItemsSource = info.Rows;
 			CountLabel.Text = _tvLabel;
 		}

@@ -1043,11 +1043,11 @@ namespace Apps2Samsung.Services
             }
         }
 
-        public async Task<TizenDeviceInfo> GetDeviceInfoAsync(string tvIpAddress, bool debugPortOpen)
+        public async Task<TizenDeviceInfo> GetDeviceInfoAsync(string tvIpAddress, bool debugPortOpen, string? localIp = null)
         {
             try
             {
-                return await Apps2Samsung.Sdb.TizenDeviceInfoService.GatherAsync(_sdb, tvIpAddress, debugPortOpen);
+                return await Apps2Samsung.Sdb.TizenDeviceInfoService.GatherAsync(_sdb, tvIpAddress, debugPortOpen, localIp);
             }
             finally
             {
