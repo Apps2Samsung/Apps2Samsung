@@ -25,7 +25,7 @@ namespace Apps2Samsung.Agent
         public const string AppId = "A2SDebug01.Agent";
 
         /// <summary>The agent version this build embeds — <c>A2S.version</c> inside the running agent.</summary>
-        public const string Version = "0.4.1";
+        public const string Version = "0.5.0";
 
         /// <summary>The file name the package is written under.</summary>
         public const string FileName = "Apps2SamsungDebug.wgt";

@@ -48,7 +48,7 @@ h1 { margin: 0 0 4px 0; font-size: 30px; color: #ecf0f1; }
    then read as "0 apps installed".
    ------------------------------------------------------------------------------------------ */
 
-var VERSION = "0.4.1";
+var VERSION = "0.5.0";
 
 /* Operations an app may register an app control for. A bare launch() that the platform refuses can
    still go through as an app control aimed at an operation the target actually handles, so these are
@@ -124,9 +124,10 @@ function launchResult(ok, e) {
    The install staging folder. sdbd pushes every package to /home/owner/share/tmp/sdk_tools before
    installing it and never removes it, and its own "0 rmfile" verb is accepted but deletes nothing
    on retail firmware. This app runs as the user that owns that folder, so with the filesystem
-   privileges in config.xml it can list and clear the folder itself. Only package files
-   (.wgt/.tpk/.rpm) are ever deleted — the same set sdbd's rmfile names — and nothing outside
-   these two folders is touched.
+   privileges in config.xml it can list and clear the folder itself. A clear deletes only package
+   files (.wgt/.tpk/.rpm), the same set sdbd's rmfile names. Anything else in there (a .zip or an
+   .xml some other tool left, #681) goes only when the user picks that one file. Nothing outside
+   these two folders is ever touched.
    ------------------------------------------------------------------------------------------ */
 var STAGING_DIRS = ["/home/owner/share/tmp/sdk_tools", "/home/owner/share/tmp/sdk_tools/tmp"];
 var PACKAGE_EXTS = [".wgt", ".tpk", ".rpm"];
@@ -182,6 +183,19 @@ function deleteStagedFile(path) {
             }, done, "rw");
         } catch (e) { done(e); }
     });
+}
+
+/* Whether `path` names a file directly inside one of STAGING_DIRS: no subfolder, no "..". The one
+   gate a single-file delete goes through, since its path comes from the caller. */
+function isStagedPath(path) {
+    path = String(path || "");
+    for (var i = 0; i < STAGING_DIRS.length; i++) {
+        var prefix = STAGING_DIRS[i] + "/";
+        if (path.indexOf(prefix) !== 0) continue;
+        var name = path.substr(prefix.length);
+        if (name.length > 0 && name.indexOf("/") < 0 && name !== "." && name !== "..") return true;
+    }
+    return false;
 }
 
 window.A2S = {
@@ -361,6 +375,20 @@ window.A2S = {
                 }
                 next();
             });
+        });
+    },
+
+    /* Deletes one file from the staging folder, package or not: {path, deleted:true} or {path, error}.
+       A path outside the staging folders is refused before the platform sees it. Never throws. */
+    deleteStaged: function (path) {
+        if (!isStagedPath(path)) {
+            var refused = { path: path, error: { name: "InvalidValuesError", message: "not a file in the staging folder" } };
+            log("deleteStaged", refused, "err");
+            return Promise.resolve(refused);
+        }
+        return deleteStagedFile(path).then(function (r) {
+            log("deleteStaged " + path, r.deleted ? "deleted" : r, r.deleted ? "ok" : "err");
+            return r;
         });
     },
 
