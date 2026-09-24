@@ -936,6 +936,37 @@ namespace Apps2Samsung.Services
                 return InstallResult.FailureResult(apiMessage);
             }
 
+            // [118, -22] "Security error : :Invalid function parameter was given:<2>": the TV's security
+            // manager refused the package id itself. The id is still bound to a different author
+            // certificate, or an interrupted uninstall left a record the app list no longer shows
+            // (#702, #422). Removing the old copy is the one remedy we can drive from here; when the
+            // TV has nothing to remove, re-signing and pushing again can't help, so say what is wrong
+            // instead of dumping the raw wascmd output on the user.
+            if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsPackageIdBlocked(installResults.Output))
+            {
+                progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
+                Trace.WriteLine($"[Install] Package id blocked by the security manager ([118, -22]) on {tvIpAddress}: {installResults.Output}");
+
+                if (run.RetryAvailable &&
+                    await GetTvDiagnoseAsync(tvIpAddress) &&
+                    await TryRemoveConflictingPackageAsync(tvIpAddress, packageUrl, progress))
+                {
+                    run.RetryAvailable = false;
+                    return await RunInstallAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
+                }
+
+                // Deliberately NOT falling through to the package-id rename below: a fresh id installs,
+                // but it leaves the blocked one behind forever and fills the TV's limited app storage
+                // with near-duplicates, which is why id randomization was dropped before (#422).
+                await ClearPartialIfFresh();
+
+                var blockedMessage = string.Format(
+                    Constants.LocalizationKeys.PackageIdBlocked.Localized(),
+                    GetPackageAppTitle(packageUrl));
+                progress?.Invoke(blockedMessage);
+                return InstallResult.FailureResult(blockedMessage);
+            }
+
             // Handle package ID conflict error. Note: a service-component incompatibility
             // (the common cause on older TVs) is already handled before install in Step 3b,
             // so reaching here generally means a genuine id/config conflict.
