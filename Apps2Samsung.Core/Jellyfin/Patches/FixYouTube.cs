@@ -890,10 +890,13 @@ server.listen(PORT, LISTEN_HOST, function() { log('SERVER LISTENING ' + LISTEN_H
             XNamespace ns = "http://www.w3.org/ns/widgets";
             XNamespace tizen = "http://tizen.org/ns/widgets";
 
+            // Drop what we are about to write before writing it, so patching a package that was already
+            // patched replaces these elements instead of ending up with two of each (#702).
             doc.Root.Elements(ns + "access").Remove();
             doc.Root.Elements(ns + "allow-navigation").Remove();
             doc.Root.Elements(tizen + "allow-navigation").Remove();
             doc.Root.Elements(tizen + "content-security-policy").Remove();
+            doc.Root.Elements(tizen + "allow-mixed-content").Remove();
 
             doc.Root.Add(new XElement(ns + "access", new XAttribute("origin", "*"), new XAttribute("subdomains", "true")));
             doc.Root.Add(new XElement(ns + "allow-navigation", new XAttribute("href", "*")));

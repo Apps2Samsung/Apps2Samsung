@@ -44,8 +44,9 @@ namespace Apps2Samsung.Helpers.Jellyfin.CSS
             cssBlock.AppendLine(customCss);
             cssBlock.AppendLine("</style>");
 
-            // Inject before </head> to ensure CSS is loaded with the page
-            html = html.Replace("</head>", cssBlock + "</head>");
+            // Inject before </head> so the CSS loads with the page. One block per package: patching a
+            // package that was already patched replaces it instead of adding a second <style>.
+            html = HtmlUtils.InjectBlock(html, "custom-css", cssBlock.ToString());
 
             await File.WriteAllTextAsync(indexPath, html);
             Trace.WriteLine("[InjectCustomCss] Custom CSS injected successfully");
