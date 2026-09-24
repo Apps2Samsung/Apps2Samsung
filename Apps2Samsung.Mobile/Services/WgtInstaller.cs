@@ -158,6 +158,15 @@ public sealed class WgtInstaller
 		return install.Output;
 	}
 
+	// [118, -22] from the TV's security manager. Worded the same as the desktop head's
+	// "packageIdBlocked" string, which is the translated one.
+	private const string PackageIdBlockedMessage =
+		"The TV refused this package because the package id it uses is blocked on this set ([118, -22]). " +
+		"An older copy is still registered under a different signing certificate, or an interrupted " +
+		"uninstall left a record behind that the app list no longer shows. Delete the app on the TV itself " +
+		"(Apps list, press and hold, Remove) and install again, install a build that ships its own package " +
+		"id (a \"secondary\" variant), or reset Smart Hub as a last resort.";
+
 	// Overwrite-install retry is on by default; the "Override existing app" setting (key shared with
 	// MobileSettings.TryOverwrite) can turn it off.
 	private static bool TryOverwriteEnabled => Preferences.Get("try_overwrite", true);
@@ -207,9 +216,15 @@ public sealed class WgtInstaller
 
 		bool certMismatch = TizenInstallDiagnostics.IsCertificateMismatch(output);
 
-		// Recoverable by removing the old copy first: certificate mismatch, package-id conflict, or a
-		// generic failure. Try exactly one clean reinstall.
+		// [118, -22]: the TV's security manager refused the package id itself. Removing the old copy is
+		// the one remedy we can drive from here, so it goes through the retry below — but if the TV has
+		// nothing to remove, say what is actually wrong instead of repeating the raw output (#702).
+		bool idBlocked = TizenInstallDiagnostics.IsPackageIdBlocked(output);
+
+		// Recoverable by removing the old copy first: certificate mismatch, a blocked or conflicting
+		// package id, or a generic failure. Try exactly one clean reinstall.
 		bool recoverable = certMismatch ||
+						   idBlocked ||
 						   TizenInstallDiagnostics.IsPackageIdConflict(output) ||
 						   TizenInstallDiagnostics.IsGenericFailure(output);
 
@@ -227,11 +242,17 @@ public sealed class WgtInstaller
 				throw new InvalidOperationException(
 					"The TV already has this app signed with a different certificate. Remove it on the TV (Apps → delete), then install again.");
 
+			if (TizenInstallDiagnostics.IsPackageIdBlocked(retry.Output))
+				throw new InvalidOperationException(PackageIdBlockedMessage);
+
 			await ClearPartialIfFresh();
 			throw new InvalidOperationException($"Install failed: {Detail(retry.Error, retry.Output)}");
 		}
 
 		// Not retried (recovery off or no package id) — give the clearest message we can.
+		if (idBlocked)
+			throw new InvalidOperationException(PackageIdBlockedMessage);
+
 		if (certMismatch)
 			throw new InvalidOperationException(
 				"The TV already has this app signed with a different certificate. Remove it on the TV (Apps → delete) and install again, or enable \"Override existing app\" in Settings.");

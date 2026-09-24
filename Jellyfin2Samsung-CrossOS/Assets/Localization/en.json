@@ -129,6 +129,7 @@
   "lblInstallNow": "Install now",
   "lblCancel": "Cancel",
   "apiVersionMismatch": "Your TV refused this package (install error [118, -4], \"operation not allowed\"). This usually means one of two things: the app was built for a newer Tizen version than your TV, or the package needs Partner signing / a privilege your certificate doesn't grant. If other apps (for example Jellyfin) install on this TV just fine, it's this package — try turning on Partner signing in Settings and installing again, or use an older/compatible build of the app.",
+  "packageIdBlocked": "Your TV refused {0} because the package id this build uses is blocked on this set (install error [118, -22], \"Security error: Invalid function parameter\"). That happens when an older copy of {0} is still registered under a different signing certificate, or when an interrupted uninstall left a leftover record behind. The app no longer shows up in the TV's app list, so it can't be removed over the network either. Try these in order: delete {0} on the TV itself (open the Apps list, press and hold {0}, choose Remove) and install again; install a different build of the same app, since a \"secondary\" variant ships with its own package id; or, as a last resort, reset Smart Hub (Settings > Support > Device Care > Self Diagnosis > Reset Smart Hub), which clears the leftover record but also signs you out of the apps on your TV.",
   "FixYouTube153": "Fix YouTube Plugin (Error 153)",
   "lblBasePath": "Base Path",
   "lblJellyfinUsername": "Username",

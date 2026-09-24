@@ -28,6 +28,11 @@ namespace Apps2Samsung.Helpers.Core
             // API-version incompatibility: the package targets a higher Tizen API level than the TV
             // supports. Distinct from the generic [118] and the [118, -12] cert mismatch.
             public const string InstallFailed118Minus4 = "install failed[118, -4]";
+            // The TV's security manager refused the package id itself: SECURITY_MANAGER_ERROR_INPUT_PARAM
+            // ("Security error : :Invalid function parameter was given:<2>"). Note the comma — it does NOT
+            // contain the plain "install failed[118]" token, so it used to fall through to the generic
+            // branch and dump the raw wascmd output at the user (#702, #422).
+            public const string InstallFailed118Minus22 = "install failed[118, -22]";
             public const string InstallFailed118 = "install failed[118]";
             public const string Installing100 = "installing[100]";
             public const string InstallCompleted = "install completed";
@@ -229,6 +234,7 @@ namespace Apps2Samsung.Helpers.Core
             public const string CertificateWaiting = "certificateWaiting";
             public const string CertificateWaitCancelled = "certificateWaitCancelled";
             public const string ApiVersionMismatch = "apiVersionMismatch";
+            public const string PackageIdBlocked = "packageIdBlocked";
             public const string ModifyConfigRequired = "modiyConfigRequired";
             public const string DuidLimitReached = "duidLimitReached";
             public const string ScanningNetwork = "ScanningNetwork";
