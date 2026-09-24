@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Packaging;
 using Apps2Samsung.Sdb;
 using Microsoft.Maui.Storage;
@@ -107,24 +108,30 @@ public sealed class WgtInstaller
 			await TizenPermitInstall.EnsureAsync(_sdb, tvIp, version, sdkToolPath, profileXml);
 		}
 
-		// Apply per-app modifications before signing — e.g. inject the user's TVApp channels
-		// (m3u8 URLs) into a TVApp package's js/main.js. Shared logic lives in Core.
-		if (TvAppChannelInjector.AppliesTo(wgtPath))
-		{
-			var channels = MobileSettings.GetTvAppChannels();
-			if (channels.Count > 0)
-			{
-				progress?.Invoke("Applying TVApp channels…");
-				await TvAppChannelInjector.InjectChannelsAsync(wgtPath, channels);
-			}
-		}
+		// Apply per-app modifications before signing: the user's TVApp channels (m3u8 URLs) into a
+		// TVApp package's js/main.js, then the registered patchers — e.g. the custom launcher icon,
+		// shared with the desktop head via Core IPackagePatcher. All of it edits one workspace, so
+		// the package is unpacked once and rezipped once however much applies to it.
+		var channels = TvAppChannelInjector.AppliesTo(wgtPath)
+			? MobileSettings.GetTvAppChannels()
+			: (IReadOnlyList<TvChannel>)Array.Empty<TvChannel>();
+		var patchers = _patchers.Where(p => p.CanHandle(wgtPath)).ToList();
 
-		// Apply registered package patchers before signing — e.g. the user's custom launcher icon.
-		// Shared with the desktop head via Core IPackagePatcher (composes with the TVApp inject above).
-		foreach (var patcher in _patchers.Where(p => p.CanHandle(wgtPath)))
+		if (channels.Count > 0 || patchers.Count > 0)
 		{
-			progress?.Invoke("Applying customizations…");
-			await patcher.ApplyAsync(wgtPath);
+			progress?.Invoke(channels.Count > 0 ? "Applying TVApp channels…" : "Applying customizations…");
+
+			using var workspace = PackageWorkspace.Extract(wgtPath);
+
+			if (channels.Count > 0)
+				await TvAppChannelInjector.InjectChannelsAsync(workspace, channels);
+
+			foreach (var patcher in patchers)
+				await patcher.ApplyAsync(workspace);
+
+			// A patcher that matched on the file name but found nothing to do leaves the package
+			// exactly as downloaded rather than as a recompressed copy of itself.
+			workspace.RepackIfChanged();
 		}
 
 		// The certificate must already be inside its validity window: Tizen checks the signature

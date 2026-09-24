@@ -55,18 +55,16 @@ namespace Apps2Samsung.Packaging
 
         /// <summary>
         /// Rewrites the channels array inside the package's <c>js/main.js</c>. No-op (leaves the
-        /// package untouched) if there are no channels, the file is missing, or the placeholder
-        /// array isn't found.
+        /// workspace untouched) if there are no channels, the file is missing, or the placeholder
+        /// array isn't found. The caller owns the workspace and repacks once every patch is applied.
         /// </summary>
-        public static async Task InjectChannelsAsync(string packagePath, IReadOnlyList<TvChannel> channels)
+        public static async Task InjectChannelsAsync(PackageWorkspace ws, IReadOnlyList<TvChannel> channels)
         {
             if (channels.Count == 0)
             {
                 Trace.WriteLine("[TvApp] No channels configured; leaving package unchanged.");
                 return;
             }
-
-            using var ws = PackageWorkspace.Extract(packagePath);
 
             var mainJsPath = Path.Combine(ws.Root, "js", "main.js");
             if (!File.Exists(mainJsPath))
@@ -97,7 +95,6 @@ namespace Apps2Samsung.Packaging
             js = PatchChannelSwitch(js);
 
             await File.WriteAllTextAsync(mainJsPath, js);
-            ws.Repack();
             Trace.WriteLine($"[TvApp] Injected {channels.Count} channel(s) into {MainJsRelativePath}.");
         }
 
