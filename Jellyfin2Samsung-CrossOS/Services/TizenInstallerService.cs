@@ -354,11 +354,23 @@ namespace Apps2Samsung.Services
 
                 // Step 5: Apply package configuration. Every matching patcher runs, in registration
                 // order, so app-specific patchers (channels/oblong) compose with the generic
-                // custom-icon patcher (registered last, so it overrides built-in icons).
-                foreach (var patcher in _packagePatchers.Where(p => p.CanHandle(packagePath)))
+                // custom-icon patcher (registered last, so it overrides built-in icons). They share
+                // one workspace: the package is unpacked once here and rezipped once below, instead
+                // of each patcher unpacking and rezipping the whole thing for its own edit.
+                var patchers = _packagePatchers.Where(p => p.CanHandle(packagePath)).ToList();
+                if (patchers.Count > 0)
                 {
-                    Trace.WriteLine($"Applying configuration via {patcher.GetType().Name}");
-                    await patcher.ApplyAsync(packagePath);
+                    using var workspace = PackageWorkspace.Extract(packagePath);
+
+                    foreach (var patcher in patchers)
+                    {
+                        Trace.WriteLine($"Applying configuration via {patcher.GetType().Name}");
+                        await patcher.ApplyAsync(workspace);
+                    }
+
+                    // A patcher that matched on the file name but found nothing to do leaves the
+                    // package exactly as downloaded rather than as a recompressed copy of itself.
+                    workspace.RepackIfChanged();
                 }
 
                 // Step 6: Resign package if needed

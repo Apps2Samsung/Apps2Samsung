@@ -42,19 +42,17 @@ namespace Apps2Samsung.Helpers.Jellyfin
             => Path.GetFileName(packagePath)
                    .Contains(Constants.AppIdentifiers.JellyfinAppName, StringComparison.OrdinalIgnoreCase);
 
-        public Task<InstallResult> ApplyAsync(string packagePath)
+        public Task<InstallResult> ApplyAsync(PackageWorkspace ws)
         {
             // No server configured → nothing to inject (preserves prior install behavior).
             if (string.IsNullOrEmpty(_config.JellyfinFullUrl))
                 return Task.FromResult(InstallResult.SuccessResult());
 
-            return ApplyJellyfinConfigAsync(packagePath);
+            return ApplyJellyfinConfigAsync(ws);
         }
 
-        public async Task<InstallResult> ApplyJellyfinConfigAsync(string packagePath)
+        public async Task<InstallResult> ApplyJellyfinConfigAsync(PackageWorkspace ws)
         {
-            using var ws = PackageWorkspace.Extract(packagePath);
-
             // Which steps ran is the first thing anyone needs from a bug report about a package that
             // won't install, and until now nothing said so: the YouTube patch in particular rewrites
             // config.xml (privileges, CSP, a service component) without leaving a single line behind,
@@ -106,8 +104,6 @@ namespace Apps2Samsung.Helpers.Jellyfin
             }
 
             Trace.WriteLine($"[JellyfinPatcher] Applied: {string.Join(", ", applied)}.");
-
-            ws.Repack();
             return InstallResult.SuccessResult();
         }
     }

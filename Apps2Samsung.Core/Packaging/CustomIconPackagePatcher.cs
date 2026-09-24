@@ -35,22 +35,18 @@ namespace Apps2Samsung.Packaging
 
         public bool CanHandle(string packagePath) => Resolve(packagePath) != null;
 
-        public async Task<InstallResult> ApplyAsync(string packagePath)
+        public async Task<InstallResult> ApplyAsync(PackageWorkspace ws)
         {
-            var choice = Resolve(packagePath);
+            var choice = Resolve(ws.PackagePath);
             if (choice == null)
                 return InstallResult.SuccessResult();
-
-            using var ws = PackageWorkspace.Extract(packagePath);
 
             if (choice.Value.CustomPath != null)
                 await WgtIconPatcher.SwapLauncherIconAsync(ws, choice.Value.CustomPath);
             else
                 await WgtIconPatcher.SwapLauncherIconAsync(ws, choice.Value.Open!, OblongValue, choice.Value.Fallback!);
 
-            ws.Repack();
-
-            Trace.WriteLine($"[CustomIcon] Applied {(choice.Value.CustomPath ?? OblongValue)} icon to {Path.GetFileName(packagePath)}.");
+            Trace.WriteLine($"[CustomIcon] Applied {(choice.Value.CustomPath ?? OblongValue)} icon to {Path.GetFileName(ws.PackagePath)}.");
             return InstallResult.SuccessResult();
         }
 
