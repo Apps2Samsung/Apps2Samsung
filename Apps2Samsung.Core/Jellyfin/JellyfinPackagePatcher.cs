@@ -9,6 +9,7 @@ using Apps2Samsung.Helpers.Jellyfin.Plugins;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -54,9 +55,18 @@ namespace Apps2Samsung.Helpers.Jellyfin
         {
             using var ws = PackageWorkspace.Extract(packagePath);
 
+            // Which steps ran is the first thing anyone needs from a bug report about a package that
+            // won't install, and until now nothing said so: the YouTube patch in particular rewrites
+            // config.xml (privileges, CSP, a service component) without leaving a single line behind,
+            // so a log could not tell a plain package from a heavily rewritten one (#702).
+            var applied = new List<string>();
+
             // Apply server scripts (JS injection) if enabled
             if (_config.UseServerScripts)
+            {
                 await _indexHtml.PatchIndexAsync(ws, _config.JellyfinFullUrl);
+                applied.Add("server scripts");
+            }
 
             // Apply YouTube plugin patch if enabled
             if (_config.PatchYoutubePlugin)
@@ -64,10 +74,12 @@ namespace Apps2Samsung.Helpers.Jellyfin
                 await _youTube.PatchPluginAsync(ws);
                 await _youTube.UpdateCorsAsync(ws);
                 await _youTube.CreateYouTubeResolverAsync(ws);
+                applied.Add("YouTube plugin (rewrites config.xml)");
             }
 
             // Always update server address
             await _indexHtml.UpdateServerAddressAsync(ws);
+            applied.Add("server address");
 
             // Inject auto-login credentials if available
             if (!string.IsNullOrEmpty(_config.JellyfinAccessToken) &&
@@ -75,12 +87,14 @@ namespace Apps2Samsung.Helpers.Jellyfin
             {
                 Trace.WriteLine("Injecting auto-login credentials...");
                 await _indexHtml.InjectAutoLoginAsync(ws);
+                applied.Add("auto-login");
             }
 
             if (_config.EnableDevLogs)
             {
                 Trace.WriteLine("Injecting dev logs...");
                 await _diagnostic.InjectDevLogsAsync(ws);
+                applied.Add("dev logs");
             }
 
             // Inject custom CSS if configured
@@ -88,7 +102,10 @@ namespace Apps2Samsung.Helpers.Jellyfin
             {
                 Trace.WriteLine("Injecting custom CSS...");
                 await _customCss.InjectAsync(ws);
+                applied.Add("custom CSS");
             }
+
+            Trace.WriteLine($"[JellyfinPatcher] Applied: {string.Join(", ", applied)}.");
 
             ws.Repack();
             return InstallResult.SuccessResult();

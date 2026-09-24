@@ -56,8 +56,9 @@ namespace Apps2Samsung.Helpers.Jellyfin.Diagnostic
             script.AppendLine("})();");
             script.AppendLine("</script>");
 
-            // Inject before </head>
-            html = html.Replace("</head>", script.ToString() + "\n</head>");
+            // Inject before </head>, replacing the hook from an earlier patch pass rather than adding
+            // a second console.log override on top of it.
+            html = HtmlUtils.InjectBlock(html, "dev-logs", script.ToString());
             await File.WriteAllTextAsync(indexPath, html);
         }
     }
