@@ -88,6 +88,11 @@ jobs:
           upload_sources: true
           # Only ever true for a deliberate workflow_dispatch; `inputs` is null on schedule/push.
           upload_translations: ${{ inputs.upload_translations || false }}
+          # A value equal to the English source is an untranslated key, not a translation. Both are
+          # the action's defaults, spelled out so an edit here can't quietly flip them: ~150 English
+          # strings per language once sat in Crowdin as approved translations (cleaned up 2026-09-25).
+          import_eq_suggestions: false
+          auto_approve_imported: false
           download_translations: true
           localization_branch_name: l10n_beta
           create_pull_request: true
