@@ -161,6 +161,31 @@
 
                 <BoxView Style="{StaticResource Divider}" />
 
+                <!-- TizenTube Cobalt: opt-in proxy address rewrite (Tizen 9 "network error") -->
+                <controls:ExpanderSection Title="{l:Localize lblTizenTubeProxy}">
+                    <VerticalStackLayout Spacing="8">
+                        <Grid Style="{StaticResource ToggleRow}">
+                            <Label Grid.Column="0" Text="{l:Localize lblTizenTubeProxyOverride}" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" x:Name="TizenTubeProxySwitch" OnColor="#2C3E50" Toggled="OnTizenTubeProxyToggled" />
+                        </Grid>
+                        <Label Style="{StaticResource Hint}"
+                               Text="{l:Localize hintTizenTubeProxyOverride}" />
+                        <Border Padding="8,4" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                                IsEnabled="{Binding Source={x:Reference TizenTubeProxySwitch}, Path=IsToggled}"
+                                Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
+                            <Entry x:Name="TizenTubeProxyHostEntry" Placeholder="{l:Localize lblTizenTubeProxyHostAuto}"
+                                   Keyboard="Url" BackgroundColor="Transparent" Unfocused="OnTizenTubeProxyHostUnfocused" />
+                        </Border>
+                        <Label x:Name="TizenTubeProxyHostError" Style="{StaticResource Hint}" TextColor="#C0392B"
+                               Text="{l:Localize lblTizenTubeProxyHostInvalid}" IsVisible="False" />
+                        <Label Style="{StaticResource Hint}"
+                               Text="{l:Localize hintTizenTubeProxyHost}" />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
+
+                <BoxView Style="{StaticResource Divider}" />
+
                 <!-- App icons -->
                 <controls:ExpanderSection Title="{l:Localize lblAppIcons}">
                     <VerticalStackLayout Spacing="8">

@@ -360,7 +360,7 @@ namespace Apps2Samsung.Services
                 var patchers = _packagePatchers.Where(p => p.CanHandle(packagePath)).ToList();
                 if (patchers.Count > 0)
                 {
-                    using var workspace = PackageWorkspace.Extract(packagePath);
+                    using var workspace = PackageWorkspace.Extract(packagePath, tvIpAddress);
 
                     foreach (var patcher in patchers)
                     {

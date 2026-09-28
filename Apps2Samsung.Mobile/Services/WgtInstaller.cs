@@ -121,7 +121,7 @@ public sealed class WgtInstaller
 		{
 			progress?.Invoke(channels.Count > 0 ? "Applying TVApp channels…" : "Applying customizations…");
 
-			using var workspace = PackageWorkspace.Extract(wgtPath);
+			using var workspace = PackageWorkspace.Extract(wgtPath, tvIp);
 
 			if (channels.Count > 0)
 				await TvAppChannelInjector.InjectChannelsAsync(workspace, channels);
