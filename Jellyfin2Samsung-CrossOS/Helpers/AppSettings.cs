@@ -120,6 +120,8 @@ namespace Apps2Samsung.Helpers
         public string GitHubToken { get; set; } = "";
         public string LocalYoutubeServer { get; set; } = string.Empty;
         public string TvAppChannelsJson { get; set; } = "";  // JSON array of {name,url} for TVApp
+        public bool TizenTubeProxyOverride { get; set; } = false;  // opt-in: point TizenTube Cobalt's --proxy at a LAN address (Tizen 9 fix)
+        public string TizenTubeProxyHost { get; set; } = "";  // host[:port] for that proxy; empty = the TV being installed to
         public bool TvAppUseOblongIcon { get; set; } = false;  // legacy: migrated into CustomAppIconsJson ("oblong")
         public bool LitefinUseOblongIcon { get; set; } = false;  // legacy: migrated into CustomAppIconsJson ("oblong")
         public string ManualDuids { get; set; } = "";  // extra Tizen DUIDs to pre-authorize in the distributor cert (one per line / comma-separated)

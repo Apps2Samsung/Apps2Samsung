@@ -71,6 +71,8 @@ public static class MauiProgram
 		builder.Services.AddSingleton<IOblongIconSource, NoOblongIconSource>();
 		builder.Services.AddSingleton<IPackagePatcher, CustomIconPackagePatcher>();
 		builder.Services.AddSingleton<IPackagePatcher, AppTitlePackagePatcher>();
+		// Opt-in TizenTube Cobalt proxy-host rewrite (Settings → TizenTube); no-op unless enabled.
+		builder.Services.AddSingleton<IPackagePatcher, TizenTubeProxyPatcher>();
 
 		// Shared app catalog for the icon/title editor (same list as desktop).
 		builder.Services.AddSingleton<Apps2Samsung.Catalog.AppCatalog>(sp => new Apps2Samsung.Catalog.AppCatalog(

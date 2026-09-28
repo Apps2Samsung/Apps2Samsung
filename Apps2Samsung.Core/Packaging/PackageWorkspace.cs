@@ -25,26 +25,33 @@ namespace Apps2Samsung.Helpers.Core
         /// </summary>
         public string PackagePath => _originalPackage;
 
+        /// <summary>
+        /// IP of the TV this package is being installed to, when the installer knows it. For patches
+        /// that bake the TV's own address into the package (the TizenTube Cobalt proxy host).
+        /// </summary>
+        public string? TargetDeviceIp { get; }
+
         private readonly string _originalPackage;
         private readonly string _tempPackage;
         private readonly (int Files, DateTime Newest) _asExtracted;
 
-        private PackageWorkspace(string root, string original, string temp)
+        private PackageWorkspace(string root, string original, string temp, string? targetDeviceIp)
         {
             Root = root;
+            TargetDeviceIp = targetDeviceIp;
             _originalPackage = original;
             _tempPackage = temp;
             _asExtracted = Snapshot(root);
         }
 
-        public static PackageWorkspace Extract(string packagePath)
+        public static PackageWorkspace Extract(string packagePath, string? targetDeviceIp = null)
         {
             var baseDir = Path.GetDirectoryName(packagePath)!;
             var tempDir = Path.Combine(baseDir, $"JellyTemp_{Guid.NewGuid():N}");
             Directory.CreateDirectory(tempDir);
 
             ZipFile.ExtractToDirectory(packagePath, tempDir);
-            return new PackageWorkspace(tempDir, packagePath, packagePath + ".tmp");
+            return new PackageWorkspace(tempDir, packagePath, packagePath + ".tmp", targetDeviceIp);
         }
 
         /// <summary>

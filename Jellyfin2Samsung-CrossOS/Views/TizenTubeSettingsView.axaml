@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+             xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+             mc:Ignorable="d"
+             x:Class="Apps2Samsung.Views.TizenTubeSettingsView"
+             x:DataType="viewModels:TizenTubeSettingsViewModel">
+
+	<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,20,16">
+		<StackPanel Spacing="16">
+
+			<StackPanel Spacing="8">
+				<TextBlock Text="{Binding LblTizenTubeProxy}"
+						   FontSize="15"
+						   FontWeight="SemiBold"
+						   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+					<TextBlock Grid.Column="0"
+							   Text="{Binding LblTizenTubeProxyOverride}"
+							   Classes="label"
+							   TextWrapping="Wrap"
+							   VerticalAlignment="Center"/>
+					<ToggleSwitch Grid.Column="1" IsChecked="{Binding ProxyOverride}"/>
+				</Grid>
+				<TextBlock Text="{Binding HintTizenTubeProxyOverride}"
+						   FontSize="12"
+						   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+						   TextWrapping="Wrap"/>
+			</StackPanel>
+
+			<StackPanel Spacing="8" IsEnabled="{Binding ProxyOverride}">
+				<TextBlock Text="{Binding LblTizenTubeProxyHost}"
+						   Classes="label"/>
+				<TextBox Text="{Binding ProxyHost}"
+						 Watermark="{Binding ProxyHostWatermark}"
+						 Classes="clean"
+						 MaxWidth="360"
+						 HorizontalAlignment="Left"
+						 MinWidth="260"/>
+				<StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ProxyHostInvalid}">
+					<fa:SymbolIcon Symbol="Important" Width="14" Height="14" Foreground="#C0392B" VerticalAlignment="Center"/>
+					<TextBlock Text="{Binding LblTizenTubeProxyHostInvalid}"
+							   Foreground="#C0392B"
+							   FontSize="12"
+							   TextWrapping="Wrap"/>
+				</StackPanel>
+				<TextBlock Text="{Binding HintTizenTubeProxyHost}"
+						   FontSize="12"
+						   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+						   TextWrapping="Wrap"/>
+			</StackPanel>
+
+		<!-- bottom slack: ScrollViewer under-measures wrapping content, so guarantee the last row clears the fold -->
+			<Border Height="40"/>
+		</StackPanel>
+	</ScrollViewer>
+</UserControl>

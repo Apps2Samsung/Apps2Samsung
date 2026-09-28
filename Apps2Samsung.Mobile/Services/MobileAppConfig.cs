@@ -37,6 +37,8 @@ public sealed class MobileAppConfig : IAppConfig
     public string CustomAppIconsJson { get => Preferences.Get(KeyCustomIcons, string.Empty); set => Preferences.Set(KeyCustomIcons, value ?? string.Empty); }
     public string CustomAppTitlesJson { get => Preferences.Get(KeyCustomTitles, string.Empty); set => Preferences.Set(KeyCustomTitles, value ?? string.Empty); }
     public string TvAppChannelsJson { get => MobileSettings.TvAppChannelsJson; set => MobileSettings.TvAppChannelsJson = value; }
+    public bool TizenTubeProxyOverride => MobileSettings.TizenTubeProxyOverride;
+    public string TizenTubeProxyHost => MobileSettings.TizenTubeProxyHost;
 
     // ---- Jellyfin package patching ----
     // Backed by the Settings → Jellyfin page (MobileSettings). Read by the shared

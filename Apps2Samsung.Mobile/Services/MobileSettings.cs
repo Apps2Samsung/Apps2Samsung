@@ -18,6 +18,8 @@ public static class MobileSettings
 	private const string KeyShowAllJf = "show_all_jellyfin_versions";
 	private const string KeyManualDuids = "manual_duids";
 	private const string KeyTvAppChannels = "tvapp_channels_json";
+	private const string KeyTizenTubeProxyOverride = "tizentube_proxy_override";
+	private const string KeyTizenTubeProxyHost = "tizentube_proxy_host";
 	private const string KeyPartnerSigning = "partner_signing";
 	private const string KeyForceLogin = "force_samsung_login";
 	private const string KeyTryOverwrite = "try_overwrite";
@@ -229,6 +231,20 @@ public static class MobileSettings
 	/// <summary>The configured TVApp channels, injected into a TVApp wgt at install time.</summary>
 	public static IReadOnlyList<TvChannel> GetTvAppChannels() =>
 		TvAppChannelInjector.ParseChannelsJson(TvAppChannelsJson);
+
+	/// <summary>Opt-in: point a TizenTube Cobalt build's proxy at a LAN address (Tizen 9 fix). Off by default.</summary>
+	public static bool TizenTubeProxyOverride
+	{
+		get => Preferences.Get(KeyTizenTubeProxyOverride, false);
+		set => Preferences.Set(KeyTizenTubeProxyOverride, value);
+	}
+
+	/// <summary>Host[:port] for that proxy; empty = the IP of the TV being installed to.</summary>
+	public static string TizenTubeProxyHost
+	{
+		get => Preferences.Get(KeyTizenTubeProxyHost, string.Empty);
+		set => Preferences.Set(KeyTizenTubeProxyHost, value ?? string.Empty);
+	}
 
 	/// <summary>Per-app custom launcher icons: JSON map { appKey -> "oblong" | custom PNG path },
 	/// applied to the wgt at install by the shared CustomIconPackagePatcher. (Same Preferences key as

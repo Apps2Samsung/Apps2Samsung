@@ -48,6 +48,10 @@ namespace Apps2Samsung.Configuration
         string CustomAppTitlesJson { get; set; }
         /// <summary>JSON array of { name, url } TVApp channels injected into a TVApp wgt at install.</summary>
         string TvAppChannelsJson { get; set; }
+        /// <summary>Opt-in: rewrite a TizenTube Cobalt build's --proxy host (127.0.0.2) to a LAN address. Off by default.</summary>
+        bool TizenTubeProxyOverride { get; }
+        /// <summary>Host[:port] for that proxy; empty = the IP of the TV being installed to.</summary>
+        string TizenTubeProxyHost { get; }
 
         // ---- Jellyfin package patching ----
         // The shared JellyfinPackagePatcher reads these to inject the server address, auto-login
