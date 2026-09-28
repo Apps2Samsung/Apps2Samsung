@@ -14,7 +14,7 @@ namespace Apps2Samsung.Helpers.Core
             public const string JellyfinAppName = "Jellyfin";
             public const string Jelly2SamsDefault = "Jelly2Sams (default)";
             public const string Jelly2Sams = "Jelly2Sams";
-            public const string CustomWgtFile = "Custom WGT File";
+            public const string CustomWgtFile = "Custom WGT / TPK";
         }
 
         /// <summary>
