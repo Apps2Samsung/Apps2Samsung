@@ -84,7 +84,7 @@
 				</Grid>
 
 				<!-- Version -->
-				<Grid ColumnDefinitions="100,*,40" ColumnSpacing="8" IsVisible="{Binding SelectedRelease, Converter={StaticResource StringNotEquals}, ConverterParameter=Custom WGT File}">
+				<Grid ColumnDefinitions="100,*,40" ColumnSpacing="8" IsVisible="{Binding SelectedRelease, Converter={StaticResource StringNotEquals}, ConverterParameter=Custom WGT / TPK}">
 					<TextBlock Classes="label"
 							   Text="{Binding LblVersion}"
 							   VerticalAlignment="Center"
@@ -107,8 +107,8 @@
 						<fa:SymbolIcon Symbol="Help" Width="20" Height="20"/>
 					</Button>
 				</Grid>
-				<!-- Custom WGT File -->
-				<Grid ColumnDefinitions="100,*,40" ColumnSpacing="8" IsVisible="{Binding SelectedRelease, Converter={StaticResource StringEquals}, ConverterParameter=Custom WGT File, FallbackValue=False}">
+				<!-- Custom WGT / TPK -->
+				<Grid ColumnDefinitions="100,*,40" ColumnSpacing="8" IsVisible="{Binding SelectedRelease, Converter={StaticResource StringEquals}, ConverterParameter=Custom WGT / TPK, FallbackValue=False}">
 					<TextBlock Classes="label"
 							   Text="{Binding lblCustomWgt}"
 							   VerticalAlignment="Center"
