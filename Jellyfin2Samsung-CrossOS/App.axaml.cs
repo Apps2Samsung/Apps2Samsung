@@ -253,6 +253,7 @@ namespace Apps2Samsung
                     {
                         target.RaiseEvent(new PointerWheelEventArgs(target, e.Pointer, root, point,
                             e.Timestamp, e.Properties, e.KeyModifiers, e.Delta));
+                        e.Handled = true;
                         return;
                     }
                 }
