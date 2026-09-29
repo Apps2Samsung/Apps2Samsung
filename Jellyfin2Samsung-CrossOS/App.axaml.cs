@@ -1,8 +1,13 @@
 ﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data.Core.Plugins;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
+using Avalonia.VisualTree;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.API;
@@ -39,6 +44,7 @@ namespace Apps2Samsung
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 DisableAvaloniaDataAnnotationValidation();
+                ForwardWheelToOpenPopups();
 
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
@@ -228,6 +234,30 @@ namespace Apps2Samsung
 
             foreach (var plugin in dataValidationPluginsToRemove)
                 BindingPlugins.DataValidators.Remove(plugin);
+        }
+
+        // With Windows' "Scroll inactive windows" off, the wheel goes to the focused window
+        // instead of an open dropdown, so pass it on (AvaloniaUI/Avalonia#16646).
+        private static void ForwardWheelToOpenPopups()
+        {
+            InputElement.PointerWheelChangedEvent.AddClassHandler<LightDismissOverlayLayer>((layer, e) =>
+            {
+                var screen = layer.PointToScreen(e.GetPosition(layer));
+                foreach (var popup in TopLevel.GetTopLevel(layer)!.GetVisualDescendants().OfType<Popup>())
+                {
+                    if (!popup.IsOpen || popup.Host is not Visual root)
+                        continue;
+
+                    var point = root.PointToClient(screen);
+                    if ((root as IInputElement)?.InputHitTest(point) is Interactive target)
+                    {
+                        target.RaiseEvent(new PointerWheelEventArgs(target, e.Pointer, root, point,
+                            e.Timestamp, e.Properties, e.KeyModifiers, e.Delta));
+                        e.Handled = true;
+                        return;
+                    }
+                }
+            });
         }
     }
 }
