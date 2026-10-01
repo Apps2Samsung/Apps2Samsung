@@ -364,7 +364,7 @@
   "lblRemoteWakeFailed": "Televizor se neprobudil. Zkontrolujte v jeho síťových nastaveních možnost „Zapnout pomocí mobilu“.",
   "lblRemoteSelectTvFirst": "Nejprve vyberte televizor.",
   "lblRemoteNoAnswerNoMac": "Žádná odezva. Jednou zapněte televizor pomocí jeho vlastního dálkového ovladače, poté jej tato stránka bude moci probudit.",
-  "lblToolbox": "Nástroje pro televizor",
+  "lblToolbox": "Nástroje pro TV",
   "lblToolboxOwnerNote": "Pro televizor, který vlastníte. Vše zde probíhá přes síť, takže není potřeba režim pro vývojáře – televizor musí být pouze zapnutý.",
   "lblToolboxSequences": "Kombinace položek servisního menu",
   "lblToolboxFilter": "Prohledat aplikace...",
@@ -597,5 +597,13 @@
   "statusSamsungAccountNoEmail": "Váš Samsung účet nemá zadanou e-mailovou adresu a bez ní nelze vytvořit podpisový certifikát. Otevřete stránku account.samsung.com, přidejte a ověřte e-mailovou adresu a poté to zkuste znovu.",
   "lblOpenSamsungAccount": "Otevřít Samsung účet",
   "lblSslWarningTitle": "Nebylo možné ověřit zabezpečené připojení",
-  "statusSslWarning": "Nedařilo se ověřit bezpečnostní certifikát {0} ({1}). Obvykle tuto adresu blokuje nebo zachycuje brána firewall, filtr DNS nebo proxy ve vaší síti, případně jsou kořenové certifikáty tohoto systému neplatné. Povolte {0} v bráně firewall nebo filtru DNS, případně aktualizujte kořenové certifikáty systému a zkuste to znovu. Dokud nebude tento problém vyřešen, může docházet k selhání přihlášení a stahování u společnosti Samsung."
+  "statusSslWarning": "Nedařilo se ověřit bezpečnostní certifikát {0} ({1}). Obvykle tuto adresu blokuje nebo zachycuje brána firewall, filtr DNS nebo proxy ve vaší síti, případně jsou kořenové certifikáty tohoto systému neplatné. Povolte {0} v bráně firewall nebo filtru DNS, případně aktualizujte kořenové certifikáty systému a zkuste to znovu. Dokud nebude tento problém vyřešen, může docházet k selhání přihlášení a stahování u společnosti Samsung.",
+  "lblTizenTubeProxy": "Oprava síťového připojení pro Tizen Tube Cobalt",
+  "lblTizenTubeProxyOverride": "Použít síťovou adresu televizoru jako proxy pro TizenTube",
+  "hintTizenTubeProxyOverride": "Pouze pro verze TizenTube Cobalt. Na některých televizorech (Tizen 9, 2025 a novější) se Cobalt nemůže připojit k proxy TizenTube na adrese 127.0.0.2 a aplikace se otevře s hlášením „Došlo k síťové chybě “. Pokud tuto možnost zapnete, adresa proxy v balíčku se před instalací změní na vlastní IP adresu televizoru. Nechte ji vypnutou, pokud se tato chyba neobjeví.",
+  "lblTizenTubeProxyHost": "Adresa proxy",
+  "lblTizenTubeProxyHostAuto": "Prázdné = IP adresa televizoru, na který aplikaci instalujete",
+  "lblTizenTubeProxyHostAutoIp": "Prázdné = IP adresa televizoru, na který aplikaci instalujete ({0})",
+  "lblTizenTubeProxyHostInvalid": "Zadejte IP adresu nebo název hostitele, volitelně s :port (například\n192.168.1.50).",
+  "hintTizenTubeProxyHost": "Adresa je zapsána do aplikace, takže přestane fungovat, pokud televizor získá jinou IP adresu. Vyhraďte pro televizor v routeru pevnou IP adresu (rezervace DHCP) a v případě změny IP adresy TizenTube přeinstalujte."
 }
