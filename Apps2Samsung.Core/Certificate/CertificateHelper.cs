@@ -1,4 +1,5 @@
-﻿using Apps2Samsung.Models;
+﻿using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,10 +20,10 @@ namespace Apps2Samsung.Helpers.Tizen.Certificate
             var cipherUtil = new CipherUtil();
             List<string> duids = new List<string>();
 
-            // Default item
+            // "Automatic" placeholder: the installer picks the generated profile per install.
             certificates.Add(new ExistingCertificates
             {
-                Name = "Jelly2Sams (default)",
+                Name = Constants.AppIdentifiers.Jelly2SamsDefault,
                 Duid = string.Empty,
                 File = null,
                 ExpireDate = null

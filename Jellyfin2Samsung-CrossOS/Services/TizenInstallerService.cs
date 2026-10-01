@@ -543,8 +543,13 @@ namespace Apps2Samsung.Services
                 return new CertificateResult { Success = true, RequiresResign = false };
             }
 
-            string certDuid = _appSettings.ChosenCertificates?.Duid ?? string.Empty;
             string selectedCertificate = _appSettings.Certificate;
+            var chosenCertificate = _appSettings.ChosenCertificates;
+
+            // "Automatic" in Settings is resolved per install and never written back, so the pick
+            // doesn't silently turn into "Jelly2Sams - Public" after the next install (#719).
+            bool automaticPick = string.IsNullOrEmpty(selectedCertificate) ||
+                                 selectedCertificate == Constants.AppIdentifiers.Jelly2SamsDefault;
 
             // Handle intermediate Tizen versions that don't need Samsung cert
             if (deviceInfo.TizenVersion < certVersion &&
@@ -552,8 +557,7 @@ namespace Apps2Samsung.Services
                 selectedCertificate == Constants.AppIdentifiers.Jelly2SamsDefault)
             {
                 selectedCertificate = Constants.AppIdentifiers.JellyfinAppName;
-                _appSettings.Certificate = selectedCertificate;
-                _appSettings.ChosenCertificates = new ExistingCertificates
+                chosenCertificate = new ExistingCertificates
                 {
                     Name = Constants.AppIdentifiers.JellyfinAppName,
                     Duid = deviceInfo.Duid,
@@ -637,14 +641,17 @@ namespace Apps2Samsung.Services
                         ct: cancellationToken);
 
                     PackageCertificate = profile.ProfileName;
-                    _appSettings.Certificate = profile.ProfileName;
-                    _appSettings.ChosenCertificates = new ExistingCertificates
+                    if (!automaticPick)
                     {
-                        Name = profile.ProfileName,
-                        Duid = deviceInfo.Duid,
-                        File = profile.AuthorP12
-                    };
-                    _appSettings.Save();
+                        _appSettings.Certificate = profile.ProfileName;
+                        _appSettings.ChosenCertificates = new ExistingCertificates
+                        {
+                            Name = profile.ProfileName,
+                            Duid = deviceInfo.Duid,
+                            File = profile.AuthorP12
+                        };
+                        _appSettings.Save();
+                    }
 
                     // Permit-install for older Tizen versions (thresholds shared with Core).
                     await Apps2Samsung.Sdb.TizenPermitInstall.EnsureAsync(
@@ -798,14 +805,17 @@ namespace Apps2Samsung.Services
 
                 var profileName = AutoCertProfileName(requestedLevel);
                 PackageCertificate = profileName;
-                _appSettings.Certificate = profileName;
-                _appSettings.ChosenCertificates = new ExistingCertificates
+                if (!automaticPick)
                 {
-                    Name = profileName,
-                    Duid = deviceInfo.Duid,
-                    File = authorp12
-                };
-                _appSettings.Save();
+                    _appSettings.Certificate = profileName;
+                    _appSettings.ChosenCertificates = new ExistingCertificates
+                    {
+                        Name = profileName,
+                        Duid = deviceInfo.Duid,
+                        File = authorp12
+                    };
+                    _appSettings.Save();
+                }
             }
             else
             {
@@ -815,7 +825,7 @@ namespace Apps2Samsung.Services
                 bool reuseAutoCert = !isBundledJellyfin && autoMode;
                 var certDir = reuseAutoCert
                     ? jelly2SamsDir
-                    : Path.GetDirectoryName(_appSettings.ChosenCertificates!.File)!;
+                    : Path.GetDirectoryName(chosenCertificate!.File)!;
                 authorp12 = Path.Combine(certDir, Constants.Certificate.AuthorFileName);
                 distributorp12 = Path.Combine(certDir, Constants.Certificate.DistributorFileName);
                 p12Password = File.ReadAllText(Path.Combine(certDir, Constants.Certificate.PasswordFileName)).Trim();

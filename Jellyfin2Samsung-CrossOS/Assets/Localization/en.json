@@ -48,6 +48,7 @@
   "InvalidDeviceIp": "Invalid device IP or device not found.",
   "IpNotListed": "My IP is not listed...",
   "lblCertifcate": "Certificate",
+  "lblCertificateAutomatic": "Automatic",
   "lblOther": "Other",
   "DownloadCompleted": "Download completed...",
   "NoPackageToInstall": "No package to install",
