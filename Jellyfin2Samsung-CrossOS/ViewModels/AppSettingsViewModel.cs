@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Apps2Samsung.Helpers;
+using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Helpers.Tizen.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
@@ -250,7 +251,11 @@ namespace Apps2Samsung.ViewModels
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 foreach (var cert in certificates)
+                {
+                    if (cert.Name == Constants.AppIdentifiers.Jelly2SamsDefault)
+                        cert.DisplayName = _localizationService.GetString("lblCertificateAutomatic");
                     AvailableCertificates.Add(cert);
+                }
 
                 var savedCertName = AppSettings.Default.Certificate;
                 ExistingCertificates? selectedCert = null;
@@ -262,10 +267,10 @@ namespace Apps2Samsung.ViewModels
                 }
 
                 selectedCert ??= AvailableCertificates
-                        .FirstOrDefault(c => c.Name == "Jelly2Sams");
+                        .FirstOrDefault(c => c.Name == Constants.AppIdentifiers.Jelly2Sams);
 
                 selectedCert ??= AvailableCertificates
-                        .FirstOrDefault(c => c.Name == "Jelly2Sams (default)");
+                        .FirstOrDefault(c => c.Name == Constants.AppIdentifiers.Jelly2SamsDefault);
 
                 selectedCert ??= AvailableCertificates.FirstOrDefault();
 
