@@ -48,6 +48,7 @@
   "InvalidDeviceIp": "Neplatná IP adresa zařízení nebo zařízení nebylo nalezeno.",
   "IpNotListed": "Moje IP adresa není v seznamu...",
   "lblCertifcate": "Certifikát",
+  "lblCertificateAutomatic": "Automatický",
   "lblOther": "Ostatní",
   "DownloadCompleted": "Stahování dokončeno...",
   "NoPackageToInstall": "Není k dispozici žádný balíček k instalaci",

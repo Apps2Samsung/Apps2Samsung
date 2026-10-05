@@ -48,6 +48,7 @@
   "InvalidDeviceIp": "La IP del dispositiu no és vàlida o no s'ha trobat el dispositiu.",
   "IpNotListed": "La meva IP no hi apareix...",
   "lblCertifcate": "Certificat",
+  "lblCertificateAutomatic": "Automàtic",
   "lblOther": "Altres",
   "DownloadCompleted": "Baixada completada...",
   "NoPackageToInstall": "No hi ha cap paquet per instal·lar",
