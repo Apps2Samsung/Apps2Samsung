@@ -14,7 +14,7 @@
       }
     },
     "address": "https://apps2samsung.com/fdroid/repo",
-    "timestamp": 1790164921000,
+    "timestamp": 1791391200000,
     "categories": {
       "Multimedia": {
         "name": {
@@ -31,14 +31,14 @@
   "packages": {
     "nl.madebypatrick.apps2samsung": {
       "metadata": {
-        "added": 1790164920000,
+        "added": 1791391198000,
         "categories": [
           "Multimedia",
           "System"
         ],
         "changelog": "https://github.com/Apps2Samsung/Apps2Samsung/releases",
         "issueTracker": "https://github.com/Apps2Samsung/Apps2Samsung/issues",
-        "lastUpdated": 1790164920000,
+        "lastUpdated": 1791391198000,
         "license": "MIT",
         "sourceCode": "https://github.com/Apps2Samsung/Apps2Samsung",
         "webSite": "https://apps2samsung.com",
@@ -88,20 +88,20 @@
         "preferredSigner": "bd4dee21ebeee1b0b690c612318808d27f35c46fa53ba31d256379a7fed7e107"
       },
       "versions": {
-        "9a7aae7aabab88ce22c8f08466947033915ec2bd1f23971f6e39134f112bbf90": {
-          "added": 1790164920000,
+        "8c775ff5b873b8e188d5ac7bc678b6a35c74e5bd25d4a8398a1bf274f8eb7dcc": {
+          "added": 1791391198000,
           "file": {
-            "name": "/Apps2Samsung-v2.8.1-android.apk",
-            "sha256": "9a7aae7aabab88ce22c8f08466947033915ec2bd1f23971f6e39134f112bbf90",
-            "size": 37529795
+            "name": "/Apps2Samsung-v2.8.2-android.apk",
+            "sha256": "8c775ff5b873b8e188d5ac7bc678b6a35c74e5bd25d4a8398a1bf274f8eb7dcc",
+            "size": 37976259
           },
           "manifest": {
             "nativecode": [
               "arm64-v8a",
               "x86_64"
             ],
-            "versionName": "2.8.1",
-            "versionCode": 11421,
+            "versionName": "2.8.2",
+            "versionCode": 11438,
             "usesSdk": {
               "minSdkVersion": 21,
               "targetSdkVersion": 36
