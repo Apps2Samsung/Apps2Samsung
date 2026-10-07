@@ -192,6 +192,7 @@
   "lblTvAppOnlyNotice": "Disse indstillinger gælder KUN til TVApp - de er skrevet i pakken før installationen.",
   "lblTvAppOblongIcon": "Oblong icon (Tizen 5.5 TV)",
   "lblTvAppOblongIconHint": "Brug det brede ikon, 16:9. Aktivér dette for ældre Tizen 5,5 tv'er, der viser et strakt eller beskåret firkantet ikon.",
+  "lblImmiTvPassword": "Adgangskode",
   "lblLitefinSettings": "Litefin",
   "lblLitefinOnlyNotice": "Disse indstillinger gælder KUN til Litefin - de er skrevet i pakken før installation.",
   "catalogTitle": "App Katalog",

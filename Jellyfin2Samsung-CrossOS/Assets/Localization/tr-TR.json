@@ -201,6 +201,7 @@
   "lblTvAppOnlyNotice": "Bu ayarlar YALNIZCA TVApp için geçerlidir — kurulumdan önce pakete yazılır.",
   "lblTvAppOblongIcon": "Uzun simge (Tizen 5.5 TV'ler)",
   "lblTvAppOblongIconHint": "Geniş 16:9 başlatıcı simgesini kullanın. Kare simgeyi gerilmiş veya kırpılmış gösteren eski Tizen 5.5 TV'lerde bunu açın.",
+  "lblImmiTvPassword": "Şifre",
   "lblLitefinSettings": "Litefin",
   "lblLitefinOnlyNotice": "Bu ayarlar YALNIZCA Litefin için geçerlidir — kurulumdan önce pakete yazılır.",
   "catalogTitle": "Uygulama Kataloğu",

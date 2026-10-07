@@ -200,6 +200,7 @@
   "lblTvAppOnlyNotice": "Ces paramètres s'appliquent SEULEMENT à TVApp — ils sont écrits dans le paquet avant l'installation.",
   "lblTvAppOblongIcon": "Icône Oblong (Tizen 5.5 TVs)",
   "lblTvAppOblongIconHint": "Utilisez l'icône large du lanceur 16:9. Activez cette option pour les anciens téléviseurs Tizen 5.5 qui affichent une icône carrée étirée ou recadrée.",
+  "lblImmiTvPassword": "Mot de passe",
   "lblLitefinSettings": "Litefin",
   "lblLitefinOnlyNotice": "Ces paramètres s'appliquent SEULEMENT à Litefin — ils sont écrits dans le paquet avant l'installation.",
   "catalogTitle": "Catalogue des applications",

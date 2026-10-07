@@ -201,6 +201,7 @@
   "lblTvAppOnlyNotice": "这些设置仅对 TVApp 应用 — 它们是在安装前写入软件包的。",
   "lblTvAppOblongIcon": "Oblong 图标 (Tizen 5.5 TVs)",
   "lblTvAppOblongIconHint": "使用宽宽宽的 16:9 启动器图标。启用此选项可适用于旧的 Tizen 5.5 TV，它显示一个伸展或裁剪的方形图标。",
+  "lblImmiTvPassword": "密码",
   "lblLitefinSettings": "Litefin",
   "lblLitefinOnlyNotice": "这些设置仅对Litefin应用 — — 它们是在安装前写入软件包的。",
   "catalogTitle": "应用目录",

@@ -196,6 +196,7 @@
   "lblTvAppOnlyNotice": "Diese Einstellungen gelten NUR für TVApp — sie werden vor der Installation in das Paket geschrieben.",
   "lblTvAppOblongIcon": "Symbol für Oblong (Tizen 5.5 TVs)",
   "lblTvAppOblongIconHint": "Benutze das breite 16:9 Launcher Icon. Aktiviere dies für ältere Tizen 5.5 TVs, die ein gestrecktes oder zugeschnittenes Quadrat Symbol zeigen.",
+  "lblImmiTvPassword": "Passwort",
   "lblLitefinSettings": "Litefin",
   "lblLitefinOnlyNotice": "Diese Einstellungen gelten NUR für Litefin — sie werden vor der Installation in das Paket geschrieben.",
   "catalogTitle": "App-Katalog",

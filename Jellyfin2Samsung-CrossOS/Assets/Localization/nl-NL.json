@@ -194,6 +194,7 @@
   "lblTvAppOnlyNotice": "Deze instellingen zijn alleen van toepassing op TV-app - ze zijn in het pakket opgenomen voordat ze worden geïnstalleerd.",
   "lblTvAppOblongIcon": "Vertraagde pictogram (Tizen 5.5 TVs)",
   "lblTvAppOblongIconHint": "Gebruik het brede 16:9 launcher icoon. Schakel dit in voor oudere Tizen 5.5 TV's die een uitgerekt of bijgesneden vierkante pictogram tonen.",
+  "lblImmiTvPassword": "Wachtwoord",
   "lblLitefinSettings": "Litefin",
   "lblLitefinOnlyNotice": "Deze instellingen zijn alleen van toepassing op Litefin - ze zijn in het pakket opgenomen voordat de installatie plaatsvindt.",
   "catalogTitle": "App-catalogus",
