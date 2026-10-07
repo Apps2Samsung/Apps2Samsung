@@ -336,7 +336,7 @@ public partial class TvToolboxPage : ContentPage
 	{
 		var listing = await agent.ListStagingAsync();
 		var kept = L10n.Get("lblToolboxStagingKept");
-		BindableLayout.SetItemsSource(StagedFileList, listing.Files.Select(f => new ToolboxStagedFileRow(f, kept)).ToList());
+		BindableLayout.SetItemsSource(StagedFileList, listing.Files.Select(f => new ToolboxStagedFileRow(f, kept, agent.SupportsStagedDelete)).ToList());
 		ClearStagingBtn.IsEnabled = listing.Packages.Any();
 		return listing;
 	}
@@ -374,6 +374,46 @@ public partial class TvToolboxPage : ContentPage
 		catch (Exception ex)
 		{
 			StagingStatusLabel.Text = string.Format(L10n.Get("lblToolboxStagingFailed"), ex.Message);
+		}
+		finally
+		{
+			_busy = false;
+		}
+	}
+
+	/// <summary>
+	/// Deletes one staged file, package or not: the row's ✕. A clear only takes packages, so a .zip or
+	/// an .xml another tool left behind can only go this way (#681).
+	/// </summary>
+	private async void OnDeleteStagedFileClicked(object? sender, EventArgs e)
+	{
+		if (sender is not Button button || button.CommandParameter is not ToolboxStagedFileRow row)
+			return;
+
+		var agent = _agent;
+		if (agent is null)
+		{
+			StagingStatusLabel.Text = L10n.Get("lblToolboxStagingNeedsAgent");
+			return;
+		}
+
+		if (_busy)
+			return;
+
+		_busy = true;
+		try
+		{
+			StagingStatusLabel.Text = string.Format(L10n.Get("lblToolboxStagingDeleting"), row.Name);
+			await agent.DeleteStagedFileAsync(row.File);
+			var status = string.Format(L10n.Get("lblToolboxStagingDeleted"), row.Name, InstalledApp.FormatSize(row.File.Size));
+
+			try { await LoadStagedFilesAsync(agent); }
+			catch (Exception ex) { System.Diagnostics.Trace.WriteLine($"[toolbox] staging re-list after delete: {ex.Message}"); }
+			StagingStatusLabel.Text = status;
+		}
+		catch (Exception ex)
+		{
+			StagingStatusLabel.Text = string.Format(L10n.Get("lblToolboxStagingDeleteFailed"), row.Name, ex.Message);
 		}
 		finally
 		{
@@ -710,9 +750,10 @@ public sealed class ToolboxAgentAppRow
 /// <summary>One file in the TV's install staging folder, as the agent listed it.</summary>
 public sealed class ToolboxStagedFileRow
 {
-	public ToolboxStagedFileRow(DebugAgentStagedFile file, string keptLabel)
+	public ToolboxStagedFileRow(DebugAgentStagedFile file, string keptLabel, bool canDelete)
 	{
 		File = file;
+		CanDelete = canDelete;
 		var detail = InstalledApp.FormatSize(file.Size);
 		if (file.Modified is { } modified)
 			detail += $" · {modified.LocalDateTime:g}";
@@ -725,6 +766,9 @@ public sealed class ToolboxStagedFileRow
 	public DebugAgentStagedFile File { get; }
 	public string Name => File.Name;
 	public string Detail { get; }
+
+	/// <summary>Whether the agent on the TV can delete this one file (v0.5.0 and later).</summary>
+	public bool CanDelete { get; }
 }
 
 /// <summary>One row of the app list.</summary>

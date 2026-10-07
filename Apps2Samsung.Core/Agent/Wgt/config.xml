@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets"
-        id="https://github.com/Apps2Samsung/Apps2Samsung/debug-agent" version="0.4.1" viewmodes="maximized">
+        id="https://github.com/Apps2Samsung/Apps2Samsung/debug-agent" version="0.5.0" viewmodes="maximized">
     <name>Apps2Samsung Debug</name>
     <icon src="icon.png"/>
     <content src="index.html"/>

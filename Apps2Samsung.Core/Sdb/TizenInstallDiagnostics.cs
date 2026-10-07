@@ -35,6 +35,21 @@ namespace Apps2Samsung.Sdb
         public static bool IsApiVersionMismatch(string? output) =>
             Has(output, Constants.TizenErrorCodes.InstallFailed118Minus4);
 
+        /// <summary>
+        /// The TV's security manager rejected the package ([118, -22] / "Security error :
+        /// :Invalid function parameter was given:&lt;2&gt;" — SECURITY_MANAGER_ERROR_INPUT_PARAM).
+        /// In practice this means the package <b>id</b> is blocked on this set: it is still bound to a
+        /// different author certificate, or a broken uninstall left a record behind that the app list no
+        /// longer shows, so there is nothing for us to remove over SDB (#702, #422). Re-signing and
+        /// pushing the same file again cannot clear it — only deleting the old copy on the TV itself,
+        /// installing a build with a different package id, or a Smart Hub reset can.
+        /// <para>Checked before <see cref="IsPackageIdConflict"/>: the text is "install failed[118, -22]",
+        /// which does not contain the plain "install failed[118]" token either way, so without this it
+        /// fell through to the generic branch.</para>
+        /// </summary>
+        public static bool IsPackageIdBlocked(string? output) =>
+            Has(output, Constants.TizenErrorCodes.InstallFailed118Minus22);
+
         /// <summary>A package-id / config conflict ([118], not the more specific variants above).</summary>
         public static bool IsPackageIdConflict(string? output) =>
             Has(output, Constants.TizenErrorCodes.InstallFailed118);

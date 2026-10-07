@@ -6,6 +6,7 @@ using Apps2Samsung.Services;
 using Apps2Samsung.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -171,16 +172,46 @@ namespace Apps2Samsung.Helpers.Core
 
             return allSuccessful;
         }
+        // Deletes a package this app downloaded. Only that: the custom-package path hands the user's
+        // own .wgt to the same cleanup, and eating a file someone picked from their own disk is not
+        // what "Preserve WGT file" is offering to keep. Anything outside the download cache is left
+        // exactly where it was found.
         public void CleanupDownloadedPackage(string? downloadedPackagePath)
         {
             try
             {
-                if (downloadedPackagePath != null && File.Exists(downloadedPackagePath))
+                if (downloadedPackagePath == null || !File.Exists(downloadedPackagePath))
+                    return;
+
+                if (!IsInDownloadCache(downloadedPackagePath))
                 {
-                    File.Delete(downloadedPackagePath);
+                    Trace.WriteLine($"[Cleanup] Keeping {downloadedPackagePath}: not a package this app downloaded.");
+                    return;
                 }
+
+                File.Delete(downloadedPackagePath);
             }
             catch { /* Ignore cleanup errors */ }
+        }
+
+        private static bool IsInDownloadCache(string path)
+        {
+            try
+            {
+                var cache = Path.TrimEndingDirectorySeparator(Path.GetFullPath(AppSettings.DownloadPath));
+                var folder = Path.TrimEndingDirectorySeparator(Path.GetFullPath(Path.GetDirectoryName(path) ?? ""));
+
+                // Case-insensitive on Windows and macOS, case-sensitive on Linux, same as the file system.
+                var comparison = OperatingSystem.IsLinux()
+                    ? StringComparison.Ordinal
+                    : StringComparison.OrdinalIgnoreCase;
+
+                return string.Equals(cache, folder, comparison);
+            }
+            catch
+            {
+                return false;
+            }
         }
         private static string GetPrettyPackageName(string packagePath)
         {

@@ -49,6 +49,23 @@ namespace Apps2Samsung.Configuration
         /// <summary>JSON array of { name, url } TVApp channels injected into a TVApp wgt at install.</summary>
         string TvAppChannelsJson { get; set; }
 
+        // ---- ImmiTV package patching ----
+        // The shared ImmiTvPackagePatcher writes these into the IMMICH_DEFAULTS object of an ImmiTV
+        // wgt's js/config.js so the app's setup screen is pre-filled on first run. All optional; when
+        // every one is empty the package is left untouched.
+        /// <summary>Immich server URL, e.g. http://192.168.1.10:2283 (empty = ask on the TV).</summary>
+        string ImmiTvServerUrl { get; }
+        /// <summary>Immich account email for the login form (empty = ask on the TV).</summary>
+        string ImmiTvEmail { get; }
+        /// <summary>Immich account password for the login form (empty = ask on the TV).</summary>
+        string ImmiTvPassword { get; }
+        /// <summary>Immich API key; an alternative to email + password (empty = none).</summary>
+        string ImmiTvApiKey { get; }
+        /// <summary>Opt-in: rewrite a TizenTube Cobalt build's --proxy host (127.0.0.2) to a LAN address. Off by default.</summary>
+        bool TizenTubeProxyOverride { get; }
+        /// <summary>Host[:port] for that proxy; empty = the IP of the TV being installed to.</summary>
+        string TizenTubeProxyHost { get; }
+
         // ---- Jellyfin package patching ----
         // The shared JellyfinPackagePatcher reads these to inject the server address, auto-login
         // credentials, custom CSS, and optional script/plugin patches into a Jellyfin .wgt. All are

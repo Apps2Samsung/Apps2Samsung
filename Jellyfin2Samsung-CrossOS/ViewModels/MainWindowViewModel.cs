@@ -437,7 +437,7 @@ namespace Apps2Samsung.ViewModels
             try
             {
                 // Only load releases and devices if they haven't been loaded yet.
-                // Note: Releases always contains the "Custom WGT File" entry, so we
+                // Note: Releases always contains the "Custom WGT / TPK" entry, so we
                 // check for *real* provider releases, not just any entry.
                 if (!HasRealReleases)
                 {
@@ -834,7 +834,7 @@ namespace Apps2Samsung.ViewModels
 
 
         // True once the release list holds something other than the always-present
-        // "Custom WGT File" entry — i.e. providers actually loaded.
+        // "Custom WGT / TPK" entry — i.e. providers actually loaded.
         private bool HasRealReleases =>
             Releases.Any(r => r.Name != Constants.AppIdentifiers.CustomWgtFile);
 
@@ -926,7 +926,7 @@ namespace Apps2Samsung.ViewModels
             }
             finally
             {
-                // Always add the custom WGT option, regardless of GitHub failures
+                // Always add the custom WGT / TPK option, regardless of GitHub failures
                 if (!Releases.Any(r => r.Name == Constants.AppIdentifiers.CustomWgtFile))
                 {
                     Releases.Add(new GitHubRelease

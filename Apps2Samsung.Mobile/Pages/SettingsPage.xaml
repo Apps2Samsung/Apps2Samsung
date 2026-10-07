@@ -161,6 +161,75 @@
 
                 <BoxView Style="{StaticResource Divider}" />
 
+                <!-- ImmiTV: Immich server + login, pre-filled into the package's js/config.js -->
+                <controls:ExpanderSection Title="ImmiTV">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Hint}"
+                               Text="{l:Localize hintImmiTv}" />
+                        <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                                Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
+                            <Entry x:Name="ImmiTvServerEntry" Placeholder="http://192.168.1.10:2283" Keyboard="Url"
+                                   BackgroundColor="Transparent" Unfocused="OnImmiTvUnfocused" />
+                        </Border>
+                        <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                                Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
+                            <Entry x:Name="ImmiTvEmailEntry" Placeholder="{l:Localize lblImmiTvEmail}" Keyboard="Email"
+                                   BackgroundColor="Transparent" Unfocused="OnImmiTvUnfocused" />
+                        </Border>
+                        <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
+                            <Border Grid.Column="0" Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                                    Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                    BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
+                                <Entry x:Name="ImmiTvPasswordEntry" IsPassword="True" Placeholder="{l:Localize lblImmiTvPassword}"
+                                       BackgroundColor="Transparent" Unfocused="OnImmiTvUnfocused" />
+                            </Border>
+                            <Button Grid.Column="1" x:Name="ImmiTvEyeBtn" Text="👁" FontSize="16"
+                                    BackgroundColor="Transparent" BorderWidth="1"
+                                    BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                    TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                                    Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="6"
+                                    Clicked="OnToggleImmiTvVisibility" />
+                        </Grid>
+                        <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                                Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
+                            <Entry x:Name="ImmiTvApiKeyEntry" IsPassword="True" Placeholder="{l:Localize lblImmiTvApiKey}"
+                                   BackgroundColor="Transparent" Unfocused="OnImmiTvUnfocused" />
+                        </Border>
+                        <Label Style="{StaticResource Hint}"
+                               Text="{l:Localize lblImmiTvApiKeyHint}" />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
+
+                <BoxView Style="{StaticResource Divider}" />
+
+                <!-- TizenTube Cobalt: opt-in proxy address rewrite (Tizen 9 "network error") -->
+                <controls:ExpanderSection Title="{l:Localize lblTizenTubeProxy}">
+                    <VerticalStackLayout Spacing="8">
+                        <Grid Style="{StaticResource ToggleRow}">
+                            <Label Grid.Column="0" Text="{l:Localize lblTizenTubeProxyOverride}" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" x:Name="TizenTubeProxySwitch" OnColor="#2C3E50" Toggled="OnTizenTubeProxyToggled" />
+                        </Grid>
+                        <Label Style="{StaticResource Hint}"
+                               Text="{l:Localize hintTizenTubeProxyOverride}" />
+                        <Border Padding="8,4" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                                IsEnabled="{Binding Source={x:Reference TizenTubeProxySwitch}, Path=IsToggled}"
+                                Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
+                            <Entry x:Name="TizenTubeProxyHostEntry" Placeholder="{l:Localize lblTizenTubeProxyHostAuto}"
+                                   Keyboard="Url" BackgroundColor="Transparent" Unfocused="OnTizenTubeProxyHostUnfocused" />
+                        </Border>
+                        <Label x:Name="TizenTubeProxyHostError" Style="{StaticResource Hint}" TextColor="#C0392B"
+                               Text="{l:Localize lblTizenTubeProxyHostInvalid}" IsVisible="False" />
+                        <Label Style="{StaticResource Hint}"
+                               Text="{l:Localize hintTizenTubeProxyHost}" />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
+
+                <BoxView Style="{StaticResource Divider}" />
+
                 <!-- App icons -->
                 <controls:ExpanderSection Title="{l:Localize lblAppIcons}">
                     <VerticalStackLayout Spacing="8">

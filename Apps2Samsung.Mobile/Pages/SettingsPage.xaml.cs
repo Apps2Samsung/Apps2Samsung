@@ -9,6 +9,7 @@ using Apps2Samsung.Collections;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
+using Apps2Samsung.Packaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.ApplicationModel.DataTransfer;
 using Microsoft.Maui.Storage;
@@ -45,10 +46,19 @@ public partial class SettingsPage : ContentPage
 		TryOverwriteSwitch.IsToggled = MobileSettings.TryOverwrite;
 		ForceLoginSwitch.IsToggled = MobileSettings.ForceSamsungLogin;
 
+		TizenTubeProxySwitch.IsToggled = MobileSettings.TizenTubeProxyOverride;
+		TizenTubeProxyHostEntry.Text = MobileSettings.TizenTubeProxyHost;
+		TizenTubeProxyHostError.IsVisible = false;
+
 		ChannelsContainer.Children.Clear();
 		_channelRows.Clear();
 		foreach (var channel in MobileSettings.GetTvAppChannels())
 			AddChannelRow(channel.Name, channel.Url);
+
+		ImmiTvServerEntry.Text = MobileSettings.ImmiTvServerUrl;
+		ImmiTvEmailEntry.Text = MobileSettings.ImmiTvEmail;
+		ImmiTvPasswordEntry.Text = MobileSettings.ImmiTvPassword;
+		ImmiTvApiKeyEntry.Text = MobileSettings.ImmiTvApiKey;
 
 		_loaded = true;
 	}
@@ -115,6 +125,12 @@ public partial class SettingsPage : ContentPage
 			["PatchYoutubePlugin"] = MobileSettings.JellyfinPatchYoutube,
 			["JellyfinAccessToken"] = MobileSettings.JellyfinAccessToken,
 			["TvAppChannelsJson"] = MobileSettings.TvAppChannelsJson,
+			["ImmiTvServerUrl"] = MobileSettings.ImmiTvServerUrl,
+			["ImmiTvEmail"] = MobileSettings.ImmiTvEmail,
+			["ImmiTvPassword"] = MobileSettings.ImmiTvPassword,
+			["ImmiTvApiKey"] = MobileSettings.ImmiTvApiKey,
+			["TizenTubeProxyOverride"] = MobileSettings.TizenTubeProxyOverride,
+			["TizenTubeProxyHost"] = MobileSettings.TizenTubeProxyHost,
 			["CustomAppIconsJson"] = MobileSettings.CustomAppIconsJson,
 		};
 		return obj.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
@@ -204,6 +220,7 @@ public partial class SettingsPage : ContentPage
 		if (GetBool("TryOverwrite") is { } tryOverwrite) MobileSettings.TryOverwrite = tryOverwrite;
 		if (GetBool("PartnerSigning") is { } partner) MobileSettings.PartnerSigning = partner;
 		if (GetBool("PatchYoutubePlugin") is { } patchYt) MobileSettings.JellyfinPatchYoutube = patchYt;
+		if (GetBool("TizenTubeProxyOverride") is { } ttProxy) MobileSettings.TizenTubeProxyOverride = ttProxy;
 
 		if (GetString("ManualDuids") is { } duids) MobileSettings.ManualDuids = duids;
 		if (GetString("JellyfinIP") is { } jfIp) MobileSettings.JellyfinServerUrl = jfIp;
@@ -213,11 +230,16 @@ public partial class SettingsPage : ContentPage
 		if (GetString("JellyfinServerLocalAddress") is { } jfLocal) MobileSettings.JellyfinServerLocalAddress = jfLocal;
 		if (GetString("CustomCss") is { } css) MobileSettings.JellyfinCustomCss = css;
 		if (GetString("TvAppChannelsJson") is { } channels) MobileSettings.TvAppChannelsJson = channels;
+		if (GetString("ImmiTvServerUrl") is { } immiServer) MobileSettings.ImmiTvServerUrl = immiServer;
+		if (GetString("ImmiTvEmail") is { } immiEmail) MobileSettings.ImmiTvEmail = immiEmail;
+		if (GetString("TizenTubeProxyHost") is { } ttHost) MobileSettings.TizenTubeProxyHost = ttHost;
 		if (GetString("CustomAppIconsJson") is { } icons) MobileSettings.CustomAppIconsJson = icons;
 
 		// Secrets go through the async SecureStorage-backed setters.
 		if (GetString("GitHubToken") is { } token) await MobileSettings.SetGitHubTokenAsync(token);
 		if (GetString("JellyfinAccessToken") is { } accessToken) await MobileSettings.SetJellyfinAccessTokenAsync(accessToken);
+		if (GetString("ImmiTvPassword") is { } immiPassword) await MobileSettings.SetImmiTvPasswordAsync(immiPassword);
+		if (GetString("ImmiTvApiKey") is { } immiApiKey) await MobileSettings.SetImmiTvApiKeyAsync(immiApiKey);
 	}
 
 	private void OnToggleTokenVisibility(object? sender, EventArgs e)
@@ -230,6 +252,28 @@ public partial class SettingsPage : ContentPage
 	{
 		if (_loaded)
 			await MobileSettings.SetGitHubTokenAsync(TokenEntry.Text);
+	}
+
+	// One eye toggle covers both secrets (password + API key), like the GitHub token's.
+	private void OnToggleImmiTvVisibility(object? sender, EventArgs e)
+	{
+		var hide = !ImmiTvPasswordEntry.IsPassword;
+		ImmiTvPasswordEntry.IsPassword = hide;
+		ImmiTvApiKeyEntry.IsPassword = hide;
+		ImmiTvEyeBtn.Opacity = hide ? 1.0 : 0.5;
+	}
+
+	// Saves all four ImmiTV fields on any of them losing focus; the secrets go through the
+	// async SecureStorage-backed setters.
+	private async void OnImmiTvUnfocused(object? sender, FocusEventArgs e)
+	{
+		if (!_loaded)
+			return;
+
+		MobileSettings.ImmiTvServerUrl = ImmiTvServerEntry.Text ?? string.Empty;
+		MobileSettings.ImmiTvEmail = ImmiTvEmailEntry.Text ?? string.Empty;
+		await MobileSettings.SetImmiTvPasswordAsync(ImmiTvPasswordEntry.Text);
+		await MobileSettings.SetImmiTvApiKeyAsync(ImmiTvApiKeyEntry.Text);
 	}
 
 	private void OnDuidsUnfocused(object? sender, FocusEventArgs e)
@@ -250,6 +294,25 @@ public partial class SettingsPage : ContentPage
 		MobileSettings.IncludeBetaUpdates = BetaUpdatesSwitch.IsToggled;
 		MobileSettings.TryOverwrite = TryOverwriteSwitch.IsToggled;
 		MobileSettings.ForceSamsungLogin = ForceLoginSwitch.IsToggled;
+	}
+
+	private void OnTizenTubeProxyToggled(object? sender, ToggledEventArgs e)
+	{
+		if (_loaded)
+			MobileSettings.TizenTubeProxyOverride = e.Value;
+	}
+
+	// Empty means "the TV being installed to"; anything else must be a host[:port] or it isn't saved.
+	private void OnTizenTubeProxyHostUnfocused(object? sender, FocusEventArgs e)
+	{
+		if (!_loaded)
+			return;
+
+		var host = TizenTubeProxyHostEntry.Text?.Trim() ?? string.Empty;
+		var valid = host.Length == 0 || TizenTubeProxyPatcher.TryParseHost(host, out _, out _);
+		TizenTubeProxyHostError.IsVisible = !valid;
+		if (valid)
+			MobileSettings.TizenTubeProxyHost = host;
 	}
 
 	// Populates the certificate picker (Automatic / Public / Partner) and selects the current preference.

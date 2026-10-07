@@ -1,3 +1,4 @@
+using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Packaging;
@@ -17,10 +18,10 @@ namespace Apps2Samsung.Helpers.TvApp
     {
         public bool CanHandle(string packagePath) => TvAppChannelInjector.AppliesTo(packagePath);
 
-        public async Task<InstallResult> ApplyAsync(string packagePath)
+        public async Task<InstallResult> ApplyAsync(PackageWorkspace ws)
         {
             var channels = TvAppChannelInjector.ParseChannelsJson(AppSettings.Default.TvAppChannelsJson);
-            await TvAppChannelInjector.InjectChannelsAsync(packagePath, channels);
+            await TvAppChannelInjector.InjectChannelsAsync(ws, channels);
             return InstallResult.SuccessResult();
         }
     }

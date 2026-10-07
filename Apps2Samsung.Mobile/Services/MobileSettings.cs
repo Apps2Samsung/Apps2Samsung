@@ -18,6 +18,12 @@ public static class MobileSettings
 	private const string KeyShowAllJf = "show_all_jellyfin_versions";
 	private const string KeyManualDuids = "manual_duids";
 	private const string KeyTvAppChannels = "tvapp_channels_json";
+	private const string KeyImmiTvServerUrl = "immitv_server_url";
+	private const string KeyImmiTvEmail = "immitv_email";
+	private const string KeyImmiTvPassword = "immitv_password"; // SecureStorage
+	private const string KeyImmiTvApiKey = "immitv_api_key"; // SecureStorage
+	private const string KeyTizenTubeProxyOverride = "tizentube_proxy_override";
+	private const string KeyTizenTubeProxyHost = "tizentube_proxy_host";
 	private const string KeyPartnerSigning = "partner_signing";
 	private const string KeyForceLogin = "force_samsung_login";
 	private const string KeyTryOverwrite = "try_overwrite";
@@ -124,6 +130,8 @@ public static class MobileSettings
 	// SecureStorage is async; cache secrets so callers on the request path can read them synchronously.
 	private static string _gitHubToken = string.Empty;
 	private static string _jellyfinAccessToken = string.Empty;
+	private static string _immiTvPassword = string.Empty;
+	private static string _immiTvApiKey = string.Empty;
 
 	/// <summary>The GitHub PAT (empty if unset). Backed by <see cref="SecureStorage"/>.</summary>
 	public static string GitHubToken => _gitHubToken;
@@ -136,6 +144,12 @@ public static class MobileSettings
 
 		try { _jellyfinAccessToken = await SecureStorage.GetAsync(KeyJellyfinAccessToken) ?? string.Empty; }
 		catch { _jellyfinAccessToken = string.Empty; }
+
+		try { _immiTvPassword = await SecureStorage.GetAsync(KeyImmiTvPassword) ?? string.Empty; }
+		catch { _immiTvPassword = string.Empty; }
+
+		try { _immiTvApiKey = await SecureStorage.GetAsync(KeyImmiTvApiKey) ?? string.Empty; }
+		catch { _immiTvApiKey = string.Empty; }
 	}
 
 	public static async Task SetGitHubTokenAsync(string? value)
@@ -229,6 +243,71 @@ public static class MobileSettings
 	/// <summary>The configured TVApp channels, injected into a TVApp wgt at install time.</summary>
 	public static IReadOnlyList<TvChannel> GetTvAppChannels() =>
 		TvAppChannelInjector.ParseChannelsJson(TvAppChannelsJson);
+
+	// ---- ImmiTV (Immich TV client) ----
+	// Written into the wgt's js/config.js IMMICH_DEFAULTS by the shared ImmiTvPackagePatcher so the
+	// app's setup screen is pre-filled. Server + email are plain Preferences; the password and API
+	// key are secrets and live in SecureStorage (cached in memory like the Jellyfin access token).
+
+	/// <summary>Immich server URL, e.g. http://192.168.1.10:2283 (empty = ask on the TV).</summary>
+	public static string ImmiTvServerUrl
+	{
+		get => Preferences.Get(KeyImmiTvServerUrl, string.Empty);
+		set => Preferences.Set(KeyImmiTvServerUrl, value?.Trim() ?? string.Empty);
+	}
+
+	/// <summary>Immich account email (empty = ask on the TV).</summary>
+	public static string ImmiTvEmail
+	{
+		get => Preferences.Get(KeyImmiTvEmail, string.Empty);
+		set => Preferences.Set(KeyImmiTvEmail, value?.Trim() ?? string.Empty);
+	}
+
+	/// <summary>Immich account password (empty if unset). Backed by <see cref="SecureStorage"/>.</summary>
+	public static string ImmiTvPassword => _immiTvPassword;
+
+	public static async Task SetImmiTvPasswordAsync(string? value)
+	{
+		_immiTvPassword = value ?? string.Empty;
+		try
+		{
+			if (string.IsNullOrEmpty(_immiTvPassword))
+				SecureStorage.Remove(KeyImmiTvPassword);
+			else
+				await SecureStorage.SetAsync(KeyImmiTvPassword, _immiTvPassword);
+		}
+		catch { /* secure storage unavailable — keep the in-memory value for this run */ }
+	}
+
+	/// <summary>Immich API key (empty if unset). Backed by <see cref="SecureStorage"/>.</summary>
+	public static string ImmiTvApiKey => _immiTvApiKey;
+
+	public static async Task SetImmiTvApiKeyAsync(string? value)
+	{
+		_immiTvApiKey = value?.Trim() ?? string.Empty;
+		try
+		{
+			if (string.IsNullOrEmpty(_immiTvApiKey))
+				SecureStorage.Remove(KeyImmiTvApiKey);
+			else
+				await SecureStorage.SetAsync(KeyImmiTvApiKey, _immiTvApiKey);
+		}
+		catch { /* secure storage unavailable — keep the in-memory value for this run */ }
+	}
+
+	/// <summary>Opt-in: point a TizenTube Cobalt build's proxy at a LAN address (Tizen 9 fix). Off by default.</summary>
+	public static bool TizenTubeProxyOverride
+	{
+		get => Preferences.Get(KeyTizenTubeProxyOverride, false);
+		set => Preferences.Set(KeyTizenTubeProxyOverride, value);
+	}
+
+	/// <summary>Host[:port] for that proxy; empty = the IP of the TV being installed to.</summary>
+	public static string TizenTubeProxyHost
+	{
+		get => Preferences.Get(KeyTizenTubeProxyHost, string.Empty);
+		set => Preferences.Set(KeyTizenTubeProxyHost, value ?? string.Empty);
+	}
 
 	/// <summary>Per-app custom launcher icons: JSON map { appKey -> "oblong" | custom PNG path },
 	/// applied to the wgt at install by the shared CustomIconPackagePatcher. (Same Preferences key as

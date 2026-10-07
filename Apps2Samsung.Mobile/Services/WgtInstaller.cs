@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Packaging;
 using Apps2Samsung.Sdb;
 using Microsoft.Maui.Storage;
@@ -107,24 +108,30 @@ public sealed class WgtInstaller
 			await TizenPermitInstall.EnsureAsync(_sdb, tvIp, version, sdkToolPath, profileXml);
 		}
 
-		// Apply per-app modifications before signing — e.g. inject the user's TVApp channels
-		// (m3u8 URLs) into a TVApp package's js/main.js. Shared logic lives in Core.
-		if (TvAppChannelInjector.AppliesTo(wgtPath))
-		{
-			var channels = MobileSettings.GetTvAppChannels();
-			if (channels.Count > 0)
-			{
-				progress?.Invoke("Applying TVApp channels…");
-				await TvAppChannelInjector.InjectChannelsAsync(wgtPath, channels);
-			}
-		}
+		// Apply per-app modifications before signing: the user's TVApp channels (m3u8 URLs) into a
+		// TVApp package's js/main.js, then the registered patchers — e.g. the custom launcher icon,
+		// shared with the desktop head via Core IPackagePatcher. All of it edits one workspace, so
+		// the package is unpacked once and rezipped once however much applies to it.
+		var channels = TvAppChannelInjector.AppliesTo(wgtPath)
+			? MobileSettings.GetTvAppChannels()
+			: (IReadOnlyList<TvChannel>)Array.Empty<TvChannel>();
+		var patchers = _patchers.Where(p => p.CanHandle(wgtPath)).ToList();
 
-		// Apply registered package patchers before signing — e.g. the user's custom launcher icon.
-		// Shared with the desktop head via Core IPackagePatcher (composes with the TVApp inject above).
-		foreach (var patcher in _patchers.Where(p => p.CanHandle(wgtPath)))
+		if (channels.Count > 0 || patchers.Count > 0)
 		{
-			progress?.Invoke("Applying customizations…");
-			await patcher.ApplyAsync(wgtPath);
+			progress?.Invoke(channels.Count > 0 ? "Applying TVApp channels…" : "Applying customizations…");
+
+			using var workspace = PackageWorkspace.Extract(wgtPath, tvIp);
+
+			if (channels.Count > 0)
+				await TvAppChannelInjector.InjectChannelsAsync(workspace, channels);
+
+			foreach (var patcher in patchers)
+				await patcher.ApplyAsync(workspace);
+
+			// A patcher that matched on the file name but found nothing to do leaves the package
+			// exactly as downloaded rather than as a recompressed copy of itself.
+			workspace.RepackIfChanged();
 		}
 
 		// The certificate must already be inside its validity window: Tizen checks the signature
@@ -157,6 +164,15 @@ public sealed class WgtInstaller
 
 		return install.Output;
 	}
+
+	// [118, -22] from the TV's security manager. Worded the same as the desktop head's
+	// "packageIdBlocked" string, which is the translated one.
+	private const string PackageIdBlockedMessage =
+		"The TV refused this package because the package id it uses is blocked on this set ([118, -22]). " +
+		"An older copy is still registered under a different signing certificate, or an interrupted " +
+		"uninstall left a record behind that the app list no longer shows. Delete the app on the TV itself " +
+		"(Apps list, press and hold, Remove) and install again, install a build that ships its own package " +
+		"id (a \"secondary\" variant), or reset Smart Hub as a last resort.";
 
 	// Overwrite-install retry is on by default; the "Override existing app" setting (key shared with
 	// MobileSettings.TryOverwrite) can turn it off.
@@ -207,9 +223,15 @@ public sealed class WgtInstaller
 
 		bool certMismatch = TizenInstallDiagnostics.IsCertificateMismatch(output);
 
-		// Recoverable by removing the old copy first: certificate mismatch, package-id conflict, or a
-		// generic failure. Try exactly one clean reinstall.
+		// [118, -22]: the TV's security manager refused the package id itself. Removing the old copy is
+		// the one remedy we can drive from here, so it goes through the retry below — but if the TV has
+		// nothing to remove, say what is actually wrong instead of repeating the raw output (#702).
+		bool idBlocked = TizenInstallDiagnostics.IsPackageIdBlocked(output);
+
+		// Recoverable by removing the old copy first: certificate mismatch, a blocked or conflicting
+		// package id, or a generic failure. Try exactly one clean reinstall.
 		bool recoverable = certMismatch ||
+						   idBlocked ||
 						   TizenInstallDiagnostics.IsPackageIdConflict(output) ||
 						   TizenInstallDiagnostics.IsGenericFailure(output);
 
@@ -227,11 +249,17 @@ public sealed class WgtInstaller
 				throw new InvalidOperationException(
 					"The TV already has this app signed with a different certificate. Remove it on the TV (Apps → delete), then install again.");
 
+			if (TizenInstallDiagnostics.IsPackageIdBlocked(retry.Output))
+				throw new InvalidOperationException(PackageIdBlockedMessage);
+
 			await ClearPartialIfFresh();
 			throw new InvalidOperationException($"Install failed: {Detail(retry.Error, retry.Output)}");
 		}
 
 		// Not retried (recovery off or no package id) — give the clearest message we can.
+		if (idBlocked)
+			throw new InvalidOperationException(PackageIdBlockedMessage);
+
 		if (certMismatch)
 			throw new InvalidOperationException(
 				"The TV already has this app signed with a different certificate. Remove it on the TV (Apps → delete) and install again, or enable \"Override existing app\" in Settings.");

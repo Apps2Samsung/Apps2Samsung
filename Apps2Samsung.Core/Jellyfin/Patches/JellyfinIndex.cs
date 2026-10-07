@@ -38,8 +38,8 @@ namespace Apps2Samsung.Helpers.Jellyfin.Patches
 
             await _plugins.PatchPluginsAsync(ws, serverUrl, css, headJs, bodyJs);
 
-            html = html.Replace("</head>", css + "\n" + headJs + "\n</head>");
-            html = html.Replace("</body>", bodyJs + "\n</body>");
+            html = HtmlUtils.InjectBlock(html, "plugins-head", css + "\n" + headJs);
+            html = HtmlUtils.InjectBlock(html, "plugins-body", bodyJs.ToString(), "</body>");
 
             html = HtmlUtils.CleanAndApplyCsp(html);
             html = HtmlUtils.EnsurePublicJsIsLast(html);
@@ -206,8 +206,9 @@ namespace Apps2Samsung.Helpers.Jellyfin.Patches
             credentialsScript.AppendLine("})();");
             credentialsScript.AppendLine("</script>");
 
-            // Inject before </head> to ensure it runs before Jellyfin's scripts
-            html = html.Replace("</head>", credentialsScript + "\n</head>");
+            // Inject before </head> so it runs before Jellyfin's own scripts. Replaces the block from
+            // an earlier patch pass instead of adding a second one with a stale token.
+            html = HtmlUtils.InjectBlock(html, "auto-login", credentialsScript.ToString());
 
             await File.WriteAllTextAsync(indexPath, html);
             Trace.WriteLine($"[InjectAutoLogin] Auto-login credentials injected successfully with server ID: {serverId}");

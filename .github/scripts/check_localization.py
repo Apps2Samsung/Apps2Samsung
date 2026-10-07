@@ -52,6 +52,9 @@ ALLOWLIST = {
     "Apps2Samsung",
     "Jellyfin",
     "e.g. HarborTV",
+    "ImmiTV",
+    "http://192.168.1.10:2283",
+    "you@example.com",
 }
 
 # Strips XML character/entity references so emoji glyphs (e.g. &#x1F319;) aren't seen as "letters".

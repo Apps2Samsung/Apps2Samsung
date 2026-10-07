@@ -225,8 +225,9 @@
                 <!-- ============ Install leftovers ============ -->
                 <!-- sdbd pushes every package to /home/owner/share/tmp/sdk_tools and leaves it there; its own
                      "0 rmfile" verb is accepted but deletes nothing on retail firmware. The agent runs as that
-                     folder's owner, so it lists and clears the folder itself. Only package files go; installed
-                     apps are not involved. Needs the agent attached. -->
+                     folder's owner, so it lists and clears the folder itself. Clear takes package files only;
+                     any other file goes by its own ✕ (#681). Installed apps are not involved. Needs the agent
+                     attached. -->
                 <Border x:Name="StagingCard" Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="8">
                         <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxStaging}" />
@@ -246,11 +247,16 @@
                             <VerticalStackLayout x:Name="StagedFileList" Spacing="2">
                                 <BindableLayout.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                                             <Label Grid.Column="0" Text="{Binding Name}" FontSize="12"
                                                    LineBreakMode="TailTruncation" VerticalOptions="Center" />
                                             <Label Grid.Column="1" Text="{Binding Detail}" FontSize="11" Opacity="0.55"
                                                    VerticalOptions="Center" />
+                                            <Button Grid.Column="2" Text="✕" FontSize="12" Padding="10,0"
+                                                    HeightRequest="32" MinimumWidthRequest="40" VerticalOptions="Center"
+                                                    IsVisible="{Binding CanDelete}"
+                                                    SemanticProperties.Description="{l:Localize lblToolboxStagingDelete}"
+                                                    CommandParameter="{Binding}" Clicked="OnDeleteStagedFileClicked" />
                                         </Grid>
                                     </DataTemplate>
                                 </BindableLayout.ItemTemplate>

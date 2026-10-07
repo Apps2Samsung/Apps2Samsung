@@ -27,17 +27,15 @@ namespace Apps2Samsung.Packaging
 
         public bool CanHandle(string packagePath) => Resolve(packagePath) != null;
 
-        public async Task<InstallResult> ApplyAsync(string packagePath)
+        public async Task<InstallResult> ApplyAsync(PackageWorkspace ws)
         {
-            var title = Resolve(packagePath);
+            var title = Resolve(ws.PackagePath);
             if (title == null)
                 return InstallResult.SuccessResult();
 
-            using var ws = PackageWorkspace.Extract(packagePath);
             await WgtTitlePatcher.SwapAppTitleAsync(ws, title);
-            ws.Repack();
 
-            Trace.WriteLine($"[CustomTitle] Applied title '{title}' to {Path.GetFileName(packagePath)}.");
+            Trace.WriteLine($"[CustomTitle] Applied title '{title}' to {Path.GetFileName(ws.PackagePath)}.");
             return InstallResult.SuccessResult();
         }
 

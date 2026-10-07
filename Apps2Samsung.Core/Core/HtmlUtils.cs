@@ -31,6 +31,47 @@ namespace Apps2Samsung.Helpers.Core
             html = html.Replace(tag, "");
             return html.Replace("</body>", tag + "\n</body>");
         }
+        /// <summary>
+        /// Puts an injected block into <paramref name="html"/> exactly once: it is wrapped in a marker
+        /// comment carrying <paramref name="blockId"/>, and a block already carrying that id is replaced
+        /// rather than added next to. Injection used to be a plain
+        /// <c>html.Replace("&lt;/head&gt;", block + "&lt;/head&gt;")</c>, which is fine on a fresh package
+        /// but stacks another copy every time the same package is patched again: a second auto-login
+        /// script with a stale token, a second custom-CSS block, a second debug hook (#702).
+        /// </summary>
+        /// <param name="html">The document to patch.</param>
+        /// <param name="blockId">Stable id for this injection point, e.g. <c>auto-login</c>.</param>
+        /// <param name="block">The markup to inject.</param>
+        /// <param name="closingTag">Tag to inject before, <c>&lt;/head&gt;</c> by default.</param>
+        public static string InjectBlock(string html, string blockId, string block, string closingTag = "</head>")
+        {
+            var open = $"<!--a2s:{blockId}-->";
+            var close = $"<!--/a2s:{blockId}-->";
+
+            // Drop the previous copy, marker comments and all, wherever in the document it sits.
+            var existing = new Regex(
+                @$"{Regex.Escape(open)}[\s\S]*?{Regex.Escape(close)}\s*",
+                RegexOptions.IgnoreCase);
+            html = existing.Replace(html, string.Empty);
+
+            if (string.IsNullOrWhiteSpace(block))
+                return html;
+
+            var marked = $"{open}\n{block}\n{close}\n";
+
+            // No closing tag to anchor to (a hand-built index.html, or one we already stripped) — the
+            // block still has to ship, so append it rather than dropping it silently.
+            return html.Contains(closingTag, StringComparison.OrdinalIgnoreCase)
+                ? ReplaceFirst(html, closingTag, marked + closingTag)
+                : html + marked;
+        }
+
+        private static string ReplaceFirst(string haystack, string needle, string replacement)
+        {
+            var at = haystack.IndexOf(needle, StringComparison.OrdinalIgnoreCase);
+            return at < 0 ? haystack : haystack.Remove(at, needle.Length).Insert(at, replacement);
+        }
+
         public static string EscapeJsString(string html)
         {
             if (string.IsNullOrEmpty(html)) return "";

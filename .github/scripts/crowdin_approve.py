@@ -18,6 +18,13 @@ speaker read this", because the machine translations get it too, and the only re
 languages someone actually went through is gone. Hence --languages: approve the ones that have
 been reviewed and leave the rest alone.
 
+A translation whose text is the English source is never approved. That is what an untranslated key
+looks like once it has been uploaded - a language file that carried English for the keys nobody had
+reached yet - and approving it is how ~150 strings per language ended up "approved" in English, which
+the editor then defends: a translator's real translation sits unapproved underneath it, and entering
+it again only gets "Duplicate translation. Please vote or approve the original." The few strings that
+legitimately read the same (OK, Debug, brand names) stay unapproved; nothing downstream needs the tick.
+
 One more consequence, the same one crowdin_fix_string.py exists for: Crowdin exports an approved
 translation over a newer unapproved one. Approving everything means a string corrected by hand in
 the repo comes straight back in the next sync until that script is run for it.
@@ -154,7 +161,10 @@ def main():
     print(f"Source of truth: id={source['id']} {source.get('path')}\n")
 
     languages = selected_languages(project, wanted)
-    approved_total = pending_total = 0
+    # English text per string, to keep an untranslated copy of it from being approved.
+    source_text = {row["id"]: row.get("text")
+                   for row in listing(f"/projects/{PROJECT}/strings", fileId=source["id"])}
+    approved_total = pending_total = english_total = 0
     for language in languages:
         code = language["id"]
         # The top translation per string, which is the one that ships and the one an approval
@@ -167,15 +177,22 @@ def main():
         approved = {approval["translationId"]
                     for approval in listing(f"/projects/{PROJECT}/approvals",
                                             fileId=source["id"], languageId=code)}
+        english = {tid for row in translations
+                   if isinstance(row.get("text"), str) and row["text"] == source_text.get(row.get("stringId"))
+                   for tid in translation_ids(row)}
         pending = [tid for row in translations for tid in translation_ids(row)
-                   if tid not in approved]
+                   if tid not in approved and tid not in english]
+        skipped = sum(1 for tid in english if tid not in approved)
+        english_total += skipped
         pending_total += len(pending)
         held = sum(len(translation_ids(row)) for row in translations)
         if not held:
             print(f"{code:>6}  nothing translated yet")
             continue
+        if skipped:
+            print(f"{code:>6}  {skipped} translation(s) identical to the English source - not approved")
         if not pending:
-            print(f"{code:>6}  all {held} translation(s) already approved")
+            print(f"{code:>6}  nothing else to approve ({held} translation(s))")
             continue
         print(f"{code:>6}  {len(pending)} of {held} translation(s) unapproved"
               f"{'' if apply else ' - not written'}")
@@ -188,6 +205,8 @@ def main():
     verb = "Approved" if apply else "Would approve"
     print(f"\n{verb} {approved_total if apply else pending_total} translation(s) across "
           f"{len(languages)} language(s).")
+    if english_total:
+        print(f"Left {english_total} translation(s) that only repeat the English source unapproved.")
     if not apply:
         print("Nothing was written - re-run with --apply.")
     return 0

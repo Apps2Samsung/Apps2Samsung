@@ -430,7 +430,7 @@ namespace Apps2Samsung.ViewModels
             var kept = "lblToolboxStagingKept".Localized();
             StagedFiles.Clear();
             foreach (var file in listing.Files)
-                StagedFiles.Add(new ToolboxStagedFile(file, kept));
+                StagedFiles.Add(new ToolboxStagedFile(file, kept, agent.SupportsStagedDelete));
             HasStagedPackages = listing.Packages.Any();
             return listing;
         }
@@ -469,6 +469,44 @@ namespace Apps2Samsung.ViewModels
             catch (Exception ex)
             {
                 StagingStatus = string.Format("lblToolboxStagingFailed".Localized(), ex.Message);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        /// <summary>
+        /// Deletes one staged file, package or not: the row's ✕. A clear only takes packages, so a
+        /// .zip or an .xml another tool left behind can only go this way (#681).
+        /// </summary>
+        [RelayCommand]
+        private async Task DeleteStagedFile(ToolboxStagedFile? file)
+        {
+            var agent = _agent;
+            if (agent is null)
+            {
+                StagingStatus = "lblToolboxStagingNeedsAgent".Localized();
+                return;
+            }
+
+            if (file is null || IsBusy)
+                return;
+
+            IsBusy = true;
+            try
+            {
+                StagingStatus = string.Format("lblToolboxStagingDeleting".Localized(), file.Name);
+                await agent.DeleteStagedFileAsync(file.File);
+                var status = string.Format("lblToolboxStagingDeleted".Localized(), file.Name, InstalledApp.FormatSize(file.File.Size));
+
+                try { await LoadStagedFilesAsync(agent); }
+                catch (Exception ex) { System.Diagnostics.Trace.WriteLine($"[toolbox] staging re-list after delete: {ex.Message}"); }
+                StagingStatus = status;
+            }
+            catch (Exception ex)
+            {
+                StagingStatus = string.Format("lblToolboxStagingDeleteFailed".Localized(), file.Name, ex.Message);
             }
             finally
             {
@@ -792,9 +830,10 @@ namespace Apps2Samsung.ViewModels
     /// <summary>One file in the TV's install staging folder, as the agent listed it.</summary>
     public sealed class ToolboxStagedFile
     {
-        public ToolboxStagedFile(DebugAgentStagedFile file, string keptLabel)
+        public ToolboxStagedFile(DebugAgentStagedFile file, string keptLabel, bool canDelete)
         {
             File = file;
+            CanDelete = canDelete;
             var detail = InstalledApp.FormatSize(file.Size);
             if (file.Modified is { } modified)
                 detail += $" · {modified.LocalDateTime:g}";
@@ -808,6 +847,9 @@ namespace Apps2Samsung.ViewModels
         public string Name => File.Name;
         public bool IsPackage => File.IsPackage;
         public string Detail { get; }
+
+        /// <summary>Whether the agent on the TV can delete this one file (v0.5.0 and later).</summary>
+        public bool CanDelete { get; }
     }
 
     /// <summary>One row of the app list.</summary>

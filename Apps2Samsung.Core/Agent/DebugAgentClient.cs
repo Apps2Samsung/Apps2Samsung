@@ -169,6 +169,12 @@ namespace Apps2Samsung.Agent
         /// </summary>
         public bool SupportsStaging => Version.TryParse(AgentVersion, out var onTv) && onTv >= StagingSince;
 
+        /// <summary>The first agent with <c>A2S.deleteStaged()</c>, one file of any kind (#681).</summary>
+        public static readonly Version StagedDeleteSince = new(0, 5, 0);
+
+        /// <summary>Whether the agent on the TV can delete a single staged file, package or not.</summary>
+        public bool SupportsStagedDelete => Version.TryParse(AgentVersion, out var onTv) && onTv >= StagedDeleteSince;
+
         /// <summary>
         /// True when the TV runs an agent older than the one this build embeds
         /// (<see cref="DebugAgentPackage.Version"/>). Newer is not outdated: a TV that met a later
@@ -491,6 +497,27 @@ namespace Apps2Samsung.Agent
                 .ToList() ?? new List<string>();
 
             return new DebugAgentStagingClearResult(ParseStagedFiles(deleted), failed, Num(node["freed"]));
+        }
+
+        /// <summary>
+        /// Deletes one file from the staging folder, whatever its kind: the way out for a .zip or an
+        /// .xml another tool left there, which a clear leaves alone (#681). The agent refuses any path
+        /// outside the staging folders. On request only.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The agent predates single-file delete, or the platform refused.</exception>
+        public async Task DeleteStagedFileAsync(DebugAgentStagedFile file, CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(file);
+            if (!SupportsStagedDelete)
+            {
+                throw new InvalidOperationException(
+                    $"The agent on the TV is v{AgentVersion}; deleting a single file needs v{StagedDeleteSince} or later. " +
+                    "Attach again from a build that can install packages so the agent gets updated.");
+            }
+
+            var node = await CallAsync($"A2S.deleteStaged({Js(file.Path)})", ct).ConfigureAwait(false);
+            if (node?["deleted"]?.GetValue<bool>() != true)
+                throw PlatformRefused("deleteStaged", node);
         }
 
         private void RequireStaging()

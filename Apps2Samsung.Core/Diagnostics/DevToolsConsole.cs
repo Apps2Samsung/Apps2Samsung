@@ -55,6 +55,11 @@ namespace Apps2Samsung.Diagnostics
         private Task? _receiveLoop;
         private int _nextId;
 
+        // Set on connect. The V8 inspector in Tizen 4.0's Chromium honours awaitPromise only when the
+        // result really is a promise and answers anything else with "Result of the evaluation is not
+        // a promise"; later inspectors pass a plain value through. See EvaluateRawAsync.
+        private bool _awaitsOnlyPromises;
+
         private readonly DevToolsNetworkTracker _network = new();
 
         /// <summary>Raised for every console line, off the UI thread — marshal before touching the UI.</summary>
@@ -91,6 +96,8 @@ namespace Apps2Samsung.Diagnostics
             // a blank screen when the app's own logging says nothing.
             await SendCommandAsync("Runtime.enable", null, ct);
             await SendCommandAsync("Log.enable", null, ct);
+
+            _awaitsOnlyPromises = await RejectsAwaitOnPlainValueAsync(ct);
         }
 
         /// <summary>
@@ -116,15 +123,9 @@ namespace Apps2Samsung.Diagnostics
         /// </summary>
         public async Task<string> EvaluateAsync(string expression, CancellationToken ct = default)
         {
-            var response = await SendCommandAsync("Runtime.evaluate", new JsonObject
-            {
-                ["expression"] = expression,
-                ["returnByValue"] = true,
-                // Lets the user await a promise and see the resolved value, and accept `$0`-free
-                // convenience APIs the page itself defines.
-                ["awaitPromise"] = true,
-                ["includeCommandLineAPI"] = true,
-            }, ct);
+            // Awaited so the user sees what a promise resolves to; the command-line API adds the
+            // `$0`-free conveniences a DevTools console has.
+            var response = await EvaluateRawAsync(expression, includeCommandLineApi: true, ct);
 
             if (response?["exceptionDetails"] is JsonNode failure)
                 return RenderException(failure);
@@ -142,18 +143,76 @@ namespace Apps2Samsung.Diagnostics
         /// </summary>
         public async Task<JsonNode?> EvaluateValueAsync(string expression, CancellationToken ct = default)
         {
-            var response = await SendCommandAsync("Runtime.evaluate", new JsonObject
-            {
-                ["expression"] = expression,
-                ["returnByValue"] = true,
-                ["awaitPromise"] = true,
-            }, ct);
+            var response = await EvaluateRawAsync(expression, includeCommandLineApi: false, ct);
 
             if (response?["exceptionDetails"] is JsonNode failure)
                 throw new DevToolsEvaluationException(RenderException(failure));
 
             // Detached from the response so the caller can keep it; a node has one parent.
             return response?["result"]?["value"]?.DeepClone();
+        }
+
+        /// <summary>
+        /// Evaluates <paramref name="expression"/> once, awaits it when it is a promise, and returns
+        /// the protocol's reply with the result by value.
+        /// </summary>
+        private async Task<JsonNode?> EvaluateRawAsync(string expression, bool includeCommandLineApi, CancellationToken ct)
+        {
+            var parameters = new JsonObject
+            {
+                ["expression"] = expression,
+                ["returnByValue"] = !_awaitsOnlyPromises,
+                ["awaitPromise"] = !_awaitsOnlyPromises,
+            };
+            if (includeCommandLineApi)
+                parameters["includeCommandLineAPI"] = true;
+
+            var response = await SendCommandAsync("Runtime.evaluate", parameters, ct);
+            if (!_awaitsOnlyPromises || response?["exceptionDetails"] is not null)
+                return response;
+
+            // Whether the result is a promise is only known once the expression has run, and running
+            // it a second time is not an option (A2S.clearStaging() deletes files). So it is evaluated
+            // by reference, and an object result is handed back through Promise.resolve: that is a
+            // promise whatever the value was, which this inspector does await, and it yields the value
+            // itself or what the promise settles to. A primitive already carries its value.
+            if (Str(response?["result"]?["objectId"]) is not { } objectId)
+                return response;
+
+            try
+            {
+                return await SendCommandAsync("Runtime.callFunctionOn", new JsonObject
+                {
+                    ["objectId"] = objectId,
+                    ["functionDeclaration"] = "function () { return Promise.resolve(this); }",
+                    ["returnByValue"] = true,
+                    ["awaitPromise"] = true,
+                }, ct);
+            }
+            finally
+            {
+                // Held by the inspector until released or the page reloads; nothing waits on this.
+                _ = SendCommandAsync("Runtime.releaseObject", new JsonObject { ["objectId"] = objectId }, CancellationToken.None)
+                    .ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+            }
+        }
+
+        private async Task<bool> RejectsAwaitOnPlainValueAsync(CancellationToken ct)
+        {
+            try
+            {
+                await SendCommandAsync("Runtime.evaluate", new JsonObject
+                {
+                    ["expression"] = "0",
+                    ["awaitPromise"] = true,
+                }, ct);
+                return false;
+            }
+            catch (InvalidOperationException ex)
+            {
+                Trace.WriteLine($"[devtools] inspector awaits only promises ({ex.Message}); results go through Promise.resolve");
+                return true;
+            }
         }
 
         private async Task<JsonNode?> SendCommandAsync(string method, JsonObject? parameters, CancellationToken ct)

@@ -16,8 +16,8 @@ namespace Apps2Samsung.Mobile.Pages;
 
 public partial class InstallerPage : ContentPage
 {
-	// Synthetic App-picker entry for installing a local .wgt (mirrors the desktop's option).
-	private const string CustomWgtLabel = "📁 Custom WGT file…";
+	// Synthetic App-picker entry for installing a local .wgt or .tpk (mirrors the desktop's option).
+	private const string CustomWgtLabel = "📁 Custom WGT / TPK…";
 	// Synthetic TV-picker entry for targeting a TV the scan didn't find (mirrors the desktop's
 	// manual-IP option). Always the last item in the TV list.
 	private const string ManualIpLabel = "✏️ Enter IP manually…";
@@ -45,7 +45,7 @@ public partial class InstallerPage : ContentPage
 	// The catalog releases backing AppPicker; the selected release's assets back VersionPicker.
 	private IReadOnlyList<GitHubRelease> _releases = new List<GitHubRelease>();
 	private List<Asset> _versions = new();
-	// A cache copy of a user-picked .wgt (custom install); null until picked.
+	// A cache copy of a user-picked .wgt/.tpk (custom install); null until picked.
 	private string? _customWgtPath;
 
 	private bool _initialized;
@@ -83,7 +83,7 @@ public partial class InstallerPage : ContentPage
 		await ScanAsync();
 
 		// A catalog problem is more actionable than the scan result, so let it have the last word.
-		// (The "Custom WGT file" entry is always available, so an empty catalog isn't a dead end.)
+		// (The "Custom WGT / TPK" entry is always available, so an empty catalog isn't a dead end.)
 		if (catalog is null)
 			SetStatus(L10n.Get("statusCatalogUnavailable"));
 		else if (catalog.Releases.Count == 0)
@@ -137,7 +137,7 @@ public partial class InstallerPage : ContentPage
 			_releases = new List<GitHubRelease>();
 		}
 
-		// Real apps first, then the always-present "Custom WGT file" entry.
+		// Real apps first, then the always-present "Custom WGT / TPK" entry.
 		var items = _releases.Select(r => r.Name).ToList();
 		items.Add(CustomWgtLabel);
 		AppPicker.ItemsSource = items;
@@ -177,7 +177,7 @@ public partial class InstallerPage : ContentPage
 		}
 	}
 
-	// Lets the user pick a local .wgt; copies it into the cache so re-signing/cleanup never touches
+	// Lets the user pick a local .wgt or .tpk (the desktop takes both); copies it into the cache so re-signing/cleanup never touches
 	// their original file. Returns true if a valid file was selected.
 	private async Task<bool> PickCustomWgtAsync()
 	{
@@ -189,7 +189,8 @@ public partial class InstallerPage : ContentPage
 				SetStatus(L10n.Get("statusNoFileSelected"));
 				return false;
 			}
-			if (!picked.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase))
+			if (!picked.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) &&
+				!picked.FileName.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase))
 			{
 				SetStatus(L10n.Get("statusChooseWgt"));
 				return false;

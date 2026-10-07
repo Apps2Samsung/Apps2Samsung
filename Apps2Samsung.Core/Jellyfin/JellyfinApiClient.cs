@@ -4,6 +4,7 @@ using Apps2Samsung.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -46,15 +47,26 @@ namespace Apps2Samsung.Helpers.API
         public async Task<List<JellyfinPluginInfo>> GetInstalledPluginsAsync(string serverUrl)
         {
             var list = new List<JellyfinPluginInfo>();
+            string url = UrlHelper.CombineUrl(serverUrl, "/Plugins");
+
             try
             {
-                string url = UrlHelper.CombineUrl(serverUrl, "/Plugins");
                 Trace.WriteLine("Fetching installed plugins from: " + url);
                 var json = await _httpClient.GetStringAsync(url);
                 var parsed = JsonSerializer.Deserialize<List<JellyfinPluginInfo>>(json, JsonSerializerOptionsProvider.Default);
 
                 if (parsed != null)
                     list.AddRange(parsed);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            {
+                // /Plugins is admin-only. A normal Jellyfin account always gets 401/403 here, so this
+                // is an expected outcome, not a crash: plugin detection is simply unavailable and the
+                // plugin-driven patches are skipped. It used to log a full stack trace, which read like
+                // the real fault in bug reports and sent triage down the wrong path (#702).
+                Trace.WriteLine(
+                    $"[Plugins] {url} -> {(int)ex.StatusCode!.Value}: this Jellyfin account is not an " +
+                    "administrator, so installed plugins can't be read. Plugin patches are skipped.");
             }
             catch (Exception ex)
             {
