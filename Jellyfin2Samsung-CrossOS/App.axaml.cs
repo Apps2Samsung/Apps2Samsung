@@ -130,6 +130,8 @@ namespace Apps2Samsung
             // Per-app package patchers (edit the .wgt before signing/install).
             services.AddSingleton<IPackagePatcher>(sp => sp.GetRequiredService<JellyfinPackagePatcher>());
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Helpers.TvApp.TvAppPackagePatcher>();
+            // ImmiTV: Immich server + login → js/config.js IMMICH_DEFAULTS at install (shared Core patcher).
+            services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.ImmiTvPackagePatcher>();
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.TizenTubeProxyPatcher>();
             // Registered last so the user's chosen icon (custom PNG or the bundled oblong tile)
             // overrides the package's default and composes with the app-specific patchers above.
@@ -163,12 +165,14 @@ namespace Apps2Samsung
             services.AddSingleton<AppIconsViewModel>();
             services.AddSingleton<JellyfinSettingsViewModel>();
             services.AddSingleton<TvAppSettingsViewModel>();
+            services.AddSingleton<ImmiTvSettingsViewModel>();
             services.AddSingleton<TizenTubeSettingsViewModel>();
             services.AddSingleton<SettingsWindowViewModel>();
 
             // App-specific settings sections (each app registers one provider).
             services.AddSingleton<IAppSettingsProvider, JellyfinSettingsProvider>();
             services.AddSingleton<IAppSettingsProvider, TvAppSettingsProvider>();
+            services.AddSingleton<IAppSettingsProvider, ImmiTvSettingsProvider>();
             services.AddSingleton<IAppSettingsProvider, TizenTubeSettingsProvider>();
 
             // --------------------

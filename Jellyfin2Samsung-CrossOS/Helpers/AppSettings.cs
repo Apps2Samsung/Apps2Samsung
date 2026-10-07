@@ -120,6 +120,11 @@ namespace Apps2Samsung.Helpers
         public string GitHubToken { get; set; } = "";
         public string LocalYoutubeServer { get; set; } = string.Empty;
         public string TvAppChannelsJson { get; set; } = "";  // JSON array of {name,url} for TVApp
+        // ImmiTV (Immich TV client): written into the wgt's js/config.js IMMICH_DEFAULTS at install
+        public string ImmiTvServerUrl { get; set; } = "";
+        public string ImmiTvEmail { get; set; } = "";
+        public string ImmiTvPassword { get; set; } = "";
+        public string ImmiTvApiKey { get; set; } = "";
         public bool TizenTubeProxyOverride { get; set; } = false;  // opt-in: point TizenTube Cobalt's --proxy at a LAN address (Tizen 9 fix)
         public string TizenTubeProxyHost { get; set; } = "";  // host[:port] for that proxy; empty = the TV being installed to
         public bool TvAppUseOblongIcon { get; set; } = false;  // legacy: migrated into CustomAppIconsJson ("oblong")

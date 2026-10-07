@@ -71,6 +71,9 @@ public static class MauiProgram
 		builder.Services.AddSingleton<IOblongIconSource, NoOblongIconSource>();
 		builder.Services.AddSingleton<IPackagePatcher, CustomIconPackagePatcher>();
 		builder.Services.AddSingleton<IPackagePatcher, AppTitlePackagePatcher>();
+		// ImmiTV: Immich server + login → js/config.js IMMICH_DEFAULTS, configured in Settings.
+		// No-ops when nothing is set.
+		builder.Services.AddSingleton<IPackagePatcher, ImmiTvPackagePatcher>();
 		// Opt-in TizenTube Cobalt proxy-host rewrite (Settings → TizenTube); no-op unless enabled.
 		builder.Services.AddSingleton<IPackagePatcher, TizenTubeProxyPatcher>();
 

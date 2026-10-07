@@ -37,6 +37,14 @@ public sealed class MobileAppConfig : IAppConfig
     public string CustomAppIconsJson { get => Preferences.Get(KeyCustomIcons, string.Empty); set => Preferences.Set(KeyCustomIcons, value ?? string.Empty); }
     public string CustomAppTitlesJson { get => Preferences.Get(KeyCustomTitles, string.Empty); set => Preferences.Set(KeyCustomTitles, value ?? string.Empty); }
     public string TvAppChannelsJson { get => MobileSettings.TvAppChannelsJson; set => MobileSettings.TvAppChannelsJson = value; }
+
+    // ---- ImmiTV package patching ----
+    // Backed by the Settings → ImmiTV section (MobileSettings). Read by the shared
+    // ImmiTvPackagePatcher at install to pre-fill the app's IMMICH_DEFAULTS.
+    public string ImmiTvServerUrl => MobileSettings.ImmiTvServerUrl;
+    public string ImmiTvEmail => MobileSettings.ImmiTvEmail;
+    public string ImmiTvPassword => MobileSettings.ImmiTvPassword;
+    public string ImmiTvApiKey => MobileSettings.ImmiTvApiKey;
     public bool TizenTubeProxyOverride => MobileSettings.TizenTubeProxyOverride;
     public string TizenTubeProxyHost => MobileSettings.TizenTubeProxyHost;
 

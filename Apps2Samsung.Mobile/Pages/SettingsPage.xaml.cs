@@ -55,6 +55,11 @@ public partial class SettingsPage : ContentPage
 		foreach (var channel in MobileSettings.GetTvAppChannels())
 			AddChannelRow(channel.Name, channel.Url);
 
+		ImmiTvServerEntry.Text = MobileSettings.ImmiTvServerUrl;
+		ImmiTvEmailEntry.Text = MobileSettings.ImmiTvEmail;
+		ImmiTvPasswordEntry.Text = MobileSettings.ImmiTvPassword;
+		ImmiTvApiKeyEntry.Text = MobileSettings.ImmiTvApiKey;
+
 		_loaded = true;
 	}
 
@@ -120,6 +125,10 @@ public partial class SettingsPage : ContentPage
 			["PatchYoutubePlugin"] = MobileSettings.JellyfinPatchYoutube,
 			["JellyfinAccessToken"] = MobileSettings.JellyfinAccessToken,
 			["TvAppChannelsJson"] = MobileSettings.TvAppChannelsJson,
+			["ImmiTvServerUrl"] = MobileSettings.ImmiTvServerUrl,
+			["ImmiTvEmail"] = MobileSettings.ImmiTvEmail,
+			["ImmiTvPassword"] = MobileSettings.ImmiTvPassword,
+			["ImmiTvApiKey"] = MobileSettings.ImmiTvApiKey,
 			["TizenTubeProxyOverride"] = MobileSettings.TizenTubeProxyOverride,
 			["TizenTubeProxyHost"] = MobileSettings.TizenTubeProxyHost,
 			["CustomAppIconsJson"] = MobileSettings.CustomAppIconsJson,
@@ -221,12 +230,16 @@ public partial class SettingsPage : ContentPage
 		if (GetString("JellyfinServerLocalAddress") is { } jfLocal) MobileSettings.JellyfinServerLocalAddress = jfLocal;
 		if (GetString("CustomCss") is { } css) MobileSettings.JellyfinCustomCss = css;
 		if (GetString("TvAppChannelsJson") is { } channels) MobileSettings.TvAppChannelsJson = channels;
+		if (GetString("ImmiTvServerUrl") is { } immiServer) MobileSettings.ImmiTvServerUrl = immiServer;
+		if (GetString("ImmiTvEmail") is { } immiEmail) MobileSettings.ImmiTvEmail = immiEmail;
 		if (GetString("TizenTubeProxyHost") is { } ttHost) MobileSettings.TizenTubeProxyHost = ttHost;
 		if (GetString("CustomAppIconsJson") is { } icons) MobileSettings.CustomAppIconsJson = icons;
 
 		// Secrets go through the async SecureStorage-backed setters.
 		if (GetString("GitHubToken") is { } token) await MobileSettings.SetGitHubTokenAsync(token);
 		if (GetString("JellyfinAccessToken") is { } accessToken) await MobileSettings.SetJellyfinAccessTokenAsync(accessToken);
+		if (GetString("ImmiTvPassword") is { } immiPassword) await MobileSettings.SetImmiTvPasswordAsync(immiPassword);
+		if (GetString("ImmiTvApiKey") is { } immiApiKey) await MobileSettings.SetImmiTvApiKeyAsync(immiApiKey);
 	}
 
 	private void OnToggleTokenVisibility(object? sender, EventArgs e)
@@ -239,6 +252,28 @@ public partial class SettingsPage : ContentPage
 	{
 		if (_loaded)
 			await MobileSettings.SetGitHubTokenAsync(TokenEntry.Text);
+	}
+
+	// One eye toggle covers both secrets (password + API key), like the GitHub token's.
+	private void OnToggleImmiTvVisibility(object? sender, EventArgs e)
+	{
+		var hide = !ImmiTvPasswordEntry.IsPassword;
+		ImmiTvPasswordEntry.IsPassword = hide;
+		ImmiTvApiKeyEntry.IsPassword = hide;
+		ImmiTvEyeBtn.Opacity = hide ? 1.0 : 0.5;
+	}
+
+	// Saves all four ImmiTV fields on any of them losing focus; the secrets go through the
+	// async SecureStorage-backed setters.
+	private async void OnImmiTvUnfocused(object? sender, FocusEventArgs e)
+	{
+		if (!_loaded)
+			return;
+
+		MobileSettings.ImmiTvServerUrl = ImmiTvServerEntry.Text ?? string.Empty;
+		MobileSettings.ImmiTvEmail = ImmiTvEmailEntry.Text ?? string.Empty;
+		await MobileSettings.SetImmiTvPasswordAsync(ImmiTvPasswordEntry.Text);
+		await MobileSettings.SetImmiTvApiKeyAsync(ImmiTvApiKeyEntry.Text);
 	}
 
 	private void OnDuidsUnfocused(object? sender, FocusEventArgs e)
