@@ -69,7 +69,7 @@ It installs the same build as the `.deb`/`.rpm` (x86_64 and aarch64). Other Linu
 - **Installs anything Tizen** — the community catalog (49+ apps), the Jellyfin builds, or your own `.wgt` / native `.tpk`.
 - **Manages installed apps** — list them with their icons, then uninstall, launch, stop, debug (inspector forwarded to `chrome://inspect`) or force-remove a leftover package.
 - **Doubles as a TV remote** — D-pad, playback, volume, channel, power and live typing over Samsung's own remote channel. No Developer Mode needed.
-- **Tunes apps at install** — Jellyfin server + auto-login, JellyThemes/custom CSS, playback preferences, server plugins and the YouTube-trailer fix; TVapp channels; custom launcher icons and titles.
+- **Tunes apps at install** — Jellyfin server + auto-login, JellyThemes/custom CSS, playback preferences, server plugins and the YouTube-trailer fix; TVapp channels; ImmiTV's Immich server + login; custom launcher icons and titles.
 - **Diagnoses TVs** — DUID, Tizen version, model and Developer Mode state, plus a live TV log console you can save.
 - **Backup & restore** — move your settings and signing certificates to another PC, Mac or phone in one file.
 - **Updates itself** — in-app updater with an optional beta channel.
