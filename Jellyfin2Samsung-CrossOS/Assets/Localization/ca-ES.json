@@ -205,6 +205,7 @@
   "lblTvAppOnlyNotice": "Aquesta configuració s'aplica NOMÉS a TVApp: s'escriu al paquet abans de la instal·lació.",
   "lblTvAppOblongIcon": "Icona apaïsada (televisors Tizen 5.5)",
   "lblTvAppOblongIconHint": "Fa servir la icona apaïsada 16:9. Activeu-ho als televisors Tizen 5.5 antics que mostren la icona quadrada estirada o retallada.",
+  "lblImmiTvPassword": "Contrasenya",
   "lblLitefinSettings": "Litefin",
   "lblLitefinOnlyNotice": "Aquesta configuració s'aplica NOMÉS a Litefin: s'escriu al paquet abans de la instal·lació.",
   "catalogTitle": "Catàleg d'aplicacions",
