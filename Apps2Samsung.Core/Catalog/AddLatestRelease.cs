@@ -39,6 +39,34 @@ namespace Apps2Samsung.Helpers.Core
             return request;
         }
 
+        /// <summary>Name of the per-file index the community bundle release carries (see <see cref="CommunityCatalog"/>).</summary>
+        public const string CatalogFileName = "catalog.json";
+
+        /// <summary>
+        /// Downloads and parses a release's <c>catalog.json</c>. Null when there is none, when the
+        /// download fails or when it does not parse: the caller then lists the files uncategorised,
+        /// exactly as before the catalog existed.
+        /// </summary>
+        public async Task<CommunityCatalog?> GetCommunityCatalogAsync(string? url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return null;
+            try
+            {
+                using var request = BuildRequest(url);
+                using var response = await _httpClient.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+                var catalog = JsonSerializer.Deserialize<CommunityCatalog>(json, JsonSerializerOptionsProvider.Default);
+                return catalog is { Apps.Count: > 0 } ? catalog : null;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"Failed to fetch community catalog from {url}: {ex.Message}");
+                return null;
+            }
+        }
+
         /// <summary>Fetches releases, discarding failure status (empty list on any error).</summary>
         public async Task<List<GitHubRelease>> GetReleasesAsync(string url, string prefix, string displayName, int take = 1)
             => (await GetReleasesWithStatusAsync(url, prefix, displayName, take)).Releases;
@@ -76,11 +104,18 @@ namespace Apps2Samsung.Helpers.Core
                 }
 
                 foreach (var r in releases)
+                {
+                    // The community bundle ships a catalog.json next to its packages; remember where
+                    // it is before the asset list is narrowed down to installable files.
+                    r.CatalogUrl = r.Assets?
+                        .FirstOrDefault(a => string.Equals(a.FileName, CatalogFileName, StringComparison.OrdinalIgnoreCase))
+                        ?.DownloadUrl;
                     r.Assets = r.Assets?
                         .Where(a => !string.IsNullOrWhiteSpace(a.FileName) &&
                             (a.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) ||
                              a.FileName.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase)))
                         .ToList() ?? new List<Asset>();
+                }
 
                 releases = releases.Where(r => r.Assets.Count > 0).ToList();
                 if (releases.Count == 0)

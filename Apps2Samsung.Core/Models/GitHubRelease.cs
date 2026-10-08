@@ -39,6 +39,27 @@ namespace Apps2Samsung.Models
         [JsonIgnore]
         public bool RequiresPartner { get; set; }
 
+        /// <summary>
+        /// Category id (see <c>AppCategories</c>) the installer's filter groups this entry under.
+        /// Stamped from the provider manifest or the community catalog, never from GitHub.
+        /// </summary>
+        [JsonIgnore]
+        public string Category { get; set; } = "other";
+
+        /// <summary>
+        /// True when this entry folds several community files of the same app (forks, per-Tizen
+        /// builds): its assets are then variants to choose from, not versions of one package.
+        /// </summary>
+        [JsonIgnore]
+        public bool HasVariants { get; set; }
+
+        /// <summary>
+        /// Download URL of the release's <c>catalog.json</c>, when the release ships one (the
+        /// community bundle). Captured before the asset list is narrowed to .wgt/.tpk.
+        /// </summary>
+        [JsonIgnore]
+        public string? CatalogUrl { get; set; }
+
         public GitHubRelease()
         {
         }
@@ -61,6 +82,22 @@ namespace Apps2Samsung.Models
 
         [JsonIgnore]
         public string DisplayText => $"{FileName} ({FormatFileSize(Size)})";
+
+        /// <summary>Label from the community catalog when this file is one variant of a grouped app.</summary>
+        [JsonIgnore]
+        public string? Variant { get; set; }
+
+        /// <summary>The variant label, or the bare file name when the file is not part of a group.</summary>
+        [JsonIgnore]
+        public string VariantLabel => string.IsNullOrWhiteSpace(Variant)
+            ? System.IO.Path.GetFileNameWithoutExtension(FileName)
+            : Variant;
+
+        /// <summary>What the desktop's version/variant dropdown shows: the variant label, then the file, when there is one.</summary>
+        [JsonIgnore]
+        public string LongDisplayText => string.IsNullOrWhiteSpace(Variant)
+            ? DisplayText
+            : $"{Variant}: {DisplayText}";
 
         private static string FormatFileSize(long bytes)
         {

@@ -6,6 +6,7 @@
   "providers": [
     {
       "id": "jellyfin-tizen-builds",
+      "category": "media",
       "url": "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases",
       "prefix": "Jellyfin - ",
       "displayName": "",
@@ -13,6 +14,7 @@
     },
     {
       "id": "moonfin",
+      "category": "media",
       "url": "https://api.github.com/repos/Moonfin-Client/Smart-TV/releases",
       "prefix": "",
       "displayName": "Moonfin",
@@ -25,6 +27,7 @@
     },
     {
       "id": "litefin",
+      "category": "media",
       "url": "https://api.github.com/repos/MoazSalem/litefin/releases",
       "prefix": "",
       "displayName": "Litefin",
@@ -37,6 +40,7 @@
     },
     {
       "id": "tizentube",
+      "category": "streaming",
       "url": "https://api.github.com/repos/reisxd/TizenTube/releases",
       "prefix": "",
       "displayName": "TizenTube",
@@ -49,6 +53,7 @@
     },
     {
       "id": "jellyfin-avplay",
+      "category": "media",
       "url": "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases",
       "prefix": "",
       "displayName": "Jellyfin - AVPlay",
@@ -60,6 +65,7 @@
     },
     {
       "id": "jellyfin-avplay-smarthub",
+      "category": "media",
       "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases",
       "prefix": "",
       "displayName": "Jellyfin - AVPlay - 10.10z SmartHub",
@@ -71,6 +77,7 @@
     },
     {
       "id": "jellyfin-legacy",
+      "category": "media",
       "url": "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases/tags/2024-10-27-1821",
       "prefix": "",
       "displayName": "Jellyfin - Legacy",

@@ -63,7 +63,26 @@
 			<!-- Form fields - side by side layout -->
 			<StackPanel Spacing="18">
 
-				<!-- Release -->
+				<!-- Category filter: narrows the App list below (the custom-file row always stays) -->
+				<Grid ColumnDefinitions="100,*,Auto" ColumnSpacing="8">
+					<TextBlock Classes="label"
+							   Text="{Binding LblCategory}"
+							   VerticalAlignment="Center"
+							   Grid.Column="0"/>
+					<ComboBox Classes="clean"
+							  SelectedItem="{Binding SelectedCategory}"
+							  Grid.Column="1"
+							  HorizontalAlignment="Stretch"
+							  ItemsSource="{Binding Categories}">
+						<ComboBox.ItemTemplate>
+							<DataTemplate>
+								<TextBlock Text="{Binding Display}"/>
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+				</Grid>
+
+				<!-- App (the release list, filtered by category) -->
 				<Grid ColumnDefinitions="100,*,Auto" ColumnSpacing="8">
 					<TextBlock Classes="label"
 							   Text="{Binding LblRelease}"
@@ -83,7 +102,7 @@
 					<!-- Spacer removed -->
 				</Grid>
 
-				<!-- Version -->
+				<!-- Version, or Variant for a folded community app -->
 				<Grid ColumnDefinitions="100,*,40" ColumnSpacing="8" IsVisible="{Binding SelectedRelease, Converter={StaticResource StringNotEquals}, ConverterParameter=Custom WGT / TPK}">
 					<TextBlock Classes="label"
 							   Text="{Binding LblVersion}"
@@ -97,7 +116,7 @@
 							  SelectedItem="{Binding SelectedAsset, Mode=TwoWay}">
 						<ComboBox.ItemTemplate>
 							<DataTemplate>
-								<TextBlock Text="{Binding DisplayText}"/>
+								<TextBlock Text="{Binding LongDisplayText}"/>
 							</DataTemplate>
 						</ComboBox.ItemTemplate>
 					</ComboBox>

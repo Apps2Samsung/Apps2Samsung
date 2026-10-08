@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Apps2Samsung.Catalog;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
@@ -48,6 +49,16 @@ namespace Apps2Samsung.ViewModels
 
         [ObservableProperty]
         private ObservableCollection<GitHubRelease> releases = new ObservableCollection<GitHubRelease>();
+
+        // Every entry the providers yielded; Releases is the slice of it the category filter lets through.
+        private List<GitHubRelease> _allReleases = new();
+        private GitHubRelease? _customEntry;
+
+        [ObservableProperty]
+        private ObservableCollection<CategoryOption> categories = new ObservableCollection<CategoryOption>();
+
+        [ObservableProperty]
+        private CategoryOption? selectedCategory;
 
         [ObservableProperty]
         private ObservableCollection<Asset> availableAssets = new ObservableCollection<Asset>();
@@ -103,8 +114,10 @@ namespace Apps2Samsung.ViewModels
         private string L(string key) => _localizationService.GetString(key);
 
         public bool EnableDevicesInput => !IsLoadingDevices;
-        public string LblRelease => _localizationService.GetString("lblRelease");
-        public string LblVersion => _localizationService.GetString("lblVersion");
+        public string LblRelease => _localizationService.GetString("lblApp");
+        public string LblCategory => _localizationService.GetString("lblCategory");
+        // A folded community app offers variants (forks, per-Tizen builds), everything else versions.
+        public string LblVersion => _localizationService.GetString(SelectedRelease?.HasVariants == true ? "lblVariant" : "lblVersion");
         public string LblSelectTv => _localizationService.GetString("lblSelectTv");
         public string DownloadAndInstall => _localizationService.GetString("DownloadAndInstall");
         public string lblCustomWgt => _localizationService.GetString("lblCustomWgt");
@@ -193,6 +206,8 @@ namespace Apps2Samsung.ViewModels
         {
             OnPropertyChanged(nameof(LblRelease));
             OnPropertyChanged(nameof(LblVersion));
+            OnPropertyChanged(nameof(LblCategory));
+            RebuildCategories();
             OnPropertyChanged(nameof(LblSelectTv));
             OnPropertyChanged(nameof(DownloadAndInstall));
             OnPropertyChanged(nameof(FooterText));
@@ -201,8 +216,11 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(SelectWGT));
         }
 
+        partial void OnSelectedCategoryChanged(CategoryOption? value) => ApplyCategoryFilter();
+
         partial void OnSelectedReleaseChanged(GitHubRelease? value)
         {
+            OnPropertyChanged(nameof(LblVersion));
             AvailableAssets = value != null
                 ? new ObservableCollection<Asset>(value.Assets)
                 : new ObservableCollection<Asset>();
@@ -887,33 +905,29 @@ namespace Apps2Samsung.ViewModels
 
                     if (provider.ExpandAssets)
                     {
-                        // One entry per .wgt so community apps show up as
-                        // first-class items instead of a single bundle entry.
-                        foreach (var r in release)
-                            foreach (var asset in r.Assets)
-                                list.Add(new GitHubRelease
-                                {
-                                    Name = Path.GetFileNameWithoutExtension(asset.FileName),
-                                    TagName = r.TagName,
-                                    PublishedAt = r.PublishedAt,
-                                    Url = r.Url,
-                                    Assets = new List<Asset> { asset },
-                                    RequiresPartner = requiresPartner
-                                });
+                        // The community bundle: one entry per file, or one per app when the
+                        // release's catalog.json groups files (forks, per-Tizen builds) into
+                        // variants. Without a catalog this is the flat list it always was.
+                        var catalog = await _addLatestRelease.GetCommunityCatalogAsync(release[0].CatalogUrl);
+                        list.AddRange(CommunityAppList.Expand(release, catalog, requiresPartner));
                     }
                     else
                     {
+                        var category = AppCategories.Normalize(provider.Category);
                         foreach (var r in release)
+                        {
                             r.RequiresPartner = requiresPartner;
+                            r.Category = category;
+                        }
                         list.AddRange(release);
                     }
                 }
                 cancellationToken.ThrowIfCancellationRequested();
                 // Show every app alphabetically (A-Z, 0-9) regardless of manifest/fetch order.
                 list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
-                Releases.Clear();
-                foreach (var r in list)
-                    Releases.Add(r);
+                _allReleases = list;
+                RebuildCategories();
+                ApplyCategoryFilter();
             }
             catch (OperationCanceledException)
             {
@@ -927,19 +941,46 @@ namespace Apps2Samsung.ViewModels
             finally
             {
                 // Always add the custom WGT / TPK option, regardless of GitHub failures
-                if (!Releases.Any(r => r.Name == Constants.AppIdentifiers.CustomWgtFile))
-                {
-                    Releases.Add(new GitHubRelease
-                    {
-                        Name = Constants.AppIdentifiers.CustomWgtFile,
-                        TagName = string.Empty,
-                        PublishedAt = string.Empty,
-                        Url = string.Empty,
-                        Assets = new List<Asset>()
-                    });
-                }
+                if (!Releases.Contains(CustomEntry))
+                    Releases.Add(CustomEntry);
                 IsLoading = false;
             }
+        }
+
+        // The synthetic "Custom WGT / TPK" row: one instance, so the selection survives a re-filter.
+        private GitHubRelease CustomEntry => _customEntry ??= new GitHubRelease
+        {
+            Name = Constants.AppIdentifiers.CustomWgtFile,
+            TagName = string.Empty,
+            PublishedAt = string.Empty,
+            Url = string.Empty,
+            Assets = new List<Asset>()
+        };
+
+        // The category dropdown: "All categories" plus every category that has at least one app,
+        // each with its count. Keeps the current choice when that category still exists.
+        private void RebuildCategories()
+        {
+            var keep = SelectedCategory?.Id ?? AppCategories.All;
+            Categories.Clear();
+            foreach (var (id, count) in CommunityAppList.Counts(_allReleases))
+                Categories.Add(new CategoryOption(id, AppCategories.DisplayName(id, L), count));
+            SelectedCategory = Categories.FirstOrDefault(c => c.Id == keep) ?? Categories.FirstOrDefault();
+        }
+
+        // Releases = the apps in the chosen category, plus the custom-file row that is never filtered
+        // away. The selected app stays selected while its category is in view.
+        private void ApplyCategoryFilter()
+        {
+            var keep = SelectedRelease;
+            var id = SelectedCategory?.Id ?? AppCategories.All;
+
+            Releases.Clear();
+            foreach (var r in CommunityAppList.Filter(_allReleases, id))
+                Releases.Add(r);
+            Releases.Add(CustomEntry);
+
+            SelectedRelease = keep != null && Releases.Contains(keep) ? keep : null;
         }
 
         private async Task LoadDevicesAsync(CancellationToken cancellationToken = default, bool virtualScan = false)
