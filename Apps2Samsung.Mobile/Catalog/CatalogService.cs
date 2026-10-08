@@ -66,23 +66,21 @@ public sealed class CatalogService
 			var entries = new List<GitHubRelease>();
 			if (provider.ExpandAssets)
 			{
-				// One release entry per .wgt asset (Tizen Community bundle).
-				foreach (var r in releases)
-					foreach (var asset in r.Assets)
-						entries.Add(new GitHubRelease
-						{
-							Name = Path.GetFileNameWithoutExtension(asset.FileName),
-							TagName = r.TagName,
-							PublishedAt = r.PublishedAt,
-							Url = r.Url,
-							Assets = new List<Asset> { asset },
-							RequiresPartner = requiresPartner,
-						});
+				// The community bundle: one entry per file, or one per app when the release's
+				// catalog.json groups files into variants. Shared shaping with the desktop (Core).
+				var catalog = releases.Count > 0
+					? await _releases.GetCommunityCatalogAsync(releases[0].CatalogUrl)
+					: null;
+				entries.AddRange(CommunityAppList.Expand(releases, catalog, requiresPartner));
 			}
 			else
 			{
+				var category = AppCategories.Normalize(provider.Category);
 				foreach (var r in releases)
+				{
 					r.RequiresPartner = requiresPartner;
+					r.Category = category;
+				}
 				entries.AddRange(releases);
 			}
 

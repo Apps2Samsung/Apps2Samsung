@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Apps2Samsung.Catalog;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
@@ -42,8 +43,13 @@ public partial class InstallerPage : ContentPage
 	private readonly List<NetworkDevice?> _tvDevices = new();
 	// Suppresses OnTvChanged while we rebuild the picker programmatically.
 	private bool _rebuildingTvPicker;
-	// The catalog releases backing AppPicker; the selected release's assets back VersionPicker.
+	// Every catalog entry; _releases is the slice in the chosen category that backs AppPicker, and
+	// the selected release's assets back VersionPicker.
+	private IReadOnlyList<GitHubRelease> _allReleases = new List<GitHubRelease>();
 	private IReadOnlyList<GitHubRelease> _releases = new List<GitHubRelease>();
+	// Category ids index-aligned with CategoryPicker ("all" first).
+	private readonly List<string> _categoryIds = new();
+	private bool _rebuildingCategoryPicker;
 	private List<Asset> _versions = new();
 	// A cache copy of a user-picked .wgt/.tpk (custom install); null until picked.
 	private string? _customWgtPath;
@@ -129,22 +135,59 @@ public partial class InstallerPage : ContentPage
 		try
 		{
 			result = await _catalog.LoadReleasesAsync();
-			_releases = result.Releases;
+			_allReleases = result.Releases;
 		}
 		catch (Exception ex)
 		{
 			SetStatus(string.Format(L10n.Get("statusCatalogFailed"), ex.Message));
-			_releases = new List<GitHubRelease>();
+			_allReleases = new List<GitHubRelease>();
 		}
 
-		// Real apps first, then the always-present "Custom WGT / TPK" entry.
+		RebuildCategoryPicker();
+		ApplyCategory();
+
+		_uiReady = true;
+		return result;
+	}
+
+	// "All categories" plus every category with at least one app, each with its count.
+	private void RebuildCategoryPicker()
+	{
+		_rebuildingCategoryPicker = true;
+		try
+		{
+			_categoryIds.Clear();
+			var items = new List<string>();
+			foreach (var (id, count) in CommunityAppList.Counts(_allReleases))
+			{
+				_categoryIds.Add(id);
+				items.Add(new CategoryOption(id, AppCategories.DisplayName(id, L10n.Get), count).Display);
+			}
+			CategoryPicker.ItemsSource = items;
+			CategoryPicker.SelectedIndex = items.Count > 0 ? 0 : -1;
+		}
+		finally { _rebuildingCategoryPicker = false; }
+	}
+
+	private void OnCategoryChanged(object? sender, EventArgs e)
+	{
+		if (_rebuildingCategoryPicker)
+			return;
+		ApplyCategory();
+	}
+
+	// Fills AppPicker with the apps in the chosen category: real apps first, then the always-present
+	// "Custom WGT / TPK" entry, which no filter hides.
+	private void ApplyCategory()
+	{
+		var i = CategoryPicker.SelectedIndex;
+		var id = i >= 0 && i < _categoryIds.Count ? _categoryIds[i] : AppCategories.All;
+		_releases = CommunityAppList.Filter(_allReleases, id).ToList();
+
 		var items = _releases.Select(r => r.Name).ToList();
 		items.Add(CustomWgtLabel);
 		AppPicker.ItemsSource = items;
 		AppPicker.SelectedIndex = _releases.Count > 0 ? 0 : items.Count - 1;
-
-		_uiReady = true;
-		return result;
 	}
 
 	private async void OnAppChanged(object? sender, EventArgs e)
@@ -168,8 +211,14 @@ public partial class InstallerPage : ContentPage
 			return;
 		}
 
-		_versions = _releases[i].Assets;
-		VersionPicker.ItemsSource = _versions.Select(a => a.DisplayText).ToList();
+		var release = _releases[i];
+		_versions = release.Assets;
+		// A folded community app offers variants (forks, per-Tizen builds): the picker shows their
+		// labels, one line each. Anything else lists its files as before.
+		VersionCaption.Text = L10n.Get(release.HasVariants ? "lblVariant" : "lblVersion");
+		VersionPicker.ItemsSource = release.HasVariants
+			? _versions.Select(a => a.VariantLabel).ToList()
+			: _versions.Select(a => a.DisplayText).ToList();
 		if (_versions.Count > 0)
 		{
 			var def = _versions.FindIndex(a => a.IsDefault);
