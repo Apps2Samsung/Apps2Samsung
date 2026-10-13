@@ -20,6 +20,9 @@ namespace Apps2Samsung.Services
         DeveloperIpReversed,
         /// <summary>The TV's Developer-Mode IP points at some other machine.</summary>
         DeveloperIpMismatch,
+        /// <summary>The "TV" is the Tizen Studio emulator on this machine, whose DUID the
+        /// certificate must list.</summary>
+        EmulatorTarget,
     }
 
     /// <summary>
@@ -90,6 +93,12 @@ namespace Apps2Samsung.Services
             "in reversed order. (ex: 192.168.1.2 → 2.1.168.192)";
         private const string DeveloperIpMismatchDefault =
             "Samsung Developer mode IP doesn't match this devices local IP, do you wish to continue?";
+        private const string EmulatorTargetDefault =
+            "This TV is the Tizen Studio TV emulator running on this computer. It checks the Samsung " +
+            "certificate exactly like a retail TV, so the distributor certificate must list the " +
+            "emulator's DUID. A certificate generated for a real TV fails here with a certificate " +
+            "error ([118, -12]).\n\nGenerate a new certificate with the emulator selected as the TV " +
+            "first, or continue if the current certificate already lists it.";
 
         /// <summary>
         /// Evaluates every guard for <paramref name="device"/>, in the order they should be shown.
@@ -99,11 +108,32 @@ namespace Apps2Samsung.Services
         /// </summary>
         public static InstallGuardResult Evaluate(NetworkDevice? device, InstallGuardOptions options, INetworkService network)
         {
-            if (device is null || device.DeveloperIP is null)
+            if (device is null)
                 return InstallGuardResult.None;
 
             var guards = new List<InstallGuard>();
             string? correctedTvIp = null;
+
+            // 0. The "TV" is this machine, i.e. the Tizen Studio emulator. Checked before the
+            // Developer-Mode guards because the emulator has no REST API: its DeveloperIP is never
+            // read, which is exactly the case the early return below covers.
+            var allLocalIps = string.IsNullOrEmpty(options.ConfiguredLocalIp)
+                ? options.LocalIps
+                : options.LocalIps.Append(options.ConfiguredLocalIp!).ToList();
+            if (TizenEmulator.IsThisMachine(device.IpAddress, allLocalIps))
+            {
+                var thisDevice = !string.IsNullOrEmpty(options.ConfiguredLocalIp) ? options.ConfiguredLocalIp!
+                               : options.LocalIps.Count > 0 ? string.Join(", ", options.LocalIps)
+                               : device.IpAddress;
+                guards.Add(new InstallGuard(
+                    InstallGuardKind.EmulatorTarget,
+                    "guardEmulatorTitle", "guardEmulatorBody",
+                    "Tizen emulator", EmulatorTargetDefault,
+                    $"TV IP: {device.IpAddress} • this device: {thisDevice}"));
+            }
+
+            if (device.DeveloperIP is null)
+                return new InstallGuardResult(guards, correctedTvIp);
 
             // 1. Developer Mode on, but its install service isn't up yet — only a restart fixes it.
             if (TizenDeviceReadiness.RequiresRestart(device))

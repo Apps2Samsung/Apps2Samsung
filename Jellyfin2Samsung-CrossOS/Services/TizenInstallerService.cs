@@ -1167,7 +1167,7 @@ namespace Apps2Samsung.Services
             try
             {
                 var result = await _sdb.AppsAsync(tvIpAddress);
-                return Apps2Samsung.Sdb.TizenInstalledApps.Parse(result?.Output);
+                return Apps2Samsung.Sdb.TizenInstalledApps.ParseOrThrow(result);
             }
             finally
             {

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Services;
 
 namespace Apps2Samsung.Sdb
 {
@@ -76,7 +77,10 @@ namespace Apps2Samsung.Sdb
                 DeveloperMode: developerMode,
                 DeveloperIp: developerIp,
                 DebugPortOpen: debugPortOpen,
-                LocalIp: localIp);
+                LocalIp: localIp,
+                // The emulator has no REST API, so name/model/Developer Mode stay blank above; this
+                // row is what explains those blanks (and the certificate error that follows).
+                IsEmulator: TizenEmulator.IsThisMachine(ip, localIp));
         }
     }
 }

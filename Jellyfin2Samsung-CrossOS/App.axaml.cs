@@ -91,6 +91,9 @@ namespace Apps2Samsung
             // SDB engine: TizenSdb.Core driven in-process, the same engine the mobile head runs.
             // Nothing to download or update at first launch, so a fresh install works offline (#549).
             services.AddSingleton<ISdbEngine, Apps2Samsung.Sdb.InProcessSdbEngine>();
+            // A Tizen Studio sdb server on this PC holds a TV's (or the emulator's) single debug
+            // connection; stop it before every fresh connect, not only at startup.
+            Apps2Samsung.Sdb.InProcessSdbEngine.ClearCompetingSdbServer = ProcessHelper.KillSdbServers;
             services.AddSingleton<ITizenInstallerService, TizenInstallerService>();
             services.AddSingleton<IThemeService, ThemeService>();
             services.AddSingleton<IUpdaterService, UpdaterService>();

@@ -40,6 +40,23 @@ namespace Apps2Samsung.Sdb
         // Serializes the Console.Out redirect used to capture an install log (see RunCapturingDeviceLog).
         private static readonly SemaphoreSlim ConsoleCaptureGate = new(1, 1);
 
+        /// <summary>
+        /// Clears whatever else on this machine may be holding the TV's single debug connection, and
+        /// is called right before every fresh connect attempt. Samsung's sdbd (and the TV emulator's)
+        /// serves one host at a time: while a Tizen Studio <c>sdb</c> server is attached, our own
+        /// connect dies in the handshake with "Remote closed stream". The desktop head used to stop
+        /// that server once, at startup, but Device Manager and Emulator Manager restart it within
+        /// seconds, so a connection made minutes later (the TV-information view, the app list, the
+        /// install) lost the race again. The desktop head wires this to its process helper; the
+        /// mobile head leaves it null, as a phone runs no sdb server. Returns true when a competitor
+        /// was found and stopped, which is what turns a final failure into a message that names it.
+        /// </summary>
+        public static Func<bool>? ClearCompetingSdbServer { get; set; }
+
+        private const string CompetingServerHint =
+            "Another sdb server on this computer (Tizen Studio's Device Manager or Emulator Manager) " +
+            "was holding the TV's connection. Close it and try again.";
+
         private readonly ConcurrentDictionary<string, DeviceSlot> _slots = new();
 
         // Commands ListApps tries in order (first useful reply wins) — ported from the CLI.
@@ -392,9 +409,12 @@ namespace Apps2Samsung.Sdb
         {
             var address = IPAddress.Parse(ip);
             Exception? last = null;
+            bool competitorSeen = false;
 
             for (int attempt = 1; attempt <= 3; attempt++)
             {
+                competitorSeen |= StopCompetingSdbServer();
+
                 var device = new SdbTcpDevice(address);
                 try
                 {
@@ -410,7 +430,32 @@ namespace Apps2Samsung.Sdb
                 }
             }
 
-            throw last ?? new InvalidOperationException($"Could not connect to {ip}.");
+            var failure = last ?? new InvalidOperationException($"Could not connect to {ip}.");
+
+            // The connect still died after a competing server was stopped: either it came straight
+            // back (Tizen Studio relaunches it) or the TV has not let go of the old link yet. Either
+            // way the user can act on the server's name, not on a bare socket error.
+            if (competitorSeen && SdbTransportErrors.IsTransient(failure.Message))
+                throw new InvalidOperationException($"{failure.Message} {CompetingServerHint}", failure);
+
+            throw failure;
+        }
+
+        private static bool StopCompetingSdbServer()
+        {
+            var clear = ClearCompetingSdbServer;
+            if (clear is null)
+                return false;
+
+            try
+            {
+                return clear();
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[sdb] could not stop a competing sdb server: {ex.Message}");
+                return false;
+            }
         }
 
         /// <summary>
