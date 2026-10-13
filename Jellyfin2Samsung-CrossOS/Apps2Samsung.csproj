@@ -30,6 +30,13 @@
 	<DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
 
+  <!-- Package-managed builds (Nix, Homebrew, distro packages, ...) cannot replace their own
+       installation files. Build with -p:DisableSelfUpdate=true to compile out the in-place
+       self-update action; update checks and notifications keep working. See #736. -->
+  <PropertyGroup Condition="'$(DisableSelfUpdate)'=='true'">
+	<DefineConstants>$(DefineConstants);DISABLE_SELF_UPDATE</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- Localization is excluded: the language files are embedded in Apps2Samsung.Core and read from
          there by both heads (see LocalizationCatalog), so bundling a second copy here would be dead
