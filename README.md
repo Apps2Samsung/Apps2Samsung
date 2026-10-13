@@ -60,6 +60,8 @@ yay -S apps2samsung      # or paru -S apps2samsung
 
 It installs the same build as the `.deb`/`.rpm` (x86_64 and aarch64). Other Linux distros: take the `.AppImage`, `.deb`, `.rpm` or `.tar.gz` from the [releases](https://github.com/Apps2Samsung/Apps2Samsung/releases).
 
+**Packaging it yourself?** Build the desktop app with `-p:DisableSelfUpdate=true` to compile out the in-place self-update action (the app will still check for and announce new versions, but points to your package manager instead of replacing its own files). Useful for read-only or package-manager-owned installs such as Nix or Homebrew.
+
 ---
 
 ## ✨ What It Does
