@@ -99,8 +99,10 @@ namespace Apps2Samsung.ViewModels
 
                 var removable = apps.Count(a => a.IsRemovable);
                 var totalUsed = InstalledApp.FormatSize(apps.Sum(a => a.SizeBytes));
+                // An empty list is the TV's answer (a fresh emulator, a reset set); a failed read
+                // throws and lands in the catch below.
                 StatusText = apps.Count == 0
-                    ? "Couldn't read the app list from this TV."
+                    ? "statusNoInstalledApps".Localized()
                     : $"{apps.Count} apps · {totalUsed} used · {removable} removable";
             }
             catch (Exception ex)
