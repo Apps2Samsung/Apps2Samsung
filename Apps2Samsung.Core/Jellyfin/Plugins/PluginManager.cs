@@ -41,6 +41,7 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
                 ["Media Bar"]            = () => new MediaBarPatch(),
                 ["Home Screen Sections"] = () => new HomeScreenSectionsPatch(),
                 ["KefinTweaks"]          = () => new KefinTweaksPatch(),
+                ["NotifySync"]           = () => new NotifySyncPatch(),
             };
 
         public PluginMatrixEntry? FindPluginEntry(JellyfinPluginInfo? plugin)
@@ -62,7 +63,19 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
         public static bool IsSupported(JellyfinPluginInfo? plugin)
         {
             var entry = FindMatrixEntry(plugin);
-            return entry != null && PatchFactories.ContainsKey(entry.Name);
+            return entry != null
+                && PatchFactories.ContainsKey(entry.Name)
+                && MeetsMinimumVersion(plugin, entry);
+        }
+
+        /// <summary>
+        /// True when the entry has no minimum, or the installed version parses and is at least that minimum.
+        /// An unparseable version is treated as too old rather than waved through.
+        /// </summary>
+        public static bool MeetsMinimumVersion(JellyfinPluginInfo? plugin, PluginMatrixEntry entry)
+        {
+            if (entry.MinimumVersion == null) return true;
+            return Version.TryParse(plugin?.Version, out var installed) && installed >= entry.MinimumVersion;
         }
 
         public bool TryClassifyServerAsset(string url, out ServerAssetKind kind)
@@ -86,7 +99,7 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
             if (entry?.ExplicitServerFiles == null || entry.ExplicitServerFiles.Count == 0)
                 return;
 
-            Trace.WriteLine("▶ Downloading explicit Enhanced JS modules...");
+            Trace.WriteLine($"▶ Downloading explicit {entry.Name} JS modules...");
 
             foreach (var rel in entry.ExplicitServerFiles)
             {
@@ -117,7 +130,7 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
                 }
                 catch (Exception ex)
                 {
-                    Trace.WriteLine($"      ⚠ Failed Enhanced JS '{rel}': {ex}");
+                    Trace.WriteLine($"      ⚠ Failed {entry.Name} JS '{rel}': {ex}");
                 }
             }
         }

@@ -17,6 +17,13 @@ namespace Apps2Samsung.Models
         public List<string> FallbackUrls { get; set; }
         public bool UseBabel { get; set; }
         public string RawRoot { get; set; }
+
+        /// <summary>
+        /// Lowest plugin version whose client script works inside the packaged app.
+        /// Null means every version is accepted. Older installs are listed as unsupported
+        /// and skipped at patch time instead of shipping a script that cannot reach the server.
+        /// </summary>
+        public Version? MinimumVersion { get; set; }
     }
     public class ExtractedDomBlocks
     {
