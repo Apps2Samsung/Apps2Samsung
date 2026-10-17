@@ -206,7 +206,7 @@
                 <BoxView Style="{StaticResource Divider}" />
 
                 <!-- Camera PiP: cameras + mosaic style + sound, written into the package's config.js -->
-                <controls:ExpanderSection Title="Camera PiP">
+                <controls:ExpanderSection Title="{l:Localize lblCameraPip}">
                     <VerticalStackLayout Spacing="8">
                         <Label Style="{StaticResource Hint}"
                                Text="{l:Localize hintCameraPip}" />

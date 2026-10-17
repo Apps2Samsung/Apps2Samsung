@@ -228,6 +228,7 @@
   "lblImmiTvApiKey": "API key",
   "lblImmiTvApiKeyHint": "Optional. Create one in Immich under Account Settings → API Keys. ImmiTV only uses these to pre-fill its first-run setup screen; once you press Connect on the TV the app keeps whatever you entered there.",
   "hintImmiTv": "Immich server URL plus email + password or an API key, written into the ImmiTV package when you install it. Leave a field empty to type it on the TV.",
+  "lblCameraPip": "Camera PiP",
   "lblCameraPipSettings": "Cameras",
   "lblCameraPipHint": "Camera PiP ships with no cameras and shows a dark screen until it has some. Add one to four cameras here; they are written into the package before installation, so there is no need to edit config.yaml or rebuild the app.",
   "lblCameraPipOnlyNotice": "These settings apply ONLY to Camera PiP — they are written into the package before installation.",
