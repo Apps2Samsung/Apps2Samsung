@@ -66,6 +66,15 @@ namespace Apps2Samsung.Configuration
         /// <summary>Host[:port] for that proxy; empty = the IP of the TV being installed to.</summary>
         string TizenTubeProxyHost { get; }
 
+        // ---- Camera PiP package patching ----
+        /// <summary>
+        /// The user's Camera PiP cameras, mosaic style and sound as the JSON
+        /// <c>CameraPipConfigInjector.ToJson</c> produces; written into <c>window.PIP_CONFIG</c> in the
+        /// widget's config.js at install by the shared CameraPipPackagePatcher. Empty = leave the
+        /// package untouched.
+        /// </summary>
+        string CameraPipConfigJson { get; }
+
         // ---- Jellyfin package patching ----
         // The shared JellyfinPackagePatcher reads these to inject the server address, auto-login
         // credentials, custom CSS, and optional script/plugin patches into a Jellyfin .wgt. All are

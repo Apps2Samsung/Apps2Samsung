@@ -136,6 +136,8 @@ namespace Apps2Samsung
             // ImmiTV: Immich server + login → js/config.js IMMICH_DEFAULTS at install (shared Core patcher).
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.ImmiTvPackagePatcher>();
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.TizenTubeProxyPatcher>();
+            // Camera PiP: cameras → config.js window.PIP_CONFIG at install (shared Core patcher).
+            services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.CameraPipPackagePatcher>();
             // Registered last so the user's chosen icon (custom PNG or the bundled oblong tile)
             // overrides the package's default and composes with the app-specific patchers above.
             // Now the shared Core patcher (was Apps2Samsung.Helpers.CustomIconPackagePatcher).
@@ -170,6 +172,7 @@ namespace Apps2Samsung
             services.AddSingleton<TvAppSettingsViewModel>();
             services.AddSingleton<ImmiTvSettingsViewModel>();
             services.AddSingleton<TizenTubeSettingsViewModel>();
+            services.AddSingleton<CameraPipSettingsViewModel>();
             services.AddSingleton<SettingsWindowViewModel>();
 
             // App-specific settings sections (each app registers one provider).
@@ -177,6 +180,7 @@ namespace Apps2Samsung
             services.AddSingleton<IAppSettingsProvider, TvAppSettingsProvider>();
             services.AddSingleton<IAppSettingsProvider, ImmiTvSettingsProvider>();
             services.AddSingleton<IAppSettingsProvider, TizenTubeSettingsProvider>();
+            services.AddSingleton<IAppSettingsProvider, CameraPipSettingsProvider>();
 
             // --------------------
             // Views

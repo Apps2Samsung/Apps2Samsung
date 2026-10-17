@@ -24,6 +24,7 @@ public static class MobileSettings
 	private const string KeyImmiTvApiKey = "immitv_api_key"; // SecureStorage
 	private const string KeyTizenTubeProxyOverride = "tizentube_proxy_override";
 	private const string KeyTizenTubeProxyHost = "tizentube_proxy_host";
+	private const string KeyCameraPipConfig = "camerapip_config_json";
 	private const string KeyPartnerSigning = "partner_signing";
 	private const string KeyForceLogin = "force_samsung_login";
 	private const string KeyTryOverwrite = "try_overwrite";
@@ -307,6 +308,17 @@ public static class MobileSettings
 	{
 		get => Preferences.Get(KeyTizenTubeProxyHost, string.Empty);
 		set => Preferences.Set(KeyTizenTubeProxyHost, value ?? string.Empty);
+	}
+
+	// ---- Camera PiP ----
+	/// <summary>
+	/// Cameras + mosaic style + sound as <c>CameraPipConfigInjector.ToJson</c> writes them (empty when
+	/// unset); written into the widget's config.js by the shared CameraPipPackagePatcher at install.
+	/// </summary>
+	public static string CameraPipConfigJson
+	{
+		get => Preferences.Get(KeyCameraPipConfig, string.Empty);
+		set => Preferences.Set(KeyCameraPipConfig, value ?? string.Empty);
 	}
 
 	/// <summary>Per-app custom launcher icons: JSON map { appKey -> "oblong" | custom PNG path },

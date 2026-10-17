@@ -76,6 +76,8 @@ public static class MauiProgram
 		builder.Services.AddSingleton<IPackagePatcher, ImmiTvPackagePatcher>();
 		// Opt-in TizenTube Cobalt proxy-host rewrite (Settings → TizenTube); no-op unless enabled.
 		builder.Services.AddSingleton<IPackagePatcher, TizenTubeProxyPatcher>();
+		// Camera PiP: cameras → config.js window.PIP_CONFIG at install (shared Core patcher).
+		builder.Services.AddSingleton<IPackagePatcher, CameraPipPackagePatcher>();
 
 		// Shared app catalog for the icon/title editor (same list as desktop).
 		builder.Services.AddSingleton<Apps2Samsung.Catalog.AppCatalog>(sp => new Apps2Samsung.Catalog.AppCatalog(
