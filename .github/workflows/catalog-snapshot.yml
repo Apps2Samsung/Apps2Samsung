@@ -11,9 +11,15 @@ name: Catalog snapshot
 # third-party-apps.json), so it is taken from there, not from the beta checkout. A manifest edit
 # reaches the snapshot on the next half-hour tick; the push trigger below only covers the generator
 # and this file, which live on beta.
+#
+# tizen-community-packages fires `repository_dispatch` (event community-release) at the end of its
+# sync workflow, right after a new community bundle is released, so a new bundle shows up in the
+# heads within a minute instead of at the next half-hour tick.
 on:
   schedule:
     - cron: '*/30 * * * *'
+  repository_dispatch:
+    types: [community-release]
   push:
     branches: [beta]
     paths:
@@ -62,6 +68,9 @@ jobs:
       - name: Take the manifest from main
         run: |
           set -euo pipefail
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo "Triggered by ${{ github.event.client_payload.repo || 'a repository_dispatch' }}: ${{ github.event.client_payload.tag || '(no tag)' }}"
+          fi
           git fetch --depth=1 origin main
           git show origin/main:third-party-apps.json > "$RUNNER_TEMP/third-party-apps.json"
           echo "Manifest: $(jq -r '.providers | length' "$RUNNER_TEMP/third-party-apps.json") providers (schema $(jq -r .schemaVersion "$RUNNER_TEMP/third-party-apps.json"))"
