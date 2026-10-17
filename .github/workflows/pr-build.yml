@@ -80,18 +80,24 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      # .NET 10's iOS workload builds against the iOS 26 SDK and needs Xcode 26; the image's default
-      # Xcode may be older. Select the newest Xcode 26 installed, if there is one.
-      - name: Select Xcode 26
+      # The iOS workload refuses an Xcode older than the one its SDK was built with, so take the
+      # newest Xcode on the image rather than its default.
+      - name: Select the newest Xcode
         run: |
-          XCODE=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          XCODE=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)
           if [ -n "$XCODE" ]; then sudo xcode-select -s "$XCODE"; fi
           xcodebuild -version
 
       # Both workloads: on macOS the csproj lists net10.0-android too, and restore evaluates every
       # TFM even though only the iOS one is built below.
+      #
+      # Pinned workload set. The current sets (10.0.401.1 and later) ship .NET for iOS 27, which
+      # demands Xcode 27.0, and the macos-latest image (macOS 26) tops out at Xcode 26.6 — the first
+      # run of this job failed on exactly that. 10.0.401 is the last set on .NET for iOS 26
+      # (26.5.10318, with MAUI 10.0.20), which Xcode 26.x builds. Drop the --version once the image
+      # README lists Xcode 27: https://github.com/actions/runner-images/blob/main/images/macos/macos-26-Readme.md
       - name: Install MAUI workloads
-        run: dotnet workload install maui-ios maui-android
+        run: dotnet workload install maui-ios maui-android --version 10.0.401
 
       # Compile + XAML check only, for the simulator so no signing identity is needed. The real
       # (signed, device) publish is a release-workflow concern once distribution is settled (#753).
