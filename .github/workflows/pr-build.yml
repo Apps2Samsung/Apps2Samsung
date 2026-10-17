@@ -10,6 +10,11 @@ name: PR build
 # used to live inline in the release workflows, where a mistake in it could only ever be found by
 # cutting a release; running it here means a PR proves it still produces the packages.
 
+# The iOS job runs on macOS: the ios workload only exists there, which is also why the csproj adds the
+# net10.0-ios target on macOS only. It is a compile check against the simulator SDK (no signing). It
+# uses GitHub's per-Xcode runner image (`xcode-27`) rather than macos-latest: .NET for iOS refuses an
+# Xcode older than the one its SDK was built with, and macos-latest lags a major behind.
+
 # The two build jobs are required status checks on the Default ruleset, so there is deliberately no
 # `paths:` filter: a check that never runs is never reported, and a required check that is never
 # reported blocks the PR forever. A docs-only PR therefore pays ~3 minutes of Android build
@@ -66,6 +71,38 @@ jobs:
       # code compiles. beta-prerelease.yml still does the real publish on merge.
       - name: Build
         run: dotnet build Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj -c Release -f net10.0-android
+
+  ios:
+    name: Mobile (iOS)
+    # The Xcode-major image, not macos-latest: the current .NET for iOS workload (27.x) demands
+    # Xcode 27.0, and macos-latest (macOS 26) tops out at Xcode 26.6 — the first run of this job
+    # failed on exactly that. When .NET for iOS moves to the next major, bump this label with it
+    # (https://github.blog/changelog/2026-10-15-xcode-27-runner-image-generally-available/).
+    runs-on: xcode-27
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Xcode in use
+        run: xcodebuild -version
+
+      # Both workloads: on macOS the csproj lists net10.0-android too, and restore evaluates every
+      # TFM even though only the iOS one is built below.
+      - name: Install MAUI workloads
+        run: dotnet workload install maui-ios maui-android
+
+      # Compile + XAML check only, for the simulator. Code signing is turned off explicitly: the
+      # project sets CodesignEntitlements (the keychain group SecureStorage needs), and with
+      # entitlements present even a simulator build looks for a signing identity in the keychain,
+      # which a hosted runner doesn't have ("No valid iOS code signing keys found"). The real
+      # (signed, device) publish is a release-workflow concern once distribution is settled (#753).
+      - name: Build
+        run: >
+          dotnet build Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj -c Release -f net10.0-ios
+          -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=false
 
   linux-packages:
     name: Linux packages

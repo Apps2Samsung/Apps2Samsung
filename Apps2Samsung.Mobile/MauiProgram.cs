@@ -46,7 +46,7 @@ public static class MauiProgram
 		builder.Services.AddSingleton<INetworkService>(_ => new NetworkService(customIpProvider: NetworkInfo.GetLocalIPv4));
 
 		// The SDB engine needs a writable directory to persist its RSA auth keypair (the desktop
-		// uses the profile dir; on Android there's no ambient writable path, so point it at the
+		// uses the profile dir; Android and iOS have no ambient writable path, so point it at the
 		// app's private data dir before any connection). Set once, process-wide.
 		SdbTcpDevice.KeyDirectory = FileSystem.AppDataDirectory;
 		builder.Services.AddSingleton<ISdbEngine, Apps2Samsung.Sdb.InProcessSdbEngine>();

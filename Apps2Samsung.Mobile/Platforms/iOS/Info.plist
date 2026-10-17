@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UIDeviceFamily</key>
+	<array>
+		<integer>1</integer>
+		<integer>2</integer>
+	</array>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>XSAppIconAssets</key>
+	<string>Assets.xcassets/appicon.appiconset</string>
+
+	<!-- The whole app is local-network traffic to the TV: the SDB port scan and protocol
+	     (TCP 26101), the TV's REST API (8001/8002) and the remote-control websocket. iOS 14+
+	     blocks all of it until the user grants local network access, and only shows that
+	     prompt when this description is present. -->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Apps2Samsung looks for Samsung TVs on your Wi-Fi network and talks to the TV you pick to install apps on it.</string>
+
+	<!-- Counterpart of the Android network_security_config: plain HTTP to LAN hosts that can't be
+	     whitelisted ahead of time (the TV's DHCP-assigned IP for its REST API, and the Samsung
+	     SignInGate's POST to the in-app loopback listener on http://localhost:4794). Everything
+	     security-sensitive (Samsung OAuth, GitHub, catalog downloads) is HTTPS regardless. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+</dict>
+</plist>

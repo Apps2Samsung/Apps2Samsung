@@ -172,7 +172,7 @@ public partial class AppIconsPage : ContentPage
 	{
 		try
 		{
-			var picked = await SafFilePicker.PickAsync("image/*");
+			var picked = await LocalFilePicker.PickAsync("image/*");
 			if (picked is null)
 				return;
 
