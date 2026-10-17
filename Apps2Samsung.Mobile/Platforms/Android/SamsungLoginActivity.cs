@@ -2,19 +2,17 @@ using Android.App;
 using Android.Content.PM;
 using Android.OS;
 using Android.Webkit;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
+using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Samsung;
 using AndroidUri = Android.Net.Uri;
 using AndroidWebView = Android.Webkit.WebView;
 
 namespace Apps2Samsung.Mobile.Platforms.Android;
 
-// Hosts the Samsung SignInGate in a WebView and captures the token it POSTs to the redirect_uri.
-// A WebView URL-intercept can't read a POST body, so we run a tiny in-app loopback listener on
-// :4794 (same role as the desktop Kestrel callback) and point the redirect at it. Proven on-device
-// by the tizen-sdb Probe; this is that recipe wrapped behind SamsungLoginService.
+// Hosts the Samsung SignInGate in a WebView and captures the token it POSTs to the redirect_uri
+// through the shared SamsungCallbackListener (a WebView URL-intercept can't read a POST body).
+// Proven on-device by the tizen-sdb Probe; this is that recipe wrapped behind SamsungLoginService.
+// Platforms/iOS/SamsungLoginViewController is the same flow over a WKWebView.
 [Activity(Label = "Samsung Login", ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize)]
 public class SamsungLoginActivity : Activity
 {
@@ -22,7 +20,7 @@ public class SamsungLoginActivity : Activity
     // completes it with the raw token JSON (or faults/cancels it).
     internal static TaskCompletionSource<string>? Pending;
 
-    private TcpListener? _listener;
+    private SamsungCallbackListener? _listener;
     private readonly CancellationTokenSource _cts = new();
 
     protected override void OnCreate(Bundle? savedInstanceState)
@@ -53,52 +51,22 @@ public class SamsungLoginActivity : Activity
 
         _ = Task.Run(() => ListenForCallbackAsync(_cts.Token));
 
-        var redirect = $"http://localhost:{SamsungOAuth.CallbackPort}{SamsungOAuth.CallbackPath}";
-        web.LoadUrl(SamsungOAuth.BuildAuthorizeUrl(redirect));
+        web.LoadUrl(SamsungOAuth.BuildAuthorizeUrl(SamsungCallbackListener.RedirectUri));
     }
 
     private async Task ListenForCallbackAsync(CancellationToken ct)
     {
         try
         {
-            // Bind dual-stack: Android's Chrome often resolves the redirect's "localhost" to the IPv6
-            // loopback (::1), so an IPv4-only (127.0.0.1) listener never receives the callback POST and
-            // the login tab hangs on signInComplete. Accepting both ::1 and 127.0.0.1 fixes it.
-            _listener = new TcpListener(IPAddress.IPv6Any, SamsungOAuth.CallbackPort);
-            _listener.Server.DualMode = true;
-            _listener.Start();
-            System.Diagnostics.Trace.WriteLine($"[SamsungLogin] callback listener up on :{SamsungOAuth.CallbackPort} (dual-stack)");
-
-            while (!ct.IsCancellationRequested)
+            using var listener = new SamsungCallbackListener();
+            _listener = listener;
+            var tokenJson = await listener.WaitForTokenAsync(ct);
+            RunOnUiThread(() =>
             {
-                using var client = await _listener.AcceptTcpClientAsync(ct);
-                using var stream = client.GetStream();
-
-                var (method, path, body) = await ReadRequestAsync(stream, ct);
-                System.Diagnostics.Trace.WriteLine($"[SamsungLogin] callback request: {method} {path}");
-
-                const string page = "Login captured — return to the app.";
-                var resp = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n" +
-                           $"Content-Length: {Encoding.UTF8.GetByteCount(page)}\r\nConnection: close\r\n\r\n{page}";
-                await stream.WriteAsync(Encoding.UTF8.GetBytes(resp), ct);
-                await stream.FlushAsync(ct);
-
-                if (method == "POST" && path.StartsWith(SamsungOAuth.CallbackPath, StringComparison.Ordinal))
-                {
-                    var code = ParseFormField(body, "code");
-                    if (!string.IsNullOrWhiteSpace(code))
-                    {
-                        var tokenJson = Uri.UnescapeDataString(code);
-                        RunOnUiThread(() =>
-                        {
-                            Pending?.TrySetResult(tokenJson);
-                            Pending = null;
-                            Finish();
-                        });
-                        return;
-                    }
-                }
-            }
+                Pending?.TrySetResult(tokenJson);
+                Pending = null;
+                Finish();
+            });
         }
         catch (System.OperationCanceledException) { /* activity closing */ }
         catch (Exception ex)
@@ -107,7 +75,7 @@ public class SamsungLoginActivity : Activity
         }
         finally
         {
-            try { _listener?.Stop(); } catch { /* ignore */ }
+            _listener = null;
         }
     }
 
@@ -118,60 +86,10 @@ public class SamsungLoginActivity : Activity
         Finish();
     });
 
-    // Minimal HTTP/1.1 request reader: request line + headers, then the Content-Length body.
-    private static async Task<(string method, string path, string body)> ReadRequestAsync(
-        NetworkStream stream, CancellationToken ct)
-    {
-        var buf = new byte[8192];
-        var sb = new StringBuilder();
-        int headerEnd;
-
-        while ((headerEnd = sb.ToString().IndexOf("\r\n\r\n", StringComparison.Ordinal)) < 0)
-        {
-            int n = await stream.ReadAsync(buf.AsMemory(0, buf.Length), ct);
-            if (n <= 0) break;
-            sb.Append(Encoding.UTF8.GetString(buf, 0, n));
-        }
-
-        var raw = sb.ToString();
-        headerEnd = raw.IndexOf("\r\n\r\n", StringComparison.Ordinal);
-        var head = headerEnd >= 0 ? raw[..headerEnd] : raw;
-        var lines = head.Split("\r\n");
-        var requestLine = lines.Length > 0 ? lines[0].Split(' ') : new[] { "", "", "" };
-        var method = requestLine.Length > 0 ? requestLine[0] : "";
-        var path = requestLine.Length > 1 ? requestLine[1] : "";
-
-        int contentLength = 0;
-        foreach (var line in lines)
-            if (line.StartsWith("Content-Length:", StringComparison.OrdinalIgnoreCase))
-                int.TryParse(line[15..].Trim(), out contentLength);
-
-        var body = headerEnd >= 0 ? raw[(headerEnd + 4)..] : string.Empty;
-        while (Encoding.UTF8.GetByteCount(body) < contentLength)
-        {
-            int n = await stream.ReadAsync(buf.AsMemory(0, buf.Length), ct);
-            if (n <= 0) break;
-            body += Encoding.UTF8.GetString(buf, 0, n);
-        }
-
-        return (method, path, body);
-    }
-
-    private static string? ParseFormField(string body, string key)
-    {
-        foreach (var part in body.Split('&', StringSplitOptions.RemoveEmptyEntries))
-        {
-            var kv = part.Split('=', 2);
-            if (kv.Length == 2 && kv[0] == key)
-                return kv[1];
-        }
-        return null;
-    }
-
     protected override void OnDestroy()
     {
         _cts.Cancel();
-        try { _listener?.Stop(); } catch { /* ignore */ }
+        _listener?.Dispose();
         // If we're leaving without a captured token (user backed out), unblock the awaiter.
         Pending?.TrySetCanceled();
         Pending = null;

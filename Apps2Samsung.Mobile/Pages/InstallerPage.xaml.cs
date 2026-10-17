@@ -103,6 +103,11 @@ public partial class InstallerPage : ContentPage
 
 	private async Task CheckForUpdatesAsync()
 	{
+		// The release asset this looks for is the sideloaded .apk. iOS builds reach users through
+		// TestFlight/the App Store, which update themselves, so there is nothing to offer there.
+		if (!OperatingSystem.IsAndroid())
+			return;
+
 		try
 		{
 			var current = AppInfo.Current.VersionString;
@@ -232,7 +237,7 @@ public partial class InstallerPage : ContentPage
 	{
 		try
 		{
-			var picked = await SafFilePicker.PickAsync();
+			var picked = await LocalFilePicker.PickAsync();
 			if (picked is null)
 			{
 				SetStatus(L10n.Get("statusNoFileSelected"));

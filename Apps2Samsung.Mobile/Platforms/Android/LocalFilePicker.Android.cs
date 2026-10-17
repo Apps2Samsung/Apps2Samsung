@@ -1,16 +1,14 @@
 using Android.Content;
 using Android.Database;
+using Microsoft.Maui.ApplicationModel;
 using AndroidApp = Android.App.Application;
 using AndroidUri = Android.Net.Uri;
 using Result = Android.App.Result;
 
 namespace Apps2Samsung.Mobile.Services;
 
-/// <summary>A file the user picked, already copied into app cache so the content URI can be released.</summary>
-public sealed record PickedFile(string FileName, string LocalPath);
-
 /// <summary>
-/// Storage Access Framework file picker, used instead of <c>FilePicker.Default.PickAsync</c>.
+/// Storage Access Framework picker, used instead of <c>FilePicker.Default.PickAsync</c>.
 ///
 /// MAUI's picker resolves the picked content URI to a physical path inside
 /// <c>IntermediateActivity.OnActivityResult</c> — i.e. on the UI thread — by calling
@@ -24,19 +22,14 @@ public sealed record PickedFile(string FileName, string LocalPath);
 /// So: launch the picker ourselves and do the read on a background thread, where the policy does
 /// not apply.
 /// </summary>
-public static class SafFilePicker
+public static partial class LocalFilePicker
 {
     // Arbitrary, only has to be unique within the activity.
     internal const int RequestCode = 0x2A55;
 
     private static TaskCompletionSource<AndroidUri?>? _pending;
 
-    /// <summary>
-    /// Shows the system picker and returns the chosen file, copied into app cache, or
-    /// <c>null</c> if the user cancelled.
-    /// </summary>
-    /// <param name="mimeTypes">MIME filter, e.g. <c>image/*</c>. Empty means every file.</param>
-    public static async Task<PickedFile?> PickAsync(params string[] mimeTypes)
+    private static async partial Task<PickedFile?> PickPlatformAsync(string[] mimeTypes)
     {
         var activity = Platform.CurrentActivity
             ?? throw new InvalidOperationException("No current activity to show the file picker from.");
@@ -96,22 +89,10 @@ public static class SafFilePicker
         var resolver = AndroidApp.Context.ContentResolver
             ?? throw new InvalidOperationException("No ContentResolver.");
 
-        var name = Sanitize(DisplayName(resolver, uri));
-
-        // One file per pick: clearing first keeps a re-pick from reusing a stale copy and keeps
-        // the cache from growing with every icon the user tries.
-        var dir = Path.Combine(FileSystem.CacheDirectory, "picked");
-        if (Directory.Exists(dir))
-            Directory.Delete(dir, recursive: true);
-        Directory.CreateDirectory(dir);
-
-        var dest = Path.Combine(dir, name);
-        using (var src = resolver.OpenInputStream(uri)
-            ?? throw new IOException($"Couldn't open \"{name}\"."))
-        using (var dst = File.Create(dest))
-            src.CopyTo(dst);
-
-        return new PickedFile(name, dest);
+        var name = DisplayName(resolver, uri);
+        using var src = resolver.OpenInputStream(uri)
+            ?? throw new IOException($"Couldn't open \"{name ?? "the picked file"}\".");
+        return CopyToCache(name, src);
     }
 
     private static string? DisplayName(ContentResolver resolver, AndroidUri uri)
@@ -125,16 +106,5 @@ public static class SafFilePicker
 
         var column = cursor.GetColumnIndex(DisplayNameColumn);
         return column < 0 ? null : cursor.GetString(column);
-    }
-
-    // The name comes from another app, so it decides neither the directory nor the extension.
-    private static string Sanitize(string? name)
-    {
-        name = Path.GetFileName(name ?? string.Empty).Trim();
-        if (string.IsNullOrEmpty(name))
-            return "picked-file";
-
-        var cleaned = new string(name.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray());
-        return cleaned.Length > 128 ? cleaned[^128..] : cleaned;
     }
 }

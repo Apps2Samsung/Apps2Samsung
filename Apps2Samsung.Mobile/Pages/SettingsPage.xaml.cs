@@ -165,7 +165,7 @@ public partial class SettingsPage : ContentPage
 		try
 		{
 			// Some file managers hand a .zip to the picker as application/octet-stream.
-			var picked = await SafFilePicker.PickAsync("application/zip", "application/octet-stream");
+			var picked = await LocalFilePicker.PickAsync("application/zip", "application/octet-stream");
 			if (picked is null)
 				return;
 
