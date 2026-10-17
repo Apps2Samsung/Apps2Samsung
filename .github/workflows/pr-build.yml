@@ -94,12 +94,15 @@ jobs:
       - name: Install MAUI workloads
         run: dotnet workload install maui-ios maui-android
 
-      # Compile + XAML check only, for the simulator so no signing identity is needed. The real
+      # Compile + XAML check only, for the simulator. Code signing is turned off explicitly: the
+      # project sets CodesignEntitlements (the keychain group SecureStorage needs), and with
+      # entitlements present even a simulator build looks for a signing identity in the keychain,
+      # which a hosted runner doesn't have ("No valid iOS code signing keys found"). The real
       # (signed, device) publish is a release-workflow concern once distribution is settled (#753).
       - name: Build
         run: >
           dotnet build Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj -c Release -f net10.0-ios
-          -p:RuntimeIdentifier=iossimulator-arm64
+          -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=false
 
   linux-packages:
     name: Linux packages
