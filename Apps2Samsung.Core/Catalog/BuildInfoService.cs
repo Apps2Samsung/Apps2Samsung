@@ -44,11 +44,17 @@ namespace Apps2Samsung.Catalog
 
         private readonly HttpClient _http;
         private readonly Func<string?>? _tokenProvider;
+        private readonly ResolvedCatalogService? _snapshot;
 
-        public BuildInfoService(HttpClient http, Func<string?>? tokenProvider = null)
+        /// <param name="snapshot">
+        /// Optional pre-resolved catalog: <see cref="GetLatestReleaseTagAsync"/> then answers from it
+        /// for any provider URL it covers, and only asks the GitHub API for the rest.
+        /// </param>
+        public BuildInfoService(HttpClient http, Func<string?>? tokenProvider = null, ResolvedCatalogService? snapshot = null)
         {
             _http = http;
             _tokenProvider = tokenProvider;
+            _snapshot = snapshot;
         }
 
         /// <summary>
@@ -119,8 +125,23 @@ namespace Apps2Samsung.Catalog
             return new BuildInfoResult(jellyfin, community);
         }
 
-        /// <summary>Fetches the latest release tag for a /releases or /releases/tags/&lt;tag&gt; URL.</summary>
+        /// <summary>
+        /// The latest release tag for a /releases or /releases/tags/&lt;tag&gt; URL: from the
+        /// pre-resolved snapshot when it covers the URL, else fetched from the GitHub API.
+        /// </summary>
         public async Task<string> GetLatestReleaseTagAsync(string url)
+        {
+            if (_snapshot is not null)
+            {
+                var resolved = ResolvedCatalogService.Find(await _snapshot.GetAsync(), id: null, url: url);
+                if (resolved is not null)
+                    return resolved.LatestTag ?? string.Empty;
+            }
+            return await FetchLatestReleaseTagAsync(url);
+        }
+
+        /// <summary>Always asks the GitHub API (what the snapshot generator records as <c>latestTag</c>).</summary>
+        public async Task<string> FetchLatestReleaseTagAsync(string url)
         {
             try
             {

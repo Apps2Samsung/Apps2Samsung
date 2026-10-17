@@ -147,8 +147,15 @@ namespace Apps2Samsung
 
             // Shared app catalog for the icon/title editor (manifest → entries; HasOblong via the
             // bundled-oblong source, so it stays correct per head).
+            // The pre-resolved catalog from apps2samsung.com: one download per 10 minutes, shared by
+            // every consumer, so the app list and the "?" view load with no api.github.com call.
+            services.AddSingleton(sp => new Apps2Samsung.Catalog.ResolvedCatalogService(
+                sp.GetRequiredService<System.Net.Http.HttpClient>(),
+                System.IO.Path.Combine(ProviderManifestService.CacheDirectory, Apps2Samsung.Catalog.ResolvedCatalogService.CacheFileName)));
             services.AddSingleton<Apps2Samsung.Catalog.AppCatalog>(sp => new Apps2Samsung.Catalog.AppCatalog(
-                new Apps2Samsung.Helpers.Core.AddLatestRelease(sp.GetRequiredService<System.Net.Http.HttpClient>()),
+                new Apps2Samsung.Helpers.Core.AddLatestRelease(
+                    sp.GetRequiredService<System.Net.Http.HttpClient>(),
+                    snapshot: sp.GetRequiredService<Apps2Samsung.Catalog.ResolvedCatalogService>()),
                 sp.GetRequiredService<Apps2Samsung.Packaging.IOblongIconSource>()));
 
             // --------------------

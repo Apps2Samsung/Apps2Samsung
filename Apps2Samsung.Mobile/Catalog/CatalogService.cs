@@ -26,12 +26,13 @@ public sealed class CatalogService
 	private readonly AddLatestRelease _releases;
 	private readonly BuildInfoService _buildInfo;
 
-	public CatalogService(HttpClient http)
+	public CatalogService(HttpClient http, ResolvedCatalogService resolvedCatalog)
 	{
 		_http = http;
-		// Mobile has no auth handler on its HttpClient, so supply the PAT here.
-		_releases = new AddLatestRelease(http, () => MobileSettings.GitHubToken);
-		_buildInfo = new BuildInfoService(http, () => MobileSettings.GitHubToken);
+		// Mobile has no auth handler on its HttpClient, so supply the PAT here. The pre-resolved
+		// snapshot comes first either way; the PAT only matters for the providers it lacks.
+		_releases = new AddLatestRelease(http, () => MobileSettings.GitHubToken, resolvedCatalog);
+		_buildInfo = new BuildInfoService(http, () => MobileSettings.GitHubToken, resolvedCatalog);
 	}
 
 	/// <summary>Loads the "app preview + versions" catalog for the info view (the "?" button).</summary>
@@ -57,8 +58,9 @@ public sealed class CatalogService
 			if (take > 1 && !MobileSettings.ShowAllJellyfinVersions)
 				take = 1; // collapse Jellyfin history to latest unless opted in
 
-			var (releases, ok) = await _releases.GetReleasesWithStatusAsync(
-				provider.Url, provider.Prefix, provider.DisplayName, take);
+			// Snapshot → live API → cached snapshot; Ok is false only when all three came up empty.
+			var fetched = await _releases.GetProviderReleasesAsync(provider, take);
+			var (releases, ok) = (fetched.Releases, fetched.Ok);
 
 			// Apps declaring cert_level: partner auto-request Partner signing at install.
 			var requiresPartner = string.Equals(provider.CertLevel, "partner", StringComparison.OrdinalIgnoreCase);
@@ -68,9 +70,9 @@ public sealed class CatalogService
 			{
 				// The community bundle: one entry per file, or one per app when the release's
 				// catalog.json groups files into variants. Shared shaping with the desktop (Core).
-				var catalog = releases.Count > 0
+				var catalog = fetched.Catalog ?? (releases.Count > 0
 					? await _releases.GetCommunityCatalogAsync(releases[0].CatalogUrl)
-					: null;
+					: null);
 				entries.AddRange(CommunityAppList.Expand(releases, catalog, requiresPartner));
 			}
 			else

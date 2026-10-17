@@ -167,7 +167,8 @@ namespace Apps2Samsung.ViewModels
             HttpClient httpClient,
             PackageHelper packageHelper,
             FileHelper fileHelper,
-            SettingsWindowViewModel settingsViewModel
+            SettingsWindowViewModel settingsViewModel,
+            ResolvedCatalogService resolvedCatalog
         )
         {
             _tizenInstaller = tizenInstaller;
@@ -182,7 +183,9 @@ namespace Apps2Samsung.ViewModels
             _fileHelper = fileHelper;
             _settingsViewModel = settingsViewModel;
 
-            _addLatestRelease = new AddLatestRelease(httpClient);
+            // Snapshot-first: the pre-resolved catalog serves the manifest's providers; the GitHub
+            // API is only asked for what it lacks.
+            _addLatestRelease = new AddLatestRelease(httpClient, snapshot: resolvedCatalog);
             _providerManifestService = new ProviderManifestService(httpClient);
 
             // A server certificate that failed validation (#656): tell the user, once per host, the
@@ -926,11 +929,8 @@ namespace Apps2Samsung.ViewModels
                     if (take > 1 && !AppSettings.Default.ShowAllJellyfinVersions)
                         take = 1;
 
-                    var release = await _addLatestRelease.GetReleasesAsync(
-                        provider.Url,
-                        provider.Prefix,
-                        provider.DisplayName,
-                        take);
+                    var fetched = await _addLatestRelease.GetProviderReleasesAsync(provider, take);
+                    var release = fetched.Releases;
                     if (release.Count == 0)
                         continue;
 
@@ -942,7 +942,8 @@ namespace Apps2Samsung.ViewModels
                         // The community bundle: one entry per file, or one per app when the
                         // release's catalog.json groups files (forks, per-Tizen builds) into
                         // variants. Without a catalog this is the flat list it always was.
-                        var catalog = await _addLatestRelease.GetCommunityCatalogAsync(release[0].CatalogUrl);
+                        var catalog = fetched.Catalog
+                            ?? await _addLatestRelease.GetCommunityCatalogAsync(release[0].CatalogUrl);
                         list.AddRange(CommunityAppList.Expand(release, catalog, requiresPartner));
                     }
                     else

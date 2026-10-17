@@ -55,9 +55,11 @@ namespace Apps2Samsung.Models
 
         /// <summary>
         /// Download URL of the release's <c>catalog.json</c>, when the release ships one (the
-        /// community bundle). Captured before the asset list is narrowed to .wgt/.tpk.
+        /// community bundle). Captured before the asset list is narrowed to .wgt/.tpk. Serialized
+        /// (GitHub itself never sends a <c>catalog_url</c>) so the pre-resolved snapshot
+        /// (<see cref="ResolvedCatalog"/>) carries it across.
         /// </summary>
-        [JsonIgnore]
+        [JsonPropertyName("catalog_url")]
         public string? CatalogUrl { get; set; }
 
         public GitHubRelease()

@@ -38,6 +38,11 @@ jobs:
       - name: Build
         run: dotnet build Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj -c Release
 
+      # The catalog-snapshot generator shares Core; a Core change that breaks it would otherwise
+      # only show up when the next half-hourly snapshot run fails.
+      - name: Build the catalog snapshot tool
+        run: dotnet build tools/CatalogSnapshot/CatalogSnapshot.csproj -c Release
+
   android:
     name: Mobile (Android)
     runs-on: ubuntu-latest
