@@ -225,6 +225,7 @@ namespace Apps2Samsung.Helpers.Core
             public const string PartnerSigningAutoEnabled = "partnerSigningAutoEnabled";
             public const string PackageAndSign = "packageAndSign";
             public const string InstallingPackage = "InstallingPackage";
+            public const string InstallingPackageProgress = "InstallingPackageProgress";
             public const string InstallationFailed = "InstallationFailed";
             public const string ConnectionInterrupted = "connectionInterrupted";
             public const string VpnDetected = "vpnDetectedWarning";
