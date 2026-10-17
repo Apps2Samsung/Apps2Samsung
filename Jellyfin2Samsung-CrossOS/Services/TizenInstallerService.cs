@@ -217,7 +217,8 @@ namespace Apps2Samsung.Services
             CancellationToken cancellationToken,
             ProgressCallback? progress = null,
             Action? onSamsungLoginStarted = null,
-            bool? wasAlreadyInstalled = null)
+            bool? wasAlreadyInstalled = null,
+            IProgress<int>? installProgress = null)
         {
             // Record whether the app was already on the TV BEFORE this run. This gates the fresh-install
             // partial cleanup in HandleInstallationResultAsync: we only clear a partial for an app that
@@ -248,6 +249,7 @@ namespace Apps2Samsung.Services
                 DeletePrevious = _appSettings.DeletePreviousInstall,
                 WasAlreadyInstalled = wasAlreadyInstalled.Value,
                 SourcePackage = packageUrl,
+                InstallProgress = installProgress,
             };
 
             try
@@ -971,7 +973,7 @@ namespace Apps2Samsung.Services
                 catch { /* best-effort */ }
             }
 
-            var installResults = await InstallPackageOnDeviceAsync(tvIpAddress, packagePath, sdkToolPath);
+            var installResults = await InstallPackageOnDeviceAsync(tvIpAddress, packagePath, sdkToolPath, run.InstallProgress);
 
             // Transport / connection failure (e.g. "Unable to read data from the transport
             // connection: Connection reset by peer"). Environmental — a VPN/proxy/firewall on
@@ -1167,7 +1169,7 @@ namespace Apps2Samsung.Services
             try
             {
                 var result = await _sdb.AppsAsync(tvIpAddress);
-                return Apps2Samsung.Sdb.TizenInstalledApps.Parse(result?.Output);
+                return Apps2Samsung.Sdb.TizenInstalledApps.ParseOrThrow(result);
             }
             finally
             {
@@ -1398,9 +1400,9 @@ namespace Apps2Samsung.Services
             return await _sdb.ResignAsync(packagePath, authorP12, distributorP12, certPass);
         }
 
-        private async Task<ProcessResult> InstallPackageOnDeviceAsync(string tvIpAddress, string packagePath, string sdkToolPath)
+        private async Task<ProcessResult> InstallPackageOnDeviceAsync(string tvIpAddress, string packagePath, string sdkToolPath, IProgress<int>? installProgress)
         {
-            return await _sdb.InstallAsync(tvIpAddress, packagePath, sdkToolPath);
+            return await _sdb.InstallAsync(tvIpAddress, packagePath, sdkToolPath, installProgress);
         }
 
         private async Task<ProcessResult> UninstallPackageAsync(string tvIpAddress, string packageId)
@@ -1428,6 +1430,12 @@ namespace Apps2Samsung.Services
 
             /// <summary>Whether the app was on the TV before this run started.</summary>
             public bool WasAlreadyInstalled { get; set; }
+
+            /// <summary>
+            /// Where the TV's install percentage goes, for every attempt of this run. Carried here
+            /// rather than threaded through each retry path: only the push itself reports it.
+            /// </summary>
+            public IProgress<int>? InstallProgress { get; init; }
 
             /// <summary>The package the caller handed in. Read only: never patched, signed or renamed.</summary>
             public string SourcePackage { get; init; } = "";

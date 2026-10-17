@@ -36,8 +36,8 @@ namespace Apps2Samsung.Sdb
             Has(output, Constants.TizenErrorCodes.InstallFailed118Minus4);
 
         /// <summary>
-        /// The TV's security manager rejected the package ([118, -22] / "Security error :
-        /// :Invalid function parameter was given:&lt;2&gt;" — SECURITY_MANAGER_ERROR_INPUT_PARAM).
+        /// The TV's security manager rejected the package ([118, -22], or [118022] on Tizen 4 / "Security
+        /// error : :Invalid function parameter was given:&lt;2&gt;" — SECURITY_MANAGER_ERROR_INPUT_PARAM).
         /// In practice this means the package <b>id</b> is blocked on this set: it is still bound to a
         /// different author certificate, or a broken uninstall left a record behind that the app list no
         /// longer shows, so there is nothing for us to remove over SDB (#702, #422). Re-signing and
@@ -48,7 +48,8 @@ namespace Apps2Samsung.Sdb
         /// fell through to the generic branch.</para>
         /// </summary>
         public static bool IsPackageIdBlocked(string? output) =>
-            Has(output, Constants.TizenErrorCodes.InstallFailed118Minus22);
+            Has(output, Constants.TizenErrorCodes.InstallFailed118Minus22) ||
+            Has(output, Constants.TizenErrorCodes.InstallFailed118022);
 
         /// <summary>A package-id / config conflict ([118], not the more specific variants above).</summary>
         public static bool IsPackageIdConflict(string? output) =>

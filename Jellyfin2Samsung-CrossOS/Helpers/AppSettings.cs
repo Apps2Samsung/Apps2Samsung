@@ -125,6 +125,9 @@ namespace Apps2Samsung.Helpers
         public string ImmiTvEmail { get; set; } = "";
         public string ImmiTvPassword { get; set; } = "";
         public string ImmiTvApiKey { get; set; } = "";
+        // Camera PiP: cameras + mosaic style + sound (CameraPipConfigInjector.ToJson), written into
+        // the widget's config.js window.PIP_CONFIG at install
+        public string CameraPipConfigJson { get; set; } = "";
         public bool TizenTubeProxyOverride { get; set; } = false;  // opt-in: point TizenTube Cobalt's --proxy at a LAN address (Tizen 9 fix)
         public string TizenTubeProxyHost { get; set; } = "";  // host[:port] for that proxy; empty = the TV being installed to
         public bool TvAppUseOblongIcon { get; set; } = false;  // legacy: migrated into CustomAppIconsJson ("oblong")
@@ -156,7 +159,7 @@ namespace Apps2Samsung.Helpers
         [JsonIgnore]
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
         [JsonIgnore]
-        public string AppVersion { get; set; } = "v2.8.2";
+        public string AppVersion { get; set; } = "v2.8.3";
         [JsonIgnore]
         public string JellyfinAvReleaseFork { get; set; } = "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases";
         [JsonIgnore]

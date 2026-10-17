@@ -33,6 +33,9 @@ namespace Apps2Samsung.Helpers.Core
             // contain the plain "install failed[118]" token, so it used to fall through to the generic
             // branch and dump the raw wascmd output at the user (#702, #422).
             public const string InstallFailed118Minus22 = "install failed[118, -22]";
+            // Tizen 4 (2018 sets, sdbd 2.2.x) prints the same refusal as a six-digit code, the way
+            // [118012] is the old spelling of [118, -12]. Also not a substring of "install failed[118]".
+            public const string InstallFailed118022 = "install failed[118022]";
             public const string InstallFailed118 = "install failed[118]";
             public const string Installing100 = "installing[100]";
             public const string InstallCompleted = "install completed";
@@ -222,6 +225,7 @@ namespace Apps2Samsung.Helpers.Core
             public const string PartnerSigningAutoEnabled = "partnerSigningAutoEnabled";
             public const string PackageAndSign = "packageAndSign";
             public const string InstallingPackage = "InstallingPackage";
+            public const string InstallingPackageProgress = "InstallingPackageProgress";
             public const string InstallationFailed = "InstallationFailed";
             public const string ConnectionInterrupted = "connectionInterrupted";
             public const string VpnDetected = "vpnDetectedWarning";

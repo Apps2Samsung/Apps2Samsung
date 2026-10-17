@@ -26,6 +26,7 @@
   "ExportPfxCertificates": "PFX-Zertifikate werden exportiert...",
   "SelectWGT": "WGT- und/oder TPK-Datei(en) auswählen",
   "lblRelease": "Version",
+  "categoryOther": "Andere",
   "lblSelectTv": "TV auswählen",
   "lblLanguage": "Sprache",
   "lblCustomIcon": "Eigenes Symbol",

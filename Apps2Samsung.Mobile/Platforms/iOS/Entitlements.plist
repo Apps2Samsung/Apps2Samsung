@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- MobileSettings keeps its secrets (GitHub PAT, Jellyfin/Immich tokens) in SecureStorage,
+	     which is the keychain on iOS; the keychain needs an access group entitlement, and the
+	     simulator refuses SecureStorage without it. -->
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)$(CFBundleIdentifier)</string>
+	</array>
+</dict>
+</plist>

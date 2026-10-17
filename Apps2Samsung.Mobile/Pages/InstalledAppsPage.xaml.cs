@@ -88,7 +88,8 @@ public partial class InstalledAppsPage : ContentPage
 		try
 		{
 			var result = await _sdb.AppsAsync(_tvIp);
-			var apps = TizenInstalledApps.Parse(result?.Output).ToList();
+			// An empty list is the TV's answer (a fresh emulator, a reset set); a failed read throws.
+			var apps = TizenInstalledApps.ParseOrThrow(result).ToList();
 			var iconMap = await Apps2Samsung.Catalog.AppIconResolver.GetIconMapAsync();
 			for (int i = 0; i < apps.Count; i++)
 			{
@@ -105,7 +106,7 @@ public partial class InstalledAppsPage : ContentPage
 
 			if (apps.Count == 0)
 			{
-				EmptyLabel.Text = "Couldn't read the app list from this TV.";
+				EmptyLabel.Text = L10n.Get("statusNoInstalledApps");
 				CountLabel.Text = _tvLabel;
 			}
 			else

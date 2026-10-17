@@ -201,6 +201,12 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
                 var entry = _pluginManager.FindPluginEntry(plugin);
                 if (entry == null) continue;
 
+                if (!PluginManager.MeetsMinimumVersion(plugin, entry))
+                {
+                    Trace.WriteLine($"⏭ Plugin '{entry.Name}' v{plugin?.Version ?? "?"} is below the supported minimum {entry.MinimumVersion}, skipping.");
+                    continue;
+                }
+
                 var patch = _pluginManager.ResolvePatch(entry);
                 if (patch == null)
                 {

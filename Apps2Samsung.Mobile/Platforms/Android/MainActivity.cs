@@ -12,6 +12,6 @@ public class MainActivity : MauiAppCompatActivity
     protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
     {
         base.OnActivityResult(requestCode, resultCode, data);
-        SafFilePicker.OnActivityResult(requestCode, resultCode, data);
+        LocalFilePicker.OnActivityResult(requestCode, resultCode, data);
     }
 }

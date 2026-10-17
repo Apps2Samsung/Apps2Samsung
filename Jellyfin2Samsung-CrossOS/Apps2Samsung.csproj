@@ -15,7 +15,7 @@
 	<CFBundleName>Apps2Samsung</CFBundleName>
 	<CFBundleDisplayName>Apps2Samsung</CFBundleDisplayName>
 	<CFBundleIdentifier>com.madebypatrick.apps2samsung</CFBundleIdentifier>
-	<CFBundleVersion>2.8.2</CFBundleVersion>
+	<CFBundleVersion>2.8.3</CFBundleVersion>
 	<CFBundlePackageType>APPL</CFBundlePackageType>
 	<CFBundleSignature>????</CFBundleSignature>
 	<CFBundleExecutable>Apps2Samsung</CFBundleExecutable>
@@ -28,6 +28,13 @@
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
 	<DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <!-- Package-managed builds (Nix, Homebrew, distro packages, ...) cannot replace their own
+       installation files. Build with -p:DisableSelfUpdate=true to compile out the in-place
+       self-update action; update checks and notifications keep working. See #736. -->
+  <PropertyGroup Condition="'$(DisableSelfUpdate)'=='true'">
+	<DefineConstants>$(DefineConstants);DISABLE_SELF_UPDATE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -81,7 +88,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Fleck" Version="1.2.0" />
     <PackageReference Include="FluentAvaloniaUI" Version="2.5.1" />
-    <PackageReference Include="Jint" Version="4.16.4" />
+    <PackageReference Include="Jint" Version="4.17.0" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.3.13" />
   <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Core" Version="2.3.13" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />

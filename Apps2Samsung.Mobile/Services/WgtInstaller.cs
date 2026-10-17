@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using Apps2Samsung.Certificate;
+using Apps2Samsung.Extensions;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Helpers.Core;
@@ -148,7 +149,7 @@ public sealed class WgtInstaller
 			throw new InvalidOperationException($"Re-sign failed: {Detail(resign.Error, resign.Output)}");
 
 		progress?.Invoke("Installing on TV…");
-		var install = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath);
+		var install = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath, InstallPercentFor(progress));
 		// The Tizen install helper returns a zero exit code (cmd_ret:0) even when the app install
 		// itself failed (e.g. "app_id[...] install failed[118]"). Trusting the exit code alone made
 		// the app report "✓ Installed" for installs that never landed on the TV — so classify the
@@ -164,6 +165,12 @@ public sealed class WgtInstaller
 
 		return install.Output;
 	}
+
+	// The TV reports its install percentage line by line (installing[9] … installing[100]); the
+	// status label is the only progress surface this page has, so the number goes into its text.
+	// Synchronous (SyncProgress) so the values keep the TV's order; SetStatus marshals to the UI.
+	private static IProgress<int>? InstallPercentFor(Action<string>? progress) =>
+		progress is null ? null : new SyncProgress<int>(percent => progress($"Installing on TV… {percent}%"));
 
 	// [118, -22] from the TV's security manager. Worded the same as the desktop head's
 	// "packageIdBlocked" string, which is the translated one.
@@ -240,7 +247,7 @@ public sealed class WgtInstaller
 			progress?.Invoke("Install failed — removing the old copy and retrying…");
 			try { await _sdb.UninstallAsync(tvIp, packageId!); } catch { /* best-effort */ }
 
-			var retry = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath);
+			var retry = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath, InstallPercentFor(progress));
 			if (retry.ExitCode == 0 && !TizenInstallDiagnostics.IndicatesFailure(retry.Output))
 				return retry;
 

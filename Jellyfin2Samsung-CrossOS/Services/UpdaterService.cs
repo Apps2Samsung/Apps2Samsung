@@ -347,6 +347,11 @@ rm -- ""$0""
         /// <inheritdoc />
         public bool IsAutomaticUpdateSupported()
         {
+#if DISABLE_SELF_UPDATE
+            // Built with -p:DisableSelfUpdate=true: a package manager owns the installation
+            // (Nix store, Homebrew cellar, ...) and the app must not replace its own files (#736).
+            return false;
+#else
             var appDir = AppContext.BaseDirectory;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -377,6 +382,7 @@ rm -- ""$0""
             }
 
             return true;
+#endif
         }
 
         private static bool IsUnderDirectory(string path, string? baseDir)

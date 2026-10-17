@@ -1,4 +1,5 @@
 using Apps2Samsung.Models;
+using System;
 using System.Threading.Tasks;
 
 namespace Apps2Samsung.Interfaces
@@ -46,8 +47,13 @@ namespace Apps2Samsung.Interfaces
         /// <summary>Re-signs a .wgt with the given author/distributor PKCS#12 certificates.</summary>
         Task<ProcessResult> ResignAsync(string packagePath, string authorP12, string distributorP12, string certPass);
 
-        /// <summary>Pushes and installs a .wgt onto the TV.</summary>
-        Task<ProcessResult> InstallAsync(string tvIpAddress, string packagePath, string sdkToolPath);
+        /// <summary>
+        /// Pushes and installs a .wgt onto the TV. <paramref name="progress"/>, when given, receives the
+        /// percentage the TV reports while it installs (<c>installing[9]</c> … <c>installing[100]</c>, see
+        /// <c>TizenInstallProgress</c>), on the engine's thread and in the order the TV sent it. The push
+        /// that precedes the install reports nothing, so the first value may take a while to arrive.
+        /// </summary>
+        Task<ProcessResult> InstallAsync(string tvIpAddress, string packagePath, string sdkToolPath, IProgress<int>? progress = null);
 
         /// <summary>Uninstalls an app from the TV by package id.</summary>
         Task<ProcessResult> UninstallAsync(string tvIpAddress, string packageId);

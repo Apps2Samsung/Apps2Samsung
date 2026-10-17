@@ -91,6 +91,9 @@ namespace Apps2Samsung
             // SDB engine: TizenSdb.Core driven in-process, the same engine the mobile head runs.
             // Nothing to download or update at first launch, so a fresh install works offline (#549).
             services.AddSingleton<ISdbEngine, Apps2Samsung.Sdb.InProcessSdbEngine>();
+            // A Tizen Studio sdb server on this PC holds a TV's (or the emulator's) single debug
+            // connection; stop it before every fresh connect, not only at startup.
+            Apps2Samsung.Sdb.InProcessSdbEngine.ClearCompetingSdbServer = ProcessHelper.KillSdbServers;
             services.AddSingleton<ITizenInstallerService, TizenInstallerService>();
             services.AddSingleton<IThemeService, ThemeService>();
             services.AddSingleton<IUpdaterService, UpdaterService>();
@@ -133,6 +136,8 @@ namespace Apps2Samsung
             // ImmiTV: Immich server + login → js/config.js IMMICH_DEFAULTS at install (shared Core patcher).
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.ImmiTvPackagePatcher>();
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.TizenTubeProxyPatcher>();
+            // Camera PiP: cameras → config.js window.PIP_CONFIG at install (shared Core patcher).
+            services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.CameraPipPackagePatcher>();
             // Registered last so the user's chosen icon (custom PNG or the bundled oblong tile)
             // overrides the package's default and composes with the app-specific patchers above.
             // Now the shared Core patcher (was Apps2Samsung.Helpers.CustomIconPackagePatcher).
@@ -142,8 +147,15 @@ namespace Apps2Samsung
 
             // Shared app catalog for the icon/title editor (manifest → entries; HasOblong via the
             // bundled-oblong source, so it stays correct per head).
+            // The pre-resolved catalog from apps2samsung.com: one download per 10 minutes, shared by
+            // every consumer, so the app list and the "?" view load with no api.github.com call.
+            services.AddSingleton(sp => new Apps2Samsung.Catalog.ResolvedCatalogService(
+                sp.GetRequiredService<System.Net.Http.HttpClient>(),
+                System.IO.Path.Combine(ProviderManifestService.CacheDirectory, Apps2Samsung.Catalog.ResolvedCatalogService.CacheFileName)));
             services.AddSingleton<Apps2Samsung.Catalog.AppCatalog>(sp => new Apps2Samsung.Catalog.AppCatalog(
-                new Apps2Samsung.Helpers.Core.AddLatestRelease(sp.GetRequiredService<System.Net.Http.HttpClient>()),
+                new Apps2Samsung.Helpers.Core.AddLatestRelease(
+                    sp.GetRequiredService<System.Net.Http.HttpClient>(),
+                    snapshot: sp.GetRequiredService<Apps2Samsung.Catalog.ResolvedCatalogService>()),
                 sp.GetRequiredService<Apps2Samsung.Packaging.IOblongIconSource>()));
 
             // --------------------
@@ -167,6 +179,7 @@ namespace Apps2Samsung
             services.AddSingleton<TvAppSettingsViewModel>();
             services.AddSingleton<ImmiTvSettingsViewModel>();
             services.AddSingleton<TizenTubeSettingsViewModel>();
+            services.AddSingleton<CameraPipSettingsViewModel>();
             services.AddSingleton<SettingsWindowViewModel>();
 
             // App-specific settings sections (each app registers one provider).
@@ -174,6 +187,7 @@ namespace Apps2Samsung
             services.AddSingleton<IAppSettingsProvider, TvAppSettingsProvider>();
             services.AddSingleton<IAppSettingsProvider, ImmiTvSettingsProvider>();
             services.AddSingleton<IAppSettingsProvider, TizenTubeSettingsProvider>();
+            services.AddSingleton<IAppSettingsProvider, CameraPipSettingsProvider>();
 
             // --------------------
             // Views

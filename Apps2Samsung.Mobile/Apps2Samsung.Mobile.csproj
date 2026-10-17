@@ -1,10 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<!-- Android-first head. Single-target on purpose: iOS/MacCatalyst/Windows are dropped so
-		     the build needs only the maui-android workload (no ios/maccatalyst). Re-add TFMs here
-		     if another platform head is ever wanted — the shared logic lives in Apps2Samsung.Core. -->
+		<!-- Two targets, one head: Android and iOS share every page and service; only
+		     Platforms/Android and Platforms/iOS differ (MAUI compiles each folder for its own TFM).
+		     The iOS target is added on macOS only: restoring a TFM needs its workload installed, and
+		     the Linux runners (PR build, beta/stable release) have maui-android but no ios, so an
+		     unconditional net10.0-ios would break every Android build. macOS (the Mobile (iOS) CI job,
+		     a Mac dev box) gets both. MacCatalyst/Windows stay out; desktop is the Avalonia app. -->
 		<TargetFrameworks>net10.0-android</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('osx'))">net10.0-android;net10.0-ios</TargetFrameworks>
 
 		<!-- Note for MacCatalyst:
 		The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
@@ -49,7 +53,7 @@
 		     .github/scripts/android-version-code.sh so it can never go backwards.
 		     A release build verifies the published APK against that value, so raising
 		     the number here has no effect on what users get. -->
-		<ApplicationDisplayVersion>2.8.2</ApplicationDisplayVersion>
+		<ApplicationDisplayVersion>2.8.3</ApplicationDisplayVersion>
 		<ApplicationVersion>5</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
@@ -60,6 +64,11 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
+		<!-- Keychain access group for SecureStorage (MobileSettings' secrets); see the file. -->
+		<CodesignEntitlements>Platforms\iOS\Entitlements.plist</CodesignEntitlements>
 	</PropertyGroup>
 
 	<ItemGroup>

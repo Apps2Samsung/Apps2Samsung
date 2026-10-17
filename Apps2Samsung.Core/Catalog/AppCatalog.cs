@@ -63,8 +63,7 @@ namespace Apps2Samsung.Catalog
                         continue;
                     try
                     {
-                        var releases = await _releases.GetReleasesAsync(
-                            provider.Url, provider.Prefix, provider.DisplayName, provider.Take);
+                        var releases = (await _releases.GetProviderReleasesAsync(provider, provider.Take)).Releases;
                         foreach (var r in releases)
                             foreach (var asset in r.Assets)
                             {

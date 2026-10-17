@@ -12,9 +12,13 @@ namespace Apps2Samsung.Interfaces
     {
         Task<string> GetTvNameAsync(string tvIpAddress);
         Task<string> DownloadPackageAsync(string downloadUrl);
-        Task<InstallResult> InstallPackageAsync(string packageUrl, string tvIpAddress, CancellationToken cancellationToken, ProgressCallback? progress = null, Action? onSamsungLoginStarted = null, bool? wasAlreadyInstalled = null);
+        /// <param name="installProgress">Receives the percentage the TV reports while it installs the
+        /// package (0–100), separate from the status lines in <paramref name="progress"/>. Reported on
+        /// the engine's thread; a retry starts again from the TV's first report.</param>
+        Task<InstallResult> InstallPackageAsync(string packageUrl, string tvIpAddress, CancellationToken cancellationToken, ProgressCallback? progress = null, Action? onSamsungLoginStarted = null, bool? wasAlreadyInstalled = null, IProgress<int>? installProgress = null);
 
-        /// <summary>Lists the apps installed on the TV (queries the TV and parses the reply).</summary>
+        /// <summary>Lists the apps installed on the TV (queries the TV and parses the reply). Empty
+        /// when the TV listed nothing; throws when it sent no listing at all.</summary>
         Task<IReadOnlyList<Apps2Samsung.Models.InstalledApp>> GetInstalledAppsAsync(string tvIpAddress);
 
         /// <summary>Uninstalls an app from the TV by its Tizen id. Returns the raw SDB result.</summary>

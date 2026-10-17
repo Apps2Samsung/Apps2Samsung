@@ -205,6 +205,33 @@
 
                 <BoxView Style="{StaticResource Divider}" />
 
+                <!-- Camera PiP: cameras + mosaic style + sound, written into the package's config.js -->
+                <controls:ExpanderSection Title="{l:Localize lblCameraPip}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Hint}"
+                               Text="{l:Localize hintCameraPip}" />
+                        <VerticalStackLayout x:Name="CamerasContainer" Spacing="8" />
+                        <Button x:Name="AddCameraBtn" Text="{l:Localize lblAddCamera}" HorizontalOptions="Start"
+                                BackgroundColor="Transparent" BorderWidth="1"
+                                BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
+                                TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
+                                Padding="14,8" Clicked="OnAddCamera" />
+                        <Label Style="{StaticResource Hint}"
+                               Text="{l:Localize lblCameraPipUrlsHint}" />
+                        <Grid Style="{StaticResource ToggleRow}">
+                            <Label Grid.Column="0" Text="{l:Localize lblCameraPipMosaicStyle}" VerticalOptions="Center" />
+                            <Picker Grid.Column="1" x:Name="CameraPipMosaicPicker" SelectedIndexChanged="OnCameraPipMosaicChanged"
+                                    HorizontalOptions="End" WidthRequest="200" />
+                        </Grid>
+                        <Grid Style="{StaticResource ToggleRow}">
+                            <Label Grid.Column="0" Text="{l:Localize lblCameraPipSound}" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" x:Name="CameraPipSoundSwitch" OnColor="#2C3E50" Toggled="OnCameraPipSoundToggled" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
+
+                <BoxView Style="{StaticResource Divider}" />
+
                 <!-- TizenTube Cobalt: opt-in proxy address rewrite (Tizen 9 "network error") -->
                 <controls:ExpanderSection Title="{l:Localize lblTizenTubeProxy}">
                     <VerticalStackLayout Spacing="8">

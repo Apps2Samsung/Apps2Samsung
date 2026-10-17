@@ -76,6 +76,22 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
             },
             new PluginMatrixEntry
             {
+                // Served by the plugin's own controller (anonymous, no sign-in needed). Before 6.0.0.0
+                // the client fetched "/NotifySync/..." relative to the page origin, which inside the
+                // packaged app is not the server, so older installs are skipped. Deliberately no
+                // ServerAssetRule for this one: with File Transformation installed the server's
+                // index.html already carries this very script tag, and a rule would cache and inject
+                // it a second time next to the copy the patch below adds.
+                Name = "NotifySync",
+                FallbackUrls = new(),
+                ExplicitServerFiles = new List<string>
+                {
+                    "/NotifySync/client.js"
+                },
+                MinimumVersion = new Version(6, 0, 0, 0)
+            },
+            new PluginMatrixEntry
+            {
                 Name = "KefinTweaks",
                 FallbackUrls = new List<string>
                 {

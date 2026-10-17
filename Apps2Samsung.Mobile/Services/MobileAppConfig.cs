@@ -48,6 +48,11 @@ public sealed class MobileAppConfig : IAppConfig
     public bool TizenTubeProxyOverride => MobileSettings.TizenTubeProxyOverride;
     public string TizenTubeProxyHost => MobileSettings.TizenTubeProxyHost;
 
+    // ---- Camera PiP package patching ----
+    // Backed by the Settings → Camera PiP section (MobileSettings). Read by the shared
+    // CameraPipPackagePatcher at install to write the cameras into config.js.
+    public string CameraPipConfigJson => MobileSettings.CameraPipConfigJson;
+
     // ---- Jellyfin package patching ----
     // Backed by the Settings → Jellyfin page (MobileSettings). Read by the shared
     // JellyfinPackagePatcher at install to inject server URL + auto-login + custom CSS.

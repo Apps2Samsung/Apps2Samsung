@@ -10,6 +10,7 @@
   "Output": "Kimenet",
   "NoDevicesFound": "Nem található eszköz",
   "lblVersion": "Verzió",
+  "categoryOther": "Egyéb",
   "lblLanguage": "Nyelv",
   "lblCustomIcon": "Egyéni ikon",
   "lblCustomIconHint": "Nem kötelező. Válasszon egy PNG-t az alkalmazás indítóikonjának — alkalmazásonként megjegyezzük, és telepítéskor beleírjuk a csomagba. Hagyja üresen az alapértelmezett megtartásához.",

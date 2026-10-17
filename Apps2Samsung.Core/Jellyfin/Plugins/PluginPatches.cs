@@ -191,6 +191,30 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
     }
 
     // ------------------------
+    // NotifySync (single script served by the plugin's own controller)
+    // ------------------------
+    public sealed class NotifySyncPatch : IJellyfinPluginPatch
+    {
+        public async Task ApplyAsync(PluginPatchContext ctx)
+        {
+            // "/NotifySync/client.js" -> plugin_cache/NotifySync/client.js, transpiled on the way.
+            await ctx.PluginManager.DownloadExplicitFilesAsync(ctx.ServerUrl, ctx.PluginCacheDir, ctx.MatrixEntry);
+
+            var local = Path.Combine(ctx.PluginCacheDir, "NotifySync", "client.js");
+            if (!File.Exists(local))
+            {
+                System.Diagnostics.Trace.WriteLine("⚠ NotifySync client.js not downloaded, bell not injected.");
+                return;
+            }
+
+            // Same placement File Transformation uses on the server: end of body, no defer.
+            // The script itself waits for window.ApiClient and resolves the server address from it.
+            const string src = "plugin_cache/NotifySync/client.js";
+            ctx.InjectScript($"<script src=\"{src}\"></script>", src);
+        }
+    }
+
+    // ------------------------
     // Media Bar (example: CSS + fallback JS)
     // ------------------------
     public sealed class MediaBarPatch : IJellyfinPluginPatch

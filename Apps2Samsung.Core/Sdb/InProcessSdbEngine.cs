@@ -40,6 +40,23 @@ namespace Apps2Samsung.Sdb
         // Serializes the Console.Out redirect used to capture an install log (see RunCapturingDeviceLog).
         private static readonly SemaphoreSlim ConsoleCaptureGate = new(1, 1);
 
+        /// <summary>
+        /// Clears whatever else on this machine may be holding the TV's single debug connection, and
+        /// is called right before every fresh connect attempt. Samsung's sdbd (and the TV emulator's)
+        /// serves one host at a time: while a Tizen Studio <c>sdb</c> server is attached, our own
+        /// connect dies in the handshake with "Remote closed stream". The desktop head used to stop
+        /// that server once, at startup, but Device Manager and Emulator Manager restart it within
+        /// seconds, so a connection made minutes later (the TV-information view, the app list, the
+        /// install) lost the race again. The desktop head wires this to its process helper; the
+        /// mobile head leaves it null, as a phone runs no sdb server. Returns true when a competitor
+        /// was found and stopped, which is what turns a final failure into a message that names it.
+        /// </summary>
+        public static Func<bool>? ClearCompetingSdbServer { get; set; }
+
+        private const string CompetingServerHint =
+            "Another sdb server on this computer (Tizen Studio's Device Manager or Emulator Manager) " +
+            "was holding the TV's connection. Close it and try again.";
+
         private readonly ConcurrentDictionary<string, DeviceSlot> _slots = new();
 
         // Commands ListApps tries in order (first useful reply wins) — ported from the CLI.
@@ -200,11 +217,17 @@ namespace Apps2Samsung.Sdb
             return result;
         }
 
-        public async Task<ProcessResult> InstallAsync(string tvIpAddress, string packagePath, string sdkToolPath) =>
+        public async Task<ProcessResult> InstallAsync(string tvIpAddress, string packagePath, string sdkToolPath, IProgress<int>? progress = null) =>
             await RunCapturingDeviceLog(tvIpAddress, $"install {tvIpAddress} \"{packagePath}\" {sdkToolPath}", device =>
             {
                 var installer = new TizenInstaller(packagePath, device, sdkToolPath);
                 return installer.InstallApp();
+            }, line =>
+            {
+                // The TV's log is the only place the install reports how far it is; read the
+                // percentage off each line as it arrives instead of after the install returns.
+                if (progress is not null && TizenInstallProgress.TryParsePercent(line, out var percent))
+                    progress.Report(percent);
             });
 
         public async Task<ProcessResult> UninstallAsync(string tvIpAddress, string packageId) => await RunConnected(tvIpAddress, $"uninstall {tvIpAddress} {packageId}", async device =>
@@ -333,16 +356,18 @@ namespace Apps2Samsung.Sdb
         /// The capture tees rather than swallows: the host console stays wired up, so
         /// <see cref="Diagnostics.FileLog"/> keeps mirroring the same lines into the session log the
         /// way it did when this output came from the exe. The redirect is process-wide, so one capture
-        /// runs at a time.
+        /// runs at a time. <paramref name="onLine"/> sees each complete line the moment it is written,
+        /// which is how an install's percentage reaches the UI while the install is still running.
         /// </summary>
-        private Task<ProcessResult> RunCapturingDeviceLog(string ip, string command, Func<SdbTcpDevice, Task> body) =>
+        private Task<ProcessResult> RunCapturingDeviceLog(
+            string ip, string command, Func<SdbTcpDevice, Task> body, Action<string>? onLine = null) =>
             // logOutput: false — the TV's log already reached the session log through the console tee.
             WithDevice(ip, command, async device =>
             {
                 await ConsoleCaptureGate.WaitAsync().ConfigureAwait(false);
                 var log = new StringWriter();
                 var previous = Console.Out;
-                Console.SetOut(new TeeTextWriter(previous, log));
+                Console.SetOut(new TeeTextWriter(previous, log, onLine));
                 try
                 {
                     await body(device);
@@ -392,9 +417,12 @@ namespace Apps2Samsung.Sdb
         {
             var address = IPAddress.Parse(ip);
             Exception? last = null;
+            bool competitorSeen = false;
 
             for (int attempt = 1; attempt <= 3; attempt++)
             {
+                competitorSeen |= StopCompetingSdbServer();
+
                 var device = new SdbTcpDevice(address);
                 try
                 {
@@ -410,7 +438,32 @@ namespace Apps2Samsung.Sdb
                 }
             }
 
-            throw last ?? new InvalidOperationException($"Could not connect to {ip}.");
+            var failure = last ?? new InvalidOperationException($"Could not connect to {ip}.");
+
+            // The connect still died after a competing server was stopped: either it came straight
+            // back (Tizen Studio relaunches it) or the TV has not let go of the old link yet. Either
+            // way the user can act on the server's name, not on a bare socket error.
+            if (competitorSeen && SdbTransportErrors.IsTransient(failure.Message))
+                throw new InvalidOperationException($"{failure.Message} {CompetingServerHint}", failure);
+
+            throw failure;
+        }
+
+        private static bool StopCompetingSdbServer()
+        {
+            var clear = ClearCompetingSdbServer;
+            if (clear is null)
+                return false;
+
+            try
+            {
+                return clear();
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[sdb] could not stop a competing sdb server: {ex.Message}");
+                return false;
+            }
         }
 
         /// <summary>
@@ -480,16 +533,25 @@ namespace Apps2Samsung.Sdb
             }
         }
 
-        /// <summary>Writes to the original console AND a capture buffer (see RunCapturingDeviceLog).</summary>
+        /// <summary>
+        /// Writes to the original console AND a capture buffer (see RunCapturingDeviceLog), and hands
+        /// each completed line to an optional observer. <c>TizenSdb.Core</c> writes whole lines, but the
+        /// observer is fed from every write and cut on newlines, so it also sees a line that arrives in
+        /// pieces. The observer runs on the writing thread and may not break the capture: an exception
+        /// there would surface as a failed install.
+        /// </summary>
         private sealed class TeeTextWriter : TextWriter
         {
             private readonly TextWriter _console;
             private readonly TextWriter _capture;
+            private readonly Action<string>? _onLine;
+            private readonly StringBuilder _pending = new();
 
-            public TeeTextWriter(TextWriter console, TextWriter capture)
+            public TeeTextWriter(TextWriter console, TextWriter capture, Action<string>? onLine = null)
             {
                 _console = console;
                 _capture = capture;
+                _onLine = onLine;
             }
 
             public override Encoding Encoding => _console.Encoding;
@@ -498,18 +560,42 @@ namespace Apps2Samsung.Sdb
             {
                 _console.Write(value);
                 _capture.Write(value);
+                Observe(value.ToString());
             }
 
             public override void Write(string? value)
             {
                 _console.Write(value);
                 _capture.Write(value);
+                Observe(value);
             }
 
             public override void WriteLine(string? value)
             {
                 _console.WriteLine(value);
                 _capture.WriteLine(value);
+                Observe(value);
+                Observe("\n");
+            }
+
+            private void Observe(string? text)
+            {
+                if (_onLine is null || string.IsNullOrEmpty(text))
+                    return;
+
+                foreach (var ch in text)
+                {
+                    if (ch != '\n')
+                    {
+                        _pending.Append(ch);
+                        continue;
+                    }
+
+                    var line = _pending.ToString().TrimEnd('\r');
+                    _pending.Clear();
+                    try { _onLine(line); }
+                    catch (Exception ex) { Trace.WriteLine($"[sdb] install log observer failed: {ex.Message}"); }
+                }
             }
         }
 
