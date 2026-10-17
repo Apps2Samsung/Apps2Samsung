@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Resolves every provider of third-party-apps.json through the GitHub API, server-side, and
+       writes the pre-resolved catalog apps2samsung.com serves at /catalog/resolved.json. Run by
+       .github/workflows/catalog-snapshot.yml with the workflow's GITHUB_TOKEN; references Core so
+       the filtering is the exact code the heads run and the two cannot drift apart.
+       Not in the solution on purpose: it is a CI tool, not a head. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Apps2Samsung.Tools.CatalogSnapshot</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Apps2Samsung.Core\Apps2Samsung.Core.csproj" />
+  </ItemGroup>
+</Project>

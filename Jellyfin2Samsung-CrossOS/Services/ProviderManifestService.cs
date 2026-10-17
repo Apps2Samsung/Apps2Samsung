@@ -22,11 +22,14 @@ namespace Apps2Samsung.Services
 
         // The remote-manifest cache. On macOS this must NOT live next to the binary: writing it into
         // the .app bundle mutates it and breaks the code signature / TCC Local Network prompt (#498).
-        private static readonly string CachePath = OperatingSystem.IsMacOS()
+        /// <summary>Where this head keeps its catalog caches (the manifest, the resolved snapshot).</summary>
+        public static readonly string CacheDirectory = OperatingSystem.IsMacOS()
             ? Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "Library", "Caches", "Apps2Samsung", "third-party-apps.cache.json")
-            : Path.Combine(AppSettings.FolderPath, "third-party-apps.cache.json");
+                "Library", "Caches", "Apps2Samsung")
+            : AppSettings.FolderPath;
+
+        private static readonly string CachePath = Path.Combine(CacheDirectory, "third-party-apps.cache.json");
 
         private readonly HttpClient _httpClient;
 

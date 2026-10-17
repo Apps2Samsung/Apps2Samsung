@@ -79,9 +79,18 @@ public static class MauiProgram
 		// Camera PiP: cameras → config.js window.PIP_CONFIG at install (shared Core patcher).
 		builder.Services.AddSingleton<IPackagePatcher, CameraPipPackagePatcher>();
 
+		// The pre-resolved catalog from apps2samsung.com (one download per 10 minutes, shared), so
+		// the app list and the info view load without api.github.com calls. Cached in the app's
+		// private data dir next to the manifest cache.
+		builder.Services.AddSingleton(sp => new Apps2Samsung.Catalog.ResolvedCatalogService(
+			sp.GetRequiredService<HttpClient>(),
+			Path.Combine(FileSystem.AppDataDirectory, Apps2Samsung.Catalog.ResolvedCatalogService.CacheFileName)));
+
 		// Shared app catalog for the icon/title editor (same list as desktop).
 		builder.Services.AddSingleton<Apps2Samsung.Catalog.AppCatalog>(sp => new Apps2Samsung.Catalog.AppCatalog(
-			new Apps2Samsung.Helpers.Core.AddLatestRelease(sp.GetRequiredService<HttpClient>(), () => MobileSettings.GitHubToken),
+			new Apps2Samsung.Helpers.Core.AddLatestRelease(
+				sp.GetRequiredService<HttpClient>(), () => MobileSettings.GitHubToken,
+				sp.GetRequiredService<Apps2Samsung.Catalog.ResolvedCatalogService>()),
 			sp.GetRequiredService<IOblongIconSource>()));
 		// Jellyfin config injection (server URL + auto-login + custom CSS), configured via the
 		// Settings → Jellyfin page. No-ops when no server is set (empty JellyfinFullUrl).

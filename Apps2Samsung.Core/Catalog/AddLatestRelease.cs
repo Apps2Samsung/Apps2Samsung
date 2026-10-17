@@ -1,3 +1,4 @@
+using Apps2Samsung.Catalog;
 using Apps2Samsung.Models;
 using System;
 using System.Collections.Generic;
@@ -14,15 +15,71 @@ namespace Apps2Samsung.Helpers.Core
     {
         private readonly HttpClient _httpClient;
         private readonly Func<string?>? _tokenProvider;
+        private readonly ResolvedCatalogService? _snapshot;
 
         /// <param name="tokenProvider">
         /// Optional GitHub PAT source. The desktop leaves this null (its HttpClient handler injects
         /// the token); the mobile head passes its settings token so API calls dodge rate limits.
         /// </param>
-        public AddLatestRelease(HttpClient httpClient, Func<string?>? tokenProvider = null)
+        /// <param name="snapshot">
+        /// Optional pre-resolved catalog (apps2samsung.com). When set, <see cref="GetProviderReleasesAsync"/>
+        /// serves a manifest provider from it and only falls back to the GitHub API when the snapshot
+        /// has nothing usable for that provider.
+        /// </param>
+        public AddLatestRelease(HttpClient httpClient, Func<string?>? tokenProvider = null, ResolvedCatalogService? snapshot = null)
         {
             _httpClient = httpClient;
             _tokenProvider = tokenProvider;
+            _snapshot = snapshot;
+        }
+
+        /// <summary>
+        /// One manifest provider's releases, plus where they came from. <paramref name="Catalog"/>
+        /// is the community bundle's <c>catalog.json</c> when the snapshot carried it inline, so the
+        /// caller can skip that download too; null means "fetch it yourself if you need it".
+        /// </summary>
+        public sealed record ProviderReleases(List<GitHubRelease> Releases, bool Ok, CommunityCatalog? Catalog, ProviderReleaseSource Source);
+
+        public enum ProviderReleaseSource { Snapshot, Live, CachedSnapshot, None }
+
+        /// <summary>
+        /// Releases for a manifest provider, without an API call when it can be helped:
+        /// 1. the pre-resolved snapshot, when it has an <c>ok</c> entry for this provider;
+        /// 2. else the live GitHub API (<see cref="GetReleasesWithStatusAsync"/>, with the PAT if any);
+        /// 3. else the last snapshot this machine cached, however old: stale beats empty.
+        /// <c>Ok</c> keeps its meaning (false only when every source failed), so the heads' "N providers
+        /// failed" counter still works. A provider that is not in the snapshot (a user-added one) takes
+        /// the live path exactly as before.
+        /// </summary>
+        public async Task<ProviderReleases> GetProviderReleasesAsync(ProviderEntry provider, int take)
+        {
+            if (take < 1) take = 1;
+
+            if (_snapshot is not null)
+            {
+                var snapshot = await _snapshot.GetAsync();
+                var resolved = ResolvedCatalogService.Find(snapshot, provider);
+                if (resolved is not null)
+                    return new ProviderReleases(
+                        ResolvedCatalogService.CopyReleases(resolved, take), true, resolved.Catalog, ProviderReleaseSource.Snapshot);
+            }
+
+            var (releases, ok) = await GetReleasesWithStatusAsync(provider.Url, provider.Prefix, provider.DisplayName, take);
+            if (ok)
+                return new ProviderReleases(releases, true, null, ProviderReleaseSource.Live);
+
+            if (_snapshot is not null)
+            {
+                var cached = ResolvedCatalogService.Find(await _snapshot.GetCachedAsync(), provider);
+                if (cached is not null)
+                {
+                    Trace.WriteLine($"[AddLatestRelease] {provider.Url}: live fetch failed, serving the cached snapshot from {cached.LatestTag}.");
+                    return new ProviderReleases(
+                        ResolvedCatalogService.CopyReleases(cached, take), true, cached.Catalog, ProviderReleaseSource.CachedSnapshot);
+                }
+            }
+
+            return new ProviderReleases(releases, false, null, ProviderReleaseSource.None);
         }
 
         // GitHub rejects UA-less requests; attach a User-Agent (and the PAT for GitHub hosts).

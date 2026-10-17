@@ -79,7 +79,11 @@ namespace Apps2Samsung.ViewModels
         // the DI client has both. Fall back to the bare client if unavailable.
         private readonly HttpClient _apiHttp = App.Services.GetService<HttpClient>() ?? _http;
         // Shared parsing / release-tag helper (Apps2Samsung.Core) — single source with the mobile head.
-        private readonly BuildInfoService _buildInfo = new(App.Services.GetService<HttpClient>() ?? _http);
+        // Release tags come from the pre-resolved snapshot when it covers the provider, so opening
+        // this view costs no api.github.com calls.
+        private readonly BuildInfoService _buildInfo = new(
+            App.Services.GetService<HttpClient>() ?? _http,
+            snapshot: App.Services.GetService<ResolvedCatalogService>());
         private readonly Dictionary<string, Bitmap?> _bitmapCache = new(StringComparer.OrdinalIgnoreCase);
         private ProviderManifest _manifest = new();
 
