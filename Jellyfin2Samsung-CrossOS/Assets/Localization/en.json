@@ -12,6 +12,7 @@
   "CreatingCertificateProfile": "Creating new certificate profile...",
   "InstallationSuccessful": "Installation successful",
   "InstallingPackage": "Installing package on device...",
+  "InstallingPackageProgress": "Installing package on device... {0}%",
   "Output": "Output",
   "LoadingReleases": "Loading releases...",
   "ScanningNetwork": "Scanning network for Samsung TV...",

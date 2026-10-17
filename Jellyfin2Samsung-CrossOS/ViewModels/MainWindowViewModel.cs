@@ -87,6 +87,17 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private string statusBar = string.Empty;
 
+        /// <summary>The TV's install percentage (0–100), shown as the bar under the status line.</summary>
+        [ObservableProperty]
+        private int installProgress;
+
+        /// <summary>
+        /// The bar is only on screen while the TV is reporting: the steps before (download, signing,
+        /// push) report no percentage, and the bar is hidden again once the install returns.
+        /// </summary>
+        [ObservableProperty]
+        private bool isInstallProgressVisible;
+
         [ObservableProperty]
         private bool isSamsungLoginActive;
 
@@ -109,6 +120,24 @@ namespace Apps2Samsung.ViewModels
         }
 
         private string _currentStatusKey = string.Empty;
+
+        /// <summary>
+        /// Install percentage sink for a run: shows the bar and puts the number in the status line.
+        /// Synchronous on purpose (see <see cref="SyncProgress{T}"/>) so values arrive in the TV's order;
+        /// the dispatcher post keeps that order on the UI thread.
+        /// </summary>
+        private IProgress<int> InstallProgressSink => new SyncProgress<int>(percent => Dispatcher.UIThread.Post(() =>
+        {
+            InstallProgress = percent;
+            IsInstallProgressVisible = true;
+            StatusBar = string.Format(L("InstallingPackageProgress"), percent);
+        }));
+
+        private void ResetInstallProgress()
+        {
+            IsInstallProgressVisible = false;
+            InstallProgress = 0;
+        }
 
         private string? _downloadedPackagePath;
         private string L(string key) => _localizationService.GetString(key);
@@ -521,6 +550,7 @@ namespace Apps2Samsung.ViewModels
         private async Task DownloadAndInstallAsync()
         {
             _samsungLoginCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+            ResetInstallProgress();
 
             // Auto-request Partner signing when the selected package's manifest declares
             // cert_level: partner (silent bump; the global toggle still forces Partner too).
@@ -539,10 +569,12 @@ namespace Apps2Samsung.ViewModels
                             SelectedDevice,
                             _samsungLoginCts.Token,
                             progress => Dispatcher.UIThread.Post(() => StatusBar = progress),
-                            onSamsungLoginStarted: OnSamsungLoginStarted);
+                            onSamsungLoginStarted: OnSamsungLoginStarted,
+                            installProgress: InstallProgressSink);
                     }
                     finally
                     {
+                        ResetInstallProgress();
                         IsSamsungLoginActive = false;
                         _samsungLoginCts.Dispose();
                         _samsungLoginCts = null;
@@ -574,10 +606,12 @@ namespace Apps2Samsung.ViewModels
                                 SelectedDevice,
                                 _samsungLoginCts.Token,
                                 message => Dispatcher.UIThread.Post(() => StatusBar = message),
-                                onSamsungLoginStarted: OnSamsungLoginStarted);
+                                onSamsungLoginStarted: OnSamsungLoginStarted,
+                                installProgress: InstallProgressSink);
                         }
                         finally
                         {
+                            ResetInstallProgress();
                             IsSamsungLoginActive = false;
                             _samsungLoginCts.Dispose();
                             _samsungLoginCts = null;

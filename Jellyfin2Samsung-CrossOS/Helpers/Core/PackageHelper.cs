@@ -41,7 +41,7 @@ namespace Apps2Samsung.Helpers.Core
                 return null;
             }
         }
-        public async Task<bool> InstallPackageAsync(string? packagePath, NetworkDevice selectedDevice, CancellationToken cancellationToken, ProgressCallback? progress = null, Action? onSamsungLoginStarted = null)
+        public async Task<bool> InstallPackageAsync(string? packagePath, NetworkDevice selectedDevice, CancellationToken cancellationToken, ProgressCallback? progress = null, Action? onSamsungLoginStarted = null, IProgress<int>? installProgress = null)
         {
             if (string.IsNullOrEmpty(packagePath) || !File.Exists(packagePath))
             {
@@ -109,7 +109,8 @@ namespace Apps2Samsung.Helpers.Core
                     selectedDevice.IpAddress,
                     cancellationToken,
                     progress,
-                    onSamsungLoginStarted);
+                    onSamsungLoginStarted,
+                    installProgress: installProgress);
 
                 if (result.Success)
                 {
@@ -144,7 +145,7 @@ namespace Apps2Samsung.Helpers.Core
                 return false;
             }
         }
-        public async Task<bool> InstallCustomPackagesAsync(string[] packagePaths, NetworkDevice? device, CancellationToken cancellationToken, Action<string> onProgress, Action? onSamsungLoginStarted = null)
+        public async Task<bool> InstallCustomPackagesAsync(string[] packagePaths, NetworkDevice? device, CancellationToken cancellationToken, Action<string> onProgress, Action? onSamsungLoginStarted = null, IProgress<int>? installProgress = null)
         {
             if (device == null) return false;
 
@@ -162,7 +163,7 @@ namespace Apps2Samsung.Helpers.Core
                     break;
                 }
 
-                var success = await InstallPackageAsync(filePath, device, cancellationToken);
+                var success = await InstallPackageAsync(filePath, device, cancellationToken, installProgress: installProgress);
                 if (!success)
                 {
                     allSuccessful = false;

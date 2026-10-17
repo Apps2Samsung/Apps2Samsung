@@ -217,11 +217,17 @@ namespace Apps2Samsung.Sdb
             return result;
         }
 
-        public async Task<ProcessResult> InstallAsync(string tvIpAddress, string packagePath, string sdkToolPath) =>
+        public async Task<ProcessResult> InstallAsync(string tvIpAddress, string packagePath, string sdkToolPath, IProgress<int>? progress = null) =>
             await RunCapturingDeviceLog(tvIpAddress, $"install {tvIpAddress} \"{packagePath}\" {sdkToolPath}", device =>
             {
                 var installer = new TizenInstaller(packagePath, device, sdkToolPath);
                 return installer.InstallApp();
+            }, line =>
+            {
+                // The TV's log is the only place the install reports how far it is; read the
+                // percentage off each line as it arrives instead of after the install returns.
+                if (progress is not null && TizenInstallProgress.TryParsePercent(line, out var percent))
+                    progress.Report(percent);
             });
 
         public async Task<ProcessResult> UninstallAsync(string tvIpAddress, string packageId) => await RunConnected(tvIpAddress, $"uninstall {tvIpAddress} {packageId}", async device =>
@@ -350,16 +356,18 @@ namespace Apps2Samsung.Sdb
         /// The capture tees rather than swallows: the host console stays wired up, so
         /// <see cref="Diagnostics.FileLog"/> keeps mirroring the same lines into the session log the
         /// way it did when this output came from the exe. The redirect is process-wide, so one capture
-        /// runs at a time.
+        /// runs at a time. <paramref name="onLine"/> sees each complete line the moment it is written,
+        /// which is how an install's percentage reaches the UI while the install is still running.
         /// </summary>
-        private Task<ProcessResult> RunCapturingDeviceLog(string ip, string command, Func<SdbTcpDevice, Task> body) =>
+        private Task<ProcessResult> RunCapturingDeviceLog(
+            string ip, string command, Func<SdbTcpDevice, Task> body, Action<string>? onLine = null) =>
             // logOutput: false — the TV's log already reached the session log through the console tee.
             WithDevice(ip, command, async device =>
             {
                 await ConsoleCaptureGate.WaitAsync().ConfigureAwait(false);
                 var log = new StringWriter();
                 var previous = Console.Out;
-                Console.SetOut(new TeeTextWriter(previous, log));
+                Console.SetOut(new TeeTextWriter(previous, log, onLine));
                 try
                 {
                     await body(device);
@@ -525,16 +533,25 @@ namespace Apps2Samsung.Sdb
             }
         }
 
-        /// <summary>Writes to the original console AND a capture buffer (see RunCapturingDeviceLog).</summary>
+        /// <summary>
+        /// Writes to the original console AND a capture buffer (see RunCapturingDeviceLog), and hands
+        /// each completed line to an optional observer. <c>TizenSdb.Core</c> writes whole lines, but the
+        /// observer is fed from every write and cut on newlines, so it also sees a line that arrives in
+        /// pieces. The observer runs on the writing thread and may not break the capture: an exception
+        /// there would surface as a failed install.
+        /// </summary>
         private sealed class TeeTextWriter : TextWriter
         {
             private readonly TextWriter _console;
             private readonly TextWriter _capture;
+            private readonly Action<string>? _onLine;
+            private readonly StringBuilder _pending = new();
 
-            public TeeTextWriter(TextWriter console, TextWriter capture)
+            public TeeTextWriter(TextWriter console, TextWriter capture, Action<string>? onLine = null)
             {
                 _console = console;
                 _capture = capture;
+                _onLine = onLine;
             }
 
             public override Encoding Encoding => _console.Encoding;
@@ -543,18 +560,42 @@ namespace Apps2Samsung.Sdb
             {
                 _console.Write(value);
                 _capture.Write(value);
+                Observe(value.ToString());
             }
 
             public override void Write(string? value)
             {
                 _console.Write(value);
                 _capture.Write(value);
+                Observe(value);
             }
 
             public override void WriteLine(string? value)
             {
                 _console.WriteLine(value);
                 _capture.WriteLine(value);
+                Observe(value);
+                Observe("\n");
+            }
+
+            private void Observe(string? text)
+            {
+                if (_onLine is null || string.IsNullOrEmpty(text))
+                    return;
+
+                foreach (var ch in text)
+                {
+                    if (ch != '\n')
+                    {
+                        _pending.Append(ch);
+                        continue;
+                    }
+
+                    var line = _pending.ToString().TrimEnd('\r');
+                    _pending.Clear();
+                    try { _onLine(line); }
+                    catch (Exception ex) { Trace.WriteLine($"[sdb] install log observer failed: {ex.Message}"); }
+                }
             }
         }
 
