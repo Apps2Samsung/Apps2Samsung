@@ -46,6 +46,16 @@ public partial class InstallerPage : ContentPage
 	private string _query = string.Empty;
 	// Categories the user expanded with "Show all".
 	private readonly HashSet<string> _expanded = new();
+	// The apps the user starred (#755 favorites): a group of their own at the top of the list.
+	private readonly HashSet<string> _favorites = new(
+		MobileSettings.FavoriteApps.Split(';', StringSplitOptions.RemoveEmptyEntries), StringComparer.OrdinalIgnoreCase);
+
+	private void SetFavorite(string name, bool isFavorite)
+	{
+		if (isFavorite) _favorites.Add(name); else _favorites.Remove(name);
+		MobileSettings.FavoriteApps = string.Join(";", _favorites);
+		RebuildCatalog();
+	}
 	private bool _catalogLoading;
 	private int _catalogFailed;
 	// The provider manifest, for the preview images the app sheet shows; null until it loaded.
@@ -160,7 +170,7 @@ public partial class InstallerPage : ContentPage
 			return;
 		}
 
-		var groups = CatalogGroups.Build(_allReleases, _query, _expanded, L10n.Get);
+		var groups = CatalogGroups.Build(_allReleases, _query, _expanded, L10n.Get, _favorites);
 		var any = false;
 		foreach (var group in groups)
 		{
@@ -299,7 +309,8 @@ public partial class InstallerPage : ContentPage
 		var tvName = ip is null ? null : string.IsNullOrWhiteSpace(device?.DeviceName) ? ip : device!.DeviceName;
 		var tvReady = ip is not null && (device?.DebugPortOpen ?? true);
 
-		var sheet = new AppSheetPage(release, CatalogPreviews.For(_manifest, release), subline, tvName, tvReady);
+		var sheet = new AppSheetPage(release, CatalogPreviews.For(_manifest, release), subline, tvName, tvReady,
+			_favorites.Contains(release.Name), SetFavorite);
 		await Navigation.PushModalAsync(sheet);
 		var asset = await sheet.Result;
 		if (asset is not null)

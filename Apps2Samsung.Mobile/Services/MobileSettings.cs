@@ -121,6 +121,14 @@ public static class MobileSettings
 		set => Preferences.Set(KeyCertPreference, value ?? CertificatePreferenceAuto);
 	}
 
+	private const string KeyFavoriteApps = "favorite_apps";
+	/// <summary>The catalog apps the user starred, by name, ';'-separated (#755 favorites).</summary>
+	public static string FavoriteApps
+	{
+		get => Preferences.Get(KeyFavoriteApps, string.Empty);
+		set => Preferences.Set(KeyFavoriteApps, value ?? string.Empty);
+	}
+
 	private const string KeySkippedUpdate = "skipped_update_version";
 	/// <summary>The release tag the user chose to skip in the update sheet; offered again only when a
 	/// newer one appears.</summary>

@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Apps2Samsung.Catalog;
 using Apps2Samsung.Models;
 
@@ -36,15 +37,41 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private Asset? selectedAsset;
 
+        private readonly Action<string, bool> _setFavorite;
+
+        [ObservableProperty]
+        private bool isFavorite;
+
+        public string FavoriteText => IsFavorite ? _localize("lblRemoveFavorite") : _localize("lblAddFavorite");
+        public string FavoriteGlyph => IsFavorite ? "★" : "☆";
+        private readonly Func<string, string> _localize;
+
+        partial void OnIsFavoriteChanged(bool value)
+        {
+            OnPropertyChanged(nameof(FavoriteText));
+            OnPropertyChanged(nameof(FavoriteGlyph));
+        }
+
+        [RelayCommand]
+        private void ToggleFavorite()
+        {
+            IsFavorite = !IsFavorite;
+            _setFavorite(Release.Name, IsFavorite);
+        }
+
         [ObservableProperty]
         private Bitmap? preview;
 
         public bool HasPreview => Preview is not null;
 
         public AppDetailViewModel(GitHubRelease release, string? previewUrl, string description,
-            string? tvName, bool tvReady, HttpClient http, Func<string, string> localize)
+            string? tvName, bool tvReady, HttpClient http, Func<string, string> localize,
+            bool isFavorite = false, Action<string, bool>? setFavorite = null)
         {
             Release = release;
+            _localize = localize;
+            _setFavorite = setFavorite ?? ((_, _) => { });
+            IsFavorite = isFavorite;
             _previewUrl = previewUrl;
             _http = http;
             Description = description;

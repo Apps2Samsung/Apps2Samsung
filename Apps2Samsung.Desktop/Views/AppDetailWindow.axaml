@@ -42,7 +42,12 @@
 	<ScrollViewer>
 		<StackPanel Margin="16,8,16,16" Spacing="10">
 			<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
-			<TextBlock Text="{Binding Name}" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+			<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+				<TextBlock Text="{Binding Name}" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}" VerticalAlignment="Center"/>
+				<!-- the star: a favorite leads the Install screen's list -->
+				<Button Grid.Column="1" Classes="icon" Content="{Binding FavoriteGlyph}" FontSize="18" ToolTip.Tip="{Binding FavoriteText}"
+				        Command="{Binding ToggleFavoriteCommand}" Width="36" Height="36" CornerRadius="18"/>
+			</Grid>
 
 			<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource FillBrush}" IsVisible="{Binding HasPreview}">
 				<Image Source="{Binding Preview}" Stretch="UniformToFill" MaxHeight="240"/>

@@ -13,12 +13,20 @@ public partial class AppSheetPage : ContentPage
 	private readonly List<(Asset asset, Border radio)> _rows = new();
 	private Asset? _selected;
 	private bool _closedWithResult;
+	private readonly Action<string, bool>? _setFavorite;
+	private readonly string _name;
+	private bool _isFavorite;
 
 	public Task<Asset?> Result => _result.Task;
 
-	public AppSheetPage(GitHubRelease release, string? previewUrl, string description, string? tvName, bool tvReady)
+	public AppSheetPage(GitHubRelease release, string? previewUrl, string description, string? tvName, bool tvReady,
+		bool isFavorite = false, Action<string, bool>? setFavorite = null)
 	{
 		InitializeComponent();
+		_name = release.Name;
+		_isFavorite = isFavorite;
+		_setFavorite = setFavorite;
+		ShowFavorite();
 		TitleLabel.Text = release.Name;
 		DescriptionLabel.Text = description;
 		PartnerNotice.IsVisible = release.RequiresPartner;
@@ -75,6 +83,20 @@ public partial class AppSheetPage : ContentPage
 			radio.Stroke = new SolidColorBrush(DesignThemeColor(on ? "Accent" : "Hair"));
 			radio.BackgroundColor = on ? DesignThemeColor("Accent") : Colors.Transparent;
 		}
+	}
+
+	private void ShowFavorite()
+	{
+		FavoriteBtn.Text = _isFavorite ? "★" : "☆";
+		FavoriteBtn.TextColor = DesignThemeColor(_isFavorite ? "Accent" : "Ink");
+		SemanticProperties.SetDescription(FavoriteBtn, L10n.Get(_isFavorite ? "lblRemoveFavorite" : "lblAddFavorite"));
+	}
+
+	private void OnFavoriteClicked(object? sender, EventArgs e)
+	{
+		_isFavorite = !_isFavorite;
+		ShowFavorite();
+		_setFavorite?.Invoke(_name, _isFavorite);
 	}
 
 	private async void OnInstallClicked(object? sender, EventArgs e)
