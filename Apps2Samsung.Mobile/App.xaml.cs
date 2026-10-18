@@ -8,7 +8,7 @@ public partial class App : Application
 	{
 		InitializeComponent();
 		// The design tokens (Core) as resources, before any page is built.
-		Resources.Styles.DesignTheme.Apply(this);
+		Apps2Samsung.Mobile.Resources.Styles.DesignTheme.Apply(this);
 	}
 
 	protected override Window CreateWindow(IActivationState? activationState)
