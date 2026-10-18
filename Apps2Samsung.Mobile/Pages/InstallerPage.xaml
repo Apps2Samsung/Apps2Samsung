@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.InstallerPage"
              Title="Apps2Samsung"
              NavigationPage.HasNavigationBar="False"
@@ -21,12 +22,19 @@
                     <Label Text="Apps2Samsung" FontSize="19" FontAttributes="Bold" VerticalOptions="Center" />
                 </HorizontalStackLayout>
 
-                <!-- Header banner -->
-                <Border BackgroundColor="{DynamicResource AccentColor}" Padding="24,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
-                    <Label Text="{l:Localize lblAppInstallerTitle}"
-                           TextColor="{DynamicResource OnAccentColor}" FontAttributes="Bold"
-                           HorizontalOptions="Center" HorizontalTextAlignment="Center" />
-                </Border>
+                <!-- The TV: name, model + IP, an LED with the status line, and the actions for the
+                     selected set as chips on its screen (#755). -->
+                <controls:TvCardView x:Name="TvCard">
+                    <controls:TvCardView.Actions>
+                        <FlexLayout Wrap="Wrap" Direction="Row" JustifyContent="Start" AlignItems="Start" Margin="0,0,-10,-10">
+                            <Button x:Name="RefreshBtn" Style="{StaticResource ChipButtonSolid}" Text="{l:Localize lblRescan}" Clicked="OnRefreshClicked" />
+                            <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblInstalledApps}" Clicked="OnShowInstalledAppsClicked" />
+                            <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblTvInformation}" Clicked="OnShowDeviceInfoClicked" />
+                            <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblRemote}" Clicked="OnShowRemoteClicked" />
+                            <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblToolbox}" Clicked="OnShowTvToolboxClicked" />
+                        </FlexLayout>
+                    </controls:TvCardView.Actions>
+                </controls:TvCardView>
 
                 <!-- Category / App / Version / TV. Label above a full-width picker: next to it the
                      picker kept only ~160dp on a 360dp phone once the round "?" and rescan buttons
@@ -68,15 +76,9 @@
                     </Border>
                 </VerticalStackLayout>
 
-                <!-- TV selection; "Rescan" replaces the round refresh button -->
+                <!-- TV selection (rescan is a chip on the card) -->
                 <VerticalStackLayout Spacing="6">
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                        <Label Grid.Column="0" Text="{l:Localize lblSelectTv}" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                        <Button Grid.Column="1" x:Name="RefreshBtn" Text="{l:Localize lblRescan}" Clicked="OnRefreshClicked"
-                                FontSize="13" FontAttributes="Bold" BackgroundColor="Transparent" BorderWidth="0"
-                                TextColor="{DynamicResource MutedColor}"
-                                Padding="8,0" MinimumHeightRequest="32" HorizontalOptions="End" VerticalOptions="Center" />
-                    </Grid>
+                    <Label Text="{l:Localize lblSelectTv}" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
                     <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
                             Stroke="{DynamicResource HairBrush}"
                             BackgroundColor="{DynamicResource Surface2Color}">
@@ -84,55 +86,6 @@
                                 SelectedIndexChanged="OnTvChanged" />
                     </Border>
                 </VerticalStackLayout>
-
-                <!-- Quick peek at what's already on the selected TV.
-                     Three chips in an even Grid rather than a row of flat text buttons: the labels
-                     need roughly 330dp of width, more than the ~304dp a 360dp phone leaves inside the
-                     card, so they used to wrap onto a second line and read as stray links. Even
-                     columns keep this a single row whatever the font scale or the wording these
-                     strings come back with from Crowdin - a long translation wraps inside its own
-                     chip - and the borders match the pickers above. -->
-                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
-                    <Button Grid.Column="0" Text="{l:Localize lblInstalledApps}"
-                            Clicked="OnShowInstalledAppsClicked"
-                            FontSize="12" LineBreakMode="WordWrap"
-                            BackgroundColor="{DynamicResource Surface2Color}"
-                            BorderWidth="1" CornerRadius="8"
-                            BorderColor="{DynamicResource HairColor}"
-                            TextColor="{DynamicResource InkColor}"
-                            Padding="4,8" MinimumHeightRequest="44" />
-                    <Button Grid.Column="1" Text="{l:Localize lblTvInformation}"
-                            Clicked="OnShowDeviceInfoClicked"
-                            FontSize="12" LineBreakMode="WordWrap"
-                            BackgroundColor="{DynamicResource Surface2Color}"
-                            BorderWidth="1" CornerRadius="8"
-                            BorderColor="{DynamicResource HairColor}"
-                            TextColor="{DynamicResource InkColor}"
-                            Padding="4,8" MinimumHeightRequest="44" />
-                    <Button Grid.Column="2" Text="{l:Localize lblRemote}"
-                            Clicked="OnShowRemoteClicked"
-                            FontSize="12" LineBreakMode="WordWrap"
-                            BackgroundColor="{DynamicResource Surface2Color}"
-                            BorderWidth="1" CornerRadius="8"
-                            BorderColor="{DynamicResource HairColor}"
-                            TextColor="{DynamicResource InkColor}"
-                            Padding="4,8" MinimumHeightRequest="44" />
-                    <Button Grid.Column="3" Text="{l:Localize lblToolbox}"
-                            Clicked="OnShowTvToolboxClicked"
-                            FontSize="12" LineBreakMode="WordWrap"
-                            BackgroundColor="{DynamicResource Surface2Color}"
-                            BorderWidth="1" CornerRadius="8"
-                            BorderColor="{DynamicResource HairColor}"
-                            TextColor="{DynamicResource InkColor}"
-                            Padding="4,8" MinimumHeightRequest="44" />
-                </Grid>
-
-                <!-- Status bar -->
-                <Border BackgroundColor="{DynamicResource AccentColor}" Padding="16" StrokeThickness="0" StrokeShape="RoundRectangle 6">
-                    <Label x:Name="StatusLabel" Text="{l:Localize Ready}"
-                           TextColor="{DynamicResource OnAccentColor}" HorizontalOptions="Center"
-                           HorizontalTextAlignment="Center" LineBreakMode="WordWrap" />
-                </Border>
 
                 <!-- Action -->
                 <Grid ColumnDefinitions="*,44" ColumnSpacing="8">

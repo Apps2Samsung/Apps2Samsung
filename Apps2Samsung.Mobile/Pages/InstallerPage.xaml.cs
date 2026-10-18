@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Apps2Samsung.Catalog;
 using Apps2Samsung.Certificate;
+using Apps2Samsung.Design;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Services;
@@ -57,6 +58,11 @@ public partial class InstallerPage : ContentPage
 
 	private bool _initialized;
 	private bool _uiReady;
+	// What the TV card shows besides the TV itself: the last status line, and whether something
+	// is running (scan, download, signing, install) so its LED pulses.
+	private string _status = string.Empty;
+	private bool _scanning;
+	private bool _busy;
 
 	private bool CustomSelected => (AppPicker.SelectedItem as string) == CustomWgtLabel;
 
@@ -403,6 +409,8 @@ public partial class InstallerPage : ContentPage
 	private async Task ScanAsync()
 	{
 		RefreshBtn.IsEnabled = false;
+		_scanning = true;
+		_busy = true;
 		SetStatus(L10n.Get("statusScanningForTvs"));
 		try
 		{
@@ -440,7 +448,10 @@ public partial class InstallerPage : ContentPage
 		}
 		finally
 		{
+			_scanning = false;
+			_busy = false;
 			RefreshBtn.IsEnabled = true;
+			UpdateTvCard();
 		}
 	}
 
@@ -505,6 +516,8 @@ public partial class InstallerPage : ContentPage
 
 		InstallBtn.IsEnabled = false;
 		RefreshBtn.IsEnabled = false;
+		_busy = true;
+		UpdateTvCard();
 		string? wgtPath = null;
 		try
 		{
@@ -584,6 +597,8 @@ public partial class InstallerPage : ContentPage
 
 			InstallBtn.IsEnabled = true;
 			RefreshBtn.IsEnabled = true;
+			_busy = false;
+			UpdateTvCard();
 		}
 	}
 
@@ -643,6 +658,37 @@ public partial class InstallerPage : ContentPage
 		// Mirror every status line to the debug log (timestamped) so the log is a full transcript of
 		// the scan/download/cert/install flow — not just the on-screen label.
 		System.Diagnostics.Trace.WriteLine($"[installer] {message}");
-		MainThread.BeginInvokeOnMainThread(() => StatusLabel.Text = message);
+		MainThread.BeginInvokeOnMainThread(() =>
+		{
+			_status = message;
+			UpdateTvCard();
+		});
+	}
+
+	/// <summary>
+	/// The TV card (Core's <see cref="TvCardStates"/>) for the selected TV, with this page's state
+	/// on top: the LED pulses while anything runs and the status line is the card's message. Main
+	/// thread only.
+	/// </summary>
+	private void UpdateTvCard()
+	{
+		var idx = TvPicker.SelectedIndex;
+		var ip = idx >= 0 && idx < _tvIps.Count ? _tvIps[idx] : null;
+		var device = idx >= 0 && idx < _tvDevices.Count ? _tvDevices[idx] : null;
+		var localIp = NetworkInfo.GetLocalIPv4();
+
+		TvCardState state;
+		if (_scanning)
+			state = TvCardStates.Scanning(L10n.Get);
+		else if (ip is null)
+			state = TvCardStates.NoTv(L10n.Get, localIp);
+		else
+			state = TvCardStates.ForDevice(device ?? new NetworkDevice { IpAddress = ip }, localIp, L10n.Get);
+
+		TvCard.State = state with
+		{
+			Led = _busy ? TvLed.Busy : state.Led,
+			Message = string.IsNullOrWhiteSpace(_status) ? state.Message : _status,
+		};
 	}
 }

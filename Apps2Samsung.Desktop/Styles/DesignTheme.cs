@@ -19,13 +19,17 @@ namespace Apps2Samsung.Styles
         {
             var light = new ResourceDictionary();
             var dark = new ResourceDictionary();
+            var resources = new ResourceDictionary();
             foreach (var (name, token) in DesignTokens.Colors.All)
             {
                 Add(light, name, token.Light);
                 Add(dark, name, token.Dark);
+                // A token that is the same in both themes (the glass, the LEDs, the shadow) also
+                // sits in the base dictionary, so a StaticResource resolves it at parse time: a
+                // GradientStop or an Effect has no place in the logical tree for a DynamicResource.
+                if (token.Light == token.Dark)
+                    Add(resources, name, token.Light);
             }
-
-            var resources = new ResourceDictionary();
             resources.ThemeDictionaries[ThemeVariant.Light] = light;
             resources.ThemeDictionaries[ThemeVariant.Dark] = dark;
 

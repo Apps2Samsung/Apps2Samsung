@@ -8,6 +8,7 @@
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
 		xmlns:helpers="clr-namespace:Apps2Samsung.Helpers.Converters"
 		xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+		xmlns:controls="clr-namespace:Apps2Samsung.Views.Controls"
         Width="580"
         SizeToContent="Height"
         WindowStartupLocation="CenterScreen"
@@ -59,6 +60,20 @@
 					<TextBlock Grid.Column="1" Text="{Binding VpnWarning}" Foreground="{DynamicResource WarnBrush}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
 				</Grid>
 			</Border>
+
+			<!-- The TV: name, model + IP, an LED with the status line, the install bar, and the
+			     actions for the selected set as chips on its screen (#755). -->
+			<controls:TvCard State="{Binding TvCard}">
+				<controls:TvCard.Actions>
+					<WrapPanel Orientation="Horizontal" ItemSpacing="10" LineSpacing="10">
+						<Button Classes="chip solid" Content="{l:Localize lblRescan}" Command="{Binding RefreshDevicesCommand}"/>
+						<Button Classes="chip" Content="{l:Localize lblInstalledApps}" Command="{Binding ShowInstalledAppsCommand}"/>
+						<Button Classes="chip" Content="{l:Localize lblTvInformation}" Command="{Binding ShowDeviceInfoCommand}"/>
+						<Button Classes="chip" Content="{l:Localize lblRemote}" Command="{Binding ShowRemoteCommand}"/>
+						<Button Classes="chip" Content="{l:Localize lblToolbox}" Command="{Binding ShowTvToolboxCommand}"/>
+					</WrapPanel>
+				</controls:TvCard.Actions>
+			</controls:TvCard>
 
 			<!-- Form fields - side by side layout -->
 			<StackPanel Spacing="18">
@@ -148,8 +163,8 @@
 					</Button>
 				</Grid>
 
-				<!-- TV Selection -->
-				<Grid ColumnDefinitions="100,*,40" ColumnSpacing="8">
+				<!-- TV Selection (rescan is a chip on the card) -->
+				<Grid ColumnDefinitions="100,*" ColumnSpacing="8">
 					<TextBlock Classes="label"
 							   Text="{Binding LblSelectTv}"
 							   VerticalAlignment="Center"
@@ -165,61 +180,9 @@
 							</DataTemplate>
 						</ComboBox.ItemTemplate>
 					</ComboBox>
-					<Button Classes="icon" Grid.Column="2" Command="{Binding RefreshDevicesCommand}">
-						<fa:SymbolIcon Symbol="Refresh" Width="20" Height="20"/>
-					</Button>
 				</Grid>
 
-				<!-- Quick peek at what's already on the selected TV -->
-				<StackPanel Orientation="Horizontal" Spacing="16">
-					<Button HorizontalAlignment="Left" Padding="0" Background="Transparent" BorderThickness="0"
-							Command="{Binding ShowInstalledAppsCommand}">
-						<StackPanel Orientation="Horizontal" Spacing="6">
-							<fa:SymbolIcon Symbol="List" Width="16" Height="16"/>
-							<TextBlock Text="{l:Localize lblShowInstalledApps}" VerticalAlignment="Center"/>
-						</StackPanel>
-					</Button>
-					<Button HorizontalAlignment="Left" Padding="0" Background="Transparent" BorderThickness="0"
-							Command="{Binding ShowDeviceInfoCommand}">
-						<StackPanel Orientation="Horizontal" Spacing="6">
-							<fa:SymbolIcon Symbol="Important" Width="16" Height="16"/>
-							<TextBlock Text="{l:Localize lblTvInformation}" VerticalAlignment="Center"/>
-						</StackPanel>
-					</Button>
-					<Button HorizontalAlignment="Left" Padding="0" Background="Transparent" BorderThickness="0"
-							Command="{Binding ShowRemoteCommand}">
-						<StackPanel Orientation="Horizontal" Spacing="6">
-							<fa:SymbolIcon Symbol="Play" Width="16" Height="16"/>
-							<TextBlock Text="{l:Localize lblRemote}" VerticalAlignment="Center"/>
-						</StackPanel>
-					</Button>
-					<Button HorizontalAlignment="Left" Padding="0" Background="Transparent" BorderThickness="0"
-							Command="{Binding ShowTvToolboxCommand}">
-						<StackPanel Orientation="Horizontal" Spacing="6">
-							<fa:SymbolIcon Symbol="Settings" Width="16" Height="16"/>
-							<TextBlock Text="{l:Localize lblToolbox}" VerticalAlignment="Center"/>
-						</StackPanel>
-					</Button>
-				</StackPanel>
-
 			</StackPanel>
-
-			<!-- Status - Clean and simple -->
-			<Border Background="{DynamicResource AccentBrush}"
-                    Padding="16"
-                    CornerRadius="6">
-				<StackPanel Spacing="10">
-					<TextBlock Text="{Binding StatusBar}"
-                               HorizontalAlignment="Center"
-                               Foreground="{DynamicResource OnAccentBrush}"
-                               FontWeight="Medium"/>
-					<!-- The TV's own install percentage; only shown while the TV is reporting one -->
-					<ProgressBar IsVisible="{Binding IsInstallProgressVisible}"
-                                 Minimum="0" Maximum="100"
-                                 Value="{Binding InstallProgress}"
-                                 Height="6"/>
-				</StackPanel>
-			</Border>
 
 			<!-- Action Buttons -->
 			<StackPanel Orientation="Horizontal"

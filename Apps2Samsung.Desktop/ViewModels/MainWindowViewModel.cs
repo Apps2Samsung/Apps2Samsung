@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -7,6 +7,7 @@ using Apps2Samsung.Catalog;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Design;
 using Apps2Samsung.Models;
 using Apps2Samsung.Services;
 using System;
@@ -106,6 +107,11 @@ namespace Apps2Samsung.ViewModels
 
         [ObservableProperty]
         private string vpnWarning = string.Empty;
+        /// <summary>What the TV card shows: built in <see cref="UpdateTvCard"/> from the selected
+        /// TV, the scan / install state and the status line, so the card and the status never
+        /// disagree.</summary>
+        [ObservableProperty]
+        private TvCardState tvCard = new(string.Empty, string.Empty, TvLed.Off, string.Empty);
 
         public bool HasVpnWarning => !string.IsNullOrEmpty(VpnWarning);
 
@@ -236,6 +242,7 @@ namespace Apps2Samsung.ViewModels
 
         private void RefreshLocalizedProperties()
         {
+            UpdateTvCard();
             OnPropertyChanged(nameof(LblRelease));
             OnPropertyChanged(nameof(LblVersion));
             OnPropertyChanged(nameof(LblCategory));
@@ -288,16 +295,48 @@ namespace Apps2Samsung.ViewModels
             RefreshCanExecuteChanged();
             AppSettings.Default.TvIp = value?.IpAddress ?? string.Empty;
             AppSettings.Default.Save();
+            UpdateTvCard();
+        }
+
+        partial void OnStatusBarChanged(string value) => UpdateTvCard();
+        partial void OnInstallProgressChanged(int value) => UpdateTvCard();
+        partial void OnIsInstallProgressVisibleChanged(bool value) => UpdateTvCard();
+        /// <summary>
+        /// The TV card (Core's <see cref="TvCardStates"/>) for the selected TV, with this head's
+        /// state on top: the LED pulses while anything runs, the status line is the card's message,
+        /// and the TV's install percentage is its bar.
+        /// </summary>
+        private void UpdateTvCard()
+        {
+            var localIp = AppSettings.Default.LocalIp;
+            var device = SelectedDevice;
+            TvCardState state;
+            if (IsLoadingDevices)
+                state = TvCardStates.Scanning(L);
+            else if (device is null || string.IsNullOrWhiteSpace(device.IpAddress) || device.IpAddress == L("lblOther"))
+                state = TvCardStates.NoTv(L, localIp);
+            else
+                state = TvCardStates.ForDevice(device, localIp, L);
+
+            var busy = IsLoadingDevices || IsLoading || IsInstallProgressVisible || IsSamsungLoginActive;
+            TvCard = state with
+            {
+                Led = busy ? TvLed.Busy : state.Led,
+                Message = string.IsNullOrWhiteSpace(StatusBar) ? state.Message : StatusBar,
+                Progress = IsInstallProgressVisible ? InstallProgress : null,
+            };
         }
 
         partial void OnIsLoadingChanged(bool value)
         {
             RefreshCanExecuteChanged();
+            UpdateTvCard();
         }
 
         partial void OnIsLoadingDevicesChanged(bool value)
         {
             OnPropertyChanged(nameof(EnableDevicesInput));
+            UpdateTvCard();
             RefreshCanExecuteChanged();
         }
 
@@ -1148,6 +1187,7 @@ namespace Apps2Samsung.ViewModels
         partial void OnIsSamsungLoginActiveChanged(bool value)
         {
             CancelSamsungLoginCommand.NotifyCanExecuteChanged();
+            UpdateTvCard();
         }
         private void OnSamsungLoginStarted()
         {

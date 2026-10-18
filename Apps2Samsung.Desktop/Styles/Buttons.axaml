@@ -84,6 +84,35 @@
 		<Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
 	</Style>
 
+	<!-- Pill "chip" buttons (#755): filters, and the actions on the TV card's screen. On the
+	     glass by default; "solid" is the one that stands out. -->
+	<Style Selector="Button.chip">
+		<Setter Property="Background" Value="Transparent"/>
+		<Setter Property="Foreground" Value="{DynamicResource GlassInkBrush}"/>
+		<Setter Property="BorderBrush" Value="{DynamicResource GlassChipBrush}"/>
+		<Setter Property="BorderThickness" Value="1"/>
+		<Setter Property="CornerRadius" Value="999"/>
+		<Setter Property="Padding" Value="12,5"/>
+		<Setter Property="MinHeight" Value="32"/>
+		<Setter Property="FontSize" Value="13"/>
+		<Setter Property="FontWeight" Value="SemiBold"/>
+		<Setter Property="Cursor" Value="Hand"/>
+	</Style>
+	<Style Selector="Button.chip:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource GlassTrackBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource GlassInkBrush}"/>
+		<Setter Property="BorderBrush" Value="{DynamicResource GlassChipBrush}"/>
+	</Style>
+	<Style Selector="Button.chip.solid">
+		<Setter Property="Background" Value="{DynamicResource GlassInkBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource GlassBrush}"/>
+		<Setter Property="BorderBrush" Value="Transparent"/>
+	</Style>
+	<Style Selector="Button.chip.solid:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource GlassMutedBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource GlassBrush}"/>
+	</Style>
+
 	<Style Selector="Button.icon">
 		<Setter Property="Width" Value="40"/>
 		<Setter Property="Height" Value="40"/>
