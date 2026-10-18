@@ -19,11 +19,6 @@ namespace Apps2Samsung.Mobile.Pages;
 
 public partial class InstallerPage : ContentPage
 {
-	// Synthetic TV-picker entry for targeting a TV the scan didn't find (mirrors the desktop's
-	// manual-IP option). Always the last item in the TV list.
-	// Read once per page build, like every {l:Localize} on the page: a language switch reloads the UI.
-	private static string ManualIpLabel => "✏️ " + L10n.Get("lblEnterIpManually");
-
 	private readonly INetworkService _networkService;
 	private readonly ISamsungLoginService _loginService;
 	private readonly CertificateProvisioner _certProvisioner;
@@ -44,12 +39,13 @@ public partial class InstallerPage : ContentPage
 	// up yet), so it needs a restart before it can be installed to — plus the Developer-Mode fields
 	// the shared pre-install guards check.
 	private readonly List<NetworkDevice?> _tvDevices = new();
-	// Suppresses OnTvChanged while we rebuild the picker programmatically.
-	private bool _rebuildingTvPicker;
+	// Index into the lists above of the TV in use; -1 = none. The TV sheet changes it.
+	private int _selectedTv = -1;
 	// Every catalog entry; the list shows the slice in the chosen category that matches the search.
 	private IReadOnlyList<GitHubRelease> _allReleases = new List<GitHubRelease>();
-	private string _selectedCategory = AppCategories.All;
 	private string _query = string.Empty;
+	// Categories the user expanded with "Show all".
+	private readonly HashSet<string> _expanded = new();
 	private bool _catalogLoading;
 	private int _catalogFailed;
 	// The provider manifest, for the preview images the app sheet shows; null until it loaded.
@@ -160,7 +156,6 @@ public partial class InstallerPage : ContentPage
 			_catalogLoading = false;
 		}
 
-		RebuildChips();
 		RebuildCatalog();
 		_uiReady = true;
 
@@ -170,75 +165,99 @@ public partial class InstallerPage : ContentPage
 		return result;
 	}
 
-	// "All categories" plus every category with at least one app, each with its count, as chips.
-	private void RebuildChips()
-	{
-		Chips.Clear();
-		foreach (var (id, count) in CommunityAppList.Counts(_allReleases))
-		{
-			var option = new CategoryOption(id, AppCategories.DisplayName(id, L10n.Get), count);
-			var chip = new Button
-			{
-				Text = $"{option.Label}  {option.Count}",
-				Style = ChipStyle(id == _selectedCategory),
-			};
-			chip.Clicked += (_, _) =>
-			{
-				_selectedCategory = option.Id;
-				RebuildChips();
-				RebuildCatalog();
-			};
-			Chips.Add(chip);
-		}
-	}
-
-	// The keyed chip styles from Styles.xaml (merged into the application resources).
-	private static Style ChipStyle(bool selected) =>
-		(Style)Application.Current!.Resources[selected ? "CategoryChipSelected" : "CategoryChip"];
-
-	// The grouped list: the apps in the chosen category that match the search, one row each; a
-	// shimmer of three placeholder rows while the catalog loads.
+	// The catalog as short groups per category (Core's CatalogGroups), each with "Show all" to
+	// expand in place; a search is one flat result group. Three placeholder rows while loading.
 	private void RebuildCatalog()
 	{
 		CatalogList.Clear();
 		if (_catalogLoading)
 		{
+			var skeleton = new VerticalStackLayout();
 			for (var i = 0; i < 3; i++)
 			{
 				if (i > 0)
-					CatalogList.Add(Hairline());
-				CatalogList.Add(new BoxView { HeightRequest = 66, Color = DesignTheme.ColorOf("Surface2"), Opacity = 0.7 });
+					skeleton.Add(Hairline());
+				skeleton.Add(new BoxView { HeightRequest = 66, Color = DesignTheme.ColorOf("Surface2"), Opacity = 0.7 });
 			}
+			CatalogList.Add(GroupBorder(skeleton));
 			CatalogFoot.Text = string.Empty;
 			return;
 		}
 
-		var rows = CommunityAppList.Filter(_allReleases, _selectedCategory)
-			.Where(r => _query.Length == 0 || r.Name.Contains(_query, StringComparison.OrdinalIgnoreCase))
-			.ToList();
-		if (rows.Count == 0)
+		var groups = CatalogGroups.Build(_allReleases, _query, _expanded, L10n.Get);
+		var any = false;
+		foreach (var group in groups)
 		{
-			CatalogList.Add(new Label
+			if (group.Rows.Count == 0)
+				continue;
+			any = true;
+			CatalogList.Add(GroupTitle(group));
+			var list = new VerticalStackLayout();
+			var first = true;
+			foreach (var release in group.Rows)
+			{
+				if (!first)
+					list.Add(Hairline());
+				first = false;
+				list.Add(CatalogRow(release, SublineFor(release)));
+			}
+			CatalogList.Add(GroupBorder(list));
+		}
+		if (!any)
+		{
+			CatalogList.Add(GroupBorder(new Label
 			{
 				Text = L10n.Get(_allReleases.Count == 0 ? "statusCatalogEmpty" : "lblNoAppMatches"),
 				TextColor = DesignTheme.ColorOf("Muted"), Padding = new Thickness(16, 14),
-			});
-		}
-		var first = true;
-		foreach (var release in rows)
-		{
-			if (!first)
-				CatalogList.Add(Hairline());
-			first = false;
-			var category = AppCategories.DisplayName(release.Category, L10n.Get);
-			var subline = release.HasVariants
-				? $"{category} · {string.Format(L10n.Get("lblVariantsCount"), release.Assets.Count)}"
-				: category;
-			CatalogList.Add(CatalogRow(release, subline));
+			}));
 		}
 		CatalogFoot.Text = _catalogFailed > 0
 			? string.Format(L10n.Get("lblCatalogFootFailed"), _allReleases.Count, _catalogFailed)
 			: string.Format(L10n.Get("lblCatalogFoot"), _allReleases.Count);
+	}
+
+	private static Border GroupBorder(View content) => new()
+	{
+		StrokeThickness = 0, BackgroundColor = DesignTheme.ColorOf("Surface"), Content = content,
+		StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 12 },
+	};
+
+	// "Media  31" on the left, "Show all" / "Show less" on the right.
+	private View GroupTitle(CatalogGroup group)
+	{
+		var title = new Label
+		{
+			Text = $"{group.Title}  {group.Count}", FontSize = 15, FontAttributes = FontAttributes.Bold,
+			TextColor = DesignTheme.ColorOf("Muted"), VerticalOptions = LayoutOptions.Center,
+		};
+		var grid = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) }, Margin = new Thickness(4, 8, 4, 0) };
+		grid.Add(title, 0, 0);
+		if (group.CanToggle)
+		{
+			var toggle = new Label
+			{
+				Text = L10n.Get(group.IsExpanded ? "lblShowLess" : "lblShowAll"), FontSize = 14, FontAttributes = FontAttributes.Bold,
+				TextColor = DesignTheme.ColorOf("Accent"), VerticalOptions = LayoutOptions.Center, Padding = new Thickness(8, 4),
+			};
+			var tap = new TapGestureRecognizer();
+			tap.Tapped += (_, _) =>
+			{
+				if (!_expanded.Remove(group.CategoryId))
+					_expanded.Add(group.CategoryId);
+				RebuildCatalog();
+			};
+			toggle.GestureRecognizers.Add(tap);
+			grid.Add(toggle, 1, 0);
+		}
+		return grid;
+	}
+
+	private string SublineFor(GitHubRelease release)
+	{
+		var category = AppCategories.DisplayName(release.Category, L10n.Get);
+		return release.HasVariants
+			? $"{category} · {string.Format(L10n.Get("lblVariantsCount"), release.Assets.Count)}"
+			: category;
 	}
 
 	private static BoxView Hairline() => new() { HeightRequest = 1, Margin = new Thickness(16, 0, 0, 0), Color = DesignTheme.ColorOf("Hair") };
@@ -298,7 +317,7 @@ public partial class InstallerPage : ContentPage
 	{
 		if (_busy)
 			return;
-		var idx = TvPicker.SelectedIndex;
+		var idx = _selectedTv;
 		var device = idx >= 0 && idx < _tvDevices.Count ? _tvDevices[idx] : null;
 		var ip = idx >= 0 && idx < _tvIps.Count ? _tvIps[idx] : null;
 		var tvName = ip is null ? null : string.IsNullOrWhiteSpace(device?.DeviceName) ? ip : device!.DeviceName;
@@ -352,45 +371,46 @@ public partial class InstallerPage : ContentPage
 		}
 	}
 
-	// Rebuilds the TV picker from _tvLabels plus the trailing "enter IP manually" entry, selecting the
-	// given index (−1 = leave unselected). Guarded so it doesn't re-enter OnTvChanged.
-	private void RebuildTvPicker(int selectIndex)
+	// Makes the TV at index the one in use (−1 = none): the card, the other tabs and the status
+	// line follow.
+	private void SelectTv(int index)
 	{
-		_rebuildingTvPicker = true;
-		try
-		{
-			var items = new List<string>(_tvLabels) { ManualIpLabel };
-			TvPicker.ItemsSource = items;
-			TvPicker.SelectedIndex = selectIndex >= 0 && selectIndex < items.Count ? selectIndex : -1;
-		}
-		finally { _rebuildingTvPicker = false; }
+		_selectedTv = index >= 0 && index < _tvIps.Count ? index : -1;
 		PublishTvSelection();
+		UpdateTvCard();
+	}
+
+	// The "Change TV" chip: the found TVs, "enter an IP", or rescan.
+	private async void OnChangeTvClicked(object? sender, EventArgs e)
+	{
+		if (_busy)
+			return;
+		var sheet = new TvSheetPage(_tvIps, _tvLabels, _tvDevices, _selectedTv);
+		await Navigation.PushModalAsync(sheet);
+		var choice = await sheet.Result;
+		if (choice is null)
+			return;
+		if (choice.Rescan)
+			await ScanAsync();
+		else if (choice.Manual)
+			await PromptManualIpAsync();
+		else
+		{
+			SelectTv(choice.Index);
+			SetStatus(SelectedTvStatus());
+		}
 	}
 
 	// The TV the other tabs read (On the TV, Remote).
 	private void PublishTvSelection()
 	{
-		var idx = TvPicker.SelectedIndex;
+		var idx = _selectedTv;
 		if (idx < 0 || idx >= _tvIps.Count)
 		{
 			_tv.Clear();
 			return;
 		}
 		_tv.Set(_tvIps[idx], _tvLabels[idx], idx < _tvDevices.Count ? _tvDevices[idx] : null);
-	}
-
-	private async void OnTvChanged(object? sender, EventArgs e)
-	{
-		if (_rebuildingTvPicker)
-			return;
-		if ((TvPicker.SelectedItem as string) == ManualIpLabel)
-		{
-			await PromptManualIpAsync();
-			return;
-		}
-
-		PublishTvSelection();
-		SetStatus(SelectedTvStatus());
 	}
 
 	// Prompts for a TV IP the scan didn't discover, validates it, and adds it as a selectable entry.
@@ -405,8 +425,6 @@ public partial class InstallerPage : ContentPage
 		{
 			if (!string.IsNullOrWhiteSpace(input))
 				SetStatus(L10n.Get("statusInvalidIp"));
-			// Move the selection off the manual entry (back to the first real TV, if any).
-			RebuildTvPicker(_tvIps.Count > 0 ? 0 : -1);
 			return;
 		}
 
@@ -423,42 +441,35 @@ public partial class InstallerPage : ContentPage
 			_tvDevices.Add(probed);
 			idx = _tvIps.Count - 1;
 		}
-		RebuildTvPicker(idx);
+		SelectTv(idx);
 		SetStatus(string.Format(L10n.Get("statusUsingTvAt"), ip));
 	}
 
-	// Installed apps and the remote are tabs now; the chips on the TV card jump to them.
-	private async void OnShowInstalledAppsClicked(object? sender, EventArgs e) =>
-		await Shell.Current.GoToAsync("//apps");
-
 	private async void OnShowDeviceInfoClicked(object? sender, EventArgs e)
 	{
-		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
+		if (_selectedTv < 0 || _selectedTv >= _tvIps.Count)
 		{
 			SetStatus(L10n.Get("statusSelectTvFirst"));
 			return;
 		}
-		var idx = TvPicker.SelectedIndex;
+		var idx = _selectedTv;
 		var tvIp = _tvIps[idx];
-		var label = TvPicker.SelectedItem as string ?? tvIp;
+		var label = _tvLabels[_selectedTv];
 		var debugPortOpen = idx >= _tvDevices.Count || (_tvDevices[idx]?.DebugPortOpen ?? true);
 		await Navigation.PushAsync(new DeviceInfoPage(_sdb, tvIp, label, debugPortOpen));
 	}
-
-	private async void OnShowRemoteClicked(object? sender, EventArgs e) =>
-		await Shell.Current.GoToAsync("//remote");
 
 	// Same story as the remote: the toolbox rides the network channel, so it is offered for any TV
 	// on the network, Developer Mode or not.
 	private async void OnShowTvToolboxClicked(object? sender, EventArgs e)
 	{
-		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
+		if (_selectedTv < 0 || _selectedTv >= _tvIps.Count)
 		{
 			SetStatus(L10n.Get("statusSelectTvFirst"));
 			return;
 		}
-		var tvIp = _tvIps[TvPicker.SelectedIndex];
-		var label = TvPicker.SelectedItem as string ?? tvIp;
+		var tvIp = _tvIps[_selectedTv];
+		var label = _tvLabels[_selectedTv];
 
 		// The toolbox's debug agent is a .wgt like any other: the normal pipeline (certificate, resign,
 		// push) puts it on the TV when the set doesn't have it yet (#34).
@@ -489,9 +500,7 @@ public partial class InstallerPage : ContentPage
 			// not-ready hint need to tell the user what to fix.
 			var devices = await TizenDeveloperInfo.ScanAsync(_networkService);
 
-			var selected = TvPicker.SelectedIndex >= 0 && TvPicker.SelectedIndex < _tvIps.Count
-				? _tvIps[TvPicker.SelectedIndex]
-				: null;
+			var selected = _selectedTv >= 0 && _selectedTv < _tvIps.Count ? _tvIps[_selectedTv] : null;
 
 			_tvIps.Clear();
 			_tvLabels.Clear();
@@ -504,7 +513,7 @@ public partial class InstallerPage : ContentPage
 			}
 
 			var keep = selected is null ? -1 : _tvIps.IndexOf(selected);
-			RebuildTvPicker(_tvIps.Count > 0 ? (keep >= 0 ? keep : 0) : -1);
+			SelectTv(_tvIps.Count > 0 ? (keep >= 0 ? keep : 0) : -1);
 
 			SetStatus(_tvIps.Count == 0
 				? L10n.Get("statusNoTvsFoundHint")
@@ -527,7 +536,7 @@ public partial class InstallerPage : ContentPage
 	// TV. Status goes to the TV card; its LED pulses for the duration.
 	private async Task InstallAsync(GitHubRelease? release, Asset? asset, string? customPath)
 	{
-		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
+		if (_selectedTv < 0 || _selectedTv >= _tvIps.Count)
 		{
 			SetStatus(L10n.Get("statusSelectTvFirst"));
 			return;
@@ -539,17 +548,17 @@ public partial class InstallerPage : ContentPage
 			return;
 		}
 
-		var tvIp = _tvIps[TvPicker.SelectedIndex];
+		var tvIp = _tvIps[_selectedTv];
 
 		// The device list is a scan snapshot; re-read the TV's Developer-Mode fields now so a
 		// Developer-Mode IP corrected on the TV since the scan isn't still flagged as a mismatch.
-		await TizenDeveloperInfo.RefreshAsync(_networkService, _tvDevices[TvPicker.SelectedIndex]);
+		await TizenDeveloperInfo.RefreshAsync(_networkService, _tvDevices[_selectedTv]);
 
 		// Shared pre-install guards (Core): a TV that still needs a restart, Developer Mode off, a
 		// Developer-Mode IP pointing at another device or typed back to front, a TV on another subnet.
 		// Same checks and wording as the desktop head — each one is Continue/Stop, never a hard block.
 		var guardResult = InstallGuards.Evaluate(
-			_tvDevices[TvPicker.SelectedIndex],
+			_tvDevices[_selectedTv],
 			new InstallGuardOptions
 			{
 				LocalIps = LocalIps(),
@@ -694,7 +703,7 @@ public partial class InstallerPage : ContentPage
 	// instead of a bare count — the same guidance the desktop head shows.
 	private string SelectedTvStatus()
 	{
-		var idx = TvPicker.SelectedIndex;
+		var idx = _selectedTv;
 		var device = idx >= 0 && idx < _tvDevices.Count ? _tvDevices[idx] : null;
 		var localIp = NetworkInfo.GetLocalIPv4();
 
@@ -726,7 +735,7 @@ public partial class InstallerPage : ContentPage
 	/// </summary>
 	private void UpdateTvCard()
 	{
-		var idx = TvPicker.SelectedIndex;
+		var idx = _selectedTv;
 		var ip = idx >= 0 && idx < _tvIps.Count ? _tvIps[idx] : null;
 		var device = idx >= 0 && idx < _tvDevices.Count ? _tvDevices[idx] : null;
 		var localIp = NetworkInfo.GetLocalIPv4();

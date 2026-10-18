@@ -92,99 +92,79 @@
 			<controls:TvCard State="{Binding TvCard}">
 				<controls:TvCard.Actions>
 					<WrapPanel Orientation="Horizontal" ItemSpacing="10" LineSpacing="10">
-						<Button Classes="chip solid" Content="{l:Localize lblRescan}" Command="{Binding RefreshDevicesCommand}"/>
-						<Button Classes="chip" Content="{l:Localize lblInstalledApps}" Command="{Binding ShowInstalledAppsCommand}"/>
+						<Button Classes="chip solid" Content="{l:Localize lblChangeTv}" Command="{Binding ChangeTvCommand}"/>
+						<Button Classes="chip" Content="{l:Localize lblRescan}" Command="{Binding RefreshDevicesCommand}"/>
 						<Button Classes="chip" Content="{l:Localize lblTvInformation}" Command="{Binding ShowDeviceInfoCommand}"/>
-						<Button Classes="chip" Content="{l:Localize lblRemote}" Command="{Binding ShowRemoteCommand}"/>
 						<Button Classes="chip" Content="{l:Localize lblToolbox}" Command="{Binding ShowTvToolboxCommand}"/>
 					</WrapPanel>
 				</controls:TvCard.Actions>
 			</controls:TvCard>
 
-			<!-- TV Selection (rescan is a chip on the card) -->
-			<Grid ColumnDefinitions="100,*" ColumnSpacing="8">
-				<TextBlock Classes="label"
-						   Text="{Binding LblSelectTv}"
-						   VerticalAlignment="Center"
-						   Grid.Column="0"/>
-				<ComboBox Classes="clean"
-						  Grid.Column="1"
-						  HorizontalAlignment="Stretch"
-						  ItemsSource="{Binding AvailableDevices}"
-						  SelectedItem="{Binding SelectedDevice, Mode=TwoWay}">
-					<ComboBox.ItemTemplate>
-						<DataTemplate>
-							<TextBlock Text="{Binding DisplayText}"/>
-						</DataTemplate>
-					</ComboBox.ItemTemplate>
-				</ComboBox>
-			</Grid>
-
 			<!-- The catalog (#755): search, category chips, the grouped list; a row opens the app sheet. -->
 			<StackPanel Spacing="10">
 				<TextBox Classes="search" Text="{Binding SearchText, Mode=TwoWay}" Watermark="{Binding LblSearchApps}"/>
 
-				<ItemsControl ItemsSource="{Binding CategoryChips}">
+				<!-- skeleton while the catalog loads -->
+				<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}" IsVisible="{Binding IsLoading}">
+					<StackPanel>
+						<Border Classes="skeleton"/>
+						<Border Classes="hairline"/>
+						<Border Classes="skeleton"/>
+						<Border Classes="hairline"/>
+						<Border Classes="skeleton"/>
+					</StackPanel>
+				</Border>
+				<Border CornerRadius="12" Background="{DynamicResource SurfaceBrush}" Padding="16,14" IsVisible="{Binding IsCatalogEmpty}">
+					<TextBlock Text="{Binding LblNoAppMatches}" Foreground="{DynamicResource MutedBrush}"/>
+				</Border>
+
+				<!-- one short group per category, "Show all" expands it; a search is one flat group -->
+				<ItemsControl ItemsSource="{Binding CatalogGroupsView}">
 					<ItemsControl.ItemsPanel>
-						<ItemsPanelTemplate>
-							<WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8"/>
-						</ItemsPanelTemplate>
+						<ItemsPanelTemplate><StackPanel Spacing="8"/></ItemsPanelTemplate>
 					</ItemsControl.ItemsPanel>
 					<ItemsControl.ItemTemplate>
-						<DataTemplate x:DataType="viewModels:MainWindowViewModel+CategoryChip">
-							<ToggleButton Classes="catchip" IsChecked="{Binding IsSelected, Mode=OneWay}"
-							              Command="{Binding $parent[ItemsControl].((viewModels:MainWindowViewModel)DataContext).SelectCategoryCommand}"
-							              CommandParameter="{Binding}">
-								<StackPanel Orientation="Horizontal" Spacing="4">
-									<TextBlock Text="{Binding Label}"/>
-									<TextBlock Text="{Binding Count}" Opacity="0.6"/>
-								</StackPanel>
-							</ToggleButton>
+						<DataTemplate x:DataType="viewModels:MainWindowViewModel+CatalogGroupView">
+							<StackPanel Spacing="6" IsVisible="{Binding !IsEmpty}">
+								<Grid ColumnDefinitions="*,Auto" Margin="4,8,4,0">
+									<StackPanel Orientation="Horizontal" Spacing="6">
+										<TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"/>
+										<TextBlock Text="{Binding Count}" FontSize="15" Foreground="{DynamicResource MutedBrush}" Opacity="0.7"/>
+									</StackPanel>
+									<Button Grid.Column="1" Classes="link" Content="{Binding ToggleText}" IsVisible="{Binding CanToggle}"
+									        Command="{Binding $parent[ItemsControl].((viewModels:MainWindowViewModel)DataContext).ToggleGroupCommand}"
+									        CommandParameter="{Binding}"/>
+								</Grid>
+								<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
+									<ItemsControl ItemsSource="{Binding Rows}">
+										<ItemsControl.ItemTemplate>
+											<DataTemplate x:DataType="viewModels:MainWindowViewModel+CatalogRow">
+												<StackPanel>
+													<Button Classes="row"
+													        Command="{Binding $parent[ItemsControl;1].((viewModels:MainWindowViewModel)DataContext).OpenAppCommand}"
+													        CommandParameter="{Binding}">
+														<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+															<Border Classes="tile" Background="{Binding TileBrush}">
+																<TextBlock Text="{Binding Letter}" Foreground="{DynamicResource OnAccentBrush}"/>
+															</Border>
+															<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+																<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
+																<TextBlock Text="{Binding Subline}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
+															</StackPanel>
+															<PathIcon Grid.Column="2" Width="8" Height="13" Opacity="0.35" VerticalAlignment="Center"
+															          Foreground="{DynamicResource InkBrush}" Data="M1,1 L7,6.5 L1,12"/>
+														</Grid>
+													</Button>
+													<Border Classes="hairline"/>
+												</StackPanel>
+											</DataTemplate>
+										</ItemsControl.ItemTemplate>
+									</ItemsControl>
+								</Border>
+							</StackPanel>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
 				</ItemsControl>
-
-				<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
-					<Panel>
-						<!-- skeleton while the catalog loads -->
-						<StackPanel IsVisible="{Binding IsLoading}">
-							<Border Classes="skeleton"/>
-							<Border Classes="hairline"/>
-							<Border Classes="skeleton"/>
-							<Border Classes="hairline"/>
-							<Border Classes="skeleton"/>
-						</StackPanel>
-						<TextBlock Text="{Binding LblNoAppMatches}" Margin="16,14" Foreground="{DynamicResource MutedBrush}"
-						           IsVisible="{Binding IsCatalogEmpty}"/>
-						<ScrollViewer MaxHeight="330" VerticalScrollBarVisibility="Auto">
-							<ItemsControl ItemsSource="{Binding CatalogRows}">
-								<ItemsControl.ItemTemplate>
-									<DataTemplate x:DataType="viewModels:MainWindowViewModel+CatalogRow">
-										<StackPanel>
-											<Button Classes="row"
-											        Command="{Binding $parent[ItemsControl].((viewModels:MainWindowViewModel)DataContext).OpenAppCommand}"
-											        CommandParameter="{Binding}">
-												<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-													<Border Classes="tile" Background="{Binding TileBrush}">
-														<TextBlock Text="{Binding Letter}" Foreground="{DynamicResource OnAccentBrush}"/>
-													</Border>
-													<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-														<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
-														<TextBlock Text="{Binding Subline}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
-													</StackPanel>
-													<PathIcon Grid.Column="2" Width="8" Height="13" Opacity="0.35" VerticalAlignment="Center"
-													          Foreground="{DynamicResource InkBrush}"
-													          Data="M1,1 L7,6.5 L1,12"/>
-												</Grid>
-											</Button>
-											<Border Classes="hairline"/>
-										</StackPanel>
-									</DataTemplate>
-								</ItemsControl.ItemTemplate>
-							</ItemsControl>
-						</ScrollViewer>
-					</Panel>
-				</Border>
 
 				<TextBlock Text="{Binding LblYourOwnPackage}" FontSize="15" FontWeight="SemiBold" Margin="4,8,4,0"
 				           Foreground="{DynamicResource MutedBrush}"/>

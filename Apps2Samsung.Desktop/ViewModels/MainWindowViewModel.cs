@@ -174,8 +174,9 @@ namespace Apps2Samsung.ViewModels
         private ProviderManifest? _manifest;
         [ObservableProperty]
         private string searchText = string.Empty;
-        public ObservableCollection<CatalogRow> CatalogRows { get; } = new();
-        public ObservableCollection<CategoryChip> CategoryChips { get; } = new();
+        public ObservableCollection<CatalogGroupView> CatalogGroupsView { get; } = new();
+        // Categories the user expanded with "Show all".
+        private readonly HashSet<string> _expandedCategories = new();
         [ObservableProperty]
         private bool isCatalogEmpty;
         [ObservableProperty]
@@ -189,11 +190,14 @@ namespace Apps2Samsung.ViewModels
 
         partial void OnSearchTextChanged(string value) => RebuildCatalogRows();
 
-        /// <summary>A category chip: the option plus whether it is the one in force.</summary>
-        public sealed record CategoryChip(CategoryOption Option, bool IsSelected)
+        /// <summary>A catalog group as the list shows it: title, count, its rows and the
+        /// "Show all" / "Show less" action.</summary>
+        public sealed record CatalogGroupView(CatalogGroup Group, IReadOnlyList<CatalogRow> Rows, string ToggleText)
         {
-            public string Label => Option.Label;
-            public string Count => Option.Count.ToString();
+            public string Title => Group.Title;
+            public string Count => Group.Count.ToString();
+            public bool CanToggle => Group.CanToggle;
+            public bool IsEmpty => Rows.Count == 0;
         }
 
         /// <summary>A list row: the release, its letter tile and the one-line subline.</summary>
@@ -202,40 +206,61 @@ namespace Apps2Samsung.ViewModels
             public string Name => Release.Name;
         }
 
+        /// <summary>"Show all" / "Show less" on a group.</summary>
         [RelayCommand]
-        private void SelectCategory(CategoryChip? chip)
+        private void ToggleGroup(CatalogGroupView? group)
         {
-            if (chip is not null)
-                SelectedCategory = Categories.FirstOrDefault(c => c.Id == chip.Option.Id) ?? SelectedCategory;
-            RebuildCategoryChips();
+            if (group is null)
+                return;
+            if (!_expandedCategories.Remove(group.Group.CategoryId))
+                _expandedCategories.Add(group.Group.CategoryId);
+            RebuildCatalogRows();
         }
 
-        private void RebuildCategoryChips()
+        private CatalogRow RowFor(GitHubRelease release)
         {
-            CategoryChips.Clear();
-            foreach (var option in Categories)
-                CategoryChips.Add(new CategoryChip(option, option.Id == (SelectedCategory?.Id ?? AppCategories.All)));
+            var category = AppCategories.DisplayName(release.Category, L);
+            var subline = release.HasVariants
+                ? $"{category} · {string.Format(L("lblVariantsCount"), release.Assets.Count)}"
+                : category;
+            return new CatalogRow(release, AppTiles.Letter(release.Name),
+                DesignTheme.Brush(AppTiles.ColorToken(release.Category, release.Name)), subline);
         }
 
+        // The catalog as short groups per category (Core's CatalogGroups), or one flat result
+        // group while searching.
         private void RebuildCatalogRows()
         {
-            var query = SearchText.Trim();
-            CatalogRows.Clear();
-            foreach (var release in Releases)
+            CatalogGroupsView.Clear();
+            var all = _allReleases.Where(r => r != CustomEntry).ToList();
+            var groups = CatalogGroups.Build(all, SearchText, _expandedCategories, L);
+            var any = false;
+            foreach (var group in groups)
             {
-                if (release == CustomEntry)
-                    continue;
-                if (query.Length > 0 && !release.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
-                    continue;
-                var category = AppCategories.DisplayName(release.Category, L);
-                var subline = release.HasVariants
-                    ? $"{category} · {string.Format(L("lblVariantsCount"), release.Assets.Count)}"
-                    : category;
-                CatalogRows.Add(new CatalogRow(release, AppTiles.Letter(release.Name),
-                    DesignTheme.Brush(AppTiles.ColorToken(release.Category, release.Name)), subline));
+                var rows = group.Rows.Select(RowFor).ToList();
+                any |= rows.Count > 0;
+                CatalogGroupsView.Add(new CatalogGroupView(group, rows, L(group.IsExpanded ? "lblShowLess" : "lblShowAll")));
             }
-            IsCatalogEmpty = CatalogRows.Count == 0 && !IsLoading;
-            CatalogFoot = string.Format(L("lblCatalogFoot"), _allReleases.Count);
+            IsCatalogEmpty = !any && !IsLoading;
+            CatalogFoot = string.Format(L("lblCatalogFoot"), all.Count);
+        }
+
+        /// <summary>The TV sheet from the "Change TV" chip: pick a found TV, enter an IP, or rescan.</summary>
+        [RelayCommand]
+        private async Task ChangeTvAsync()
+        {
+            if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                return;
+            var found = AvailableDevices.Where(d => !string.IsNullOrWhiteSpace(d.IpAddress) && d.IpAddress != L("lblOther")).ToList();
+            var result = await new Views.TvPickerWindow(found, SelectedDevice, L).ShowDialog<Views.TvPickerResult?>(desktop.MainWindow);
+            if (result is null)
+                return;
+            if (result.Rescan)
+                await LoadDevicesAsync();
+            else if (result.Manual)
+                await PromptForManualIpAsync();
+            else if (result.Device is not null)
+                SelectedDevice = result.Device;
         }
 
         /// <summary>Opens the app sheet; installs the asset it hands back.</summary>
@@ -419,7 +444,6 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblYourOwnPackage));
             OnPropertyChanged(nameof(LblSearchApps));
             OnPropertyChanged(nameof(LblNoAppMatches));
-            RebuildCategoryChips();
             RebuildCatalogRows();
             OnPropertyChanged(nameof(LblRelease));
             OnPropertyChanged(nameof(LblVersion));
@@ -514,7 +538,7 @@ namespace Apps2Samsung.ViewModels
         {
             RefreshCanExecuteChanged();
             UpdateTvCard();
-            IsCatalogEmpty = CatalogRows.Count == 0 && !value;
+            IsCatalogEmpty = !CatalogGroupsView.Any(g => !g.IsEmpty) && !value;
         }
 
         partial void OnIsLoadingDevicesChanged(bool value)
@@ -1203,7 +1227,6 @@ namespace Apps2Samsung.ViewModels
             foreach (var (id, count) in CommunityAppList.Counts(_allReleases))
                 Categories.Add(new CategoryOption(id, AppCategories.DisplayName(id, L), count));
             SelectedCategory = Categories.FirstOrDefault(c => c.Id == keep) ?? Categories.FirstOrDefault();
-            RebuildCategoryChips();
         }
 
         // Releases = the apps in the chosen category, plus the custom-file row that is never filtered
@@ -1219,7 +1242,6 @@ namespace Apps2Samsung.ViewModels
             Releases.Add(CustomEntry);
 
             SelectedRelease = keep != null && Releases.Contains(keep) ? keep : null;
-            RebuildCategoryChips();
             RebuildCatalogRows();
         }
 

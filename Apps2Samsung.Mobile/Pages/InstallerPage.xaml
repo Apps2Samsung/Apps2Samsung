@@ -10,7 +10,7 @@
              BackgroundColor="{DynamicResource BgColor}">
 
     <!-- The Install screen (#755): brand, the TV card, the TV picker, then the catalog as a grouped
-         list with search and category chips. A row opens the app sheet; "Your own package" takes a
+         list with search, one short group per category. A row opens the app sheet; "Your own package" takes a
          .wgt / .tpk from the phone. Every colour is a design token. -->
     <ScrollView>
         <VerticalStackLayout Padding="16,10,16,20" Spacing="14">
@@ -26,25 +26,13 @@
             <controls:TvCardView x:Name="TvCard">
                 <controls:TvCardView.Actions>
                     <FlexLayout Wrap="Wrap" Direction="Row" JustifyContent="Start" AlignItems="Start" Margin="0,0,-10,-10">
-                        <Button x:Name="RefreshBtn" Style="{StaticResource ChipButtonSolid}" Text="{l:Localize lblRescan}" Clicked="OnRefreshClicked" />
-                        <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblInstalledApps}" Clicked="OnShowInstalledAppsClicked" />
+                        <Button Style="{StaticResource ChipButtonSolid}" Text="{l:Localize lblChangeTv}" Clicked="OnChangeTvClicked" />
+                        <Button x:Name="RefreshBtn" Style="{StaticResource ChipButton}" Text="{l:Localize lblRescan}" Clicked="OnRefreshClicked" />
                         <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblTvInformation}" Clicked="OnShowDeviceInfoClicked" />
-                        <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblRemote}" Clicked="OnShowRemoteClicked" />
                         <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblToolbox}" Clicked="OnShowTvToolboxClicked" />
                     </FlexLayout>
                 </controls:TvCardView.Actions>
             </controls:TvCardView>
-
-            <!-- TV selection (rescan is a chip on the card) -->
-            <VerticalStackLayout Spacing="6">
-                <Label Text="{l:Localize lblSelectTv}" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 10"
-                        Stroke="{DynamicResource HairBrush}"
-                        BackgroundColor="{DynamicResource SurfaceColor}">
-                    <Picker x:Name="TvPicker" Title="{l:Localize lblScanToFindTvs}" BackgroundColor="Transparent"
-                            SelectedIndexChanged="OnTvChanged" />
-                </Border>
-            </VerticalStackLayout>
 
             <!-- Catalog -->
             <VerticalStackLayout Spacing="10">
@@ -54,13 +42,8 @@
                            ReturnType="Search" TextChanged="OnSearchChanged" />
                 </Border>
 
-                <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never" Margin="-16,0">
-                    <HorizontalStackLayout x:Name="Chips" Spacing="8" Padding="16,2,16,4" />
-                </ScrollView>
-
-                <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
-                    <VerticalStackLayout x:Name="CatalogList" />
-                </Border>
+                <!-- one short group per category, "Show all" expands it; a search is one flat group -->
+                <VerticalStackLayout x:Name="CatalogList" Spacing="6" />
 
                 <Label Text="{l:Localize lblYourOwnPackage}" Style="{StaticResource GroupTitle}" />
                 <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
