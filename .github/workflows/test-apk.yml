@@ -1,0 +1,97 @@
+name: Test APK
+
+# A signed Android build of any branch, as a downloadable artifact: no GitHub release, no tag,
+# nothing the F-Droid repo or the update check can see. For trying a branch (beta-v3) on a phone
+# before it reaches the beta channel.
+#
+# Same signing key and the same versionCode rule as the beta release (one past the highest code
+# published on either channel), so it installs over the beta or stable build in place and the
+# next real beta installs over it again. The versionName says which branch and run it came from.
+#
+# Needs ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS, like the beta job.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Extract version
+        shell: bash
+        run: |
+          VERSION=$(grep -oE 'v[0-9]+(\.[0-9]+){1,3}' Apps2Samsung.Desktop/Helpers/AppSettings.cs)
+          if [ -z "$VERSION" ]; then
+            echo "❌ Version not found"
+            exit 1
+          fi
+          BRANCH=$(echo "${{ github.ref_name }}" | tr -c 'A-Za-z0-9.-\n' '-')
+          echo "VERSION_NAME=${VERSION#v}-${BRANCH}.${{ github.run_number }}" >> "$GITHUB_ENV"
+
+      - name: Compute Android versionCode
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: .github/scripts/android-version-code.sh compute beta
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
+      - name: Prepare Android signing key
+        run: |
+          set -euo pipefail
+          if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not set; a test APK signed with another key could not be installed over the beta."
+            exit 1
+          fi
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$PWD/a2s.keystore"
+          echo "KS_PASS=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "KS_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
+
+      - name: Build APK
+        run: |
+          dotnet publish Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj \
+            -c Release -f net10.0-android \
+            -p:ApplicationDisplayVersion="$VERSION_NAME" \
+            -p:ApplicationVersion="$ANDROID_VERSION_CODE" \
+            -p:AndroidKeyStore=true \
+            -p:AndroidSigningKeyStore="$PWD/a2s.keystore" \
+            -p:AndroidSigningKeyAlias="$KS_ALIAS" \
+            -p:AndroidSigningStorePass="$KS_PASS" \
+            -p:AndroidSigningKeyPass="$KS_PASS" \
+            -o publish/android
+
+          mkdir -p dist
+          APK=$(ls publish/android/*-Signed.apk 2>/dev/null | head -n1)
+          [ -z "$APK" ] && APK=$(ls publish/android/*.apk 2>/dev/null | head -n1)
+          if [ -z "$APK" ]; then
+            echo "❌ No APK produced"; exit 1
+          fi
+          cp "$APK" "dist/Apps2Samsung-${VERSION_NAME}-android.apk"
+
+      - name: Verify APK versionCode and signer
+        shell: bash
+        env:
+          EXPECTED_SIGNER_SHA256: bd4dee21ebeee1b0b690c612318808d27f35c46fa53ba31d256379a7fed7e107
+        run: .github/scripts/android-version-code.sh verify "dist/Apps2Samsung-${VERSION_NAME}-android.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Apps2Samsung-${{ env.VERSION_NAME }}-android
+          path: dist/*.apk
+          retention-days: 14
+          if-no-files-found: error
