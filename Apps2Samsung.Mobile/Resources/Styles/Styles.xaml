@@ -141,6 +141,21 @@
         <Setter Property="VerticalOptions" Value="Center" />
     </Style>
 
+    <!-- The compact action at the end of a list row (#755: a soft pill): "Launch", "Send". -->
+    <Style TargetType="Button" x:Key="RowButton">
+        <Setter Property="BackgroundColor" Value="{DynamicResource AccentSoftColor}" />
+        <Setter Property="TextColor" Value="{DynamicResource AccentColor}" />
+        <Setter Property="BorderWidth" Value="0" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="HeightRequest" Value="34" />
+        <Setter Property="MinimumHeightRequest" Value="34" />
+        <Setter Property="MinimumWidthRequest" Value="0" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
     <!-- A group title over a grouped list, and the footnote under one. -->
     <Style TargetType="Label" x:Key="GroupTitle">
         <Setter Property="FontSize" Value="15" />
