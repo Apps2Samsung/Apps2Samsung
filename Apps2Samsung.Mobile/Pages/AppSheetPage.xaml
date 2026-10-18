@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              x:Class="Apps2Samsung.Mobile.Pages.AppSheetPage"
+             Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
     <!-- The app sheet (#755): preview, description, the version or variant to install, Install.
          A modal page drawn as a bottom sheet: grabber, title with a close button, grouped content. -->

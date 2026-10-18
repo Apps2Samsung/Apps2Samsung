@@ -5,6 +5,7 @@ using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Sdb;
 using Apps2Samsung.Mobile.Localization;
+using Apps2Samsung.Mobile.Services;
 
 namespace Apps2Samsung.Mobile.Pages;
 
@@ -16,24 +17,39 @@ namespace Apps2Samsung.Mobile.Pages;
 public partial class InstalledAppsPage : ContentPage
 {
 	private readonly ISdbEngine _sdb;
-	private readonly string _tvIp;
-	private readonly string _tvLabel;
+	private readonly TvSelection _tv;
+	// The TV this page is showing, read from the shared selection each time the tab appears.
+	private string _tvIp = string.Empty;
+	private string _tvLabel = string.Empty;
+	private string? _loadedFor;
 
-	public InstalledAppsPage(ISdbEngine sdb, string tvIp, string tvLabel)
+	public InstalledAppsPage(ISdbEngine sdb, TvSelection tv)
 	{
 		InitializeComponent();
 		_sdb = sdb;
-		_tvIp = tvIp;
-		_tvLabel = tvLabel;
+		_tv = tv;
 	}
 
 	protected override async void OnAppearing()
 	{
 		base.OnAppearing();
-		await LoadAsync();
+		if (!_tv.HasTv)
+		{
+			_tvIp = string.Empty;
+			_tvLabel = string.Empty;
+			_loadedFor = null;
+			AppsList.ItemsSource = null;
+			CountLabel.Text = L10n.Get("statusSelectTvFirst");
+			return;
+		}
+		var changed = _tv.Ip != _loadedFor;
+		_tvIp = _tv.Ip!;
+		_tvLabel = _tv.Label;
+		_loadedFor = _tv.Ip;
+		if (changed || AppsList.ItemsSource is null)
+			await LoadAsync();
 	}
 
-	private async void OnBackClicked(object? sender, EventArgs e) => await Navigation.PopAsync();
 
 	private async void OnRefreshClicked(object? sender, EventArgs e) => await LoadAsync();
 

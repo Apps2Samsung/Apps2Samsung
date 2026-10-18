@@ -68,7 +68,6 @@ public partial class SettingsPage : ContentPage
 		_loaded = true;
 	}
 
-	private async void OnBackClicked(object? sender, EventArgs e) => await Navigation.PopAsync();
 
 	private async void OnAppIconsClicked(object? sender, EventArgs e) =>
 		await Navigation.PushAsync(IPlatformApplication.Current!.Services.GetRequiredService<AppIconsPage>());
@@ -605,14 +604,13 @@ public partial class SettingsPage : ContentPage
 		// Let the picker finish closing before the tree it lives in is swapped out from under it.
 		await Task.Yield();
 
-		var services = IPlatformApplication.Current!.Services;
 		var window = Application.Current?.Windows.FirstOrDefault();
 		if (window is null)
 			return;
 
-		var root = new NavigationPage(services.GetRequiredService<InstallerPage>());
-		window.Page = root;
-		await root.Navigation.PushAsync(new SettingsPage(), animated: false);
+		// A fresh Shell resolves fresh pages in the new language; land back on this tab.
+		window.Page = new AppShell();
+		await Shell.Current.GoToAsync("//settings");
 	}
 }
 
