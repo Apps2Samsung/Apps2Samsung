@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             x:Class="Apps2Samsung.Mobile.Pages.AppActionsSheetPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+    <!-- The per-app sheet on the On the TV tab (#755): what the app is, then its actions as list
+         rows. Hands back the chosen action; the tab runs it. -->
+    <ScrollView>
+        <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
+            <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
+                     Color="{DynamicResource HairColor}" />
+            <Grid ColumnDefinitions="44,*,32" ColumnSpacing="12" Margin="0,6,0,0">
+                <Grid Grid.Column="0" WidthRequest="44" HeightRequest="44" VerticalOptions="Center">
+                    <Border x:Name="LetterTile" StrokeThickness="0" StrokeShape="RoundRectangle 11">
+                        <Label x:Name="LetterLabel" TextColor="{DynamicResource OnAccentColor}" FontSize="20" FontAttributes="Bold"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Image x:Name="IconImage" Aspect="AspectFill" IsVisible="False">
+                        <Image.Clip>
+                            <RoundRectangleGeometry CornerRadius="11" Rect="0,0,44,44" />
+                        </Image.Clip>
+                    </Image>
+                </Grid>
+                <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                    <Label x:Name="TitleLabel" FontSize="20" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                    <Label x:Name="SubLabel" FontSize="13" TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
+                </VerticalStackLayout>
+                <Button Grid.Column="2" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
+                        MinimumWidthRequest="32" MinimumHeightRequest="32" VerticalOptions="Center"
+                        BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnCloseClicked" />
+            </Grid>
+            <Label x:Name="IdLabel" FontSize="12" FontFamily="monospace" TextColor="{DynamicResource MutedColor}" Margin="4,0" />
+
+            <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}" Margin="0,6,0,0">
+                <VerticalStackLayout x:Name="Actions" />
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

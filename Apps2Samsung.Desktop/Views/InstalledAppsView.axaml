@@ -37,77 +37,62 @@
             <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" Height="3" Margin="0,0,0,8"
                          IsVisible="{Binding IsProgressVisible}"/>
 
-            <!-- App list -->
+            <!-- The apps as a grouped list (#755): tile, name, version and size, and a "…" menu
+                 with Launch / Stop / Debug console / Uninstall per row. -->
             <ScrollViewer IsEnabled="{Binding !IsDebugging}">
                 <ScrollViewer.Styles>
                     <Style Selector="ScrollViewer[IsEnabled=False]">
                         <Setter Property="Opacity" Value="0.4"/>
                     </Style>
                 </ScrollViewer.Styles>
-                <ItemsControl ItemsSource="{Binding Apps}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="viewModels:InstalledAppViewModel">
-                            <Border Margin="0,3" Padding="12"
-                                    Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
-                                    CornerRadius="8">
-                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                                    
-                                    <!-- App Icon or initials fallback -->
-                                    <Panel Grid.Column="0" Width="48" Height="48" VerticalAlignment="Center">
-                                        <!-- Fallback placeholder -->
-                                        <Border Background="{Binding App.FallbackColor}"
-                                                IsVisible="{Binding App.MissingIcon}">
-                                            <TextBlock Text="{Binding App.Initials}" 
-                                                       Foreground="{DynamicResource OnAccentBrush}" FontWeight="Bold" FontSize="20"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                        <!-- Actual icon -->
-                                        <Image Source="{Binding IconBitmap}" Stretch="UniformToFill" 
-                                               IsVisible="{Binding App.HasIcon}"/>
-                                    </Panel>
-
-                                    <!-- App info -->
-                                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding App.DisplayName}" FontWeight="SemiBold" FontSize="14"
-                                                   TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Text="{Binding App.TizenId}" FontSize="11" Opacity="0.55"
-                                                   TextTrimming="CharacterEllipsis"/>
-                                        <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <TextBlock Text="{Binding App.Version, StringFormat='v{0}'}" FontSize="11" Opacity="0.55"/>
-                                            <TextBlock Text="{Binding App.SizeDisplay}" FontSize="11" Opacity="0.55"/>
+                <Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource Surface2Brush}">
+                    <ItemsControl ItemsSource="{Binding Apps}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="viewModels:InstalledAppViewModel">
+                                <StackPanel>
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Margin="16,11" MinHeight="44">
+                                        <Panel Width="44" Height="44" VerticalAlignment="Center">
+                                            <Border CornerRadius="11" Background="{Binding App.FallbackColor}" IsVisible="{Binding App.MissingIcon}">
+                                                <TextBlock Text="{Binding App.Initials}" Foreground="{DynamicResource OnAccentBrush}" FontWeight="Bold" FontSize="20"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <Border CornerRadius="11" ClipToBounds="True" IsVisible="{Binding App.HasIcon}">
+                                                <Image Source="{Binding IconBitmap}" Stretch="UniformToFill"/>
+                                            </Border>
+                                        </Panel>
+                                        <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding App.DisplayName}" FontWeight="Medium" FontSize="14" TextTrimming="CharacterEllipsis"
+                                                       Foreground="{DynamicResource InkBrush}"/>
+                                            <TextBlock Text="{Binding App.Subline}" FontSize="13" TextTrimming="CharacterEllipsis"
+                                                       Foreground="{DynamicResource MutedBrush}"/>
                                         </StackPanel>
-                                    </StackPanel>
-                                    <!-- Row actions. Material Design Icons paths rather than FluentAvalonia symbols
-                                         so the Android head can draw the very same shapes (MAUI has no Fluent symbol
-                                         font, and Fluent has no bug glyph — its "Code" stand-in rendered as a bare < >). -->
-                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Button ToolTip.Tip="{l:Localize lblRun}"
-                                                Command="{ReflectionBinding $parent[UserControl].DataContext.LaunchCommand}"
-                                                CommandParameter="{Binding App}">
-                                            <PathIcon Width="16" Height="16" Data="M8,5.14V19.14L19,12.14L8,5.14Z"/>
+                                        <Button Grid.Column="2" Classes="icon" Content="⋯" FontSize="18" Width="36" Height="36" CornerRadius="18"
+                                                VerticalAlignment="Center" ToolTip.Tip="{Binding App.TizenId}">
+                                            <Button.Flyout>
+                                                <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                                    <MenuItem Header="{l:Localize lblRun}"
+                                                              Command="{ReflectionBinding $parent[UserControl].DataContext.LaunchCommand}"
+                                                              CommandParameter="{Binding App}"/>
+                                                    <MenuItem Header="{l:Localize lblStop}"
+                                                              Command="{ReflectionBinding $parent[UserControl].DataContext.StopCommand}"
+                                                              CommandParameter="{Binding App}"/>
+                                                    <MenuItem Header="{l:Localize lblDebug}"
+                                                              Command="{ReflectionBinding $parent[UserControl].DataContext.DebugCommand}"
+                                                              CommandParameter="{Binding App}"/>
+                                                    <MenuItem Header="{l:Localize lblUninstall}" IsVisible="{Binding App.IsRemovable}"
+                                                              Foreground="{DynamicResource BadBrush}"
+                                                              Command="{ReflectionBinding $parent[UserControl].DataContext.UninstallCommand}"
+                                                              CommandParameter="{Binding App}"/>
+                                                </MenuFlyout>
+                                            </Button.Flyout>
                                         </Button>
-                                        <Button ToolTip.Tip="{l:Localize lblStop}"
-                                                Command="{ReflectionBinding $parent[UserControl].DataContext.StopCommand}"
-                                                CommandParameter="{Binding App}">
-                                            <PathIcon Width="16" Height="16" Data="M18,18H6V6H18V18Z"/>
-                                        </Button>
-                                        <Button ToolTip.Tip="{l:Localize lblDebug}"
-                                                Command="{ReflectionBinding $parent[UserControl].DataContext.DebugCommand}"
-                                                CommandParameter="{Binding App}">
-                                            <PathIcon Width="16" Height="16" Data="M14,12H10V10H14M14,16H10V14H14M20,8H17.19C16.74,7.22 16.12,6.55 15.37,6.04L17,4.41L15.59,3L13.42,5.17C12.96,5.06 12.5,5 12,5C11.5,5 11.04,5.06 10.59,5.17L8.41,3L7,4.41L8.62,6.04C7.88,6.55 7.26,7.22 6.81,8H4V10H6.09C6.04,10.33 6,10.66 6,11V12H4V14H6V15C6,15.34 6.04,15.67 6.09,16H4V18H6.81C7.85,19.79 9.78,21 12,21C14.22,21 16.15,19.79 17.19,18H20V16H17.91C17.96,15.67 18,15.34 18,15V14H20V12H18V11C18,10.66 17.96,10.33 17.91,10H20V8Z"/>
-                                        </Button>
-                                        <Button ToolTip.Tip="{l:Localize lblUninstall}"
-                                                IsVisible="{Binding App.IsRemovable}"
-                                                Command="{ReflectionBinding $parent[UserControl].DataContext.UninstallCommand}"
-                                                CommandParameter="{Binding App}">
-                                            <PathIcon Width="16" Height="16" Foreground="{DynamicResource BadBrush}" Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
-                                        </Button>
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                                    </Grid>
+                                    <Border Height="1" Margin="16,0,0,0" Background="{DynamicResource HairBrush}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
             </ScrollViewer>
 
         </DockPanel>
