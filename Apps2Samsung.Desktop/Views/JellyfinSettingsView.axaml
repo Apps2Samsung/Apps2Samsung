@@ -17,15 +17,15 @@
 				<StackPanel Spacing="16">
 
 					<!-- Jellyfin-only notice -->
-					<Border Background="#FFF3CD"
+					<Border Background="{DynamicResource WarnSoftBrush}"
 							CornerRadius="4"
 							Padding="10,8"
-							BorderBrush="#FFE69C"
+							BorderBrush="{DynamicResource WarnBrush}"
 							BorderThickness="1">
 						<StackPanel Orientation="Horizontal" Spacing="8">
-							<fa:SymbolIcon Symbol="Important" Width="16" Height="16" Foreground="#856404" VerticalAlignment="Center"/>
+							<fa:SymbolIcon Symbol="Important" Width="16" Height="16" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center"/>
 							<TextBlock Text="{Binding LblJellyfinOnlyNotice}"
-									   Foreground="#856404"
+									   Foreground="{DynamicResource WarnBrush}"
 									   FontSize="12"
 									   FontWeight="SemiBold"
 									   TextWrapping="Wrap"
@@ -171,7 +171,7 @@
 										CornerRadius="4"
 										Padding="8,4">
 									<TextBlock Text="{Binding ServerConnectionStatus}"
-											   Foreground="White"
+											   Foreground="{DynamicResource OnAccentBrush}"
 											   FontSize="12"/>
 								</Border>
 								<Button Classes="secondary"
@@ -185,12 +185,12 @@
 
 						<!-- mDNS (.local) Warning -->
 						<Border IsVisible="{Binding ShowMdnsWarning}"
-								Background="#FFF3CD"
+								Background="{DynamicResource WarnSoftBrush}"
 								CornerRadius="4"
 								Padding="10,8"
 								Margin="0,4,0,0">
 							<TextBlock Text="{Binding LblMdnsWarning}"
-									   Foreground="#856404"
+									   Foreground="{DynamicResource WarnBrush}"
 									   FontSize="12"
 									   TextWrapping="Wrap"/>
 						</Border>
@@ -244,7 +244,7 @@
 										CornerRadius="4"
 										Padding="8,4">
 									<TextBlock Text="{Binding AuthenticationStatus}"
-											   Foreground="White"
+											   Foreground="{DynamicResource OnAccentBrush}"
 											   FontSize="12"/>
 								</Border>
 								<Button Classes="primary"
@@ -334,13 +334,13 @@
 																	   IsVisible="{Binding HasVersion}"/>
 															</StackPanel>
 															<Border Grid.Column="2"
-																	Background="#7F8C8D"
+																	Background="{DynamicResource MutedBrush}"
 																	CornerRadius="3"
 																	Padding="6,1"
 																	VerticalAlignment="Center"
 																	IsVisible="{Binding !IsSupported}">
 																<TextBlock Text="{Binding $parent[ItemsControl].DataContext.LblPluginUnsupported}"
-																	   Foreground="White"
+																	   Foreground="{DynamicResource OnAccentBrush}"
 																	   FontSize="10"/>
 															</Border>
 														</Grid>
@@ -427,15 +427,15 @@
 				<StackPanel Spacing="12">
 
 					<!-- Jellyfin-only notice -->
-					<Border Background="#FFF3CD"
+					<Border Background="{DynamicResource WarnSoftBrush}"
 							CornerRadius="4"
 							Padding="10,8"
-							BorderBrush="#FFE69C"
+							BorderBrush="{DynamicResource WarnBrush}"
 							BorderThickness="1">
 						<StackPanel Orientation="Horizontal" Spacing="8">
-							<fa:SymbolIcon Symbol="Important" Width="16" Height="16" Foreground="#856404" VerticalAlignment="Center"/>
+							<fa:SymbolIcon Symbol="Important" Width="16" Height="16" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center"/>
 							<TextBlock Text="{Binding LblJellyfinOnlyNotice}"
-									   Foreground="#856404"
+									   Foreground="{DynamicResource WarnBrush}"
 									   FontSize="12"
 									   FontWeight="SemiBold"
 									   TextWrapping="Wrap"
@@ -532,15 +532,15 @@
 				<StackPanel Spacing="12">
 
 					<!-- Jellyfin-only notice -->
-					<Border Background="#FFF3CD"
+					<Border Background="{DynamicResource WarnSoftBrush}"
 							CornerRadius="4"
 							Padding="10,8"
-							BorderBrush="#FFE69C"
+							BorderBrush="{DynamicResource WarnBrush}"
 							BorderThickness="1">
 						<StackPanel Orientation="Horizontal" Spacing="8">
-							<fa:SymbolIcon Symbol="Important" Width="16" Height="16" Foreground="#856404" VerticalAlignment="Center"/>
+							<fa:SymbolIcon Symbol="Important" Width="16" Height="16" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center"/>
 							<TextBlock Text="{Binding LblJellyfinOnlyNotice}"
-									   Foreground="#856404"
+									   Foreground="{DynamicResource WarnBrush}"
 									   FontSize="12"
 									   FontWeight="SemiBold"
 									   TextWrapping="Wrap"
@@ -644,7 +644,7 @@
 											Padding="12,8"
 											CornerRadius="6"
 											Background="{Binding HexColor}"
-											Foreground="White"
+											Foreground="{DynamicResource OnAccentBrush}"
 											FontWeight="SemiBold"
 											Cursor="Hand">
 										<Button.Styles>

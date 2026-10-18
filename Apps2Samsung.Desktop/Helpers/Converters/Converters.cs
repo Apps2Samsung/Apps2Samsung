@@ -1,4 +1,5 @@
-﻿using Avalonia.Data.Converters;
+using Apps2Samsung.Styles;
+using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Apps2Samsung.Models;
 using System;
@@ -11,10 +12,10 @@ namespace Apps2Samsung.Helpers.Converters
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
             => value switch
             {
-                TvLogConnectionStatus.Connected => new SolidColorBrush(Color.Parse("#27AE60")),
-                TvLogConnectionStatus.Listening => new SolidColorBrush(Color.Parse("#2980B9")),
-                TvLogConnectionStatus.NoConnections => new SolidColorBrush(Color.Parse("#E67E22")),
-                TvLogConnectionStatus.Stopped => new SolidColorBrush(Color.Parse("#7F8C8D")),
+                TvLogConnectionStatus.Connected => DesignTheme.Brush("Ok"),
+                TvLogConnectionStatus.Listening => DesignTheme.Brush("Accent"),
+                TvLogConnectionStatus.NoConnections => DesignTheme.Brush("Warn"),
+                TvLogConnectionStatus.Stopped => DesignTheme.Brush("Muted"),
                 _ => Brushes.Gray
             };
 

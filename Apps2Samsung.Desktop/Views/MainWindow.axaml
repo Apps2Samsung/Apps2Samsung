@@ -34,29 +34,29 @@
         BorderThickness="1">
 
 		<Border.Effect>
-			<DropShadowEffect BlurRadius="15" OffsetX="2" OffsetY="2" Color="#00000020" Opacity="0.15"/>
+			<DropShadowEffect BlurRadius="15" OffsetX="2" OffsetY="2" Color="{StaticResource ShadowColor}" Opacity="0.15"/>
 		</Border.Effect>
 
 		<StackPanel Spacing="14">
-			<Border Background="#2C3E50"
+			<Border Background="{DynamicResource AccentBrush}"
                     Padding="24,20"
                     CornerRadius="8">
 				<StackPanel Spacing="12" HorizontalAlignment="Center">
 					<TextBlock
                                Text="{l:Localize lblAppInstallerTitle}"
 								HorizontalAlignment="Center"
-								Foreground="White"
+								Foreground="{DynamicResource OnAccentBrush}"
 								FontWeight="Medium"/>
 				</StackPanel>
 			</Border>
 
 			<!-- VPN / tunnel adapter warning -->
-			<Border Background="#FFF3CD" CornerRadius="6" Padding="12,10"
-			        BorderBrush="#FFE69C" BorderThickness="1"
+			<Border Background="{DynamicResource WarnSoftBrush}" CornerRadius="6" Padding="12,10"
+			        BorderBrush="{DynamicResource WarnBrush}" BorderThickness="1"
 			        IsVisible="{Binding HasVpnWarning}">
 				<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-					<fa:SymbolIcon Grid.Column="0" Symbol="Important" Width="18" Height="18" Foreground="#856404" VerticalAlignment="Top"/>
-					<TextBlock Grid.Column="1" Text="{Binding VpnWarning}" Foreground="#856404" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
+					<fa:SymbolIcon Grid.Column="0" Symbol="Important" Width="18" Height="18" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Top"/>
+					<TextBlock Grid.Column="1" Text="{Binding VpnWarning}" Foreground="{DynamicResource WarnBrush}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
 				</Grid>
 			</Border>
 
@@ -205,13 +205,13 @@
 			</StackPanel>
 
 			<!-- Status - Clean and simple -->
-			<Border Background="#2C3E50"
+			<Border Background="{DynamicResource AccentBrush}"
                     Padding="16"
                     CornerRadius="6">
 				<StackPanel Spacing="10">
 					<TextBlock Text="{Binding StatusBar}"
                                HorizontalAlignment="Center"
-                               Foreground="White"
+                               Foreground="{DynamicResource OnAccentBrush}"
                                FontWeight="Medium"/>
 					<!-- The TV's own install percentage; only shown while the TV is reporting one -->
 					<ProgressBar IsVisible="{Binding IsInstallProgressVisible}"

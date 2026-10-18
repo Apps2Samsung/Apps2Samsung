@@ -5,21 +5,21 @@
              x:Class="Apps2Samsung.Mobile.Pages.AppIconsPage"
              Title="{l:Localize lblAppIcons}"
              NavigationPage.HasNavigationBar="False"
-             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+             BackgroundColor="{DynamicResource BgColor}">
     <ScrollView>
         <Border Margin="12" Padding="16" StrokeThickness="1"
                 StrokeShape="RoundRectangle 8"
-                Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
-                BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
+                Stroke="{DynamicResource HairBrush}"
+                BackgroundColor="{DynamicResource SurfaceColor}">
             <VerticalStackLayout Spacing="14">
 
                 <!-- Header banner with a back affordance -->
-                <Border BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+                <Border BackgroundColor="{DynamicResource AccentColor}" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
                     <Grid ColumnDefinitions="44,*,44" VerticalOptions="Center">
-                        <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
+                        <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="{DynamicResource OnAccentColor}"
                                 BackgroundColor="Transparent" BorderWidth="0" Padding="0"
                                 WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
-                        <Label Grid.Column="1" Text="{l:Localize lblAppIcons}" TextColor="White" FontAttributes="Bold"
+                        <Label Grid.Column="1" Text="{l:Localize lblAppIcons}" TextColor="{DynamicResource OnAccentColor}" FontAttributes="Bold"
                                VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
                     </Grid>
                 </Border>

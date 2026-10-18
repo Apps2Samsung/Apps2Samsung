@@ -1,12 +1,17 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<!-- Every colour is a design token (Apps2Samsung.Core/Design/DesignTokens.cs, registered by
+	     Styles/DesignTheme.cs). The four v3 variants (#755): primary = accent, soft = accent-soft with
+	     accent text, plain = fill, danger = bad-soft with bad text. "secondary" and "icon" are the
+	     older classes the views still use; they draw from the same tokens. -->
 	<Style Selector="ToggleSwitch">
 		<Setter Property="OnContent" Value="" />
 		<Setter Property="OffContent" Value="" />
 	</Style>
+
 	<Style Selector="Button.primary">
-		<Setter Property="Background" Value="#2C3E50"/>
-		<Setter Property="Foreground" Value="White"/>
+		<Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
 		<Setter Property="BorderBrush" Value="Transparent"/>
 		<Setter Property="CornerRadius" Value="6"/>
 		<Setter Property="Padding" Value="24,12"/>
@@ -14,12 +19,14 @@
 		<Setter Property="FontSize" Value="14"/>
 		<Setter Property="Cursor" Value="Hand"/>
 	</Style>
-	<Style Selector="Button.primary:pointerover">
-		<Setter Property="Background" Value="#34495E"/>
+	<Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
 	</Style>
+
 	<Style Selector="Button.secondary">
-		<Setter Property="Background" Value="#2C3E50"/>
-		<Setter Property="Foreground" Value="White"/>
+		<Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
 		<Setter Property="BorderBrush" Value="Transparent"/>
 		<Setter Property="CornerRadius" Value="6"/>
 		<Setter Property="Padding" Value="8,4"/>
@@ -27,9 +34,56 @@
 		<Setter Property="FontSize" Value="14"/>
 		<Setter Property="Cursor" Value="Hand"/>
 	</Style>
-	<Style Selector="Button.secondary:pointerover">
-		<Setter Property="Background" Value="#34495E"/>
+	<Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
 	</Style>
+
+	<Style Selector="Button.soft">
+		<Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+		<Setter Property="BorderBrush" Value="Transparent"/>
+		<Setter Property="CornerRadius" Value="6"/>
+		<Setter Property="Padding" Value="24,12"/>
+		<Setter Property="FontWeight" Value="SemiBold"/>
+		<Setter Property="FontSize" Value="14"/>
+		<Setter Property="Cursor" Value="Hand"/>
+	</Style>
+	<Style Selector="Button.soft:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource AccentHoverBrush}"/>
+	</Style>
+
+	<Style Selector="Button.plain">
+		<Setter Property="Background" Value="{DynamicResource FillBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+		<Setter Property="BorderBrush" Value="Transparent"/>
+		<Setter Property="CornerRadius" Value="6"/>
+		<Setter Property="Padding" Value="24,12"/>
+		<Setter Property="FontWeight" Value="SemiBold"/>
+		<Setter Property="FontSize" Value="14"/>
+		<Setter Property="Cursor" Value="Hand"/>
+	</Style>
+	<Style Selector="Button.plain:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource HairBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+	</Style>
+
+	<Style Selector="Button.danger">
+		<Setter Property="Background" Value="{DynamicResource BadSoftBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource BadBrush}"/>
+		<Setter Property="BorderBrush" Value="Transparent"/>
+		<Setter Property="CornerRadius" Value="6"/>
+		<Setter Property="Padding" Value="24,12"/>
+		<Setter Property="FontWeight" Value="SemiBold"/>
+		<Setter Property="FontSize" Value="14"/>
+		<Setter Property="Cursor" Value="Hand"/>
+	</Style>
+	<Style Selector="Button.danger:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource BadBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+	</Style>
+
 	<Style Selector="Button.icon">
 		<Setter Property="Width" Value="40"/>
 		<Setter Property="Height" Value="40"/>
@@ -45,12 +99,12 @@
 		<Setter Property="Cursor" Value="Hand"/>
 		<Setter Property="Padding" Value="0"/>
 	</Style>
-	<Style Selector="Button.icon:pointerover">
-		<Setter Property="Background" Value="#2C3E50"/>
-		<Setter Property="Foreground" Value="White"/>
+	<Style Selector="Button.icon:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
 		<Setter Property="BorderBrush" Value="Transparent"/>
 	</Style>
-	<Style Selector="Button.icon:pressed">
-		<Setter Property="Background" Value="#1A252F"/>
+	<Style Selector="Button.icon:pressed /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
 	</Style>
 </Styles>

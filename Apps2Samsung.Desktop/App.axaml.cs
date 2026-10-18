@@ -39,6 +39,9 @@ namespace Apps2Samsung
 
         public override void OnFrameworkInitializationCompleted()
         {
+            // The design tokens (Core) as resources, before any window is built.
+            Resources.MergedDictionaries.Add(Apps2Samsung.Styles.DesignTheme.Build());
+
             ConfigureServices();
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

@@ -5,22 +5,22 @@
              x:Class="Apps2Samsung.Mobile.Pages.TvToolboxPage"
              Title="{l:Localize lblToolbox}"
              NavigationPage.HasNavigationBar="False"
-             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+             BackgroundColor="{DynamicResource BgColor}">
 
     <ContentPage.Resources>
         <Style x:Key="Card" TargetType="Border">
             <Setter Property="Padding" Value="12" />
             <Setter Property="StrokeThickness" Value="1" />
             <Setter Property="StrokeShape" Value="RoundRectangle 10" />
-            <Setter Property="Stroke" Value="{AppThemeBinding Light=#E2E2E2, Dark=#333}" />
-            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark=#1F1F1F}" />
+            <Setter Property="Stroke" Value="{DynamicResource HairColor}" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource SurfaceColor}" />
         </Style>
         <Style x:Key="Action" TargetType="Button">
             <Setter Property="FontSize" Value="14" />
             <Setter Property="HeightRequest" Value="44" />
             <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="BackgroundColor" Value="#2C3E50" />
-            <Setter Property="TextColor" Value="White" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource AccentColor}" />
+            <Setter Property="TextColor" Value="{DynamicResource OnAccentColor}" />
             <Setter Property="Padding" Value="10,0" />
         </Style>
         <Style x:Key="Section" TargetType="Label">
@@ -47,14 +47,14 @@
     <Grid RowDefinitions="Auto,Auto,*" Margin="12" RowSpacing="10">
 
         <!-- Header banner with a back affordance -->
-        <Border Grid.Row="0" BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+        <Border Grid.Row="0" BackgroundColor="{DynamicResource AccentColor}" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
             <Grid ColumnDefinitions="44,*,44" ColumnSpacing="4" VerticalOptions="Center">
-                <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
+                <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="{DynamicResource OnAccentColor}"
                         BackgroundColor="Transparent" BorderWidth="0" Padding="0"
                         WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
-                <Label Grid.Column="1" Text="{l:Localize lblToolbox}" TextColor="White" FontAttributes="Bold"
+                <Label Grid.Column="1" Text="{l:Localize lblToolbox}" TextColor="{DynamicResource OnAccentColor}" FontAttributes="Bold"
                        VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
-                <Button Grid.Column="2" Text="⟳" FontSize="18" TextColor="White"
+                <Button Grid.Column="2" Text="⟳" FontSize="18" TextColor="{DynamicResource OnAccentColor}"
                         BackgroundColor="Transparent" BorderWidth="0" Padding="0"
                         WidthRequest="44" HeightRequest="44" Clicked="OnReloadClicked" />
             </Grid>
@@ -70,13 +70,13 @@
                 <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxOwnerNote}" />
 
                 <!-- Only on a set the probe called hospitality: no Smart Hub, so no app store (#639) -->
-                <Border x:Name="HospitalityNotice" Style="{StaticResource Notice}" Stroke="#C77700" IsVisible="False">
+                <Border x:Name="HospitalityNotice" Style="{StaticResource Notice}" Stroke="{DynamicResource WarnBrush}" IsVisible="False">
                     <Label FontSize="12" Text="{l:Localize lblToolboxHospitality}" />
                 </Border>
 
                 <!-- The opposite case: an ordinary set with Smart Hub, on which the hospitality tools below
                      are expected to open nothing. Said up front, so a dead Launch button isn't a mystery. -->
-                <Border x:Name="ConsumerNotice" Style="{StaticResource Notice}" Stroke="#3B7DD8" IsVisible="False">
+                <Border x:Name="ConsumerNotice" Style="{StaticResource Notice}" Stroke="{DynamicResource AccentBrush}" IsVisible="False">
                     <Label FontSize="12" Text="{l:Localize lblToolboxConsumer}" />
                 </Border>
 
@@ -145,7 +145,7 @@
                                             <Label Text="{Binding AppId}" FontSize="11" Opacity="0.55" />
                                             <Label Text="{Binding Description}" FontSize="11" Opacity="0.55" />
                                             <Label Text="{l:Localize lblToolboxSystemAppCaution}" FontSize="11"
-                                                   TextColor="#C77700" IsVisible="{Binding IsCaution}" />
+                                                   TextColor="{DynamicResource WarnColor}" IsVisible="{Binding IsCaution}" />
                                         </VerticalStackLayout>
                                         <Button Grid.Column="1" Style="{StaticResource Action}" WidthRequest="88"
                                                 Text="{l:Localize lblToolboxLaunch}"
@@ -333,7 +333,7 @@
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
 
-                        <Border Style="{StaticResource Notice}" Stroke="#B3261E">
+                        <Border Style="{StaticResource Notice}" Stroke="{DynamicResource BadBrush}">
                             <Label FontSize="12" Text="{l:Localize lblToolboxStandbyWarning}" />
                         </Border>
                     </VerticalStackLayout>

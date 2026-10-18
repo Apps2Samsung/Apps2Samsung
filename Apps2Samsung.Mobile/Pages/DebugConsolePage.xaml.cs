@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Apps2Samsung.Diagnostics;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Mobile.Localization;
+using Apps2Samsung.Mobile.Resources.Styles;
 using Apps2Samsung.Sdb;
 
 namespace Apps2Samsung.Mobile.Pages;
@@ -553,9 +554,9 @@ public partial class DebugConsolePage : ContentPage
         // grey once it is over.
         (StatusLabel.Text, StatusPill.BackgroundColor) = status switch
         {
-            ConsoleStatus.Attaching => (string.Format(L10n.Get("statusDebugAttaching"), _appName), Color.FromArgb("#2980B9")),
-            ConsoleStatus.Attached => (L10n.Get("statusDebugAttached"), Color.FromArgb("#27AE60")),
-            _ => (L10n.Get("statusDebugDetached"), Color.FromArgb("#7F8C8D")),
+            ConsoleStatus.Attaching => (string.Format(L10n.Get("statusDebugAttaching"), _appName), DesignTheme.ColorOf("Accent")),
+            ConsoleStatus.Attached => (L10n.Get("statusDebugAttached"), DesignTheme.ColorOf("Ok")),
+            _ => (L10n.Get("statusDebugDetached"), DesignTheme.ColorOf("Muted")),
         };
     }
 
@@ -583,11 +584,11 @@ public partial class DebugConsolePage : ContentPage
 
         public Color Color => _entry.Level switch
         {
-            ConsoleLevel.Error => Color.FromArgb("#FF6B6B"),
-            ConsoleLevel.Warning => Color.FromArgb("#E6B860"),
-            ConsoleLevel.Info => Color.FromArgb("#6FC3DF"),
-            ConsoleLevel.Debug => Color.FromArgb("#8E99A4"),
-            _ => Color.FromArgb("#DCE3EA"),
+            ConsoleLevel.Error => DesignTheme.ColorOf("Bad"),
+            ConsoleLevel.Warning => DesignTheme.ColorOf("Warn"),
+            ConsoleLevel.Info => DesignTheme.ColorOf("Accent"),
+            ConsoleLevel.Debug => DesignTheme.ColorOf("GlassMuted"),
+            _ => DesignTheme.ColorOf("GlassInk"),
         };
 
         public string AsTextLine()

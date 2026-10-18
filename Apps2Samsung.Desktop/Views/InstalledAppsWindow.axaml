@@ -36,8 +36,8 @@
                     <Button Content="↻" Command="{Binding LoadCommand}" ToolTip.Tip="{l:Localize lblRefresh}"
                             IsVisible="{Binding !IsDebugging}"/>
                     <Button Command="{Binding StopDebugCommand}" ToolTip.Tip="{l:Localize lblStopDebugging}"
-                            IsVisible="{Binding IsDebugging}" Background="#FF6B6B">
-                        <fa:SymbolIcon Symbol="StopFilled" Width="16" Height="16" Foreground="White"/>
+                            IsVisible="{Binding IsDebugging}" Background="{DynamicResource BadBrush}">
+                        <fa:SymbolIcon Symbol="StopFilled" Width="16" Height="16" Foreground="{DynamicResource OnAccentBrush}"/>
                     </Button>
                     <Button Content="✕" Command="{Binding CloseCommand}"/>
                 </StackPanel>
@@ -71,7 +71,7 @@
                                         <Border Background="{Binding App.FallbackColor}"
                                                 IsVisible="{Binding App.MissingIcon}">
                                             <TextBlock Text="{Binding App.Initials}" 
-                                                       Foreground="White" FontWeight="Bold" FontSize="20"
+                                                       Foreground="{DynamicResource OnAccentBrush}" FontWeight="Bold" FontSize="20"
                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                         <!-- Actual icon -->
@@ -113,7 +113,7 @@
                                                 IsVisible="{Binding App.IsRemovable}"
                                                 Command="{ReflectionBinding $parent[Window].DataContext.UninstallCommand}"
                                                 CommandParameter="{Binding App}">
-                                            <PathIcon Width="16" Height="16" Foreground="#FF6B6B" Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+                                            <PathIcon Width="16" Height="16" Foreground="{DynamicResource BadBrush}" Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
                                         </Button>
                                     </StackPanel>
                                 </Grid>

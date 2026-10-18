@@ -50,7 +50,7 @@
 			<DropShadowEffect BlurRadius="15"
 							  OffsetX="2"
 							  OffsetY="2"
-							  Color="#00000020"
+							  Color="{StaticResource ShadowColor}"
 							  Opacity="0.15"/>
 		</Border.Effect>
 
@@ -58,18 +58,18 @@
 
 			<!-- Header (matches the Settings window) -->
 			<Border DockPanel.Dock="Top"
-					Background="#2C3E50"
+					Background="{DynamicResource AccentBrush}"
 					CornerRadius="8"
 					Padding="24,16"
 					Margin="0,0,0,16">
 				<StackPanel Spacing="2" HorizontalAlignment="Center">
 					<TextBlock Text="{Binding LblCatalogTitle}"
-							   Foreground="White"
+							   Foreground="{DynamicResource OnAccentBrush}"
 							   FontWeight="SemiBold"
 							   FontSize="18"
 							   HorizontalAlignment="Center"/>
 					<TextBlock Text="{Binding LblCatalogSubtitle}"
-							   Foreground="#B9C9DA"
+							   Foreground="{DynamicResource OnAccentMutedBrush}"
 							   FontSize="12"
 							   HorizontalAlignment="Center"/>
 				</StackPanel>

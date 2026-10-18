@@ -34,7 +34,7 @@
 		<Border.Effect>
 			<DropShadowEffect BlurRadius="15"
                               OffsetX="2" OffsetY="2"
-                              Color="#00000020"
+                              Color="{StaticResource ShadowColor}"
                               Opacity="0.15"/>
 		</Border.Effect>
 
@@ -82,8 +82,8 @@
 				<!-- Ko-fi Button -->
 				<Button Content="{Binding Validation}"
                         Command="{Binding OpenKoFiCommand}"
-                        Background="#2C3E50"
-                        Foreground="White"
+                        Background="{DynamicResource AccentBrush}"
+                        Foreground="{DynamicResource OnAccentBrush}"
                         BorderThickness="2"
                         CornerRadius="6"
                         Padding="15,8"
@@ -93,8 +93,8 @@
 				<!-- Close Button -->
 				<Button Content="{Binding Close}"
                         Command="{Binding CloseWindowCommand}"
-                        Background="#2C3E50"
-                        Foreground="White"
+                        Background="{DynamicResource AccentBrush}"
+                        Foreground="{DynamicResource OnAccentBrush}"
                         BorderThickness="0"
                         CornerRadius="6"
                         Padding="15,8"

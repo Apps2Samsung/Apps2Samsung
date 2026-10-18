@@ -28,7 +28,7 @@
                     <TextBlock Text="{l:Localize lblDebugConsole}" FontSize="18" FontWeight="SemiBold"/>
                     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                         <Border CornerRadius="10" Padding="8,3" Background="{Binding StatusBrush}" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding StatusText}" FontSize="11" FontWeight="SemiBold" Foreground="White"/>
+                            <TextBlock Text="{Binding StatusText}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource OnAccentBrush}"/>
                         </Border>
                         <TextBlock Text="{Binding Subtitle}" FontSize="12" Opacity="0.6" VerticalAlignment="Center"
                                    TextTrimming="CharacterEllipsis"/>
@@ -115,9 +115,9 @@
             <!-- Log output. Dark regardless of theme: it is a console, and the level colours are
                  tuned for a dark ground. Mirrors the phone's console row for row. -->
             <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1"
-                    Background="#12161A" CornerRadius="4" Padding="2">
+                    Background="{DynamicResource GlassBrush}" CornerRadius="4" Padding="2">
                 <Grid>
-                    <TextBlock Text="{l:Localize lblDebugNoOutput}" Foreground="#7A8691" FontSize="12"
+                    <TextBlock Text="{l:Localize lblDebugNoOutput}" Foreground="{DynamicResource GlassMutedBrush}" FontSize="12"
                                HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap"
                                TextAlignment="Center" Margin="24" IsVisible="{Binding !HasRows}"/>
                     <ListBox x:Name="LogList" ItemsSource="{Binding Rows}" Background="Transparent"
@@ -133,18 +133,18 @@
                                 <Grid ColumnDefinitions="64,*" ColumnSpacing="8">
                                     <TextBlock Grid.Column="0" Text="{Binding Clock}" FontSize="11"
                                                FontFamily="Consolas,Menlo,DejaVu Sans Mono,monospace"
-                                               Foreground="#5C6773" VerticalAlignment="Top"/>
+                                               Foreground="{DynamicResource GlassMutedBrush}" VerticalAlignment="Top"/>
                                     <StackPanel Grid.Column="1" Spacing="1">
                                         <TextBlock Text="{Binding Source}" FontSize="10" FontWeight="SemiBold"
                                                    FontFamily="Consolas,Menlo,DejaVu Sans Mono,monospace"
-                                                   Foreground="#8E99A4" IsVisible="{Binding HasSource}"
+                                                   Foreground="{DynamicResource GlassInkBrush}" IsVisible="{Binding HasSource}"
                                                    TextTrimming="CharacterEllipsis"/>
                                         <SelectableTextBlock Text="{Binding Text}" FontSize="12.5"
                                                              FontFamily="Consolas,Menlo,DejaVu Sans Mono,monospace"
                                                              Foreground="{Binding Brush}" TextWrapping="Wrap"/>
                                         <TextBlock Text="{Binding Origin}" FontSize="10"
                                                    FontFamily="Consolas,Menlo,DejaVu Sans Mono,monospace"
-                                                   Foreground="#5C6773" IsVisible="{Binding HasOrigin}"
+                                                   Foreground="{DynamicResource GlassMutedBrush}" IsVisible="{Binding HasOrigin}"
                                                    TextTrimming="PrefixCharacterEllipsis"/>
                                     </StackPanel>
                                 </Grid>

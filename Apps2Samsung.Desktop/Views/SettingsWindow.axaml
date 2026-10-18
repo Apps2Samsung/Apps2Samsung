@@ -43,7 +43,7 @@
 	BorderThickness="1">
 
 		<Border.Effect>
-			<DropShadowEffect BlurRadius="15" OffsetX="2" OffsetY="2" Color="#00000020" Opacity="0.15"/>
+			<DropShadowEffect BlurRadius="15" OffsetX="2" OffsetY="2" Color="{StaticResource ShadowColor}" Opacity="0.15"/>
 		</Border.Effect>
 
 		<Grid>
@@ -54,13 +54,13 @@
 
 			<!-- Header -->
 			<Border Grid.Row="0"
-                    Background="#2C3E50"
+                    Background="{DynamicResource AccentBrush}"
                     CornerRadius="8"
                     Padding="24,16"
                     Margin="0,0,0,14">
 				<Grid>
 					<TextBlock Text="{Binding Application.LblSettingsHeader}"
-							   Foreground="White"
+							   Foreground="{DynamicResource OnAccentBrush}"
 							   FontSize="18"
 							   FontWeight="Medium"
 							   HorizontalAlignment="Center"
@@ -79,12 +79,12 @@
 								<Setter Property="Background" Value="Transparent"/>
 							</Style>
 							<Style Selector="ToggleButton:pointerover">
-								<Setter Property="Background" Value="#40FFFFFF"/>
+								<Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
 							</Style>
 						</ToggleButton.Styles>
 						<Panel>
-							<TextBlock Text="&#x2600;" FontSize="18" Foreground="White" IsVisible="{Binding Application.DarkMode}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-							<TextBlock Text="&#x1F319;" FontSize="16" Foreground="White" IsVisible="{Binding !Application.DarkMode}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+							<TextBlock Text="&#x2600;" FontSize="18" Foreground="{DynamicResource OnAccentBrush}" IsVisible="{Binding Application.DarkMode}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+							<TextBlock Text="&#x1F319;" FontSize="16" Foreground="{DynamicResource OnAccentBrush}" IsVisible="{Binding !Application.DarkMode}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 						</Panel>
 					</ToggleButton>
 				</Grid>
