@@ -30,7 +30,14 @@ a second one. A directory with no file anywhere beneath it holds nothing a trans
 Run it after changing crowdin.yml. Idempotent - it reports "already correct" and writes nothing
 when the two sides agree.
 
-  CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN in the environment; --apply to write.
+The export pattern has to agree with crowdin.yml on the branch crowdin-sync actually runs from
+(beta): the archive is built with Crowdin's pattern and the CLI only places what it finds under
+its own. While a branch ahead of beta already carries a new path, run from that branch with
+--leave-pattern so the cleanup happens but beta's downloads keep working; write the pattern from
+beta once the path has merged there.
+
+  CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN in the environment; --apply to write;
+  --leave-pattern to report the export pattern but not write it.
 """
 import json
 import os
@@ -99,6 +106,7 @@ def main():
     if not TOKEN or not PROJECT:
         raise SystemExit("CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN are not set.")
     apply = "--apply" in sys.argv[1:]
+    leave_pattern = "--leave-pattern" in sys.argv[1:]
 
     pattern = wanted_pattern()
     print(f"{CONFIG} wants: {pattern}")
@@ -136,7 +144,10 @@ def main():
         print(f"Empty:       id={d['id']} {d['path']} (no file beneath it)")
 
     changes = []
-    if current != pattern:
+    if current != pattern and leave_pattern:
+        print("Export pattern differs but is left alone (--leave-pattern): write it from the branch "
+              "crowdin-sync runs from once that branch has the new path.")
+    elif current != pattern:
         changes.append("export pattern")
     if mapping:
         changes.append(f"languageMapping ({len(mapping)} entr(y/ies) to clear)")
@@ -153,7 +164,7 @@ def main():
         print("Nothing was written - re-run with --apply.")
         return 0
 
-    if current != pattern:
+    if current != pattern and not leave_pattern:
         call(f"/projects/{PROJECT}/files/{source['id']}", method="PATCH",
              body=[{"op": "replace", "path": "/exportOptions",
                     "value": {"exportPattern": pattern}}])
