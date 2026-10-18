@@ -21,7 +21,8 @@ public partial class InstallerPage : ContentPage
 	private const string CustomWgtLabel = "📁 Custom WGT / TPK…";
 	// Synthetic TV-picker entry for targeting a TV the scan didn't find (mirrors the desktop's
 	// manual-IP option). Always the last item in the TV list.
-	private const string ManualIpLabel = "✏️ Enter IP manually…";
+	// Read once per page build, like every {l:Localize} on the page: a language switch reloads the UI.
+	private static string ManualIpLabel => "✏️ " + L10n.Get("lblEnterIpManually");
 
 	private readonly INetworkService _networkService;
 	private readonly ISamsungLoginService _loginService;
@@ -297,9 +298,9 @@ public partial class InstallerPage : ContentPage
 	private async Task PromptManualIpAsync()
 	{
 		var input = await DisplayPromptAsync(
-			"Manual TV IP",
-			"Enter the TV's IP address (Developer Mode must be on):",
-			accept: "Add", cancel: "Cancel", placeholder: "192.168.1.50");
+			L10n.Get("lblManualTvIpTitle"),
+			L10n.Get("lblManualTvIpPrompt"),
+			accept: L10n.Get("lblAdd"), cancel: L10n.Get("lblCancel"), placeholder: "192.168.1.50");
 
 		if (string.IsNullOrWhiteSpace(input) || !System.Net.IPAddress.TryParse(input.Trim(), out _))
 		{
@@ -319,7 +320,7 @@ public partial class InstallerPage : ContentPage
 			// is still added (assumed ready, a real SDB error surfaces at install) and stays unguarded.
 			var probed = await ProbeTvAsync(ip);
 			_tvIps.Add(ip);
-			_tvLabels.Add($"{ip} (manual)");
+			_tvLabels.Add(string.Format(L10n.Get("lblTvManualEntry"), ip));
 			_tvDevices.Add(probed);
 			idx = _tvIps.Count - 1;
 		}
@@ -629,7 +630,7 @@ public partial class InstallerPage : ContentPage
 		var localIp = NetworkInfo.GetLocalIPv4();
 
 		if (device is { DebugPortOpen: false })
-			return TizenDeviceReadiness.Describe(TizenDeviceReadiness.WhyNotReady(device, localIp), localIp);
+			return TizenDeviceReadiness.Describe(TizenDeviceReadiness.WhyNotReady(device, localIp), localIp, L10n.Get);
 
 		var notReady = _tvDevices.Count(d => d is { DebugPortOpen: false });
 		return notReady > 0
