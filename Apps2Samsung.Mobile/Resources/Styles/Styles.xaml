@@ -119,6 +119,28 @@
         <Setter Property="FontFamily" Value="OpenSansSemibold" />
     </Style>
 
+    <!-- The page title of a tab root (#755: 32 pt, bold), and a round icon button beside it. -->
+    <Style TargetType="Label" x:Key="PageTitle">
+        <Setter Property="FontSize" Value="32" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="LineBreakMode" Value="TailTruncation" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+    <Style TargetType="Button" x:Key="IconButton">
+        <Setter Property="BackgroundColor" Value="{DynamicResource FillColor}" />
+        <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
+        <Setter Property="BorderWidth" Value="0" />
+        <Setter Property="CornerRadius" Value="18" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="WidthRequest" Value="36" />
+        <Setter Property="HeightRequest" Value="36" />
+        <Setter Property="MinimumWidthRequest" Value="36" />
+        <Setter Property="MinimumHeightRequest" Value="36" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
     <!-- A group title over a grouped list, and the footnote under one. -->
     <Style TargetType="Label" x:Key="GroupTitle">
         <Setter Property="FontSize" Value="15" />
