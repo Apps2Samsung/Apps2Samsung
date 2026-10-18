@@ -70,24 +70,24 @@ namespace Apps2Samsung.Services
         };
 
         /// <summary>
-        /// The same guidance in English for the mobile head, which has no localization layer. Names
-        /// the local IP when it's known, since "enter this device's IP" is the step people get wrong.
+        /// The same guidance for the mobile head, read through its localization catalog. Names the
+        /// local IP when it's known, since "enter this device's IP" is the step people get wrong. The
+        /// with-IP and without-IP variants are separate keys so a translator always works on a whole
+        /// sentence rather than a fragment spliced into one.
         /// </summary>
-        public static string Describe(NotReadyReason reason, string? localIp = null)
+        public static string Describe(NotReadyReason reason, string? localIp, Func<string, string> localize)
         {
-            var thisDevice = string.IsNullOrEmpty(localIp) ? "this device's IP" : $"this device's IP ({localIp})";
+            var hasIp = !string.IsNullOrEmpty(localIp);
 
             return reason switch
             {
-                NotReadyReason.DeveloperModeOff =>
-                    "\u26a0 TV detected, but Developer Mode is off. On the TV: open Apps, type 1 2 3 4 5, " +
-                    $"switch Developer Mode On, enter {thisDevice}, restart the TV, then rescan.",
-                NotReadyReason.DeveloperIpMismatch =>
-                    "\u26a0 TV detected, but its Developer Mode IP points at another device. Re-enter " +
-                    $"{thisDevice} in the TV's Developer Mode settings, power-cycle the TV, then rescan.",
-                _ =>
-                    "\u26a0 TV detected and Developer Mode is on, but its debug port isn't responding yet. " +
-                    "Fully power-cycle the TV (unplug ~30s), then rescan.",
+                NotReadyReason.DeveloperModeOff => hasIp
+                    ? string.Format(localize("DevNotReadyEnableDevModeDeviceIp"), localIp)
+                    : localize("DevNotReadyEnableDevModeDevice"),
+                NotReadyReason.DeveloperIpMismatch => hasIp
+                    ? string.Format(localize("DevNotReadyIpMismatchDeviceIp"), localIp)
+                    : localize("DevNotReadyIpMismatchDevice"),
+                _ => localize("DevNotReadyPowerCycle"),
             };
         }
     }
