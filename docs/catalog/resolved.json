@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-18T13:00:58.0574683+00:00",
+  "generatedAt": "2026-10-18T17:04:48.9698918+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -1104,32 +1104,32 @@
             {
               "name": "Litefin-2.0.20-Tizen-Legacy.wgt",
               "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.20/Litefin-2.0.20-Tizen-Legacy.wgt",
-              "size": 6504921
+              "size": 6505067
             },
             {
               "name": "Litefin-2.0.20-Tizen-Modern.wgt",
               "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.20/Litefin-2.0.20-Tizen-Modern.wgt",
-              "size": 6187732
+              "size": 6188313
             },
             {
               "name": "Litefin-2.0.20-Tizen-Normal-Oblong.wgt",
               "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.20/Litefin-2.0.20-Tizen-Normal-Oblong.wgt",
-              "size": 6254978
+              "size": 6255128
             },
             {
               "name": "Litefin-2.0.20-Tizen-Normal.wgt",
               "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.20/Litefin-2.0.20-Tizen-Normal.wgt",
-              "size": 6229315
+              "size": 6229465
             },
             {
               "name": "Litefin-2.0.20-Tizen-Ultra-Legacy-NoService.wgt",
               "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.20/Litefin-2.0.20-Tizen-Ultra-Legacy-NoService.wgt",
-              "size": 5399628
+              "size": 5400036
             },
             {
               "name": "Litefin-2.0.20-Tizen-Ultra-Legacy.wgt",
               "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.20/Litefin-2.0.20-Tizen-Ultra-Legacy.wgt",
-              "size": 5412520
+              "size": 5412928
             }
           ]
         }
