@@ -25,10 +25,7 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
             new PluginMatrixEntry
             {
                 Name = "EditorsChoice",
-                FallbackUrls = new List<string>
-                {
-                    "https://raw.githubusercontent.com/lachlandcp/jellyfin-editors-choice-plugin/refs/heads/main/EditorsChoicePlugin/Api/client.js"
-                },
+                FallbackUrls = new(),
                 UseBabel = false
             },
             new PluginMatrixEntry
@@ -80,7 +77,6 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
                 match: url => url.Contains("/plugins/", StringComparison.OrdinalIgnoreCase),
                 treatAs: ServerAssetKind.PluginAsset),
 
-            new ServerAssetRule("EditorsChoice", url => url.Contains("editorschoice", StringComparison.OrdinalIgnoreCase), ServerAssetKind.PluginAsset),
             new ServerAssetRule("KefinTweaks", url => url.Contains("kefin", StringComparison.OrdinalIgnoreCase), ServerAssetKind.PluginAsset),
             new ServerAssetRule("Media Bar", url => url.Contains("mediabar", StringComparison.OrdinalIgnoreCase), ServerAssetKind.PluginAsset),
             new ServerAssetRule("Home Screen Sections", url => url.Contains("homescreensections", StringComparison.OrdinalIgnoreCase), ServerAssetKind.PluginAsset),
