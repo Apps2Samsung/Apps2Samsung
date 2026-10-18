@@ -69,6 +69,21 @@
 		<Setter Property="Height" Value="18"/>
 	</Style>
 
+	<!-- the accent text action beside a group title ("Show all") -->
+	<Style Selector="Button.link">
+		<Setter Property="Background" Value="Transparent"/>
+		<Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+		<Setter Property="BorderThickness" Value="0"/>
+		<Setter Property="Padding" Value="4,2"/>
+		<Setter Property="FontSize" Value="14"/>
+		<Setter Property="FontWeight" Value="SemiBold"/>
+		<Setter Property="Cursor" Value="Hand"/>
+	</Style>
+	<Style Selector="Button.link:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="Transparent"/>
+		<Setter Property="Foreground" Value="{DynamicResource AccentHoverBrush}"/>
+	</Style>
+
 	<!-- a list row: the whole row is the button -->
 	<Style Selector="Button.row">
 		<Setter Property="Background" Value="Transparent"/>

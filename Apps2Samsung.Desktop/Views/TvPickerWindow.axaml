@@ -1,0 +1,83 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:Apps2Samsung.Views"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        x:Class="Apps2Samsung.Views.TvPickerWindow"
+        x:DataType="views:TvPickerWindow"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        Title="{Binding TitleText}"
+        Width="420" SizeToContent="Height" MaxHeight="640"
+        WindowStartupLocation="CenterOwner" CanResize="False"
+        Background="{DynamicResource BgBrush}">
+	<!-- The TV sheet (#755): the TVs the scan found, each with its LED colour, a row for a TV the
+	     scan didn't find, and Rescan. Opened from the "Change TV" chip on the TV card. -->
+	<Window.Styles>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Catalog.axaml"/>
+		<Style Selector="Border.radio">
+			<Setter Property="Width" Value="22"/>
+			<Setter Property="Height" Value="22"/>
+			<Setter Property="CornerRadius" Value="11"/>
+			<Setter Property="BorderThickness" Value="2"/>
+			<Setter Property="BorderBrush" Value="{DynamicResource HairBrush}"/>
+		</Style>
+		<Style Selector="Border.radio.on">
+			<Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+		</Style>
+		<Style Selector="Border.dot">
+			<Setter Property="Width" Value="10"/>
+			<Setter Property="Height" Value="10"/>
+			<Setter Property="CornerRadius" Value="5"/>
+			<Setter Property="Background" Value="{DynamicResource OkBrush}"/>
+		</Style>
+		<Style Selector="Border.dot.warn">
+			<Setter Property="Background" Value="{DynamicResource WarnBrush}"/>
+		</Style>
+	</Window.Styles>
+
+	<StackPanel Margin="16,8,16,16" Spacing="10">
+		<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
+		<TextBlock Text="{Binding TitleText}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
+
+		<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
+			<StackPanel>
+				<ItemsControl ItemsSource="{Binding Rows}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate x:DataType="views:TvPickerWindow+Row">
+							<StackPanel>
+								<Button Classes="row" Click="OnRowClick" Tag="{Binding}">
+									<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+										<Border Classes="radio" Classes.on="{Binding IsSelected}" VerticalAlignment="Center"/>
+										<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+											<TextBlock Text="{Binding Name}" FontWeight="Medium" Foreground="{DynamicResource InkBrush}"/>
+											<TextBlock Text="{Binding Subline}" FontSize="13" Foreground="{DynamicResource MutedBrush}"/>
+										</StackPanel>
+										<Border Grid.Column="2" Classes="dot" Classes.warn="{Binding !IsReady}" VerticalAlignment="Center"/>
+									</Grid>
+								</Button>
+								<Border Classes="hairline"/>
+							</StackPanel>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+				<Button Classes="row" Click="OnManualClick">
+					<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+						<Border Classes="tile" Background="{DynamicResource FillBrush}">
+							<TextBlock Text="✏" FontSize="18" Foreground="{DynamicResource InkBrush}"/>
+						</Border>
+						<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+							<TextBlock Text="{Binding ManualText}" FontWeight="Medium" Foreground="{DynamicResource InkBrush}"/>
+							<TextBlock Text="{Binding ManualHint}" FontSize="13" Foreground="{DynamicResource MutedBrush}"/>
+						</StackPanel>
+						<PathIcon Grid.Column="2" Width="8" Height="13" Opacity="0.35" VerticalAlignment="Center"
+						          Foreground="{DynamicResource InkBrush}" Data="M1,1 L7,6.5 L1,12"/>
+					</Grid>
+				</Button>
+			</StackPanel>
+		</Border>
+
+		<Button Classes="primary" Content="{Binding RescanText}" Click="OnRescanClick"
+		        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12" Margin="0,6,0,0"/>
+	</StackPanel>
+</Window>
