@@ -170,6 +170,8 @@ namespace Apps2Samsung.Update
                         if (predicate(name) && asset.TryGetProperty("browser_download_url", out var urlElement))
                         {
                             result.DownloadUrl = urlElement.GetString();
+                            if (asset.TryGetProperty("size", out var sizeElement) && sizeElement.TryGetInt64(out var size))
+                                result.AssetSize = size;
                             return;
                         }
                     }

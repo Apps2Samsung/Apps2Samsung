@@ -106,6 +106,8 @@ public static class MauiProgram
 
 		// Self-update check (shared Core logic) — matches the .apk asset on the latest release.
 		builder.Services.AddSingleton(sp => new GitHubUpdateChecker(sp.GetRequiredService<HttpClient>()));
+		// The in-app updater: the check, the sheet, the download, the hand-off to the installer.
+		builder.Services.AddSingleton<UpdateFlow>();
 
 		// Session (holds the Samsung sign-in for the app's lifetime) + the installer page.
 		builder.Services.AddSingleton<SessionState>();

@@ -113,6 +113,8 @@
                         </Grid>
                         <Label Style="{StaticResource Hint}"
                                Text="{l:Localize hintBetaUpdates}" />
+                        <Button x:Name="CheckUpdatesBtn" Text="{l:Localize UpdateCheckNow}" Style="{StaticResource SoftButton}"
+                                HeightRequest="44" MinimumHeightRequest="44" Margin="0,4,0,0" Clicked="OnCheckUpdatesClicked" />
                     </VerticalStackLayout>
                 </controls:ExpanderSection>
 

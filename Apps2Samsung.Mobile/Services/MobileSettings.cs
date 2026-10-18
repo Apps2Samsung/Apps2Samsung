@@ -121,6 +121,15 @@ public static class MobileSettings
 		set => Preferences.Set(KeyCertPreference, value ?? CertificatePreferenceAuto);
 	}
 
+	private const string KeySkippedUpdate = "skipped_update_version";
+	/// <summary>The release tag the user chose to skip in the update sheet; offered again only when a
+	/// newer one appears.</summary>
+	public static string SkippedUpdateVersion
+	{
+		get => Preferences.Get(KeySkippedUpdate, string.Empty);
+		set => Preferences.Set(KeySkippedUpdate, value ?? string.Empty);
+	}
+
 	/// <summary>Extra TV DUIDs to pre-authorize in the signing cert (one per line/comma-separated).</summary>
 	public static string ManualDuids
 	{

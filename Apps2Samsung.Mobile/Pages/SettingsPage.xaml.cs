@@ -288,6 +288,23 @@ public partial class SettingsPage : ContentPage
 			MobileSettings.ManualDuids = DuidsEditor.Text ?? string.Empty;
 	}
 
+	// The manual update check: every outcome is reported, and a skipped version is offered again.
+	private async void OnCheckUpdatesClicked(object? sender, EventArgs e)
+	{
+		CheckUpdatesBtn.IsEnabled = false;
+		CheckUpdatesBtn.Text = L10n.Get("UpdateChecking");
+		try
+		{
+			var updates = IPlatformApplication.Current!.Services.GetRequiredService<UpdateFlow>();
+			await updates.RunAsync(this, manual: true);
+		}
+		finally
+		{
+			CheckUpdatesBtn.Text = L10n.Get("UpdateCheckNow");
+			CheckUpdatesBtn.IsEnabled = true;
+		}
+	}
+
 	private void OnToggle(object? sender, ToggledEventArgs e)
 	{
 		if (!_loaded)

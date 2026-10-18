@@ -8,6 +8,7 @@ using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Design;
+using Apps2Samsung.Update;
 using Avalonia.Media;
 using Apps2Samsung.Styles;
 using Apps2Samsung.Models;
@@ -692,34 +693,45 @@ namespace Apps2Samsung.ViewModels
 
             try
             {
-                // Download update
-                var progress = new Progress<int>(p =>
+                // Download update: the status line carries the bytes ("12.3 MB of 87.3 MB"), the
+                // card's bar the percentage.
+                IsInstallProgressVisible = true;
+                var progress = new Progress<DownloadProgress>(p =>
                 {
                     Dispatcher.UIThread.Post(() =>
                     {
-                        StatusBar = $"{L("UpdateDownloading")} {p}%";
+                        InstallProgress = p.Percent;
+                        StatusBar = $"{L("UpdateDownloading")} {p.Text}";
                     });
                 });
 
                 StatusBar = L("UpdateDownloading");
                 var downloadedPath = await _updaterService.DownloadUpdateAsync(updateResult.DownloadUrl, progress);
 
-                // Apply update
-                await _updateDialogService.ShowApplyingUpdateMessageAsync();
+                // Apply: no dialog to confirm in between, the status line says what happens.
+                StatusBar = L("UpdateInstalling");
+                InstallProgress = 100;
                 var success = await _updaterService.ApplyUpdateAsync(downloadedPath);
 
                 if (success)
                 {
-                    // Exit application - update script will restart it
+                    // The update script waits for this process to end before it swaps the files
+                    // and restarts the app. Shutdown closes the windows; the hard exit after it
+                    // makes sure a lingering background thread (the in-process sdb server, a
+                    // socket) can't keep the process, and so the script, waiting forever.
                     if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-                    {
                         desktop.Shutdown();
-                    }
+                    _ = Task.Run(async () =>
+                    {
+                        await Task.Delay(1500);
+                        Environment.Exit(0);
+                    });
                 }
             }
             catch (Exception ex)
             {
                 Trace.WriteLine($"Automatic update failed: {ex}");
+                ResetInstallProgress();
                 await _updateDialogService.ShowUpdateErrorAsync(ex.Message);
             }
         }

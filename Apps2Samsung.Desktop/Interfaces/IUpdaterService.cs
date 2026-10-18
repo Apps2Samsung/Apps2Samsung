@@ -27,7 +27,7 @@ namespace Apps2Samsung.Interfaces
         /// <returns>Path to the downloaded file.</returns>
         Task<string> DownloadUpdateAsync(
             string downloadUrl,
-            IProgress<int>? progress = null,
+            IProgress<Apps2Samsung.Update.DownloadProgress>? progress = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
