@@ -81,6 +81,16 @@ namespace Apps2Samsung.Design
             public static readonly ColorToken LedBad = new("#FF5C50", "#FF5C50");
             public static readonly ColorToken LedBusy = new("#2DD4BF", "#2DD4BF");
 
+            /// <summary>The 44 px letter tile in front of an app row, by category (#755). The same in
+            /// both themes; white letter on top.</summary>
+            public static readonly ColorToken TileMedia = new("#2B59FF", "#2B59FF");
+            public static readonly ColorToken TileIptv = new("#E8590C", "#E8590C");
+            public static readonly ColorToken TileStreaming = new("#D6336C", "#D6336C");
+            public static readonly ColorToken TileGames = new("#7048E8", "#7048E8");
+            public static readonly ColorToken TileCasting = new("#0CA678", "#0CA678");
+            public static readonly ColorToken TileTools = new("#5C677D", "#5C677D");
+            public static readonly ColorToken TileOther = new("#868E96", "#868E96");
+
             /// <summary>Drop shadows under cards and dialogs. Same in both themes so a view can read
             /// it with a StaticResource where a DynamicResource can't reach (an effect, a gradient).</summary>
             public static readonly ColorToken Shadow = new("#33000000", "#33000000");
@@ -118,6 +128,13 @@ namespace Apps2Samsung.Design
                 [nameof(LedWarn)] = LedWarn,
                 [nameof(LedBad)] = LedBad,
                 [nameof(LedBusy)] = LedBusy,
+                [nameof(TileMedia)] = TileMedia,
+                [nameof(TileIptv)] = TileIptv,
+                [nameof(TileStreaming)] = TileStreaming,
+                [nameof(TileGames)] = TileGames,
+                [nameof(TileCasting)] = TileCasting,
+                [nameof(TileTools)] = TileTools,
+                [nameof(TileOther)] = TileOther,
                 [nameof(Shadow)] = Shadow,
             };
         }

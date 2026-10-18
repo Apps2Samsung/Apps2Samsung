@@ -3,109 +3,100 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.InstallerPage"
              Title="Apps2Samsung"
              NavigationPage.HasNavigationBar="False"
              BackgroundColor="{DynamicResource BgColor}">
 
+    <!-- The Install screen (#755): brand, the TV card, the TV picker, then the catalog as a grouped
+         list with search and category chips. A row opens the app sheet; "Your own package" takes a
+         .wgt / .tpk from the phone. Every colour is a design token. -->
     <ScrollView>
-        <!-- Single card, mirroring the desktop window. -->
-        <Border Margin="12" Padding="16" StrokeThickness="1"
-                StrokeShape="RoundRectangle 8"
-                Stroke="{DynamicResource HairBrush}"
-                BackgroundColor="{DynamicResource SurfaceColor}">
-            <VerticalStackLayout Spacing="14">
+        <VerticalStackLayout Padding="16,10,16,20" Spacing="14">
 
-                <!-- Brand: logo + name (the desktop's title bar) -->
-                <HorizontalStackLayout HorizontalOptions="Center" Spacing="8" Padding="0,2">
+            <!-- Brand: logo + name -->
+            <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
+                <HorizontalStackLayout Grid.Column="0" Spacing="8" Padding="0,2" VerticalOptions="Center">
                     <Image Source="a2s_logo.png" HeightRequest="30" WidthRequest="30" VerticalOptions="Center" />
                     <Label Text="Apps2Samsung" FontSize="19" FontAttributes="Bold" VerticalOptions="Center" />
                 </HorizontalStackLayout>
+                <Button Grid.Column="1" x:Name="SettingsBtn" Text="⚙" FontSize="18"
+                        BackgroundColor="Transparent" BorderWidth="1"
+                        BorderColor="{DynamicResource HairColor}"
+                        TextColor="{DynamicResource InkColor}"
+                        Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="22"
+                        Clicked="OnSettingsClicked" />
+            </Grid>
 
-                <!-- The TV: name, model + IP, an LED with the status line, and the actions for the
-                     selected set as chips on its screen (#755). -->
-                <controls:TvCardView x:Name="TvCard">
-                    <controls:TvCardView.Actions>
-                        <FlexLayout Wrap="Wrap" Direction="Row" JustifyContent="Start" AlignItems="Start" Margin="0,0,-10,-10">
-                            <Button x:Name="RefreshBtn" Style="{StaticResource ChipButtonSolid}" Text="{l:Localize lblRescan}" Clicked="OnRefreshClicked" />
-                            <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblInstalledApps}" Clicked="OnShowInstalledAppsClicked" />
-                            <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblTvInformation}" Clicked="OnShowDeviceInfoClicked" />
-                            <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblRemote}" Clicked="OnShowRemoteClicked" />
-                            <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblToolbox}" Clicked="OnShowTvToolboxClicked" />
-                        </FlexLayout>
-                    </controls:TvCardView.Actions>
-                </controls:TvCardView>
+            <!-- The TV: name, model + IP, an LED with the status line, and the actions for the
+                 selected set as chips on its screen. -->
+            <controls:TvCardView x:Name="TvCard">
+                <controls:TvCardView.Actions>
+                    <FlexLayout Wrap="Wrap" Direction="Row" JustifyContent="Start" AlignItems="Start" Margin="0,0,-10,-10">
+                        <Button x:Name="RefreshBtn" Style="{StaticResource ChipButtonSolid}" Text="{l:Localize lblRescan}" Clicked="OnRefreshClicked" />
+                        <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblInstalledApps}" Clicked="OnShowInstalledAppsClicked" />
+                        <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblTvInformation}" Clicked="OnShowDeviceInfoClicked" />
+                        <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblRemote}" Clicked="OnShowRemoteClicked" />
+                        <Button Style="{StaticResource ChipButton}" Text="{l:Localize lblToolbox}" Clicked="OnShowTvToolboxClicked" />
+                    </FlexLayout>
+                </controls:TvCardView.Actions>
+            </controls:TvCardView>
 
-                <!-- Category / App / Version / TV. Label above a full-width picker: next to it the
-                     picker kept only ~160dp on a 360dp phone once the round "?" and rescan buttons
-                     took their 44dp, and long names ("Jellyfin - AVPlay - 10.10z SmartHub") were cut.
-                     Those two buttons are now text actions on the label line. -->
-                <VerticalStackLayout Spacing="6">
-                    <Label Text="{l:Localize lblCategory}" FontSize="14" FontAttributes="Bold" />
-                    <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                            Stroke="{DynamicResource HairBrush}"
-                            BackgroundColor="{DynamicResource Surface2Color}">
-                        <Picker x:Name="CategoryPicker" Title="{l:Localize lblAllCategories}" BackgroundColor="Transparent"
-                                SelectedIndexChanged="OnCategoryChanged" />
-                    </Border>
-                </VerticalStackLayout>
-
-                <VerticalStackLayout Spacing="6">
-                    <Label Text="{l:Localize lblApp}" FontSize="14" FontAttributes="Bold" />
-                    <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                            Stroke="{DynamicResource HairBrush}"
-                            BackgroundColor="{DynamicResource Surface2Color}">
-                        <Picker x:Name="AppPicker" Title="{l:Localize lblSelectAnApp}" BackgroundColor="Transparent"
-                                SelectedIndexChanged="OnAppChanged" />
-                    </Border>
-                </VerticalStackLayout>
-
-                <!-- Version, or Variant for a folded community app; "App details" opens the catalog ("?") -->
-                <VerticalStackLayout Spacing="6">
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                        <Label Grid.Column="0" x:Name="VersionCaption" Text="{l:Localize lblVersion}" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                        <Button Grid.Column="1" Text="{l:Localize lblAppDetails}" Clicked="OnCatalogClicked"
-                                FontSize="13" FontAttributes="Bold" BackgroundColor="Transparent" BorderWidth="0"
-                                TextColor="{DynamicResource MutedColor}"
-                                Padding="8,0" MinimumHeightRequest="32" HorizontalOptions="End" VerticalOptions="Center" />
-                    </Grid>
-                    <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                            Stroke="{DynamicResource HairBrush}"
-                            BackgroundColor="{DynamicResource Surface2Color}">
-                        <Picker x:Name="VersionPicker" BackgroundColor="Transparent" />
-                    </Border>
-                </VerticalStackLayout>
-
-                <!-- TV selection (rescan is a chip on the card) -->
-                <VerticalStackLayout Spacing="6">
-                    <Label Text="{l:Localize lblSelectTv}" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                    <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                            Stroke="{DynamicResource HairBrush}"
-                            BackgroundColor="{DynamicResource Surface2Color}">
-                        <Picker x:Name="TvPicker" Title="{l:Localize lblScanToFindTvs}" BackgroundColor="Transparent"
-                                SelectedIndexChanged="OnTvChanged" />
-                    </Border>
-                </VerticalStackLayout>
-
-                <!-- Action -->
-                <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
-                    <Button Grid.Column="0" x:Name="InstallBtn" Text="{l:Localize DownloadAndInstall}"
-                            Clicked="OnInstallClicked" HorizontalOptions="Fill" />
-                    <Button Grid.Column="1" x:Name="SettingsBtn" Text="⚙" FontSize="18"
-                            BackgroundColor="Transparent" BorderWidth="1"
-                            BorderColor="{DynamicResource HairColor}"
-                            TextColor="{DynamicResource InkColor}"
-                            Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="22"
-                            Clicked="OnSettingsClicked" />
-                </Grid>
-
-                <Label Text="{l:Localize lblLicenseFooter}"
-                       HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
-                <Label x:Name="VersionLabel"
-                       HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
-
+            <!-- TV selection (rescan is a chip on the card) -->
+            <VerticalStackLayout Spacing="6">
+                <Label Text="{l:Localize lblSelectTv}" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 10"
+                        Stroke="{DynamicResource HairBrush}"
+                        BackgroundColor="{DynamicResource SurfaceColor}">
+                    <Picker x:Name="TvPicker" Title="{l:Localize lblScanToFindTvs}" BackgroundColor="Transparent"
+                            SelectedIndexChanged="OnTvChanged" />
+                </Border>
             </VerticalStackLayout>
-        </Border>
+
+            <!-- Catalog -->
+            <VerticalStackLayout Spacing="10">
+                <Border Padding="12,0" StrokeThickness="0" StrokeShape="RoundRectangle 10"
+                        BackgroundColor="{DynamicResource FillColor}">
+                    <Entry x:Name="SearchEntry" Placeholder="{l:Localize lblSearchApps}" BackgroundColor="Transparent"
+                           ReturnType="Search" TextChanged="OnSearchChanged" />
+                </Border>
+
+                <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never" Margin="-16,0">
+                    <HorizontalStackLayout x:Name="Chips" Spacing="8" Padding="16,2,16,4" />
+                </ScrollView>
+
+                <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
+                    <VerticalStackLayout x:Name="CatalogList" />
+                </Border>
+
+                <Label Text="{l:Localize lblYourOwnPackage}" Style="{StaticResource GroupTitle}" />
+                <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
+                    <Grid ColumnDefinitions="44,*,Auto" ColumnSpacing="12" Padding="16,11" MinimumHeightRequest="52">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnOwnFileTapped" />
+                        </Grid.GestureRecognizers>
+                        <Border Grid.Column="0" WidthRequest="44" HeightRequest="44" StrokeThickness="0" StrokeShape="RoundRectangle 11"
+                                BackgroundColor="{DynamicResource FillColor}">
+                            <Label Text="📁" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                            <Label Text="{l:Localize lblCustomWgt}" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                            <Label Text="{l:Localize lblInstallOwnFile}" FontSize="13" TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
+                        </VerticalStackLayout>
+                        <shapes:Path Grid.Column="2" Data="M1,1 L7,6.5 L1,12" Stroke="{DynamicResource InkBrush}" StrokeThickness="2"
+                                     Opacity="0.35" WidthRequest="8" HeightRequest="13" VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+                <Label x:Name="CatalogFoot" Style="{StaticResource Footnote}" />
+            </VerticalStackLayout>
+
+            <Label Text="{l:Localize lblLicenseFooter}"
+                   HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
+            <Label x:Name="VersionLabel"
+                   HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
+
+        </VerticalStackLayout>
     </ScrollView>
 
 </ContentPage>

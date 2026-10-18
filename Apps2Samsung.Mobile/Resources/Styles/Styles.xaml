@@ -100,6 +100,38 @@
         <Setter Property="BorderWidth" Value="0" />
     </Style>
 
+    <!-- Category chips over the catalog (#755): on the surface, the one in force inverted. -->
+    <Style TargetType="Button" x:Key="CategoryChip">
+        <Setter Property="BackgroundColor" Value="{DynamicResource SurfaceColor}" />
+        <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
+        <Setter Property="BorderWidth" Value="0" />
+        <Setter Property="CornerRadius" Value="17" />
+        <Setter Property="Padding" Value="13,0" />
+        <Setter Property="HeightRequest" Value="34" />
+        <Setter Property="MinimumHeightRequest" Value="34" />
+        <Setter Property="MinimumWidthRequest" Value="0" />
+        <Setter Property="FontFamily" Value="OpenSansRegular" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+    <Style TargetType="Button" x:Key="CategoryChipSelected" BasedOn="{StaticResource CategoryChip}">
+        <Setter Property="BackgroundColor" Value="{DynamicResource InkColor}" />
+        <Setter Property="TextColor" Value="{DynamicResource BgColor}" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+    </Style>
+
+    <!-- A group title over a grouped list, and the footnote under one. -->
+    <Style TargetType="Label" x:Key="GroupTitle">
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="TextColor" Value="{DynamicResource MutedColor}" />
+        <Setter Property="Margin" Value="4,10,4,0" />
+    </Style>
+    <Style TargetType="Label" x:Key="Footnote">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="TextColor" Value="{DynamicResource MutedColor}" />
+        <Setter Property="Margin" Value="4,0" />
+    </Style>
+
     <Style TargetType="CheckBox">
         <Setter Property="Color" Value="{DynamicResource AccentColor}" />
         <Setter Property="MinimumHeightRequest" Value="44"/>

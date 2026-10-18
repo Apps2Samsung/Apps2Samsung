@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Apps2Samsung.Catalog;
+using Apps2Samsung.Mobile.Resources.Styles;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Design;
 using Apps2Samsung.Interfaces;
@@ -18,8 +19,6 @@ namespace Apps2Samsung.Mobile.Pages;
 
 public partial class InstallerPage : ContentPage
 {
-	// Synthetic App-picker entry for installing a local .wgt or .tpk (mirrors the desktop's option).
-	private const string CustomWgtLabel = "📁 Custom WGT / TPK…";
 	// Synthetic TV-picker entry for targeting a TV the scan didn't find (mirrors the desktop's
 	// manual-IP option). Always the last item in the TV list.
 	// Read once per page build, like every {l:Localize} on the page: a language switch reloads the UI.
@@ -45,16 +44,14 @@ public partial class InstallerPage : ContentPage
 	private readonly List<NetworkDevice?> _tvDevices = new();
 	// Suppresses OnTvChanged while we rebuild the picker programmatically.
 	private bool _rebuildingTvPicker;
-	// Every catalog entry; _releases is the slice in the chosen category that backs AppPicker, and
-	// the selected release's assets back VersionPicker.
+	// Every catalog entry; the list shows the slice in the chosen category that matches the search.
 	private IReadOnlyList<GitHubRelease> _allReleases = new List<GitHubRelease>();
-	private IReadOnlyList<GitHubRelease> _releases = new List<GitHubRelease>();
-	// Category ids index-aligned with CategoryPicker ("all" first).
-	private readonly List<string> _categoryIds = new();
-	private bool _rebuildingCategoryPicker;
-	private List<Asset> _versions = new();
-	// A cache copy of a user-picked .wgt/.tpk (custom install); null until picked.
-	private string? _customWgtPath;
+	private string _selectedCategory = AppCategories.All;
+	private string _query = string.Empty;
+	private bool _catalogLoading;
+	private int _catalogFailed;
+	// The provider manifest, for the preview images the app sheet shows; null until it loaded.
+	private ProviderManifest? _manifest;
 
 	private bool _initialized;
 	private bool _uiReady;
@@ -63,8 +60,6 @@ public partial class InstallerPage : ContentPage
 	private string _status = string.Empty;
 	private bool _scanning;
 	private bool _busy;
-
-	private bool CustomSelected => (AppPicker.SelectedItem as string) == CustomWgtLabel;
 
 	public InstallerPage(INetworkService networkService, ISamsungLoginService loginService,
 		CertificateProvisioner certProvisioner, WgtInstaller installer, CatalogService catalog,
@@ -143,104 +138,189 @@ public partial class InstallerPage : ContentPage
 	private async Task<CatalogService.CatalogResult?> LoadCatalogAsync()
 	{
 		SetStatus(L10n.Get("lblLoadingAppList"));
+		_catalogLoading = true;
+		RebuildCatalog();
 		CatalogService.CatalogResult? result = null;
 		try
 		{
 			result = await _catalog.LoadReleasesAsync();
 			_allReleases = result.Releases;
+			_catalogFailed = result.Failed;
 		}
 		catch (Exception ex)
 		{
 			SetStatus(string.Format(L10n.Get("statusCatalogFailed"), ex.Message));
 			_allReleases = new List<GitHubRelease>();
 		}
+		finally
+		{
+			_catalogLoading = false;
+		}
 
-		RebuildCategoryPicker();
-		ApplyCategory();
-
+		RebuildChips();
+		RebuildCatalog();
 		_uiReady = true;
+
+		// The manifest only feeds the sheet's preview image; a failure costs nothing but the picture.
+		try { _manifest = await _catalog.GetManifestAsync(); }
+		catch (Exception ex) { System.Diagnostics.Trace.WriteLine($"[installer] Manifest for previews failed: {ex.Message}"); }
 		return result;
 	}
 
-	// "All categories" plus every category with at least one app, each with its count.
-	private void RebuildCategoryPicker()
+	// "All categories" plus every category with at least one app, each with its count, as chips.
+	private void RebuildChips()
 	{
-		_rebuildingCategoryPicker = true;
-		try
+		Chips.Clear();
+		foreach (var (id, count) in CommunityAppList.Counts(_allReleases))
 		{
-			_categoryIds.Clear();
-			var items = new List<string>();
-			foreach (var (id, count) in CommunityAppList.Counts(_allReleases))
+			var option = new CategoryOption(id, AppCategories.DisplayName(id, L10n.Get), count);
+			var chip = new Button
 			{
-				_categoryIds.Add(id);
-				items.Add(new CategoryOption(id, AppCategories.DisplayName(id, L10n.Get), count).Display);
+				Text = $"{option.Label}  {option.Count}",
+				Style = ChipStyle(id == _selectedCategory),
+			};
+			chip.Clicked += (_, _) =>
+			{
+				_selectedCategory = option.Id;
+				RebuildChips();
+				RebuildCatalog();
+			};
+			Chips.Add(chip);
+		}
+	}
+
+	// The keyed chip styles from Styles.xaml (merged into the application resources).
+	private static Style ChipStyle(bool selected) =>
+		(Style)Application.Current!.Resources[selected ? "CategoryChipSelected" : "CategoryChip"];
+
+	// The grouped list: the apps in the chosen category that match the search, one row each; a
+	// shimmer of three placeholder rows while the catalog loads.
+	private void RebuildCatalog()
+	{
+		CatalogList.Clear();
+		if (_catalogLoading)
+		{
+			for (var i = 0; i < 3; i++)
+			{
+				if (i > 0)
+					CatalogList.Add(Hairline());
+				CatalogList.Add(new BoxView { HeightRequest = 66, Color = DesignTheme.ColorOf("Surface2"), Opacity = 0.7 });
 			}
-			CategoryPicker.ItemsSource = items;
-			CategoryPicker.SelectedIndex = items.Count > 0 ? 0 : -1;
-		}
-		finally { _rebuildingCategoryPicker = false; }
-	}
-
-	private void OnCategoryChanged(object? sender, EventArgs e)
-	{
-		if (_rebuildingCategoryPicker)
-			return;
-		ApplyCategory();
-	}
-
-	// Fills AppPicker with the apps in the chosen category: real apps first, then the always-present
-	// "Custom WGT / TPK" entry, which no filter hides.
-	private void ApplyCategory()
-	{
-		var i = CategoryPicker.SelectedIndex;
-		var id = i >= 0 && i < _categoryIds.Count ? _categoryIds[i] : AppCategories.All;
-		_releases = CommunityAppList.Filter(_allReleases, id).ToList();
-
-		var items = _releases.Select(r => r.Name).ToList();
-		items.Add(CustomWgtLabel);
-		AppPicker.ItemsSource = items;
-		AppPicker.SelectedIndex = _releases.Count > 0 ? 0 : items.Count - 1;
-	}
-
-	private async void OnAppChanged(object? sender, EventArgs e)
-	{
-		if (CustomSelected)
-		{
-			_versions = new();
-			VersionPicker.ItemsSource = null;
-			_customWgtPath = null;
-			// Prompt for a file when the user picks this (not during the initial default selection).
-			if (_uiReady)
-				await PickCustomWgtAsync();
+			CatalogFoot.Text = string.Empty;
 			return;
 		}
 
-		var i = AppPicker.SelectedIndex;
-		if (i < 0 || i >= _releases.Count)
+		var rows = CommunityAppList.Filter(_allReleases, _selectedCategory)
+			.Where(r => _query.Length == 0 || r.Name.Contains(_query, StringComparison.OrdinalIgnoreCase))
+			.ToList();
+		if (rows.Count == 0)
 		{
-			_versions = new();
-			VersionPicker.ItemsSource = null;
-			return;
+			CatalogList.Add(new Label
+			{
+				Text = L10n.Get(_allReleases.Count == 0 ? "statusCatalogEmpty" : "lblNoAppMatches"),
+				TextColor = DesignTheme.ColorOf("Muted"), Padding = new Thickness(16, 14),
+			});
 		}
+		var first = true;
+		foreach (var release in rows)
+		{
+			if (!first)
+				CatalogList.Add(Hairline());
+			first = false;
+			var category = AppCategories.DisplayName(release.Category, L10n.Get);
+			var subline = release.HasVariants
+				? $"{category} · {string.Format(L10n.Get("lblVariantsCount"), release.Assets.Count)}"
+				: category;
+			CatalogList.Add(CatalogRow(release, subline));
+		}
+		CatalogFoot.Text = _catalogFailed > 0
+			? string.Format(L10n.Get("lblCatalogFootFailed"), _allReleases.Count, _catalogFailed)
+			: string.Format(L10n.Get("lblCatalogFoot"), _allReleases.Count);
+	}
 
-		var release = _releases[i];
-		_versions = release.Assets;
-		// A folded community app offers variants (forks, per-Tizen builds): the picker shows their
-		// labels, one line each. Anything else lists its files as before.
-		VersionCaption.Text = L10n.Get(release.HasVariants ? "lblVariant" : "lblVersion");
-		VersionPicker.ItemsSource = release.HasVariants
-			? _versions.Select(a => a.VariantLabel).ToList()
-			: _versions.Select(a => a.DisplayText).ToList();
-		if (_versions.Count > 0)
+	private static BoxView Hairline() => new() { HeightRequest = 1, Margin = new Thickness(16, 0, 0, 0), Color = DesignTheme.ColorOf("Hair") };
+
+	// One list row: the letter tile, name and subline, a chevron; tapping opens the app sheet.
+	private View CatalogRow(GitHubRelease release, string subline)
+	{
+		var tile = new Border
 		{
-			var def = _versions.FindIndex(a => a.IsDefault);
-			VersionPicker.SelectedIndex = def >= 0 ? def : 0;
-		}
+			WidthRequest = 44, HeightRequest = 44, StrokeThickness = 0,
+			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 11 },
+			BackgroundColor = DesignTheme.ColorOf(AppTiles.ColorToken(release.Category, release.Name)),
+			Content = new Label
+			{
+				Text = AppTiles.Letter(release.Name), FontSize = 20, FontAttributes = FontAttributes.Bold,
+				TextColor = DesignTheme.ColorOf("OnAccent"), HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center,
+			},
+		};
+		var text = new VerticalStackLayout
+		{
+			Spacing = 1, VerticalOptions = LayoutOptions.Center,
+			Children =
+			{
+				new Label { Text = release.Name, FontAttributes = FontAttributes.Bold, LineBreakMode = LineBreakMode.TailTruncation },
+				new Label { Text = subline, FontSize = 13, TextColor = DesignTheme.ColorOf("Muted"), LineBreakMode = LineBreakMode.TailTruncation },
+			},
+		};
+		var chevron = new Microsoft.Maui.Controls.Shapes.Path
+		{
+			Data = (Microsoft.Maui.Controls.Shapes.Geometry)new Microsoft.Maui.Controls.Shapes.PathGeometryConverter().ConvertFromInvariantString("M1,1 L7,6.5 L1,12")!,
+			Stroke = new SolidColorBrush(DesignTheme.ColorOf("Ink")), StrokeThickness = 2, Opacity = 0.35,
+			WidthRequest = 8, HeightRequest = 13, VerticalOptions = LayoutOptions.Center,
+		};
+		var grid = new Grid
+		{
+			ColumnDefinitions = { new ColumnDefinition(44), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+			ColumnSpacing = 12, Padding = new Thickness(16, 11), MinimumHeightRequest = 52,
+		};
+		grid.Add(tile, 0, 0);
+		grid.Add(text, 1, 0);
+		grid.Add(chevron, 2, 0);
+		var tap = new TapGestureRecognizer();
+		tap.Tapped += async (_, _) => await OpenAppAsync(release, subline);
+		grid.GestureRecognizers.Add(tap);
+		return grid;
+	}
+
+	private void OnSearchChanged(object? sender, TextChangedEventArgs e)
+	{
+		_query = (e.NewTextValue ?? string.Empty).Trim();
+		RebuildCatalog();
+	}
+
+	// The app sheet: preview, description, the version or variant to install, Install for the
+	// selected TV. Hands back the asset, or null when closed.
+	private async Task OpenAppAsync(GitHubRelease release, string subline)
+	{
+		if (_busy)
+			return;
+		var idx = TvPicker.SelectedIndex;
+		var device = idx >= 0 && idx < _tvDevices.Count ? _tvDevices[idx] : null;
+		var ip = idx >= 0 && idx < _tvIps.Count ? _tvIps[idx] : null;
+		var tvName = ip is null ? null : string.IsNullOrWhiteSpace(device?.DeviceName) ? ip : device!.DeviceName;
+		var tvReady = ip is not null && (device?.DebugPortOpen ?? true);
+
+		var sheet = new AppSheetPage(release, CatalogPreviews.For(_manifest, release), subline, tvName, tvReady);
+		await Navigation.PushModalAsync(sheet);
+		var asset = await sheet.Result;
+		if (asset is not null)
+			await InstallAsync(release, asset, null);
+	}
+
+	// "Your own package": a .wgt or .tpk from the phone, then the same install as a catalog app.
+	private async void OnOwnFileTapped(object? sender, TappedEventArgs e)
+	{
+		if (_busy)
+			return;
+		var path = await PickCustomWgtAsync();
+		if (path is not null)
+			await InstallAsync(null, null, path);
 	}
 
 	// Lets the user pick a local .wgt or .tpk (the desktop takes both); copies it into the cache so re-signing/cleanup never touches
-	// their original file. Returns true if a valid file was selected.
-	private async Task<bool> PickCustomWgtAsync()
+	// their original file. Returns the cache copy's path, or null when nothing valid was picked.
+	private async Task<string?> PickCustomWgtAsync()
 	{
 		try
 		{
@@ -248,28 +328,24 @@ public partial class InstallerPage : ContentPage
 			if (picked is null)
 			{
 				SetStatus(L10n.Get("statusNoFileSelected"));
-				return false;
+				return null;
 			}
 			if (!picked.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) &&
 				!picked.FileName.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase))
 			{
 				SetStatus(L10n.Get("statusChooseWgt"));
-				return false;
+				return null;
 			}
 
 			var dest = Path.Combine(FileSystem.CacheDirectory, picked.FileName);
 			File.Copy(picked.LocalPath, dest, overwrite: true);
-
-			_customWgtPath = dest;
-			VersionPicker.ItemsSource = new List<string> { picked.FileName };
-			VersionPicker.SelectedIndex = 0;
 			SetStatus(string.Format(L10n.Get("statusCustomPackageReady"), picked.FileName));
-			return true;
+			return dest;
 		}
 		catch (Exception ex)
 		{
 			SetStatus(string.Format(L10n.Get("statusFileUnreadable"), ex.Message));
-			return false;
+			return null;
 		}
 	}
 
@@ -403,9 +479,6 @@ public partial class InstallerPage : ContentPage
 	private async void OnSettingsClicked(object? sender, EventArgs e) =>
 		await Navigation.PushAsync(new SettingsPage());
 
-	private async void OnCatalogClicked(object? sender, EventArgs e) =>
-		await Navigation.PushAsync(new BuildInfoPage(_catalog));
-
 	private async Task ScanAsync()
 	{
 		RefreshBtn.IsEnabled = false;
@@ -455,22 +528,17 @@ public partial class InstallerPage : ContentPage
 		}
 	}
 
-	private async void OnInstallClicked(object? sender, EventArgs e)
+	// Downloads (or takes the picked file), provisions the certificate, installs on the selected
+	// TV. Status goes to the TV card; its LED pulses for the duration.
+	private async Task InstallAsync(GitHubRelease? release, Asset? asset, string? customPath)
 	{
 		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
 		{
 			SetStatus(L10n.Get("statusSelectTvFirst"));
 			return;
 		}
-
-		var custom = CustomSelected;
-		if (custom)
-		{
-			// If they chose the custom entry but haven't picked a file yet, prompt now.
-			if (_customWgtPath is null && !await PickCustomWgtAsync())
-				return;
-		}
-		else if (VersionPicker.SelectedIndex < 0 || VersionPicker.SelectedIndex >= _versions.Count)
+		var custom = customPath is not null;
+		if (!custom && (release is null || asset is null))
 		{
 			SetStatus(L10n.Get("statusSelectAppFirst"));
 			return;
@@ -505,16 +573,10 @@ public partial class InstallerPage : ContentPage
 
 		tvIp = guardResult.CorrectedTvIp ?? tvIp;
 
-		var asset = custom ? null : _versions[VersionPicker.SelectedIndex];
-		var appName = custom
-			? Path.GetFileNameWithoutExtension(_customWgtPath!)
-			: (AppPicker.SelectedItem as string ?? "app");
+		var appName = custom ? Path.GetFileNameWithoutExtension(customPath!) : release!.Name;
 		// Auto-request Partner signing if the selected app's manifest declares cert_level: partner.
-		var requirePartner = !custom
-			&& AppPicker.SelectedIndex >= 0 && AppPicker.SelectedIndex < _releases.Count
-			&& _releases[AppPicker.SelectedIndex].RequiresPartner;
+		var requirePartner = !custom && release!.RequiresPartner;
 
-		InstallBtn.IsEnabled = false;
 		RefreshBtn.IsEnabled = false;
 		_busy = true;
 		UpdateTvCard();
@@ -522,7 +584,7 @@ public partial class InstallerPage : ContentPage
 		try
 		{
 			// Download first so we can inspect the package's declared privileges before signing.
-			wgtPath = custom ? _customWgtPath! : await _installer.DownloadAsync(asset!.DownloadUrl, SetStatus);
+			wgtPath = custom ? customPath! : await _installer.DownloadAsync(asset!.DownloadUrl, SetStatus);
 
 			// Partner if the manifest declared it OR the .wgt itself needs a partner-level privilege.
 			var needsPartner = requirePartner || WgtPrivileges.RequiresPartner(wgtPath);
@@ -591,11 +653,8 @@ public partial class InstallerPage : ContentPage
 			if (wgtPath is not null && !MobileSettings.KeepWgtFile)
 			{
 				try { File.Delete(wgtPath); } catch { /* best-effort */ }
-				if (custom)
-					_customWgtPath = null; // force a re-pick next time (the copy is gone)
 			}
 
-			InstallBtn.IsEnabled = true;
 			RefreshBtn.IsEnabled = true;
 			_busy = false;
 			UpdateTvCard();

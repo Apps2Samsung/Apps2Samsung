@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             x:Class="Apps2Samsung.Mobile.Pages.AppSheetPage"
+             BackgroundColor="{DynamicResource BgColor}">
+    <!-- The app sheet (#755): preview, description, the version or variant to install, Install.
+         A modal page drawn as a bottom sheet: grabber, title with a close button, grouped content. -->
+    <ScrollView>
+        <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
+            <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
+                     Color="{DynamicResource HairColor}" />
+            <Grid ColumnDefinitions="*,32" ColumnSpacing="8" Margin="0,6,0,0">
+                <Label x:Name="TitleLabel" FontSize="20" FontAttributes="Bold" LineBreakMode="WordWrap" VerticalOptions="Center" />
+                <Button Grid.Column="1" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
+                        MinimumWidthRequest="32" MinimumHeightRequest="32"
+                        BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnCloseClicked" />
+            </Grid>
+
+            <Border x:Name="PreviewFrame" IsVisible="False" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                    BackgroundColor="{DynamicResource FillColor}" HeightRequest="190">
+                <Image x:Name="PreviewImage" Aspect="AspectFill" />
+            </Border>
+
+            <Label x:Name="DescriptionLabel" TextColor="{DynamicResource MutedColor}" LineBreakMode="WordWrap" />
+
+            <Border x:Name="PartnerNotice" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 10"
+                    Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="12,10">
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="{l:Localize lblPartnerNeededTitle}" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}" />
+                    <Label Text="{l:Localize lblPartnerNeededBody}" FontSize="13" TextColor="{DynamicResource WarnColor}" LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Grid ColumnDefinitions="*,Auto" Margin="4,10,4,0">
+                <Label x:Name="VersionsTitle" FontSize="15" FontAttributes="Bold" TextColor="{DynamicResource MutedColor}" />
+                <Label Grid.Column="1" x:Name="PublishedLabel" FontSize="15" TextColor="{DynamicResource MutedColor}" />
+            </Grid>
+            <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
+                <VerticalStackLayout x:Name="Versions" />
+            </Border>
+
+            <Button x:Name="InstallBtn" Clicked="OnInstallClicked" CornerRadius="12" HeightRequest="50" Margin="0,6,0,0" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
