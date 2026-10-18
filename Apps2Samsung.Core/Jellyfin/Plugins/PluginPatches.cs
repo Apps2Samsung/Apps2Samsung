@@ -93,100 +93,57 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
     }
 
     // ------------------------
-    // Jellyfin Enhanced (ExplicitServerFiles)
+    // Jellyfin Enhanced (loaded from the server)
     // ------------------------
     public sealed class JellyfinEnhancedPatch : IJellyfinPluginPatch
     {
-        public async Task ApplyAsync(PluginPatchContext ctx)
-        {
-            var entry = ctx.MatrixEntry;
-
-            // Download all explicit server files into plugin_cache preserving structure
-            await ctx.PluginManager.DownloadExplicitFilesAsync(ctx.ServerUrl, ctx.PluginCacheDir, entry);
-
-            // Inject main script last
-            // Your explicit list contains "/JellyfinEnhanced/script" -> stored as plugin_cache/JellyfinEnhanced/script.js
-            var main = Path.Combine(ctx.PluginCacheDir, "JellyfinEnhanced", "script.js");
-            if (File.Exists(main))
-            {
-                await PatchEnhancedMainScript(main);
-
-                var outSrc = "plugin_cache/JellyfinEnhanced/script.js";
-                ctx.InjectScript($"<script src=\"{outSrc}\"></script>", outSrc);
-            }
-        }
-
-        private static async Task PatchEnhancedMainScript(string scriptPath)
-        {
-            string original = await File.ReadAllTextAsync(scriptPath);
-
-            string patch = @"
-// ---- J2S SCRIPT PATCH: FORCE LOCAL ENHANCED MODULE LOADING ----
-(function () {
-
-    function rewriteEnhancedUrl(url) {
-        try {
-            if (typeof url !== 'string') return url;
-
-            var base = url.split('?')[0];
-
-            if (base.endsWith('.js') && base.indexOf('/JellyfinEnhanced/') !== -1) {
-                var idx = base.indexOf('/JellyfinEnhanced/');
-                var sub = base.substring(idx + '/JellyfinEnhanced/'.length);
-                return 'plugin_cache/JellyfinEnhanced/' + sub;
-            }
-
-            return url;
-        }
-        catch (e) {
-            console.error('J2S rewriteEnhancedUrl failed', e);
-            return url;
-        }
+        // Jellyfin Enhanced builds every URL with ApiClient.getUrl, so from the app it reaches the
+        // server by itself: its main script, its module bundle, its translations. The app only keeps
+        // a small loader that adds the main script on every start, so a plugin update reaches the TV
+        // without rebuilding the app. (Copying a fixed list of its files no longer works: from 12.x
+        // most of them moved, and 151 of the 159 scripts it asked for were missing from the app.)
+        //
+        // The server caches /JellyfinEnhanced/script for a year: the loader asks for the version
+        // first and puts it in the URL. The script reads that version from its own tag (attributes
+        // `plugin` and `version`, as on the server's page) to key the URLs of its modules.
+        private const string Loader = @"(function () {
+    function add(server, version) {
+        var script = document.createElement('script');
+        script.setAttribute('plugin', 'Jellyfin Enhanced');
+        script.setAttribute('version', version);
+        script.setAttribute('dev', 'false');
+        script.src = server + '/JellyfinEnhanced/script?v=' + encodeURIComponent(version);
+        document.head.appendChild(script);
     }
-
-    var _createElement = document.createElement;
-    document.createElement = function (tag) {
-        var el = _createElement.call(document, tag);
-
-        if (tag && tag.toLowerCase() === 'script') {
-            var _setAttribute = el.setAttribute;
-
-            el.setAttribute = function (name, value) {
-                if (name === 'src') {
-                    value = rewriteEnhancedUrl(value);
-                }
-                return _setAttribute.call(el, name, value);
-            };
-
-            Object.defineProperty(el, 'src', {
-                configurable: true,
-                get: function () { return el.getAttribute('src'); },
-                set: function (value) {
-                    value = rewriteEnhancedUrl(value);
-                    _setAttribute.call(el, 'src', value);
-                }
-            });
+    function load() {
+        var client = window.ApiClient;
+        var server = client && client.serverAddress ? client.serverAddress() : null;
+        if (!server) {
+            setTimeout(load, 250);
+            return;
         }
-
-        return el;
-    };
-
-    if (typeof window.fetch === 'function') {
-        var _fetch = window.fetch;
-        window.fetch = function (resource, init) {
-            try {
-                if (typeof resource === 'string') resource = rewriteEnhancedUrl(resource);
-            } catch (e) {
-                console.error('FETCH rewrite failed', e);
-            }
-            return _fetch.call(this, resource, init);
+        server = server.replace(/\/+$/, '');
+        var request = new XMLHttpRequest();
+        request.open('GET', server + '/JellyfinEnhanced/version?_=' + Date.now());
+        request.onload = function () {
+            var version = request.status === 200 ? request.responseText.replace(/[""\s]/g, '') : '';
+            add(server, version || String(Date.now()));
         };
+        request.onerror = function () { add(server, String(Date.now())); };
+        request.send();
     }
-
-    console.log('🪼 J2S: Enhanced loader patched to use plugin_cache for Enhanced JS modules');
+    load();
 })();
 ";
-            await File.WriteAllTextAsync(scriptPath, patch + "\n\n" + original);
+
+        public async Task ApplyAsync(PluginPatchContext ctx)
+        {
+            var dir = Path.Combine(ctx.PluginCacheDir, "JellyfinEnhanced");
+            Directory.CreateDirectory(dir);
+            await File.WriteAllTextAsync(Path.Combine(dir, "loader.js"), Loader, Encoding.UTF8);
+
+            const string injectedSrc = "plugin_cache/JellyfinEnhanced/loader.js";
+            ctx.InjectScript($"<script src=\"{injectedSrc}\"></script>", injectedSrc);
         }
     }
 

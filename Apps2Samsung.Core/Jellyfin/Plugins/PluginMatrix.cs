@@ -11,35 +11,7 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
             new PluginMatrixEntry
             {
                 Name = "Jellyfin Enhanced",
-                FallbackUrls = new(),
-                ExplicitServerFiles = new List<string>
-                {
-                    "/JellyfinEnhanced/script",
-                    "/JellyfinEnhanced/js/splashscreen.js",
-                    "/JellyfinEnhanced/js/reviews.js",
-                    "/JellyfinEnhanced/js/qualitytags.js",
-                    "/JellyfinEnhanced/js/plugin.js",
-                    "/JellyfinEnhanced/js/pausescreen.js",
-                    "/JellyfinEnhanced/js/migrate.js",
-                    "/JellyfinEnhanced/js/letterboxd-links.js",
-                    "/JellyfinEnhanced/js/languagetags.js",
-                    "/JellyfinEnhanced/js/genretags.js",
-                    "/JellyfinEnhanced/js/elsewhere.js",
-                    "/JellyfinEnhanced/js/arr-tag-links.js",
-                    "/JellyfinEnhanced/js/arr-links.js",
-                    "/JellyfinEnhanced/js/enhanced/config.js",
-                    "/JellyfinEnhanced/js/enhanced/events.js",
-                    "/JellyfinEnhanced/js/enhanced/features.js",
-                    "/JellyfinEnhanced/js/enhanced/helpers.js",
-                    "/JellyfinEnhanced/js/enhanced/playback.js",
-                    "/JellyfinEnhanced/js/enhanced/subtitles.js",
-                    "/JellyfinEnhanced/js/enhanced/themer.js",
-                    "/JellyfinEnhanced/js/enhanced/ui.js",
-                    "/JellyfinEnhanced/js/jellyseerr/api.js",
-                    "/JellyfinEnhanced/js/jellyseerr/jellyseerr.js",
-                    "/JellyfinEnhanced/js/jellyseerr/modal.js",
-                    "/JellyfinEnhanced/js/jellyseerr/ui.js"
-                }
+                FallbackUrls = new()
             },
             new PluginMatrixEntry
             {
@@ -112,7 +84,6 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
             new ServerAssetRule("KefinTweaks", url => url.Contains("kefin", StringComparison.OrdinalIgnoreCase), ServerAssetKind.PluginAsset),
             new ServerAssetRule("Media Bar", url => url.Contains("mediabar", StringComparison.OrdinalIgnoreCase), ServerAssetKind.PluginAsset),
             new ServerAssetRule("Home Screen Sections", url => url.Contains("homescreensections", StringComparison.OrdinalIgnoreCase), ServerAssetKind.PluginAsset),
-            new ServerAssetRule("Jellyfin Enhanced", url => url.Contains("jellyfinenhanced", StringComparison.OrdinalIgnoreCase) || url.Contains("/JellyfinEnhanced/", StringComparison.OrdinalIgnoreCase), ServerAssetKind.PluginAsset),
         ];
 
         public static List<PluginMatrixEntry> GetMatrix() => Matrix;
