@@ -24,7 +24,7 @@ public partial class InstallerPage : ContentPage
 	private readonly CertificateProvisioner _certProvisioner;
 	private readonly WgtInstaller _installer;
 	private readonly CatalogService _catalog;
-	private readonly GitHubUpdateChecker _updateChecker;
+	private readonly UpdateFlow _updates;
 	private readonly SessionState _session;
 	private readonly ISdbEngine _sdb;
 	// The TV the other tabs work with (On the TV, Remote): kept in step with the picker.
@@ -61,7 +61,7 @@ public partial class InstallerPage : ContentPage
 
 	public InstallerPage(INetworkService networkService, ISamsungLoginService loginService,
 		CertificateProvisioner certProvisioner, WgtInstaller installer, CatalogService catalog,
-		GitHubUpdateChecker updateChecker, SessionState session, ISdbEngine sdb, TvSelection tv)
+		UpdateFlow updates, SessionState session, ISdbEngine sdb, TvSelection tv)
 	{
 		InitializeComponent();
 		_tv = tv;
@@ -70,7 +70,7 @@ public partial class InstallerPage : ContentPage
 		_certProvisioner = certProvisioner;
 		_installer = installer;
 		_catalog = catalog;
-		_updateChecker = updateChecker;
+		_updates = updates;
 		_session = session;
 		_sdb = sdb;
 
@@ -102,36 +102,12 @@ public partial class InstallerPage : ContentPage
 		_ = CheckForUpdatesAsync();
 	}
 
+	// The in-app updater (UpdateFlow): quiet at startup, it only speaks up for a new build the
+	// user hasn't skipped. Settings has the manual check.
 	private async Task CheckForUpdatesAsync()
 	{
-		// The release asset this looks for is the sideloaded .apk. iOS builds reach users through
-		// TestFlight/the App Store, which update themselves, so there is nothing to offer there.
-		if (!OperatingSystem.IsAndroid())
-			return;
-
-		try
-		{
-			var current = AppInfo.Current.VersionString;
-			var result = await _updateChecker.CheckForUpdateAsync(
-				current,
-				includePrereleases: MobileSettings.IncludeBetaUpdates, // beta channel toggle (Settings)
-				assetMatcher: name => name.EndsWith(".apk", StringComparison.OrdinalIgnoreCase));
-
-			if (!result.IsSuccess || !result.IsUpdateAvailable)
-				return;
-
-			var download = await DisplayAlert(
-				L10n.Get("UpdateAvailable"),
-				string.Format(L10n.Get("statusUpdateAvailableApk"), result.LatestVersion, current),
-				L10n.Get("lblDownload"), L10n.Get("lblLater"));
-
-			if (download)
-				await Launcher.Default.OpenAsync(result.DownloadUrl ?? result.ReleasesPageUrl);
-		}
-		catch
-		{
-			// Update check is best-effort — offline / rate-limited is fine.
-		}
+		try { await _updates.RunAsync(this, manual: false); }
+		catch (Exception ex) { System.Diagnostics.Trace.WriteLine($"[installer] Update check failed: {ex.Message}"); }
 	}
 
 	private async Task<CatalogService.CatalogResult?> LoadCatalogAsync()

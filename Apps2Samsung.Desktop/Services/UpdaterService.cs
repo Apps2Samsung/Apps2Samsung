@@ -80,44 +80,17 @@ namespace Apps2Samsung.Services
         /// <inheritdoc />
         public async Task<string> DownloadUpdateAsync(
             string downloadUrl,
-            IProgress<int>? progress = null,
+            IProgress<DownloadProgress>? progress = null,
             CancellationToken cancellationToken = default)
         {
             var tempDir = Path.Combine(Path.GetTempPath(), "Apps2Samsung_Update");
             Directory.CreateDirectory(tempDir);
-
             var fileName = Path.GetFileName(new Uri(downloadUrl).LocalPath);
             var downloadPath = Path.Combine(tempDir, fileName);
 
-            // Clean up old downloads
-            if (File.Exists(downloadPath))
-                File.Delete(downloadPath);
-
-            using var response = await _httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            var totalBytes = response.Content.Headers.ContentLength ?? -1L;
-            var downloadedBytes = 0L;
-
-            await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            await using var fileStream = new FileStream(downloadPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
-
-            var buffer = new byte[8192];
-            int bytesRead;
-
-            while ((bytesRead = await contentStream.ReadAsync(buffer, cancellationToken)) > 0)
-            {
-                await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
-                downloadedBytes += bytesRead;
-
-                if (totalBytes > 0)
-                {
-                    var percentage = (int)((downloadedBytes * 100) / totalBytes);
-                    progress?.Report(percentage);
-                }
-            }
-
-            progress?.Report(100);
+            // The shared downloader (Core): its own client without the default 100-second
+            // timeout, which covered the whole transfer and cut long downloads off part-way.
+            await new UpdateDownloader().DownloadAsync(downloadUrl, downloadPath, progress, cancellationToken);
             return downloadPath;
         }
 
@@ -138,7 +111,8 @@ namespace Apps2Samsung.Services
                 // Extract update. Windows ships .zip, Linux/macOS ship .tar.gz.
                 if (downloadedFilePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
                 {
-                    ZipFile.ExtractToDirectory(downloadedFilePath, updateDir);
+                    // Off the UI thread: an 87 MB archive takes seconds, and a frozen window reads as stuck.
+                    await Task.Run(() => ZipFile.ExtractToDirectory(downloadedFilePath, updateDir), cancellationToken);
                 }
                 else if (downloadedFilePath.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase) ||
                          downloadedFilePath.EndsWith(".tgz", StringComparison.OrdinalIgnoreCase))
