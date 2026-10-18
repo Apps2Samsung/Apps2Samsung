@@ -1,0 +1,80 @@
+using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
+using CommunityToolkit.Mvvm.ComponentModel;
+using Apps2Samsung.Catalog;
+using Apps2Samsung.Models;
+
+namespace Apps2Samsung.ViewModels
+{
+    /// <summary>
+    /// The app sheet (#755): preview, description, the version or variant to install, and the
+    /// Install button for the selected TV. Built by the main view model with everything it needs,
+    /// so the window only shows and hands back the chosen asset.
+    /// </summary>
+    public partial class AppDetailViewModel : ObservableObject
+    {
+        private readonly HttpClient _http;
+        private readonly string? _previewUrl;
+
+        public GitHubRelease Release { get; }
+        public string Name => Release.Name;
+        public string Description { get; }
+        public bool RequiresPartner => Release.RequiresPartner;
+        public string VersionsTitle { get; }
+        public string Published { get; }
+        public ObservableCollection<Asset> Assets { get; }
+        public string InstallText { get; }
+        public bool CanInstall { get; }
+        public string PartnerNeededTitle { get; }
+        public string PartnerNeededBody { get; }
+
+        [ObservableProperty]
+        private Asset? selectedAsset;
+
+        [ObservableProperty]
+        private Bitmap? preview;
+
+        public bool HasPreview => Preview is not null;
+
+        public AppDetailViewModel(GitHubRelease release, string? previewUrl, string description,
+            string? tvName, bool tvReady, HttpClient http, Func<string, string> localize)
+        {
+            Release = release;
+            _previewUrl = previewUrl;
+            _http = http;
+            Description = description;
+            VersionsTitle = localize(release.HasVariants ? "lblVariant" : "lblVersion");
+            Published = DateTime.TryParse(release.PublishedAt, out var date) ? date.ToShortDateString() : string.Empty;
+            Assets = new ObservableCollection<Asset>(release.Assets);
+            SelectedAsset = Assets.FirstOrDefault(a => a.IsDefault) ?? Assets.FirstOrDefault();
+            CanInstall = tvReady && !string.IsNullOrEmpty(tvName);
+            InstallText = string.IsNullOrEmpty(tvName) ? localize("lblChooseTvFirst") : string.Format(localize("lblInstallOn"), tvName);
+            PartnerNeededTitle = localize("lblPartnerNeededTitle");
+            PartnerNeededBody = localize("lblPartnerNeededBody");
+        }
+
+        partial void OnPreviewChanged(Bitmap? value) => OnPropertyChanged(nameof(HasPreview));
+
+        /// <summary>Loads the preview after the window is up, so the sheet opens at once.</summary>
+        public async Task LoadPreviewAsync()
+        {
+            if (string.IsNullOrWhiteSpace(_previewUrl))
+                return;
+            try
+            {
+                var bytes = await _http.GetByteArrayAsync(_previewUrl);
+                await using var stream = new MemoryStream(bytes);
+                Preview = new Bitmap(stream);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"Preview '{_previewUrl}' failed: {ex.Message}");
+            }
+        }
+    }
+}

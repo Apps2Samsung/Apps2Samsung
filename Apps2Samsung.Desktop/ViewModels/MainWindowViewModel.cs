@@ -8,6 +8,8 @@ using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Design;
+using Avalonia.Media;
+using Apps2Samsung.Styles;
 using Apps2Samsung.Models;
 using Apps2Samsung.Services;
 using System;
@@ -113,6 +115,119 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private TvCardState tvCard = new(string.Empty, string.Empty, TvLed.Off, string.Empty);
 
+        // The catalog (#755): a search field, category chips with counts, and the grouped list of
+        // apps; tapping a row opens the app sheet (AppDetailWindow), which hands back the asset to
+        // install. Releases / SelectedRelease / SelectedAsset stay the install pipeline's inputs;
+        // the list is a view over them.
+        private readonly HttpClient _httpClient;
+        private ProviderManifest? _manifest;
+        [ObservableProperty]
+        private string searchText = string.Empty;
+        public ObservableCollection<CatalogRow> CatalogRows { get; } = new();
+        public ObservableCollection<CategoryChip> CategoryChips { get; } = new();
+        [ObservableProperty]
+        private bool isCatalogEmpty;
+        [ObservableProperty]
+        private string catalogFoot = string.Empty;
+        public string CustomFileSubline => string.IsNullOrEmpty(CustomWgtPath)
+            ? L("lblInstallOwnFile")
+            : string.Join(", ", CustomWgtPath.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(Path.GetFileName));
+        public string LblYourOwnPackage => L("lblYourOwnPackage");
+        public string LblSearchApps => L("lblSearchApps");
+        public string LblNoAppMatches => L("lblNoAppMatches");
+
+        partial void OnSearchTextChanged(string value) => RebuildCatalogRows();
+
+        /// <summary>A category chip: the option plus whether it is the one in force.</summary>
+        public sealed record CategoryChip(CategoryOption Option, bool IsSelected)
+        {
+            public string Label => Option.Label;
+            public string Count => Option.Count.ToString();
+        }
+
+        /// <summary>A list row: the release, its letter tile and the one-line subline.</summary>
+        public sealed record CatalogRow(GitHubRelease Release, string Letter, IBrush TileBrush, string Subline)
+        {
+            public string Name => Release.Name;
+        }
+
+        [RelayCommand]
+        private void SelectCategory(CategoryChip? chip)
+        {
+            if (chip is not null)
+                SelectedCategory = Categories.FirstOrDefault(c => c.Id == chip.Option.Id) ?? SelectedCategory;
+            RebuildCategoryChips();
+        }
+
+        private void RebuildCategoryChips()
+        {
+            CategoryChips.Clear();
+            foreach (var option in Categories)
+                CategoryChips.Add(new CategoryChip(option, option.Id == (SelectedCategory?.Id ?? AppCategories.All)));
+        }
+
+        private void RebuildCatalogRows()
+        {
+            var query = SearchText.Trim();
+            CatalogRows.Clear();
+            foreach (var release in Releases)
+            {
+                if (release == CustomEntry)
+                    continue;
+                if (query.Length > 0 && !release.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                var category = AppCategories.DisplayName(release.Category, L);
+                var subline = release.HasVariants
+                    ? $"{category} · {string.Format(L("lblVariantsCount"), release.Assets.Count)}"
+                    : category;
+                CatalogRows.Add(new CatalogRow(release, AppTiles.Letter(release.Name),
+                    DesignTheme.Brush(AppTiles.ColorToken(release.Category, release.Name)), subline));
+            }
+            IsCatalogEmpty = CatalogRows.Count == 0 && !IsLoading;
+            CatalogFoot = string.Format(L("lblCatalogFoot"), _allReleases.Count);
+        }
+
+        /// <summary>Opens the app sheet; installs the asset it hands back.</summary>
+        [RelayCommand]
+        private async Task OpenAppAsync(CatalogRow? row)
+        {
+            if (row is null || Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                return;
+            var device = SelectedDevice;
+            var hasTv = device is not null && !string.IsNullOrWhiteSpace(device.IpAddress) && device.IpAddress != L("lblOther");
+            var tvName = !hasTv ? null : string.IsNullOrWhiteSpace(device!.DeviceName) ? device.IpAddress : device.DeviceName;
+            var sheet = new AppDetailViewModel(
+                row.Release,
+                CatalogPreviews.For(_manifest, row.Release),
+                row.Subline,
+                tvName,
+                IsSelectedDeviceReady,
+                _httpClient,
+                L);
+            var asset = await new Views.AppDetailWindow(sheet).ShowDialog<Asset?>(desktop.MainWindow);
+            if (asset is null)
+                return;
+            CustomWgtPath = string.Empty;
+            SelectedRelease = row.Release;
+            SelectedAsset = asset;
+            if (DownloadAndInstallCommand.CanExecute(null))
+                await DownloadAndInstallAsync();
+        }
+
+        /// <summary>The "Your own package" row: pick a .wgt / .tpk, then install it on the selected TV.</summary>
+        [RelayCommand]
+        private async Task InstallOwnFileAsync()
+        {
+            await BrowseWgtAsync();
+            if (string.IsNullOrEmpty(CustomWgtPath))
+                return;
+            SelectedRelease = CustomEntry;
+            if (DownloadAndInstallCommand.CanExecute(null))
+                await DownloadAndInstallAsync();
+            else
+                SetStatus(IsSelectedDeviceReady ? "Ready" : "NoDevicesFound");
+        }
+
         public bool HasVpnWarning => !string.IsNullOrEmpty(VpnWarning);
 
         partial void OnVpnWarningChanged(string value) => OnPropertyChanged(nameof(HasVpnWarning));
@@ -188,6 +303,7 @@ namespace Apps2Samsung.ViewModels
             _updateDialogService = updateDialogService;
             _fileHelper = fileHelper;
             _settingsViewModel = settingsViewModel;
+            _httpClient = httpClient;
 
             // Snapshot-first: the pre-resolved catalog serves the manifest's providers; the GitHub
             // API is only asked for what it lacks.
@@ -243,6 +359,12 @@ namespace Apps2Samsung.ViewModels
         private void RefreshLocalizedProperties()
         {
             UpdateTvCard();
+            OnPropertyChanged(nameof(CustomFileSubline));
+            OnPropertyChanged(nameof(LblYourOwnPackage));
+            OnPropertyChanged(nameof(LblSearchApps));
+            OnPropertyChanged(nameof(LblNoAppMatches));
+            RebuildCategoryChips();
+            RebuildCatalogRows();
             OnPropertyChanged(nameof(LblRelease));
             OnPropertyChanged(nameof(LblVersion));
             OnPropertyChanged(nameof(LblCategory));
@@ -280,6 +402,7 @@ namespace Apps2Samsung.ViewModels
         {
             AppSettings.Default.CustomWgtPath = value;
             AppSettings.Default.Save();
+            OnPropertyChanged(nameof(CustomFileSubline));
 
             DownloadAndInstallCommand?.NotifyCanExecuteChanged();
             DownloadCommand?.NotifyCanExecuteChanged();
@@ -331,6 +454,7 @@ namespace Apps2Samsung.ViewModels
         {
             RefreshCanExecuteChanged();
             UpdateTvCard();
+            IsCatalogEmpty = CatalogRows.Count == 0 && !value;
         }
 
         partial void OnIsLoadingDevicesChanged(bool value)
@@ -956,6 +1080,7 @@ namespace Apps2Samsung.ViewModels
             {
                 var list = new List<GitHubRelease>();
                 var manifest = await _providerManifestService.GetAsync();
+                _manifest = manifest;
                 foreach (var provider in manifest.Providers)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -1040,6 +1165,7 @@ namespace Apps2Samsung.ViewModels
             foreach (var (id, count) in CommunityAppList.Counts(_allReleases))
                 Categories.Add(new CategoryOption(id, AppCategories.DisplayName(id, L), count));
             SelectedCategory = Categories.FirstOrDefault(c => c.Id == keep) ?? Categories.FirstOrDefault();
+            RebuildCategoryChips();
         }
 
         // Releases = the apps in the chosen category, plus the custom-file row that is never filtered
@@ -1055,6 +1181,8 @@ namespace Apps2Samsung.ViewModels
             Releases.Add(CustomEntry);
 
             SelectedRelease = keep != null && Releases.Contains(keep) ? keep : null;
+            RebuildCategoryChips();
+            RebuildCatalogRows();
         }
 
         private async Task LoadDevicesAsync(CancellationToken cancellationToken = default, bool virtualScan = false)

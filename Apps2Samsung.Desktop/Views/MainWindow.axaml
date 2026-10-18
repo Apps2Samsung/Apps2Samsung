@@ -25,6 +25,7 @@
 		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
 		<StyleInclude Source="avares://Apps2Samsung/Styles/TextBlocks.axaml"/>
 		<StyleInclude Source="avares://Apps2Samsung/Styles/ComboBoxes.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Catalog.axaml"/>
 	</Window.Styles>
 
 	<Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
@@ -75,122 +76,115 @@
 				</controls:TvCard.Actions>
 			</controls:TvCard>
 
-			<!-- Form fields - side by side layout -->
-			<StackPanel Spacing="18">
+			<!-- TV Selection (rescan is a chip on the card) -->
+			<Grid ColumnDefinitions="100,*" ColumnSpacing="8">
+				<TextBlock Classes="label"
+						   Text="{Binding LblSelectTv}"
+						   VerticalAlignment="Center"
+						   Grid.Column="0"/>
+				<ComboBox Classes="clean"
+						  Grid.Column="1"
+						  HorizontalAlignment="Stretch"
+						  ItemsSource="{Binding AvailableDevices}"
+						  SelectedItem="{Binding SelectedDevice, Mode=TwoWay}">
+					<ComboBox.ItemTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding DisplayText}"/>
+						</DataTemplate>
+					</ComboBox.ItemTemplate>
+				</ComboBox>
+			</Grid>
 
-				<!-- Category filter: narrows the App list below (the custom-file row always stays) -->
-				<Grid ColumnDefinitions="100,*,Auto" ColumnSpacing="8">
-					<TextBlock Classes="label"
-							   Text="{Binding LblCategory}"
-							   VerticalAlignment="Center"
-							   Grid.Column="0"/>
-					<ComboBox Classes="clean"
-							  SelectedItem="{Binding SelectedCategory}"
-							  Grid.Column="1"
-							  HorizontalAlignment="Stretch"
-							  ItemsSource="{Binding Categories}">
-						<ComboBox.ItemTemplate>
-							<DataTemplate>
-								<TextBlock Text="{Binding Display}"/>
-							</DataTemplate>
-						</ComboBox.ItemTemplate>
-					</ComboBox>
-				</Grid>
+			<!-- The catalog (#755): search, category chips, the grouped list; a row opens the app sheet. -->
+			<StackPanel Spacing="10">
+				<TextBox Classes="search" Text="{Binding SearchText, Mode=TwoWay}" Watermark="{Binding LblSearchApps}"/>
 
-				<!-- App (the release list, filtered by category) -->
-				<Grid ColumnDefinitions="100,*,Auto" ColumnSpacing="8">
-					<TextBlock Classes="label"
-							   Text="{Binding LblRelease}"
-							   VerticalAlignment="Center"
-							   Grid.Column="0"/>
-					<ComboBox Classes="clean"
-							  SelectedItem="{Binding SelectedRelease}"
-							  Grid.Column="1"
-							  HorizontalAlignment="Stretch"
-							  ItemsSource="{Binding Releases}">
-						<ComboBox.ItemTemplate>
-							<DataTemplate>
-								<TextBlock Text="{Binding Name}"/>
-							</DataTemplate>
-						</ComboBox.ItemTemplate>
-					</ComboBox>
-					<!-- Spacer removed -->
-				</Grid>
+				<ItemsControl ItemsSource="{Binding CategoryChips}">
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8"/>
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate x:DataType="viewModels:MainWindowViewModel+CategoryChip">
+							<ToggleButton Classes="catchip" IsChecked="{Binding IsSelected, Mode=OneWay}"
+							              Command="{Binding $parent[ItemsControl].((viewModels:MainWindowViewModel)DataContext).SelectCategoryCommand}"
+							              CommandParameter="{Binding}">
+								<StackPanel Orientation="Horizontal" Spacing="4">
+									<TextBlock Text="{Binding Label}"/>
+									<TextBlock Text="{Binding Count}" Opacity="0.6"/>
+								</StackPanel>
+							</ToggleButton>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
 
-				<!-- Version, or Variant for a folded community app -->
-				<Grid ColumnDefinitions="100,*,40" ColumnSpacing="8" IsVisible="{Binding SelectedRelease, Converter={StaticResource StringNotEquals}, ConverterParameter=Custom WGT / TPK}">
-					<TextBlock Classes="label"
-							   Text="{Binding LblVersion}"
-							   VerticalAlignment="Center"
-							   Grid.Column="0"/>
+				<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
+					<Panel>
+						<!-- skeleton while the catalog loads -->
+						<StackPanel IsVisible="{Binding IsLoading}">
+							<Border Classes="skeleton"/>
+							<Border Classes="hairline"/>
+							<Border Classes="skeleton"/>
+							<Border Classes="hairline"/>
+							<Border Classes="skeleton"/>
+						</StackPanel>
+						<TextBlock Text="{Binding LblNoAppMatches}" Margin="16,14" Foreground="{DynamicResource MutedBrush}"
+						           IsVisible="{Binding IsCatalogEmpty}"/>
+						<ScrollViewer MaxHeight="330" VerticalScrollBarVisibility="Auto">
+							<ItemsControl ItemsSource="{Binding CatalogRows}">
+								<ItemsControl.ItemTemplate>
+									<DataTemplate x:DataType="viewModels:MainWindowViewModel+CatalogRow">
+										<StackPanel>
+											<Button Classes="row"
+											        Command="{Binding $parent[ItemsControl].((viewModels:MainWindowViewModel)DataContext).OpenAppCommand}"
+											        CommandParameter="{Binding}">
+												<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+													<Border Classes="tile" Background="{Binding TileBrush}">
+														<TextBlock Text="{Binding Letter}" Foreground="{DynamicResource OnAccentBrush}"/>
+													</Border>
+													<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+														<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
+														<TextBlock Text="{Binding Subline}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
+													</StackPanel>
+													<PathIcon Grid.Column="2" Width="8" Height="13" Opacity="0.35" VerticalAlignment="Center"
+													          Foreground="{DynamicResource InkBrush}"
+													          Data="M1,1 L7,6.5 L1,12"/>
+												</Grid>
+											</Button>
+											<Border Classes="hairline"/>
+										</StackPanel>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+						</ScrollViewer>
+					</Panel>
+				</Border>
 
-					<ComboBox Classes="clean"
-							  Grid.Column="1"
-							  HorizontalAlignment="Stretch"
-							  ItemsSource="{Binding AvailableAssets}"
-							  SelectedItem="{Binding SelectedAsset, Mode=TwoWay}">
-						<ComboBox.ItemTemplate>
-							<DataTemplate>
-								<TextBlock Text="{Binding LongDisplayText}"/>
-							</DataTemplate>
-						</ComboBox.ItemTemplate>
-					</ComboBox>
-
-					
-					<Button Classes="icon" Grid.Column="2" Command="{Binding ShowBuildInfoCommand}">
-						<fa:SymbolIcon Symbol="Help" Width="20" Height="20"/>
+				<TextBlock Text="{Binding LblYourOwnPackage}" FontSize="15" FontWeight="SemiBold" Margin="4,8,4,0"
+				           Foreground="{DynamicResource MutedBrush}"/>
+				<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
+					<Button Classes="row" Command="{Binding InstallOwnFileCommand}">
+						<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+							<Border Classes="tile" Background="{DynamicResource FillBrush}">
+								<fa:SymbolIcon Symbol="Folder" Width="20" Height="20" Foreground="{DynamicResource InkBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+							</Border>
+							<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+								<TextBlock Text="{Binding lblCustomWgt}" FontWeight="Medium" Foreground="{DynamicResource InkBrush}"/>
+								<TextBlock Text="{Binding CustomFileSubline}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
+							</StackPanel>
+							<PathIcon Grid.Column="2" Width="8" Height="13" Opacity="0.35" VerticalAlignment="Center"
+							          Foreground="{DynamicResource InkBrush}" Data="M1,1 L7,6.5 L1,12"/>
+						</Grid>
 					</Button>
-				</Grid>
-				<!-- Custom WGT / TPK -->
-				<Grid ColumnDefinitions="100,*,40" ColumnSpacing="8" IsVisible="{Binding SelectedRelease, Converter={StaticResource StringEquals}, ConverterParameter=Custom WGT / TPK, FallbackValue=False}">
-					<TextBlock Classes="label"
-							   Text="{Binding lblCustomWgt}"
-							   VerticalAlignment="Center"
-							   Grid.Column="0"/>
-
-					<TextBox Grid.Column="1"
-								Classes="clean"
-								Text="{Binding CustomWgtPath, Mode=TwoWay}"
-								IsReadOnly="True"
-								HorizontalAlignment="Stretch"
-								Watermark="{Binding SelectWGT}"/>
-
-					<!-- Info Button -->
-					<Button Grid.Column="2"
-                                Classes="icon"
-                                Command="{Binding BrowseWgtCommand}">
-						<fa:SymbolIcon Symbol="Folder" Width="20" Height="20"/>
-					</Button>
-				</Grid>
-
-				<!-- TV Selection (rescan is a chip on the card) -->
-				<Grid ColumnDefinitions="100,*" ColumnSpacing="8">
-					<TextBlock Classes="label"
-							   Text="{Binding LblSelectTv}"
-							   VerticalAlignment="Center"
-							   Grid.Column="0"/>
-					<ComboBox Classes="clean"
-							  Grid.Column="1"
-							  HorizontalAlignment="Stretch"
-							  ItemsSource="{Binding AvailableDevices}"
-							  SelectedItem="{Binding SelectedDevice, Mode=TwoWay}">
-						<ComboBox.ItemTemplate>
-							<DataTemplate>
-								<TextBlock Text="{Binding DisplayText}"/>
-							</DataTemplate>
-						</ComboBox.ItemTemplate>
-					</ComboBox>
-				</Grid>
-
+				</Border>
+				<TextBlock Text="{Binding CatalogFoot}" FontSize="13" Margin="4,0" Foreground="{DynamicResource MutedBrush}"/>
 			</StackPanel>
 
 			<!-- Action Buttons -->
 			<StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Center"
                         Spacing="12">
-				<Button Classes="primary"
-                        Content="{Binding DownloadAndInstall}"
-						Command="{Binding DownloadAndInstallCommand} "/>
 				<Button Classes="icon" Command="{Binding OpenSettingsCommand}">
 					<fa:SymbolIcon Symbol="Settings"  Width="20" Height="20"/>
 				</Button>
