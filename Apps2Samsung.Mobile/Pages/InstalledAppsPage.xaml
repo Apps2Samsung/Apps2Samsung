@@ -28,22 +28,16 @@
         </Style>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="12" RowSpacing="10">
+    <Grid RowDefinitions="Auto,Auto,*" Padding="16,10,16,0" RowSpacing="8">
 
-        <!-- Header banner with a back affordance -->
-        <Border Grid.Row="0" BackgroundColor="{DynamicResource AccentColor}" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
-            <Grid ColumnDefinitions="44,*,Auto,44" ColumnSpacing="4" VerticalOptions="Center">
-                <!-- a tab root: no back button, the column keeps the title centred -->
-                <Label Grid.Column="1" Text="{l:Localize lblInstalledApps}" TextColor="{DynamicResource OnAccentColor}" FontAttributes="Bold"
-                       VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
-                <Button Grid.Column="2" x:Name="RemoveLeftoverBtn" Text="{l:Localize lblRemoveLeftover}" FontSize="12"
-                        TextColor="{DynamicResource OnAccentColor}" BackgroundColor="Transparent" BorderWidth="0" Padding="6,0"
-                        VerticalOptions="Center" Clicked="OnRemoveLeftoverClicked" />
-                <Button Grid.Column="3" x:Name="RefreshBtn" Text="⟳" FontSize="18" TextColor="{DynamicResource OnAccentColor}"
-                        BackgroundColor="Transparent" BorderWidth="0" Padding="0"
-                        WidthRequest="44" HeightRequest="44" Clicked="OnRefreshClicked" />
-            </Grid>
-        </Border>
+        <!-- A tab root (#755): page title, its actions as round icon buttons -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="4,8,4,0">
+            <Label Grid.Column="0" Text="{l:Localize lblOnTheTv}" Style="{StaticResource PageTitle}" />
+            <Button Grid.Column="1" x:Name="RemoveLeftoverBtn" Text="{l:Localize lblRemoveLeftover}" FontSize="12"
+                    Style="{StaticResource IconButton}" WidthRequest="-1" MinimumWidthRequest="36" Padding="12,0" CornerRadius="18"
+                    Clicked="OnRemoveLeftoverClicked" />
+            <Button Grid.Column="2" x:Name="RefreshBtn" Text="⟳" Style="{StaticResource IconButton}" Clicked="OnRefreshClicked" />
+        </Grid>
 
         <!-- Subtitle: count / status -->
         <Label Grid.Row="1" x:Name="CountLabel" FontSize="12" Opacity="0.6" Text="{l:Localize lblLoading}" />
