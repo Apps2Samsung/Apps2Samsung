@@ -1,4 +1,4 @@
-﻿using Apps2Samsung.Models;
+using Apps2Samsung.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -59,6 +59,8 @@ namespace Apps2Samsung.Helpers
         public string LocalIp { get; set; } = "";
         [JsonIgnore]
         public string TvIp { get; set; } = "";
+        /// <summary>The catalog apps the user starred, by name, ';'-separated (#755 favorites).</summary>
+        public string FavoriteApps { get; set; } = "";
         public static AppSettings Default => _instance ??= Load();
 
         // ----- User-scoped settings -----

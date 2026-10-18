@@ -36,12 +36,17 @@ namespace Apps2Samsung.Catalog
         public const int PerGroup = 3;
         /// <summary>The category id of the search-results group.</summary>
         public const string SearchId = "search";
+        /// <summary>The category id of the favorites group.</summary>
+        public const string FavoritesId = "favorites";
 
+        /// <param name="favorites">App names the user starred: they lead the list as a group of
+        /// their own, never truncated, while the categories keep them too.</param>
         public static IReadOnlyList<CatalogGroup> Build(
             IReadOnlyCollection<GitHubRelease> all,
             string? query,
             ISet<string> expanded,
-            Func<string, string> localize)
+            Func<string, string> localize,
+            ISet<string>? favorites = null)
         {
             var q = (query ?? string.Empty).Trim();
             if (q.Length > 0)
@@ -51,6 +56,12 @@ namespace Apps2Samsung.Catalog
             }
 
             var groups = new List<CatalogGroup>();
+            if (favorites is { Count: > 0 })
+            {
+                var starred = all.Where(r => favorites.Contains(r.Name)).ToList();
+                if (starred.Count > 0)
+                    groups.Add(new CatalogGroup(FavoritesId, localize("lblFavorites"), starred.Count, starred, false, false));
+            }
             foreach (var (id, count) in CommunityAppList.Counts(all))
             {
                 if (id == AppCategories.All)

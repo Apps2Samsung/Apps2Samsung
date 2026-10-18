@@ -178,6 +178,17 @@ namespace Apps2Samsung.ViewModels
         public ObservableCollection<CatalogGroupView> CatalogGroupsView { get; } = new();
         // Categories the user expanded with "Show all".
         private readonly HashSet<string> _expandedCategories = new();
+        // The apps the user starred (#755 favorites): a group of their own at the top of the list.
+        private readonly HashSet<string> _favorites = new(
+            (AppSettings.Default.FavoriteApps ?? string.Empty).Split(';', StringSplitOptions.RemoveEmptyEntries), StringComparer.OrdinalIgnoreCase);
+
+        private void SetFavorite(string name, bool isFavorite)
+        {
+            if (isFavorite) _favorites.Add(name); else _favorites.Remove(name);
+            AppSettings.Default.FavoriteApps = string.Join(";", _favorites);
+            AppSettings.Default.Save();
+            RebuildCatalogRows();
+        }
         [ObservableProperty]
         private bool isCatalogEmpty;
         [ObservableProperty]
@@ -234,7 +245,7 @@ namespace Apps2Samsung.ViewModels
         {
             CatalogGroupsView.Clear();
             var all = _allReleases.Where(r => r != CustomEntry).ToList();
-            var groups = CatalogGroups.Build(all, SearchText, _expandedCategories, L);
+            var groups = CatalogGroups.Build(all, SearchText, _expandedCategories, L, _favorites);
             var any = false;
             foreach (var group in groups)
             {
@@ -280,7 +291,9 @@ namespace Apps2Samsung.ViewModels
                 tvName,
                 IsSelectedDeviceReady,
                 _httpClient,
-                L);
+                L,
+                _favorites.Contains(row.Release.Name),
+                SetFavorite);
             var asset = await new Views.AppDetailWindow(sheet).ShowDialog<Asset?>(desktop.MainWindow);
             if (asset is null)
                 return;
