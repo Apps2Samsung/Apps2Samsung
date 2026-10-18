@@ -30,7 +30,7 @@ jobs:
             echo "❌ Version not found"
             exit 1
           fi
-          BRANCH=$(echo "${{ github.ref_name }}" | tr -c 'A-Za-z0-9.-\n' '-')
+          BRANCH=$(echo "${{ github.ref_name }}" | tr -c 'A-Za-z0-9.\n-' '-')
           echo "VERSION_NAME=${VERSION#v}-${BRANCH}.${{ github.run_number }}" >> "$GITHUB_ENV"
 
       - name: Compute Android versionCode
