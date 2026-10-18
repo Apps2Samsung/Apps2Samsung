@@ -56,7 +56,7 @@ public sealed class ExpanderSection : ContentView
 		{
 			StrokeThickness = 0,
 			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 12 },
-			BackgroundColor = Resources.Styles.DesignTheme.ColorOf("Surface"),
+			BackgroundColor = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("Surface"),
 			Padding = new Thickness(16, 10),
 			Content = new VerticalStackLayout { Spacing = 0, Children = { header, _host } },
 		};
