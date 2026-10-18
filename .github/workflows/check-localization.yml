@@ -11,10 +11,10 @@ on:
   push:
     branches: [beta, master]
     paths:
-      - 'Jellyfin2Samsung-CrossOS/**/*.cs'
-      - 'Jellyfin2Samsung-CrossOS/**/*.axaml'
+      - 'Apps2Samsung.Desktop/**/*.cs'
+      - 'Apps2Samsung.Desktop/**/*.axaml'
       # Every language file, not just en.json: check D compares the translations against it.
-      - 'Jellyfin2Samsung-CrossOS/Assets/Localization/*.json'
+      - 'Apps2Samsung.Core/Localization/Languages/*.json'
 
 jobs:
   check-localization:

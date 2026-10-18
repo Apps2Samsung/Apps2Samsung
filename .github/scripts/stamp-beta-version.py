@@ -37,7 +37,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 # Each pattern must capture: prefix, version (numeric core), suffix (any existing -marker), tail.
 TARGETS = [
     (
-        "Jellyfin2Samsung-CrossOS/Helpers/AppSettings.cs",
+        "Apps2Samsung.Desktop/Helpers/AppSettings.cs",
         re.compile(
             r'(?P<prefix>AppVersion\s*\{\s*get;\s*set;\s*\}\s*=\s*")'
             r'(?P<version>v?\d+(?:\.\d+){1,3})'

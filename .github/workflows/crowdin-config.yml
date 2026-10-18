@@ -1,7 +1,11 @@
 name: Crowdin config
 
-# Pushes the export pattern from crowdin.yml onto the Crowdin file, and clears the project's
-# per-language mapping.
+# Pushes the export pattern from crowdin.yml onto the Crowdin file, clears the project's
+# per-language mapping, and deletes orphaned source files and empty directories.
+#
+# The file itself sits at the branch root in Crowdin (/beta/en.json; crowdin.yml has
+# preserve_hierarchy off), so moving the language files inside the repo changes nothing on the
+# Crowdin side - only the empty folder tree of an earlier layout is left to clean up.
 #
 # The export path is decided twice - Crowdin's own file setting builds the archive, crowdin.yml
 # only places what the CLI finds inside it - and only one of the two lives in this repo. They

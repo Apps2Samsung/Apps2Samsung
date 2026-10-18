@@ -34,9 +34,9 @@ import re
 import sys
 from pathlib import Path
 
-DESKTOP = Path("Jellyfin2Samsung-CrossOS")
+DESKTOP = Path("Apps2Samsung.Desktop")
 MOBILE = Path("Apps2Samsung.Mobile")
-LOCALIZATION = DESKTOP / "Assets" / "Localization"
+LOCALIZATION = Path("Apps2Samsung.Core") / "Localization" / "Languages"
 EN = LOCALIZATION / "en.json"
 
 # Strings that are intentionally NOT translated: example token / URL / CSS samples, and the

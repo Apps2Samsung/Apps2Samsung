@@ -58,14 +58,14 @@ let
       export DOTNET_CLI_TELEMETRY_OPTOUT=1
       export DOTNET_NOLOGO=1
 
-      dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
+      dotnet publish Apps2Samsung.Desktop/Apps2Samsung.csproj \
           -c Release \
           -r linux-x64 \
           --self-contained true \
           -p:PublishSingleFile=false \
           -p:PublishTrimmed=false
 
-      Jellyfin2Samsung-CrossOS/bin/Release/net10.0/linux-x64/publish/Apps2Samsung
+      Apps2Samsung.Desktop/bin/Release/net10.0/linux-x64/publish/Apps2Samsung
     '';
   };
 

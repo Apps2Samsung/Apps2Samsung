@@ -12,7 +12,7 @@ license itself — it records what else is in the box.
 
 ### esbuild 0.27.1
 
-Prebuilt esbuild binaries ship in `Jellyfin2Samsung-CrossOS/Assets/esbuild/` for
+Prebuilt esbuild binaries ship in `Apps2Samsung.Desktop/Assets/esbuild/` for
 `win-x64`, `linux-x64`, `macos-x64` and `macos-arm64`, and are invoked to bundle
 injected JavaScript at install time.
 
@@ -34,7 +34,7 @@ packages can be signed for and accepted by Samsung Tizen devices:
 - `author_ca.cer`
 - `public2.crt`
 
-Locations: `Jellyfin2Samsung-CrossOS/Assets/TizenProfile/ca/` and `Apps2Samsung.Mobile/Resources/Raw/ca/`.
+Locations: `Apps2Samsung.Desktop/Assets/TizenProfile/ca/` and `Apps2Samsung.Mobile/Resources/Raw/ca/`.
 
 These files are the property of Samsung Electronics Co., Ltd. and are distributed as part of the
 Tizen SDK / Tizen Studio. They are not covered by the Apps2Samsung MIT license, and no ownership

@@ -38,10 +38,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Localization is excluded: the language files are embedded in Apps2Samsung.Core and read from
-         there by both heads (see LocalizationCatalog), so bundling a second copy here would be dead
-         weight. -->
-    <AvaloniaResource Include="Assets\**" Exclude="Assets\Localization\**" />
+    <!-- The language files live in Apps2Samsung.Core/Localization/Languages and are embedded there
+         for both heads (see LocalizationCatalog); nothing localization-related ships from here. -->
+    <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
   <ItemGroup>
