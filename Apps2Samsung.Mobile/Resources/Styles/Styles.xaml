@@ -76,6 +76,30 @@
         <Setter Property="BackgroundColor" Value="{DynamicResource BadSoftColor}" />
     </Style>
 
+    <!-- Pill "chip" buttons (#755): filters, and the actions on the TV card's screen. On the glass
+         by default; "solid" is the one that stands out. Not based on the primary button on purpose:
+         a chip has its own height and no disabled restyle. -->
+    <Style TargetType="Button" x:Key="ChipButton">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="{DynamicResource GlassInkColor}" />
+        <Setter Property="BorderColor" Value="{DynamicResource GlassChipColor}" />
+        <Setter Property="BorderWidth" Value="1" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="HeightRequest" Value="32" />
+        <Setter Property="MinimumHeightRequest" Value="32" />
+        <Setter Property="MinimumWidthRequest" Value="0" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Margin" Value="0,0,10,10" />
+    </Style>
+
+    <Style TargetType="Button" x:Key="ChipButtonSolid" BasedOn="{StaticResource ChipButton}">
+        <Setter Property="BackgroundColor" Value="{DynamicResource GlassInkColor}" />
+        <Setter Property="TextColor" Value="{DynamicResource GlassColor}" />
+        <Setter Property="BorderWidth" Value="0" />
+    </Style>
+
     <Style TargetType="CheckBox">
         <Setter Property="Color" Value="{DynamicResource AccentColor}" />
         <Setter Property="MinimumHeightRequest" Value="44"/>

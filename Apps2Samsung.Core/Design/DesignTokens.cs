@@ -67,9 +67,23 @@ namespace Apps2Samsung.Design
             public static readonly ColorToken GlassMuted = new("#9FB0C6", "#9FB0C6");
             /// <summary>The TV frame and stand.</summary>
             public static readonly ColorToken Bezel = new("#2A2D33", "#3A3D44");
+            /// <summary>The diagonal reflection on the glass: white at 10 %, fading to 3 %.</summary>
+            public static readonly ColorToken GlassSheen = new("#1AFFFFFF", "#1AFFFFFF");
+            public static readonly ColorToken GlassSheenFade = new("#08FFFFFF", "#08FFFFFF");
+            /// <summary>The progress track and chip-button border on the glass (glass-ink at 14 % / 40 %).</summary>
+            public static readonly ColorToken GlassTrack = new("#24F4F7FB", "#24F4F7FB");
+            public static readonly ColorToken GlassChip = new("#66F4F7FB", "#66F4F7FB");
+            /// <summary>The status LED on the glass. The glass is the same in both themes, so these
+            /// are the dark-theme status colours in both: green = ready, amber = found but not
+            /// ready, red = unreachable, accent = working (pulsing).</summary>
+            public static readonly ColorToken LedOk = new("#30C46E", "#30C46E");
+            public static readonly ColorToken LedWarn = new("#F0A020", "#F0A020");
+            public static readonly ColorToken LedBad = new("#FF5C50", "#FF5C50");
+            public static readonly ColorToken LedBusy = new("#2DD4BF", "#2DD4BF");
 
-            /// <summary>Drop shadows under cards and dialogs.</summary>
-            public static readonly ColorToken Shadow = new("#1F000000", "#52000000");
+            /// <summary>Drop shadows under cards and dialogs. Same in both themes so a view can read
+            /// it with a StaticResource where a DynamicResource can't reach (an effect, a gradient).</summary>
+            public static readonly ColorToken Shadow = new("#33000000", "#33000000");
 
             /// <summary>Every token by name, for the heads to turn into resources.</summary>
             public static IReadOnlyDictionary<string, ColorToken> All { get; } = new Dictionary<string, ColorToken>
@@ -96,6 +110,14 @@ namespace Apps2Samsung.Design
                 [nameof(GlassInk)] = GlassInk,
                 [nameof(GlassMuted)] = GlassMuted,
                 [nameof(Bezel)] = Bezel,
+                [nameof(GlassSheen)] = GlassSheen,
+                [nameof(GlassSheenFade)] = GlassSheenFade,
+                [nameof(GlassTrack)] = GlassTrack,
+                [nameof(GlassChip)] = GlassChip,
+                [nameof(LedOk)] = LedOk,
+                [nameof(LedWarn)] = LedWarn,
+                [nameof(LedBad)] = LedBad,
+                [nameof(LedBusy)] = LedBusy,
                 [nameof(Shadow)] = Shadow,
             };
         }
