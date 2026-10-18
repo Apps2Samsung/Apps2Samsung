@@ -78,7 +78,7 @@
 					<TextBlock Text="{Binding StatusText}"
                                FontSize="12"
                                FontWeight="SemiBold"
-                               Foreground="White"/>
+                               Foreground="{DynamicResource OnAccentBrush}"/>
 				</Border>
 
 				<!-- IP:Port -->
@@ -90,7 +90,7 @@
 			<!-- Log output -->
 			<Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                     BorderThickness="1"
-                    Background="#1E1E1E"
+                    Background="{DynamicResource GlassBrush}"
                     CornerRadius="4"
                     Padding="6"
                     Height="450">
@@ -100,7 +100,7 @@
 					<TextBlock Text="{Binding Logs}"
                                FontFamily="Consolas"
                                FontSize="13"
-                               Foreground="#E0E0E0"
+                               Foreground="{DynamicResource GlassInkBrush}"
                                TextWrapping="Wrap"/>
 				</ScrollViewer>
 

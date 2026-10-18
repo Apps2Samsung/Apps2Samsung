@@ -5,7 +5,7 @@
              x:Class="Apps2Samsung.Mobile.Pages.RemotePage"
              Title="{l:Localize lblRemote}"
              NavigationPage.HasNavigationBar="False"
-             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+             BackgroundColor="{DynamicResource BgColor}">
 
     <ContentPage.Resources>
         <!-- One look for every key: a round-cornered tile big enough to hit without looking. -->
@@ -13,15 +13,15 @@
             <Setter Property="FontSize" Value="18" />
             <Setter Property="HeightRequest" Value="56" />
             <Setter Property="CornerRadius" Value="10" />
-            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark=#1F1F1F}" />
-            <Setter Property="TextColor" Value="{AppThemeBinding Light=#2C3E50, Dark=White}" />
-            <Setter Property="BorderColor" Value="{AppThemeBinding Light=#E2E2E2, Dark=#333}" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource SurfaceColor}" />
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
+            <Setter Property="BorderColor" Value="{DynamicResource HairColor}" />
             <Setter Property="BorderWidth" Value="1" />
             <Setter Property="Padding" Value="0" />
         </Style>
         <Style x:Key="Accent" TargetType="Button" BasedOn="{StaticResource Key}">
-            <Setter Property="BackgroundColor" Value="#2C3E50" />
-            <Setter Property="TextColor" Value="White" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource AccentColor}" />
+            <Setter Property="TextColor" Value="{DynamicResource OnAccentColor}" />
             <Setter Property="BorderWidth" Value="0" />
         </Style>
     </ContentPage.Resources>
@@ -29,14 +29,14 @@
     <Grid RowDefinitions="Auto,Auto,*" Margin="12" RowSpacing="10">
 
         <!-- Header banner with a back affordance -->
-        <Border Grid.Row="0" BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+        <Border Grid.Row="0" BackgroundColor="{DynamicResource AccentColor}" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
             <Grid ColumnDefinitions="44,*,44" ColumnSpacing="4" VerticalOptions="Center">
-                <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
+                <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="{DynamicResource OnAccentColor}"
                         BackgroundColor="Transparent" BorderWidth="0" Padding="0"
                         WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
-                <Label Grid.Column="1" Text="{l:Localize lblRemote}" TextColor="White" FontAttributes="Bold"
+                <Label Grid.Column="1" Text="{l:Localize lblRemote}" TextColor="{DynamicResource OnAccentColor}" FontAttributes="Bold"
                        VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
-                <Button Grid.Column="2" Text="⏻" FontSize="18" TextColor="White"
+                <Button Grid.Column="2" Text="⏻" FontSize="18" TextColor="{DynamicResource OnAccentColor}"
                         BackgroundColor="Transparent" BorderWidth="0" Padding="0"
                         WidthRequest="44" HeightRequest="44"
                         CommandParameter="KEY_POWER" Clicked="OnKeyClicked" />

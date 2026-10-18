@@ -40,9 +40,9 @@
 						 HorizontalAlignment="Left"
 						 MinWidth="260"/>
 				<StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ProxyHostInvalid}">
-					<fa:SymbolIcon Symbol="Important" Width="14" Height="14" Foreground="#C0392B" VerticalAlignment="Center"/>
+					<fa:SymbolIcon Symbol="Important" Width="14" Height="14" Foreground="{DynamicResource BadBrush}" VerticalAlignment="Center"/>
 					<TextBlock Text="{Binding LblTizenTubeProxyHostInvalid}"
-							   Foreground="#C0392B"
+							   Foreground="{DynamicResource BadBrush}"
 							   FontSize="12"
 							   TextWrapping="Wrap"/>
 				</StackPanel>

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Apps2Samsung.Mobile;
 
@@ -7,6 +7,8 @@ public partial class App : Application
 	public App()
 	{
 		InitializeComponent();
+		// The design tokens (Core) as resources, before any page is built.
+		Resources.Styles.DesignTheme.Apply(this);
 	}
 
 	protected override Window CreateWindow(IActivationState? activationState)

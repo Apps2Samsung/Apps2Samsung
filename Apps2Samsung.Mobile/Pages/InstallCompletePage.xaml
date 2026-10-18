@@ -4,13 +4,13 @@
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              x:Class="Apps2Samsung.Mobile.Pages.InstallCompletePage"
              Title="{l:Localize InstallationSuccessful}"
-             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+             BackgroundColor="{DynamicResource BgColor}">
 
     <Grid Padding="20" VerticalOptions="Center">
         <Border Padding="20" StrokeThickness="1"
                 StrokeShape="RoundRectangle 8"
-                Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
-                BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
+                Stroke="{DynamicResource HairBrush}"
+                BackgroundColor="{DynamicResource SurfaceColor}">
             <VerticalStackLayout Spacing="14" HorizontalOptions="Center">
 
                 <Label Text="✅" FontSize="40" HorizontalOptions="Center" />

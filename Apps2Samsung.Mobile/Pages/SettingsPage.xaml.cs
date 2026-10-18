@@ -8,6 +8,7 @@ using Apps2Samsung.Certificate;
 using Apps2Samsung.Collections;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Mobile.Localization;
+using Apps2Samsung.Mobile.Resources.Styles;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Packaging;
 using Microsoft.Extensions.DependencyInjection;
@@ -366,9 +367,9 @@ public partial class SettingsPage : ContentPage
 	{
 		var nameEntry = new Entry { Text = name, Placeholder = "Name", BackgroundColor = Colors.Transparent };
 		var urlEntry = new Entry { Text = url, Placeholder = "https://…/stream.m3u8", BackgroundColor = Colors.Transparent };
-		var upBtn = SmallChannelButton("↑", "#2C3E50");
-		var downBtn = SmallChannelButton("↓", "#2C3E50");
-		var removeBtn = SmallChannelButton("✕", "#B00020");
+		var upBtn = SmallChannelButton("↑", "Accent");
+		var downBtn = SmallChannelButton("↓", "Accent");
+		var removeBtn = SmallChannelButton("✕", "Bad");
 
 		// Row 0: name + url. Row 1: reorder (↑ ↓) + remove, right-aligned, so the entries stay wide.
 		var grid = new Grid
@@ -416,7 +417,7 @@ public partial class SettingsPage : ContentPage
 		ChannelsContainer.Children.Add(grid);
 	}
 
-	private static Button SmallChannelButton(string text, string textColor) => new()
+	private static Button SmallChannelButton(string text, string textColorToken) => new()
 	{
 		Text = text,
 		FontSize = 14,
@@ -426,8 +427,8 @@ public partial class SettingsPage : ContentPage
 		CornerRadius = 6,
 		BackgroundColor = Colors.Transparent,
 		BorderWidth = 1,
-		BorderColor = Color.FromArgb("#CDD3D8"),
-		TextColor = Color.FromArgb(textColor),
+		BorderColor = DesignTheme.ColorOf("Hair"),
+		TextColor = DesignTheme.ColorOf(textColorToken),
 	};
 
 	private void MoveChannelRow(ChannelRow row, int delta)
@@ -509,7 +510,7 @@ public partial class SettingsPage : ContentPage
 		var nameEntry = new Entry { Text = name, Placeholder = L10n.Get("lblCameraName"), BackgroundColor = Colors.Transparent };
 		var videoEntry = new Entry { Text = videoUrl, Placeholder = "http://…:8090/front.m3u8", Keyboard = Keyboard.Url, BackgroundColor = Colors.Transparent };
 		var mjpegEntry = new Entry { Text = mjpegUrl, Placeholder = "http://…:5000/api/front?h=360&fps=3", Keyboard = Keyboard.Url, BackgroundColor = Colors.Transparent };
-		var removeBtn = SmallChannelButton("✕", "#B00020");
+		var removeBtn = SmallChannelButton("✕", "Bad");
 
 		// Row 0: name + remove. Rows 1 and 2: the two stream URLs, full width.
 		var grid = new Grid

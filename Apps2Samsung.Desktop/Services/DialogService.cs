@@ -1,4 +1,5 @@
 using Avalonia;
+using Apps2Samsung.Styles;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml.Styling;
@@ -125,8 +126,8 @@ namespace Apps2Samsung.Services
                     Content = yesText,
                     Width = 90,
                     Height = 35,
-                    Background = new SolidColorBrush(Color.Parse("#2563eb")),
-                    Foreground = Brushes.White,
+                    Background = DesignTheme.Brush("Accent"),
+                    Foreground = DesignTheme.Brush("OnAccent"),
                     CornerRadius = new CornerRadius(8),
                     HorizontalContentAlignment = HorizontalAlignment.Center,
                     VerticalContentAlignment = VerticalAlignment.Center
@@ -137,8 +138,8 @@ namespace Apps2Samsung.Services
                     Content = noText,
                     Width = 90,
                     Height = 35,
-                    Background = new SolidColorBrush(Color.Parse("#9ca3af")),
-                    Foreground = Brushes.White,
+                    Background = DesignTheme.Brush("Muted"),
+                    Foreground = DesignTheme.Brush("OnAccent"),
                     CornerRadius = new CornerRadius(8),
                     HorizontalContentAlignment = HorizontalAlignment.Center,
                     VerticalContentAlignment = VerticalAlignment.Center
@@ -226,8 +227,8 @@ namespace Apps2Samsung.Services
                 var openLogsButton = new Button
                 {
                     Content = buttonContent,
-                    Background = new SolidColorBrush(Color.Parse("#2C3E50")),
-                    Foreground = Brushes.White,
+                    Background = DesignTheme.Brush("Accent"),
+                    Foreground = DesignTheme.Brush("OnAccent"),
                     Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
                     CornerRadius = new CornerRadius(6),
                     HorizontalAlignment = HorizontalAlignment.Center,

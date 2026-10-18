@@ -1,4 +1,5 @@
 using Apps2Samsung.Diagnostics;
+using Apps2Samsung.Styles;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
@@ -146,9 +147,9 @@ namespace Apps2Samsung.ViewModels
 
         // Same colour language as the TV-log window and the phone: blue while working, green attached,
         // grey once it is over.
-        private static readonly IBrush AttachingBrush = new SolidColorBrush(Color.Parse("#2980B9"));
-        private static readonly IBrush AttachedBrush = new SolidColorBrush(Color.Parse("#27AE60"));
-        private static readonly IBrush DetachedBrush = new SolidColorBrush(Color.Parse("#7F8C8D"));
+        private static IBrush AttachingBrush => DesignTheme.Brush("Accent");
+        private static IBrush AttachedBrush => DesignTheme.Brush("Ok");
+        private static IBrush DetachedBrush => DesignTheme.Brush("Muted");
 
         public DebugConsoleViewModel(ITizenInstallerService installer, IDialogService dialogService, string tvIp, InstalledApp app)
         {
@@ -709,10 +710,10 @@ namespace Apps2Samsung.ViewModels
             return $"{Clock} {level,-7} {source}{_entry.Text}{origin}";
         }
 
-        private static readonly IBrush ErrorBrush = new SolidColorBrush(Color.Parse("#FF6B6B"));
-        private static readonly IBrush WarningBrush = new SolidColorBrush(Color.Parse("#E6B860"));
-        private static readonly IBrush InfoBrush = new SolidColorBrush(Color.Parse("#6FC3DF"));
-        private static readonly IBrush DebugBrush = new SolidColorBrush(Color.Parse("#8E99A4"));
-        private static readonly IBrush LogBrush = new SolidColorBrush(Color.Parse("#DCE3EA"));
+        private static IBrush ErrorBrush => DesignTheme.Brush("Bad");
+        private static IBrush WarningBrush => DesignTheme.Brush("Warn");
+        private static IBrush InfoBrush => DesignTheme.Brush("Accent");
+        private static IBrush DebugBrush => DesignTheme.Brush("GlassMuted");
+        private static IBrush LogBrush => DesignTheme.Brush("GlassInk");
     }
 }

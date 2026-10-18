@@ -32,7 +32,7 @@
 			<DropShadowEffect BlurRadius="20"
                               OffsetX="2"
                               OffsetY="2"
-                              Color="#00000020"
+                              Color="{StaticResource ShadowColor}"
                               Opacity="0.2"/>
 		</Border.Effect>
 
@@ -56,7 +56,7 @@
 			<!-- IP Input -->
 			<TextBox Text="{Binding EnteredIp}"
                      Watermark="{l:Localize lblEnterIpAddress}"
-                     SelectionBrush="#2563eb"
+                     SelectionBrush="{DynamicResource AccentBrush}"
                      BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                      CornerRadius="8"
                      Padding="8"
@@ -70,8 +70,8 @@
 				<Button Content="{Binding OkText}"
                         MinWidth="90"
                         Height="35"
-                        Background="#2563eb"
-                        Foreground="White"
+                        Background="{DynamicResource AccentBrush}"
+                        Foreground="{DynamicResource OnAccentBrush}"
                         CornerRadius="8"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
@@ -79,8 +79,8 @@
 				<Button Content="{Binding CancelText}"
                         MinWidth="90"
                         Height="35"
-                        Background="#9ca3af"
-                        Foreground="White"
+                        Background="{DynamicResource MutedBrush}"
+                        Foreground="{DynamicResource OnAccentBrush}"
                         CornerRadius="8"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
