@@ -630,6 +630,7 @@
   "statusSeeDebugLog": "Settings → Diagnostics → Share debug log has the full details.",
   "statusUpdateAvailableApk": "{0} is available (you have v{1}). Download the new APK?",
   "statusNoTvsFoundHint": "No TVs found. Enable Developer Mode on the TV and refresh, or tap the TV list to enter an IP manually.",
+  "statusTvsFoundNotReady": "Found {0} TV(s). ⚠ {1} not ready — select one to see why.",
   "statusSignInFailedCheck": "Sign-in failed. Check the server URL and credentials.",
   "statusSignedIn": "Signed in - auto-login will be baked into the package.",
   "statusSignedInTo": "Signed in to {0} - auto-login will be baked into the package.",

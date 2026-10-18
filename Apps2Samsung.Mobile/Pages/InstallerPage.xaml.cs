@@ -633,8 +633,8 @@ public partial class InstallerPage : ContentPage
 
 		var notReady = _tvDevices.Count(d => d is { DebugPortOpen: false });
 		return notReady > 0
-			? $"Found {_tvIps.Count} TV(s). ⚠ {notReady} not ready — select one to see why."
-			: "Ready for use…";
+			? string.Format(L10n.Get("statusTvsFoundNotReady"), _tvIps.Count, notReady)
+			: L10n.Get("Ready");
 	}
 
 	private void SetStatus(string message)
