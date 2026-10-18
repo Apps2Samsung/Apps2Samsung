@@ -9,9 +9,10 @@
 		xmlns:helpers="clr-namespace:Apps2Samsung.Helpers.Converters"
 		xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
 		xmlns:controls="clr-namespace:Apps2Samsung.Views.Controls"
-        Width="580"
-        SizeToContent="Height"
+        Width="820" Height="740"
+        MinWidth="720" MinHeight="600"
         WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BgBrush}"
         Title="Apps2Samsung">
 	<Window.Resources>
 		<helpers:TvLogStatusToBrushConverter x:Key="TvLogStatusToBrushConverter"/>
@@ -28,30 +29,54 @@
 		<StyleInclude Source="avares://Apps2Samsung/Styles/Catalog.axaml"/>
 	</Window.Styles>
 
-	<Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-        Padding="16"
-        CornerRadius="8"
-        Margin="6"
-        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-        BorderThickness="1">
-
-		<Border.Effect>
-			<DropShadowEffect BlurRadius="15" OffsetX="2" OffsetY="2" Color="{StaticResource ShadowColor}" Opacity="0.15"/>
-		</Border.Effect>
-
-		<StackPanel Spacing="14">
-			<Border Background="{DynamicResource AccentBrush}"
-                    Padding="24,20"
-                    CornerRadius="8">
-				<StackPanel Spacing="12" HorizontalAlignment="Center">
-					<TextBlock
-                               Text="{l:Localize lblAppInstallerTitle}"
-								HorizontalAlignment="Center"
-								Foreground="{DynamicResource OnAccentBrush}"
-								FontWeight="Medium"/>
+	<Grid ColumnDefinitions="188,*">
+		<!-- Sidebar: the four sections (#755). Settings keeps its window until its own redesign. -->
+		<Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}"
+		        BorderBrush="{DynamicResource HairBrush}" BorderThickness="0,0,1,0" Padding="12,16">
+			<DockPanel>
+				<StackPanel DockPanel.Dock="Top" Spacing="4">
+					<TextBlock Text="Apps2Samsung" FontWeight="Bold" FontSize="15" Margin="12,0,8,16"/>
+					<ToggleButton Classes="nav" IsChecked="{Binding IsInstallSection, Mode=OneWay}"
+					              Command="{Binding ShowSectionCommand}" CommandParameter="Install">
+						<StackPanel Orientation="Horizontal" Spacing="10">
+							<fa:SymbolIcon Symbol="Download"/><TextBlock Text="{Binding LblInstall}"/>
+						</StackPanel>
+					</ToggleButton>
+					<ToggleButton Classes="nav" IsChecked="{Binding IsOnTheTvSection, Mode=OneWay}"
+					              Command="{Binding ShowSectionCommand}" CommandParameter="OnTheTv">
+						<StackPanel Orientation="Horizontal" Spacing="10">
+							<fa:SymbolIcon Symbol="ViewAll"/><TextBlock Text="{Binding LblOnTheTv}"/>
+						</StackPanel>
+					</ToggleButton>
+					<ToggleButton Classes="nav" IsChecked="{Binding IsRemoteSection, Mode=OneWay}"
+					              Command="{Binding ShowSectionCommand}" CommandParameter="Remote">
+						<StackPanel Orientation="Horizontal" Spacing="10">
+							<fa:SymbolIcon Symbol="Play"/><TextBlock Text="{Binding LblRemoteTab}"/>
+						</StackPanel>
+					</ToggleButton>
+					<ToggleButton Classes="nav" IsChecked="False" Command="{Binding OpenSettingsCommand}">
+						<StackPanel Orientation="Horizontal" Spacing="10">
+							<fa:SymbolIcon Symbol="Settings"/><TextBlock Text="{Binding LblSettingsTab}"/>
+						</StackPanel>
+					</ToggleButton>
 				</StackPanel>
-			</Border>
+				<StackPanel DockPanel.Dock="Bottom" Spacing="8">
+					<ToggleButton Classes="nav" IsChecked="{Binding DarkMode}">
+						<Panel>
+							<TextBlock Text="&#x2600;" FontSize="16" IsVisible="{Binding DarkMode}"/>
+							<TextBlock Text="&#x1F319;" FontSize="14" IsVisible="{Binding !DarkMode}"/>
+						</Panel>
+					</ToggleButton>
+					<TextBlock FontSize="11" Opacity="0.6" TextWrapping="Wrap" Margin="8,0" Text="{Binding FooterText}"/>
+				</StackPanel>
+				<Panel/>
+			</DockPanel>
+		</Border>
 
+		<!-- Content: one section at a time -->
+		<Panel Grid.Column="1">
+			<ScrollViewer IsVisible="{Binding IsInstallSection}">
+				<StackPanel Spacing="14" Margin="20">
 			<!-- VPN / tunnel adapter warning -->
 			<Border Background="{DynamicResource WarnSoftBrush}" CornerRadius="6" Padding="12,10"
 			        BorderBrush="{DynamicResource WarnBrush}" BorderThickness="1"
@@ -181,49 +206,25 @@
 				<TextBlock Text="{Binding CatalogFoot}" FontSize="13" Margin="4,0" Foreground="{DynamicResource MutedBrush}"/>
 			</StackPanel>
 
-			<!-- Action Buttons -->
-			<StackPanel Orientation="Horizontal"
-                        HorizontalAlignment="Center"
-                        Spacing="12">
-				<Button Classes="icon" Command="{Binding OpenSettingsCommand}">
-					<fa:SymbolIcon Symbol="Settings"  Width="20" Height="20"/>
-				</Button>
-				<ToggleButton IsChecked="{Binding DarkMode}"
-							  Classes="primary"
-							  Background="Transparent"
-							  BorderThickness="0"
-							  Width="40"
-							  Height="40"
-							  CornerRadius="20"
-							  Padding="0">
-					<ToggleButton.Styles>
-						<Style Selector="ToggleButton:checked">
-							<Setter Property="Background" Value="Transparent"/>
-						</Style>
-						<Style Selector="ToggleButton:pointerover">
-							<Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}"/>
-						</Style>
-					</ToggleButton.Styles>
-					<Panel>
-						<TextBlock Text="&#x2600;" FontSize="18" IsVisible="{Binding DarkMode}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-						<TextBlock Text="&#x1F319;" FontSize="16" IsVisible="{Binding !DarkMode}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-					</Panel>
-				</ToggleButton>
-				<Button Classes="icon"
-						IsVisible="{Binding IsSamsungLoginActive}"
-						Command="{Binding CancelSamsungLoginCommand}">
-					<fa:SymbolIcon Symbol="Cancel"
-								   Width="20"
-								   Height="20"/>
-				</Button>
-			</StackPanel>
 
-			<!-- Clean footer -->
-			<TextBlock HorizontalAlignment="Center"
-                       FontSize="11"
-                       Opacity="0.6"
-                       Text="{Binding FooterText}"/>
-
-		</StackPanel>
-	</Border>
+					<!-- Cancel a running Samsung sign-in -->
+					<Button Classes="icon" HorizontalAlignment="Center"
+							IsVisible="{Binding IsSamsungLoginActive}"
+							Command="{Binding CancelSamsungLoginCommand}">
+						<fa:SymbolIcon Symbol="Cancel" Width="20" Height="20"/>
+					</Button>
+				</StackPanel>
+			</ScrollViewer>
+			<Panel IsVisible="{Binding IsOnTheTvSection}" Margin="20">
+				<ContentControl Content="{Binding InstalledAppsVm}"/>
+				<TextBlock Text="{Binding LblSelectTvFirst}" Foreground="{DynamicResource MutedBrush}"
+				           IsVisible="{Binding InstalledAppsVm, Converter={x:Static ObjectConverters.IsNull}}"/>
+			</Panel>
+			<Panel IsVisible="{Binding IsRemoteSection}" Margin="20">
+				<ContentControl Content="{Binding RemoteVm}"/>
+				<TextBlock Text="{Binding LblSelectTvFirst}" Foreground="{DynamicResource MutedBrush}"
+				           IsVisible="{Binding RemoteVm, Converter={x:Static ObjectConverters.IsNull}}"/>
+			</Panel>
+		</Panel>
+	</Grid>
 </Window>

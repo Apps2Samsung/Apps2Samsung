@@ -6,7 +6,7 @@
              xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.InstallerPage"
              Title="Apps2Samsung"
-             NavigationPage.HasNavigationBar="False"
+             Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
 
     <!-- The Install screen (#755): brand, the TV card, the TV picker, then the catalog as a grouped
@@ -16,18 +16,10 @@
         <VerticalStackLayout Padding="16,10,16,20" Spacing="14">
 
             <!-- Brand: logo + name -->
-            <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
-                <HorizontalStackLayout Grid.Column="0" Spacing="8" Padding="0,2" VerticalOptions="Center">
-                    <Image Source="a2s_logo.png" HeightRequest="30" WidthRequest="30" VerticalOptions="Center" />
-                    <Label Text="Apps2Samsung" FontSize="19" FontAttributes="Bold" VerticalOptions="Center" />
-                </HorizontalStackLayout>
-                <Button Grid.Column="1" x:Name="SettingsBtn" Text="⚙" FontSize="18"
-                        BackgroundColor="Transparent" BorderWidth="1"
-                        BorderColor="{DynamicResource HairColor}"
-                        TextColor="{DynamicResource InkColor}"
-                        Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="22"
-                        Clicked="OnSettingsClicked" />
-            </Grid>
+            <HorizontalStackLayout Spacing="8" Padding="0,2" VerticalOptions="Center">
+                <Image Source="a2s_logo.png" HeightRequest="30" WidthRequest="30" VerticalOptions="Center" />
+                <Label Text="Apps2Samsung" FontSize="19" FontAttributes="Bold" VerticalOptions="Center" />
+            </HorizontalStackLayout>
 
             <!-- The TV: name, model + IP, an LED with the status line, and the actions for the
                  selected set as chips on its screen. -->

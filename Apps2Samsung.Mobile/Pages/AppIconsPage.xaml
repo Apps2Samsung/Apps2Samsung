@@ -4,7 +4,7 @@
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              x:Class="Apps2Samsung.Mobile.Pages.AppIconsPage"
              Title="{l:Localize lblAppIcons}"
-             NavigationPage.HasNavigationBar="False"
+             Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
     <ScrollView>
         <Border Margin="12" Padding="16" StrokeThickness="1"

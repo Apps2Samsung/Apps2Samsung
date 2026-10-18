@@ -114,6 +114,11 @@ public static class MauiProgram
 		// and Android keeps the process alive across closing and reopening the app, so "restart it"
 		// didn't rebuild it either. A language change resolves a fresh one (see SettingsPage).
 		builder.Services.AddTransient<InstallerPage>();
+		// The other tab roots; they read the TV the Install tab picked from TvSelection.
+		builder.Services.AddSingleton<TvSelection>();
+		builder.Services.AddTransient<InstalledAppsPage>();
+		builder.Services.AddTransient<RemotePage>();
+		builder.Services.AddTransient<SettingsPage>();
 		// The icon/title editor needs the catalog services injected (shared app list).
 		builder.Services.AddTransient<AppIconsPage>();
 

@@ -1,5 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia">
 	<!-- The catalog (#755): the search field, the category chips, the grouped list rows and the
 	     loading skeleton. Every colour is a design token. -->
 	<Style Selector="TextBox.search">
@@ -36,6 +37,36 @@
 	<Style Selector="ToggleButton.catchip:checked:pointerover /template/ ContentPresenter">
 		<Setter Property="Background" Value="{DynamicResource InkBrush}"/>
 		<Setter Property="Foreground" Value="{DynamicResource BgBrush}"/>
+	</Style>
+
+	<!-- the sidebar (#755): one toggle per section, the one in force on accent-soft -->
+	<Style Selector="ToggleButton.nav">
+		<Setter Property="Background" Value="Transparent"/>
+		<Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+		<Setter Property="BorderThickness" Value="0"/>
+		<Setter Property="CornerRadius" Value="10"/>
+		<Setter Property="Padding" Value="12,9"/>
+		<Setter Property="HorizontalAlignment" Value="Stretch"/>
+		<Setter Property="HorizontalContentAlignment" Value="Left"/>
+		<Setter Property="FontSize" Value="14"/>
+		<Setter Property="FontWeight" Value="Medium"/>
+		<Setter Property="Cursor" Value="Hand"/>
+	</Style>
+	<Style Selector="ToggleButton.nav:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource FillBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+	</Style>
+	<Style Selector="ToggleButton.nav:checked /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+	</Style>
+	<Style Selector="ToggleButton.nav:checked:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+	</Style>
+	<Style Selector="ToggleButton.nav fa|SymbolIcon">
+		<Setter Property="Width" Value="18"/>
+		<Setter Property="Height" Value="18"/>
 	</Style>
 
 	<!-- a list row: the whole row is the button -->

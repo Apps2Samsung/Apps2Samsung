@@ -4,7 +4,7 @@
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              x:Class="Apps2Samsung.Mobile.Pages.TvToolboxPage"
              Title="{l:Localize lblToolbox}"
-             NavigationPage.HasNavigationBar="False"
+             Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
 
     <ContentPage.Resources>

@@ -1,22 +1,13 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:l="clr-namespace:Apps2Samsung.Extensions"
-        xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
-        x:Class="Apps2Samsung.Views.RemoteWindow"
-        xmlns:appicon="using:Apps2Samsung.Helpers"
-        Icon="{x:Static appicon:AppIcon.Current}"
-        x:Name="Root"
-        x:DataType="viewModels:RemoteViewModel"
-        Width="380" MinWidth="340"
-        Height="620" MinHeight="520"
-        WindowStartupLocation="CenterOwner"
-        Title="{l:Localize lblRemote}">
-
-    <Window.Styles>
-        <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>
-        <StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
-        <StyleInclude Source="avares://Apps2Samsung/Styles/TextBlocks.axaml"/>
-
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Extensions"
+             xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+             x:Class="Apps2Samsung.Views.RemoteView"
+             x:DataType="viewModels:RemoteViewModel"
+             Focusable="True">
+    <!-- The "Remote" section (#755). Was a modal window; now hosted in the main window's content
+         area, so there is no close button. The keyboard mapping lives in the code-behind. -->
+    <UserControl.Styles>
         <!-- One look for every key, sized for a pointer rather than a thumb. -->
         <Style Selector="Button.key">
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
@@ -31,11 +22,10 @@
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
         </Style>
-    </Window.Styles>
-
-    <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" Padding="16">
+    </UserControl.Styles>
+    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="16" MaxWidth="420" HorizontalAlignment="Left">
         <DockPanel LastChildFill="True">
 
             <!-- Header -->
@@ -49,7 +39,6 @@
                             ToolTip.Tip="{l:Localize lblRemotePower}"/>
                     <Button Content="↻" Command="{Binding ConnectCommand}"
                             ToolTip.Tip="{l:Localize lblRemoteReconnect}"/>
-                    <Button Content="✕" Command="{Binding CloseCommand}"/>
                 </StackPanel>
             </Grid>
 
@@ -139,4 +128,4 @@
         </DockPanel>
     </Border>
 
-</Window>
+</UserControl>

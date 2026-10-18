@@ -5,7 +5,7 @@
              xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.SettingsPage"
              Title="{l:Localize lblSettingsShort}"
-             NavigationPage.HasNavigationBar="False"
+             Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
 
     <ContentPage.Resources>
@@ -34,9 +34,7 @@
                 <!-- Header banner with a back affordance -->
                 <Border BackgroundColor="{DynamicResource AccentColor}" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8" Margin="0,0,0,6">
                     <Grid ColumnDefinitions="44,*,44" VerticalOptions="Center">
-                        <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="{DynamicResource OnAccentColor}"
-                                BackgroundColor="Transparent" BorderWidth="0" Padding="0"
-                                WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
+                        <!-- a tab root: no back button, the column keeps the title centred -->
                         <Label Grid.Column="1" Text="{l:Localize lblSettings}" TextColor="{DynamicResource OnAccentColor}" FontAttributes="Bold"
                                VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
                     </Grid>

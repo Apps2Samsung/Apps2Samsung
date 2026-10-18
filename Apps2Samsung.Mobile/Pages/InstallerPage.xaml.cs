@@ -32,6 +32,8 @@ public partial class InstallerPage : ContentPage
 	private readonly GitHubUpdateChecker _updateChecker;
 	private readonly SessionState _session;
 	private readonly ISdbEngine _sdb;
+	// The TV the other tabs work with (On the TV, Remote): kept in step with the picker.
+	private readonly TvSelection _tv;
 
 	// Parallel lists backing the TV picker: IP + display label for each listed TV (discovered or
 	// manually added). The picker also shows a trailing ManualIpLabel entry that isn't in these.
@@ -63,9 +65,10 @@ public partial class InstallerPage : ContentPage
 
 	public InstallerPage(INetworkService networkService, ISamsungLoginService loginService,
 		CertificateProvisioner certProvisioner, WgtInstaller installer, CatalogService catalog,
-		GitHubUpdateChecker updateChecker, SessionState session, ISdbEngine sdb)
+		GitHubUpdateChecker updateChecker, SessionState session, ISdbEngine sdb, TvSelection tv)
 	{
 		InitializeComponent();
+		_tv = tv;
 		_networkService = networkService;
 		_loginService = loginService;
 		_certProvisioner = certProvisioner;
@@ -361,6 +364,19 @@ public partial class InstallerPage : ContentPage
 			TvPicker.SelectedIndex = selectIndex >= 0 && selectIndex < items.Count ? selectIndex : -1;
 		}
 		finally { _rebuildingTvPicker = false; }
+		PublishTvSelection();
+	}
+
+	// The TV the other tabs read (On the TV, Remote).
+	private void PublishTvSelection()
+	{
+		var idx = TvPicker.SelectedIndex;
+		if (idx < 0 || idx >= _tvIps.Count)
+		{
+			_tv.Clear();
+			return;
+		}
+		_tv.Set(_tvIps[idx], _tvLabels[idx], idx < _tvDevices.Count ? _tvDevices[idx] : null);
 	}
 
 	private async void OnTvChanged(object? sender, EventArgs e)
@@ -373,6 +389,7 @@ public partial class InstallerPage : ContentPage
 			return;
 		}
 
+		PublishTvSelection();
 		SetStatus(SelectedTvStatus());
 	}
 
@@ -410,17 +427,9 @@ public partial class InstallerPage : ContentPage
 		SetStatus(string.Format(L10n.Get("statusUsingTvAt"), ip));
 	}
 
-	private async void OnShowInstalledAppsClicked(object? sender, EventArgs e)
-	{
-		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
-		{
-			SetStatus(L10n.Get("statusSelectTvFirst"));
-			return;
-		}
-		var tvIp = _tvIps[TvPicker.SelectedIndex];
-		var label = TvPicker.SelectedItem as string ?? tvIp;
-		await Navigation.PushAsync(new InstalledAppsPage(_sdb, tvIp, label));
-	}
+	// Installed apps and the remote are tabs now; the chips on the TV card jump to them.
+	private async void OnShowInstalledAppsClicked(object? sender, EventArgs e) =>
+		await Shell.Current.GoToAsync("//apps");
 
 	private async void OnShowDeviceInfoClicked(object? sender, EventArgs e)
 	{
@@ -436,19 +445,8 @@ public partial class InstallerPage : ContentPage
 		await Navigation.PushAsync(new DeviceInfoPage(_sdb, tvIp, label, debugPortOpen));
 	}
 
-	// The remote needs only a TV on the network — no Developer Mode, no debug port — so it is
-	// offered for any selected TV, including one the installer itself couldn't use.
-	private async void OnShowRemoteClicked(object? sender, EventArgs e)
-	{
-		if (TvPicker.SelectedIndex < 0 || TvPicker.SelectedIndex >= _tvIps.Count)
-		{
-			SetStatus(L10n.Get("statusSelectTvFirst"));
-			return;
-		}
-		var tvIp = _tvIps[TvPicker.SelectedIndex];
-		var label = TvPicker.SelectedItem as string ?? tvIp;
-		await Navigation.PushAsync(new RemotePage(tvIp, label));
-	}
+	private async void OnShowRemoteClicked(object? sender, EventArgs e) =>
+		await Shell.Current.GoToAsync("//remote");
 
 	// Same story as the remote: the toolbox rides the network channel, so it is offered for any TV
 	// on the network, Developer Mode or not.
@@ -475,9 +473,6 @@ public partial class InstallerPage : ContentPage
 	}
 
 	private async void OnRefreshClicked(object? sender, EventArgs e) => await ScanAsync();
-
-	private async void OnSettingsClicked(object? sender, EventArgs e) =>
-		await Navigation.PushAsync(new SettingsPage());
 
 	private async Task ScanAsync()
 	{

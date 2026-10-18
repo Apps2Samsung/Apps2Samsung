@@ -14,8 +14,8 @@ namespace Apps2Samsung.Mobile.Pages;
 /// </summary>
 public partial class RemotePage : ContentPage
 {
-	private readonly string _tvIp;
-	private readonly string _tvLabel;
+	private string _tvIp = string.Empty;
+	private string _tvLabel = string.Empty;
 	private SamsungRemoteClient? _remote;
 	// Play/pause: newer sets take the single toggle, older ones only the separate keys. Once a
 	// toggle press is refused we stop trying it and alternate Play/Pause for the rest of the session.
@@ -33,16 +33,25 @@ public partial class RemotePage : ContentPage
 	// debounce window (type a letter, delete it) costs nothing.
 	private string _mirroredText = string.Empty;
 
-	public RemotePage(string tvIp, string tvLabel)
+	private readonly TvSelection _tv;
+
+	public RemotePage(TvSelection tv)
 	{
 		InitializeComponent();
-		_tvIp = tvIp;
-		_tvLabel = tvLabel;
+		_tv = tv;
 	}
 
 	protected override async void OnAppearing()
 	{
 		base.OnAppearing();
+		// The TV comes from the Install tab's picker; the remote needs only a TV on the network.
+		if (!_tv.HasTv)
+		{
+			SetStatus(L10n.Get("statusSelectTvFirst"));
+			return;
+		}
+		_tvIp = _tv.Ip!;
+		_tvLabel = _tv.Label;
 		await ConnectAsync();
 	}
 
@@ -217,7 +226,6 @@ public partial class RemotePage : ContentPage
 		return false;
 	}
 
-	private async void OnBackClicked(object? sender, EventArgs e) => await Navigation.PopAsync();
 
 	private void SetStatus(string message) => StatusLabel.Text = message;
 }

@@ -115,6 +115,57 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private TvCardState tvCard = new(string.Empty, string.Empty, TvLed.Off, string.Empty);
 
+        // The sections (#755): Install, On the TV and Remote live in the main window behind a
+        // sidebar; Settings keeps its window until its own redesign. The two TV-bound sections get a
+        // view model for the selected TV when first shown, dropped when another TV is picked.
+        public enum Section { Install, OnTheTv, Remote }
+        [ObservableProperty]
+        private Section selectedSection = Section.Install;
+        public bool IsInstallSection => SelectedSection == Section.Install;
+        public bool IsOnTheTvSection => SelectedSection == Section.OnTheTv;
+        public bool IsRemoteSection => SelectedSection == Section.Remote;
+        [ObservableProperty]
+        private InstalledAppsViewModel? installedAppsVm;
+        [ObservableProperty]
+        private RemoteViewModel? remoteVm;
+        public bool HasSelectedTv => SelectedDevice is { } d && !string.IsNullOrWhiteSpace(d.IpAddress) && d.IpAddress != L("lblOther");
+        private string SelectedTvLabel => SelectedDevice is null ? string.Empty
+            : string.IsNullOrWhiteSpace(SelectedDevice.DisplayText) ? SelectedDevice.IpAddress : SelectedDevice.DisplayText;
+        public string LblInstall => L("lblInstall");
+        public string LblOnTheTv => L("lblOnTheTv");
+        public string LblRemoteTab => L("lblRemote");
+        public string LblSettingsTab => L("lblSettingsTab");
+        public string LblSelectTvFirst => L("lblSelectTvFirst");
+
+        partial void OnSelectedSectionChanged(Section value)
+        {
+            OnPropertyChanged(nameof(IsInstallSection));
+            OnPropertyChanged(nameof(IsOnTheTvSection));
+            OnPropertyChanged(nameof(IsRemoteSection));
+        }
+
+        [RelayCommand]
+        private async Task ShowSectionAsync(string? name)
+        {
+            switch (name)
+            {
+                case nameof(Section.OnTheTv): await ShowInstalledAppsAsync(); break;
+                case nameof(Section.Remote): await ShowRemoteAsync(); break;
+                default: SelectedSection = Section.Install; break;
+            }
+        }
+
+        /// <summary>Another TV: the TV-bound sections start over the next time they are shown.</summary>
+        private void DropTvSections()
+        {
+            InstalledAppsVm?.Dispose();
+            InstalledAppsVm = null;
+            var remote = RemoteVm;
+            RemoteVm = null;
+            if (remote is not null)
+                _ = remote.DisposeAsync();
+        }
+
         // The catalog (#755): a search field, category chips with counts, and the grouped list of
         // apps; tapping a row opens the app sheet (AppDetailWindow), which hands back the asset to
         // install. Releases / SelectedRelease / SelectedAsset stay the install pipeline's inputs;
@@ -359,6 +410,11 @@ namespace Apps2Samsung.ViewModels
         private void RefreshLocalizedProperties()
         {
             UpdateTvCard();
+            OnPropertyChanged(nameof(LblInstall));
+            OnPropertyChanged(nameof(LblOnTheTv));
+            OnPropertyChanged(nameof(LblRemoteTab));
+            OnPropertyChanged(nameof(LblSettingsTab));
+            OnPropertyChanged(nameof(LblSelectTvFirst));
             OnPropertyChanged(nameof(CustomFileSubline));
             OnPropertyChanged(nameof(LblYourOwnPackage));
             OnPropertyChanged(nameof(LblSearchApps));
@@ -419,6 +475,10 @@ namespace Apps2Samsung.ViewModels
             AppSettings.Default.TvIp = value?.IpAddress ?? string.Empty;
             AppSettings.Default.Save();
             UpdateTvCard();
+            OnPropertyChanged(nameof(HasSelectedTv));
+            DropTvSections();
+            if (SelectedSection == Section.OnTheTv) _ = ShowInstalledAppsAsync();
+            else if (SelectedSection == Section.Remote) _ = ShowRemoteAsync();
         }
 
         partial void OnStatusBarChanged(string value) => UpdateTvCard();
@@ -827,32 +887,22 @@ namespace Apps2Samsung.ViewModels
         [RelayCommand]
         private async Task ShowInstalledAppsAsync()
         {
+            // The "On the TV" section. Its view model is built for the selected TV the first time
+            // the section is shown and dropped when another TV is picked (OnSelectedDeviceChanged).
+            SelectedSection = Section.OnTheTv;
+            if (InstalledAppsVm is not null || !HasSelectedTv)
+                return;
             try
             {
-                if (SelectedDevice is null ||
-                    string.IsNullOrWhiteSpace(SelectedDevice.IpAddress) ||
-                    SelectedDevice.IpAddress == L("lblOther"))
-                {
-                    await _dialogService.ShowMessageAsync(L("lblInstalledApps"), L("lblSelectTvFirst"));
-                    return;
-                }
-
-                if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-                    return;
-
-                var label = string.IsNullOrWhiteSpace(SelectedDevice.DisplayText)
-                    ? SelectedDevice.IpAddress
-                    : SelectedDevice.DisplayText;
-                var vm = new InstalledAppsViewModel(_tizenInstaller, _dialogService, SelectedDevice.IpAddress, label);
-                var window = new Views.InstalledAppsWindow(vm);
-                await window.ShowDialog(desktop.MainWindow);
+                var vm = new InstalledAppsViewModel(_tizenInstaller, _dialogService, SelectedDevice!.IpAddress, SelectedTvLabel);
+                vm.OnRequestClose += () => SelectedSection = Section.Install;
+                InstalledAppsVm = vm;
             }
             catch (Exception ex)
             {
                 await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblInstalledApps"), ex));
             }
         }
-
         [RelayCommand]
         private async Task ShowDeviceInfoAsync()
         {
@@ -896,38 +946,26 @@ namespace Apps2Samsung.ViewModels
         [RelayCommand]
         private async Task ShowRemoteAsync()
         {
+            // The "Remote" section; same lifetime as the installed-apps one. The remote needs only
+            // a TV on the network, so a not-ready TV is fine here.
+            SelectedSection = Section.Remote;
+            if (RemoteVm is not null || !HasSelectedTv)
+                return;
             try
             {
-                if (SelectedDevice is null ||
-                    string.IsNullOrWhiteSpace(SelectedDevice.IpAddress) ||
-                    SelectedDevice.IpAddress == L("lblOther"))
-                {
-                    await _dialogService.ShowMessageAsync(L("lblRemote"), L("lblRemoteSelectTvFirst"));
-                    return;
-                }
-
-                if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-                    return;
-
-                var label = string.IsNullOrWhiteSpace(SelectedDevice.DisplayText)
-                    ? SelectedDevice.IpAddress
-                    : SelectedDevice.DisplayText;
-
                 // The scan knows the TV's MAC while it is awake; keep it so the remote can wake the
                 // set later, when it answers nothing at all.
-                if (!string.IsNullOrWhiteSpace(SelectedDevice.MacAddress))
+                if (!string.IsNullOrWhiteSpace(SelectedDevice!.MacAddress))
                     Helpers.Core.RemoteStore.SetMac(SelectedDevice.IpAddress, SelectedDevice.MacAddress!);
-
-                var vm = new RemoteViewModel(SelectedDevice.IpAddress, label);
-                var window = new Views.RemoteWindow(vm);
-                await window.ShowDialog(desktop.MainWindow);
+                var vm = new RemoteViewModel(SelectedDevice.IpAddress, SelectedTvLabel);
+                vm.OnRequestClose += () => SelectedSection = Section.Install;
+                RemoteVm = vm;
             }
             catch (Exception ex)
             {
                 await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblRemote"), ex));
             }
         }
-
         /// <summary>
         /// Opens the TV toolbox (#635): launching an app by id and sending a documented service-menu
         /// combination. Like the remote it rides the remote channel, so it needs no Developer Mode and

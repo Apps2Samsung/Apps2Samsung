@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              x:Class="Apps2Samsung.Mobile.Pages.CertificateWaitPage"
+             Shell.NavBarIsVisible="False"
              Title="{l:Localize certificateNotYetValidTitle}"
              BackgroundColor="{DynamicResource BgColor}">
 
