@@ -10,8 +10,8 @@
 set -euo pipefail
 
 IMAGE="mcr.microsoft.com/dotnet/sdk:8.0"
-PROJECT="Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj"
-BIN="Jellyfin2Samsung-CrossOS/bin/Release/net8.0/linux-x64/publish/Apps2Samsung"
+PROJECT="Apps2Samsung.Desktop/Apps2Samsung.csproj"
+BIN="Apps2Samsung.Desktop/bin/Release/net8.0/linux-x64/publish/Apps2Samsung"
 
 # Repo root = dir this script lives in.
 cd "$(dirname "$(readlink -f "$0")")"
@@ -22,7 +22,7 @@ command -v docker >/dev/null || { echo "docker not found on PATH"; exit 1; }
 # any root-owned bin/obj left by an older build.
 echo ">> cleaning bin/obj"
 docker run --rm -v "$PWD":/src -w /src "$IMAGE" \
-  rm -rf Jellyfin2Samsung-CrossOS/bin Jellyfin2Samsung-CrossOS/obj
+  rm -rf Apps2Samsung.Desktop/bin Apps2Samsung.Desktop/obj
 
 # Build as the current user so output isn't root-owned.
 # HOME=/tmp gives the non-root user a writable home for the NuGet restore.

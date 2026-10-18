@@ -22,7 +22,7 @@ permissions:
 
 env:
   PRODUCT_NAME: Apps2Samsung
-  PROJECT_DIR: Jellyfin2Samsung-CrossOS
+  PROJECT_DIR: Apps2Samsung.Desktop
   CONFIGURATION: Release
 
 jobs:
@@ -188,7 +188,7 @@ jobs:
       - name: Build Linux
         run: |
           for ARCH in x64 arm64; do
-            dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
+            dotnet publish Apps2Samsung.Desktop/Apps2Samsung.csproj \
               -c Release -r linux-$ARCH -p:SelfContained=true \
               -o publish/linux-$ARCH
           done

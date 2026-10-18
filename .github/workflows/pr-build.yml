@@ -41,7 +41,7 @@ jobs:
 
       # Apps2Samsung.Core comes along as a project reference, so this covers both.
       - name: Build
-        run: dotnet build Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj -c Release
+        run: dotnet build Apps2Samsung.Desktop/Apps2Samsung.csproj -c Release
 
       # The catalog-snapshot generator shares Core; a Core change that breaks it would otherwise
       # only show up when the next half-hourly snapshot run fails.
@@ -129,7 +129,7 @@ jobs:
       - name: Publish and package (x64 + arm64)
         run: |
           for ARCH in x64 arm64; do
-            dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
+            dotnet publish Apps2Samsung.Desktop/Apps2Samsung.csproj \
               -c Release -r linux-$ARCH -p:SelfContained=true -o publish/linux-$ARCH
             # 0.0.0 rather than something like 0.0.0-pr: rpm forbids '-' in a version (it separates
             # version from release), which is what the first run of this job discovered.
