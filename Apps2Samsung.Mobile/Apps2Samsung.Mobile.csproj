@@ -72,11 +72,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- App Icon: the Apps2Samsung logo on a white tile. -->
-		<MauiIcon Include="Resources\AppIcon\appicon.png" Color="#FFFFFF" />
+		<!-- App Icon: the Apps2Samsung logo on the dark glass tile (the Glass token,
+		     Apps2Samsung.Core/Design/DesignTokens.cs). The logo is scaled into the adaptive icon's
+		     safe zone so a round or squircle mask never clips the ring. -->
+		<MauiIcon Include="Resources\AppIcon\appicon.png" Color="#0D1B2A" ForegroundScale="0.68" />
 
-		<!-- Splash Screen: logo centered on white. -->
-		<MauiSplashScreen Include="Resources\Splash\a2s_splash.png" Color="#FFFFFF" BaseSize="120,120" />
+		<!-- Splash Screen: logo centered on the same dark glass. -->
+		<MauiSplashScreen Include="Resources\Splash\a2s_splash.png" Color="#0D1B2A" BaseSize="120,120" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
