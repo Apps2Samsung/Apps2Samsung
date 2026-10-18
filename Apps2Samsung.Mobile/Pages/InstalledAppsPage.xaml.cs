@@ -144,10 +144,8 @@ public partial class InstalledAppsPage : ContentPage
 		}
 	}
 
-	private async void OnUninstallClicked(object? sender, EventArgs e)
+	private async Task UninstallAsync(InstalledApp app)
 	{
-		if (sender is not Button { BindingContext: InstalledApp app })
-			return;
 
 		var confirm = await DisplayAlert(
 			L10n.Get("lblUninstallApp"),
@@ -182,10 +180,8 @@ public partial class InstalledAppsPage : ContentPage
 		await LoadAsync();
 	}
 
-	private async void OnLaunchClicked(object? sender, EventArgs e)
+	private async Task LaunchAsync(InstalledApp app)
 	{
-		if (sender is not Button { BindingContext: InstalledApp app })
-			return;
 
 		SetBusy(true, $"Launching {app.DisplayName}…");
 		try
@@ -209,10 +205,8 @@ public partial class InstalledAppsPage : ContentPage
 	// Opens the app's console over the TV's web inspector. Confirmed first because attaching is not
 	// passive: the inspector only reports a port for the launch debug mode performs itself, so the app
 	// restarts and whatever the user was watching goes away.
-	private async void OnDebugClicked(object? sender, EventArgs e)
+	private async Task DebugAsync(InstalledApp app)
 	{
-		if (sender is not Button { BindingContext: InstalledApp app })
-			return;
 
 		var confirm = await DisplayAlert(
 			L10n.Get("lblDebugConsole"),
@@ -224,10 +218,8 @@ public partial class InstalledAppsPage : ContentPage
 		await Navigation.PushAsync(new DebugConsolePage(_sdb, _tvIp, app.TizenId, app.DisplayName));
 	}
 
-	private async void OnStopClicked(object? sender, EventArgs e)
+	private async Task StopAsync(InstalledApp app)
 	{
-		if (sender is not Button { BindingContext: InstalledApp app })
-			return;
 
 		SetBusy(true, $"Stopping {app.DisplayName}…");
 		try
@@ -245,6 +237,22 @@ public partial class InstalledAppsPage : ContentPage
 		finally
 		{
 			SetBusy(false);
+		}
+	}
+
+	// A row opens the app's sheet; the choice comes back here.
+	private async void OnRowTapped(object? sender, TappedEventArgs e)
+	{
+		if ((sender as BindableObject)?.BindingContext is not InstalledApp app)
+			return;
+		var sheet = new AppActionsSheetPage(app);
+		await Navigation.PushModalAsync(sheet);
+		switch (await sheet.Result)
+		{
+			case AppAction.Launch: await LaunchAsync(app); break;
+			case AppAction.Stop: await StopAsync(app); break;
+			case AppAction.Debug: await DebugAsync(app); break;
+			case AppAction.Uninstall: await UninstallAsync(app); break;
 		}
 	}
 

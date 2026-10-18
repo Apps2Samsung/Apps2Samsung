@@ -7,27 +7,6 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
 
-    <ContentPage.Resources>
-        <!-- One bordered 44×36 button per row action, with a 16 px monochrome icon centred on it. -->
-        <Style x:Key="RowActionButton" TargetType="Button">
-            <Setter Property="BackgroundColor" Value="Transparent" />
-            <Setter Property="BorderWidth" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="WidthRequest" Value="44" />
-            <Setter Property="HeightRequest" Value="36" />
-            <Setter Property="BorderColor" Value="{DynamicResource HairColor}" />
-        </Style>
-        <Style x:Key="RowActionIcon" TargetType="Path">
-            <Setter Property="Aspect" Value="Uniform" />
-            <Setter Property="WidthRequest" Value="16" />
-            <Setter Property="HeightRequest" Value="16" />
-            <Setter Property="HorizontalOptions" Value="Center" />
-            <Setter Property="VerticalOptions" Value="Center" />
-            <Setter Property="InputTransparent" Value="True" />
-        </Style>
-    </ContentPage.Resources>
-
     <Grid RowDefinitions="Auto,Auto,*" Padding="16,10,16,0" RowSpacing="8">
 
         <!-- A tab root (#755): page title, its actions as round icon buttons -->
@@ -39,79 +18,50 @@
             <Button Grid.Column="2" x:Name="RefreshBtn" Text="⟳" Style="{StaticResource IconButton}" Clicked="OnRefreshClicked" />
         </Grid>
 
-        <!-- Subtitle: count / status -->
-        <Label Grid.Row="1" x:Name="CountLabel" FontSize="12" Opacity="0.6" Text="{l:Localize lblLoading}" />
+        <!-- which TV, how many apps, or what went wrong -->
+        <Label Grid.Row="1" x:Name="CountLabel" Style="{StaticResource Footnote}" Text="{l:Localize lblLoading}" LineBreakMode="WordWrap" />
 
-        <!-- App list -->
-        <CollectionView Grid.Row="2" x:Name="AppsList">
-            <CollectionView.EmptyView>
-                <Label x:Name="EmptyLabel" Text="{l:Localize lblNoAppsToShow}" Padding="16"
-                       HorizontalTextAlignment="Center" Opacity="0.6" />
-            </CollectionView.EmptyView>
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Border Margin="0,4" Padding="12" StrokeThickness="1" StrokeShape="RoundRectangle 8"
-                            Stroke="{DynamicResource HairBrush}"
-                            BackgroundColor="{DynamicResource SurfaceColor}">
-                        <Grid ColumnDefinitions="48,*,Auto" ColumnSpacing="12" VerticalOptions="Center">
-                            
-                            <!-- Icon / Avatar -->
-                            <Grid Grid.Column="0" WidthRequest="48" HeightRequest="48" VerticalOptions="Center">
-                                <Border StrokeThickness="0" BackgroundColor="{Binding FallbackColor}"
-                                        IsVisible="{Binding MissingIcon}" HorizontalOptions="Fill" VerticalOptions="Fill">
-                                    <Label Text="{Binding Initials}" TextColor="{DynamicResource OnAccentColor}" FontSize="20" FontAttributes="Bold"
-                                           HorizontalOptions="Center" VerticalOptions="Center"/>
-                                </Border>
-                                <Image Source="{Binding IconUrl}" Aspect="AspectFill" IsVisible="{Binding HasIcon}"
-                                       HorizontalOptions="Fill" VerticalOptions="Fill">
-                                    <Image.Clip>
-                                        <RoundRectangleGeometry CornerRadius="8" Rect="0,0,48,48"/>
-                                    </Image.Clip>
-                                </Image>
+        <!-- The apps as a grouped list (#755): tile, name, version and size, a chevron; a row opens
+             the app's sheet with Launch / Stop / Debug console / Uninstall. -->
+        <Border Grid.Row="2" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}"
+                VerticalOptions="Start" Margin="0,0,0,16">
+            <CollectionView x:Name="AppsList" SelectionMode="None" VerticalScrollBarVisibility="Never">
+                <CollectionView.EmptyView>
+                    <Label x:Name="EmptyLabel" Text="{l:Localize lblNoAppsToShow}" Padding="16,14"
+                           TextColor="{DynamicResource MutedColor}" LineBreakMode="WordWrap" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <VerticalStackLayout Spacing="0">
+                            <BoxView HeightRequest="1" Margin="16,0,0,0" Color="{DynamicResource HairColor}" />
+                            <Grid ColumnDefinitions="44,*,Auto" ColumnSpacing="12" Padding="16,11" MinimumHeightRequest="52">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnRowTapped" />
+                                </Grid.GestureRecognizers>
+                                <Grid Grid.Column="0" WidthRequest="44" HeightRequest="44" VerticalOptions="Center">
+                                    <Border StrokeThickness="0" StrokeShape="RoundRectangle 11" BackgroundColor="{Binding FallbackColor}"
+                                            IsVisible="{Binding MissingIcon}">
+                                        <Label Text="{Binding Initials}" TextColor="{DynamicResource OnAccentColor}" FontSize="20" FontAttributes="Bold"
+                                               HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+                                    <Image Source="{Binding IconUrl}" Aspect="AspectFill" IsVisible="{Binding HasIcon}">
+                                        <Image.Clip>
+                                            <RoundRectangleGeometry CornerRadius="11" Rect="0,0,44,44" />
+                                        </Image.Clip>
+                                    </Image>
+                                </Grid>
+                                <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                    <Label Text="{Binding DisplayName}" FontAttributes="Bold" FontSize="15" LineBreakMode="TailTruncation" />
+                                    <Label Text="{Binding Subline}" FontSize="13" TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
+                                </VerticalStackLayout>
+                                <Path Grid.Column="2" Data="M1,1 L7,6.5 L1,12" Stroke="{DynamicResource InkBrush}" StrokeThickness="2"
+                                      Opacity="0.35" WidthRequest="8" HeightRequest="13" VerticalOptions="Center" />
                             </Grid>
-
-                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
-                                <Label Text="{Binding DisplayName}" FontAttributes="Bold" FontSize="15"
-                                       LineBreakMode="TailTruncation" />
-                                <Label Text="{Binding TizenId}" FontSize="11" Opacity="0.55"
-                                       LineBreakMode="TailTruncation" />
-                                <HorizontalStackLayout Spacing="10">
-                                    <Label Text="{Binding Version, StringFormat='v{0}'}" FontSize="11" Opacity="0.55" />
-                                    <Label Text="{Binding SizeDisplay}" FontSize="11" Opacity="0.55" />
-                                </HorizontalStackLayout>
-                            </VerticalStackLayout>
-                            <!-- Row actions. The same Material Design Icons paths the desktop head draws, so an
-                                 app row looks identical on both: emoji rendered differently per device and
-                                 FluentAvalonia's symbol font isn't available here. The Path sits over a plain
-                                 Button (MAUI buttons can't host content); the click handlers still get the
-                                 Button, whose BindingContext is the app. -->
-                            <HorizontalStackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
-                                <Grid>
-                                    <Button ToolTipProperties.Text="{l:Localize lblRun}" Clicked="OnLaunchClicked" Style="{StaticResource RowActionButton}" />
-                                    <Path Data="M8,5.14V19.14L19,12.14L8,5.14Z" Style="{StaticResource RowActionIcon}"
-                                          Fill="{DynamicResource InkBrush}" />
-                                </Grid>
-                                <Grid>
-                                    <Button ToolTipProperties.Text="{l:Localize keyStop}" Clicked="OnStopClicked" Style="{StaticResource RowActionButton}" />
-                                    <Path Data="M18,18H6V6H18V18Z" Style="{StaticResource RowActionIcon}"
-                                          Fill="{DynamicResource InkBrush}" />
-                                </Grid>
-                                <Grid>
-                                    <Button ToolTipProperties.Text="{l:Localize lblDebugConsole}" Clicked="OnDebugClicked" Style="{StaticResource RowActionButton}" />
-                                    <Path Data="M14,12H10V10H14M14,16H10V14H14M20,8H17.19C16.74,7.22 16.12,6.55 15.37,6.04L17,4.41L15.59,3L13.42,5.17C12.96,5.06 12.5,5 12,5C11.5,5 11.04,5.06 10.59,5.17L8.41,3L7,4.41L8.62,6.04C7.88,6.55 7.26,7.22 6.81,8H4V10H6.09C6.04,10.33 6,10.66 6,11V12H4V14H6V15C6,15.34 6.04,15.67 6.09,16H4V18H6.81C7.85,19.79 9.78,21 12,21C14.22,21 16.15,19.79 17.19,18H20V16H17.91C17.96,15.67 18,15.34 18,15V14H20V12H18V11C18,10.66 17.96,10.33 17.91,10H20V8Z" Style="{StaticResource RowActionIcon}"
-                                          Fill="{DynamicResource InkBrush}" />
-                                </Grid>
-                                <Grid IsVisible="{Binding IsRemovable}">
-                                    <Button ToolTipProperties.Text="{l:Localize lblUninstall}" Clicked="OnUninstallClicked" Style="{StaticResource RowActionButton}" />
-                                    <Path Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" Style="{StaticResource RowActionIcon}"
-                                          Fill="{DynamicResource BadBrush}" />
-                                </Grid>
-                            </HorizontalStackLayout>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Border>
 
         <!-- Busy overlay -->
         <ActivityIndicator Grid.Row="2" x:Name="Busy" IsRunning="False" IsVisible="False"
