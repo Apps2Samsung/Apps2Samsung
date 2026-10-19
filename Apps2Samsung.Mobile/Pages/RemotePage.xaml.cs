@@ -1,4 +1,5 @@
 using Apps2Samsung.Mobile.Localization;
+using Apps2Samsung.Mobile.Resources.Styles;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Remote;
 
@@ -34,6 +35,12 @@ public partial class RemotePage : ContentPage
 	private string _mirroredText = string.Empty;
 
 	private readonly TvSelection _tv;
+	// One connection attempt at a time: Wake while a connect is still waking or pairing would open
+	// a second socket next to the first.
+	private bool _connecting;
+
+	/// <summary>What the status notice shows next to its text.</summary>
+	private enum StatusKind { Busy, Ok, Warn, Bad }
 
 	public RemotePage(TvSelection tv)
 	{
@@ -47,7 +54,7 @@ public partial class RemotePage : ContentPage
 		// The TV comes from the Install tab's picker; the remote needs only a TV on the network.
 		if (!_tv.HasTv)
 		{
-			SetStatus(L10n.Get("statusSelectTvFirst"));
+			SetStatus(L10n.Get("statusSelectTvFirst"), StatusKind.Warn);
 			return;
 		}
 		_tvIp = _tv.Ip!;
@@ -73,21 +80,65 @@ public partial class RemotePage : ContentPage
 	/// </summary>
 	private async Task ConnectAsync()
 	{
-		var progress = new Progress<string>(key => SetStatus($"{_tvLabel} — {L10n.Get(key)}"));
-		var session = await RemoteSession.ConnectAsync(_tvIp, RemoteCredentials.Instance, progress);
-
-		if (!session.Connected)
+		if (_connecting)
+			return;
+		_connecting = true;
+		try
 		{
-			SetStatus($"{_tvLabel} — {L10n.Get(RemoteCredentials.StatusKeyFor(session.Outcome))}");
+			var progress = new Progress<string>(key => SetStatus($"{_tvLabel} — {L10n.Get(key)}", StatusKind.Busy));
+			var session = await RemoteSession.ConnectAsync(_tvIp, RemoteCredentials.Instance, progress);
+
+			if (!session.Connected)
+			{
+				SetStatus($"{_tvLabel} — {L10n.Get(RemoteCredentials.StatusKeyFor(session.Outcome))}", StatusKind.Bad);
+				return;
+			}
+
+			_remote = session.Client;
+			// Nothing is known about what sits in the TV's text field on a new connection, so start from
+			// "unmirrored" and let the first keystroke transmit in full.
+			_mirroredText = string.Empty;
+			var name = string.IsNullOrWhiteSpace(session.TvName) ? _tvLabel : session.TvName;
+			SetStatus($"{name} — {L10n.Get("lblRemoteConnected")}", StatusKind.Ok);
+		}
+		finally
+		{
+			_connecting = false;
+		}
+	}
+
+	/// <summary>
+	/// Wake: a set in standby serves no remote channel, so the only way back is a fresh connect, which
+	/// sends the magic packet when the probe finds the TV asleep (<see cref="RemoteSession"/>). Also the
+	/// reconnect after a refused pairing or a dropped link. With the channel up the TV is awake already.
+	/// </summary>
+	private async void OnWakeClicked(object? sender, EventArgs e)
+	{
+		if (!_tv.HasTv)
+		{
+			SetStatus(L10n.Get("statusSelectTvFirst"), StatusKind.Warn);
+			return;
+		}
+		if (_remote is { IsConnected: true })
+		{
+			SetStatus($"{_tvLabel} — {L10n.Get("lblRemoteConnected")}", StatusKind.Ok);
 			return;
 		}
 
-		_remote = session.Client;
-		// Nothing is known about what sits in the TV's text field on a new connection, so start from
-		// "unmirrored" and let the first keystroke transmit in full.
-		_mirroredText = string.Empty;
-		var name = string.IsNullOrWhiteSpace(session.TvName) ? _tvLabel : session.TvName;
-		SetStatus($"{name} — {L10n.Get("lblRemoteConnected")}");
+		var stale = _remote;
+		_remote = null;
+		if (stale is not null)
+			await stale.DisposeAsync();
+		_tvIp = _tv.Ip!;
+		_tvLabel = _tv.Label;
+		await ConnectAsync();
+	}
+
+	private void OnNumpadToggleClicked(object? sender, EventArgs e)
+	{
+		Numpad.IsVisible = !Numpad.IsVisible;
+		NumpadToggle.BackgroundColor = DesignTheme.ColorOf(Numpad.IsVisible ? "AccentSoft" : "Surface");
+		NumpadToggle.TextColor = DesignTheme.ColorOf(Numpad.IsVisible ? "Accent" : "Ink");
 	}
 
 	private async void OnKeyClicked(object? sender, EventArgs e)
@@ -139,7 +190,7 @@ public partial class RemotePage : ContentPage
 			var remote = _remote;
 			if (remote is null)
 			{
-				SetStatus(L10n.Get("lblRemoteNotConnected"));
+				SetStatus(L10n.Get("lblRemoteNotConnected"), StatusKind.Warn);
 				return;
 			}
 
@@ -159,11 +210,11 @@ public partial class RemotePage : ContentPage
 				_mirroredText = text;
 				SetStatus(text.Length == 0
 					? L10n.Get("lblRemoteTextCleared")
-					: string.Format(L10n.Get("lblRemoteTextMirrored"), text));
+					: string.Format(L10n.Get("lblRemoteTextMirrored"), text), StatusKind.Ok);
 			}
 			else
 			{
-				SetStatus(L10n.Get("lblRemoteTextFailed"));
+				SetStatus(L10n.Get("lblRemoteTextFailed"), StatusKind.Warn);
 			}
 		}
 		catch (OperationCanceledException)
@@ -199,14 +250,14 @@ public partial class RemotePage : ContentPage
 		var remote = _remote;
 		if (remote is null)
 		{
-			SetStatus(L10n.Get("lblRemoteNotConnected"));
+			SetStatus(L10n.Get("lblRemoteNotConnected"), StatusKind.Warn);
 			return;
 		}
 
 		if (await remote.SendTextAsync(text))
 			_mirroredText = text;
 		else
-			SetStatus(L10n.Get("lblRemoteTextFailed"));
+			SetStatus(L10n.Get("lblRemoteTextFailed"), StatusKind.Warn);
 	}
 
 	private async Task<bool> SendKeyAsync(string key)
@@ -214,7 +265,7 @@ public partial class RemotePage : ContentPage
 		var remote = _remote;
 		if (remote is null)
 		{
-			SetStatus(L10n.Get("lblRemoteNotConnected"));
+			SetStatus(L10n.Get("lblRemoteNotConnected"), StatusKind.Warn);
 			return false;
 		}
 
@@ -222,10 +273,23 @@ public partial class RemotePage : ContentPage
 			return true;
 
 		// The client reconnects on its own, so a single miss is worth reporting but not fatal.
-		SetStatus(L10n.Get("lblRemoteKeyFailed"));
+		SetStatus(L10n.Get("lblRemoteKeyFailed"), StatusKind.Warn);
 		return false;
 	}
 
 
-	private void SetStatus(string message) => StatusLabel.Text = message;
+	private void SetStatus(string message, StatusKind kind)
+	{
+		StatusLabel.Text = message;
+		var busy = kind == StatusKind.Busy;
+		StatusSpinner.IsVisible = busy;
+		StatusSpinner.IsRunning = busy;
+		StatusDot.IsVisible = !busy;
+		StatusDot.Fill = new SolidColorBrush(DesignTheme.ColorOf(kind switch
+		{
+			StatusKind.Ok => "Ok",
+			StatusKind.Warn => "Warn",
+			_ => "Bad",
+		}));
+	}
 }

@@ -37,6 +37,22 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private string textToSend = string.Empty;
 
+        /// <summary>The numpad behind the "123" toggle.</summary>
+        [ObservableProperty]
+        private bool isNumpadVisible;
+
+        /// <summary>The dot beside the status line once nothing is in flight: green with the channel
+        /// up, amber when a press or a text didn't get through, red when there is no channel.</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsStatusOk), nameof(IsStatusWarn), nameof(IsStatusBad))]
+        private StatusTone tone = StatusTone.Bad;
+
+        public enum StatusTone { Ok, Warn, Bad }
+
+        public bool IsStatusOk => Tone == StatusTone.Ok;
+        public bool IsStatusWarn => Tone == StatusTone.Warn;
+        public bool IsStatusBad => Tone == StatusTone.Bad;
+
         public event Action? OnRequestClose;
 
         public RemoteViewModel(string tvIp, string tvLabel)
@@ -64,18 +80,47 @@ namespace Apps2Samsung.ViewModels
 
                 if (!session.Connected)
                 {
+                    Tone = StatusTone.Bad;
                     StatusText = RemoteStore.StatusKeyFor(session.Outcome).Localized();
                     return;
                 }
 
                 _remote = session.Client;
                 IsConnected = true;
+                Tone = StatusTone.Ok;
                 StatusText = "lblRemoteConnected".Localized();
             }
             finally
             {
                 IsBusy = false;
             }
+        }
+
+        /// <summary>
+        /// Wake: a set in standby serves no remote channel, so the way back is a fresh connect, which
+        /// sends the magic packet when the probe finds the TV asleep (<see cref="RemoteSession"/>).
+        /// Also the reconnect after a refused pairing or a dropped link. With the channel up the TV is
+        /// awake already and there is nothing to do.
+        /// </summary>
+        [RelayCommand]
+        private async Task Wake()
+        {
+            if (IsBusy)
+                return;
+            if (_remote is { IsConnected: true })
+            {
+                IsConnected = true;
+                Tone = StatusTone.Ok;
+                StatusText = "lblRemoteConnected".Localized();
+                return;
+            }
+
+            var stale = _remote;
+            _remote = null;
+            IsConnected = false;
+            if (stale is not null)
+                await stale.DisposeAsync();
+            await Connect();
         }
 
         /// <summary>Sends one key code (the buttons pass it as the command parameter).</summary>
@@ -117,10 +162,12 @@ namespace Apps2Samsung.ViewModels
             if (await remote.SendTextAsync(text))
             {
                 TextToSend = string.Empty;
+                Tone = StatusTone.Ok;
                 StatusText = "lblRemoteTextSent".Localized();
             }
             else
             {
+                Tone = StatusTone.Warn;
                 StatusText = "lblRemoteTextFailed".Localized();
             }
         }
@@ -130,6 +177,7 @@ namespace Apps2Samsung.ViewModels
             var remote = _remote;
             if (remote is null)
             {
+                Tone = StatusTone.Bad;
                 StatusText = "lblRemoteNotConnected".Localized();
                 return false;
             }
@@ -139,6 +187,7 @@ namespace Apps2Samsung.ViewModels
 
             // The client reconnects on its own, so a single miss is worth reporting but not fatal.
             IsConnected = remote.IsConnected;
+            Tone = IsConnected ? StatusTone.Warn : StatusTone.Bad;
             StatusText = "lblRemoteKeyFailed".Localized();
             return false;
         }
