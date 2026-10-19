@@ -9,7 +9,9 @@ namespace Apps2Samsung.Mobile.Pages;
 /// The install progress sheet. The Install tab pushes it modally once the pre-install guards have
 /// passed, then feeds it: <see cref="SetStep"/> as the install moves on, <see cref="Report"/> with
 /// every status line, <see cref="Fail"/> when it goes wrong. Swiping it away (Back) leaves the
-/// install running; the TV card keeps showing its status. Main thread only.
+/// install running; the TV card keeps showing its status. Cancel raises <see cref="CancelRequested"/>
+/// and is offered only until the TV starts installing: from there on the TV finishes on its own and
+/// stopping halfway could leave the old copy removed without the new one in place. Main thread only.
 /// </summary>
 public partial class InstallProgressPage : ContentPage
 {
@@ -19,6 +21,9 @@ public partial class InstallProgressPage : ContentPage
 	private readonly List<string> _log = new();
 	private InstallStep _current = InstallStep.Download;
 	private bool _failed;
+
+	/// <summary>The user tapped Cancel. The install stops at its next safe point.</summary>
+	public event EventHandler? CancelRequested;
 
 	/// <param name="opensAfter">Whether the fifth step (Open the app) happens at all.</param>
 	public InstallProgressPage(string appTitle, string? category, string tvName, bool opensAfter)
@@ -55,6 +60,8 @@ public partial class InstallProgressPage : ContentPage
 		if (_failed)
 			return;
 		_current = step;
+		if (step >= InstallStep.Install)
+			CancelBtn.IsVisible = false;
 		Render(percent);
 	}
 
@@ -83,6 +90,7 @@ public partial class InstallProgressPage : ContentPage
 			row.Detail.IsVisible = true;
 		}
 		Bar.ProgressColor = DesignTheme.ColorOf("Bad");
+		CancelBtn.IsVisible = false;
 		CloseBtn.IsVisible = true;
 	}
 
@@ -162,6 +170,13 @@ public partial class InstallProgressPage : ContentPage
 	{
 		LogCard.IsVisible = !LogCard.IsVisible;
 		LogBtn.Text = L10n.Get(LogCard.IsVisible ? "lblHideLog" : "lblShowLog");
+	}
+
+	private void OnCancelClicked(object? sender, EventArgs e)
+	{
+		CancelBtn.IsEnabled = false;
+		CancelBtn.Text = L10n.Get("lblCancelling");
+		CancelRequested?.Invoke(this, EventArgs.Empty);
 	}
 
 	private async void OnCloseClicked(object? sender, EventArgs e) => await CloseAsync();

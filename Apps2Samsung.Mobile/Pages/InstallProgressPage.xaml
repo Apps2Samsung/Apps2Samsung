@@ -7,7 +7,8 @@
              BackgroundColor="{DynamicResource BgColor}">
     <!-- The install progress sheet (#755): the app and the TV, a bar with "Step n of 5", the numbered
          steps (done ticked, the current one in accent with what it is doing right now), and Show log
-         for the full transcript. On a failure the current step turns red and Close appears. -->
+         for the full transcript. Cancel is there until the TV starts installing; on a failure the
+         current step turns red and Close appears. -->
     <ScrollView>
         <VerticalStackLayout Padding="16,8,16,24" Spacing="14">
             <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
@@ -46,6 +47,8 @@
             <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                 <Button x:Name="LogBtn" Grid.Column="0" Text="{l:Localize lblShowLog}" Style="{StaticResource PlainButton}"
                         CornerRadius="12" HeightRequest="48" Clicked="OnLogClicked" />
+                <Button x:Name="CancelBtn" Grid.Column="1" Text="{l:Localize lblCancel}" Style="{StaticResource PlainButton}"
+                        CornerRadius="12" HeightRequest="48" Clicked="OnCancelClicked" />
                 <Button x:Name="CloseBtn" Grid.Column="1" Text="{l:Localize btn_Close}" Style="{StaticResource PlainButton}"
                         CornerRadius="12" HeightRequest="48" IsVisible="False" Clicked="OnCloseClicked" />
             </Grid>
