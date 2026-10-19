@@ -745,6 +745,8 @@
   "lblStepOpen": "Open the app",
   "lblShowLog": "Show log",
   "lblHideLog": "Hide log",
+  "lblCancelling": "Cancelling...",
+  "statusInstallCancelled": "Installation cancelled.",
   "lblAppsOnTvCount": "{0} apps · {1}",
   "lblPullToRefresh": "Pull down to refresh",
   "lblRemotePrevious": "Previous",

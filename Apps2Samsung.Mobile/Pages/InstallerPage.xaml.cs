@@ -550,14 +550,18 @@ public partial class InstallerPage : ContentPage
 		_busy = true;
 		_tv.IsLocked = true;
 		UpdateTvCard();
+		// Not disposed: it has no timer, and Cancel on a disposed source would throw from the sheet.
+		var cancel = new CancellationTokenSource();
 		_progress = new InstallProgressPage(appTitle, custom ? null : release!.Category, _tv.DisplayName, MobileSettings.OpenAfterInstall);
+		_progress.CancelRequested += (_, _) => cancel.Cancel();
 		await Navigation.PushModalAsync(_progress);
 		string? wgtPath = null;
 		try
 		{
 			// Download first so we can inspect the package's declared privileges before signing.
 			SetStep(InstallStep.Download);
-			wgtPath = custom ? customPath! : await _installer.DownloadAsync(asset!.DownloadUrl, SetStatus);
+			wgtPath = custom ? customPath! : await _installer.DownloadAsync(asset!.DownloadUrl, SetStatus, cancel.Token);
+			cancel.Token.ThrowIfCancellationRequested();
 
 			// Partner if the manifest declared it OR the .wgt itself needs a partner-level privilege.
 			var needsPartner = requirePartner || WgtPrivileges.RequiresPartner(wgtPath);
@@ -565,6 +569,7 @@ public partial class InstallerPage : ContentPage
 			// sign-in when it must (re)generate — so no login prompt when a cert is already in place.
 			SetStep(InstallStep.Certificate);
 			var cert = await _certProvisioner.ProvisionAsync(tvIp, needsPartner, SetStatus);
+			cancel.Token.ThrowIfCancellationRequested();
 
 			// The signing certificate's validity period may not have started yet — a Samsung TV
 			// rejects such a package ("Certificate in signature is not valid yet"). Hold the install
@@ -574,7 +579,7 @@ public partial class InstallerPage : ContentPage
 			{
 				try
 				{
-					await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus, SetStep);
+					await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus, SetStep, cancel.Token);
 					break;
 				}
 				catch (CertificateNotYetValidException notYetValid)
@@ -593,6 +598,13 @@ public partial class InstallerPage : ContentPage
 			SetStatus("✓ " + string.Format(L10n.Get("statusInstalledOpenApps"), appName));
 			await CloseProgressAsync();
 			await Navigation.PushModalAsync(new InstallCompletePage(appName));
+		}
+		catch (OperationCanceledException) when (cancel.IsCancellationRequested)
+		{
+			// Cancel on the sheet: it stops before the old copy is removed or the package pushed, so the
+			// TV still has what it had and there is nothing to report but that.
+			SetStatus(L10n.Get("statusInstallCancelled"));
+			await CloseProgressAsync();
 		}
 		catch (TaskCanceledException)
 		{
