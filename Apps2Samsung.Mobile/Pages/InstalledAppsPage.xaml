@@ -12,7 +12,7 @@
 
         <!-- The top bar (#755): the TV with ▾, how many apps and how much space (or what is going on),
              and ⋯ with Refresh / TV information / Remove leftover. -->
-        <controls:TopBarView x:Name="TopBar" Grid.Row="0" ShowPicker="True" Action="More"
+        <controls:TopBarView x:Name="TopBar" Grid.Row="0" TvTitle="True" Action="More"
                              TitleTapped="OnChangeTvClicked" MoreTapped="OnMoreClicked" />
 
         <!-- The apps as a grouped list (#755): tile, name, version and size, a chevron; a row opens

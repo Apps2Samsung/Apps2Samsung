@@ -1,4 +1,5 @@
 using Apps2Samsung.Design;
+using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Resources.Styles;
 
 namespace Apps2Samsung.Mobile.Controls;
@@ -11,8 +12,9 @@ public enum TopBarAction { None, More, Power, Glyph }
 
 /// <summary>
 /// The top bar (#755, option C). A page sets <see cref="Title"/>, <see cref="Subtitle"/> and
-/// <see cref="Status"/>; <see cref="ShowPicker"/> adds the ▾ and makes the title open the TV sheet
-/// (<see cref="TitleTapped"/>). <see cref="BackText"/> turns the left side into Back (popping the
+/// <see cref="Status"/>; <see cref="TvTitle"/> shows the title as the TV pill with the status dot in
+/// it, and once <see cref="TvCount"/> is above one the pill gets its ▾ and opens the Switch TV sheet
+/// (<see cref="TitleTapped"/>). With a single TV there is nothing to switch to, so no ▾ and no tap. <see cref="BackText"/> turns the left side into Back (popping the
 /// page unless <see cref="BackTapped"/> is handled), <see cref="ShowLogo"/> puts the app logo there.
 /// </summary>
 public partial class TopBarView : ContentView
@@ -23,8 +25,10 @@ public partial class TopBarView : ContentView
 		nameof(Subtitle), typeof(string), typeof(TopBarView), string.Empty, propertyChanged: Rerender);
 	public static readonly BindableProperty StatusProperty = BindableProperty.Create(
 		nameof(Status), typeof(TopBarStatus), typeof(TopBarView), TopBarStatus.None, propertyChanged: Rerender);
-	public static readonly BindableProperty ShowPickerProperty = BindableProperty.Create(
-		nameof(ShowPicker), typeof(bool), typeof(TopBarView), false, propertyChanged: Rerender);
+	public static readonly BindableProperty TvTitleProperty = BindableProperty.Create(
+		nameof(TvTitle), typeof(bool), typeof(TopBarView), false, propertyChanged: Rerender);
+	public static readonly BindableProperty TvCountProperty = BindableProperty.Create(
+		nameof(TvCount), typeof(int), typeof(TopBarView), 0, propertyChanged: Rerender);
 	public static readonly BindableProperty ShowLogoProperty = BindableProperty.Create(
 		nameof(ShowLogo), typeof(bool), typeof(TopBarView), false, propertyChanged: Rerender);
 	public static readonly BindableProperty BackTextProperty = BindableProperty.Create(
@@ -43,14 +47,17 @@ public partial class TopBarView : ContentView
 	public string Title { get => (string)GetValue(TitleProperty); set => SetValue(TitleProperty, value); }
 	public string Subtitle { get => (string)GetValue(SubtitleProperty); set => SetValue(SubtitleProperty, value); }
 	public TopBarStatus Status { get => (TopBarStatus)GetValue(StatusProperty); set => SetValue(StatusProperty, value); }
-	public bool ShowPicker { get => (bool)GetValue(ShowPickerProperty); set => SetValue(ShowPickerProperty, value); }
+	public bool TvTitle { get => (bool)GetValue(TvTitleProperty); set => SetValue(TvTitleProperty, value); }
+	/// <summary>How many TVs the scan found; above one the TV pill switches between them.</summary>
+	public int TvCount { get => (int)GetValue(TvCountProperty); set => SetValue(TvCountProperty, value); }
+	private bool CanSwitch => TvTitle && TvCount > 1;
 	public bool ShowLogo { get => (bool)GetValue(ShowLogoProperty); set => SetValue(ShowLogoProperty, value); }
 	public string BackText { get => (string)GetValue(BackTextProperty); set => SetValue(BackTextProperty, value); }
 	public TopBarAction Action { get => (TopBarAction)GetValue(ActionProperty); set => SetValue(ActionProperty, value); }
 	/// <summary>The text of the button on the right when <see cref="Action"/> is Glyph (⟳, 📤).</summary>
 	public string Glyph { get => (string)GetValue(GlyphProperty); set => SetValue(GlyphProperty, value); }
 
-	/// <summary>The title was tapped while it shows the ▾: open the TV sheet.</summary>
+	/// <summary>The TV pill was tapped while there is another TV to switch to: open the Switch TV sheet.</summary>
 	public event EventHandler? TitleTapped;
 	public event EventHandler? MoreTapped;
 	public event EventHandler? PowerTapped;
@@ -86,22 +93,35 @@ public partial class TopBarView : ContentView
 		BackLabel.Text = BackText;
 		Logo.IsVisible = ShowLogo && !hasBack;
 
+		// A page title is plain text; the TV sits in the pill, which carries the status itself so the
+		// line under it is just text.
+		TitleLabel.IsVisible = !TvTitle;
 		TitleLabel.Text = Title;
-		PickerChevron.IsVisible = ShowPicker;
+		TvPill.IsVisible = TvTitle;
+		PillLabel.Text = Title;
+		PickerChevron.IsVisible = CanSwitch;
 
-		SubLabel.Text = Subtitle;
-		SubRow.IsVisible = !string.IsNullOrEmpty(Subtitle);
 		var busy = Status == TopBarStatus.Busy;
-		SubSpinner.IsVisible = busy;
-		SubSpinner.IsRunning = busy;
-		SubDot.IsVisible = Status is TopBarStatus.Ok or TopBarStatus.Warn or TopBarStatus.Bad;
-		if (SubDot.IsVisible)
-			SubDot.Fill = new SolidColorBrush(DesignTheme.ColorOf(Status switch
+		var dot = Status is TopBarStatus.Ok or TopBarStatus.Warn or TopBarStatus.Bad;
+		var dotBrush = dot
+			? new SolidColorBrush(DesignTheme.ColorOf(Status switch
 			{
 				TopBarStatus.Ok => "Ok",
 				TopBarStatus.Warn => "Warn",
 				_ => "Bad",
-			}));
+			}))
+			: null;
+		PillSpinner.IsVisible = PillSpinner.IsRunning = TvTitle && busy;
+		PillDot.IsVisible = TvTitle && dot;
+		SubSpinner.IsVisible = SubSpinner.IsRunning = !TvTitle && busy;
+		SubDot.IsVisible = !TvTitle && dot;
+		if (dotBrush is not null)
+			PillDot.Fill = SubDot.Fill = dotBrush;
+
+		SubLabel.Text = CanSwitch && !busy
+			? $"{Subtitle} · {string.Format(L10n.Get("lblTvsFoundTapToSwitch"), TvCount)}"
+			: Subtitle;
+		SubRow.IsVisible = !string.IsNullOrEmpty(SubLabel.Text);
 
 		MoreButton.IsVisible = Action == TopBarAction.More;
 		PowerButton.IsVisible = Action == TopBarAction.Power;
@@ -111,7 +131,7 @@ public partial class TopBarView : ContentView
 
 	private void OnTitleTapped(object? sender, TappedEventArgs e)
 	{
-		if (ShowPicker)
+		if (CanSwitch)
 			TitleTapped?.Invoke(this, EventArgs.Empty);
 	}
 

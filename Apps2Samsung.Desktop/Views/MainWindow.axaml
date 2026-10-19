@@ -31,14 +31,14 @@
 	</Window.Styles>
 
 	<Grid ColumnDefinitions="188,*">
-		<!-- Sidebar (#755, option C): the TV in use on top (its name and status; ▾ opens the TV
-		     picker), the four sections, and the version, licence and theme switch at the foot. -->
+		<!-- Sidebar (#755, option C): the TV in use on top (its name and status; with more than one
+		     TV found it gets a ▾ and opens the TV picker), the four sections, and the version, licence and theme switch at the foot. -->
 		<Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}"
 		        BorderBrush="{DynamicResource HairBrush}" BorderThickness="0,0,1,0" Padding="10,14">
 			<DockPanel>
 				<StackPanel DockPanel.Dock="Top" Spacing="4">
 					<Button Classes="settingsrow" Background="{DynamicResource FillBrush}" CornerRadius="10" Padding="10,8" Margin="0,0,0,12"
-					        Command="{Binding ChangeTvCommand}" ToolTip.Tip="{l:Localize lblChangeTv}">
+					        Command="{Binding ChangeTvCommand}" IsHitTestVisible="{Binding CanSwitchTv}">
 						<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
 							<Border Classes="icontile" Width="30" Height="30" CornerRadius="8" Background="{DynamicResource AccentBrush}">
 								<Viewbox Width="17" Height="15">
@@ -52,7 +52,7 @@
 									<TextBlock Text="{Binding TvCard.Name}" FontSize="14" FontWeight="Bold" MaxWidth="104"
 									           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
 									<PathIcon Width="10" Height="7" Data="M1,1.5 L5,5.5 L9,1.5" Foreground="{DynamicResource AccentBrush}"
-									          VerticalAlignment="Center"/>
+									          VerticalAlignment="Center" IsVisible="{Binding CanSwitchTv}"/>
 								</StackPanel>
 								<StackPanel Orientation="Horizontal" Spacing="5">
 									<Ellipse Width="7" Height="7" Fill="{Binding TvLedBrush}" VerticalAlignment="Center"/>
@@ -115,8 +115,9 @@
 					<Button Grid.Column="2" Classes="tool square" Content="⋯" FontSize="18" ToolTip.Tip="{l:Localize lblMore}">
 						<Button.Flyout>
 							<MenuFlyout Placement="BottomEdgeAlignedRight">
-								<MenuItem Header="{l:Localize lblChangeTv}" Command="{Binding ChangeTvCommand}"/>
-								<MenuItem Header="{l:Localize lblRescan}" Command="{Binding RefreshDevicesCommand}"/>
+								<MenuItem Header="{l:Localize lblChangeTv}" Command="{Binding ChangeTvCommand}" IsVisible="{Binding CanSwitchTv}"/>
+								<MenuItem Header="{l:Localize lblRescanForTvs}" Command="{Binding RefreshDevicesCommand}"/>
+								<MenuItem Header="{l:Localize lblAddTvByIp}" Command="{Binding AddTvByIpCommand}"/>
 								<MenuItem Header="{l:Localize lblTvInformation}" Command="{Binding ShowDeviceInfoCommand}"/>
 								<MenuItem Header="{l:Localize lblToolbox}" Command="{Binding ShowTvToolboxCommand}"/>
 							</MenuFlyout>

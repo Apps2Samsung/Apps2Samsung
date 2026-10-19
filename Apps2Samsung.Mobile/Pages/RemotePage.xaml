@@ -73,7 +73,7 @@
 
     <Grid RowDefinitions="Auto,Auto,*">
 
-        <controls:TopBarView x:Name="TopBar" Grid.Row="0" ShowPicker="True" Action="Power"
+        <controls:TopBarView x:Name="TopBar" Grid.Row="0" TvTitle="True" Action="Power"
                              TitleTapped="OnChangeTvClicked" PowerTapped="OnPowerTapped" />
 
         <!-- Navigation | Media -->

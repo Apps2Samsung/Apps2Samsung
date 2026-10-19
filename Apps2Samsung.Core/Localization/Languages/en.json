@@ -761,5 +761,13 @@
   "hintEveryInstall": "These apply to every install from the Install tab.",
   "lblChannelCount": "{0} channels",
   "lblTizenTubeProxyOn": "Cobalt network fix on",
-  "lblTizenTubeProxyOff": "Cobalt network fix off"
+  "lblTizenTubeProxyOff": "Cobalt network fix off",
+  "lblSwitchTv": "Switch TV",
+  "lblTvsFoundTapToSwitch": "{0} TVs found, tap to switch",
+  "lblRescanForTvs": "Rescan for TVs",
+  "lblAddTvByIp": "Add TV by IP…",
+  "lblNoTvFound": "No TV found",
+  "lblNoTvFoundHint": "Check that the TV is on and on the same network",
+  "lblNoTvYetTitle": "No TV found yet",
+  "lblNoTvYetHint": "Turn the TV on and make sure it is on the same Wi-Fi as this phone. Or add it by its IP address."
 }

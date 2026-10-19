@@ -69,7 +69,9 @@
                         <Grid ColumnDefinitions="44,*,Auto" ColumnSpacing="12" Padding="16,14">
                             <Image Grid.Column="0" Source="a2s_logo.png" WidthRequest="44" HeightRequest="44" VerticalOptions="Center" />
                             <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
-                                <Label x:Name="AppVersionLabel" FontSize="16" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                                <Label Text="Apps2Samsung" FontSize="16" FontAttributes="Bold" />
+                                <!-- its own line, wrapping: a test build's version is long (3.0.0-beta.787+b2a6ca8) -->
+                                <Label x:Name="AppVersionLabel" FontSize="13" LineBreakMode="CharacterWrap" />
                                 <HorizontalStackLayout Spacing="5">
                                     <shapes:Ellipse x:Name="UpdateDot" WidthRequest="7" HeightRequest="7" VerticalOptions="Center" IsVisible="False" />
                                     <Label x:Name="UpdateStateLabel" Style="{StaticResource HubSummary}" />

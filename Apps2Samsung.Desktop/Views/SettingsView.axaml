@@ -32,7 +32,8 @@
 						<Border Classes="group" Padding="12">
 							<StackPanel Spacing="10">
 								<StackPanel>
-									<TextBlock Text="{Binding VersionText}" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource InkBrush}"/>
+									<TextBlock Text="Apps2Samsung" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource InkBrush}"/>
+									<TextBlock Text="{Binding VersionText}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
 									<TextBlock Text="{Binding UpdateStatus}" FontSize="12" TextWrapping="Wrap"
 									           Foreground="{DynamicResource MutedBrush}"
 									           IsVisible="{Binding UpdateStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>

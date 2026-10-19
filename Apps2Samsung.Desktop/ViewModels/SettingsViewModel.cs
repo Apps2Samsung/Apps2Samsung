@@ -57,7 +57,8 @@ namespace Apps2Samsung.ViewModels
 
         // The update card: the version, what the last manual check found, Check and the Beta toggle.
         // The check itself (and its dialogs) lives with the main window, which sets the delegate.
-        public string VersionText => $"Apps2Samsung {AppSettings.Default.AppVersion}";
+        // The version gets its own wrapping line: a test build's is long (3.0.0-beta.787+b2a6ca8).
+        public string VersionText => $"{L("lblVersion")} {AppSettings.Default.AppVersion}";
         public string LicenseText => $"© {DateTime.Now.Year} · {L("lblLicenseFooter")}";
 
         [ObservableProperty]

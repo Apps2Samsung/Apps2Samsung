@@ -6,12 +6,13 @@ using Apps2Samsung.Models;
 
 namespace Apps2Samsung.Mobile.Pages;
 
-/// <summary>What the TV sheet hands back: a found TV by index, "enter an IP", or "rescan".</summary>
-public sealed record TvSheetChoice(int Index, bool Manual, bool Rescan);
+/// <summary>What the TV sheet hands back: the index of the TV to switch to.</summary>
+public sealed record TvSheetChoice(int Index);
 
 /// <summary>
-/// The TV sheet: the TVs in <see cref="TvSelection"/> with their LED colours, Rescan, and a row for a
-/// TV the scan didn't find. <see cref="TvPicker"/> pushes it modally and awaits <see cref="Result"/>
+/// The Switch TV sheet: the TVs in <see cref="TvSelection"/> with their LED colours and the one in
+/// use ticked. Only offered once there is more than one TV; Rescan and Add TV by IP live in the ⋯ menu.
+/// <see cref="TvPicker"/> pushes it modally and awaits <see cref="Result"/>
 /// (null = closed).
 /// </summary>
 public partial class TvSheetPage : ContentPage
@@ -33,15 +34,9 @@ public partial class TvSheetPage : ContentPage
 			var state = TvCardStates.ForDevice(tv.Device ?? new NetworkDevice { IpAddress = tv.Ip }, localIp, L10n.Get);
 			var index = i;
 			Rows.Add(TvRow(state.Name, $"{state.Subline} · {state.Message}", i == selected, state.Led == TvLed.Ok,
-				() => Choose(new TvSheetChoice(index, false, false))));
+				() => Choose(new TvSheetChoice(index))));
 		}
 		FoundTitle.IsVisible = FoundCard.IsVisible = tvs.Count > 0;
-
-		Commands.Add(CommandRow("M20,12 A8,8 0 1 1 17.7,6.4 M20,4 L20,8.5 L15.5,8.5", L10n.Get("lblRescan"),
-			() => Choose(new TvSheetChoice(-1, false, true))));
-		Commands.Add(Hairline(46));
-		Commands.Add(CommandRow("M12,5 L12,19 M5,12 L19,12", L10n.Get("lblEnterIpManually"),
-			() => Choose(new TvSheetChoice(-1, true, false))));
 	}
 
 	private static Color C(string token) => DesignTheme.ColorOf(token);
@@ -74,28 +69,6 @@ public partial class TvSheetPage : ContentPage
 		grid.Add(dot, 0, 0);
 		grid.Add(text, 1, 0);
 		grid.Add(tick, 2, 0);
-		var gesture = new TapGestureRecognizer();
-		gesture.Tapped += (_, _) => tap();
-		grid.GestureRecognizers.Add(gesture);
-		return grid;
-	}
-
-	// An accent icon and label: Rescan, Enter an IP address.
-	private View CommandRow(string iconPath, string label, Action tap)
-	{
-		var icon = new Microsoft.Maui.Controls.Shapes.Path
-		{
-			Data = ParsePath(iconPath), Stroke = new SolidColorBrush(C("Accent")), StrokeThickness = 2,
-			StrokeLineCap = Microsoft.Maui.Controls.Shapes.PenLineCap.Round, WidthRequest = 18, HeightRequest = 18, VerticalOptions = LayoutOptions.Center,
-			Aspect = Stretch.Uniform,
-		};
-		var grid = new Grid
-		{
-			ColumnDefinitions = { new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star) },
-			ColumnSpacing = 12, Padding = new Thickness(16, 14), MinimumHeightRequest = 48,
-		};
-		grid.Add(icon, 0, 0);
-		grid.Add(new Label { Text = label, FontSize = 15, TextColor = C("Accent"), VerticalOptions = LayoutOptions.Center }, 1, 0);
 		var gesture = new TapGestureRecognizer();
 		gesture.Tapped += (_, _) => tap();
 		grid.GestureRecognizers.Add(gesture);

@@ -17,7 +17,7 @@ public partial class SettingsPage : ContentPage
 	public SettingsPage()
 	{
 		InitializeComponent();
-		AppVersionLabel.Text = $"Apps2Samsung {AppInfo.Current.VersionString}";
+		AppVersionLabel.Text = $"{L10n.Get("lblVersion")} {AppInfo.Current.VersionString}";
 		// Shows the app version (ApplicationDisplayVersion), so it stays in sync with the build.
 		VersionLabel.Text = $"v{AppInfo.Current.VersionString}";
 	}

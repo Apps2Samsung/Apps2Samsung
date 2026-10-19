@@ -54,7 +54,8 @@ public partial class InstalledAppsPage : ContentPage
 
 	private async Task ShowSelectedTvAsync(bool force)
 	{
-		TopBar.Title = _tv.HasTv ? _tv.DisplayName : L10n.Get("lblChooseTv");
+		TopBar.Title = _tv.HasTv ? _tv.DisplayName : L10n.Get("lblNoTvFound");
+		TopBar.TvCount = _tv.Tvs.Count;
 		if (!_tv.HasTv)
 		{
 			_tvIp = string.Empty;
@@ -77,18 +78,18 @@ public partial class InstalledAppsPage : ContentPage
 	// The ⋯ in the top bar: Refresh, TV information, and the escape hatch for a leftover package.
 	private async void OnMoreClicked(object? sender, EventArgs e)
 	{
-		var refresh = L10n.Get("lblRefresh");
-		var info = L10n.Get("lblTvInformation");
-		var leftover = L10n.Get("lblRemoveLeftover");
-		var choice = await DisplayActionSheet(null, L10n.Get("lblCancel"), null, refresh, info, leftover);
-		if (choice == refresh)
+		var choice = await MoreMenu.ShowAsync(this,
+			new MoreMenuItem(L10n.Get("lblRefresh"), MoreMenu.IconRescan),
+			new MoreMenuItem(L10n.Get("lblTvInformation"), MoreMenu.IconInfo),
+			new MoreMenuItem(L10n.Get("lblRemoveLeftover"), MoreMenu.IconDelete, Destructive: true));
+		if (choice == 0)
 			await ShowSelectedTvAsync(force: true);
-		else if (choice == info)
+		else if (choice == 1)
 		{
 			if (_tv.HasTv)
 				await Navigation.PushAsync(new DeviceInfoPage(_sdb, _tv.Ip!, _tv.Label, _tv.DebugPortOpen));
 		}
-		else if (choice == leftover)
+		else if (choice == 2)
 			await RemoveLeftoverAsync();
 	}
 

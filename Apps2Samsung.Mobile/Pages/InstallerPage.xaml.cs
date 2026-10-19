@@ -413,7 +413,7 @@ public partial class InstallerPage : ContentPage
 		UpdateTvCard();
 	}
 
-	// The ▾ in the top bar: the found TVs, "enter an IP", or rescan.
+	// The TV pill in the top bar (only with more than one TV): the Switch TV sheet.
 	private async void OnChangeTvClicked(object? sender, EventArgs e)
 	{
 		if (_busy)
@@ -421,23 +421,44 @@ public partial class InstallerPage : ContentPage
 		await TvPicker.ChooseAsync(this, _tv);
 	}
 
-	// The ⋯ in the top bar: what used to be the chips on the TV card.
+	// The ⋯ in the top bar: what used to be the chips on the TV card, plus adding a TV the scan
+	// didn't find. TV information and the toolbox need a TV, so they only show with one.
 	private async void OnMoreClicked(object? sender, EventArgs e)
 	{
-		var rescan = L10n.Get("lblRescan");
-		var info = L10n.Get("lblTvInformation");
-		var toolbox = L10n.Get("lblToolbox");
-		var choice = await DisplayActionSheet(null, L10n.Get("lblCancel"), null, rescan, info, toolbox);
-		if (choice == rescan)
+		var items = new List<MoreMenuItem>
 		{
-			if (!_busy)
-				await _tv.ScanAsync();
+			new(L10n.Get("lblRescanForTvs"), MoreMenu.IconRescan),
+			new(L10n.Get("lblAddTvByIp"), MoreMenu.IconAdd),
+		};
+		if (_tv.HasTv)
+		{
+			items.Add(new(L10n.Get("lblTvInformation"), MoreMenu.IconInfo));
+			items.Add(new(L10n.Get("lblToolbox"), MoreMenu.IconToolbox));
 		}
-		else if (choice == info)
-			await ShowDeviceInfoAsync();
-		else if (choice == toolbox)
-			await ShowTvToolboxAsync();
+		switch (await MoreMenu.ShowAsync(this, items.ToArray()))
+		{
+			case 0: await RescanAsync(); break;
+			case 1: await AddTvByIpAsync(); break;
+			case 2: await ShowDeviceInfoAsync(); break;
+			case 3: await ShowTvToolboxAsync(); break;
+		}
 	}
+
+	private async Task RescanAsync()
+	{
+		if (!_busy)
+			await _tv.ScanAsync();
+	}
+
+	private async Task AddTvByIpAsync()
+	{
+		if (!_busy)
+			await TvPicker.AddByIpAsync(this, _tv);
+	}
+
+	// The buttons on the no-TV card.
+	private async void OnNoTvRescanClicked(object? sender, EventArgs e) => await RescanAsync();
+	private async void OnNoTvAddClicked(object? sender, EventArgs e) => await AddTvByIpAsync();
 
 	private async Task ShowDeviceInfoAsync()
 	{
@@ -688,7 +709,16 @@ public partial class InstallerPage : ContentPage
 	private void UpdateTvCard()
 	{
 		var state = _tv.CardState();
-		TopBar.ShowTv(_tv.HasTv || _tv.IsScanning ? state : state with { Name = L10n.Get("lblChooseTv") });
+		TopBar.ShowTv(_tv.HasTv || _tv.IsScanning ? state : state with { Name = L10n.Get("lblNoTvFound") });
+		TopBar.TvCount = _tv.Tvs.Count;
+		var noTv = !_tv.HasTv && !_tv.IsScanning;
+		if (noTv)
+		{
+			TopBar.Subtitle = L10n.Get("lblNoTvFoundHint");
+			TopBar.Status = TopBarStatus.Warn;
+		}
+		TvCard.IsVisible = !noTv;
+		NoTvCard.IsVisible = noTv;
 		if (_busy)
 			TopBar.Status = TopBarStatus.Busy;
 

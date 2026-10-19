@@ -282,7 +282,15 @@ namespace Apps2Samsung.ViewModels
             CatalogFoot = string.Format(L("lblCatalogFoot"), all.Count);
         }
 
-        /// <summary>The TV sheet from the "Change TV" chip: pick a found TV, enter an IP, or rescan.</summary>
+        /// <summary>More than one TV found: the sidebar's TV gets its ▾ and switches between them.</summary>
+        public bool CanSwitchTv =>
+            AvailableDevices.Count(d => !string.IsNullOrWhiteSpace(d.IpAddress) && d.IpAddress != L("lblOther")) > 1;
+
+        /// <summary>The ⋯ menu's Add TV by IP: a TV the scan didn't find.</summary>
+        [RelayCommand]
+        private Task AddTvByIpAsync() => PromptForManualIpAsync();
+
+        /// <summary>The TV picker from the sidebar's TV (only with more than one TV): pick a found TV, enter an IP, or rescan.</summary>
         [RelayCommand]
         private async Task ChangeTvAsync()
         {
@@ -418,6 +426,7 @@ namespace Apps2Samsung.ViewModels
         {
             _tizenInstaller = tizenInstaller;
             _sdbEngine = sdbEngine;
+            AvailableDevices.CollectionChanged += (_, _) => OnPropertyChanged(nameof(CanSwitchTv));
             _dialogService = dialogService;
             _networkService = networkService;
             _packageHelper = packageHelper;

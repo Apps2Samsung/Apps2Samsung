@@ -70,7 +70,8 @@ public partial class RemotePage : ContentPage
 	// network, Developer Mode or not.
 	private async Task ConnectToSelectedAsync()
 	{
-		TopBar.Title = _tv.HasTv ? _tv.DisplayName : L10n.Get("lblChooseTv");
+		TopBar.Title = _tv.HasTv ? _tv.DisplayName : L10n.Get("lblNoTvFound");
+		TopBar.TvCount = _tv.Tvs.Count;
 		if (!_tv.HasTv)
 		{
 			SetStatus(L10n.Get("statusSelectTvFirst"), StatusKind.Warn);
