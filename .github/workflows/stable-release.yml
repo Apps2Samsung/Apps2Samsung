@@ -160,7 +160,6 @@ jobs:
             echo "| 🍎 macOS (.app + dmg) | ✅ Stable | ARM64 + Intel |"
             echo "| 🍎 macOS (CLI) | ✅ Stable | Per-arch tar.gz |"
             echo "| 🐧 Linux | ✅ Stable | x64 + ARM64 (tar.gz / .deb) |"
-            echo "| 🐧 Arch Linux (AUR) | ✅ Stable | [apps2samsung](https://aur.archlinux.org/packages/apps2samsung), published by this release |"
             echo "| 🪟 Windows | ✅ Stable | CI-built |"
             echo "| 🤖 Android (.apk) | ✅ Stable | Sideload; phone as installer head |"
             echo ""
