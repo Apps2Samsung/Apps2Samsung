@@ -8,6 +8,17 @@ using System.Threading.Tasks;
 
 namespace Apps2Samsung.Interfaces
 {
+    /// <summary>How <see cref="ITizenInstallerService.PrepareCertificateAsync"/> ended.</summary>
+    public enum CertificatePreparation
+    {
+        /// <summary>A certificate was made (the sheet was shown).</summary>
+        Created,
+        /// <summary>A certificate already covered the TV; nothing was made and nothing shown.</summary>
+        Reused,
+        /// <summary>Cancelled or failed; the user has been told already.</summary>
+        Failed,
+    }
+
     public interface ITizenInstallerService
     {
         Task<string> GetTvNameAsync(string tvIpAddress);
@@ -27,6 +38,16 @@ namespace Apps2Samsung.Interfaces
         /// <summary>Gathers the TV's details (DUID, Tizen version, developer mode/IP, …) for the
         /// "TV information" view, using the shared Core gatherer.</summary>
         Task<Apps2Samsung.Models.TizenDeviceInfo> GetDeviceInfoAsync(string tvIpAddress, bool debugPortOpen, string? localIp = null);
+
+        /// <summary>
+        /// Settings › Installing › Prepare the certificate now: the install's automatic certificate
+        /// for the TV at <paramref name="tvIpAddress"/>, made now instead of at the first install.
+        /// Reuses one that already covers the TV without a sign-in; opens the certificate sheet
+        /// only when one has to be made. Whatever goes wrong is explained here (the sheet, the
+        /// account page or a dialog), so the caller only reports <see cref="CertificatePreparation.Created"/>
+        /// and <see cref="CertificatePreparation.Reused"/>.
+        /// </summary>
+        Task<CertificatePreparation> PrepareCertificateAsync(string tvIpAddress, CancellationToken cancellationToken = default);
 
         Task LaunchAppAsync(string tvIpAddress, string tizenId);
         Task StopAppAsync(string tvIpAddress, string tizenId);

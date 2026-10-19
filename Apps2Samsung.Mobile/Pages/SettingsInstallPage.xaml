@@ -54,6 +54,12 @@
                             <Switch Grid.Column="1" x:Name="ForceLoginSwitch" OnColor="{DynamicResource AccentColor}"
                                     VerticalOptions="Center" Toggled="OnToggle" />
                         </Grid>
+                        <BoxView Style="{StaticResource RowDivider}" />
+                        <VerticalStackLayout Padding="16,12" Spacing="10">
+                            <Label Style="{StaticResource RowHint}" Text="{l:Localize hintPrepareCertificateNow}" />
+                            <Button x:Name="PrepareBtn" Text="{l:Localize lblPrepareCertificateNow}" Style="{StaticResource SoftButton}"
+                                    CornerRadius="12" HorizontalOptions="Start" Clicked="OnPrepareClicked" />
+                        </VerticalStackLayout>
                     </VerticalStackLayout>
                 </Border>
 

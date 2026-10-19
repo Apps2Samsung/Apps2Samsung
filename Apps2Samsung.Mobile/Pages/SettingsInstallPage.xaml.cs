@@ -1,5 +1,8 @@
+using Apps2Samsung.Certificate;
+using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Resources.Styles;
 using Apps2Samsung.Mobile.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Apps2Samsung.Mobile.Pages;
 
@@ -60,5 +63,49 @@ public partial class SettingsInstallPage : ContentPage
 		MobileSettings.TryOverwrite = TryOverwriteSwitch.IsToggled;
 		MobileSettings.OpenAfterInstall = OpenAfterSwitch.IsToggled;
 		MobileSettings.KeepWgtFile = KeepWgtSwitch.IsToggled;
+	}
+
+	// Makes the certificate for the selected TV now, so the first install doesn't stop for a
+	// Samsung sign-in. Same flow as an install's certificate step, sheet included.
+	private async void OnPrepareClicked(object? sender, EventArgs e)
+	{
+		var services = IPlatformApplication.Current!.Services;
+		var tv = services.GetRequiredService<TvSelection>();
+		if (!tv.HasTv)
+		{
+			await DisplayAlert(L10n.Get("lblStepCertificate"), L10n.Get("statusSelectTvFirst"), L10n.Get("btn_Close"));
+			return;
+		}
+
+		PrepareBtn.IsEnabled = false;
+		PrepareBtn.Text = L10n.Get("statusReadingTvDuid");
+		try
+		{
+			var (_, created) = await services.GetRequiredService<CertificateFlow>()
+				.RunAsync(Navigation, tv.Ip!, tv.DisplayName, false, null, new CancellationTokenSource());
+			await DisplayAlert(
+				L10n.Get("lblStepCertificate"),
+				string.Format(L10n.Get(created ? "statusCertificatePrepared" : "statusCertificateAlreadyReady"), tv.DisplayName),
+				L10n.Get("btn_Close"));
+		}
+		catch (OperationCanceledException)
+		{
+			// Cancel on the sheet, or Samsung's sign-in page closed: nothing to report.
+		}
+		catch (SamsungAccountEmailMissingException)
+		{
+			await Navigation.PushModalAsync(new AccountEmailSheetPage());
+		}
+		catch (Exception ex)
+		{
+			// The sheet shows the reason when it got that far; before it (reading the TV) it didn't open.
+			if (!Navigation.ModalStack.OfType<CertificateSheetPage>().Any())
+				await DisplayAlert(L10n.Get("lblStepCertificate"), ErrorText.Describe(ex, "certificate"), L10n.Get("btn_Close"));
+		}
+		finally
+		{
+			PrepareBtn.IsEnabled = true;
+			PrepareBtn.Text = L10n.Get("lblPrepareCertificateNow");
+		}
 	}
 }

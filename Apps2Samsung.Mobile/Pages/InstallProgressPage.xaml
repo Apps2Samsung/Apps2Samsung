@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.InstallProgressPage"
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
@@ -35,7 +36,7 @@
             </VerticalStackLayout>
 
             <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
-                <VerticalStackLayout x:Name="Steps" />
+                <controls:StepListView x:Name="Steps" />
             </Border>
 
             <Border x:Name="LogCard" IsVisible="False" StrokeThickness="0" StrokeShape="RoundRectangle 12"

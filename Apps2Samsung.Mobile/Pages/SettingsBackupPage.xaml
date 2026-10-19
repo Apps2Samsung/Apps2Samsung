@@ -30,9 +30,13 @@
                 <Label Text="{l:Localize lblDiagnostics}" Style="{StaticResource GroupTitle}" Margin="4,16,4,0" />
                 <Border Style="{StaticResource Card}" Padding="16,12">
                     <VerticalStackLayout Spacing="10">
-                        <Label Style="{StaticResource RowHint}" Text="{l:Localize hintShareDebugLog}" />
-                        <Button Text="{l:Localize lblShareDebugLog}" Style="{StaticResource PlainButton}" CornerRadius="12"
-                                HorizontalOptions="Start" Clicked="OnShareLogClicked" />
+                        <Label Style="{StaticResource RowHint}" Text="{l:Localize hintViewDebugLog}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Text="{l:Localize lblViewDebugLog}" Style="{StaticResource SoftButton}"
+                                    CornerRadius="12" Clicked="OnViewLogClicked" />
+                            <Button Grid.Column="1" Text="{l:Localize lblShareDebugLog}" Style="{StaticResource PlainButton}"
+                                    CornerRadius="12" Clicked="OnShareLogClicked" />
+                        </Grid>
                     </VerticalStackLayout>
                 </Border>
             </VerticalStackLayout>

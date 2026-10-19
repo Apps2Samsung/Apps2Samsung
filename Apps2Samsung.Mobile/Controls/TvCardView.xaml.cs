@@ -23,7 +23,13 @@ public partial class TvCardView : ContentView
 		// The sheen is the same in both themes, so reading it once is enough.
 		SheenStart.Color = DesignTheme.ColorOf("GlassSheen");
 		SheenEnd.Color = DesignTheme.ColorOf("GlassSheenFade");
+		var tap = new TapGestureRecognizer();
+		tap.Tapped += (_, _) => Tapped?.Invoke(this, EventArgs.Empty);
+		GestureRecognizers.Add(tap);
 	}
+
+	/// <summary>The card itself was tapped (not one of the <see cref="Actions"/>).</summary>
+	public event EventHandler? Tapped;
 
 	public TvCardState? State
 	{

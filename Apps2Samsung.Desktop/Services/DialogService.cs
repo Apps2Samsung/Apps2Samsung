@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Apps2Samsung.Styles;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -15,6 +15,10 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using Apps2Samsung.Models;
+using Apps2Samsung.ViewModels;
+using Apps2Samsung.Views;
 
 namespace Apps2Samsung.Services
 {
@@ -323,92 +327,69 @@ namespace Apps2Samsung.Services
             return await tcs.Task;
         }
 
-        public async Task<bool> ShowCertificateCountdownAsync(string title, string message, DateTime validFromLocal)
-        {
-            var window = GetMainWindow();
-            if (window == null)
-                return false;
-
-            var isDarkMode = AppSettings.Default.DarkMode;
-            var foregroundBrush = GetThemeBrush("SystemControlForegroundBaseHighBrush", isDarkMode);
-
-            var panel = new StackPanel { Spacing = 10 };
-            panel.Children.Add(new TextBlock
+        public Task<bool> ShowCertificateCountdownAsync(DateTime validFromLocal) =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                Text = message,
-                TextWrapping = TextWrapping.Wrap,
-                Foreground = foregroundBrush,
-                FontSize = 14,
-                Margin = new Thickness(0, 5, 0, 0)
+                var window = GetMainWindow();
+                if (window == null)
+                    return false;
+                return await new CertificateWaitWindow(validFromLocal, Localize).ShowDialog<bool>(window);
             });
 
-            // The countdown itself: big, monospaced digits so the ticking seconds don't reflow the text.
-            var countdown = new TextBlock
+        public Task<CertificateSheet?> OpenCertificateSheetAsync(string tvName, CertificatePrivilegeLevel level) =>
+            Dispatcher.UIThread.InvokeAsync(() =>
             {
-                FontSize = 34,
-                FontWeight = FontWeight.Bold,
-                FontFamily = new FontFamily("Consolas, Menlo, monospace"),
-                Foreground = foregroundBrush,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(0, 10, 0, 0)
-            };
-            panel.Children.Add(countdown);
+                var window = GetMainWindow();
+                if (window == null)
+                    return (CertificateSheet?)null;
+                var sheet = new CertificateWindow(tvName, level, Localize);
+                // Not awaited: the sheet stays up while the certificate is made and closes itself.
+                _ = sheet.ShowDialog(window);
+                return new CertificateSheet(sheet);
+            }).GetTask();
 
-            var caption = new TextBlock
+        public Task ShowAccountEmailMissingAsync() =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                Text = "certificateCountdownCaption".Localized(),
-                TextWrapping = TextWrapping.Wrap,
-                Foreground = foregroundBrush,
-                Opacity = 0.7,
-                FontSize = 12,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-            panel.Children.Add(caption);
+                var window = GetMainWindow();
+                if (window != null)
+                    await new AccountEmailWindow(Localize).ShowDialog(window);
+            });
 
-            // "Install now" stays disabled until the certificate is actually valid; Cancel is always
-            // available (the wait can be hours if the clock is badly off).
-            var tcs = new TaskCompletionSource<bool>();
-            Button? installButton = null;
-            var dialog = CreateStyledDialog(
-                title, panel, showButtons: true, tcs: tcs,
-                yesText: "lblInstallNow".Localized(),
-                noText: "lblCancel".Localized(),
-                onButtonsCreated: (yes, _) => installButton = yes);
-
-            var validFromUtc = validFromLocal.ToUniversalTime();
-            void Tick()
+        public Task<bool> ShowDevModeGuideAsync(
+            NetworkDevice device,
+            string tvName,
+            Func<Task> refresh,
+            IReadOnlyCollection<string> localIps,
+            string? localIp,
+            bool fromInstall) =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                var remaining = validFromUtc - DateTime.UtcNow;
-                if (remaining <= TimeSpan.Zero)
-                {
-                    countdown.Text = CertificateValidity.FormatCountdown(TimeSpan.Zero);
-                    caption.Text = "certificateCountdownReady".Localized();
-                    if (installButton != null)
-                        installButton.IsEnabled = true;
+                var window = GetMainWindow();
+                if (window == null)
+                    return false;
+                var model = new DevModeGuideViewModel(device, tvName, refresh, localIps, localIp, fromInstall, Localize,
+                    async text =>
+                    {
+                        if (window.Clipboard is { } clipboard)
+                            await clipboard.SetTextAsync(text);
+                    });
+                return await new DevModeGuideWindow(model).ShowDialog<bool>(window);
+            });
+
+        public Task ShowLogViewerAsync() =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var window = GetMainWindow();
+                if (window == null)
                     return;
-                }
+                var model = new LogViewerViewModel(Apps2Samsung.Diagnostics.FileLog.DefaultLogDirectory, Localize, DesignTheme.Brush);
+                // Not modal: it is a reading window, useful next to the app while reproducing a problem.
+                new LogViewerWindow(model).Show(window);
+                await Task.CompletedTask;
+            });
 
-                countdown.Text = CertificateValidity.FormatCountdown(remaining);
-            }
-
-            if (installButton != null)
-                installButton.IsEnabled = false;
-            Tick();
-
-            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            timer.Tick += (_, _) => Tick();
-            timer.Start();
-            // Closing via the window chrome (X) never resolves the TCS on its own — treat it as cancel,
-            // and always stop the timer so it can't outlive the dialog.
-            dialog.Closed += (_, _) =>
-            {
-                timer.Stop();
-                tcs.TrySetResult(false);
-            };
-
-            await dialog.ShowDialog(window);
-            return await tcs.Task;
-        }
+        private static string Localize(string key) => key.Localized();
 
         public async Task ShowMessageWithLinkAsync(string title, string message, string linkText, string url, string? closeText = null)
         {
