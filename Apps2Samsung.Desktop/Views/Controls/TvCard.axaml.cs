@@ -10,6 +10,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using Apps2Samsung.Design;
 
 namespace Apps2Samsung.Views.Controls
@@ -38,7 +39,6 @@ namespace Apps2Samsung.Views.Controls
         {
             InitializeComponent();
             ActionsHost.Bind(ContentPresenter.ContentProperty, this.GetObservable(ActionsProperty));
-            // A click on one of the Actions is handled by that button and never gets here.
             AddHandler(Gestures.TappedEvent, OnTapped);
             Render();
         }
@@ -84,6 +84,10 @@ namespace Apps2Samsung.Views.Controls
         private void OnTapped(object? sender, TappedEventArgs e)
         {
             if (Command is not { } command || !command.CanExecute(null))
+                return;
+            // A tap on one of the Actions (a chip button) is that button's, not the card's; the
+            // gesture bubbles up here even after the button handled the click.
+            if (e.Source is Visual source && ActionsHost.IsVisualAncestorOf(source))
                 return;
             e.Handled = true;
             command.Execute(null);
