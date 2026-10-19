@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
+             x:Class="Apps2Samsung.Mobile.Pages.SettingsLanguagePage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+
+    <!-- Settings > Language: the languages that have a translation file, each by its own name, the
+         one in use ticked. The shared Core catalog serves the same translations as the desktop. -->
+    <Grid RowDefinitions="Auto,*">
+        <controls:TopBarView Grid.Row="0" Title="{l:Localize lblLanguage}" BackText="{l:Localize lblSettingsTab}" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,4,16,20" Spacing="8">
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout x:Name="Rows" />
+                </Border>
+                <Label Style="{StaticResource Footnote}" Text="{l:Localize hintLanguage}" FontSize="12" LineBreakMode="WordWrap" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+
+</ContentPage>

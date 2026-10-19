@@ -5,11 +5,13 @@ using Avalonia.Controls;
 using Avalonia.VisualTree;
 using Avalonia.Input;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Apps2Samsung.Views
 {
     /// <summary>Hosts a <see cref="RemoteViewModel"/>: connects when the section is shown for a
-    /// view model that isn't connected yet, and maps the physical keyboard onto the remote.</summary>
+    /// view model that isn't connected yet, and holds the physical keyboard mapping the main window
+    /// applies while the section is up.</summary>
     public partial class RemoteView : UserControl
     {
         // Physical keyboard as the remote: the keys anyone would reach for without being told.
@@ -58,27 +60,28 @@ namespace Apps2Samsung.Views
             await vm.ConnectCommand.ExecuteAsync(null);
         }
 
-        protected override async void OnKeyDown(KeyEventArgs e)
+        /// <summary>
+        /// The physical keyboard as the remote. The main window calls this from a tunnelling key
+        /// handler while the Remote section is shown, so the arrows reach the TV even when a sidebar
+        /// or toolbar button has focus; a text box keeps its keystrokes.
+        /// </summary>
+        public static async Task<bool> HandleKeyAsync(RemoteViewModel vm, KeyEventArgs e, IInputElement? focused)
         {
-            // Don't steal keystrokes meant for the text field.
-            if (DataContext is not RemoteViewModel vm || TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() is TextBox)
-            {
-                base.OnKeyDown(e);
-                return;
-            }
+            if (focused is TextBox || e.KeyModifiers is not (KeyModifiers.None or KeyModifiers.Shift))
+                return false;
             if (e.Key == Key.Space)
             {
                 e.Handled = true;
                 await vm.PlayPauseCommand.ExecuteAsync(null);
-                return;
+                return true;
             }
             if (KeyboardMap.TryGetValue(e.Key, out var remoteKey))
             {
                 e.Handled = true;
                 await vm.SendKeyCommand.ExecuteAsync(remoteKey);
-                return;
+                return true;
             }
-            base.OnKeyDown(e);
+            return false;
         }
     }
 }

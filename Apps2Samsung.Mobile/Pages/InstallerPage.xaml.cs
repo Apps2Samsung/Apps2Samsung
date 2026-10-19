@@ -8,6 +8,7 @@ using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Services;
 using Apps2Samsung.Mobile.Catalog;
+using Apps2Samsung.Mobile.Controls;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Packaging;
@@ -27,20 +28,8 @@ public partial class InstallerPage : ContentPage
 	private readonly UpdateFlow _updates;
 	private readonly SessionState _session;
 	private readonly ISdbEngine _sdb;
-	// The TV the other tabs work with (On the TV, Remote): kept in step with the picker.
+	// The TVs and the one in use, shared with the other tabs (the ▾ in every top bar picks from it).
 	private readonly TvSelection _tv;
-
-	// Parallel lists backing the TV picker: IP + display label for each listed TV (discovered or
-	// manually added). The picker also shows a trailing ManualIpLabel entry that isn't in these.
-	private readonly List<string> _tvIps = new();
-	private readonly List<string> _tvLabels = new();
-	// Per-TV scan result, index-aligned with _tvIps (null for a hand-typed IP the TV's REST API didn't
-	// answer for). Carries DebugPortOpen — false = detected via the REST API only (SDB debug port not
-	// up yet), so it needs a restart before it can be installed to — plus the Developer-Mode fields
-	// the shared pre-install guards check.
-	private readonly List<NetworkDevice?> _tvDevices = new();
-	// Index into the lists above of the TV in use; -1 = none. The TV sheet changes it.
-	private int _selectedTv = -1;
 	// Every catalog entry; the list shows the slice in the chosen category that matches the search.
 	private IReadOnlyList<GitHubRelease> _allReleases = new List<GitHubRelease>();
 	private string _query = string.Empty;
@@ -63,11 +52,12 @@ public partial class InstallerPage : ContentPage
 
 	private bool _initialized;
 	private bool _uiReady;
-	// What the TV card shows besides the TV itself: the last status line, and whether something
-	// is running (scan, download, signing, install) so its LED pulses.
+	// What the TV card shows besides the TV itself: the last status line, and whether an install is
+	// running (download, signing, install) so its LED pulses.
 	private string _status = string.Empty;
-	private bool _scanning;
 	private bool _busy;
+	// The progress sheet of the running install; null when none is up.
+	private InstallProgressPage? _progress;
 
 	public InstallerPage(INetworkService networkService, ISamsungLoginService loginService,
 		CertificateProvisioner certProvisioner, WgtInstaller installer, CatalogService catalog,
@@ -91,13 +81,21 @@ public partial class InstallerPage : ContentPage
 	protected override async void OnAppearing()
 	{
 		base.OnAppearing();
+		// The TV may have been changed from another tab's ▾ while this one was hidden.
+		_tv.Changed -= OnTvChanged;
+		_tv.Changed += OnTvChanged;
+		UpdateTvCard();
 		if (_initialized)
 			return;
 		_initialized = true;
 
 		await MobileSettings.InitAsync();
 		var catalog = await LoadCatalogAsync();
-		await ScanAsync();
+		// A TV already picked (this page was rebuilt for a language change) is kept; otherwise scan.
+		if (!_tv.HasTv)
+			await _tv.ScanAsync();
+		else
+			SetStatus(_tv.SelectedStatus());
 
 		// A catalog problem is more actionable than the scan result, so let it have the last word.
 		// (The "Custom WGT / TPK" entry is always available, so an empty catalog isn't a dead end.)
@@ -142,13 +140,41 @@ public partial class InstallerPage : ContentPage
 			_catalogLoading = false;
 		}
 
-		RebuildCatalog();
-		_uiReady = true;
-
-		// The manifest only feeds the sheet's preview image; a failure costs nothing but the picture.
+		// The manifest feeds the sheet's preview image and says which apps keep several releases (one
+		// row each in the list, the releases in the sheet); a failure costs the picture and lists those
+		// releases as rows of their own.
 		try { _manifest = await _catalog.GetManifestAsync(); }
 		catch (Exception ex) { System.Diagnostics.Trace.WriteLine($"[installer] Manifest for previews failed: {ex.Message}"); }
+
+		RebuildCatalog();
+		_uiReady = true;
 		return result;
+	}
+
+	// Apps whose provider keeps more than one release (Jellyfin): the list shows each once, the app
+	// sheet lists the releases.
+	private bool HasSeveralReleases(string name) =>
+		_manifest?.Providers.Any(p => p.Take > 1 && string.Equals(p.DisplayName, name, StringComparison.OrdinalIgnoreCase)) ?? false;
+
+	// The releases of one app, newest first.
+	private List<GitHubRelease> VersionsOf(GitHubRelease release) => _allReleases
+		.Where(r => string.Equals(r.Name, release.Name, StringComparison.OrdinalIgnoreCase))
+		.OrderByDescending(r => DateTime.TryParse(r.PublishedAt, out var d) ? d : DateTime.MinValue)
+		.ToList();
+
+	// The catalog as listed: an app with several releases once, as its newest.
+	private List<GitHubRelease> ListedReleases()
+	{
+		var listed = new List<GitHubRelease>();
+		var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		foreach (var release in _allReleases)
+		{
+			if (!HasSeveralReleases(release.Name))
+				listed.Add(release);
+			else if (seen.Add(release.Name))
+				listed.Add(VersionsOf(release)[0]);
+		}
+		return listed;
 	}
 
 	// The catalog as short groups per category (Core's CatalogGroups), each with "Show all" to
@@ -170,7 +196,8 @@ public partial class InstallerPage : ContentPage
 			return;
 		}
 
-		var groups = CatalogGroups.Build(_allReleases, _query, _expanded, L10n.Get, _favorites);
+		var listed = ListedReleases();
+		var groups = CatalogGroups.Build(listed, _query, _expanded, L10n.Get, _favorites);
 		var any = false;
 		foreach (var group in groups)
 		{
@@ -193,13 +220,13 @@ public partial class InstallerPage : ContentPage
 		{
 			CatalogList.Add(GroupBorder(new Label
 			{
-				Text = L10n.Get(_allReleases.Count == 0 ? "statusCatalogEmpty" : "lblNoAppMatches"),
+				Text = L10n.Get(listed.Count == 0 ? "statusCatalogEmpty" : "lblNoAppMatches"),
 				TextColor = DesignTheme.ColorOf("Muted"), Padding = new Thickness(16, 14),
 			}));
 		}
 		CatalogFoot.Text = _catalogFailed > 0
-			? string.Format(L10n.Get("lblCatalogFootFailed"), _allReleases.Count, _catalogFailed)
-			: string.Format(L10n.Get("lblCatalogFoot"), _allReleases.Count);
+			? string.Format(L10n.Get("lblCatalogFootFailed"), listed.Count, _catalogFailed)
+			: string.Format(L10n.Get("lblCatalogFoot"), listed.Count);
 	}
 
 	private static Border GroupBorder(View content) => new()
@@ -298,23 +325,36 @@ public partial class InstallerPage : ContentPage
 	}
 
 	// The app sheet: preview, description, the version or variant to install, Install for the
-	// selected TV. Hands back the asset, or null when closed.
+	// selected TV. Hands back the release and file, or null when closed.
 	private async Task OpenAppAsync(GitHubRelease release, string subline)
 	{
 		if (_busy)
 			return;
-		var idx = _selectedTv;
-		var device = idx >= 0 && idx < _tvDevices.Count ? _tvDevices[idx] : null;
-		var ip = idx >= 0 && idx < _tvIps.Count ? _tvIps[idx] : null;
-		var tvName = ip is null ? null : string.IsNullOrWhiteSpace(device?.DeviceName) ? ip : device!.DeviceName;
-		var tvReady = ip is not null && (device?.DebugPortOpen ?? true);
+		var tvName = _tv.HasTv ? _tv.DisplayName : null;
+		var tvReady = _tv.HasTv && _tv.DebugPortOpen;
 
-		var sheet = new AppSheetPage(release, CatalogPreviews.For(_manifest, release), subline, tvName, tvReady,
-			_favorites.Contains(release.Name), SetFavorite);
+		var several = HasSeveralReleases(release.Name);
+		IReadOnlyList<GitHubRelease> versions = several ? VersionsOf(release) : new List<GitHubRelease> { release };
+		if (versions.Count == 0)
+			versions = new List<GitHubRelease> { release };
+
+		// "Show all versions" stores the setting and reloads the catalog: older releases are only
+		// fetched while it is on.
+		Func<bool, Task<IReadOnlyList<GitHubRelease>>>? showAll = several
+			? async on =>
+			{
+				MobileSettings.ShowAllJellyfinVersions = on;
+				await LoadCatalogAsync();
+				return VersionsOf(release);
+			}
+			: null;
+
+		var sheet = new AppSheetPage(versions, CatalogPreviews.For(_manifest, release), subline, tvName, tvReady,
+			_favorites.Contains(release.Name), SetFavorite, showAll);
 		await Navigation.PushModalAsync(sheet);
-		var asset = await sheet.Result;
-		if (asset is not null)
-			await InstallAsync(release, asset, null);
+		var choice = await sheet.Result;
+		if (choice is not null)
+			await InstallAsync(choice.Release, choice.Asset, null);
 	}
 
 	// "Your own package": a .wgt or .tpk from the phone, then the same install as a catalog app.
@@ -358,105 +398,89 @@ public partial class InstallerPage : ContentPage
 		}
 	}
 
-	// Makes the TV at index the one in use (−1 = none): the card, the other tabs and the status
-	// line follow.
-	private void SelectTv(int index)
+	protected override void OnDisappearing()
 	{
-		_selectedTv = index >= 0 && index < _tvIps.Count ? index : -1;
-		PublishTvSelection();
+		base.OnDisappearing();
+		_tv.Changed -= OnTvChanged;
+	}
+
+	// The list, the selection or the scan changed (here or from another tab's ▾): the scan's or the
+	// picker's word goes on the card, unless an install is talking.
+	private void OnTvChanged()
+	{
+		if (!_busy && !string.IsNullOrEmpty(_tv.Status))
+			_status = _tv.Status;
 		UpdateTvCard();
 	}
 
-	// The "Change TV" chip: the found TVs, "enter an IP", or rescan.
+	// The TV pill in the top bar (only with more than one TV): the Switch TV sheet.
 	private async void OnChangeTvClicked(object? sender, EventArgs e)
 	{
 		if (_busy)
 			return;
-		var sheet = new TvSheetPage(_tvIps, _tvLabels, _tvDevices, _selectedTv);
-		await Navigation.PushModalAsync(sheet);
-		var choice = await sheet.Result;
-		if (choice is null)
-			return;
-		if (choice.Rescan)
-			await ScanAsync();
-		else if (choice.Manual)
-			await PromptManualIpAsync();
-		else
+		await TvPicker.ChooseAsync(this, _tv);
+	}
+
+	// The ⋯ in the top bar: what used to be the chips on the TV card, plus adding a TV the scan
+	// didn't find. TV information and the toolbox need a TV, so they only show with one.
+	private async void OnMoreClicked(object? sender, EventArgs e)
+	{
+		var items = new List<MoreMenuItem>
 		{
-			SelectTv(choice.Index);
-			SetStatus(SelectedTvStatus());
+			new(L10n.Get("lblRescanForTvs"), MoreMenu.IconRescan),
+			new(L10n.Get("lblAddTvByIp"), MoreMenu.IconAdd),
+		};
+		if (_tv.HasTv)
+		{
+			items.Add(new(L10n.Get("lblTvInformation"), MoreMenu.IconInfo));
+			items.Add(new(L10n.Get("lblToolbox"), MoreMenu.IconToolbox));
+		}
+		switch (await MoreMenu.ShowAsync(this, items.ToArray()))
+		{
+			case 0: await RescanAsync(); break;
+			case 1: await AddTvByIpAsync(); break;
+			case 2: await ShowDeviceInfoAsync(); break;
+			case 3: await ShowTvToolboxAsync(); break;
 		}
 	}
 
-	// The TV the other tabs read (On the TV, Remote).
-	private void PublishTvSelection()
+	private async Task RescanAsync()
 	{
-		var idx = _selectedTv;
-		if (idx < 0 || idx >= _tvIps.Count)
-		{
-			_tv.Clear();
-			return;
-		}
-		_tv.Set(_tvIps[idx], _tvLabels[idx], idx < _tvDevices.Count ? _tvDevices[idx] : null);
+		if (!_busy)
+			await _tv.ScanAsync();
 	}
 
-	// Prompts for a TV IP the scan didn't discover, validates it, and adds it as a selectable entry.
-	private async Task PromptManualIpAsync()
+	private async Task AddTvByIpAsync()
 	{
-		var input = await DisplayPromptAsync(
-			L10n.Get("lblManualTvIpTitle"),
-			L10n.Get("lblManualTvIpPrompt"),
-			accept: L10n.Get("lblAdd"), cancel: L10n.Get("lblCancel"), placeholder: "192.168.1.50");
-
-		if (string.IsNullOrWhiteSpace(input) || !System.Net.IPAddress.TryParse(input.Trim(), out _))
-		{
-			if (!string.IsNullOrWhiteSpace(input))
-				SetStatus(L10n.Get("statusInvalidIp"));
-			return;
-		}
-
-		var ip = input.Trim();
-		var idx = _tvIps.IndexOf(ip);
-		if (idx < 0)
-		{
-			// Ask the TV's REST API for its Developer-Mode state so a hand-typed IP gets the same
-			// pre-install guards as a scanned one. Nothing is lost when it doesn't answer: the entry
-			// is still added (assumed ready, a real SDB error surfaces at install) and stays unguarded.
-			var probed = await ProbeTvAsync(ip);
-			_tvIps.Add(ip);
-			_tvLabels.Add(string.Format(L10n.Get("lblTvManualEntry"), ip));
-			_tvDevices.Add(probed);
-			idx = _tvIps.Count - 1;
-		}
-		SelectTv(idx);
-		SetStatus(string.Format(L10n.Get("statusUsingTvAt"), ip));
+		if (!_busy)
+			await TvPicker.AddByIpAsync(this, _tv);
 	}
 
-	private async void OnShowDeviceInfoClicked(object? sender, EventArgs e)
+	// The buttons on the no-TV card.
+	private async void OnNoTvRescanClicked(object? sender, EventArgs e) => await RescanAsync();
+	private async void OnNoTvAddClicked(object? sender, EventArgs e) => await AddTvByIpAsync();
+
+	private async Task ShowDeviceInfoAsync()
 	{
-		if (_selectedTv < 0 || _selectedTv >= _tvIps.Count)
+		if (!_tv.HasTv)
 		{
 			SetStatus(L10n.Get("statusSelectTvFirst"));
 			return;
 		}
-		var idx = _selectedTv;
-		var tvIp = _tvIps[idx];
-		var label = _tvLabels[_selectedTv];
-		var debugPortOpen = idx >= _tvDevices.Count || (_tvDevices[idx]?.DebugPortOpen ?? true);
-		await Navigation.PushAsync(new DeviceInfoPage(_sdb, tvIp, label, debugPortOpen));
+		await Navigation.PushAsync(new DeviceInfoPage(_sdb, _tv.Ip!, _tv.Label, _tv.DebugPortOpen));
 	}
 
 	// Same story as the remote: the toolbox rides the network channel, so it is offered for any TV
 	// on the network, Developer Mode or not.
-	private async void OnShowTvToolboxClicked(object? sender, EventArgs e)
+	private async Task ShowTvToolboxAsync()
 	{
-		if (_selectedTv < 0 || _selectedTv >= _tvIps.Count)
+		if (!_tv.HasTv)
 		{
 			SetStatus(L10n.Get("statusSelectTvFirst"));
 			return;
 		}
-		var tvIp = _tvIps[_selectedTv];
-		var label = _tvLabels[_selectedTv];
+		var tvIp = _tv.Ip!;
+		var label = _tv.Label;
 
 		// The toolbox's debug agent is a .wgt like any other: the normal pipeline (certificate, resign,
 		// push) puts it on the TV when the set doesn't have it yet (#34).
@@ -470,60 +494,12 @@ public partial class InstallerPage : ContentPage
 		await Navigation.PushAsync(new TvToolboxPage(_sdb, tvIp, label, installWgt));
 	}
 
-	private async void OnRefreshClicked(object? sender, EventArgs e) => await ScanAsync();
-
-	private async Task ScanAsync()
-	{
-		RefreshBtn.IsEnabled = false;
-		_scanning = true;
-		_busy = true;
-		SetStatus(L10n.Get("statusScanningForTvs"));
-		try
-		{
-			// Keep not-ready TVs (REST API answered but the SDB debug port isn't up): they're shown
-			// with a ⚠ marker so the user knows the TV was found but needs a restart first, instead of
-			// silently disappearing from the list. The shared scan also enriches every TV with its
-			// Developer-Mode state (name, developerMode, developerIP) — what the guards below and the
-			// not-ready hint need to tell the user what to fix.
-			var devices = await TizenDeveloperInfo.ScanAsync(_networkService);
-
-			var selected = _selectedTv >= 0 && _selectedTv < _tvIps.Count ? _tvIps[_selectedTv] : null;
-
-			_tvIps.Clear();
-			_tvLabels.Clear();
-			_tvDevices.Clear();
-			foreach (var d in devices)
-			{
-				_tvIps.Add(d.IpAddress);
-				_tvLabels.Add(d.DisplayText);
-				_tvDevices.Add(d);
-			}
-
-			var keep = selected is null ? -1 : _tvIps.IndexOf(selected);
-			SelectTv(_tvIps.Count > 0 ? (keep >= 0 ? keep : 0) : -1);
-
-			SetStatus(_tvIps.Count == 0
-				? L10n.Get("statusNoTvsFoundHint")
-				: SelectedTvStatus());
-		}
-		catch (Exception ex)
-		{
-			SetStatus(string.Format(L10n.Get("statusScanFailed"), ex.Message));
-		}
-		finally
-		{
-			_scanning = false;
-			_busy = false;
-			RefreshBtn.IsEnabled = true;
-			UpdateTvCard();
-		}
-	}
-
 	// Downloads (or takes the picked file), provisions the certificate, installs on the selected
-	// TV. Status goes to the TV card; its LED pulses for the duration.
+	// TV. The progress sheet walks through the steps; the TV card's LED pulses for the duration and
+	// keeps the status line for when the sheet is swiped away.
 	private async Task InstallAsync(GitHubRelease? release, Asset? asset, string? customPath)
 	{
-		if (_selectedTv < 0 || _selectedTv >= _tvIps.Count)
+		if (_tv.Selected is not { } tv)
 		{
 			SetStatus(L10n.Get("statusSelectTvFirst"));
 			return;
@@ -535,17 +511,17 @@ public partial class InstallerPage : ContentPage
 			return;
 		}
 
-		var tvIp = _tvIps[_selectedTv];
+		var tvIp = tv.Ip;
 
 		// The device list is a scan snapshot; re-read the TV's Developer-Mode fields now so a
 		// Developer-Mode IP corrected on the TV since the scan isn't still flagged as a mismatch.
-		await TizenDeveloperInfo.RefreshAsync(_networkService, _tvDevices[_selectedTv]);
+		await _tv.RefreshSelectedAsync();
 
 		// Shared pre-install guards (Core): a TV that still needs a restart, Developer Mode off, a
 		// Developer-Mode IP pointing at another device or typed back to front, a TV on another subnet.
 		// Same checks and wording as the desktop head — each one is Continue/Stop, never a hard block.
 		var guardResult = InstallGuards.Evaluate(
-			_tvDevices[_selectedTv],
+			tv.Device,
 			new InstallGuardOptions
 			{
 				LocalIps = LocalIps(),
@@ -565,22 +541,29 @@ public partial class InstallerPage : ContentPage
 		tvIp = guardResult.CorrectedTvIp ?? tvIp;
 
 		var appName = custom ? Path.GetFileNameWithoutExtension(customPath!) : release!.Name;
+		var appTitle = custom || string.IsNullOrWhiteSpace(release!.TagName) || !HasSeveralReleases(release.Name)
+			? appName
+			: $"{appName} {release.TagName}";
 		// Auto-request Partner signing if the selected app's manifest declares cert_level: partner.
 		var requirePartner = !custom && release!.RequiresPartner;
 
-		RefreshBtn.IsEnabled = false;
 		_busy = true;
+		_tv.IsLocked = true;
 		UpdateTvCard();
+		_progress = new InstallProgressPage(appTitle, custom ? null : release!.Category, _tv.DisplayName, MobileSettings.OpenAfterInstall);
+		await Navigation.PushModalAsync(_progress);
 		string? wgtPath = null;
 		try
 		{
 			// Download first so we can inspect the package's declared privileges before signing.
+			SetStep(InstallStep.Download);
 			wgtPath = custom ? customPath! : await _installer.DownloadAsync(asset!.DownloadUrl, SetStatus);
 
 			// Partner if the manifest declared it OR the .wgt itself needs a partner-level privilege.
 			var needsPartner = requirePartner || WgtPrivileges.RequiresPartner(wgtPath);
 			// Provisioning reuses a valid cert already covering this TV and only triggers a Samsung
 			// sign-in when it must (re)generate — so no login prompt when a cert is already in place.
+			SetStep(InstallStep.Certificate);
 			var cert = await _certProvisioner.ProvisionAsync(tvIp, needsPartner, SetStatus);
 
 			// The signing certificate's validity period may not have started yet — a Samsung TV
@@ -591,7 +574,7 @@ public partial class InstallerPage : ContentPage
 			{
 				try
 				{
-					await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus);
+					await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus, SetStep);
 					break;
 				}
 				catch (CertificateNotYetValidException notYetValid)
@@ -601,18 +584,19 @@ public partial class InstallerPage : ContentPage
 					await Navigation.PushModalAsync(wait);
 					if (!await wait.Completion)
 					{
-						SetStatus(L10n.Get("certificateWaitCancelled"));
+						FailProgress(L10n.Get("certificateWaitCancelled"));
 						return;
 					}
 				}
 			}
 
 			SetStatus("✓ " + string.Format(L10n.Get("statusInstalledOpenApps"), appName));
+			await CloseProgressAsync();
 			await Navigation.PushModalAsync(new InstallCompletePage(appName));
 		}
 		catch (TaskCanceledException)
 		{
-			SetStatus(L10n.Get("statusSignInCancelled"));
+			FailProgress(L10n.Get("statusSignInCancelled"));
 		}
 		catch (SamsungAccountEmailMissingException)
 		{
@@ -620,6 +604,7 @@ public partial class InstallerPage : ContentPage
 			// emailAddress field — this used to surface as a bare NullReferenceException (issue #606).
 			// Only the user can fix it, on their Samsung account page, so offer to open it.
 			SetStatus(L10n.Get("statusSamsungAccountNoEmail"));
+			await CloseProgressAsync();
 			var openAccount = await DisplayAlert(
 				L10n.Get("lblSamsungAccountNoEmailTitle"),
 				L10n.Get("statusSamsungAccountNoEmail"),
@@ -635,7 +620,7 @@ public partial class InstallerPage : ContentPage
 		catch (Exception ex)
 		{
 			System.Diagnostics.Trace.WriteLine($"[installer] Install failed: {ex}");
-			SetStatus(string.Format(L10n.Get("statusInstallFailed"), ex.Message));
+			FailProgress(string.Format(L10n.Get("statusInstallFailed"), ex.Message));
 		}
 		finally
 		{
@@ -646,10 +631,43 @@ public partial class InstallerPage : ContentPage
 				try { File.Delete(wgtPath); } catch { /* best-effort */ }
 			}
 
-			RefreshBtn.IsEnabled = true;
 			_busy = false;
+			_tv.IsLocked = false;
+			// A failed install leaves the sheet up with the reason and Close; it stops listening here.
+			_progress = null;
 			UpdateTvCard();
 		}
+	}
+
+	// The step the install reached, on the progress sheet (any thread).
+	private void SetStep(InstallStep step) => SetStep(step, null);
+
+	private void SetStep(InstallStep step, int? percent)
+	{
+		var sheet = _progress;
+		if (sheet is not null)
+			MainThread.BeginInvokeOnMainThread(() => sheet.SetStep(step, percent));
+	}
+
+	// A failure: the status line, and the sheet turns the current step red with the reason.
+	private void FailProgress(string message)
+	{
+		System.Diagnostics.Trace.WriteLine($"[installer] {message}");
+		var sheet = _progress;
+		MainThread.BeginInvokeOnMainThread(() =>
+		{
+			_status = message;
+			UpdateTvCard();
+			sheet?.Fail(message);
+		});
+	}
+
+	private async Task CloseProgressAsync()
+	{
+		var sheet = _progress;
+		_progress = null;
+		if (sheet is not null)
+			await MainThread.InvokeOnMainThreadAsync(sheet.CloseAsync);
 	}
 
 	// The IPs this phone answers on — what the guards compare the TV's Developer-Mode IP against.
@@ -669,71 +687,40 @@ public partial class InstallerPage : ContentPage
 		}
 	}
 
-	// Reads a TV's Developer-Mode state over its REST API; null when it doesn't answer.
-	private async Task<NetworkDevice?> ProbeTvAsync(string ip)
-	{
-		try
-		{
-			var enriched = await TizenDeveloperInfo.EnrichAsync(
-				_networkService, new[] { new NetworkDevice { IpAddress = ip } });
-			return enriched.FirstOrDefault();
-		}
-		catch (Exception ex)
-		{
-			System.Diagnostics.Trace.WriteLine($"[installer] Couldn't read TV info for {ip}: {ex.Message}");
-			return null;
-		}
-	}
-
-	// Status line for the current selection. A TV that isn't installable yet gets the actual reason
-	// (Developer Mode off, its Developer-Mode IP pointing at another device, or a power cycle needed)
-	// instead of a bare count — the same guidance the desktop head shows.
-	private string SelectedTvStatus()
-	{
-		var idx = _selectedTv;
-		var device = idx >= 0 && idx < _tvDevices.Count ? _tvDevices[idx] : null;
-		var localIp = NetworkInfo.GetLocalIPv4();
-
-		if (device is { DebugPortOpen: false })
-			return TizenDeviceReadiness.Describe(TizenDeviceReadiness.WhyNotReady(device, localIp), localIp, L10n.Get);
-
-		var notReady = _tvDevices.Count(d => d is { DebugPortOpen: false });
-		return notReady > 0
-			? string.Format(L10n.Get("statusTvsFoundNotReady"), _tvIps.Count, notReady)
-			: L10n.Get("Ready");
-	}
-
 	private void SetStatus(string message)
 	{
 		// Mirror every status line to the debug log (timestamped) so the log is a full transcript of
 		// the scan/download/cert/install flow — not just the on-screen label.
 		System.Diagnostics.Trace.WriteLine($"[installer] {message}");
+		var sheet = _progress;
 		MainThread.BeginInvokeOnMainThread(() =>
 		{
 			_status = message;
 			UpdateTvCard();
+			sheet?.Report(message);
 		});
 	}
 
 	/// <summary>
-	/// The TV card (Core's <see cref="TvCardStates"/>) for the selected TV, with this page's state
-	/// on top: the LED pulses while anything runs and the status line is the card's message. Main
-	/// thread only.
+	/// The TV card (Core's <see cref="TvCardStates"/>, via <see cref="TvSelection"/>) and the top bar
+	/// for the selected TV, with this page's state on top: the LED pulses while an install runs and
+	/// the status line is the card's message. Main thread only.
 	/// </summary>
 	private void UpdateTvCard()
 	{
-		var idx = _selectedTv;
-		var ip = idx >= 0 && idx < _tvIps.Count ? _tvIps[idx] : null;
-		var device = idx >= 0 && idx < _tvDevices.Count ? _tvDevices[idx] : null;
-		var localIp = NetworkInfo.GetLocalIPv4();
-
-		TvCardState state;
-		if (_scanning)
-			state = TvCardStates.Scanning(L10n.Get);
-		else if (ip is null)
-			state = TvCardStates.NoTv(L10n.Get, localIp);
-		else
-			state = TvCardStates.ForDevice(device ?? new NetworkDevice { IpAddress = ip }, localIp, L10n.Get);
+		var state = _tv.CardState();
+		TopBar.ShowTv(_tv.HasTv || _tv.IsScanning ? state : state with { Name = L10n.Get("lblNoTvFound") });
+		TopBar.TvCount = _tv.Tvs.Count;
+		var noTv = !_tv.HasTv && !_tv.IsScanning;
+		if (noTv)
+		{
+			TopBar.Subtitle = L10n.Get("lblNoTvFoundHint");
+			TopBar.Status = TopBarStatus.Warn;
+		}
+		TvCard.IsVisible = !noTv;
+		NoTvCard.IsVisible = noTv;
+		if (_busy)
+			TopBar.Status = TopBarStatus.Busy;
 
 		TvCard.State = state with
 		{

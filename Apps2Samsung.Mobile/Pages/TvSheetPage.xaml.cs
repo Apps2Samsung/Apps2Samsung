@@ -1,15 +1,19 @@
+using Apps2Samsung.Design;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Resources.Styles;
+using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Models;
 
 namespace Apps2Samsung.Mobile.Pages;
 
-/// <summary>What the TV sheet hands back: a found TV by index, "enter an IP", or "rescan".</summary>
-public sealed record TvSheetChoice(int Index, bool Manual, bool Rescan);
+/// <summary>What the TV sheet hands back: the index of the TV to switch to.</summary>
+public sealed record TvSheetChoice(int Index);
 
 /// <summary>
-/// The TV sheet: the found TVs with their LED colours, a row for a TV the scan didn't find, and
-/// Rescan. The Install page pushes it modally and awaits <see cref="Result"/> (null = closed).
+/// The Switch TV sheet: the TVs in <see cref="TvSelection"/> with their LED colours and the one in
+/// use ticked. Only offered once there is more than one TV; Rescan and Add TV by IP live in the ⋯ menu.
+/// <see cref="TvPicker"/> pushes it modally and awaits <see cref="Result"/>
+/// (null = closed).
 /// </summary>
 public partial class TvSheetPage : ContentPage
 {
@@ -18,89 +22,61 @@ public partial class TvSheetPage : ContentPage
 
 	public Task<TvSheetChoice?> Result => _result.Task;
 
-	public TvSheetPage(IReadOnlyList<string> ips, IReadOnlyList<string> labels, IReadOnlyList<NetworkDevice?> devices, int selected)
+	public TvSheetPage(IReadOnlyList<TvEntry> tvs, int selected)
 	{
 		InitializeComponent();
-		for (var i = 0; i < ips.Count; i++)
+		var localIp = NetworkInfo.GetLocalIPv4();
+		for (var i = 0; i < tvs.Count; i++)
 		{
 			if (i > 0)
-				Rows.Add(Hairline());
-			var device = i < devices.Count ? devices[i] : null;
-			var name = string.IsNullOrWhiteSpace(device?.DeviceName) ? L10n.Get("tvCardSamsungTv") : device!.DeviceName!;
-			var subline = string.IsNullOrWhiteSpace(device?.ModelName) ? ips[i] : $"{device!.ModelName} · {ips[i]}";
+				Rows.Add(Hairline(37));
+			var tv = tvs[i];
+			var state = TvCardStates.ForDevice(tv.Device ?? new NetworkDevice { IpAddress = tv.Ip }, localIp, L10n.Get);
 			var index = i;
-			Rows.Add(TvRow(name, subline, i == selected, device?.DebugPortOpen ?? true, () => Choose(new TvSheetChoice(index, false, false))));
+			Rows.Add(TvRow(state.Name, $"{state.Subline} · {state.Message}", i == selected, state.Led == TvLed.Ok,
+				() => Choose(new TvSheetChoice(index))));
 		}
-		if (ips.Count > 0)
-			Rows.Add(Hairline());
-		Rows.Add(ManualRow());
+		FoundTitle.IsVisible = FoundCard.IsVisible = tvs.Count > 0;
 	}
 
 	private static Color C(string token) => DesignTheme.ColorOf(token);
-	private static BoxView Hairline() => new() { HeightRequest = 1, Margin = new Thickness(16, 0, 0, 0), Color = C("Hair") };
+	private static BoxView Hairline(double inset) => new() { HeightRequest = 1, Margin = new Thickness(inset, 0, 0, 0), Color = C("Hair") };
 
+	// LED dot, name over "model · IP · status", a tick on the TV in use.
 	private View TvRow(string name, string subline, bool selected, bool ready, Action tap)
 	{
-		var radio = new Border
-		{
-			WidthRequest = 22, HeightRequest = 22, StrokeThickness = 2, VerticalOptions = LayoutOptions.Center,
-			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 11 },
-			Stroke = new SolidColorBrush(C(selected ? "Accent" : "Hair")),
-			BackgroundColor = selected ? C("Accent") : Colors.Transparent,
-		};
+		var dot = new BoxView { WidthRequest = 9, HeightRequest = 9, CornerRadius = 5, VerticalOptions = LayoutOptions.Center, Color = C(ready ? "Ok" : "Warn") };
 		var text = new VerticalStackLayout
 		{
 			Spacing = 1, VerticalOptions = LayoutOptions.Center,
 			Children =
 			{
-				new Label { Text = name, FontAttributes = FontAttributes.Bold, LineBreakMode = LineBreakMode.TailTruncation },
+				new Label { Text = name, FontAttributes = FontAttributes.Bold, FontSize = 15, LineBreakMode = LineBreakMode.TailTruncation },
 				new Label { Text = subline, FontSize = 13, TextColor = C("Muted"), LineBreakMode = LineBreakMode.TailTruncation },
 			},
 		};
-		var dot = new BoxView { WidthRequest = 10, HeightRequest = 10, CornerRadius = 5, VerticalOptions = LayoutOptions.Center, Color = C(ready ? "Ok" : "Warn") };
+		var tick = new Microsoft.Maui.Controls.Shapes.Path
+		{
+			Data = ParsePath("M2,7 L7,12 L16,2"), Stroke = new SolidColorBrush(C("Accent")), StrokeThickness = 2.4,
+			StrokeLineCap = Microsoft.Maui.Controls.Shapes.PenLineCap.Round, StrokeLineJoin = Microsoft.Maui.Controls.Shapes.PenLineJoin.Round,
+			WidthRequest = 18, HeightRequest = 14, VerticalOptions = LayoutOptions.Center, IsVisible = selected,
+		};
 		var grid = new Grid
 		{
 			ColumnDefinitions = { new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
 			ColumnSpacing = 12, Padding = new Thickness(16, 11), MinimumHeightRequest = 52,
 		};
-		grid.Add(radio, 0, 0);
+		grid.Add(dot, 0, 0);
 		grid.Add(text, 1, 0);
-		grid.Add(dot, 2, 0);
+		grid.Add(tick, 2, 0);
 		var gesture = new TapGestureRecognizer();
 		gesture.Tapped += (_, _) => tap();
 		grid.GestureRecognizers.Add(gesture);
 		return grid;
 	}
 
-	private View ManualRow()
-	{
-		var tile = new Border
-		{
-			WidthRequest = 44, HeightRequest = 44, StrokeThickness = 0, BackgroundColor = C("Fill"),
-			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 11 },
-			Content = new Label { Text = "✏️", FontSize = 20, HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center },
-		};
-		var text = new VerticalStackLayout
-		{
-			Spacing = 1, VerticalOptions = LayoutOptions.Center,
-			Children =
-			{
-				new Label { Text = L10n.Get("lblEnterIpManually"), FontAttributes = FontAttributes.Bold },
-				new Label { Text = L10n.Get("lblEnterIpHint"), FontSize = 13, TextColor = C("Muted") },
-			},
-		};
-		var grid = new Grid
-		{
-			ColumnDefinitions = { new ColumnDefinition(44), new ColumnDefinition(GridLength.Star) },
-			ColumnSpacing = 12, Padding = new Thickness(16, 11), MinimumHeightRequest = 52,
-		};
-		grid.Add(tile, 0, 0);
-		grid.Add(text, 1, 0);
-		var gesture = new TapGestureRecognizer();
-		gesture.Tapped += (_, _) => Choose(new TvSheetChoice(-1, true, false));
-		grid.GestureRecognizers.Add(gesture);
-		return grid;
-	}
+	private static Microsoft.Maui.Controls.Shapes.Geometry ParsePath(string data) =>
+		(Microsoft.Maui.Controls.Shapes.Geometry)new Microsoft.Maui.Controls.Shapes.PathGeometryConverter().ConvertFromInvariantString(data)!;
 
 	private async void Choose(TvSheetChoice choice)
 	{
@@ -110,8 +86,6 @@ public partial class TvSheetPage : ContentPage
 		_result.TrySetResult(choice);
 		await Navigation.PopModalAsync();
 	}
-
-	private void OnRescanClicked(object? sender, EventArgs e) => Choose(new TvSheetChoice(-1, false, true));
 
 	private async void OnCloseClicked(object? sender, EventArgs e) => await Navigation.PopModalAsync();
 

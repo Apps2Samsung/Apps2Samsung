@@ -2,31 +2,24 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.InstalledAppsPage"
              Title="{l:Localize lblInstalledApps}"
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
 
-    <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="16,10,16,0" RowSpacing="8">
+    <Grid RowDefinitions="Auto,*,Auto">
 
-        <!-- A tab root (#755). The actions sit in a row above the title, the way iOS puts them over a
-             large title: beside it, "Remove leftover" and refresh left the title too little width in
-             longer languages ("Restanten verwijderen" next to "Op de tv"). -->
-        <HorizontalStackLayout Grid.Row="0" Spacing="8" HorizontalOptions="End" Margin="4,4,4,0">
-            <Button x:Name="RemoveLeftoverBtn" Text="{l:Localize lblRemoveLeftover}" FontSize="12"
-                    Style="{StaticResource IconButton}" WidthRequest="-1" MinimumWidthRequest="36" Padding="12,0" CornerRadius="18"
-                    Clicked="OnRemoveLeftoverClicked" />
-            <Button x:Name="RefreshBtn" Text="⟳" Style="{StaticResource IconButton}" Clicked="OnRefreshClicked" />
-        </HorizontalStackLayout>
-        <Label Grid.Row="1" Text="{l:Localize lblOnTheTv}" Style="{StaticResource PageTitle}" Margin="4,0" />
-
-        <!-- which TV, how many apps, or what went wrong -->
-        <Label Grid.Row="2" x:Name="CountLabel" Style="{StaticResource Footnote}" Text="{l:Localize lblLoading}" LineBreakMode="WordWrap" />
+        <!-- The top bar (#755): the TV with ▾, how many apps and how much space (or what is going on),
+             and ⋯ with Refresh / TV information / Remove leftover. -->
+        <controls:TopBarView x:Name="TopBar" Grid.Row="0" TvTitle="True" Action="More"
+                             TitleTapped="OnChangeTvClicked" MoreTapped="OnMoreClicked" />
 
         <!-- The apps as a grouped list (#755): tile, name, version and size, a chevron; a row opens
              the app's sheet with Launch / Stop / Debug console / Uninstall. -->
-        <Border Grid.Row="3" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}"
-                VerticalOptions="Start" Margin="0,0,0,16">
+        <Border Grid.Row="1" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}"
+                VerticalOptions="Start" Margin="16,4,16,0">
+            <RefreshView x:Name="Refresher" Refreshing="OnPulledToRefresh" RefreshColor="{DynamicResource AccentColor}">
             <CollectionView x:Name="AppsList" SelectionMode="None" VerticalScrollBarVisibility="Never">
                 <CollectionView.EmptyView>
                     <Label x:Name="EmptyLabel" Text="{l:Localize lblNoAppsToShow}" Padding="16,14"
@@ -63,11 +56,15 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
+            </RefreshView>
         </Border>
 
         <!-- Busy overlay -->
-        <ActivityIndicator Grid.Row="3" x:Name="Busy" IsRunning="False" IsVisible="False"
+        <ActivityIndicator Grid.Row="1" x:Name="Busy" IsRunning="False" IsVisible="False"
                            VerticalOptions="Center" HorizontalOptions="Center" Color="{DynamicResource AccentColor}" />
+
+        <Label Grid.Row="2" Text="{l:Localize lblPullToRefresh}" Style="{StaticResource Footnote}"
+               HorizontalOptions="Center" Margin="0,4,0,12" />
 
     </Grid>
 

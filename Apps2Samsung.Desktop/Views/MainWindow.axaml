@@ -27,15 +27,41 @@
 		<StyleInclude Source="avares://Apps2Samsung/Styles/TextBlocks.axaml"/>
 		<StyleInclude Source="avares://Apps2Samsung/Styles/ComboBoxes.axaml"/>
 		<StyleInclude Source="avares://Apps2Samsung/Styles/Catalog.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Sections.axaml"/>
 	</Window.Styles>
 
 	<Grid ColumnDefinitions="188,*">
-		<!-- Sidebar: the four sections (#755). Settings keeps its window until its own redesign. -->
+		<!-- Sidebar (#755, option C): the TV in use on top (its name and status; with more than one
+		     TV found it gets a ▾ and opens the TV picker), the four sections, and the version, licence and theme switch at the foot. -->
 		<Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}"
-		        BorderBrush="{DynamicResource HairBrush}" BorderThickness="0,0,1,0" Padding="12,16">
+		        BorderBrush="{DynamicResource HairBrush}" BorderThickness="0,0,1,0" Padding="10,14">
 			<DockPanel>
 				<StackPanel DockPanel.Dock="Top" Spacing="4">
-					<TextBlock Text="Apps2Samsung" FontWeight="Bold" FontSize="15" Margin="12,0,8,16"/>
+					<Button Classes="settingsrow" Background="{DynamicResource FillBrush}" CornerRadius="10" Padding="10,8" Margin="0,0,0,12"
+					        Command="{Binding ChangeTvCommand}" IsHitTestVisible="{Binding CanSwitchTv}">
+						<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+							<Border Classes="icontile" Width="30" Height="30" CornerRadius="8" Background="{DynamicResource AccentBrush}">
+								<Viewbox Width="17" Height="15">
+									<Canvas Width="28" Height="24">
+										<Path Classes="tileicon" StrokeThickness="2.6" Data="M4.5,2 H23.5 A2.5,2.5 0 0 1 26,4.5 V14.5 A2.5,2.5 0 0 1 23.5,17 H4.5 A2.5,2.5 0 0 1 2,14.5 V4.5 A2.5,2.5 0 0 1 4.5,2 Z M10,21 H18"/>
+									</Canvas>
+								</Viewbox>
+							</Border>
+							<StackPanel Grid.Column="1" VerticalAlignment="Center">
+								<StackPanel Orientation="Horizontal" Spacing="5">
+									<TextBlock Text="{Binding TvCard.Name}" FontSize="14" FontWeight="Bold" MaxWidth="104"
+									           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
+									<PathIcon Width="10" Height="7" Data="M1,1.5 L5,5.5 L9,1.5" Foreground="{DynamicResource AccentBrush}"
+									          VerticalAlignment="Center" IsVisible="{Binding CanSwitchTv}"/>
+								</StackPanel>
+								<StackPanel Orientation="Horizontal" Spacing="5">
+									<Ellipse Width="7" Height="7" Fill="{Binding TvLedBrush}" VerticalAlignment="Center"/>
+									<TextBlock Text="{Binding TvCard.Message}" FontSize="12" MaxWidth="110" TextTrimming="CharacterEllipsis"
+									           Foreground="{DynamicResource MutedBrush}" ToolTip.Tip="{Binding TvCard.Message}"/>
+								</StackPanel>
+							</StackPanel>
+						</Grid>
+					</Button>
 					<ToggleButton Classes="nav" IsChecked="{Binding IsInstallSection, Mode=OneWay}"
 					              Command="{Binding ShowSectionCommand}" CommandParameter="Install">
 						<StackPanel Orientation="Horizontal" Spacing="10">
@@ -54,157 +80,220 @@
 							<fa:SymbolIcon Symbol="Play"/><TextBlock Text="{Binding LblRemoteTab}"/>
 						</StackPanel>
 					</ToggleButton>
-					<ToggleButton Classes="nav" IsChecked="False" Command="{Binding OpenSettingsCommand}">
+					<ToggleButton Classes="nav" IsChecked="{Binding IsSettingsSection, Mode=OneWay}"
+					              Command="{Binding ShowSectionCommand}" CommandParameter="Settings">
 						<StackPanel Orientation="Horizontal" Spacing="10">
 							<fa:SymbolIcon Symbol="Settings"/><TextBlock Text="{Binding LblSettingsTab}"/>
 						</StackPanel>
 					</ToggleButton>
 				</StackPanel>
-				<StackPanel DockPanel.Dock="Bottom" Spacing="8">
-					<ToggleButton Classes="nav" IsChecked="{Binding DarkMode}">
+				<Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" ColumnSpacing="4" Margin="8,0,0,0">
+					<StackPanel VerticalAlignment="Center" ToolTip.Tip="{Binding FooterText}">
+						<TextBlock Text="{Binding VersionText}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
+						<TextBlock Text="{Binding LicenseText}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+					</StackPanel>
+					<ToggleButton Grid.Column="1" Classes="nav" Padding="8" VerticalAlignment="Center" IsChecked="{Binding DarkMode}">
 						<Panel>
 							<TextBlock Text="&#x2600;" FontSize="16" IsVisible="{Binding DarkMode}"/>
 							<TextBlock Text="&#x1F319;" FontSize="14" IsVisible="{Binding !DarkMode}"/>
 						</Panel>
 					</ToggleButton>
-					<TextBlock FontSize="11" Opacity="0.6" TextWrapping="Wrap" Margin="8,0" Text="{Binding FooterText}"/>
-				</StackPanel>
+				</Grid>
 				<Panel/>
 			</DockPanel>
 		</Border>
 
-		<!-- Content: one section at a time -->
+		<!-- Content: one section at a time, each with its toolbar on top -->
 		<Panel Grid.Column="1">
-			<ScrollViewer IsVisible="{Binding IsInstallSection}">
-				<StackPanel Spacing="14" Margin="20">
-			<!-- VPN / tunnel adapter warning -->
-			<Border Background="{DynamicResource WarnSoftBrush}" CornerRadius="6" Padding="12,10"
-			        BorderBrush="{DynamicResource WarnBrush}" BorderThickness="1"
-			        IsVisible="{Binding HasVpnWarning}">
-				<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-					<fa:SymbolIcon Grid.Column="0" Symbol="Important" Width="18" Height="18" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Top"/>
-					<TextBlock Grid.Column="1" Text="{Binding VpnWarning}" Foreground="{DynamicResource WarnBrush}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
+
+			<!-- Install -->
+			<DockPanel IsVisible="{Binding IsInstallSection}">
+				<Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" Margin="20,16,20,0">
+					<TextBox Classes="search tool" Text="{Binding SearchText, Mode=TwoWay}" Watermark="{Binding LblSearchApps}"/>
+					<Button Grid.Column="1" Classes="tool" Content="{l:Localize lblInstallAFile}" ToolTip.Tip="{Binding CustomFileSubline}"
+					        Command="{Binding InstallOwnFileCommand}"/>
+					<Button Grid.Column="2" Classes="tool square" Content="⋯" FontSize="18" ToolTip.Tip="{l:Localize lblMore}">
+						<Button.Flyout>
+							<MenuFlyout Placement="BottomEdgeAlignedRight">
+								<MenuItem Header="{l:Localize lblChangeTv}" Command="{Binding ChangeTvCommand}" IsVisible="{Binding CanSwitchTv}"/>
+								<MenuItem Header="{l:Localize lblRescanForTvs}" Command="{Binding RefreshDevicesCommand}"/>
+								<MenuItem Header="{l:Localize lblAddTvByIp}" Command="{Binding AddTvByIpCommand}"/>
+								<MenuItem Header="{l:Localize lblTvInformation}" Command="{Binding ShowDeviceInfoCommand}"/>
+								<MenuItem Header="{l:Localize lblToolbox}" Command="{Binding ShowTvToolboxCommand}"/>
+							</MenuFlyout>
+						</Button.Flyout>
+					</Button>
 				</Grid>
-			</Border>
+				<ScrollViewer>
+					<StackPanel Spacing="14" Margin="20,14,20,20">
+						<!-- VPN / tunnel adapter warning -->
+						<Border Background="{DynamicResource WarnSoftBrush}" CornerRadius="6" Padding="12,10"
+						        BorderBrush="{DynamicResource WarnBrush}" BorderThickness="1"
+						        IsVisible="{Binding HasVpnWarning}">
+							<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+								<fa:SymbolIcon Grid.Column="0" Symbol="Important" Width="18" Height="18" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Top"/>
+								<TextBlock Grid.Column="1" Text="{Binding VpnWarning}" Foreground="{DynamicResource WarnBrush}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
+							</Grid>
+						</Border>
 
-			<!-- The TV: name, model + IP, an LED with the status line, the install bar, and the
-			     actions for the selected set as chips on its screen (#755). -->
-			<controls:TvCard State="{Binding TvCard}">
-				<controls:TvCard.Actions>
-					<WrapPanel Orientation="Horizontal" ItemSpacing="10" LineSpacing="10">
-						<Button Classes="chip solid" Content="{l:Localize lblChangeTv}" Command="{Binding ChangeTvCommand}"/>
-						<Button Classes="chip" Content="{l:Localize lblRescan}" Command="{Binding RefreshDevicesCommand}"/>
-						<Button Classes="chip" Content="{l:Localize lblTvInformation}" Command="{Binding ShowDeviceInfoCommand}"/>
-						<Button Classes="chip" Content="{l:Localize lblToolbox}" Command="{Binding ShowTvToolboxCommand}"/>
-					</WrapPanel>
-				</controls:TvCard.Actions>
-			</controls:TvCard>
+						<!-- The TV: name, model + IP, an LED with the status line and the install bar (#755).
+						     Its actions live in the toolbar's ⋯ and the sidebar's TV picker. -->
+						<controls:TvCard State="{Binding TvCard}"/>
 
-			<!-- The catalog (#755): search, category chips, the grouped list; a row opens the app sheet. -->
-			<StackPanel Spacing="10">
-				<TextBox Classes="search" Text="{Binding SearchText, Mode=TwoWay}" Watermark="{Binding LblSearchApps}"/>
+						<!-- Cancel a running Samsung sign-in -->
+						<Button Classes="icon" HorizontalAlignment="Center"
+						        IsVisible="{Binding IsSamsungLoginActive}"
+						        Command="{Binding CancelSamsungLoginCommand}">
+							<fa:SymbolIcon Symbol="Cancel" Width="20" Height="20"/>
+						</Button>
 
-				<!-- skeleton while the catalog loads -->
-				<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}" IsVisible="{Binding IsLoading}">
-					<StackPanel>
-						<Border Classes="skeleton"/>
-						<Border Classes="hairline"/>
-						<Border Classes="skeleton"/>
-						<Border Classes="hairline"/>
-						<Border Classes="skeleton"/>
-					</StackPanel>
-				</Border>
-				<Border CornerRadius="12" Background="{DynamicResource SurfaceBrush}" Padding="16,14" IsVisible="{Binding IsCatalogEmpty}">
-					<TextBlock Text="{Binding LblNoAppMatches}" Foreground="{DynamicResource MutedBrush}"/>
-				</Border>
-
-				<!-- one short group per category, "Show all" expands it; a search is one flat group -->
-				<ItemsControl ItemsSource="{Binding CatalogGroupsView}">
-					<ItemsControl.ItemsPanel>
-						<ItemsPanelTemplate><StackPanel Spacing="8"/></ItemsPanelTemplate>
-					</ItemsControl.ItemsPanel>
-					<ItemsControl.ItemTemplate>
-						<DataTemplate x:DataType="viewModels:MainWindowViewModel+CatalogGroupView">
-							<StackPanel Spacing="6" IsVisible="{Binding !IsEmpty}">
-								<Grid ColumnDefinitions="*,Auto" Margin="4,8,4,0">
-									<StackPanel Orientation="Horizontal" Spacing="6">
-										<TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"/>
-										<TextBlock Text="{Binding Count}" FontSize="15" Foreground="{DynamicResource MutedBrush}" Opacity="0.7"/>
+						<!-- The catalog (#755): the grouped list; a row opens the app sheet. -->
+						<StackPanel Spacing="10">
+								<!-- skeleton while the catalog loads -->
+								<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}" IsVisible="{Binding IsLoading}">
+									<StackPanel>
+										<Border Classes="skeleton"/>
+										<Border Classes="hairline"/>
+										<Border Classes="skeleton"/>
+										<Border Classes="hairline"/>
+										<Border Classes="skeleton"/>
 									</StackPanel>
-									<Button Grid.Column="1" Classes="link" Content="{Binding ToggleText}" IsVisible="{Binding CanToggle}"
-									        Command="{Binding $parent[ItemsControl].((viewModels:MainWindowViewModel)DataContext).ToggleGroupCommand}"
-									        CommandParameter="{Binding}"/>
-								</Grid>
-								<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
-									<ItemsControl ItemsSource="{Binding Rows}">
-										<ItemsControl.ItemTemplate>
-											<DataTemplate x:DataType="viewModels:MainWindowViewModel+CatalogRow">
-												<StackPanel>
-													<Button Classes="row"
-													        Command="{Binding $parent[ItemsControl;1].((viewModels:MainWindowViewModel)DataContext).OpenAppCommand}"
-													        CommandParameter="{Binding}">
-														<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-															<Border Classes="tile" Background="{Binding TileBrush}">
-																<TextBlock Text="{Binding Letter}" Foreground="{DynamicResource OnAccentBrush}"/>
-															</Border>
-															<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-																<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
-																<TextBlock Text="{Binding Subline}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
-															</StackPanel>
-															<PathIcon Grid.Column="2" Width="8" Height="13" Opacity="0.35" VerticalAlignment="Center"
-															          Foreground="{DynamicResource InkBrush}" Data="M1,1 L7,6.5 L1,12"/>
-														</Grid>
-													</Button>
-													<Border Classes="hairline"/>
-												</StackPanel>
-											</DataTemplate>
-										</ItemsControl.ItemTemplate>
-									</ItemsControl>
 								</Border>
-							</StackPanel>
-						</DataTemplate>
-					</ItemsControl.ItemTemplate>
-				</ItemsControl>
+								<Border CornerRadius="12" Background="{DynamicResource SurfaceBrush}" Padding="16,14" IsVisible="{Binding IsCatalogEmpty}">
+									<TextBlock Text="{Binding LblNoAppMatches}" Foreground="{DynamicResource MutedBrush}"/>
+								</Border>
+								<!-- one short group per category, two across; "Show all" expands it; a search is one flat group -->
+								<ItemsControl ItemsSource="{Binding CatalogGroupsView}">
+									<ItemsControl.ItemsPanel>
+										<ItemsPanelTemplate>
+											<UniformGrid Columns="{Binding $parent[ItemsControl].((viewModels:MainWindowViewModel)DataContext).CatalogColumns}"/>
+										</ItemsPanelTemplate>
+									</ItemsControl.ItemsPanel>
+									<ItemsControl.ItemTemplate>
+										<DataTemplate x:DataType="viewModels:MainWindowViewModel+CatalogGroupView">
+											<StackPanel Spacing="6" IsVisible="{Binding !IsEmpty}" Margin="0,0,14,14" VerticalAlignment="Top">
+												<Grid ColumnDefinitions="*,Auto" Margin="4,8,4,0">
+													<StackPanel Orientation="Horizontal" Spacing="6">
+														<TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"/>
+														<TextBlock Text="{Binding Count}" FontSize="15" Foreground="{DynamicResource MutedBrush}" Opacity="0.7"/>
+													</StackPanel>
+													<Button Grid.Column="1" Classes="link" Content="{Binding ToggleText}" IsVisible="{Binding CanToggle}"
+													        Command="{Binding $parent[ItemsControl].((viewModels:MainWindowViewModel)DataContext).ToggleGroupCommand}"
+													        CommandParameter="{Binding}"/>
+												</Grid>
+												<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
+													<ItemsControl ItemsSource="{Binding Rows}">
+														<ItemsControl.ItemTemplate>
+															<DataTemplate x:DataType="viewModels:MainWindowViewModel+CatalogRow">
+																<StackPanel>
+																	<Button Classes="row"
+																	        Command="{Binding $parent[ItemsControl;1].((viewModels:MainWindowViewModel)DataContext).OpenAppCommand}"
+																	        CommandParameter="{Binding}">
+																		<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+																			<Border Classes="tile" Background="{Binding TileBrush}">
+																				<TextBlock Text="{Binding Letter}" Foreground="{DynamicResource OnAccentBrush}"/>
+																			</Border>
+																			<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+																				<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
+																				<TextBlock Text="{Binding Subline}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
+																			</StackPanel>
+																			<PathIcon Grid.Column="2" Width="8" Height="13" Opacity="0.35" VerticalAlignment="Center"
+																			          Foreground="{DynamicResource InkBrush}" Data="M1,1 L7,6.5 L1,12"/>
+																		</Grid>
+																	</Button>
+																	<Border Classes="hairline"/>
+																</StackPanel>
+															</DataTemplate>
+														</ItemsControl.ItemTemplate>
+													</ItemsControl>
+												</Border>
+											</StackPanel>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
 
-				<TextBlock Text="{Binding LblYourOwnPackage}" FontSize="15" FontWeight="SemiBold" Margin="4,8,4,0"
-				           Foreground="{DynamicResource MutedBrush}"/>
-				<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
-					<Button Classes="row" Command="{Binding InstallOwnFileCommand}">
-						<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-							<Border Classes="tile" Background="{DynamicResource FillBrush}">
-								<fa:SymbolIcon Symbol="Folder" Width="20" Height="20" Foreground="{DynamicResource InkBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-							</Border>
-							<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-								<TextBlock Text="{Binding lblCustomWgt}" FontWeight="Medium" Foreground="{DynamicResource InkBrush}"/>
-								<TextBlock Text="{Binding CustomFileSubline}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
-							</StackPanel>
-							<PathIcon Grid.Column="2" Width="8" Height="13" Opacity="0.35" VerticalAlignment="Center"
-							          Foreground="{DynamicResource InkBrush}" Data="M1,1 L7,6.5 L1,12"/>
-						</Grid>
+								<TextBlock Text="{Binding CatalogFoot}" FontSize="13" Margin="4,0" Foreground="{DynamicResource MutedBrush}"/>
+						</StackPanel>
+					</StackPanel>
+				</ScrollViewer>
+			</DockPanel>
+
+			<!-- On the TV -->
+			<DockPanel IsVisible="{Binding IsOnTheTvSection}">
+				<Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="10" Margin="20,16,20,0" MinHeight="36"
+				      IsVisible="{Binding InstalledAppsVm, Converter={x:Static ObjectConverters.IsNotNull}}">
+					<TextBlock Text="{Binding InstalledAppsVm.StatusText}" FontSize="13" VerticalAlignment="Center"
+					           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
+					<Button Grid.Column="1" Classes="tool" Content="{l:Localize lblRefresh}" Command="{Binding InstalledAppsVm.LoadCommand}"
+					        IsVisible="{Binding !InstalledAppsVm.IsDebugging}"/>
+					<Button Grid.Column="2" Classes="tool square" ToolTip.Tip="{l:Localize lblStopDebugging}"
+					        Command="{Binding InstalledAppsVm.StopDebugCommand}" IsVisible="{Binding InstalledAppsVm.IsDebugging}">
+						<fa:SymbolIcon Symbol="StopFilled" Width="16" Height="16" Foreground="{DynamicResource BadBrush}"/>
 					</Button>
-				</Border>
-				<TextBlock Text="{Binding CatalogFoot}" FontSize="13" Margin="4,0" Foreground="{DynamicResource MutedBrush}"/>
-			</StackPanel>
-
-
-					<!-- Cancel a running Samsung sign-in -->
-					<Button Classes="icon" HorizontalAlignment="Center"
-							IsVisible="{Binding IsSamsungLoginActive}"
-							Command="{Binding CancelSamsungLoginCommand}">
-						<fa:SymbolIcon Symbol="Cancel" Width="20" Height="20"/>
+					<Button Grid.Column="3" Classes="tool square" Content="⋯" FontSize="18" ToolTip.Tip="{l:Localize lblMore}">
+						<Button.Flyout>
+							<MenuFlyout Placement="BottomEdgeAlignedRight">
+								<MenuItem Header="{l:Localize lblRemoveLeftover}" Command="{Binding InstalledAppsVm.RemoveLeftoverCommand}"
+								          IsEnabled="{Binding !InstalledAppsVm.IsDebugging}" ToolTip.Tip="{l:Localize lblRemoveLeftoverHint}"/>
+								<MenuItem Header="{l:Localize lblTvInformation}" Command="{Binding ShowDeviceInfoCommand}"/>
+							</MenuFlyout>
+						</Button.Flyout>
 					</Button>
-				</StackPanel>
-			</ScrollViewer>
-			<Panel IsVisible="{Binding IsOnTheTvSection}" Margin="20">
-				<ContentControl Content="{Binding InstalledAppsVm}"/>
-				<TextBlock Text="{Binding LblSelectTvFirst}" Foreground="{DynamicResource MutedBrush}"
-				           IsVisible="{Binding InstalledAppsVm, Converter={x:Static ObjectConverters.IsNull}}"/>
-			</Panel>
-			<Panel IsVisible="{Binding IsRemoteSection}" Margin="20">
-				<ContentControl Content="{Binding RemoteVm}"/>
-				<TextBlock Text="{Binding LblSelectTvFirst}" Foreground="{DynamicResource MutedBrush}"
-				           IsVisible="{Binding RemoteVm, Converter={x:Static ObjectConverters.IsNull}}"/>
-			</Panel>
+				</Grid>
+				<Panel Margin="20,14,20,20">
+					<ContentControl Content="{Binding InstalledAppsVm}"/>
+					<TextBlock Text="{Binding LblSelectTvFirst}" Foreground="{DynamicResource MutedBrush}"
+					           IsVisible="{Binding InstalledAppsVm, Converter={x:Static ObjectConverters.IsNull}}"/>
+				</Panel>
+			</DockPanel>
+
+			<!-- Remote -->
+			<DockPanel IsVisible="{Binding IsRemoteSection}">
+				<Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10" Margin="20,16,20,0" MinHeight="36"
+				      IsVisible="{Binding RemoteVm, Converter={x:Static ObjectConverters.IsNotNull}}">
+					<Panel Width="14" VerticalAlignment="Center">
+						<fa:ProgressRing IsIndeterminate="True" Width="14" Height="14" BorderThickness="2"
+						                 Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding RemoteVm.IsBusy}"/>
+						<Panel IsVisible="{Binding !RemoteVm.IsBusy}" HorizontalAlignment="Center">
+							<Ellipse Width="8" Height="8" Fill="{DynamicResource OkBrush}" IsVisible="{Binding RemoteVm.IsStatusOk}"/>
+							<Ellipse Width="8" Height="8" Fill="{DynamicResource WarnBrush}" IsVisible="{Binding RemoteVm.IsStatusWarn}"/>
+							<Ellipse Width="8" Height="8" Fill="{DynamicResource BadBrush}" IsVisible="{Binding RemoteVm.IsStatusBad}"/>
+						</Panel>
+					</Panel>
+					<StackPanel Grid.Column="1" VerticalAlignment="Center">
+						<TextBlock Text="{Binding RemoteVm.StatusText}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+						<TextBlock Text="{l:Localize lblRemoteKeyboardHint}" FontSize="12" TextTrimming="CharacterEllipsis"
+						           Foreground="{DynamicResource MutedBrush}"/>
+					</StackPanel>
+					<Button Grid.Column="2" Classes="tool" Content="{l:Localize lblRemoteKeyboard}" IsEnabled="{Binding RemoteVm.IsConnected}">
+						<Button.Flyout>
+							<Flyout Placement="BottomEdgeAlignedRight">
+								<StackPanel Spacing="8" Width="320">
+									<TextBlock Text="{l:Localize lblRemoteTypeOnTv}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
+									<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+										<TextBox Grid.Column="0" Classes="search" Text="{Binding RemoteVm.TextToSend}"
+										         Watermark="{l:Localize lblRemoteTextPlaceholder}"/>
+										<Button Grid.Column="1" Classes="primary" CornerRadius="10" Padding="16,8"
+										        Content="{l:Localize lblRemoteSend}" Command="{Binding RemoteVm.SendTextCommand}"/>
+									</Grid>
+									<TextBlock Text="{l:Localize lblRemoteTextHint}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+								</StackPanel>
+							</Flyout>
+						</Button.Flyout>
+					</Button>
+					<Button Grid.Column="3" Classes="tool square power" Content="⏻" FontSize="17" IsEnabled="{Binding !RemoteVm.IsBusy}"
+					        Command="{Binding RemoteVm.PowerOrWakeCommand}" ToolTip.Tip="{l:Localize lblRemotePowerWake}"/>
+				</Grid>
+				<Panel Margin="20,14,20,0">
+					<ContentControl Content="{Binding RemoteVm}"/>
+					<TextBlock Text="{Binding LblSelectTvFirst}" Foreground="{DynamicResource MutedBrush}"
+					           IsVisible="{Binding RemoteVm, Converter={x:Static ObjectConverters.IsNull}}"/>
+				</Panel>
+			</DockPanel>
+
+			<!-- Settings: list + detail, in the window -->
+			<ContentControl IsVisible="{Binding IsSettingsSection}" Content="{Binding Settings}"
+			                HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
 		</Panel>
 	</Grid>
 </Window>

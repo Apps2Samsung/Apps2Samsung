@@ -114,9 +114,9 @@ public static class MauiProgram
 		// Transient, not a singleton: {l:Localize} resolves while a page is being built, so a cached
 		// installer page would serve the language it was born with for the whole life of the process -
 		// and Android keeps the process alive across closing and reopening the app, so "restart it"
-		// didn't rebuild it either. A language change resolves a fresh one (see SettingsPage).
+		// didn't rebuild it either. A language change resolves a fresh one (see SettingsLanguagePage).
 		builder.Services.AddTransient<InstallerPage>();
-		// The other tab roots; they read the TV the Install tab picked from TvSelection.
+		// The TVs and the one in use, shared by every tab (the ▾ in each top bar), and the other tab roots.
 		builder.Services.AddSingleton<TvSelection>();
 		builder.Services.AddTransient<InstalledAppsPage>();
 		builder.Services.AddTransient<RemotePage>();

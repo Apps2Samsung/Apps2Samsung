@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Extensions"
+             xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+             xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+             x:Class="Apps2Samsung.Views.Settings.SettingsBackupView"
+             x:DataType="viewModels:AppSettingsViewModel">
+	<!-- Settings > Backup and diagnostics: export / import settings and certificates, and the logs. -->
+	<StackPanel Spacing="18">
+		<StackPanel Spacing="6">
+			<TextBlock Classes="grouptitle" Text="{l:Localize lblBackupRestore}"/>
+			<Border Classes="group" Padding="14,12">
+				<StackPanel Spacing="10">
+					<TextBlock Classes="hint" Text="{l:Localize lblBackupRestoreHint}"/>
+					<Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+						<Button Grid.Column="0" Classes="plain" Padding="10,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+						        Content="{l:Localize lblExportBackup}" Command="{Binding ExportBackupCommand}"/>
+						<Button Grid.Column="1" Classes="plain" Padding="10,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+						        Content="{l:Localize lblImportBackup}" Command="{Binding ImportBackupCommand}"/>
+					</Grid>
+					<TextBlock Classes="hint" Text="{Binding BackupStatus}"
+					           IsVisible="{Binding BackupStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+				</StackPanel>
+			</Border>
+		</StackPanel>
+
+		<StackPanel Spacing="6">
+			<TextBlock Classes="grouptitle" Text="{l:Localize lblDiagnostics}"/>
+			<Border Classes="group">
+				<Button Classes="row" Command="{Binding OpenLogsFolderCommand}">
+					<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+						<fa:SymbolIcon Symbol="Folder" Width="18" Height="18" Foreground="{DynamicResource AccentBrush}"/>
+						<TextBlock Grid.Column="1" Text="{Binding LblOpenLogsFolder}" FontSize="14" VerticalAlignment="Center"
+						           Foreground="{DynamicResource InkBrush}"/>
+					</Grid>
+				</Button>
+			</Border>
+		</StackPanel>
+	</StackPanel>
+</UserControl>

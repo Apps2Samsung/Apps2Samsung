@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
+             x:Class="Apps2Samsung.Mobile.Pages.SettingsInstallPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+
+    <ContentPage.Resources>
+        <!-- one third of the certificate switch -->
+        <Style x:Key="Segment" TargetType="Button">
+            <Setter Property="HeightRequest" Value="30" />
+            <Setter Property="MinimumHeightRequest" Value="30" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="BorderWidth" Value="0" />
+            <Setter Property="FontFamily" Value="OpenSansSemibold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+        </Style>
+    </ContentPage.Resources>
+
+    <!-- Settings > Installing (#755): how packages are signed, then what happens on every install.
+         Each option says what it does in a line under its name. -->
+    <Grid RowDefinitions="Auto,*">
+        <controls:TopBarView Grid.Row="0" Title="{l:Localize lblSettingsInstalling}" BackText="{l:Localize lblSettingsTab}" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,4,16,20" Spacing="6">
+
+                <Label Text="{l:Localize lblSigning}" Style="{StaticResource GroupTitle}" />
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout>
+                        <VerticalStackLayout Padding="16,12" Spacing="10">
+                            <Label Text="{l:Localize lblCertifcate}" FontSize="16" />
+                            <Border Padding="2" StrokeThickness="0" StrokeShape="RoundRectangle 9" BackgroundColor="{DynamicResource FillColor}">
+                                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="2">
+                                    <Button x:Name="CertAuto" Grid.Column="0" Style="{StaticResource Segment}"
+                                            Text="{l:Localize lblCertificateAutomatic}" Clicked="OnCertificateClicked" />
+                                    <Button x:Name="CertPublic" Grid.Column="1" Style="{StaticResource Segment}" Clicked="OnCertificateClicked" />
+                                    <Button x:Name="CertPartner" Grid.Column="2" Style="{StaticResource Segment}" Clicked="OnCertificateClicked" />
+                                </Grid>
+                            </Border>
+                            <Label Style="{StaticResource RowHint}" Text="{l:Localize hintCertificateType}" />
+                        </VerticalStackLayout>
+                        <BoxView Style="{StaticResource RowDivider}" />
+                        <Grid Style="{StaticResource SettingRow}">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblForceSamsungLogin}" FontSize="16" />
+                                <Label Style="{StaticResource RowHint}" Text="{l:Localize hintForceSamsungLogin}" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" x:Name="ForceLoginSwitch" OnColor="{DynamicResource AccentColor}"
+                                    VerticalOptions="Center" Toggled="OnToggle" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="{l:Localize lblEveryInstall}" Style="{StaticResource GroupTitle}" Margin="4,16,4,0" />
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout>
+                        <Grid Style="{StaticResource SettingRow}">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblDeletePrevious}" FontSize="16" />
+                                <Label Style="{StaticResource RowHint}" Text="{l:Localize hintDeletePrevious}" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" x:Name="RemoveOldSwitch" OnColor="{DynamicResource AccentColor}"
+                                    VerticalOptions="Center" Toggled="OnToggle" />
+                        </Grid>
+                        <BoxView Style="{StaticResource RowDivider}" />
+                        <Grid Style="{StaticResource SettingRow}">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblTryOverwrite}" FontSize="16" />
+                                <Label Style="{StaticResource RowHint}" Text="{l:Localize hintTryOverwrite}" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" x:Name="TryOverwriteSwitch" OnColor="{DynamicResource AccentColor}"
+                                    VerticalOptions="Center" Toggled="OnToggle" />
+                        </Grid>
+                        <BoxView Style="{StaticResource RowDivider}" />
+                        <Grid Style="{StaticResource SettingRow}">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblLaunchOnInstall}" FontSize="16" />
+                                <Label Style="{StaticResource RowHint}" Text="{l:Localize hintLaunchOnInstall}" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" x:Name="OpenAfterSwitch" OnColor="{DynamicResource AccentColor}"
+                                    VerticalOptions="Center" Toggled="OnToggle" />
+                        </Grid>
+                        <BoxView Style="{StaticResource RowDivider}" />
+                        <Grid Style="{StaticResource SettingRow}">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblKeepWGTFile}" FontSize="16" />
+                                <Label Style="{StaticResource RowHint}" Text="{l:Localize hintKeepWGTFile}" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" x:Name="KeepWgtSwitch" OnColor="{DynamicResource AccentColor}"
+                                    VerticalOptions="Center" Toggled="OnToggle" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+                <Label Style="{StaticResource Footnote}" Text="{l:Localize hintEveryInstall}" FontSize="12" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+
+</ContentPage>

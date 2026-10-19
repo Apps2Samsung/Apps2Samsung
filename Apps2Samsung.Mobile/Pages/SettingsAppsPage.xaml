@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+             x:Class="Apps2Samsung.Mobile.Pages.SettingsAppsPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+
+    <!-- Settings > App customization (#755): what gets built into an app when it is installed. One row
+         per app that takes settings, each opening its page, then what applies to every app. -->
+    <Grid RowDefinitions="Auto,*">
+        <controls:TopBarView Grid.Row="0" Title="{l:Localize lblAppCustomization}" BackText="{l:Localize lblSettingsTab}" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,4,16,20" Spacing="6">
+                <Label Text="{l:Localize lblPerApp}" Style="{StaticResource GroupTitle}" />
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout x:Name="AppRows" />
+                </Border>
+                <Label Style="{StaticResource Footnote}" Text="{l:Localize hintAppCustomization}" FontSize="12" LineBreakMode="WordWrap" />
+
+                <Label Text="{l:Localize lblAllApps}" Style="{StaticResource GroupTitle}" Margin="4,16,4,0" />
+                <Border Style="{StaticResource Card}">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Padding="16,10" MinimumHeightRequest="48">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnAppIconsTapped" />
+                        </Grid.GestureRecognizers>
+                        <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                            <Label Text="{l:Localize lblAppIcons}" FontSize="16" />
+                            <Label Style="{StaticResource RowHint}" Text="{l:Localize hintManageAppIcons}" />
+                        </VerticalStackLayout>
+                        <shapes:Path Grid.Column="1" Data="M1,1 L7,6.5 L1,12" Stroke="{DynamicResource InkBrush}" StrokeThickness="2"
+                                     Opacity="0.35" WidthRequest="8" HeightRequest="13" VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+
+</ContentPage>

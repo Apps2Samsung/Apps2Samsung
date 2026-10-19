@@ -28,6 +28,9 @@ namespace Apps2Samsung.ViewModels
 
         public ObservableCollection<InstalledAppViewModel> Apps { get; } = new();
 
+        /// <summary>The list as the section shows it: the apps that can be removed, then the TV's own.</summary>
+        public ObservableCollection<InstalledAppGroup> Groups { get; } = new();
+
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsProgressVisible))]
         private bool isBusy;
@@ -85,6 +88,13 @@ namespace Apps2Samsung.ViewModels
                     Apps.Clear();
                     foreach (var a in viewModels)
                         Apps.Add(a);
+                    Groups.Clear();
+                    var removableApps = viewModels.Where(a => a.App.IsRemovable).ToList();
+                    var builtInApps = viewModels.Where(a => !a.App.IsRemovable).ToList();
+                    if (removableApps.Count > 0)
+                        Groups.Add(new InstalledAppGroup("lblAppsGroupRemovable".Localized(), removableApps));
+                    if (builtInApps.Count > 0)
+                        Groups.Add(new InstalledAppGroup("lblAppsGroupBuiltIn".Localized(), builtInApps));
                 });
                 
                 // Start loading bitmaps in the background
@@ -301,6 +311,9 @@ namespace Apps2Samsung.ViewModels
         }
 
     }
+
+    /// <summary>A titled group of rows in the On the TV list.</summary>
+    public sealed record InstalledAppGroup(string Title, System.Collections.Generic.IReadOnlyList<InstalledAppViewModel> Apps);
 
     public partial class InstalledAppViewModel : ObservableObject
     {

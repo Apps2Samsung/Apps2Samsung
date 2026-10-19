@@ -183,7 +183,7 @@ namespace Apps2Samsung
             services.AddSingleton<ImmiTvSettingsViewModel>();
             services.AddSingleton<TizenTubeSettingsViewModel>();
             services.AddSingleton<CameraPipSettingsViewModel>();
-            services.AddSingleton<SettingsWindowViewModel>();
+            services.AddSingleton<SettingsViewModel>();
 
             // App-specific settings sections (each app registers one provider).
             services.AddSingleton<IAppSettingsProvider, JellyfinSettingsProvider>();
@@ -212,12 +212,6 @@ namespace Apps2Samsung
                 };
 
                 return window;
-            });
-
-            services.AddTransient(provider =>
-            {
-                var vm = provider.GetRequiredService<SettingsWindowViewModel>();
-                return new Apps2Samsung.Views.SettingsWindow(vm);
             });
 
             services.AddTransient(provider =>

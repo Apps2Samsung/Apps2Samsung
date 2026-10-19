@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+             xmlns:views="clr-namespace:Apps2Samsung.Views"
+             x:Class="Apps2Samsung.Views.Settings.SettingsRowButton"
+             x:DataType="viewModels:SettingsRow">
+	<!-- One page in the Settings list: the coloured icon tile, the name and a one-line summary. -->
+	<Button Classes="settingsrow" Classes.selected="{Binding IsSelected}"
+	        Command="{Binding $parent[views:SettingsView].((viewModels:SettingsViewModel)DataContext).SelectPageCommand}"
+	        CommandParameter="{Binding}">
+		<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+			<Border Classes="icontile" Background="{Binding TileBrush}" VerticalAlignment="Center">
+				<Viewbox Width="15" Height="15">
+					<Canvas Width="24" Height="24">
+						<Path Classes="tileicon" Data="{Binding IconData}"/>
+					</Canvas>
+				</Viewbox>
+			</Border>
+			<StackPanel Grid.Column="1" VerticalAlignment="Center">
+				<TextBlock Classes="settingsrowlabel" Text="{Binding Label}" FontSize="14" Foreground="{DynamicResource InkBrush}"/>
+				<TextBlock Text="{Binding Summary}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"
+				           IsVisible="{Binding Summary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+			</StackPanel>
+		</Grid>
+	</Button>
+</UserControl>

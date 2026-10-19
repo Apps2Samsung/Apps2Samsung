@@ -60,9 +60,6 @@ namespace Apps2Samsung.ViewModels
         private bool partnerSigning;
 
         [ObservableProperty]
-        private bool showAllJellyfinVersions;
-
-        [ObservableProperty]
         private bool includeBetaUpdates;
 
         [ObservableProperty]
@@ -105,8 +102,7 @@ namespace Apps2Samsung.ViewModels
         public string LblLaunchOnInstall => _localizationService.GetString("lblLaunchOnInstall");
         public string LblRememberIp => _localizationService.GetString("lblRememberIp");
         public string LblDeletePrevious => _localizationService.GetString("lblDeletePrevious");
-        public string LblForceLogin => _localizationService.GetString("lblForceLogin");
-        public string LblShowAllJellyfinVersions => _localizationService.GetString("lblShowAllJellyfinVersions");
+        public string LblForceLogin => _localizationService.GetString("lblForceSamsungLogin");
         public string LblIncludeBetaUpdates => _localizationService.GetString("lblIncludeBetaUpdates");
         public string LblRTL => _localizationService.GetString("lblRTL");
         public string LblKeepWGTFile => _localizationService.GetString("lblKeepWGTFile");
@@ -174,7 +170,6 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblRememberIp));
             OnPropertyChanged(nameof(LblDeletePrevious));
             OnPropertyChanged(nameof(LblForceLogin));
-            OnPropertyChanged(nameof(LblShowAllJellyfinVersions));
             OnPropertyChanged(nameof(LblIncludeBetaUpdates));
             OnPropertyChanged(nameof(LblRTL));
             OnPropertyChanged(nameof(LblKeepWGTFile));
@@ -198,7 +193,6 @@ namespace Apps2Samsung.ViewModels
             DeletePreviousInstall = AppSettings.Default.DeletePreviousInstall;
             ForceSamsungLogin = AppSettings.Default.ForceSamsungLogin;
             PartnerSigning = AppSettings.Default.PartnerSigning;
-            ShowAllJellyfinVersions = AppSettings.Default.ShowAllJellyfinVersions;
             IncludeBetaUpdates = AppSettings.Default.IncludeBetaUpdates;
             RtlReading = AppSettings.Default.RTLReading;
             LocalIP = AppSettings.Default.LocalIp ?? string.Empty;
@@ -506,12 +500,6 @@ namespace Apps2Samsung.ViewModels
         partial void OnPartnerSigningChanged(bool value)
         {
             AppSettings.Default.PartnerSigning = value;
-            AppSettings.Default.Save();
-        }
-
-        partial void OnShowAllJellyfinVersionsChanged(bool value)
-        {
-            AppSettings.Default.ShowAllJellyfinVersions = value;
             AppSettings.Default.Save();
         }
 

@@ -5,24 +5,26 @@
              x:Class="Apps2Samsung.Mobile.Pages.TvSheetPage"
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
-    <!-- The TV sheet (#755): the TVs the scan found, each with its LED colour, a row for a TV the
-         scan didn't find, and Rescan. Opened from the "Change TV" chip on the TV card. -->
+    <!-- The Switch TV sheet (#755): the TVs found on the network, each with its LED colour and the
+         one in use ticked. Opened from the TV pill in the top bar of every tab once there is more
+         than one TV, over the one list in TvSelection. -->
     <ScrollView>
         <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
             <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
                      Color="{DynamicResource HairColor}" />
-            <Grid ColumnDefinitions="*,32" ColumnSpacing="8" Margin="0,6,0,0">
-                <Label Text="{l:Localize lblChooseTv}" FontSize="20" FontAttributes="Bold" VerticalOptions="Center" />
-                <Button Grid.Column="1" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
+            <Grid ColumnDefinitions="32,*,32" ColumnSpacing="8" Margin="0,6,0,0">
+                <Label Grid.Column="1" Text="{l:Localize lblSwitchTv}" FontSize="17" FontAttributes="Bold"
+                       HorizontalOptions="Center" VerticalOptions="Center" />
+                <Button Grid.Column="2" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
                         MinimumWidthRequest="32" MinimumHeightRequest="32"
                         BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnCloseClicked" />
             </Grid>
 
-            <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
+            <Label x:Name="FoundTitle" Text="{l:Localize lblFoundOnNetwork}" Style="{StaticResource GroupTitle}" />
+            <Border x:Name="FoundCard" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
                 <VerticalStackLayout x:Name="Rows" />
             </Border>
 
-            <Button Text="{l:Localize lblRescan}" Clicked="OnRescanClicked" CornerRadius="12" HeightRequest="50" Margin="0,6,0,0" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
