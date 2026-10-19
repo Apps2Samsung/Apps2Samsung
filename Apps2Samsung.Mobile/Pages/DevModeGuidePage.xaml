@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             x:Class="Apps2Samsung.Mobile.Pages.DevModeGuidePage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+    <!-- The Developer Mode guide (#755): what is wrong with this TV right now, the five steps that
+         fix it (the ones already done greyed), this device's IP to type in, and a check that runs
+         every few seconds. Opened from the TV card, and from Install when the TV isn't ready. -->
+    <Grid RowDefinitions="*,Auto">
+        <ScrollView>
+            <VerticalStackLayout Padding="16,8,16,12" Spacing="14">
+                <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
+                         Color="{DynamicResource HairColor}" />
+
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <VerticalStackLayout Spacing="1" VerticalOptions="Center">
+                        <Label x:Name="TitleLabel" FontSize="17" FontAttributes="Bold" />
+                        <Label x:Name="SubLabel" FontSize="13" TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
+                    </VerticalStackLayout>
+                    <Button Grid.Column="1" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
+                            MinimumWidthRequest="32" MinimumHeightRequest="32" VerticalOptions="Start"
+                            SemanticProperties.Description="{l:Localize btn_Close}"
+                            BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnCloseClicked" />
+                </Grid>
+
+                <Border x:Name="StatusPill" Padding="14,10" StrokeThickness="0" StrokeShape="RoundRectangle 12">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <Ellipse x:Name="StatusDot" WidthRequest="8" HeightRequest="8" VerticalOptions="Center" />
+                        <Label x:Name="StatusLabel" Grid.Column="1" FontSize="14" VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+
+                <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
+                    <VerticalStackLayout x:Name="Steps" />
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <VerticalStackLayout Grid.Row="1" Padding="16,4,16,24" Spacing="8">
+            <Button x:Name="PrimaryBtn" Style="{StaticResource PrimaryButton}" CornerRadius="12" HeightRequest="50"
+                    Clicked="OnPrimaryClicked" />
+            <Button x:Name="AnywayBtn" Text="{l:Localize devGuideInstallAnyway}" IsVisible="False" BackgroundColor="Transparent"
+                    TextColor="{DynamicResource InkColor}" FontAttributes="Bold" HeightRequest="44" Clicked="OnAnywayClicked" />
+            <Label x:Name="FootLabel" Text="{l:Localize devGuideAutoCheck}" FontSize="12" TextColor="{DynamicResource MutedColor}"
+                   HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

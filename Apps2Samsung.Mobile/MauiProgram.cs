@@ -65,6 +65,7 @@ public static class MauiProgram
 		// when it must (re)generate. Depends on the shared cert service + this head's login service.
 		builder.Services.AddSingleton<CertificateProvisioningService>();
 		builder.Services.AddSingleton<CertificateProvisioner>();
+		builder.Services.AddSingleton<CertificateFlow>();
 
 		// Package patchers applied at install (shared Core IPackagePatchers). Mobile ships no bundled
 		// "oblong" tiles, so a no-op oblong source — only user-supplied custom PNG icons apply here.

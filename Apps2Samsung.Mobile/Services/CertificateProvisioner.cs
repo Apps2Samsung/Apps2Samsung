@@ -2,6 +2,7 @@ using Apps2Samsung.Certificate;
 using Apps2Samsung.Configuration;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Models;
 using Apps2Samsung.Sdb;
 using Microsoft.Maui.Storage;
@@ -33,9 +34,18 @@ public sealed class CertificateProvisioner
 
 	public sealed record Result(string AuthorP12, string DistributorP12, string Password, string ProfileDir, string Duid);
 
-	public async Task<Result> ProvisionAsync(string tvIp, bool requirePartner = false, Action<string>? progress = null)
+	/// <param name="beforeLoginAsync">Awaited when a certificate has to be made, before the Samsung
+	/// sign-in: <see cref="CertificateFlow"/> shows the certificate sheet here.</param>
+	/// <param name="stage">The certificate sheet's step, as the certificate service moves on.</param>
+	public async Task<Result> ProvisionAsync(
+		string tvIp,
+		bool requirePartner = false,
+		Action<string>? progress = null,
+		Func<CertificatePrivilegeLevel, CancellationToken, Task>? beforeLoginAsync = null,
+		Action<CertificateStage>? stage = null,
+		CancellationToken ct = default)
 	{
-		progress?.Invoke("Reading TV DUID…");
+		progress?.Invoke(L10n.Get("statusReadingTvDuid"));
 		// Retry the read: old/slow TVs often hand back an empty reply or drop the connection mid-command
 		// on the first try, then answer on a retry. A validated DUID is returned; anything else throws.
 		var duid = await TizenDuidReader.ReadAsync(_sdb, tvIp, progress: progress);
@@ -52,7 +62,7 @@ public sealed class CertificateProvisioner
 			!CertificateProvisioningService.HasProfile(_config.CertificateStorePath, CertificatePrivilegeLevel.Partner))
 		{
 			MobileSettings.CertificatePreference = MobileSettings.CertificatePreferencePartner;
-			progress?.Invoke("This app needs a Partner certificate — turning on Partner signing…");
+			progress?.Invoke(L10n.Get("partnerSigningAutoEnabled"));
 		}
 
 		// Which certificate/level to sign with, from the user's Certificate preference (Settings):
@@ -68,7 +78,14 @@ public sealed class CertificateProvisioner
 			_ => requirePartner ? CertificatePrivilegeLevel.Partner : CertificatePrivilegeLevel.Public,
 		};
 
-		ProgressCallback? cb = progress is null ? null : new ProgressCallback(progress);
+		// The certificate service reports localization keys: localized here, and the sheet's step
+		// follows from the key.
+		ProgressCallback cb = key =>
+		{
+			if (CertificateStages.FromProgressKey(key) is { } next)
+				stage?.Invoke(next);
+			progress?.Invoke(L10n.Get(key));
+		};
 		var profile = await _provisioning.EnsureAsync(
 			deviceDuid: duid,
 			level: level,
@@ -76,8 +93,10 @@ public sealed class CertificateProvisioner
 			caPath: caPath,
 			manualDuids: MobileSettings.ParseDuids(),
 			forceLogin: _config.ForceSamsungLogin,
-			onLoginStarting: () => progress?.Invoke("Signing in to Samsung…"),
-			progress: cb);
+			onLoginStarting: () => progress?.Invoke(L10n.Get("SamsungLogin")),
+			progress: cb,
+			beforeLoginAsync: beforeLoginAsync,
+			ct: ct);
 
 		return new Result(profile.AuthorP12, profile.DistributorP12, profile.Password, profile.ProfileDir, duid);
 	}

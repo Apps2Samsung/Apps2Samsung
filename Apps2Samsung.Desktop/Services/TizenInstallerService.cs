@@ -335,21 +335,16 @@ namespace Apps2Samsung.Services
                         break;
 
                     var validFrom = validity.ValidFromLocal!.Value;
-                    var waitMessage = string.Format(
-                        Constants.LocalizationKeys.CertificateNotYetValid.Localized(),
-                        validFrom.ToString("f", CultureInfo.CurrentCulture));
+                    Trace.WriteLine($"[Cert] Certificate valid from {validFrom.ToString("f", CultureInfo.InvariantCulture)}; holding the install.");
 
                     progress?.Invoke(Constants.LocalizationKeys.CertificateWaiting.Localized());
-                    var proceed = await _dialogService.ShowCertificateCountdownAsync(
-                        Constants.LocalizationKeys.CertificateNotYetValidTitle.Localized(),
-                        waitMessage,
-                        validFrom);
+                    var proceed = await _dialogService.ShowCertificateCountdownAsync(validFrom);
 
                     if (!proceed)
                     {
                         // Cancelled during the wait — a deliberate stop, not a failed install.
                         progress?.Invoke(Constants.LocalizationKeys.CertificateWaitCancelled.Localized());
-                        return InstallResult.FailureResult(
+                        return InstallResult.CancelledResult(
                             Constants.LocalizationKeys.CertificateWaitCancelled.Localized());
                     }
                 }
@@ -623,8 +618,7 @@ namespace Apps2Samsung.Services
             if (!isBundledJellyfin && autoMode)
             {
                 var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
-                // Core emits progress as localization keys; localize them here at the boundary.
-                ProgressCallback? certProgress = progress is null ? null : new ProgressCallback(k => progress(k.Localized()));
+                using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken);
                 try
                 {
                     var profile = await _provisioning.EnsureAsync(
@@ -639,8 +633,10 @@ namespace Apps2Samsung.Services
                             progress?.Invoke(Constants.LocalizationKeys.SamsungLogin.Localized());
                             onSamsungLoginStarted?.Invoke();
                         },
-                        progress: certProgress,
-                        ct: cancellationToken);
+                        progress: sheet.Progress(progress),
+                        beforeLoginAsync: sheet.OpenAsync,
+                        ct: sheet.Token);
+                    await sheet.FinishAsync();
 
                     PackageCertificate = profile.ProfileName;
                     if (!automaticPick)
@@ -669,33 +665,9 @@ namespace Apps2Samsung.Services
                         P12Password = profile.Password
                     };
                 }
-                catch (SamsungAccountEmailMissingException)
-                {
-                    // Core's guard for a Samsung account with no email on it, which the distributor
-                    // CSR needs for its subject. Left to the generic handler below it would come out
-                    // as a bare error dialog, so show the account page instead (issue #606).
-                    Trace.WriteLine("[Cert] Samsung account has no email address; can't build the distributor CSR.");
-                    await _dialogService.ShowMessageWithLinkAsync(
-                        "lblSamsungAccountNoEmailTitle".Localized(),
-                        "statusSamsungAccountNoEmail".Localized(),
-                        "lblOpenSamsungAccount".Localized(),
-                        SamsungAccountEmailMissingException.AccountUrl);
-
-                    return new CertificateResult
-                    {
-                        Success = false,
-                        InstallResult = InstallResult.FailureResult("statusSamsungAccountNoEmail".Localized())
-                    };
-                }
                 catch (Exception ex)
                 {
-                    Trace.WriteLine($"[Cert] Provisioning failed: {ex.Message}");
-                    await _dialogService.ShowErrorAsync(ex.Message);
-                    return new CertificateResult
-                    {
-                        Success = false,
-                        InstallResult = InstallResult.FailureResult(ex.Message)
-                    };
+                    return await EndCertificateRunAsync(sheet, ex);
                 }
             }
 
@@ -727,96 +699,87 @@ namespace Apps2Samsung.Services
 
             if (needsFullProfile || needsDistributorOnly)
             {
-                progress?.Invoke(Constants.LocalizationKeys.SamsungLogin.Localized());
-                onSamsungLoginStarted?.Invoke();
-
-                SamsungAuth auth = await _login.LoginAsync(cancellationToken);
-
-                if (string.IsNullOrEmpty(auth.access_token))
+                using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken);
+                try
                 {
-                    await _dialogService.ShowErrorAsync("statusSamsungAuthFailed".Localized());
-                    return new CertificateResult
+                    await sheet.OpenAsync(requestedLevel, sheet.Token);
+                    progress?.Invoke(Constants.LocalizationKeys.SamsungLogin.Localized());
+                    onSamsungLoginStarted?.Invoke();
+
+                    SamsungAuth auth = await _login.LoginAsync(sheet.Token);
+
+                    if (string.IsNullOrEmpty(auth.access_token))
+                        throw new InvalidOperationException("statusSamsungAuthFailed".Localized());
+
+                    // The distributor CSR needs the account's email for its subject. Samsung accounts
+                    // without one hand us null, which used to surface as a bare "Object reference not set
+                    // to an instance of an object" from inside BouncyCastle (issue #606). Point the user
+                    // straight at their account page instead.
+                    if (string.IsNullOrWhiteSpace(auth.inputEmailID))
+                        throw new SamsungAccountEmailMissingException();
+
+                    progress?.Invoke(Constants.LocalizationKeys.CreatingCertificateProfile.Localized());
+                    var certificateService = new TizenCertificateService(
+                        _httpClient,
+                        new CertificateEndpoints(
+                            _appSettings.AuthorEndpoint_V3,
+                            _appSettings.DistributorsEndpoint_V1,
+                            _appSettings.DistributorsEndpoint_V3));
+                    var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
+                    // Core emits progress as localization keys; the sheet localizes them and moves on.
+                    var certProgress = sheet.Progress(progress);
+
+                    // Union of DUIDs the (re)generated distributor cert should cover: this TV first,
+                    // then manual entries, then already-covered ones — capped at Samsung's per-cert limit.
+                    var duids = BuildDistributorDuids(deviceInfo.Duid, manualDuids, coveredDuids, progress);
+
+                    if (needsFullProfile)
                     {
-                        Success = false,
-                        InstallResult = InstallResult.FailureResult("statusAuthFailed".Localized())
-                    };
-                }
-
-                // The distributor CSR needs the account's email for its subject. Samsung accounts
-                // without one hand us null, which used to surface as a bare "Object reference not set
-                // to an instance of an object" from inside BouncyCastle (issue #606). Point the user
-                // straight at their account page instead.
-                if (string.IsNullOrWhiteSpace(auth.inputEmailID))
-                {
-                    await _dialogService.ShowMessageWithLinkAsync(
-                        "lblSamsungAccountNoEmailTitle".Localized(),
-                        "statusSamsungAccountNoEmail".Localized(),
-                        "lblOpenSamsungAccount".Localized(),
-                        SamsungAccountEmailMissingException.AccountUrl);
-
-                    return new CertificateResult
+                        (authorp12, distributorp12, p12Password) = await certificateService.GenerateProfileAsync(
+                            duids: duids,
+                            accessToken: auth.access_token,
+                            userId: auth.userId,
+                            userEmail: auth.inputEmailID,
+                            outputPath: jelly2SamsDir,
+                            caPath: caPath,
+                            level: requestedLevel,
+                            progress: certProgress);
+                    }
+                    else
                     {
-                        Success = false,
-                        InstallResult = InstallResult.FailureResult("statusSamsungAccountNoEmail".Localized())
-                    };
-                }
+                        // Reuse the existing author cert; only the distributor cert is regenerated.
+                        distributorp12 = await certificateService.RegenerateDistributorAsync(
+                            certDir: jelly2SamsDir,
+                            duids: duids,
+                            accessToken: auth.access_token,
+                            userId: auth.userId,
+                            userEmail: auth.inputEmailID,
+                            caPath: caPath,
+                            level: requestedLevel,
+                            progress: certProgress);
+                        authorp12 = Path.Combine(jelly2SamsDir, Constants.Certificate.AuthorFileName);
+                        p12Password = (await File.ReadAllTextAsync(
+                            Path.Combine(jelly2SamsDir, Constants.Certificate.PasswordFileName))).Trim();
+                    }
 
-                progress?.Invoke(Constants.LocalizationKeys.CreatingCertificateProfile.Localized());
-                var certificateService = new TizenCertificateService(
-                    _httpClient,
-                    new CertificateEndpoints(
-                        _appSettings.AuthorEndpoint_V3,
-                        _appSettings.DistributorsEndpoint_V1,
-                        _appSettings.DistributorsEndpoint_V3));
-                var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
-                // Core emits progress as localization keys; localize them here at the boundary.
-                ProgressCallback? certProgress = progress is null ? null : new ProgressCallback(k => progress(k.Localized()));
-
-                // Union of DUIDs the (re)generated distributor cert should cover: this TV first,
-                // then manual entries, then already-covered ones — capped at Samsung's per-cert limit.
-                var duids = BuildDistributorDuids(deviceInfo.Duid, manualDuids, coveredDuids, progress);
-
-                if (needsFullProfile)
-                {
-                    (authorp12, distributorp12, p12Password) = await certificateService.GenerateProfileAsync(
-                        duids: duids,
-                        accessToken: auth.access_token,
-                        userId: auth.userId,
-                        userEmail: auth.inputEmailID,
-                        outputPath: jelly2SamsDir,
-                        caPath: caPath,
-                        level: requestedLevel,
-                        progress: certProgress);
-                }
-                else
-                {
-                    // Reuse the existing author cert; only the distributor cert is regenerated.
-                    distributorp12 = await certificateService.RegenerateDistributorAsync(
-                        certDir: jelly2SamsDir,
-                        duids: duids,
-                        accessToken: auth.access_token,
-                        userId: auth.userId,
-                        userEmail: auth.inputEmailID,
-                        caPath: caPath,
-                        level: requestedLevel,
-                        progress: certProgress);
-                    authorp12 = Path.Combine(jelly2SamsDir, Constants.Certificate.AuthorFileName);
-                    p12Password = (await File.ReadAllTextAsync(
-                        Path.Combine(jelly2SamsDir, Constants.Certificate.PasswordFileName))).Trim();
-                }
-
-                var profileName = AutoCertProfileName(requestedLevel);
-                PackageCertificate = profileName;
-                if (!automaticPick)
-                {
-                    _appSettings.Certificate = profileName;
-                    _appSettings.ChosenCertificates = new ExistingCertificates
+                    var profileName = AutoCertProfileName(requestedLevel);
+                    PackageCertificate = profileName;
+                    if (!automaticPick)
                     {
-                        Name = profileName,
-                        Duid = deviceInfo.Duid,
-                        File = authorp12
-                    };
-                    _appSettings.Save();
+                        _appSettings.Certificate = profileName;
+                        _appSettings.ChosenCertificates = new ExistingCertificates
+                        {
+                            Name = profileName,
+                            Duid = deviceInfo.Duid,
+                            File = authorp12
+                        };
+                        _appSettings.Save();
+                    }
+                    await sheet.FinishAsync();
+                }
+                catch (Exception ex)
+                {
+                    return await EndCertificateRunAsync(sheet, ex);
                 }
             }
             else
@@ -1466,6 +1429,94 @@ namespace Apps2Samsung.Services
             }
 
             public void Dispose() => Working?.Dispose();
+        }
+
+        // How a certificate run that didn't finish ends: cancelled quietly, the account page for a
+        // Samsung account without an email, anything else on the sheet (or a dialog without one).
+        // Every path has told the user already, so the install result is marked as shown.
+        private async Task<CertificateResult> EndCertificateRunAsync(CertificateSheetRun sheet, Exception ex)
+        {
+            await sheet.EndAsync(ex);
+            InstallResult result;
+            switch (ex)
+            {
+                case OperationCanceledException:
+                    Trace.WriteLine("[Cert] Samsung sign-in cancelled.");
+                    result = InstallResult.CancelledResult("statusSignInCancelled".Localized());
+                    break;
+                case SamsungAccountEmailMissingException:
+                    Trace.WriteLine("[Cert] Samsung account has no email address; can't build the distributor CSR.");
+                    await _dialogService.ShowAccountEmailMissingAsync();
+                    result = InstallResult.ShownFailureResult("statusSamsungAccountNoEmail".Localized());
+                    break;
+                default:
+                    Trace.WriteLine($"[Cert] Provisioning failed: {ex}");
+                    if (!sheet.IsOpen)
+                        await _dialogService.ShowErrorAsync(ex.Message);
+                    result = InstallResult.ShownFailureResult(ex.Message);
+                    break;
+            }
+            return new CertificateResult { Success = false, InstallResult = result };
+        }
+
+        /// <summary>
+        /// The certificate sheet for one provisioning run (#755). It opens only when a Samsung sign-in
+        /// turns out to be needed, so a reused certificate never shows it; Cancel on it cancels
+        /// <see cref="Token"/>, which the sign-in waits on.
+        /// </summary>
+        private sealed class CertificateSheetRun : IDisposable
+        {
+            private readonly IDialogService _dialogs;
+            private readonly string _tvName;
+            private readonly CancellationTokenSource _cancel;
+            private CertificateSheet? _sheet;
+
+            public CertificateSheetRun(IDialogService dialogs, string tvName, CancellationToken outer)
+            {
+                _dialogs = dialogs;
+                _tvName = tvName;
+                _cancel = CancellationTokenSource.CreateLinkedTokenSource(outer);
+            }
+
+            public CancellationToken Token => _cancel.Token;
+            public bool IsOpen => _sheet is not null;
+
+            /// <summary>Shows the sheet and waits for Sign in with Samsung; throws on Cancel.</summary>
+            public async Task OpenAsync(CertificatePrivilegeLevel level, CancellationToken ct)
+            {
+                _sheet = await _dialogs.OpenCertificateSheetAsync(_tvName, level);
+                if (_sheet is null)
+                    return;
+                _sheet.CancelRequested += (_, _) => _cancel.Cancel();
+                if (!await _sheet.SignInChosen)
+                    _cancel.Cancel();
+                _cancel.Token.ThrowIfCancellationRequested();
+            }
+
+            /// <summary>The certificate service's progress keys: localized for the status line, and
+            /// moving the sheet's steps on.</summary>
+            public ProgressCallback Progress(ProgressCallback? progress) => key =>
+            {
+                var text = key.Localized();
+                if (CertificateStages.FromProgressKey(key) is { } stage)
+                    _sheet?.SetStage(stage);
+                _sheet?.Report(text);
+                progress?.Invoke(text);
+            };
+
+            public Task FinishAsync() => _sheet?.FinishAsync() ?? Task.CompletedTask;
+
+            public async Task EndAsync(Exception ex)
+            {
+                if (_sheet is null)
+                    return;
+                if (ex is OperationCanceledException or SamsungAccountEmailMissingException)
+                    await _sheet.CloseAsync();
+                else
+                    _sheet.Fail(ex.Message);
+            }
+
+            public void Dispose() => _cancel.Dispose();
         }
 
         private class DeviceInfo

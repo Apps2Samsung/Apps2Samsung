@@ -1,0 +1,83 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:Apps2Samsung.Views.Controls"
+             x:Class="Apps2Samsung.Views.Controls.StepList"
+             x:Name="Root">
+	<!-- Numbered steps (#755): done ticked, the current one in accent with its detail line, the rest
+	     numbered and muted, a failed one red. The certificate sheet uses it; same look as the phone's. -->
+	<UserControl.Styles>
+		<Style Selector="Border.badge">
+			<Setter Property="Width" Value="28"/>
+			<Setter Property="Height" Value="28"/>
+			<Setter Property="CornerRadius" Value="14"/>
+			<Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+		</Style>
+		<Style Selector="Border.badge.active">
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+		</Style>
+		<Style Selector="Border.badge.done">
+			<Setter Property="Background" Value="{DynamicResource OkSoftBrush}"/>
+		</Style>
+		<Style Selector="Border.badge.failed">
+			<Setter Property="Background" Value="{DynamicResource BadSoftBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.number">
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+		</Style>
+		<Style Selector="TextBlock.number.active">
+			<Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.number.failed">
+			<Setter Property="Foreground" Value="{DynamicResource BadBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.steptitle">
+			<Setter Property="FontSize" Value="15"/>
+			<Setter Property="TextWrapping" Value="Wrap"/>
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.steptitle.todo">
+			<Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.steptitle.active">
+			<Setter Property="FontWeight" Value="Bold"/>
+		</Style>
+		<Style Selector="TextBlock.detail">
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="TextWrapping" Value="Wrap"/>
+			<Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.detail.failed">
+			<Setter Property="Foreground" Value="{DynamicResource BadBrush}"/>
+		</Style>
+	</UserControl.Styles>
+
+	<ItemsControl ItemsSource="{Binding Items, ElementName=Root}">
+		<ItemsControl.ItemTemplate>
+			<DataTemplate x:DataType="controls:StepItem">
+				<StackPanel>
+					<Border Classes="hairline" Margin="56,0,0,0" IsVisible="{Binding !IsFirst}"/>
+					<Grid ColumnDefinitions="28,*" ColumnSpacing="12" Margin="16,12" MinHeight="28">
+						<Border Classes="badge" Classes.active="{Binding IsActive}" Classes.done="{Binding IsDone}" Classes.failed="{Binding IsFailed}">
+							<Panel>
+								<TextBlock Classes="number" Classes.active="{Binding IsActive}" Classes.failed="{Binding IsFailed}"
+								           Text="{Binding Number}" IsVisible="{Binding !IsDone}"/>
+								<Path Width="14" Height="11" Stretch="Uniform" Data="M2,7 L7,12 L16,2" Stroke="{DynamicResource OkBrush}"
+								      StrokeThickness="2.5" StrokeLineCap="Round" StrokeJoin="Round"
+								      HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsDone}"/>
+							</Panel>
+						</Border>
+						<StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+							<TextBlock Classes="steptitle" Classes.todo="{Binding IsTodo}" Classes.active="{Binding IsActive}" Text="{Binding Title}"/>
+							<TextBlock Classes="detail" Classes.failed="{Binding IsFailed}" Text="{Binding Detail}" IsVisible="{Binding ShowDetail}"/>
+						</StackPanel>
+					</Grid>
+				</StackPanel>
+			</DataTemplate>
+		</ItemsControl.ItemTemplate>
+	</ItemsControl>
+</UserControl>

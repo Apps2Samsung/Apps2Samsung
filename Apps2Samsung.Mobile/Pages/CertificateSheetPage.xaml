@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+             x:Class="Apps2Samsung.Mobile.Pages.CertificateSheetPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+    <!-- The certificate sheet (#755): shown only when a certificate has to be made, i.e. Samsung
+         sign-in is needed. Four steps (device ID, sign in, create, save), Sign in with Samsung to
+         start, then it fills itself in and closes. -->
+    <ScrollView>
+        <VerticalStackLayout Padding="16,8,16,24" Spacing="14">
+            <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
+                     Color="{DynamicResource HairColor}" />
+
+            <Grid ColumnDefinitions="44,*,Auto" ColumnSpacing="12">
+                <Border WidthRequest="44" HeightRequest="44" StrokeThickness="0" StrokeShape="RoundRectangle 11"
+                        BackgroundColor="{DynamicResource AccentColor}">
+                    <shapes:Path Data="M12,3 L19,6 L19,11 C19,15.5 16,19 12,21 C8,19 5,15.5 5,11 L5,6 Z M9,12 L11,14 L15,10"
+                                 Stroke="{DynamicResource OnAccentBrush}" StrokeThickness="2.2" StrokeLineJoin="Round" StrokeLineCap="Round"
+                                 WidthRequest="22" HeightRequest="22" Aspect="Uniform"
+                                 HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                    <Label Text="{l:Localize lblStepCertificate}" FontSize="17" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                    <Label x:Name="SubLabel" FontSize="13" TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
+                </VerticalStackLayout>
+                <Border Grid.Column="2" Padding="10,4" StrokeThickness="0" StrokeShape="RoundRectangle 13" VerticalOptions="Center"
+                        BackgroundColor="{DynamicResource AccentSoftColor}">
+                    <Label x:Name="LevelLabel" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource AccentColor}" />
+                </Border>
+            </Grid>
+
+            <Label Text="{l:Localize certSheetIntro}" FontSize="14" LineHeight="1.3" />
+
+            <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
+                <controls:StepListView x:Name="Steps" KeepDoneDetails="True" />
+            </Border>
+
+            <VerticalStackLayout x:Name="SignInButtons" Spacing="8">
+                <Button Text="{l:Localize lblSignInWithSamsung}" Style="{StaticResource PrimaryButton}"
+                        CornerRadius="12" HeightRequest="50" Clicked="OnSignInClicked" />
+                <Button Text="{l:Localize lblCancel}" BackgroundColor="Transparent" TextColor="{DynamicResource BadColor}"
+                        FontAttributes="Bold" HeightRequest="44" Clicked="OnCancelClicked" />
+            </VerticalStackLayout>
+
+            <Button x:Name="CloseBtn" Text="{l:Localize btn_Close}" Style="{StaticResource PlainButton}" IsVisible="False"
+                    CornerRadius="12" HeightRequest="48" Clicked="OnCloseClicked" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

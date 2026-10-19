@@ -6,6 +6,7 @@ using Apps2Samsung.Services;
 using Apps2Samsung.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -64,23 +65,26 @@ namespace Apps2Samsung.Helpers.Core
             // Shared pre-install guards: Developer Mode off, a Developer-Mode IP pointing at another
             // machine (or typed back to front), a TV on another subnet, and a TV whose install service
             // isn't up yet. Same checks and wording as the mobile head — see Core InstallGuards.
+            var localIps = LocalIps();
             var guardResult = InstallGuards.Evaluate(
                 selectedDevice,
                 new InstallGuardOptions
                 {
-                    // GetRelevantLocalIPs folds the hand-typed TV address (UserCustomIP) into the list
-                    // for the scan's benefit; it is not one of this machine's IPs, so keep it out of
-                    // the "this device" side of the comparison.
-                    LocalIps = _networkService.GetRelevantLocalIPs()
-                        .Select(ip => ip.ToString())
-                        .Where(ip => ip != AppSettings.Default.UserCustomIP)
-                        .ToList(),
+                    LocalIps = localIps,
                     ConfiguredLocalIp = AppSettings.Default.LocalIp,
                     ReversedIpReading = AppSettings.Default.RTLReading,
                 },
                 _networkService);
 
-            foreach (var guard in guardResult.Guards)
+            // The Developer-Mode guards share one answer: the guide, which re-checks the TV while it
+            // is open and turns into Continue once it is fixed. The rest stay a Continue/Stop question.
+            var developerModeGuards = guardResult.Guards.Where(g => g.Kind is InstallGuardKind.RestartRequired
+                or InstallGuardKind.DeveloperModeOff or InstallGuardKind.DeveloperIpReversed or InstallGuardKind.DeveloperIpMismatch).ToList();
+            if (developerModeGuards.Count > 0 &&
+                !await ShowDevModeGuideAsync(selectedDevice, localIps, fromInstall: true, cancellationToken))
+                return false;
+
+            foreach (var guard in guardResult.Guards.Except(developerModeGuards))
             {
                 // Detail is measured facts (the IPs involved), not translatable prose.
                 var message = string.IsNullOrEmpty(guard.Detail)
@@ -131,6 +135,12 @@ namespace Apps2Samsung.Helpers.Core
 
                     return true;
                 }
+                else if (result.AlreadyShown)
+                {
+                    // A sheet or dialog already said what happened (or the user cancelled).
+                    progress?.Invoke(result.ErrorMessage);
+                    return false;
+                }
                 else
                 {
                     progress?.Invoke("InstallationFailed".Localized());
@@ -145,6 +155,33 @@ namespace Apps2Samsung.Helpers.Core
                 return false;
             }
         }
+        /// <summary>
+        /// The Developer Mode guide for <paramref name="device"/>. From Install it returns whether to
+        /// go on; from the TV card it is just a guide.
+        /// </summary>
+        public Task<bool> ShowDevModeGuideAsync(NetworkDevice device, IReadOnlyCollection<string>? localIps = null, bool fromInstall = false, CancellationToken cancellationToken = default)
+        {
+            var name = string.IsNullOrWhiteSpace(device.DeviceName) ? device.IpAddress : device.DeviceName!;
+            localIps ??= LocalIps();
+            // The address to type on the TV: the network card picked in Settings, else the first one.
+            var localIp = string.IsNullOrEmpty(AppSettings.Default.LocalIp) ? localIps.FirstOrDefault() : AppSettings.Default.LocalIp;
+            return _dialogService.ShowDevModeGuideAsync(
+                device,
+                name,
+                () => TizenDeveloperInfo.RefreshAsync(_networkService, device, cancellationToken),
+                localIps,
+                localIp,
+                fromInstall);
+        }
+
+        // GetRelevantLocalIPs folds the hand-typed TV address (UserCustomIP) into the list for the
+        // scan's benefit; it is not one of this machine's IPs, so keep it out of the "this device"
+        // side of the comparison.
+        public List<string> LocalIps() => _networkService.GetRelevantLocalIPs()
+            .Select(ip => ip.ToString())
+            .Where(ip => ip != AppSettings.Default.UserCustomIP)
+            .ToList();
+
         public async Task<bool> InstallCustomPackagesAsync(string[] packagePaths, NetworkDevice? device, CancellationToken cancellationToken, Action<string> onProgress, Action? onSamsungLoginStarted = null, IProgress<int>? installProgress = null)
         {
             if (device == null) return false;

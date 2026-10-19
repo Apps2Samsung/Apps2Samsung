@@ -22,7 +22,7 @@ public partial class InstallerPage : ContentPage
 {
 	private readonly INetworkService _networkService;
 	private readonly ISamsungLoginService _loginService;
-	private readonly CertificateProvisioner _certProvisioner;
+	private readonly CertificateFlow _certFlow;
 	private readonly WgtInstaller _installer;
 	private readonly CatalogService _catalog;
 	private readonly UpdateFlow _updates;
@@ -60,14 +60,14 @@ public partial class InstallerPage : ContentPage
 	private InstallProgressPage? _progress;
 
 	public InstallerPage(INetworkService networkService, ISamsungLoginService loginService,
-		CertificateProvisioner certProvisioner, WgtInstaller installer, CatalogService catalog,
+		CertificateFlow certFlow, WgtInstaller installer, CatalogService catalog,
 		UpdateFlow updates, SessionState session, ISdbEngine sdb, TvSelection tv)
 	{
 		InitializeComponent();
 		_tv = tv;
 		_networkService = networkService;
 		_loginService = loginService;
-		_certProvisioner = certProvisioner;
+		_certFlow = certFlow;
 		_installer = installer;
 		_catalog = catalog;
 		_updates = updates;
@@ -76,6 +76,18 @@ public partial class InstallerPage : ContentPage
 
 		// Shows the app version (ApplicationDisplayVersion), so it stays in sync with the build.
 		VersionLabel.Text = $"v{AppInfo.Current.VersionString}";
+		TvCard.Tapped += OnTvCardTapped;
+	}
+
+	// A TV that isn't ready yet: the card opens the Developer Mode guide.
+	private async void OnTvCardTapped(object? sender, EventArgs e)
+	{
+		if (_busy || !DevModeGuidePage.IsNeeded(_tv, LocalIps()))
+			return;
+		var guide = new DevModeGuidePage(_tv, LocalIps, fromInstall: false);
+		await Navigation.PushModalAsync(guide);
+		await guide.Completion;
+		UpdateTvCard();
 	}
 
 	protected override async void OnAppearing()
@@ -486,7 +498,7 @@ public partial class InstallerPage : ContentPage
 		// push) puts it on the TV when the set doesn't have it yet (#34).
 		Func<string, Action<string>, Task<bool>> installWgt = async (wgtPath, report) =>
 		{
-			var cert = await _certProvisioner.ProvisionAsync(tvIp, false, report);
+			var (cert, _) = await _certFlow.RunAsync(Navigation, tvIp, label, false, report, new CancellationTokenSource());
 			await _installer.InstallAsync(tvIp, wgtPath, cert, report);
 			return true;
 		};
@@ -529,10 +541,26 @@ public partial class InstallerPage : ContentPage
 			},
 			_networkService);
 
-		foreach (var guard in guardResult.Guards)
+		// The Developer-Mode guards share one answer: the guide, which re-checks the TV while it is
+		// open and turns into Continue once it is fixed. The rest stay a Continue/Stop question.
+		var developerModeGuards = guardResult.Guards.Where(g => g.Kind is InstallGuardKind.RestartRequired
+			or InstallGuardKind.DeveloperModeOff or InstallGuardKind.DeveloperIpReversed or InstallGuardKind.DeveloperIpMismatch).ToList();
+		if (developerModeGuards.Count > 0)
 		{
+			var guide = new DevModeGuidePage(_tv, LocalIps, fromInstall: true);
+			await Navigation.PushModalAsync(guide);
+			var goOn = await guide.Completion;
+			UpdateTvCard();
+			if (!goOn)
+				return;
+		}
+
+		foreach (var guard in guardResult.Guards.Except(developerModeGuards))
+		{
+			var message = L10n.Get(guard.MessageKey);
 			bool continueAnyway = await DisplayAlert(
-				guard.DefaultTitle, guard.DefaultMessageWithDetail,
+				L10n.Get(guard.TitleKey),
+				string.IsNullOrEmpty(guard.Detail) ? message : $"{message}\n\n{guard.Detail}",
 				L10n.Get("keyContinue"), L10n.Get("keyStop"));
 			if (!continueAnyway)
 				return;
@@ -568,7 +596,7 @@ public partial class InstallerPage : ContentPage
 			// Provisioning reuses a valid cert already covering this TV and only triggers a Samsung
 			// sign-in when it must (re)generate — so no login prompt when a cert is already in place.
 			SetStep(InstallStep.Certificate);
-			var cert = await _certProvisioner.ProvisionAsync(tvIp, needsPartner, SetStatus);
+			var (cert, _) = await _certFlow.RunAsync(Navigation, tvIp, _tv.DisplayName, needsPartner, SetStatus, cancel);
 			cancel.Token.ThrowIfCancellationRequested();
 
 			// The signing certificate's validity period may not have started yet — a Samsung TV
@@ -617,17 +645,7 @@ public partial class InstallerPage : ContentPage
 			// Only the user can fix it, on their Samsung account page, so offer to open it.
 			SetStatus(L10n.Get("statusSamsungAccountNoEmail"));
 			await CloseProgressAsync();
-			var openAccount = await DisplayAlert(
-				L10n.Get("lblSamsungAccountNoEmailTitle"),
-				L10n.Get("statusSamsungAccountNoEmail"),
-				L10n.Get("lblOpenSamsungAccount"),
-				L10n.Get("btn_Close"));
-
-			if (openAccount)
-			{
-				try { await Launcher.Default.OpenAsync(SamsungAccountEmailMissingException.AccountUrl); }
-				catch (Exception ex) { System.Diagnostics.Trace.WriteLine($"[installer] Couldn't open the Samsung account page: {ex.Message}"); }
-			}
+			await Navigation.PushModalAsync(new AccountEmailSheetPage());
 		}
 		catch (Exception ex)
 		{

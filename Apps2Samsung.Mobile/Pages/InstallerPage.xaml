@@ -36,7 +36,7 @@
                                     TextColor="{DynamicResource OnAccentColor}" />
                             <Button Text="{l:Localize lblAddTvByIp}" Clicked="OnNoTvAddClicked" HeightRequest="40" CornerRadius="20"
                                     Padding="16,0" BackgroundColor="{DynamicResource AccentSoftColor}"
-                                    TextColor="{DynamicResource AccentInkColor}" />
+                                    TextColor="{DynamicResource AccentColor}" />
                         </HorizontalStackLayout>
                     </VerticalStackLayout>
                 </Border>

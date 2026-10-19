@@ -27,6 +27,31 @@ namespace Apps2Samsung.Interfaces
         /// hasn't started, counting down to <paramref name="validFromLocal"/>. Returns true when the
         /// wait is over and the user chose to continue, false if they cancelled.
         /// </summary>
-        Task<bool> ShowCertificateCountdownAsync(string title, string message, DateTime validFromLocal);
+        Task<bool> ShowCertificateCountdownAsync(DateTime validFromLocal);
+
+        /// <summary>
+        /// Opens the certificate sheet (not awaited: it stays open while the certificate is made)
+        /// for <paramref name="tvName"/>. Null when there is no window to put it on.
+        /// </summary>
+        Task<Apps2Samsung.Services.CertificateSheet?> OpenCertificateSheetAsync(string tvName, Apps2Samsung.Interfaces.CertificatePrivilegeLevel level);
+
+        /// <summary>The Samsung account has no email address: what to do, and the account page.</summary>
+        Task ShowAccountEmailMissingAsync();
+
+        /// <summary>
+        /// The Developer Mode guide for <paramref name="device"/>, re-read through
+        /// <paramref name="refresh"/> while it is open. From Install (<paramref name="fromInstall"/>)
+        /// it returns whether to go on; otherwise false.
+        /// </summary>
+        Task<bool> ShowDevModeGuideAsync(
+            Apps2Samsung.Models.NetworkDevice device,
+            string tvName,
+            Func<Task> refresh,
+            System.Collections.Generic.IReadOnlyCollection<string> localIps,
+            string? localIp,
+            bool fromInstall);
+
+        /// <summary>The debug log viewer.</summary>
+        Task ShowLogViewerAsync();
     }
 }

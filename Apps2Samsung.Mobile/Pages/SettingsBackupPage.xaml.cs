@@ -18,6 +18,8 @@ public partial class SettingsBackupPage : ContentPage
 		InitializeComponent();
 	}
 
+	private async void OnViewLogClicked(object? sender, EventArgs e) => await Navigation.PushAsync(new LogViewerPage());
+
 	// Hands the current session's debug log to the OS share sheet. The file lives in private app
 	// storage (FileSystem.AppDataDirectory/Logs) with no way to reach it otherwise, so this is how a
 	// user gets logs off the phone when reporting an issue. Saving is set up in MauiProgram via FileLog.

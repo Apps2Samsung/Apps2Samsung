@@ -2,41 +2,44 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.CertificateWaitPage"
              Shell.NavBarIsVisible="False"
              Title="{l:Localize certificateNotYetValidTitle}"
              BackgroundColor="{DynamicResource BgColor}">
+    <!-- The certificate isn't valid yet (#755): a countdown to the moment it is, after which the
+         install carries on by itself. Cancel stops the install. -->
+    <ScrollView>
+        <VerticalStackLayout Padding="16,8,16,24" Spacing="14">
+            <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
+                     Color="{DynamicResource HairColor}" />
 
-    <Grid Padding="20" VerticalOptions="Center">
-        <Border Padding="20" StrokeThickness="1"
-                StrokeShape="RoundRectangle 8"
-                Stroke="{DynamicResource HairBrush}"
-                BackgroundColor="{DynamicResource SurfaceColor}">
-            <VerticalStackLayout Spacing="14">
+            <Grid ColumnDefinitions="44,*" ColumnSpacing="12">
+                <Border WidthRequest="44" HeightRequest="44" StrokeThickness="0" StrokeShape="RoundRectangle 11"
+                        BackgroundColor="{DynamicResource WarnSoftColor}">
+                    <shapes:Path Data="M12,3 A9,9 0 1 0 12.01,3 M12,7 L12,12 L15,14"
+                                 Stroke="{DynamicResource WarnBrush}" StrokeThickness="2.2" StrokeLineJoin="Round" StrokeLineCap="Round"
+                                 WidthRequest="22" HeightRequest="22" Aspect="Uniform"
+                                 HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <Label Grid.Column="1" Text="{l:Localize certificateNotYetValidTitle}" FontSize="17" FontAttributes="Bold"
+                       VerticalOptions="Center" />
+            </Grid>
 
-                <Label Text="⏳" FontSize="40" HorizontalOptions="Center" />
+            <Border Padding="16,18" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="{l:Localize certValidIn}" FontSize="13" TextColor="{DynamicResource MutedColor}" HorizontalOptions="Center" />
+                    <!-- Monospaced so ticking seconds don't reflow the layout. -->
+                    <Label x:Name="CountdownLabel" FontSize="40" FontFamily="monospace" FontAttributes="Bold" HorizontalOptions="Center" />
+                    <Label x:Name="CaptionLabel" Text="{l:Localize certContinuesByItself}" FontSize="13"
+                           TextColor="{DynamicResource MutedColor}" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Border>
 
-                <Label Text="{l:Localize certificateNotYetValidTitle}" FontSize="16" FontAttributes="Bold"
-                       HorizontalTextAlignment="Center" HorizontalOptions="Center" />
+            <Label Text="{l:Localize certNotYetValidBody}" FontSize="14" LineHeight="1.3" />
 
-                <Label x:Name="MessageLabel" FontSize="14" HorizontalTextAlignment="Center" />
-
-                <!-- The countdown. Monospaced so ticking seconds don't reflow the layout. -->
-                <Label x:Name="CountdownLabel" FontSize="34" FontFamily="monospace"
-                       FontAttributes="Bold" HorizontalOptions="Center" />
-
-                <Label x:Name="CaptionLabel" Text="{l:Localize certificateCountdownCaption}"
-                       FontSize="12" Opacity="0.7"
-                       HorizontalTextAlignment="Center" HorizontalOptions="Center" />
-
-                <HorizontalStackLayout Spacing="12" HorizontalOptions="Center" Margin="0,8,0,0">
-                    <Button x:Name="InstallNowBtn" Text="{l:Localize lblInstallNow}" IsEnabled="False"
-                            Clicked="OnInstallNowClicked" />
-                    <Button Text="{l:Localize lblCancel}" WidthRequest="100" Clicked="OnCancelClicked" />
-                </HorizontalStackLayout>
-
-            </VerticalStackLayout>
-        </Border>
-    </Grid>
-
+            <Button Text="{l:Localize lblCancel}" BackgroundColor="{DynamicResource BadSoftColor}" TextColor="{DynamicResource BadColor}"
+                    FontAttributes="Bold" CornerRadius="12" HeightRequest="48" Clicked="OnCancelClicked" />
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>
