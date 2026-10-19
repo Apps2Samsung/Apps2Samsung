@@ -13,6 +13,10 @@ name: Crowdin fix one string
 # all 29 files, including the machine translations that are explicitly not native-speaker
 # reviewed. This changes one key and leaves every other string's review state alone.
 #
+# With `language` set and `key` left empty it does the same for EVERY key of that one language:
+# for a translation completed by hand in the repo (pt-BR in #752, which the sync then proposed
+# deleting in #788). Other languages are not touched.
+#
 # Run it from the Actions tab, leave `apply` off for the first pass to see what it would do, then
 # run it again with `apply` on. Afterwards run Crowdin sync so the corrected text comes back down.
 
@@ -20,9 +24,13 @@ on:
   workflow_dispatch:
     inputs:
       key:
-        description: 'The en.json key to correct in Crowdin (e.g. alreadyInstalled)'
+        description: 'The en.json key to correct in Crowdin (e.g. alreadyInstalled). Empty = every key of `language`.'
         type: string
-        required: true
+        required: false
+      language:
+        description: 'Only this language (Crowdin locale, e.g. pt-BR). Empty = every language; required when `key` is empty.'
+        type: string
+        required: false
       apply:
         description: 'Write the changes. Off = report what would change and touch nothing.'
         type: boolean
@@ -48,6 +56,7 @@ jobs:
           # Through the environment rather than interpolated into the script: the key is free text
           # from whoever dispatches the run.
           KEY: ${{ inputs.key }}
+          LANGUAGE: ${{ inputs.language }}
           APPLY: ${{ inputs.apply }}
         run: |
           if [ -z "$CROWDIN_PROJECT_ID" ] || [ -z "$CROWDIN_PERSONAL_TOKEN" ]; then
@@ -55,4 +64,7 @@ jobs:
             exit 1
           fi
           [ "$APPLY" = "true" ] && apply=--apply || apply=
-          python3 .github/scripts/crowdin_fix_string.py "$KEY" $apply
+          args=()
+          [ -n "$KEY" ] && args+=("$KEY")
+          [ -n "$LANGUAGE" ] && args+=(--language "$LANGUAGE")
+          python3 .github/scripts/crowdin_fix_string.py "${args[@]}" $apply
