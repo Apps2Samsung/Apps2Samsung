@@ -7,23 +7,25 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
 
-    <Grid RowDefinitions="Auto,Auto,*" Padding="16,10,16,0" RowSpacing="8">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="16,10,16,0" RowSpacing="8">
 
-        <!-- A tab root (#755): page title, its actions as round icon buttons -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="4,8,4,0">
-            <Label Grid.Column="0" Text="{l:Localize lblOnTheTv}" Style="{StaticResource PageTitle}" />
-            <Button Grid.Column="1" x:Name="RemoveLeftoverBtn" Text="{l:Localize lblRemoveLeftover}" FontSize="12"
+        <!-- A tab root (#755). The actions sit in a row above the title, the way iOS puts them over a
+             large title: beside it, "Remove leftover" and refresh left the title too little width in
+             longer languages ("Restanten verwijderen" next to "Op de tv"). -->
+        <HorizontalStackLayout Grid.Row="0" Spacing="8" HorizontalOptions="End" Margin="4,4,4,0">
+            <Button x:Name="RemoveLeftoverBtn" Text="{l:Localize lblRemoveLeftover}" FontSize="12"
                     Style="{StaticResource IconButton}" WidthRequest="-1" MinimumWidthRequest="36" Padding="12,0" CornerRadius="18"
                     Clicked="OnRemoveLeftoverClicked" />
-            <Button Grid.Column="2" x:Name="RefreshBtn" Text="⟳" Style="{StaticResource IconButton}" Clicked="OnRefreshClicked" />
-        </Grid>
+            <Button x:Name="RefreshBtn" Text="⟳" Style="{StaticResource IconButton}" Clicked="OnRefreshClicked" />
+        </HorizontalStackLayout>
+        <Label Grid.Row="1" Text="{l:Localize lblOnTheTv}" Style="{StaticResource PageTitle}" Margin="4,0" />
 
         <!-- which TV, how many apps, or what went wrong -->
-        <Label Grid.Row="1" x:Name="CountLabel" Style="{StaticResource Footnote}" Text="{l:Localize lblLoading}" LineBreakMode="WordWrap" />
+        <Label Grid.Row="2" x:Name="CountLabel" Style="{StaticResource Footnote}" Text="{l:Localize lblLoading}" LineBreakMode="WordWrap" />
 
         <!-- The apps as a grouped list (#755): tile, name, version and size, a chevron; a row opens
              the app's sheet with Launch / Stop / Debug console / Uninstall. -->
-        <Border Grid.Row="2" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}"
+        <Border Grid.Row="3" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}"
                 VerticalOptions="Start" Margin="0,0,0,16">
             <CollectionView x:Name="AppsList" SelectionMode="None" VerticalScrollBarVisibility="Never">
                 <CollectionView.EmptyView>
@@ -64,7 +66,7 @@
         </Border>
 
         <!-- Busy overlay -->
-        <ActivityIndicator Grid.Row="2" x:Name="Busy" IsRunning="False" IsVisible="False"
+        <ActivityIndicator Grid.Row="3" x:Name="Busy" IsRunning="False" IsVisible="False"
                            VerticalOptions="Center" HorizontalOptions="Center" Color="{DynamicResource AccentColor}" />
 
     </Grid>

@@ -64,20 +64,20 @@
         </Style>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,*" Padding="16,10,16,0" RowSpacing="8">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="16,10,16,0" RowSpacing="8">
 
-        <!-- title row: back, title, reload -->
-        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Margin="0,8,4,0">
+        <!-- back and reload in a row above the title, which gets the full width (as on the tab roots) -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,4,4,0">
             <Button Grid.Column="0" Text="‹" FontSize="22" Style="{StaticResource IconButton}" Clicked="OnBackClicked" />
-            <Label Grid.Column="1" Text="{l:Localize lblToolbox}" Style="{StaticResource PageTitle}" />
             <Button Grid.Column="2" Text="⟳" Style="{StaticResource IconButton}" Clicked="OnReloadClicked" />
         </Grid>
+        <Label Grid.Row="1" Text="{l:Localize lblToolbox}" Style="{StaticResource PageTitle}" Margin="4,0" />
 
         <!-- which TV, and whether the channel is up -->
-        <Label Grid.Row="1" x:Name="StatusLabel" Style="{StaticResource Hint}" Margin="4,0"
+        <Label Grid.Row="2" x:Name="StatusLabel" Style="{StaticResource Hint}" Margin="4,0"
                Text="{l:Localize lblRemoteConnecting}" />
 
-        <ScrollView Grid.Row="2">
+        <ScrollView Grid.Row="3">
             <VerticalStackLayout Spacing="10" Padding="0,0,0,24">
 
                 <Label Style="{StaticResource Footnote}" Text="{l:Localize lblToolboxOwnerNote}" LineBreakMode="WordWrap" />
