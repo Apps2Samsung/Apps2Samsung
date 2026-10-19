@@ -13,6 +13,11 @@ name: Test IPA
 
 on:
   workflow_dispatch:
+  # Also whenever this file changes, on any branch: a dispatch-only workflow can't be run until it
+  # is on the default branch, so this is how a change to it proves itself on the PR that makes it.
+  push:
+    paths:
+      - .github/workflows/test-ipa.yml
 
 permissions:
   contents: read
