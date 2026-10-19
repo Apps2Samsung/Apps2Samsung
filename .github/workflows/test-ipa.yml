@@ -1,0 +1,83 @@
+name: Test IPA
+
+# An unsigned iPhone build of any branch, as a downloadable artifact: the iOS counterpart of
+# Test APK, and the first step of the SideStore channel (#753 step 6). SideStore re-signs an
+# unsigned IPA on the phone with the user's own Apple ID, so no certificate or provisioning
+# profile is involved here; the archive is just the app bundle for a real device (ios-arm64),
+# which is why code signing is turned off explicitly (the project's entitlements would otherwise
+# make the build look for a signing identity the runner doesn't have).
+#
+# iOS cannot be built locally in WSL or on Linux (no macOS, no Xcode): this workflow and the
+# Mobile (iOS) job of the PR build are the build. Same runner label as that job: the current .NET
+# for iOS workload needs Xcode 27 (see pr-build.yml for the why).
+
+on:
+  workflow_dispatch:
+  # Also whenever this file changes, on any branch: a dispatch-only workflow can't be run until it
+  # is on the default branch, so this is how a change to it proves itself on the PR that makes it.
+  push:
+    paths:
+      - .github/workflows/test-ipa.yml
+
+permissions:
+  contents: read
+
+jobs:
+  test-ipa:
+    runs-on: xcode-27
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Extract version
+        shell: bash
+        run: |
+          VERSION=$(grep -oE 'v[0-9]+(\.[0-9]+){1,3}' Apps2Samsung.Desktop/Helpers/AppSettings.cs)
+          if [ -z "$VERSION" ]; then
+            echo "❌ Version not found"
+            exit 1
+          fi
+          BRANCH=$(echo "${{ github.ref_name }}" | tr -c 'A-Za-z0-9.\n-' '-')
+          echo "VERSION_NAME=${VERSION#v}-${BRANCH}.${{ github.run_number }}" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Xcode in use
+        run: xcodebuild -version
+
+      # Both workloads: on macOS the csproj lists net10.0-android too, and restore evaluates every
+      # TFM even though only the iOS one is published below.
+      - name: Install MAUI workloads
+        run: dotnet workload install maui-ios maui-android
+
+      # CFBundleVersion must be a number (the Android versionCode pattern); the run number is
+      # unique per workflow, which is enough for a test build that no store sees.
+      - name: Build IPA
+        shell: bash
+        run: |
+          dotnet publish Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj \
+            -c Release -f net10.0-ios \
+            -p:RuntimeIdentifier=ios-arm64 \
+            -p:EnableCodeSigning=false \
+            -p:BuildIpa=true \
+            -p:ApplicationDisplayVersion="$VERSION_NAME" \
+            -p:ApplicationVersion="${{ github.run_number }}" \
+            -o publish/ios
+
+          mkdir -p dist
+          IPA=$(find publish/ios Apps2Samsung.Mobile/bin -name '*.ipa' 2>/dev/null | head -n1)
+          if [ -z "$IPA" ]; then
+            echo "❌ No IPA produced"
+            echo "Publish output:"; find publish/ios -maxdepth 2 | head -50
+            exit 1
+          fi
+          cp "$IPA" "dist/Apps2Samsung-${VERSION_NAME}-ios.ipa"
+          ls -la dist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Apps2Samsung-${{ env.VERSION_NAME }}-ios
+          path: dist/*.ipa
+          retention-days: 14
+          if-no-files-found: error

@@ -583,6 +583,9 @@ public partial class InstallerPage : ContentPage
 		_progress = new InstallProgressPage(appTitle, custom ? null : release!.Category, _tv.DisplayName, MobileSettings.OpenAfterInstall);
 		_progress.CancelRequested += (_, _) => cancel.Cancel();
 		await Navigation.PushModalAsync(_progress);
+		// The install must finish in the foreground: iOS suspends a backgrounded app, and a screen
+		// timeout halfway through the push would leave the TV without the old copy or the new one.
+		DeviceDisplay.Current.KeepScreenOn = true;
 		string? wgtPath = null;
 		try
 		{
@@ -654,6 +657,7 @@ public partial class InstallerPage : ContentPage
 		}
 		finally
 		{
+			DeviceDisplay.Current.KeepScreenOn = false;
 			// Clean up the staged package unless the user opted to keep it. For a custom install
 			// this is the cache copy, never the user's original file.
 			if (wgtPath is not null && !MobileSettings.KeepWgtFile)
