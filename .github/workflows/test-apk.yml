@@ -89,7 +89,7 @@ jobs:
           EXPECTED_SIGNER_SHA256: bd4dee21ebeee1b0b690c612318808d27f35c46fa53ba31d256379a7fed7e107
         run: .github/scripts/android-version-code.sh verify "dist/Apps2Samsung-${VERSION_NAME}-android.apk"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: Apps2Samsung-${{ env.VERSION_NAME }}-android
           path: dist/*.apk
