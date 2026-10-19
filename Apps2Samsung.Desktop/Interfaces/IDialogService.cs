@@ -53,5 +53,14 @@ namespace Apps2Samsung.Interfaces
 
         /// <summary>The debug log viewer.</summary>
         Task ShowLogViewerAsync();
+
+        /// <summary>
+        /// The form for a community package's <c>user_settings</c> (#791), prefilled with
+        /// <paramref name="current"/>. The values by key once the user chose Install, null on Cancel.
+        /// </summary>
+        Task<System.Collections.Generic.IReadOnlyDictionary<string, string>?> ShowUserSettingsAsync(
+            string appName,
+            Apps2Samsung.Models.UserSettingsSpec spec,
+            System.Collections.Generic.IReadOnlyDictionary<string, string> current);
     }
 }

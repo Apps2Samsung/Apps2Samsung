@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+             x:Class="Apps2Samsung.Mobile.Pages.UserSettingsSheetPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+    <ContentPage.Resources>
+        <Style x:Key="Hint" TargetType="Label">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Opacity" Value="0.6" />
+        </Style>
+        <Style x:Key="Field" TargetType="Border">
+            <Setter Property="Padding" Value="8,0" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 8" />
+            <Setter Property="Stroke" Value="{DynamicResource HairColor}" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource Surface2Color}" />
+        </Style>
+    </ContentPage.Resources>
+    <!-- A community package's user_settings (#791): the values it needs before it installs (an API
+         key, a server address), one field each, written into the package by UserSettingsPatcher.
+         The fields are built in code from the catalog's spec. -->
+    <ScrollView>
+        <VerticalStackLayout Padding="16,8,16,24" Spacing="14">
+            <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
+                     Color="{DynamicResource HairColor}" />
+
+            <Grid ColumnDefinitions="44,*" ColumnSpacing="12">
+                <Border WidthRequest="44" HeightRequest="44" StrokeThickness="0" StrokeShape="RoundRectangle 11"
+                        BackgroundColor="{DynamicResource AccentSoftColor}">
+                    <!-- a key -->
+                    <shapes:Path Data="M15,7 A4,4 0 1 1 9.5,10.5 L4,16 L4,20 L8,20 L8,18 L10,18 L10,16 L12,16 L13.5,14.5 A4,4 0 0 1 15,7 Z"
+                                 Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.2" StrokeLineJoin="Round" StrokeLineCap="Round"
+                                 WidthRequest="22" HeightRequest="22" Aspect="Uniform"
+                                 HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <Label x:Name="TitleLabel" Grid.Column="1" FontSize="17" FontAttributes="Bold" VerticalOptions="Center" />
+            </Grid>
+
+            <Label Text="{l:Localize hintAppUserSettings}" Style="{StaticResource Hint}" />
+
+            <Label x:Name="HelpLink" TextColor="{DynamicResource AccentColor}" FontAttributes="Bold" FontSize="14" IsVisible="False">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnHelpTapped" />
+                </Label.GestureRecognizers>
+            </Label>
+
+            <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}" Padding="16,14">
+                <VerticalStackLayout x:Name="Fields" Spacing="12" />
+            </Border>
+
+            <VerticalStackLayout Spacing="8">
+                <Button Text="{l:Localize lblInstall}" Style="{StaticResource PrimaryButton}"
+                        CornerRadius="12" HeightRequest="50" Clicked="OnInstallClicked" />
+                <Button Text="{l:Localize lblCancel}" BackgroundColor="Transparent" TextColor="{DynamicResource InkColor}"
+                        FontAttributes="Bold" HeightRequest="44" Clicked="OnCancelClicked" />
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

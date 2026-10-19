@@ -844,5 +844,14 @@
   "lblLogLevelWarning": "Warn",
   "lblLogLevelError": "Error",
   "lblChooseLogSession": "Choose a log",
-  "statusLogSaveFailed": "Couldn't save the log: {0}"
+  "statusLogSaveFailed": "Couldn't save the log: {0}",
+  "lblAppNeedsDetails": "{0} needs a few details",
+  "hintAppUserSettings": "They are written into the package before it goes to the TV, and kept here for the next update.",
+  "lblWhereToGetThese": "Where to get these",
+  "lblOptional": "optional",
+  "userSettingRequired": "Required",
+  "userSettingDigitsOnly": "Digits only",
+  "userSettingInvalidFormat": "Not in the expected format",
+  "statusUserSettingsFindMissing": "{0} changed upstream: '{1}' is no longer in {2}, so your settings can't be written in. Ask for the package to be updated.",
+  "statusUserSettingsFileMissing": "{0} changed upstream: {1} is no longer in the package, so your settings can't be written in. Ask for the package to be updated."
 }

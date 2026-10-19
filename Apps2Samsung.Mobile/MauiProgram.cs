@@ -79,6 +79,9 @@ public static class MauiProgram
 		builder.Services.AddSingleton<IPackagePatcher, TizenTubeProxyPatcher>();
 		// Camera PiP: cameras → config.js window.PIP_CONFIG at install (shared Core patcher).
 		builder.Services.AddSingleton<IPackagePatcher, CameraPipPackagePatcher>();
+		// A community package's user_settings (API keys, server addresses asked for before the
+		// install) → the file the catalog names, by exact-text replacement (#791).
+		builder.Services.AddSingleton<IPackagePatcher, UserSettingsPatcher>();
 
 		// The pre-resolved catalog from apps2samsung.com (one download per 10 minutes, shared), so
 		// the app list and the info view load without api.github.com calls. Cached in the app's

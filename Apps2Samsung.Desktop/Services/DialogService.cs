@@ -389,6 +389,16 @@ namespace Apps2Samsung.Services
                 await Task.CompletedTask;
             });
 
+        public Task<IReadOnlyDictionary<string, string>?> ShowUserSettingsAsync(
+            string appName, UserSettingsSpec spec, IReadOnlyDictionary<string, string> current) =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var window = GetMainWindow();
+                if (window == null)
+                    return (IReadOnlyDictionary<string, string>?)null;
+                return await new UserSettingsWindow(appName, spec, current, Localize).ShowDialog<IReadOnlyDictionary<string, string>?>(window);
+            });
+
         private static string Localize(string key) => key.Localized();
 
         public async Task ShowMessageWithLinkAsync(string title, string message, string linkText, string url, string? closeText = null)
