@@ -137,8 +137,9 @@
 						</Border>
 
 						<!-- The TV: name, model + IP, an LED with the status line and the install bar (#755).
-						     Its actions live in the toolbar's ⋯ and the sidebar's TV picker. -->
-						<controls:TvCard State="{Binding TvCard}"/>
+						     Its actions live in the toolbar's ⋯ and the sidebar's TV picker. A TV that isn't
+						     ready yet: clicking the card opens the Developer Mode guide. -->
+						<controls:TvCard State="{Binding TvCard}" Command="{Binding OpenTvGuideCommand}"/>
 
 						<!-- Cancel a running Samsung sign-in -->
 						<Button Classes="icon" HorizontalAlignment="Center"

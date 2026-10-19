@@ -25,6 +25,7 @@ namespace Apps2Samsung.ViewModels
         public enum Page { Installing, AppCustomization, Language, Backup, Advanced }
 
         private readonly ILocalizationService _localizationService;
+        private readonly IDialogService _dialogService;
 
         public AppSettingsViewModel Application { get; }
         public AppIconsViewModel AppIcons { get; }
@@ -70,6 +71,18 @@ namespace Apps2Samsung.ViewModels
 
         public Func<Task<string>>? CheckForUpdatesHandler { get; set; }
 
+        // Installing > Prepare the certificate now: the selected TV lives with the main window,
+        // which sets the delegate (the same way as the update check).
+        public Func<Task>? PrepareCertificateHandler { get; set; }
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(PrepareCertificateCommand))]
+        [NotifyPropertyChangedFor(nameof(PrepareCertificateText))]
+        private bool isPreparingCertificate;
+
+        /// <summary>The button: what it does, or what it is doing while the TV is read.</summary>
+        public string PrepareCertificateText => L(IsPreparingCertificate ? "statusReadingTvDuid" : "lblPrepareCertificateNow");
+
         public string LblSigning => L("lblSigning");
         public string LblEveryInstall => L("lblEveryInstall");
         public string LblPerApp => L("lblPerApp");
@@ -82,11 +95,13 @@ namespace Apps2Samsung.ViewModels
             AppSettingsViewModel application,
             AppIconsViewModel appIcons,
             IEnumerable<IAppSettingsProvider> providers,
-            ILocalizationService localizationService)
+            ILocalizationService localizationService,
+            IDialogService dialogService)
         {
             Application = application;
             AppIcons = appIcons;
             _localizationService = localizationService;
+            _dialogService = dialogService;
 
             MainRows.Add(new SettingsRow(Page.Installing, "lblSettingsInstalling", "summarySettingsInstalling", "Accent",
                 "M12 3v12M7 10l5 5 5-5M4 19h16"));
@@ -148,6 +163,28 @@ namespace Apps2Samsung.ViewModels
 
         private bool CanCheckForUpdates() => !IsCheckingForUpdates;
 
+        [RelayCommand(CanExecute = nameof(CanPrepareCertificate))]
+        private async Task PrepareCertificate()
+        {
+            if (PrepareCertificateHandler is null)
+                return;
+            IsPreparingCertificate = true;
+            try
+            {
+                await PrepareCertificateHandler();
+            }
+            finally
+            {
+                IsPreparingCertificate = false;
+            }
+        }
+
+        private bool CanPrepareCertificate() => !IsPreparingCertificate;
+
+        /// <summary>Backup and diagnostics > View debug log.</summary>
+        [RelayCommand]
+        private Task ViewLog() => _dialogService.ShowLogViewerAsync();
+
         partial void OnSelectedPageChanged(Page value)
         {
             foreach (var row in MainRows.Concat(MoreRows))
@@ -180,6 +217,7 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblAppCustomizationHint));
             OnPropertyChanged(nameof(LblBetaUpdates));
             OnPropertyChanged(nameof(LblCheckForUpdates));
+            OnPropertyChanged(nameof(PrepareCertificateText));
             OnPropertyChanged(nameof(LicenseText));
         }
 

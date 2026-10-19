@@ -1,4 +1,5 @@
 using Apps2Samsung.Certificate;
+using Apps2Samsung.Interfaces;
 using Apps2Samsung.Mobile.Pages;
 
 namespace Apps2Samsung.Mobile.Services;

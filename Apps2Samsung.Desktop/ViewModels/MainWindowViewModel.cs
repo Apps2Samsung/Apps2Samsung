@@ -438,6 +438,8 @@ namespace Apps2Samsung.ViewModels
             _settingsViewModel = settingsViewModel;
             // Settings > Check: the same check as at startup, but it always speaks.
             _settingsViewModel.CheckForUpdatesHandler = () => CheckForUpdatesAsync(manual: true);
+            // Settings > Installing > Prepare the certificate now: for the selected TV.
+            _settingsViewModel.PrepareCertificateHandler = PrepareCertificateAsync;
             _httpClient = httpClient;
 
             // Snapshot-first: the pre-resolved catalog serves the manifest's providers; the GitHub
@@ -555,6 +557,8 @@ namespace Apps2Samsung.ViewModels
             else if (value != null && !value.DebugPortOpen && !string.IsNullOrWhiteSpace(value.IpAddress))
                 SetStatus(DeviceNotReadyStatusKey(value)); // detected TV, but not installable yet
 
+            // Read once per TV, not on every status line: the guide's Diagnose compares against them.
+            _localIps = _packageHelper.LocalIps();
             RefreshCanExecuteChanged();
             AppSettings.Default.TvIp = value?.IpAddress ?? string.Empty;
             AppSettings.Default.Save();
@@ -592,6 +596,57 @@ namespace Apps2Samsung.ViewModels
                 Message = string.IsNullOrWhiteSpace(StatusBar) ? state.Message : StatusBar,
                 Progress = IsInstallProgressVisible ? InstallProgress : null,
             };
+            OpenTvGuideCommand.NotifyCanExecuteChanged();
+        }
+
+        private IReadOnlyCollection<string> _localIps = Array.Empty<string>();
+
+        /// <summary>The card is clickable while the TV isn't ready and nothing runs on it.</summary>
+        private bool CanOpenTvGuide() =>
+            HasSelectedTv &&
+            !IsLoadingDevices && !IsInstallProgressVisible && !IsSamsungLoginActive &&
+            DevModeGuide.Diagnose(SelectedDevice, _localIps) != DevModeProblem.None;
+
+        /// <summary>
+        /// Clicking the TV card (#755): the Developer Mode guide for a TV that isn't ready. The guide
+        /// re-reads the TV while it is open, so the card and Install follow when it closes.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(CanOpenTvGuide))]
+        private async Task OpenTvGuideAsync()
+        {
+            if (SelectedDevice is not { } device)
+                return;
+            await _packageHelper.ShowDevModeGuideAsync(device, _localIps);
+            SetStatus(IsSelectedDeviceReady ? "Ready" : DeviceNotReadyStatusKey(device));
+            RefreshCanExecuteChanged();
+            UpdateTvCard();
+        }
+
+        /// <summary>
+        /// Settings > Installing > Prepare the certificate now (#755): the install's certificate
+        /// for the selected TV, made now so the first install doesn't stop for a Samsung sign-in.
+        /// A TV that isn't ready can't be read: the guide opens instead.
+        /// </summary>
+        private async Task PrepareCertificateAsync()
+        {
+            if (!HasSelectedTv)
+            {
+                await _dialogService.ShowMessageAsync(L("lblStepCertificate"), L("statusSelectTvFirst"));
+                return;
+            }
+            if (!IsSelectedDeviceReady)
+            {
+                if (OpenTvGuideCommand.CanExecute(null))
+                    await OpenTvGuideAsync();
+                if (!IsSelectedDeviceReady)
+                    return;
+            }
+
+            var outcome = await _tizenInstaller.PrepareCertificateAsync(SelectedDevice!.IpAddress);
+            if (outcome == CertificatePreparation.Failed)
+                return;
+            var key = outcome == CertificatePreparation.Created ? "statusCertificatePrepared" : "statusCertificateAlreadyReady";
+            await _dialogService.ShowMessageAsync(L("lblStepCertificate"), string.Format(L(key), SelectedTvLabel));
         }
 
         partial void OnIsLoadingChanged(bool value)

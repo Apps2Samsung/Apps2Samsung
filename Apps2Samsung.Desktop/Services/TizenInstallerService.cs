@@ -1431,6 +1431,45 @@ namespace Apps2Samsung.Services
             public void Dispose() => Working?.Dispose();
         }
 
+        public async Task<CertificatePreparation> PrepareCertificateAsync(string tvIpAddress, CancellationToken cancellationToken = default)
+        {
+            var deviceInfo = await GetDeviceInfoAsync(tvIpAddress);
+            if (deviceInfo == null)
+            {
+                await _dialogService.ShowErrorAsync(Constants.LocalizationKeys.TvNameNotFound.Localized());
+                return CertificatePreparation.Failed;
+            }
+
+            // The level an install would sign with today (a package that needs Partner turns the
+            // toggle on by itself at install time, so Public is right until then).
+            var level = _appSettings.PartnerSigning || _appSettings.RequiresPartnerSigning
+                ? CertificatePrivilegeLevel.Partner
+                : CertificatePrivilegeLevel.Public;
+            var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
+            using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken);
+            try
+            {
+                await _provisioning.EnsureAsync(
+                    deviceDuid: deviceInfo.Duid,
+                    level: level,
+                    storePath: AppSettings.CertificatePath,
+                    caPath: caPath,
+                    manualDuids: ParseDuids(_appSettings.ManualDuids),
+                    forceLogin: _appSettings.ForceSamsungLogin,
+                    progress: sheet.Progress(null),
+                    beforeLoginAsync: sheet.OpenAsync,
+                    ct: sheet.Token);
+                await sheet.FinishAsync();
+                // The sheet only opens when a certificate has to be made.
+                return sheet.IsOpen ? CertificatePreparation.Created : CertificatePreparation.Reused;
+            }
+            catch (Exception ex)
+            {
+                await EndCertificateRunAsync(sheet, ex);
+                return CertificatePreparation.Failed;
+            }
+        }
+
         // How a certificate run that didn't finish ends: cancelled quietly, the account page for a
         // Samsung account without an email, anything else on the sheet (or a dialog without one).
         // Every path has told the user already, so the install result is marked as shown.

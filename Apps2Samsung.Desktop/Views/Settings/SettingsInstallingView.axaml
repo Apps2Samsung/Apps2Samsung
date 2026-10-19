@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Extensions"
              xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+             xmlns:views="clr-namespace:Apps2Samsung.Views"
              x:Class="Apps2Samsung.Views.Settings.SettingsInstallingView"
              x:DataType="viewModels:AppSettingsViewModel">
 	<!-- Settings > Installing: how a package is signed, and what every install does. Each option
@@ -42,6 +43,16 @@
 						</StackPanel>
 						<ToggleSwitch Grid.Column="1" MinWidth="0" VerticalAlignment="Center" IsChecked="{Binding PartnerSigning}"/>
 					</Grid>
+					<Border Classes="rowline"/>
+					<!-- Prepare the certificate now (#755): the install's certificate for the selected TV,
+					     with the certificate sheet when a sign-in is needed. The TV and the flow live with
+					     the main window, reached through the Settings hub. -->
+					<StackPanel Margin="14,12" Spacing="10">
+						<TextBlock Classes="hint" Text="{l:Localize hintPrepareCertificateNow}"/>
+						<Button Classes="soft" HorizontalAlignment="Left"
+						        Content="{Binding $parent[views:SettingsView].((viewModels:SettingsViewModel)DataContext).PrepareCertificateText}"
+						        Command="{Binding $parent[views:SettingsView].((viewModels:SettingsViewModel)DataContext).PrepareCertificateCommand}"/>
+					</StackPanel>
 				</StackPanel>
 			</Border>
 		</StackPanel>

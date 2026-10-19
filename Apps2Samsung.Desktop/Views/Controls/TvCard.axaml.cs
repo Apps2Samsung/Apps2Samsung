@@ -1,12 +1,14 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Styling;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
+using Avalonia.Input;
 using Avalonia.Media;
 using Apps2Samsung.Design;
 
@@ -14,8 +16,10 @@ namespace Apps2Samsung.Views.Controls
 {
     /// <summary>
     /// Paints a <see cref="TvCardState"/>. <see cref="Actions"/> is whatever the page wants on the
-    /// screen under the status line: chip buttons, usually. The "power on" animation plays when a
-    /// TV first appears or a different TV takes the screen.
+    /// screen under the status line: chip buttons, usually. <see cref="Command"/> runs when the
+    /// card itself is clicked (the main window opens the Developer Mode guide); while it can run
+    /// the card shows a hand cursor. The "power on" animation plays when a TV first appears or a
+    /// different TV takes the screen.
     /// </summary>
     public partial class TvCard : UserControl
     {
@@ -25,13 +29,24 @@ namespace Apps2Samsung.Views.Controls
         public static readonly StyledProperty<object?> ActionsProperty =
             AvaloniaProperty.Register<TvCard, object?>(nameof(Actions));
 
+        public static readonly StyledProperty<ICommand?> CommandProperty =
+            AvaloniaProperty.Register<TvCard, ICommand?>(nameof(Command));
+
         private string? _shownDeviceName;
 
         public TvCard()
         {
             InitializeComponent();
             ActionsHost.Bind(ContentPresenter.ContentProperty, this.GetObservable(ActionsProperty));
+            // A click on one of the Actions is handled by that button and never gets here.
+            AddHandler(Gestures.TappedEvent, OnTapped);
             Render();
+        }
+
+        public ICommand? Command
+        {
+            get => GetValue(CommandProperty);
+            set => SetValue(CommandProperty, value);
         }
 
         public TvCardState? State
@@ -51,6 +66,27 @@ namespace Apps2Samsung.Views.Controls
             base.OnPropertyChanged(change);
             if (change.Property == StateProperty)
                 Render();
+            else if (change.Property == CommandProperty)
+            {
+                if (change.OldValue is ICommand old)
+                    old.CanExecuteChanged -= OnCanExecuteChanged;
+                if (change.NewValue is ICommand command)
+                    command.CanExecuteChanged += OnCanExecuteChanged;
+                UpdateCursor();
+            }
+        }
+
+        private void OnCanExecuteChanged(object? sender, EventArgs e) => UpdateCursor();
+
+        private void UpdateCursor() =>
+            Cursor = Command?.CanExecute(null) == true ? new Cursor(StandardCursorType.Hand) : Cursor.Default;
+
+        private void OnTapped(object? sender, TappedEventArgs e)
+        {
+            if (Command is not { } command || !command.CanExecute(null))
+                return;
+            e.Handled = true;
+            command.Execute(null);
         }
 
         private void Render()
