@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Apps2Samsung.Models
 {
@@ -33,5 +34,48 @@ namespace Apps2Samsung.Models
         public string? Variant { get; set; }
         public string Repo { get; set; } = "";
         public string Host { get; set; } = "github";
+
+        /// <summary>
+        /// Values the user has to supply before this file installs (a per-user API key, a server
+        /// address), written into the package by <c>UserSettingsPatcher</c>. Null for the usual
+        /// package that needs nothing (#791).
+        /// </summary>
+        [JsonPropertyName("user_settings")]
+        public UserSettingsSpec? UserSettings { get; set; }
+    }
+
+    /// <summary>
+    /// A package's <c>user_settings</c> block: one file in the package, and the fields whose values
+    /// go into it by exact-text replacement. The schema lives in tizen-community-packages
+    /// (<c>packages.schema.json</c>); the catalog copies the block through as-is.
+    /// </summary>
+    public sealed class UserSettingsSpec
+    {
+        /// <summary>A page that explains where the values come from; shown as a link above the form.</summary>
+        [JsonPropertyName("help_url")]
+        public string? HelpUrl { get; set; }
+
+        /// <summary>The file to patch, relative to the package root.</summary>
+        public string File { get; set; } = "";
+
+        public List<UserSettingsField> Fields { get; set; } = new();
+    }
+
+    public sealed class UserSettingsField
+    {
+        /// <summary>Stable id the value is stored under, per package.</summary>
+        public string Key { get; set; } = "";
+        public string Label { get; set; } = "";
+        /// <summary><c>number</c> (digits only) or <c>text</c>.</summary>
+        public string Type { get; set; } = "text";
+        public bool Required { get; set; } = true;
+        /// <summary>A regex the value must match, when the manifest gives one.</summary>
+        public string? Pattern { get; set; }
+        /// <summary>The exact text in the file that is replaced; the install fails when it is missing.</summary>
+        public string Find { get; set; } = "";
+        /// <summary>What replaces it; <c>{value}</c> is the user's value.</summary>
+        public string Replace { get; set; } = "";
+
+        public bool IsNumber => string.Equals(Type, "number", System.StringComparison.OrdinalIgnoreCase);
     }
 }

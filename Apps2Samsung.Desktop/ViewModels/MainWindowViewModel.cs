@@ -7,6 +7,7 @@ using Apps2Samsung.Catalog;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Packaging;
 using Apps2Samsung.Design;
 using Apps2Samsung.Update;
 using Avalonia.Media;
@@ -623,6 +624,41 @@ namespace Apps2Samsung.ViewModels
         }
 
         /// <summary>
+        /// The values a community package asks for before it installs (#791): the form, prefilled
+        /// with what was given last time, then stored for the patcher and for the next update.
+        /// False when the user cancelled. A package whose catalog entry stopped asking forgets
+        /// what was stored, so the patcher stays out of it.
+        /// </summary>
+        private async Task<bool> CollectUserSettingsAsync(GitHubRelease release, Asset? asset)
+        {
+            if (asset is null)
+                return true;
+            var settings = AppSettings.Default;
+            if (asset.UserSettings is not { } spec)
+            {
+                var cleared = UserSettingsStore.Remove(settings.AppUserSettingsJson, asset.FileName);
+                if (cleared != settings.AppUserSettingsJson)
+                {
+                    settings.AppUserSettingsJson = cleared;
+                    settings.Save();
+                }
+                return true;
+            }
+
+            var current = UserSettingsStore.Get(settings.AppUserSettingsJson, asset.FileName)?.Values
+                ?? new Dictionary<string, string>();
+            var values = await _dialogService.ShowUserSettingsAsync(release.Name, spec, current);
+            if (values is null)
+            {
+                SetStatus("statusInstallCancelled");
+                return false;
+            }
+            settings.AppUserSettingsJson = UserSettingsStore.Set(settings.AppUserSettingsJson, asset.FileName, spec, values);
+            settings.Save();
+            return true;
+        }
+
+        /// <summary>
         /// Settings > Installing > Prepare the certificate now (#755): the install's certificate
         /// for the selected TV, made now so the first install doesn't stop for a Samsung sign-in.
         /// A TV that isn't ready can't be read: the guide opens instead.
@@ -976,6 +1012,10 @@ namespace Apps2Samsung.ViewModels
                 {
 
                     if(SelectedRelease == null || SelectedDevice == null)
+                        return;
+
+                    // A community package that needs the user's own values (#791): the form first.
+                    if (!await CollectUserSettingsAsync(SelectedRelease, SelectedAsset ?? SelectedRelease.Assets.FirstOrDefault()))
                         return;
 
                     string? downloadPath = await _packageHelper.DownloadReleaseAsync(

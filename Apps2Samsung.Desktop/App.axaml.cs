@@ -141,6 +141,9 @@ namespace Apps2Samsung
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.TizenTubeProxyPatcher>();
             // Camera PiP: cameras → config.js window.PIP_CONFIG at install (shared Core patcher).
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.CameraPipPackagePatcher>();
+            // A community package's user_settings (API keys, server addresses asked for before the
+            // install) → the file the catalog names, by exact-text replacement (#791).
+            services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.UserSettingsPatcher>();
             // Registered last so the user's chosen icon (custom PNG or the bundled oblong tile)
             // overrides the package's default and composes with the app-specific patchers above.
             // Now the shared Core patcher (was Apps2Samsung.Helpers.CustomIconPackagePatcher).

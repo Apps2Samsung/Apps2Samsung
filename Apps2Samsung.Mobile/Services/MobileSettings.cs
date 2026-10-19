@@ -25,6 +25,7 @@ public static class MobileSettings
 	private const string KeyTizenTubeProxyOverride = "tizentube_proxy_override";
 	private const string KeyTizenTubeProxyHost = "tizentube_proxy_host";
 	private const string KeyCameraPipConfig = "camerapip_config_json";
+	private const string KeyAppUserSettings = "app_user_settings_json";
 	private const string KeyPartnerSigning = "partner_signing";
 	private const string KeyForceLogin = "force_samsung_login";
 	private const string KeyTryOverwrite = "try_overwrite";
@@ -336,6 +337,15 @@ public static class MobileSettings
 	{
 		get => Preferences.Get(KeyCameraPipConfig, string.Empty);
 		set => Preferences.Set(KeyCameraPipConfig, value ?? string.Empty);
+	}
+
+	/// <summary>A community package's user_settings values (#791), by package file, with the find /
+	/// replace pairs they go into (Core UserSettingsStore); written into the package at install by
+	/// the shared UserSettingsPatcher. Can hold a credential: never logged.</summary>
+	public static string AppUserSettingsJson
+	{
+		get => Preferences.Get(KeyAppUserSettings, string.Empty);
+		set => Preferences.Set(KeyAppUserSettings, value ?? string.Empty);
 	}
 
 	/// <summary>Per-app custom launcher icons: JSON map { appKey -> "oblong" | custom PNG path },

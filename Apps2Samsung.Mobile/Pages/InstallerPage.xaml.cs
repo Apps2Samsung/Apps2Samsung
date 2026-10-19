@@ -509,6 +509,36 @@ public partial class InstallerPage : ContentPage
 	// Downloads (or takes the picked file), provisions the certificate, installs on the selected
 	// TV. The progress sheet walks through the steps; the TV card's LED pulses for the duration and
 	// keeps the status line for when the sheet is swiped away.
+	/// <summary>
+	/// The values a community package asks for before it installs (#791): the sheet, prefilled
+	/// with what was given last time, then stored for the patcher and for the next update. False
+	/// when the user cancelled. A package whose catalog entry stopped asking forgets what was
+	/// stored, so the patcher stays out of it.
+	/// </summary>
+	private async Task<bool> CollectUserSettingsAsync(GitHubRelease release, Asset asset)
+	{
+		if (asset.UserSettings is not { } spec)
+		{
+			var cleared = UserSettingsStore.Remove(MobileSettings.AppUserSettingsJson, asset.FileName);
+			if (cleared != MobileSettings.AppUserSettingsJson)
+				MobileSettings.AppUserSettingsJson = cleared;
+			return true;
+		}
+
+		var current = UserSettingsStore.Get(MobileSettings.AppUserSettingsJson, asset.FileName)?.Values
+			?? new Dictionary<string, string>();
+		var sheet = new UserSettingsSheetPage(release.Name, spec, current);
+		await Navigation.PushModalAsync(sheet);
+		var values = await sheet.Result;
+		if (values is null)
+		{
+			SetStatus(L10n.Get("statusInstallCancelled"));
+			return false;
+		}
+		MobileSettings.AppUserSettingsJson = UserSettingsStore.Set(MobileSettings.AppUserSettingsJson, asset.FileName, spec, values);
+		return true;
+	}
+
 	private async Task InstallAsync(GitHubRelease? release, Asset? asset, string? customPath)
 	{
 		if (_tv.Selected is not { } tv)
@@ -567,6 +597,10 @@ public partial class InstallerPage : ContentPage
 		}
 
 		tvIp = guardResult.CorrectedTvIp ?? tvIp;
+
+		// A community package that needs the user's own values (#791): the sheet first.
+		if (!custom && !await CollectUserSettingsAsync(release!, asset!))
+			return;
 
 		var appName = custom ? Path.GetFileNameWithoutExtension(customPath!) : release!.Name;
 		var appTitle = custom || string.IsNullOrWhiteSpace(release!.TagName) || !HasSeveralReleases(release.Name)
@@ -637,6 +671,14 @@ public partial class InstallerPage : ContentPage
 		catch (TaskCanceledException)
 		{
 			FailProgress(L10n.Get("statusSignInCancelled"));
+		}
+		catch (UserSettingsPatchException ex)
+		{
+			// The package changed upstream: the text a user setting replaces is gone (#791).
+			System.Diagnostics.Trace.WriteLine($"[UserSettings] {ex.Message}");
+			FailProgress(ex.Find is null
+				? string.Format(L10n.Get("statusUserSettingsFileMissing"), ex.PackageFile, ex.File)
+				: string.Format(L10n.Get("statusUserSettingsFindMissing"), ex.PackageFile, ex.Find, ex.File));
 		}
 		catch (SamsungAccountEmailMissingException)
 		{

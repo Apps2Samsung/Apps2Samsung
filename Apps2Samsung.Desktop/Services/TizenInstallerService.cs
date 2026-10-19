@@ -401,6 +401,16 @@ namespace Apps2Samsung.Services
                     onSamsungLoginStarted,
                     run);
             }
+            catch (Apps2Samsung.Packaging.UserSettingsPatchException ex)
+            {
+                // The package changed upstream: the text a user setting replaces is gone (#791).
+                Trace.WriteLine($"[UserSettings] {ex.Message}");
+                var message = ex.Find is null
+                    ? string.Format("statusUserSettingsFileMissing".Localized(), ex.PackageFile, ex.File)
+                    : string.Format("statusUserSettingsFindMissing".Localized(), ex.PackageFile, ex.Find, ex.File);
+                progress?.Invoke(message);
+                return InstallResult.FailureResult(message);
+            }
             catch (Exception ex)
             {
                 progress?.Invoke($"Installation error: {ex}");
