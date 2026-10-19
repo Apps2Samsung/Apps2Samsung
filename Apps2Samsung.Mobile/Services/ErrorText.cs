@@ -12,7 +12,12 @@ namespace Apps2Samsung.Mobile.Services;
 /// dialog said nothing. So: name the type when there's no real message, unwrap the inner chain, and
 /// always write the FULL exception (for a <c>Java.Lang.Throwable</c> that includes the Java stack
 /// trace, which names the platform API that actually failed) to the session log that
-/// Settings → Diagnostics → "Share debug log" hands off.
+/// Settings → Backup and diagnostics → View debug log shows and shares.
+/// </para>
+/// <para>
+/// iOS has the same shape: a platform call fails with an <c>NSErrorException</c> whose message is
+/// the raw <c>NSError</c> description (domain, code, user info); the error's localized description
+/// is the line a user can act on, so that is what goes in the dialog (#753).
 /// </para>
 /// </summary>
 public static class ErrorText
@@ -30,6 +35,11 @@ public static class ErrorText
 		for (Exception? e = ex; e is not null && parts.Count < 3; e = e.InnerException)
 		{
 			var message = e.Message?.Trim();
+#if IOS
+			if (e is Foundation.NSErrorException { Error: { } error } &&
+				!string.IsNullOrWhiteSpace(error.LocalizedDescription))
+				message = error.LocalizedDescription.Trim();
+#endif
 
 			// No message, or the stripped-resource-key form ("Exception_WasThrown, Java.Lang.X") that
 			// a trimmed build produces for one — the type name is strictly more informative.
