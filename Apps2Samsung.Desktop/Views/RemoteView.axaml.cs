@@ -28,6 +28,16 @@ namespace Apps2Samsung.Views
             [Key.OemPlus] = SamsungRemoteKeys.VolumeUp,
             [Key.Subtract] = SamsungRemoteKeys.VolumeDown,
             [Key.OemMinus] = SamsungRemoteKeys.VolumeDown,
+            [Key.D0] = SamsungRemoteKeys.Digit(0), [Key.NumPad0] = SamsungRemoteKeys.Digit(0),
+            [Key.D1] = SamsungRemoteKeys.Digit(1), [Key.NumPad1] = SamsungRemoteKeys.Digit(1),
+            [Key.D2] = SamsungRemoteKeys.Digit(2), [Key.NumPad2] = SamsungRemoteKeys.Digit(2),
+            [Key.D3] = SamsungRemoteKeys.Digit(3), [Key.NumPad3] = SamsungRemoteKeys.Digit(3),
+            [Key.D4] = SamsungRemoteKeys.Digit(4), [Key.NumPad4] = SamsungRemoteKeys.Digit(4),
+            [Key.D5] = SamsungRemoteKeys.Digit(5), [Key.NumPad5] = SamsungRemoteKeys.Digit(5),
+            [Key.D6] = SamsungRemoteKeys.Digit(6), [Key.NumPad6] = SamsungRemoteKeys.Digit(6),
+            [Key.D7] = SamsungRemoteKeys.Digit(7), [Key.NumPad7] = SamsungRemoteKeys.Digit(7),
+            [Key.D8] = SamsungRemoteKeys.Digit(8), [Key.NumPad8] = SamsungRemoteKeys.Digit(8),
+            [Key.D9] = SamsungRemoteKeys.Digit(9), [Key.NumPad9] = SamsungRemoteKeys.Digit(9),
         };
 
         private RemoteViewModel? _connected;

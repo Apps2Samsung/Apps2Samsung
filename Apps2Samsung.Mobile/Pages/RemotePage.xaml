@@ -7,114 +7,183 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
 
+    <!-- The Remote section in the v3 language (#755): a status notice, then Power / Source / Menu /
+         Wake, the round d-pad with an ink OK, Back / Home / Play-pause / Exit, the volume and channel
+         rockers either side of Mute and the numpad toggle, the transport row, and the text field.
+         Every key is a command parameter on OnKeyClicked; only the drawing changed. -->
     <ContentPage.Resources>
-        <!-- One look for every key: a round-cornered tile big enough to hit without looking. -->
+        <!-- a key: surface on the page background, sized for a thumb -->
         <Style x:Key="Key" TargetType="Button">
             <Setter Property="FontSize" Value="18" />
-            <Setter Property="HeightRequest" Value="56" />
-            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="HeightRequest" Value="52" />
+            <Setter Property="MinimumHeightRequest" Value="52" />
+            <Setter Property="MinimumWidthRequest" Value="0" />
+            <Setter Property="CornerRadius" Value="12" />
             <Setter Property="BackgroundColor" Value="{DynamicResource SurfaceColor}" />
             <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
-            <Setter Property="BorderColor" Value="{DynamicResource HairColor}" />
-            <Setter Property="BorderWidth" Value="1" />
+            <Setter Property="BorderWidth" Value="0" />
             <Setter Property="Padding" Value="0" />
         </Style>
-        <Style x:Key="Accent" TargetType="Button" BasedOn="{StaticResource Key}">
-            <Setter Property="BackgroundColor" Value="{DynamicResource AccentColor}" />
-            <Setter Property="TextColor" Value="{DynamicResource OnAccentColor}" />
-            <Setter Property="BorderWidth" Value="0" />
+        <!-- an arrow on the d-pad: no background of its own, the ring is the key -->
+        <Style x:Key="Arrow" TargetType="Button" BasedOn="{StaticResource Key}">
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="WidthRequest" Value="68" />
+            <Setter Property="HeightRequest" Value="68" />
+            <Setter Property="CornerRadius" Value="34" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="TextColor" Value="{DynamicResource MutedColor}" />
+        </Style>
+        <!-- the + and - ends of a rocker -->
+        <Style x:Key="RockerKey" TargetType="Button" BasedOn="{StaticResource Key}">
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="HeightRequest" Value="56" />
+        </Style>
+        <Style x:Key="Caption" TargetType="Label">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontFamily" Value="OpenSansSemibold" />
+            <Setter Property="TextColor" Value="{DynamicResource MutedColor}" />
+            <Setter Property="HorizontalOptions" Value="Center" />
+            <Setter Property="VerticalOptions" Value="Center" />
         </Style>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,*" Padding="16,10,16,0" RowSpacing="8">
+    <Grid RowDefinitions="Auto,*" Padding="16,10,16,0" RowSpacing="8">
 
-        <!-- A tab root (#755): page title, power as a round icon button -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="4,8,4,0">
-            <Label Grid.Column="0" Text="{l:Localize lblRemote}" Style="{StaticResource PageTitle}" />
-            <Button Grid.Column="1" Text="⏻" Style="{StaticResource IconButton}" TextColor="{DynamicResource BadColor}"
-                    CommandParameter="KEY_POWER" Clicked="OnKeyClicked" />
-        </Grid>
+        <!-- A tab root (#755): page title -->
+        <Label Grid.Row="0" Text="{l:Localize lblRemote}" Style="{StaticResource PageTitle}" Margin="4,8,4,0" />
 
-        <!-- Which TV, and whether the channel is up -->
-        <Label Grid.Row="1" x:Name="StatusLabel" FontSize="12" Opacity="0.6" Text="{l:Localize lblRemoteConnecting}" />
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="14" Padding="0,0,0,24" MaximumWidthRequest="560">
 
-        <ScrollView Grid.Row="2">
-            <VerticalStackLayout Spacing="14">
+                <!-- Status notice: a spinner while connecting, then a dot in the status colour -->
+                <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}" Padding="14,12">
+                    <Grid ColumnDefinitions="20,*" ColumnSpacing="10">
+                        <ActivityIndicator Grid.Column="0" x:Name="StatusSpinner" IsRunning="True" IsVisible="True"
+                                           WidthRequest="18" HeightRequest="18" VerticalOptions="Center" />
+                        <Ellipse Grid.Column="0" x:Name="StatusDot" IsVisible="False" WidthRequest="10" HeightRequest="10"
+                                 HorizontalOptions="Center" VerticalOptions="Center" />
+                        <Label Grid.Column="1" x:Name="StatusLabel" FontSize="14" LineBreakMode="WordWrap" VerticalOptions="Center"
+                               Text="{l:Localize lblRemoteConnecting}" />
+                    </Grid>
+                </Border>
 
-                <!-- D-pad: the one control that has to be reachable with a thumb -->
-                <Grid RowDefinitions="56,56,56" ColumnDefinitions="*,*,*" RowSpacing="8" ColumnSpacing="8">
-                    <Button Grid.Row="0" Grid.Column="1" Style="{StaticResource Key}" Text="▲"
-                            CommandParameter="KEY_UP" Clicked="OnKeyClicked" />
-                    <Button Grid.Row="1" Grid.Column="0" Style="{StaticResource Key}" Text="◀"
-                            CommandParameter="KEY_LEFT" Clicked="OnKeyClicked" />
-                    <Button Grid.Row="1" Grid.Column="1" Style="{StaticResource Accent}" Text="{l:Localize lblRemoteOk}"
-                            FontAttributes="Bold" CommandParameter="KEY_ENTER" Clicked="OnKeyClicked" />
-                    <Button Grid.Row="1" Grid.Column="2" Style="{StaticResource Key}" Text="▶"
-                            CommandParameter="KEY_RIGHT" Clicked="OnKeyClicked" />
-                    <Button Grid.Row="2" Grid.Column="1" Style="{StaticResource Key}" Text="▼"
-                            CommandParameter="KEY_DOWN" Clicked="OnKeyClicked" />
+                <!-- Power (bad colour) / Source / Menu / Wake -->
+                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                    <Button Grid.Column="0" Style="{StaticResource Key}" Text="⏻" FontSize="20" TextColor="{DynamicResource BadColor}"
+                            CommandParameter="KEY_POWER" Clicked="OnKeyClicked"
+                            SemanticProperties.Description="{l:Localize lblRemotePower}" />
+                    <Button Grid.Column="1" Style="{StaticResource Key}" Text="{l:Localize lblRemoteSource}" FontSize="13"
+                            CommandParameter="KEY_SOURCE" Clicked="OnKeyClicked" />
+                    <Button Grid.Column="2" Style="{StaticResource Key}" Text="{l:Localize lblRemoteMenu}" FontSize="13"
+                            CommandParameter="KEY_MENU" Clicked="OnKeyClicked" />
+                    <Button Grid.Column="3" Style="{StaticResource Key}" Text="{l:Localize lblRemoteWake}" FontSize="13"
+                            TextColor="{DynamicResource AccentColor}" Clicked="OnWakeClicked"
+                            SemanticProperties.Description="{l:Localize lblRemoteWakeHint}" />
                 </Grid>
 
-                <!-- Back / Home / Menu / Source -->
+                <!-- The d-pad: a 236 px ring with a 100 px ink OK in the middle -->
+                <Grid WidthRequest="236" HeightRequest="236" HorizontalOptions="Center" Margin="0,4">
+                    <Ellipse Fill="{DynamicResource SurfaceBrush}" />
+                    <Button Style="{StaticResource Arrow}" Text="▲" HorizontalOptions="Center" VerticalOptions="Start"
+                            CommandParameter="KEY_UP" Clicked="OnKeyClicked" />
+                    <Button Style="{StaticResource Arrow}" Text="▼" HorizontalOptions="Center" VerticalOptions="End"
+                            CommandParameter="KEY_DOWN" Clicked="OnKeyClicked" />
+                    <Button Style="{StaticResource Arrow}" Text="◀" HorizontalOptions="Start" VerticalOptions="Center"
+                            CommandParameter="KEY_LEFT" Clicked="OnKeyClicked" />
+                    <Button Style="{StaticResource Arrow}" Text="▶" HorizontalOptions="End" VerticalOptions="Center"
+                            CommandParameter="KEY_RIGHT" Clicked="OnKeyClicked" />
+                    <Button Text="{l:Localize lblRemoteOk}" WidthRequest="100" HeightRequest="100" CornerRadius="50"
+                            MinimumWidthRequest="100" MinimumHeightRequest="100" Padding="0" BorderWidth="0"
+                            FontSize="20" FontFamily="OpenSansSemibold"
+                            BackgroundColor="{DynamicResource InkColor}" TextColor="{DynamicResource BgColor}"
+                            HorizontalOptions="Center" VerticalOptions="Center"
+                            CommandParameter="KEY_ENTER" Clicked="OnKeyClicked" />
+                </Grid>
+
+                <!-- Back / Home / Play-pause / Exit -->
                 <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
                     <Button Grid.Column="0" Style="{StaticResource Key}" Text="↩" FontSize="20"
-                            CommandParameter="KEY_RETURN" Clicked="OnKeyClicked" />
-                    <Button Grid.Column="1" Style="{StaticResource Key}" Text="⌂" FontSize="20"
-                            CommandParameter="KEY_HOME" Clicked="OnKeyClicked" />
-                    <Button Grid.Column="2" Style="{StaticResource Key}" Text="☰" FontSize="18"
-                            CommandParameter="KEY_MENU" Clicked="OnKeyClicked" />
-                    <Button Grid.Column="3" Style="{StaticResource Key}" Text="⇄" FontSize="18"
-                            CommandParameter="KEY_SOURCE" Clicked="OnKeyClicked" />
+                            CommandParameter="KEY_RETURN" Clicked="OnKeyClicked"
+                            SemanticProperties.Description="{l:Localize lblRemoteBack}" />
+                    <Button Grid.Column="1" Style="{StaticResource Key}" Text="⌂" FontSize="22"
+                            CommandParameter="KEY_HOME" Clicked="OnKeyClicked"
+                            SemanticProperties.Description="{l:Localize lblRemoteHome}" />
+                    <Button Grid.Column="2" Style="{StaticResource Key}" Text="⏯" FontSize="20"
+                            Clicked="OnPlayPauseClicked"
+                            SemanticProperties.Description="{l:Localize lblRemotePlayPause}" />
+                    <Button Grid.Column="3" Style="{StaticResource Key}" Text="{l:Localize lblRemoteExit}" FontSize="13"
+                            CommandParameter="KEY_EXIT" Clicked="OnKeyClicked" />
                 </Grid>
 
-                <!-- Playback: what the issue asked for first -->
-                <Label Text="{l:Localize lblRemotePlayback}" FontSize="12" Opacity="0.6" Margin="2,4,0,0" />
+                <!-- Volume and channel rockers flanking Mute and the numpad toggle -->
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                    <Border Grid.Column="0" StrokeThickness="0" StrokeShape="RoundRectangle 28" BackgroundColor="{DynamicResource SurfaceColor}">
+                        <Grid RowDefinitions="56,Auto,56">
+                            <Button Grid.Row="0" Style="{StaticResource RockerKey}" Text="+" CommandParameter="KEY_VOLUP" Clicked="OnKeyClicked"
+                                    SemanticProperties.Description="{l:Localize lblRemoteVolumeUp}" />
+                            <Label Grid.Row="1" Style="{StaticResource Caption}" Text="{l:Localize lblRemoteVolume}" />
+                            <Button Grid.Row="2" Style="{StaticResource RockerKey}" Text="−" CommandParameter="KEY_VOLDOWN" Clicked="OnKeyClicked"
+                                    SemanticProperties.Description="{l:Localize lblRemoteVolumeDown}" />
+                        </Grid>
+                    </Border>
+                    <VerticalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                        <Button Style="{StaticResource Key}" Text="🔇" CommandParameter="KEY_MUTE" Clicked="OnKeyClicked"
+                                SemanticProperties.Description="{l:Localize lblRemoteMute}" />
+                        <Button Style="{StaticResource Key}" x:Name="NumpadToggle" Text="123" FontSize="15" FontFamily="OpenSansSemibold"
+                                Clicked="OnNumpadToggleClicked"
+                                SemanticProperties.Description="{l:Localize lblRemoteNumpad}" />
+                    </VerticalStackLayout>
+                    <Border Grid.Column="2" StrokeThickness="0" StrokeShape="RoundRectangle 28" BackgroundColor="{DynamicResource SurfaceColor}">
+                        <Grid RowDefinitions="56,Auto,56">
+                            <Button Grid.Row="0" Style="{StaticResource RockerKey}" Text="+" CommandParameter="KEY_CHUP" Clicked="OnKeyClicked"
+                                    SemanticProperties.Description="{l:Localize lblRemoteChannelUp}" />
+                            <Label Grid.Row="1" Style="{StaticResource Caption}" Text="{l:Localize lblRemoteChannel}" />
+                            <Button Grid.Row="2" Style="{StaticResource RockerKey}" Text="−" CommandParameter="KEY_CHDOWN" Clicked="OnKeyClicked"
+                                    SemanticProperties.Description="{l:Localize lblRemoteChannelDown}" />
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <!-- The numpad, behind the "123" toggle -->
+                <Grid x:Name="Numpad" IsVisible="False" RowDefinitions="52,52,52,52" ColumnDefinitions="*,*,*" RowSpacing="8" ColumnSpacing="8">
+                    <Button Grid.Row="0" Grid.Column="0" Style="{StaticResource Key}" Text="1" CommandParameter="KEY_1" Clicked="OnKeyClicked" />
+                    <Button Grid.Row="0" Grid.Column="1" Style="{StaticResource Key}" Text="2" CommandParameter="KEY_2" Clicked="OnKeyClicked" />
+                    <Button Grid.Row="0" Grid.Column="2" Style="{StaticResource Key}" Text="3" CommandParameter="KEY_3" Clicked="OnKeyClicked" />
+                    <Button Grid.Row="1" Grid.Column="0" Style="{StaticResource Key}" Text="4" CommandParameter="KEY_4" Clicked="OnKeyClicked" />
+                    <Button Grid.Row="1" Grid.Column="1" Style="{StaticResource Key}" Text="5" CommandParameter="KEY_5" Clicked="OnKeyClicked" />
+                    <Button Grid.Row="1" Grid.Column="2" Style="{StaticResource Key}" Text="6" CommandParameter="KEY_6" Clicked="OnKeyClicked" />
+                    <Button Grid.Row="2" Grid.Column="0" Style="{StaticResource Key}" Text="7" CommandParameter="KEY_7" Clicked="OnKeyClicked" />
+                    <Button Grid.Row="2" Grid.Column="1" Style="{StaticResource Key}" Text="8" CommandParameter="KEY_8" Clicked="OnKeyClicked" />
+                    <Button Grid.Row="2" Grid.Column="2" Style="{StaticResource Key}" Text="9" CommandParameter="KEY_9" Clicked="OnKeyClicked" />
+                    <Button Grid.Row="3" Grid.Column="1" Style="{StaticResource Key}" Text="0" CommandParameter="KEY_0" Clicked="OnKeyClicked" />
+                </Grid>
+
+                <!-- Transport: previous, rewind, stop, fast-forward, next -->
                 <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="8">
-                    <Button Grid.Column="0" Style="{StaticResource Key}" Text="⏮"
-                            CommandParameter="KEY_REWIND_" Clicked="OnKeyClicked" />
-                    <Button Grid.Column="1" Style="{StaticResource Key}" Text="⏪"
-                            CommandParameter="KEY_REWIND" Clicked="OnKeyClicked" />
-                    <Button Grid.Column="2" Style="{StaticResource Accent}" Text="⏯"
-                            Clicked="OnPlayPauseClicked" />
-                    <Button Grid.Column="3" Style="{StaticResource Key}" Text="⏩"
-                            CommandParameter="KEY_FF" Clicked="OnKeyClicked" />
-                    <Button Grid.Column="4" Style="{StaticResource Key}" Text="⏭"
-                            CommandParameter="KEY_FF_" Clicked="OnKeyClicked" />
-                </Grid>
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                    <Button Grid.Column="0" Style="{StaticResource Key}" Text="{l:Localize Key=lblRemoteStop, Format='⏹ {0}'}" FontSize="14"
-                            CommandParameter="KEY_STOP" Clicked="OnKeyClicked" />
-                    <Button Grid.Column="1" Style="{StaticResource Key}" Text="{l:Localize Key=lblRemoteMute, Format='🔇 {0}'}" FontSize="14"
-                            CommandParameter="KEY_MUTE" Clicked="OnKeyClicked" />
-                </Grid>
-
-                <!-- Volume and channel -->
-                <Label Text="{l:Localize lblRemoteVolumeChannel}" FontSize="12" Opacity="0.6" Margin="2,4,0,0" />
-                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
-                    <Button Grid.Column="0" Style="{StaticResource Key}" Text="{l:Localize lblRemoteVolumeUp}" FontSize="14"
-                            CommandParameter="KEY_VOLUP" Clicked="OnKeyClicked" />
-                    <Button Grid.Column="1" Style="{StaticResource Key}" Text="{l:Localize lblRemoteVolumeDown}" FontSize="14"
-                            CommandParameter="KEY_VOLDOWN" Clicked="OnKeyClicked" />
-                    <Button Grid.Column="2" Style="{StaticResource Key}" Text="{l:Localize lblRemoteChannelUp}" FontSize="14"
-                            CommandParameter="KEY_CHUP" Clicked="OnKeyClicked" />
-                    <Button Grid.Column="3" Style="{StaticResource Key}" Text="{l:Localize lblRemoteChannelDown}" FontSize="14"
-                            CommandParameter="KEY_CHDOWN" Clicked="OnKeyClicked" />
+                    <Button Grid.Column="0" Style="{StaticResource Key}" Text="⏮" CommandParameter="KEY_REWIND_" Clicked="OnKeyClicked" />
+                    <Button Grid.Column="1" Style="{StaticResource Key}" Text="⏪" CommandParameter="KEY_REWIND" Clicked="OnKeyClicked" />
+                    <Button Grid.Column="2" Style="{StaticResource Key}" Text="⏹" CommandParameter="KEY_STOP" Clicked="OnKeyClicked"
+                            SemanticProperties.Description="{l:Localize lblRemoteStop}" />
+                    <Button Grid.Column="3" Style="{StaticResource Key}" Text="⏩" CommandParameter="KEY_FF" Clicked="OnKeyClicked" />
+                    <Button Grid.Column="4" Style="{StaticResource Key}" Text="⏭" CommandParameter="KEY_FF_" Clicked="OnKeyClicked" />
                 </Grid>
 
                 <!-- Phone keyboard instead of the on-screen one. The TV's SendInputString replaces the
                      focused field's whole contents rather than appending to it, so mirroring the box as
                      it is typed - debounced, newest value wins - keeps the TV in step keystroke by
-                     keystroke, backspace included. The button is no longer a Send: by the time it is
-                     pressed the text is already on the TV, so all it does is commit it with Enter. -->
-                <Label Text="{l:Localize lblRemoteTypeOnTv}" FontSize="12" Opacity="0.6" Margin="2,4,0,0" />
+                     keystroke, backspace included. The button commits it with Enter. -->
+                <Label Style="{StaticResource GroupTitle}" Text="{l:Localize lblRemoteTypeOnTv}" />
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                    <Entry Grid.Column="0" x:Name="TextEntry" Placeholder="{l:Localize lblRemoteTextLivePlaceholder}"
-                           ReturnType="Done" TextChanged="OnTextChanged" Completed="OnSubmitClicked" />
-                    <Button Grid.Column="1" Style="{StaticResource Accent}" Text="⏎" FontSize="20"
-                            WidthRequest="64" Clicked="OnSubmitClicked"
+                    <Border Grid.Column="0" StrokeThickness="0" StrokeShape="RoundRectangle 10" BackgroundColor="{DynamicResource FillColor}" Padding="12,0">
+                        <Entry x:Name="TextEntry" Placeholder="{l:Localize lblRemoteTextLivePlaceholder}" BackgroundColor="Transparent"
+                               ReturnType="Done" TextChanged="OnTextChanged" Completed="OnSubmitClicked" />
+                    </Border>
+                    <Button Grid.Column="1" Text="{l:Localize lblRemoteSend}" HeightRequest="48" MinimumHeightRequest="48"
+                            CornerRadius="12" Padding="18,0" Clicked="OnSubmitClicked"
                             SemanticProperties.Description="{l:Localize lblRemoteSubmit}" />
                 </Grid>
-                <Label x:Name="TextHintLabel" FontSize="11" Opacity="0.5"
+                <Label x:Name="TextHintLabel" Style="{StaticResource Footnote}" LineBreakMode="WordWrap"
                        Text="{l:Localize lblRemoteTextLiveHint}" />
 
             </VerticalStackLayout>
