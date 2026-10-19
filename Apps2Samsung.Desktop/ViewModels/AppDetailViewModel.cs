@@ -62,12 +62,33 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private Bitmap? preview;
 
+        /// <summary>
+        /// "Show all versions" beside the Version title, for an app with a version history (Jellyfin):
+        /// the stored preference (ShowAllJellyfinVersions), applied to the catalog when the sheet closes.
+        /// </summary>
+        public bool CanShowAllVersions { get; }
+        public string ShowAllVersionsText { get; }
+
+        [ObservableProperty]
+        private bool showAllVersions;
+
+        partial void OnShowAllVersionsChanged(bool value)
+        {
+            if (Helpers.AppSettings.Default.ShowAllJellyfinVersions == value)
+                return;
+            Helpers.AppSettings.Default.ShowAllJellyfinVersions = value;
+            Helpers.AppSettings.Default.Save();
+        }
+
         public bool HasPreview => Preview is not null;
 
         public AppDetailViewModel(GitHubRelease release, string? previewUrl, string description,
             string? tvName, bool tvReady, HttpClient http, Func<string, string> localize,
-            bool isFavorite = false, Action<string, bool>? setFavorite = null)
+            bool isFavorite = false, Action<string, bool>? setFavorite = null, bool canShowAllVersions = false)
         {
+            CanShowAllVersions = canShowAllVersions;
+            ShowAllVersions = Helpers.AppSettings.Default.ShowAllJellyfinVersions;
+            ShowAllVersionsText = localize("lblShowAllJellyfinVersions");
             Release = release;
             _localize = localize;
             _setFavorite = setFavorite ?? ((_, _) => { });

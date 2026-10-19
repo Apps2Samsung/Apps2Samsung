@@ -37,10 +37,6 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private string textToSend = string.Empty;
 
-        /// <summary>The numpad behind the "123" toggle.</summary>
-        [ObservableProperty]
-        private bool isNumpadVisible;
-
         /// <summary>The dot beside the status line once nothing is in flight: green with the channel
         /// up, amber when a press or a text didn't get through, red when there is no channel.</summary>
         [ObservableProperty]
@@ -121,6 +117,19 @@ namespace Apps2Samsung.ViewModels
             if (stale is not null)
                 await stale.DisposeAsync();
             await Connect();
+        }
+
+        /// <summary>
+        /// The one power key (#755, option C): with the channel up it switches the TV off, without one
+        /// it is Wake, the way a sleeping TV comes back.
+        /// </summary>
+        [RelayCommand]
+        private async Task PowerOrWake()
+        {
+            if (IsConnected && _remote is { IsConnected: true })
+                await PressAsync(SamsungRemoteKeys.Power);
+            else
+                await Wake();
         }
 
         /// <summary>Sends one key code (the buttons pass it as the command parameter).</summary>

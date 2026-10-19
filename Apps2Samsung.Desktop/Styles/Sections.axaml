@@ -1,0 +1,152 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<!-- The pieces every section of the main window shares (#755, option C): the toolbar above the
+	     content, grouped lists (a title over a rounded surface of rows), a setting row with its hint
+	     line, and the settings list on the left. Every colour is a design token. -->
+
+	<!-- toolbar: plain surface buttons, 36 high -->
+	<Style Selector="Button.tool">
+		<Setter Property="Height" Value="36"/>
+		<Setter Property="MinWidth" Value="36"/>
+		<Setter Property="Padding" Value="14,0"/>
+		<Setter Property="CornerRadius" Value="8"/>
+		<Setter Property="BorderThickness" Value="0"/>
+		<Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+		<Setter Property="FontSize" Value="13"/>
+		<Setter Property="FontWeight" Value="SemiBold"/>
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="HorizontalContentAlignment" Value="Center"/>
+		<Setter Property="Cursor" Value="Hand"/>
+	</Style>
+	<Style Selector="Button.tool:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource Surface2Brush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+	</Style>
+	<Style Selector="Button.tool:pressed /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource FillBrush}"/>
+	</Style>
+	<Style Selector="Button.tool.square">
+		<Setter Property="Width" Value="36"/>
+		<Setter Property="Padding" Value="0"/>
+	</Style>
+	<Style Selector="Button.tool.power">
+		<Setter Property="Foreground" Value="{DynamicResource BadBrush}"/>
+	</Style>
+	<Style Selector="Button.tool.power:pointerover /template/ ContentPresenter">
+		<Setter Property="Foreground" Value="{DynamicResource BadBrush}"/>
+	</Style>
+	<Style Selector="TextBox.search.tool">
+		<Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+		<Setter Property="CornerRadius" Value="8"/>
+		<Setter Property="Height" Value="36"/>
+		<Setter Property="MinHeight" Value="36"/>
+		<Setter Property="Padding" Value="12,0"/>
+		<Setter Property="FontSize" Value="14"/>
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
+	</Style>
+
+	<!-- a pill action inside a row (Open, Check) -->
+	<Style Selector="Button.pill">
+		<Setter Property="Height" Value="30"/>
+		<Setter Property="Padding" Value="12,0"/>
+		<Setter Property="CornerRadius" Value="15"/>
+		<Setter Property="BorderThickness" Value="0"/>
+		<Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+		<Setter Property="FontSize" Value="13"/>
+		<Setter Property="FontWeight" Value="SemiBold"/>
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="Cursor" Value="Hand"/>
+	</Style>
+	<Style Selector="Button.pill:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource AccentHoverBrush}"/>
+	</Style>
+	<!-- the round ⋯ beside a row -->
+	<Style Selector="Button.more">
+		<Setter Property="Width" Value="30"/>
+		<Setter Property="Height" Value="30"/>
+		<Setter Property="Padding" Value="0"/>
+		<Setter Property="CornerRadius" Value="15"/>
+		<Setter Property="BorderThickness" Value="0"/>
+		<Setter Property="Background" Value="Transparent"/>
+		<Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+		<Setter Property="FontSize" Value="16"/>
+		<Setter Property="HorizontalContentAlignment" Value="Center"/>
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="Cursor" Value="Hand"/>
+	</Style>
+	<Style Selector="Button.more:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource FillBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+	</Style>
+
+	<!-- a grouped list: the title, then the rows on a rounded surface -->
+	<Style Selector="TextBlock.grouptitle">
+		<Setter Property="FontSize" Value="12"/>
+		<Setter Property="FontWeight" Value="SemiBold"/>
+		<Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+		<Setter Property="Margin" Value="4,0"/>
+	</Style>
+	<Style Selector="Border.group">
+		<Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+		<Setter Property="CornerRadius" Value="12"/>
+		<Setter Property="ClipToBounds" Value="True"/>
+	</Style>
+	<Style Selector="Border.rowline">
+		<Setter Property="Height" Value="1"/>
+		<Setter Property="Margin" Value="14,0,0,0"/>
+		<Setter Property="Background" Value="{DynamicResource HairBrush}"/>
+	</Style>
+
+	<!-- a setting: label and hint on the left, the control on the right -->
+	<Style Selector="Grid.setting">
+		<Setter Property="Margin" Value="14,9"/>
+		<Setter Property="MinHeight" Value="26"/>
+	</Style>
+	<Style Selector="TextBlock.settinglabel">
+		<Setter Property="FontSize" Value="14"/>
+		<Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+		<Setter Property="TextWrapping" Value="Wrap"/>
+	</Style>
+	<Style Selector="TextBlock.hint">
+		<Setter Property="FontSize" Value="12"/>
+		<Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+		<Setter Property="TextWrapping" Value="Wrap"/>
+		<Setter Property="LineHeight" Value="17"/>
+	</Style>
+
+	<!-- the Settings list: a row per page, the open one on accent-soft -->
+	<Style Selector="Button.settingsrow">
+		<Setter Property="Background" Value="Transparent"/>
+		<Setter Property="BorderThickness" Value="0"/>
+		<Setter Property="CornerRadius" Value="8"/>
+		<Setter Property="Padding" Value="8,7"/>
+		<Setter Property="HorizontalAlignment" Value="Stretch"/>
+		<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+		<Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+		<Setter Property="Cursor" Value="Hand"/>
+	</Style>
+	<Style Selector="Button.settingsrow:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource FillBrush}"/>
+		<Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+	</Style>
+	<Style Selector="Button.settingsrow.selected /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+	</Style>
+	<Style Selector="Button.settingsrow.selected TextBlock.settingsrowlabel">
+		<Setter Property="FontWeight" Value="Bold"/>
+	</Style>
+	<Style Selector="Border.icontile">
+		<Setter Property="Width" Value="26"/>
+		<Setter Property="Height" Value="26"/>
+		<Setter Property="CornerRadius" Value="7"/>
+	</Style>
+	<Style Selector="Path.tileicon">
+		<Setter Property="Stroke" Value="{DynamicResource GlassInkBrush}"/>
+		<Setter Property="StrokeThickness" Value="2.2"/>
+		<Setter Property="StrokeLineCap" Value="Round"/>
+		<Setter Property="StrokeJoin" Value="Round"/>
+	</Style>
+</Styles>

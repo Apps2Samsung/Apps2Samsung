@@ -37,9 +37,17 @@
                 </VerticalStackLayout>
             </Border>
 
-            <Grid ColumnDefinitions="*,Auto" Margin="4,10,4,0">
-                <Label x:Name="VersionsTitle" FontSize="15" FontAttributes="Bold" TextColor="{DynamicResource MutedColor}" />
-                <Label Grid.Column="1" x:Name="PublishedLabel" FontSize="15" TextColor="{DynamicResource MutedColor}" />
+            <!-- the Version header; "Show all versions" on the right for an app that has older
+                 releases to offer (it reloads the catalog, so it is remembered as a setting) -->
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="4,10,4,0">
+                <Label x:Name="VersionsTitle" FontSize="15" FontAttributes="Bold" TextColor="{DynamicResource MutedColor}"
+                       VerticalOptions="Center" />
+                <Label Grid.Column="1" x:Name="PublishedLabel" FontSize="15" TextColor="{DynamicResource MutedColor}"
+                       VerticalOptions="Center" />
+                <Label Grid.Column="1" x:Name="ShowAllLabel" Text="{l:Localize lblShowAllJellyfinVersions}" FontSize="13"
+                       VerticalOptions="Center" IsVisible="False" />
+                <Switch Grid.Column="2" x:Name="ShowAllSwitch" OnColor="{DynamicResource AccentColor}" VerticalOptions="Center"
+                        IsVisible="False" Toggled="OnShowAllToggled" />
             </Grid>
             <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
                 <VerticalStackLayout x:Name="Versions" />

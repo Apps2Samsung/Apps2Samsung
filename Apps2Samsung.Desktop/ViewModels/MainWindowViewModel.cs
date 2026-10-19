@@ -45,7 +45,7 @@ namespace Apps2Samsung.ViewModels
         private readonly IUpdateDialogService _updateDialogService;
         private readonly FileHelper _fileHelper;
         private readonly PackageHelper _packageHelper;
-        private readonly SettingsWindowViewModel _settingsViewModel;
+        private readonly SettingsViewModel _settingsViewModel;
         private readonly AddLatestRelease _addLatestRelease;
         private readonly ProviderManifestService _providerManifestService;
         private CancellationTokenSource? _samsungLoginCts;
@@ -56,6 +56,8 @@ namespace Apps2Samsung.ViewModels
 
         // Every entry the providers yielded; Releases is the slice of it the category filter lets through.
         private List<GitHubRelease> _allReleases = new();
+        // Apps from a provider with a version history (Jellyfin): their sheet offers "Show all versions".
+        private readonly HashSet<string> _multiVersionApps = new(StringComparer.OrdinalIgnoreCase);
         private GitHubRelease? _customEntry;
 
         [ObservableProperty]
@@ -116,15 +118,29 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private TvCardState tvCard = new(string.Empty, string.Empty, TvLed.Off, string.Empty);
 
-        // The sections (#755): Install, On the TV and Remote live in the main window behind a
-        // sidebar; Settings keeps its window until its own redesign. The two TV-bound sections get a
-        // view model for the selected TV when first shown, dropped when another TV is picked.
-        public enum Section { Install, OnTheTv, Remote }
+        /// <summary>The sidebar's status dot: the TV card's LED in the page's own colours.</summary>
+        public IBrush TvLedBrush => DesignTheme.Brush(TvCard.Led switch
+        {
+            TvLed.Ok => "Ok",
+            TvLed.Warn => "Warn",
+            TvLed.Bad => "Bad",
+            TvLed.Busy => "Accent",
+            _ => "Muted",
+        });
+
+        partial void OnTvCardChanged(TvCardState value) => OnPropertyChanged(nameof(TvLedBrush));
+
+        // The sections (#755): Install, On the TV, Remote and Settings live in the main window behind
+        // a sidebar. The two TV-bound sections get a view model for the selected TV when first shown,
+        // dropped when another TV is picked.
+        public enum Section { Install, OnTheTv, Remote, Settings }
         [ObservableProperty]
         private Section selectedSection = Section.Install;
         public bool IsInstallSection => SelectedSection == Section.Install;
         public bool IsOnTheTvSection => SelectedSection == Section.OnTheTv;
         public bool IsRemoteSection => SelectedSection == Section.Remote;
+        public bool IsSettingsSection => SelectedSection == Section.Settings;
+        public SettingsViewModel Settings => _settingsViewModel;
         [ObservableProperty]
         private InstalledAppsViewModel? installedAppsVm;
         [ObservableProperty]
@@ -143,6 +159,7 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(IsInstallSection));
             OnPropertyChanged(nameof(IsOnTheTvSection));
             OnPropertyChanged(nameof(IsRemoteSection));
+            OnPropertyChanged(nameof(IsSettingsSection));
         }
 
         [RelayCommand]
@@ -152,6 +169,7 @@ namespace Apps2Samsung.ViewModels
             {
                 case nameof(Section.OnTheTv): await ShowInstalledAppsAsync(); break;
                 case nameof(Section.Remote): await ShowRemoteAsync(); break;
+                case nameof(Section.Settings): SelectedSection = Section.Settings; break;
                 default: SelectedSection = Section.Install; break;
             }
         }
@@ -200,7 +218,14 @@ namespace Apps2Samsung.ViewModels
         public string LblSearchApps => L("lblSearchApps");
         public string LblNoAppMatches => L("lblNoAppMatches");
 
-        partial void OnSearchTextChanged(string value) => RebuildCatalogRows();
+        partial void OnSearchTextChanged(string value)
+        {
+            OnPropertyChanged(nameof(CatalogColumns));
+            RebuildCatalogRows();
+        }
+
+        /// <summary>The groups sit two across; a search is one flat list, so it gets the full width.</summary>
+        public int CatalogColumns => string.IsNullOrWhiteSpace(SearchText) ? 2 : 1;
 
         /// <summary>A catalog group as the list shows it: title, count, its rows and the
         /// "Show all" / "Show less" action.</summary>
@@ -293,15 +318,21 @@ namespace Apps2Samsung.ViewModels
                 _httpClient,
                 L,
                 _favorites.Contains(row.Release.Name),
-                SetFavorite);
+                SetFavorite,
+                _multiVersionApps.Contains(row.Release.Name));
+            var showAllBefore = AppSettings.Default.ShowAllJellyfinVersions;
             var asset = await new Views.AppDetailWindow(sheet).ShowDialog<Asset?>(desktop.MainWindow);
-            if (asset is null)
-                return;
-            CustomWgtPath = string.Empty;
-            SelectedRelease = row.Release;
-            SelectedAsset = asset;
-            if (DownloadAndInstallCommand.CanExecute(null))
-                await DownloadAndInstallAsync();
+            if (asset is not null)
+            {
+                CustomWgtPath = string.Empty;
+                SelectedRelease = row.Release;
+                SelectedAsset = asset;
+                if (DownloadAndInstallCommand.CanExecute(null))
+                    await DownloadAndInstallAsync();
+            }
+            // "Show all versions" changed in the sheet: the catalog follows once it is closed.
+            if (AppSettings.Default.ShowAllJellyfinVersions != showAllBefore)
+                await LoadReleasesAsync();
         }
 
         /// <summary>The "Your own package" row: pick a .wgt / .tpk, then install it on the selected TV.</summary>
@@ -365,6 +396,9 @@ namespace Apps2Samsung.ViewModels
         public static string FooterText =>
             $"{AppSettings.Default.AppVersion} " +
             $"- Copyright (c) {DateTime.Now.Year} - MIT License - Patrick Stel";
+        // The sidebar footer: the version, and the licence line under it.
+        public static string VersionText => $"Apps2Samsung {AppSettings.Default.AppVersion}";
+        public string LicenseText => $"© {DateTime.Now.Year} · {L("lblLicenseFooter")}";
 
         public MainWindowViewModel(
             ITizenInstallerService tizenInstaller,
@@ -378,7 +412,7 @@ namespace Apps2Samsung.ViewModels
             HttpClient httpClient,
             PackageHelper packageHelper,
             FileHelper fileHelper,
-            SettingsWindowViewModel settingsViewModel,
+            SettingsViewModel settingsViewModel,
             ResolvedCatalogService resolvedCatalog
         )
         {
@@ -393,6 +427,8 @@ namespace Apps2Samsung.ViewModels
             _updateDialogService = updateDialogService;
             _fileHelper = fileHelper;
             _settingsViewModel = settingsViewModel;
+            // Settings > Check: the same check as at startup, but it always speaks.
+            _settingsViewModel.CheckForUpdatesHandler = () => CheckForUpdatesAsync(manual: true);
             _httpClient = httpClient;
 
             // Snapshot-first: the pre-resolved catalog serves the manifest's providers; the GitHub
@@ -466,6 +502,7 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblSelectTv));
             OnPropertyChanged(nameof(DownloadAndInstall));
             OnPropertyChanged(nameof(FooterText));
+            OnPropertyChanged(nameof(LicenseText));
             OnPropertyChanged(nameof(StatusBar));
             OnPropertyChanged(nameof(lblCustomWgt));
             OnPropertyChanged(nameof(SelectWGT));
@@ -569,7 +606,6 @@ namespace Apps2Samsung.ViewModels
             DownloadCommand.NotifyCanExecuteChanged();
             InstallCommand.NotifyCanExecuteChanged();
             DownloadAndInstallCommand.NotifyCanExecuteChanged();
-            OpenSettingsCommand.NotifyCanExecuteChanged();
             CancelSamsungLoginCommand.NotifyCanExecuteChanged();
         }
 
@@ -618,27 +654,35 @@ namespace Apps2Samsung.ViewModels
             }
         }
 
-        private async Task CheckForUpdatesAsync()
+        /// <summary>
+        /// The update check. At startup (<paramref name="manual"/> false) it stays quiet unless there is
+        /// a build the user hasn't skipped; from Settings it always runs, ignores a skipped version and
+        /// returns what it found for the update card.
+        /// </summary>
+        private async Task<string> CheckForUpdatesAsync(bool manual = false)
         {
             // Skip if update check is disabled
-            if (!AppSettings.Default.CheckForUpdatesOnStartup)
-                return;
+            if (!manual && !AppSettings.Default.CheckForUpdatesOnStartup)
+                return string.Empty;
 
             try
             {
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(Constants.Updater.UpdateCheckTimeoutSeconds));
                 var updateResult = await _updaterService.CheckForUpdateAsync(cts.Token);
 
-                if (!updateResult.IsSuccess || !updateResult.IsUpdateAvailable)
-                    return;
+                if (!updateResult.IsSuccess)
+                    return L("UpdateCheckFailed");
+                if (!updateResult.IsUpdateAvailable)
+                    return string.Format(L("UpdateUpToDate"), AppSettings.Default.AppVersion);
 
                 // Skip if user previously skipped this version
-                if (updateResult.LatestVersion == AppSettings.Default.SkippedUpdateVersion)
-                    return;
+                if (!manual && updateResult.LatestVersion == AppSettings.Default.SkippedUpdateVersion)
+                    return string.Empty;
 
                 // Cancel initialization tasks (network scan, release loading) before showing dialog
                 // This prevents the UI from freezing while background tasks continue
-                _initializationCts?.Cancel();
+                if (!manual)
+                    _initializationCts?.Cancel();
 
                 // Show update dialog on UI thread
                 await Dispatcher.UIThread.InvokeAsync(async () =>
@@ -650,7 +694,7 @@ namespace Apps2Samsung.ViewModels
                         case UpdateDialogChoice.Manual:
                             _updaterService.OpenReleasesPage();
                             // Resume initialization after user sees the releases page
-                            _ = ResumeInitializationAsync();
+                            if (!manual) _ = ResumeInitializationAsync();
                             break;
 
                         case UpdateDialogChoice.Automatic:
@@ -662,13 +706,13 @@ namespace Apps2Samsung.ViewModels
                             AppSettings.Default.SkippedUpdateVersion = updateResult.LatestVersion;
                             AppSettings.Default.Save();
                             // Resume initialization after user skips
-                            _ = ResumeInitializationAsync();
+                            if (!manual) _ = ResumeInitializationAsync();
                             break;
 
                         case UpdateDialogChoice.Cancel:
                         default:
                             // Resume initialization after user cancels
-                            _ = ResumeInitializationAsync();
+                            if (!manual) _ = ResumeInitializationAsync();
                             break;
                     }
                 });
@@ -676,16 +720,19 @@ namespace Apps2Samsung.ViewModels
                 // Update last check time
                 AppSettings.Default.LastUpdateCheck = DateTime.UtcNow;
                 AppSettings.Default.Save();
+                return string.Format(L("UpdateSheetAvailable"), updateResult.LatestVersion);
             }
             catch (OperationCanceledException)
             {
                 // Timeout - silently ignore
                 Trace.WriteLine("Update check timed out");
+                return L("UpdateCheckFailed");
             }
             catch (Exception ex)
             {
                 // Don't show errors for update check failures - it's not critical
                 Trace.WriteLine($"Update check failed: {ex}");
+                return L("UpdateCheckFailed");
             }
         }
 
@@ -899,21 +946,6 @@ namespace Apps2Samsung.ViewModels
             }
         }
 
-        [RelayCommand(CanExecute = nameof(CanOpenSettings))]
-        private async Task OpenSettings()
-        {
-            var showAllBefore = AppSettings.Default.ShowAllJellyfinVersions;
-            var settingsWindow = new Apps2Samsung.Views.SettingsWindow(_settingsViewModel);
-
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                await settingsWindow.ShowDialog(desktop.MainWindow);
-            }
-
-            // Reflect a changed version-list preference without an app restart.
-            if (AppSettings.Default.ShowAllJellyfinVersions != showAllBefore)
-                await LoadReleasesAsync();
-        }
         [RelayCommand]
         private async Task ShowBuildInfoAsync()
         {
@@ -1087,7 +1119,6 @@ namespace Apps2Samsung.ViewModels
 
         private bool CanRefresh() => !IsLoading;
         private bool CanRefreshDevices() => !IsLoadingDevices;
-        private bool CanOpenSettings() => !IsLoadingDevices;
 
         // A real TV that is actually installable: has an IP, isn't the "Other" placeholder,
         // and its Tizen debug port (26101) is reachable. TVs detected only via the REST API
@@ -1166,6 +1197,7 @@ namespace Apps2Samsung.ViewModels
             try
             {
                 var list = new List<GitHubRelease>();
+                _multiVersionApps.Clear();
                 var manifest = await _providerManifestService.GetAsync();
                 _manifest = manifest;
                 foreach (var provider in manifest.Providers)
@@ -1204,6 +1236,8 @@ namespace Apps2Samsung.ViewModels
                         {
                             r.RequiresPartner = requiresPartner;
                             r.Category = category;
+                            if (provider.Take > 1)
+                                _multiVersionApps.Add(r.Name);
                         }
                         list.AddRange(release);
                     }

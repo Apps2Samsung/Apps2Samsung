@@ -5,6 +5,7 @@ using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Sdb;
 using Apps2Samsung.Mobile.Localization;
+using Apps2Samsung.Mobile.Controls;
 using Apps2Samsung.Mobile.Services;
 
 namespace Apps2Samsung.Mobile.Pages;
@@ -33,31 +34,77 @@ public partial class InstalledAppsPage : ContentPage
 	protected override async void OnAppearing()
 	{
 		base.OnAppearing();
+		_tv.Changed -= OnTvChanged;
+		_tv.Changed += OnTvChanged;
+		await ShowSelectedTvAsync(force: false);
+	}
+
+	protected override void OnDisappearing()
+	{
+		base.OnDisappearing();
+		_tv.Changed -= OnTvChanged;
+	}
+
+	// Another TV picked with the ▾ (here or, while this tab was hidden, elsewhere): load its apps.
+	private async void OnTvChanged()
+	{
+		if (_tv.Ip != _loadedFor || !_tv.HasTv)
+			await ShowSelectedTvAsync(force: false);
+	}
+
+	private async Task ShowSelectedTvAsync(bool force)
+	{
+		TopBar.Title = _tv.HasTv ? _tv.DisplayName : L10n.Get("lblChooseTv");
 		if (!_tv.HasTv)
 		{
 			_tvIp = string.Empty;
 			_tvLabel = string.Empty;
 			_loadedFor = null;
 			AppsList.ItemsSource = null;
-			CountLabel.Text = L10n.Get("statusSelectTvFirst");
+			SetSubtitle(L10n.Get("statusSelectTvFirst"), TopBarStatus.Warn);
 			return;
 		}
 		var changed = _tv.Ip != _loadedFor;
 		_tvIp = _tv.Ip!;
 		_tvLabel = _tv.Label;
 		_loadedFor = _tv.Ip;
-		if (changed || AppsList.ItemsSource is null)
+		if (force || changed || AppsList.ItemsSource is null)
 			await LoadAsync();
 	}
 
+	private async void OnChangeTvClicked(object? sender, EventArgs e) => await TvPicker.ChooseAsync(this, _tv);
 
-	private async void OnRefreshClicked(object? sender, EventArgs e) => await LoadAsync();
+	// The ⋯ in the top bar: Refresh, TV information, and the escape hatch for a leftover package.
+	private async void OnMoreClicked(object? sender, EventArgs e)
+	{
+		var refresh = L10n.Get("lblRefresh");
+		var info = L10n.Get("lblTvInformation");
+		var leftover = L10n.Get("lblRemoveLeftover");
+		var choice = await DisplayActionSheet(null, L10n.Get("lblCancel"), null, refresh, info, leftover);
+		if (choice == refresh)
+			await ShowSelectedTvAsync(force: true);
+		else if (choice == info)
+		{
+			if (_tv.HasTv)
+				await Navigation.PushAsync(new DeviceInfoPage(_sdb, _tv.Ip!, _tv.Label, _tv.DebugPortOpen));
+		}
+		else if (choice == leftover)
+			await RemoveLeftoverAsync();
+	}
+
+	private async void OnPulledToRefresh(object? sender, EventArgs e)
+	{
+		try { await ShowSelectedTvAsync(force: true); }
+		finally { Refresher.IsRefreshing = false; }
+	}
 
 	// A partial/failed install can leave a package dir that vd_applist never shows, so it can't be
 	// removed from the list above. vd_appuninstall <packageId> still reclaims it, so offer a manual
 	// escape hatch: type the package id and force-remove it.
-	private async void OnRemoveLeftoverClicked(object? sender, EventArgs e)
+	private async Task RemoveLeftoverAsync()
 	{
+		if (!_tv.HasTv)
+			return;
 		var id = await DisplayPromptAsync(
 			"Remove leftover",
 			"Enter the package id of a leftover/partial install to remove:",
@@ -123,20 +170,19 @@ public partial class InstalledAppsPage : ContentPage
 			if (apps.Count == 0)
 			{
 				EmptyLabel.Text = L10n.Get("statusNoInstalledApps");
-				CountLabel.Text = _tvLabel;
+				SetSubtitle(string.Empty, TopBarStatus.None);
 			}
 			else
 			{
-				var removable = apps.Count(a => a.IsRemovable);
 				var totalUsed = InstalledApp.FormatSize(apps.Sum(a => a.SizeBytes));
-				CountLabel.Text = $"{apps.Count} apps · {totalUsed} used on {_tvLabel} · {removable} removable";
+				SetSubtitle(string.Format(L10n.Get("lblAppsOnTvCount"), apps.Count, totalUsed), TopBarStatus.Ok);
 			}
 		}
 		catch (Exception ex)
 		{
 			AppsList.ItemsSource = null;
 			EmptyLabel.Text = $"Couldn't read the app list: {ex.Message}";
-			CountLabel.Text = _tvLabel;
+			SetSubtitle(string.Empty, TopBarStatus.None);
 		}
 		finally
 		{
@@ -261,7 +307,28 @@ public partial class InstalledAppsPage : ContentPage
 		Busy.IsVisible = busy;
 		Busy.IsRunning = busy;
 		AppsList.IsVisible = !busy;
-		if (status is not null)
-			CountLabel.Text = status;
+		if (busy && status is not null)
+		{
+			TopBar.Subtitle = status;
+			TopBar.Status = TopBarStatus.Busy;
+		}
+		else if (!busy)
+		{
+			// The work is done: back to what the line said before it.
+			TopBar.Subtitle = _subtitle;
+			TopBar.Status = _subtitleStatus;
+		}
+	}
+
+	// The line under the TV's name in the top bar: the app count and space, or what went wrong.
+	private string _subtitle = string.Empty;
+	private TopBarStatus _subtitleStatus;
+
+	private void SetSubtitle(string text, TopBarStatus status)
+	{
+		_subtitle = text;
+		_subtitleStatus = status;
+		TopBar.Subtitle = text;
+		TopBar.Status = status;
 	}
 }

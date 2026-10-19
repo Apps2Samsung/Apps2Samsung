@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.DeviceInfoPage"
              Title="{l:Localize lblTvInformation}"
              Shell.NavBarIsVisible="False"
@@ -9,19 +10,9 @@
 
     <Grid RowDefinitions="Auto,Auto,*" Margin="12" RowSpacing="10">
 
-        <!-- Header banner with a back affordance -->
-        <Border Grid.Row="0" BackgroundColor="{DynamicResource AccentColor}" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
-            <Grid ColumnDefinitions="44,*,44" ColumnSpacing="4" VerticalOptions="Center">
-                <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="{DynamicResource OnAccentColor}"
-                        BackgroundColor="Transparent" BorderWidth="0" Padding="0"
-                        WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
-                <Label Grid.Column="1" Text="{l:Localize lblTvInformation}" TextColor="{DynamicResource OnAccentColor}" FontAttributes="Bold"
-                       VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
-                <Button Grid.Column="2" x:Name="RefreshBtn" Text="⟳" FontSize="18" TextColor="{DynamicResource OnAccentColor}"
-                        BackgroundColor="Transparent" BorderWidth="0" Padding="0"
-                        WidthRequest="44" HeightRequest="44" Clicked="OnRefreshClicked" />
-            </Grid>
-        </Border>
+        <!-- the top bar (#755): Back, the title, and its own button on the right -->
+        <controls:TopBarView Grid.Row="0" Margin="-12,-12,-12,0" Title="{l:Localize lblTvInformation}" BackText="{l:Localize lblRemoteBack}"
+                             BackTapped="OnBackClicked" Action="Glyph" Glyph="⟳" GlyphTapped="OnRefreshClicked" />
 
         <!-- Subtitle: which TV / status -->
         <Label Grid.Row="1" x:Name="CountLabel" FontSize="12" Opacity="0.6" Text="{l:Localize lblLoading}" />

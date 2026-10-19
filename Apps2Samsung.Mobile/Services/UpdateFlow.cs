@@ -16,6 +16,10 @@ public sealed class UpdateFlow
 	private readonly GitHubUpdateChecker _checker;
 	private bool _running;
 
+	/// <summary>The last check that got an answer (quiet or manual); null until one did. The Settings
+	/// hub's update card reads it.</summary>
+	public UpdateCheckResult? LastResult { get; private set; }
+
 	public UpdateFlow(GitHubUpdateChecker checker)
 	{
 		_checker = checker;
@@ -44,6 +48,8 @@ public sealed class UpdateFlow
 		{
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 			var result = await CheckAsync(cts.Token);
+			if (result.IsSuccess)
+				LastResult = result;
 
 			if (!result.IsSuccess)
 			{

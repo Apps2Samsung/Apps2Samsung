@@ -8,7 +8,7 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
 
-    <!-- The TV toolbox in the v3 language (#755): a page title with back and reload, the status line
+    <!-- The TV toolbox in the v3 language (#755): the top bar with back and reload, the status line
          under it, then one grouped-list card per tool. The cards collapse (ExpanderSection), with
          "Open an app" open by default, so the page is a list of headings rather than a wall. Rows
          are the list idiom: name and subline on the left, a soft pill action on the right. The
@@ -64,20 +64,17 @@
         </Style>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="16,10,16,0" RowSpacing="8">
+    <Grid RowDefinitions="Auto,Auto,*" Padding="16,0,16,0" RowSpacing="8">
 
-        <!-- back and reload in a row above the title, which gets the full width (as on the tab roots) -->
-        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,4,4,0">
-            <Button Grid.Column="0" Text="‹" FontSize="22" Style="{StaticResource IconButton}" Clicked="OnBackClicked" />
-            <Button Grid.Column="2" Text="⟳" Style="{StaticResource IconButton}" Clicked="OnReloadClicked" />
-        </Grid>
-        <Label Grid.Row="1" Text="{l:Localize lblToolbox}" Style="{StaticResource PageTitle}" Margin="4,0" />
+        <!-- the top bar (#755): Back, the title, reload -->
+        <controls:TopBarView Grid.Row="0" Margin="-16,0" Title="{l:Localize lblToolbox}" BackText="{l:Localize lblRemoteBack}"
+                             BackTapped="OnBackClicked" Action="Glyph" Glyph="⟳" GlyphTapped="OnReloadClicked" />
 
         <!-- which TV, and whether the channel is up -->
-        <Label Grid.Row="2" x:Name="StatusLabel" Style="{StaticResource Hint}" Margin="4,0"
+        <Label Grid.Row="1" x:Name="StatusLabel" Style="{StaticResource Hint}" Margin="4,0"
                Text="{l:Localize lblRemoteConnecting}" />
 
-        <ScrollView Grid.Row="3">
+        <ScrollView Grid.Row="2">
             <VerticalStackLayout Spacing="10" Padding="0,0,0,24">
 
                 <Label Style="{StaticResource Footnote}" Text="{l:Localize lblToolboxOwnerNote}" LineBreakMode="WordWrap" />
