@@ -81,3 +81,41 @@ jobs:
           path: dist/*.ipa
           retention-days: 14
           if-no-files-found: error
+
+      # The same app for the iOS Simulator, as the zipped .app bundle a cloud simulator takes
+      # (LambdaTest / TestMu AI, Appetize): a device IPA can't run there. One zip per host
+      # architecture (Apple Silicon, Intel), built one at a time: -p:RuntimeIdentifiers=a;b is a
+      # global property, so it reaches the referenced Core library too, which rejects it
+      # (NETSDK1083), while a single RID is fine everywhere. No AOT, so each is quick next to
+      # the device publish above.
+      - name: Build simulator apps
+        shell: bash
+        run: |
+          mkdir -p dist-sim
+          for RID in iossimulator-arm64 iossimulator-x64; do
+            dotnet build Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj \
+              -c Release -f net10.0-ios \
+              -p:RuntimeIdentifier=$RID \
+              -p:EnableCodeSigning=false \
+              -p:ApplicationDisplayVersion="$VERSION_NAME" \
+              -p:ApplicationVersion="${{ github.run_number }}" \
+              -o "publish/$RID"
+
+            APP=$(find "publish/$RID" -maxdepth 2 -type d -name '*.app' | head -n1)
+            if [ -z "$APP" ]; then
+              echo "❌ No simulator .app produced for $RID"
+              find "publish/$RID" -maxdepth 2 | head -50
+              exit 1
+            fi
+            lipo -info "$APP/Apps2Samsung.Mobile" || true
+            # ditto keeps the bundle's resource forks and symlinks the way Xcode's export does.
+            ditto -c -k --keepParent "$APP" "dist-sim/Apps2Samsung-${VERSION_NAME}-ios-simulator-${RID#iossimulator-}.zip"
+          done
+          ls -la dist-sim
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Apps2Samsung-${{ env.VERSION_NAME }}-ios-simulator
+          path: dist-sim/*.zip
+          retention-days: 14
+          if-no-files-found: error
