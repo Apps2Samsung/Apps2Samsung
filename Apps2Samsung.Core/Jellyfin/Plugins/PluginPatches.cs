@@ -1,5 +1,4 @@
 ﻿using Apps2Samsung.Helpers.Core;
-using Apps2Samsung.Helpers.Jellyfin.Plugins.EditorsChoice;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using System;
@@ -63,130 +62,177 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
     }
 
     // ------------------------
-    // EditorsChoice
+    // EditorsChoice (loaded from the server)
     // ------------------------
     public sealed class EditorsChoicePatch : IJellyfinPluginPatch
     {
-        public async Task ApplyAsync(PluginPatchContext ctx)
-        {
-            var entry = ctx.MatrixEntry;
+        // The plugin's own banner, from the server, with the user's Editor's Choice settings (the
+        // replacement banner this patch used to inject ignored them, and could be added twice when
+        // the server answered slowly). The loader fixes what breaks in the app; see its comments.
+        // Checked on a Samsung TV (Tizen 9).
+        private const string Loader = @"(function () {
+    // Editor's Choice from the server, on every start. Its images use addresses relative to the
+    // web client ('../Items/...'), which from the app's local page point nowhere: they are given
+    // the server's address. Wrapped in a function so its top-level names stay its own.
+    //
+    // On a TV:
+    // - the banner turns by itself, and its arrows were only a stop where the remote's focus got
+    //   lost (Editor's Choice sends it back to the tabs from there): they are hidden;
+    // - every slide stays in place for the fade, the hidden ones only transparent, so the remote
+    //   landed on a hidden slide and OK opened another title than the one shown: only the shown
+    //   slide stays reachable, and its button lights up when the banner has the focus (instead
+    //   of the blue frame drawn around the whole banner);
+    // - left and right on the banner show the previous or next title, the focus staying on it.
+    var CSS = '.layout-tv .editorsChoiceContainer .emby-scrollbuttons{display:none!important;}'
+        + '.layout-tv .editorsChoiceItemBanner:focus{outline:none!important;box-shadow:none!important;}'
+        + '.layout-tv .editorsChoiceItemBanner:focus .editorsChoiceItemButton'
+        + '{background:#fff!important;color:#000!important;transform:scale(1.08);}';
 
-            foreach (var url in entry.FallbackUrls)
-            {
-                string cleanName = RegexPatterns.PluginName.NonAlphanumeric.Replace(entry.Name.ToLowerInvariant(), "");
-                string fileName = Path.GetFileName(new Uri(url).AbsolutePath);
-                string relPath = Path.Combine(cleanName, fileName);
-
-                var local = await ctx.PluginManager.DownloadAndTranspileAsync(url, ctx.PluginCacheDir, relPath);
-                if (local == null) continue;
-
-                // Apply EditorsChoice patch (your existing patch class)
-                var js = await File.ReadAllTextAsync(local, Encoding.UTF8);
-                js = new PatchEditorsChoice().ApplyAsync(js);
-                await File.WriteAllTextAsync(local, js, Encoding.UTF8);
-
-                string injectedSrc = $"plugin_cache/{cleanName}/{fileName}";
-                ctx.InjectScript($"<script defer src=\"{injectedSrc}\"></script>", injectedSrc);
-                break;
+    function syncSlides() {
+        if (!document.documentElement.classList.contains('layout-tv')) {
+            return;
+        }
+        var slides = document.querySelectorAll('.editorsChoiceItemBanner');
+        for (var i = 0; i < slides.length; i++) {
+            var hidden = slides[i].getAttribute('aria-hidden') === 'true';
+            if (hidden && slides[i].getAttribute('tabindex') !== '-1') {
+                slides[i].setAttribute('tabindex', '-1');
+            } else if (!hidden && slides[i].getAttribute('tabindex') === '-1') {
+                slides[i].removeAttribute('tabindex');
+            }
+            var buttons = slides[i].querySelectorAll('button');
+            for (var j = 0; j < buttons.length; j++) {
+                if (buttons[j].getAttribute('tabindex') !== '-1') {
+                    buttons[j].setAttribute('tabindex', '-1');
+                }
             }
         }
     }
 
+    function onKey(event) {
+        if ((event.keyCode !== 37 && event.keyCode !== 39)
+            || !document.documentElement.classList.contains('layout-tv')) {
+            return;
+        }
+        var slide = event.target && event.target.closest ? event.target.closest('.editorsChoiceItemBanner') : null;
+        var root = slide ? slide.closest('.splide') : null;
+        var button = root
+            ? root.querySelector(event.keyCode === 39 ? '.splide__arrow--next' : '.splide__arrow--prev')
+            : null;
+        if (!button) {
+            return;
+        }
+        // Before Jellyfin, which would move the focus off the banner.
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        button.click();
+        setTimeout(function () {
+            syncSlides();
+            var shown = root.querySelector('.editorsChoiceItemBanner.is-active');
+            if (shown) {
+                try { shown.focus({ preventScroll: true }); } catch (e) { shown.focus(); }
+            }
+        }, 0);
+    }
+
+    function load() {
+        var client = window.ApiClient;
+        var server = client && client.serverAddress ? client.serverAddress() : null;
+        if (!server) {
+            setTimeout(load, 250);
+            return;
+        }
+        server = server.replace(/\/+$/, '');
+
+        var style = document.createElement('style');
+        style.textContent = CSS;
+        document.head.appendChild(style);
+        window.addEventListener('keydown', onKey, true);
+        new MutationObserver(syncSlides).observe(document.body, {
+            subtree: true, childList: true, attributes: true, attributeFilter: ['aria-hidden']
+        });
+
+        var request = new XMLHttpRequest();
+        request.open('GET', server + '/EditorsChoice/script');
+        request.onload = function () {
+            if (request.status !== 200) {
+                return;
+            }
+            var script = document.createElement('script');
+            script.textContent = '(function () {\n'
+                + request.responseText.split('../Items/').join(server + '/Items/')
+                + '\n})();';
+            document.head.appendChild(script);
+        };
+        request.send();
+    }
+    load();
+})();
+";
+
+        public async Task ApplyAsync(PluginPatchContext ctx)
+        {
+            var dir = Path.Combine(ctx.PluginCacheDir, "editorschoice");
+            Directory.CreateDirectory(dir);
+            await File.WriteAllTextAsync(Path.Combine(dir, "loader.js"), Loader, Encoding.UTF8);
+
+            const string injectedSrc = "plugin_cache/editorschoice/loader.js";
+            ctx.InjectScript($"<script src=\"{injectedSrc}\"></script>", injectedSrc);
+        }
+    }
+
     // ------------------------
-    // Jellyfin Enhanced (ExplicitServerFiles)
+    // Jellyfin Enhanced (loaded from the server)
     // ------------------------
     public sealed class JellyfinEnhancedPatch : IJellyfinPluginPatch
     {
-        public async Task ApplyAsync(PluginPatchContext ctx)
-        {
-            var entry = ctx.MatrixEntry;
-
-            // Download all explicit server files into plugin_cache preserving structure
-            await ctx.PluginManager.DownloadExplicitFilesAsync(ctx.ServerUrl, ctx.PluginCacheDir, entry);
-
-            // Inject main script last
-            // Your explicit list contains "/JellyfinEnhanced/script" -> stored as plugin_cache/JellyfinEnhanced/script.js
-            var main = Path.Combine(ctx.PluginCacheDir, "JellyfinEnhanced", "script.js");
-            if (File.Exists(main))
-            {
-                await PatchEnhancedMainScript(main);
-
-                var outSrc = "plugin_cache/JellyfinEnhanced/script.js";
-                ctx.InjectScript($"<script src=\"{outSrc}\"></script>", outSrc);
-            }
-        }
-
-        private static async Task PatchEnhancedMainScript(string scriptPath)
-        {
-            string original = await File.ReadAllTextAsync(scriptPath);
-
-            string patch = @"
-// ---- J2S SCRIPT PATCH: FORCE LOCAL ENHANCED MODULE LOADING ----
-(function () {
-
-    function rewriteEnhancedUrl(url) {
-        try {
-            if (typeof url !== 'string') return url;
-
-            var base = url.split('?')[0];
-
-            if (base.endsWith('.js') && base.indexOf('/JellyfinEnhanced/') !== -1) {
-                var idx = base.indexOf('/JellyfinEnhanced/');
-                var sub = base.substring(idx + '/JellyfinEnhanced/'.length);
-                return 'plugin_cache/JellyfinEnhanced/' + sub;
-            }
-
-            return url;
-        }
-        catch (e) {
-            console.error('J2S rewriteEnhancedUrl failed', e);
-            return url;
-        }
+        // Jellyfin Enhanced builds every URL with ApiClient.getUrl, so from the app it reaches the
+        // server by itself: its main script, its module bundle, its translations. The app only keeps
+        // a small loader that adds the main script on every start, so a plugin update reaches the TV
+        // without rebuilding the app. (Copying a fixed list of its files no longer works: from 12.x
+        // most of them moved, and 151 of the 159 scripts it asked for were missing from the app.)
+        //
+        // The server caches /JellyfinEnhanced/script for a year: the loader asks for the version
+        // first and puts it in the URL. The script reads that version from its own tag (attributes
+        // `plugin` and `version`, as on the server's page) to key the URLs of its modules.
+        private const string Loader = @"(function () {
+    function add(server, version) {
+        var script = document.createElement('script');
+        script.setAttribute('plugin', 'Jellyfin Enhanced');
+        script.setAttribute('version', version);
+        script.setAttribute('dev', 'false');
+        script.src = server + '/JellyfinEnhanced/script?v=' + encodeURIComponent(version);
+        document.head.appendChild(script);
     }
-
-    var _createElement = document.createElement;
-    document.createElement = function (tag) {
-        var el = _createElement.call(document, tag);
-
-        if (tag && tag.toLowerCase() === 'script') {
-            var _setAttribute = el.setAttribute;
-
-            el.setAttribute = function (name, value) {
-                if (name === 'src') {
-                    value = rewriteEnhancedUrl(value);
-                }
-                return _setAttribute.call(el, name, value);
-            };
-
-            Object.defineProperty(el, 'src', {
-                configurable: true,
-                get: function () { return el.getAttribute('src'); },
-                set: function (value) {
-                    value = rewriteEnhancedUrl(value);
-                    _setAttribute.call(el, 'src', value);
-                }
-            });
+    function load() {
+        var client = window.ApiClient;
+        var server = client && client.serverAddress ? client.serverAddress() : null;
+        if (!server) {
+            setTimeout(load, 250);
+            return;
         }
-
-        return el;
-    };
-
-    if (typeof window.fetch === 'function') {
-        var _fetch = window.fetch;
-        window.fetch = function (resource, init) {
-            try {
-                if (typeof resource === 'string') resource = rewriteEnhancedUrl(resource);
-            } catch (e) {
-                console.error('FETCH rewrite failed', e);
-            }
-            return _fetch.call(this, resource, init);
+        server = server.replace(/\/+$/, '');
+        var request = new XMLHttpRequest();
+        request.open('GET', server + '/JellyfinEnhanced/version?_=' + Date.now());
+        request.onload = function () {
+            var version = request.status === 200 ? request.responseText.replace(/[""\s]/g, '') : '';
+            add(server, version || String(Date.now()));
         };
+        request.onerror = function () { add(server, String(Date.now())); };
+        request.send();
     }
-
-    console.log('🪼 J2S: Enhanced loader patched to use plugin_cache for Enhanced JS modules');
+    load();
 })();
 ";
-            await File.WriteAllTextAsync(scriptPath, patch + "\n\n" + original);
+
+        public async Task ApplyAsync(PluginPatchContext ctx)
+        {
+            var dir = Path.Combine(ctx.PluginCacheDir, "JellyfinEnhanced");
+            Directory.CreateDirectory(dir);
+            await File.WriteAllTextAsync(Path.Combine(dir, "loader.js"), Loader, Encoding.UTF8);
+
+            const string injectedSrc = "plugin_cache/JellyfinEnhanced/loader.js";
+            ctx.InjectScript($"<script src=\"{injectedSrc}\"></script>", injectedSrc);
         }
     }
 
