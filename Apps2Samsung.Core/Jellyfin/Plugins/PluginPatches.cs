@@ -2,8 +2,14 @@
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Net;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Apps2Samsung.Helpers.Jellyfin.Plugins
@@ -62,18 +68,22 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
     }
 
     // ------------------------
-    // EditorsChoice (loaded from the server)
+    // EditorsChoice (the server's script, transpiled at install)
     // ------------------------
     public sealed class EditorsChoicePatch : IJellyfinPluginPatch
     {
-        // The plugin's own banner, from the server, with the user's Editor's Choice settings (the
-        // replacement banner this patch used to inject ignored them, and could be added twice when
-        // the server answered slowly). The loader fixes what breaks in the app; see its comments.
-        // Checked on a Samsung TV (Tizen 9).
+        // The plugin's own banner, as the server serves it at install time, with the user's Editor's
+        // Choice settings (the replacement banner this patch used to inject ignored them, and could
+        // be added twice when the server answered slowly). The script is transpiled to ES2015 like
+        // every other plugin script (the server's copy uses syntax older TVs cannot parse) and
+        // carried inside the loader as a string; the loader fixes what breaks in the app, see its
+        // comments. Checked on a Samsung TV (Tizen 9).
+        private const string SourcePlaceholder = "/*EDITORS_CHOICE_SOURCE*/null";
+
         private const string Loader = @"(function () {
-    // Editor's Choice from the server, on every start. Its images use addresses relative to the
-    // web client ('../Items/...'), which from the app's local page point nowhere: they are given
-    // the server's address. Wrapped in a function so its top-level names stay its own.
+    // Editor's Choice, on every start. Its images use addresses relative to the web client
+    // ('../Items/...'), which from the app's local page point nowhere: they are given the
+    // server's address. Wrapped in a function so its top-level names stay its own.
     //
     // On a TV:
     // - the banner turns by itself, and its arrows were only a stop where the remote's focus got
@@ -83,6 +93,7 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
     //   slide stays reachable, and its button lights up when the banner has the focus (instead
     //   of the blue frame drawn around the whole banner);
     // - left and right on the banner show the previous or next title, the focus staying on it.
+    var SOURCE = /*EDITORS_CHOICE_SOURCE*/null;
     var CSS = '.layout-tv .editorsChoiceContainer .emby-scrollbuttons{display:none!important;}'
         + '.layout-tv .editorsChoiceItemBanner:focus{outline:none!important;box-shadow:none!important;}'
         + '.layout-tv .editorsChoiceItemBanner:focus .editorsChoiceItemButton'
@@ -152,19 +163,11 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
             subtree: true, childList: true, attributes: true, attributeFilter: ['aria-hidden']
         });
 
-        var request = new XMLHttpRequest();
-        request.open('GET', server + '/EditorsChoice/script');
-        request.onload = function () {
-            if (request.status !== 200) {
-                return;
-            }
-            var script = document.createElement('script');
-            script.textContent = '(function () {\n'
-                + request.responseText.split('../Items/').join(server + '/Items/')
-                + '\n})();';
-            document.head.appendChild(script);
-        };
-        request.send();
+        var script = document.createElement('script');
+        script.textContent = '(function () {\n'
+            + SOURCE.split('../Items/').join(server + '/Items/')
+            + '\n})();';
+        document.head.appendChild(script);
     }
     load();
 })();
@@ -172,9 +175,22 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
 
         public async Task ApplyAsync(PluginPatchContext ctx)
         {
+            var url = UrlHelper.CombineUrl(ctx.ServerUrl, "/EditorsChoice/script");
+            var source = await ctx.PluginManager.DownloadStringAsync(url);
+            if (string.IsNullOrWhiteSpace(source))
+            {
+                Trace.WriteLine("⚠ Editor's Choice script not downloaded, banner not injected.");
+                return;
+            }
+            source = await EsbuildHelper.TranspileAsync(source, "EditorsChoice/script");
+
+            // The default encoder escapes everything outside ASCII, U+2028/U+2029 included, which
+            // older engines do not accept inside a string literal.
+            var loader = Loader.Replace(SourcePlaceholder, JsonSerializer.Serialize(source));
+
             var dir = Path.Combine(ctx.PluginCacheDir, "editorschoice");
             Directory.CreateDirectory(dir);
-            await File.WriteAllTextAsync(Path.Combine(dir, "loader.js"), Loader, Encoding.UTF8);
+            await File.WriteAllTextAsync(Path.Combine(dir, "loader.js"), loader, Encoding.UTF8);
 
             const string injectedSrc = "plugin_cache/editorschoice/loader.js";
             ctx.InjectScript($"<script src=\"{injectedSrc}\"></script>", injectedSrc);
@@ -182,57 +198,117 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
     }
 
     // ------------------------
-    // Jellyfin Enhanced (loaded from the server)
+    // Jellyfin Enhanced (the server's scripts, transpiled at install)
     // ------------------------
     public sealed class JellyfinEnhancedPatch : IJellyfinPluginPatch
     {
-        // Jellyfin Enhanced builds every URL with ApiClient.getUrl, so from the app it reaches the
-        // server by itself: its main script, its module bundle, its translations. The app only keeps
-        // a small loader that adds the main script on every start, so a plugin update reaches the TV
-        // without rebuilding the app. (Copying a fixed list of its files no longer works: from 12.x
-        // most of them moved, and 151 of the 159 scripts it asked for were missing from the app.)
+        // Jellyfin Enhanced adds its other scripts itself, at addresses it builds with
+        // ApiClient.getUrl, and fetches its settings and translations the same way. The scripts are
+        // copied into the app at install time and transpiled to ES2015 (the server's copies use
+        // syntax older TVs cannot parse); everything else still comes from the server. Which scripts
+        // depends on the version: from 12.10 the component modules come as one /bundle.js, before
+        // that as separate files listed in the main script (`allComponentScripts`). A plugin update
+        // reaches the TV with the next install.
         //
-        // The server caches /JellyfinEnhanced/script for a year: the loader asks for the version
-        // first and puts it in the URL. The script reads that version from its own tag (attributes
-        // `plugin` and `version`, as on the server's page) to key the URLs of its modules.
-        private const string Loader = @"(function () {
-    function add(server, version) {
-        var script = document.createElement('script');
-        script.setAttribute('plugin', 'Jellyfin Enhanced');
-        script.setAttribute('version', version);
-        script.setAttribute('dev', 'false');
-        script.src = server + '/JellyfinEnhanced/script?v=' + encodeURIComponent(version);
-        document.head.appendChild(script);
-    }
-    function load() {
-        var client = window.ApiClient;
-        var server = client && client.serverAddress ? client.serverAddress() : null;
-        if (!server) {
-            setTimeout(load, 250);
-            return;
+        // The script reads its version from its own tag (attributes `plugin` and `version`, as on
+        // the server's page) and only uses it as a cache key in its URLs.
+        private const string ServerRoot = "/JellyfinEnhanced/";
+        private const string BundlePath = "bundle.js";
+
+        private static readonly Regex ScriptLiteral = new(
+            @"['""`]/JellyfinEnhanced/(js/[A-Za-z0-9_./-]+\.js)", RegexOptions.Compiled);
+
+        private static readonly Regex ComponentList = new(
+            @"allComponentScripts\s*=\s*\[(.*?)\]", RegexOptions.Compiled | RegexOptions.Singleline);
+
+        private static readonly Regex ComponentEntry = new(
+            @"['""]([A-Za-z0-9_][A-Za-z0-9_./-]*\.js)['""]", RegexOptions.Compiled);
+
+        // Points every script address under /JellyfinEnhanced/ at the copy in the app. A script the
+        // app does not carry fails to load instead of arriving untranspiled.
+        private const string Redirect = @"(function () {
+    var ROOT = '/JellyfinEnhanced/';
+    var LOCAL = 'plugin_cache/JellyfinEnhanced/';
+    function local(url) {
+        if (typeof url !== 'string' || !/^https?:/i.test(url)) {
+            return url;
         }
-        server = server.replace(/\/+$/, '');
-        var request = new XMLHttpRequest();
-        request.open('GET', server + '/JellyfinEnhanced/version?_=' + Date.now());
-        request.onload = function () {
-            var version = request.status === 200 ? request.responseText.replace(/[""\s]/g, '') : '';
-            add(server, version || String(Date.now()));
-        };
-        request.onerror = function () { add(server, String(Date.now())); };
-        request.send();
+        var at = url.indexOf(ROOT);
+        if (at === -1) {
+            return url;
+        }
+        var path = url.substring(at + ROOT.length).split('#')[0].split('?')[0];
+        if (path === 'script') {
+            path = 'script.js';
+        }
+        return /\.js$/i.test(path) ? LOCAL + path : url;
     }
-    load();
+    var src = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, 'src');
+    if (!src || !src.set) {
+        return;
+    }
+    Object.defineProperty(HTMLScriptElement.prototype, 'src', {
+        configurable: true,
+        enumerable: src.enumerable,
+        get: src.get,
+        set: function (value) { src.set.call(this, local(value)); }
+    });
 })();
 ";
 
         public async Task ApplyAsync(PluginPatchContext ctx)
         {
+            var manager = ctx.PluginManager;
+            string Url(string path) => UrlHelper.CombineUrl(ctx.ServerUrl, ServerRoot + path);
+
+            var version = (await manager.DownloadStringAsync(Url("version")))?.Trim().Trim('"');
+            var main = await manager.DownloadStringAsync(Url("script"));
+            if (string.IsNullOrWhiteSpace(version) || string.IsNullOrWhiteSpace(main))
+            {
+                Trace.WriteLine("⚠ Jellyfin Enhanced version or main script not downloaded, not injected.");
+                return;
+            }
+
             var dir = Path.Combine(ctx.PluginCacheDir, "JellyfinEnhanced");
             Directory.CreateDirectory(dir);
-            await File.WriteAllTextAsync(Path.Combine(dir, "loader.js"), Loader, Encoding.UTF8);
+            await File.WriteAllTextAsync(
+                Path.Combine(dir, "script.js"),
+                await EsbuildHelper.TranspileAsync(main, "JellyfinEnhanced/script"),
+                Encoding.UTF8);
 
-            const string injectedSrc = "plugin_cache/JellyfinEnhanced/loader.js";
-            ctx.InjectScript($"<script src=\"{injectedSrc}\"></script>", injectedSrc);
+            var paths = new List<string>();
+            foreach (Match m in ScriptLiteral.Matches(main))
+                paths.Add(m.Groups[1].Value);
+
+            var list = ComponentList.Match(main);
+            if (list.Success)
+            {
+                foreach (Match m in ComponentEntry.Matches(list.Groups[1].Value))
+                    paths.Add("js/" + m.Groups[1].Value);
+            }
+            else
+            {
+                paths.Add(BundlePath);
+            }
+
+            int saved = 0;
+            foreach (var path in paths.Distinct(StringComparer.Ordinal))
+            {
+                var relPath = Path.Combine("JellyfinEnhanced", path.Replace('/', Path.DirectorySeparatorChar));
+                if (await manager.DownloadAndTranspileAsync(Url(path), ctx.PluginCacheDir, relPath) != null)
+                    saved++;
+            }
+            Trace.WriteLine($"   Jellyfin Enhanced {version}: {saved} of {paths.Count} scripts copied.");
+
+            await File.WriteAllTextAsync(Path.Combine(dir, "redirect.js"), Redirect, Encoding.UTF8);
+            const string redirectSrc = "plugin_cache/JellyfinEnhanced/redirect.js";
+            ctx.InjectScript($"<script src=\"{redirectSrc}\"></script>", redirectSrc);
+
+            const string mainSrc = "plugin_cache/JellyfinEnhanced/script.js";
+            var versionAttr = WebUtility.HtmlEncode(version);
+            ctx.InjectScript(
+                $"<script plugin=\"Jellyfin Enhanced\" version=\"{versionAttr}\" dev=\"false\" src=\"{mainSrc}\"></script>",
+                mainSrc);
         }
     }
 
@@ -249,13 +325,37 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
             var local = Path.Combine(ctx.PluginCacheDir, "NotifySync", "client.js");
             if (!File.Exists(local))
             {
-                System.Diagnostics.Trace.WriteLine("⚠ NotifySync client.js not downloaded, bell not injected.");
+                Trace.WriteLine("⚠ NotifySync client.js not downloaded, bell not injected.");
                 return;
             }
 
             // Same placement File Transformation uses on the server: end of body, no defer.
             // The script itself waits for window.ApiClient and resolves the server address from it.
             const string src = "plugin_cache/NotifySync/client.js";
+            ctx.InjectScript($"<script src=\"{src}\"></script>", src);
+        }
+    }
+
+    // ------------------------
+    // Media Carousel (single script served by the plugin's own controller)
+    // ------------------------
+    public sealed class MediaCarouselPatch : IJellyfinPluginPatch
+    {
+        public async Task ApplyAsync(PluginPatchContext ctx)
+        {
+            // "/MediaCarousel/media-carousel.js" -> plugin_cache/MediaCarousel/media-carousel.js, transpiled on the way.
+            await ctx.PluginManager.DownloadExplicitFilesAsync(ctx.ServerUrl, ctx.PluginCacheDir, ctx.MatrixEntry);
+
+            var local = Path.Combine(ctx.PluginCacheDir, "MediaCarousel", "media-carousel.js");
+            if (!File.Exists(local))
+            {
+                Trace.WriteLine("⚠ Media Carousel script not downloaded, rows not injected.");
+                return;
+            }
+
+            // End of body, like the server's own tag. The script waits for a signed-in ApiClient
+            // and builds every address with ApiClient.getUrl, so it reaches the server from the app.
+            const string src = "plugin_cache/MediaCarousel/media-carousel.js";
             ctx.InjectScript($"<script src=\"{src}\"></script>", src);
         }
     }

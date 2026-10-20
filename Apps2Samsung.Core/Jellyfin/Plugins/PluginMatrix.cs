@@ -61,6 +61,20 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
             },
             new PluginMatrixEntry
             {
+                // Served by the plugin's own controller (anonymous). From 4.4.2 the script builds
+                // every address with ApiClient.getUrl and handles the remote; older versions are
+                // skipped. No ServerAssetRule, for the same reason as NotifySync: the server's
+                // index.html already carries its tag when File Transformation is installed.
+                Name = "Media Carousel",
+                FallbackUrls = new(),
+                ExplicitServerFiles = new List<string>
+                {
+                    "/MediaCarousel/media-carousel.js"
+                },
+                MinimumVersion = new Version(4, 4, 2, 0)
+            },
+            new PluginMatrixEntry
+            {
                 Name = "KefinTweaks",
                 FallbackUrls = new List<string>
                 {

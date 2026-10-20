@@ -42,6 +42,7 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
                 ["Home Screen Sections"] = () => new HomeScreenSectionsPatch(),
                 ["KefinTweaks"]          = () => new KefinTweaksPatch(),
                 ["NotifySync"]           = () => new NotifySyncPatch(),
+                ["Media Carousel"]       = () => new MediaCarouselPatch(),
             };
 
         public PluginMatrixEntry? FindPluginEntry(JellyfinPluginInfo? plugin)
