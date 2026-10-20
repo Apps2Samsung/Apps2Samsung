@@ -248,7 +248,8 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
                     headJsBuilder: headJsBuilder,
                     bodyJsBuilder: bodyJsBuilder,
                     injectedScripts: _injectedScripts,
-                    injectedStyles: _injectedStyles
+                    injectedStyles: _injectedStyles,
+                    pluginVersion: plugin?.Version
                 );
 
                 await patch.ApplyAsync(ctx);

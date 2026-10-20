@@ -26,7 +26,8 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
             StringBuilder headJsBuilder,
             StringBuilder bodyJsBuilder,
             System.Collections.Generic.HashSet<string> injectedScripts,
-            System.Collections.Generic.HashSet<string> injectedStyles)
+            System.Collections.Generic.HashSet<string> injectedStyles,
+            string? pluginVersion = null)
         {
             Workspace = workspace;
             ServerUrl = serverUrl;
@@ -38,6 +39,7 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
             BodyJsBuilder = bodyJsBuilder;
             InjectedScripts = injectedScripts;
             InjectedStyles = injectedStyles;
+            PluginVersion = pluginVersion;
         }
 
         public PackageWorkspace Workspace { get; }
@@ -45,6 +47,15 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
         public string PluginCacheDir { get; }
         public PluginMatrixEntry MatrixEntry { get; }
         public PluginManager PluginManager { get; }
+
+        /// <summary>The installed plugin's version as /Plugins reports it, when known.</summary>
+        public string? PluginVersion { get; }
+
+        /// <summary>
+        /// The git ref of the installed version in the plugin's repository, for fallbacks that download
+        /// from GitHub: the version itself when the plugin tags its releases that way, otherwise main.
+        /// </summary>
+        public string GitRef => System.Version.TryParse(PluginVersion, out _) ? PluginVersion! : "main";
 
         public StringBuilder CssBuilder { get; }
         public StringBuilder HeadJsBuilder { get; }
@@ -370,8 +381,8 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
     /// <summary>
     /// Caches a plugin's client script and stylesheet from the plugin's own controller on the server,
     /// which serves the copy built into the installed plugin, so the script never calls endpoints that
-    /// server doesn't have. GitHub main is only used when the server doesn't serve the file (older
-    /// plugin versions).
+    /// server doesn't have. GitHub, at the installed version's release tag, is only used when the server
+    /// doesn't serve the file (older plugin versions).
     /// </summary>
     internal static class ServerPluginFiles
     {
@@ -424,28 +435,32 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
                 return;
             }
 
+            // The server only serves these from 2.4.13.0 on (and there is no 2.4.13 build for Jellyfin
+            // 10.10), so the fallback is common: it takes the release tag of the installed version.
+            var gitHub = $"https://cdn.jsdelivr.net/gh/IAmParadox27/jellyfin-plugin-media-bar@{ctx.GitRef}/";
             await ServerPluginFiles.CacheAsync(
                 ctx,
                 "mediabar",
                 "/MediaBar/slideshowpure.js",
-                "https://cdn.jsdelivr.net/gh/IAmParadox27/jellyfin-plugin-media-bar@main/slideshowpure.js",
+                gitHub + "slideshowpure.js",
                 "/MediaBar/slideshowpure.css",
-                "https://cdn.jsdelivr.net/gh/IAmParadox27/jellyfin-plugin-media-bar@main/slideshowpure.css");
+                gitHub + "slideshowpure.css");
         }
     }
 
     public sealed class HomeScreenSectionsPatch : IJellyfinPluginPatch
     {
-        private const string GitHubInject =
-            "https://raw.githubusercontent.com/IAmParadox27/jellyfin-plugin-home-sections/main/src/Jellyfin.Plugin.HomeScreenSections/Inject/";
-
         public Task ApplyAsync(PluginPatchContext ctx)
-            => ServerPluginFiles.CacheAsync(
+        {
+            // The server serves these from 2.2.5.0 on; older versions take their release tag.
+            var gitHub = $"https://raw.githubusercontent.com/IAmParadox27/jellyfin-plugin-home-sections/{ctx.GitRef}/src/Jellyfin.Plugin.HomeScreenSections/Inject/";
+            return ServerPluginFiles.CacheAsync(
                 ctx,
                 "homescreensections",
                 "/HomeScreen/home-screen-sections.js",
-                GitHubInject + "HomeScreenSections.js",
+                gitHub + "HomeScreenSections.js",
                 "/HomeScreen/home-screen-sections.css",
-                GitHubInject + "HomeScreenSections.css");
+                gitHub + "HomeScreenSections.css");
+        }
     }
 }
