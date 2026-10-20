@@ -1,3 +1,4 @@
+using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Models;
 using System;
 using System.Collections.Generic;
@@ -68,15 +69,31 @@ namespace Apps2Samsung.Helpers
         // language (falling back to English) and then persists the result here.
         // Existing installs already have a concrete value, so they're never changed.
         public string Language { get; set; } = "";
-        public string Certificate { get; set; } = "Jelly2Sams";
+        // A certificate the user added themselves (or the shipped "Jellyfin" one) to sign every
+        // install with, by folder name. "Jelly2Sams (default)" = none: CertificatePreference decides.
+        public string Certificate { get; set; } = Constants.AppIdentifiers.Jelly2SamsDefault;
         public bool DeletePreviousInstall { get; set; } = false;
         public string UserCustomIP { get; set; } = "";
         public string SavedNetworkInterfaceName { get; set; } = "";
         public bool ForceSamsungLogin { get; set; } = false;
-        // Opt-in Partner-level distributor signing (experimental). Default Public. Only apps that
-        // use restricted privileges (e.g. vpnservice) need it; some TVs may reject partner-signed
-        // installs, and svdca may not issue Partner certs for individual accounts.
-        public bool PartnerSigning { get; set; } = false;
+        // Automatic / Public / Partner, the same choice as the phone (Core CertificatePreference).
+        // Partner is only for apps with restricted privileges (e.g. vpnservice); some TVs may reject
+        // partner-signed installs, and svdca may not issue Partner certs for individual accounts.
+        public string CertificatePreference { get; set; } = Apps2Samsung.Certificate.CertificatePreference.Automatic;
+        // The old on/off toggle, still in settings.json: an older build reads it, and a settings file
+        // from before CertificatePreference turns it into Partner here. Only a real change moves the
+        // preference, so reading it after CertificatePreference can't turn "Public" into "Automatic".
+        public bool PartnerSigning
+        {
+            get => CertificatePreference == Apps2Samsung.Certificate.CertificatePreference.Partner;
+            set
+            {
+                if (value != PartnerSigning)
+                    CertificatePreference = value
+                        ? Apps2Samsung.Certificate.CertificatePreference.Partner
+                        : Apps2Samsung.Certificate.CertificatePreference.Automatic;
+            }
+        }
         public bool ShowAllJellyfinVersions { get; set; } = false;
         // When on, the in-app update check offers beta (pre-release) versions too, and downloads that
         // beta — not the older stable. Off by default on desktop (stable channel).
@@ -191,25 +208,24 @@ namespace Apps2Samsung.Helpers
         }
 
         /// <summary>
-        /// Raised when the app itself turns Partner signing on because the package being installed
-        /// declares a Partner-only privilege. An already-constructed Settings view listens for this so
-        /// its toggle shows the new value instead of a stale "off".
+        /// Raised when the app itself switches the certificate choice to Partner because the package
+        /// being installed declares a Partner-only privilege. An already-constructed Settings view
+        /// listens for this so it shows the new choice instead of a stale one.
         /// </summary>
         public static event Action? PartnerSigningAutoEnabled;
 
         /// <summary>
-        /// Turns Partner signing on and persists it, then notifies the UI. Called when the selected
-        /// package can only be installed with a Partner-signed certificate and the user has none yet:
-        /// flipping the visible toggle is what makes the provisioner mint that certificate, and leaves
-        /// the setting visible (and reversible) instead of silently signing at a level the Settings
-        /// screen claims is off. No-op when it is already on.
+        /// Switches the certificate choice to Partner and persists it, then notifies the UI. Called
+        /// when the selected package can only be installed with a Partner-signed certificate and the
+        /// user has none yet (Core CertificatePreference.ShouldSwitchToPartner, the same as on the
+        /// phone): Settings then shows the level the app signs with, and the user can switch back.
         /// </summary>
         public void EnablePartnerSigning()
         {
             if (PartnerSigning)
                 return;
 
-            PartnerSigning = true;
+            CertificatePreference = Apps2Samsung.Certificate.CertificatePreference.Partner;
             Save();
             PartnerSigningAutoEnabled?.Invoke();
         }
@@ -267,7 +283,26 @@ namespace Apps2Samsung.Helpers
 
             _instance ??= new AppSettings();
             MigrateOblongToCustomIcons(_instance);
+            MigrateCertificatePick(_instance);
             return _instance;
+        }
+
+        /// <summary>
+        /// Since the Automatic / Public / Partner choice (#755) <see cref="Certificate"/> only names a
+        /// certificate the user added themselves. A generated "Jelly2Sams[ - Public/Partner]" pick
+        /// from the old dropdown meant "the app's own certificate" and becomes "none"; the level it
+        /// signed at already came from <see cref="PartnerSigning"/>, which the JSON read migrated.
+        /// </summary>
+        private static void MigrateCertificatePick(AppSettings s)
+        {
+            s.CertificatePreference = Apps2Samsung.Certificate.CertificatePreference.Normalize(s.CertificatePreference);
+            bool generatedPick = string.IsNullOrEmpty(s.Certificate) ||
+                                 s.Certificate.StartsWith(Constants.AppIdentifiers.Jelly2Sams, StringComparison.OrdinalIgnoreCase);
+            if (!generatedPick || s.Certificate == Constants.AppIdentifiers.Jelly2SamsDefault)
+                return;
+
+            s.Certificate = Constants.AppIdentifiers.Jelly2SamsDefault;
+            s.Save();
         }
 
         /// <summary>

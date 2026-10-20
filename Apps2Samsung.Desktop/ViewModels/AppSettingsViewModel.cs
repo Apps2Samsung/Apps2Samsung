@@ -56,8 +56,31 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private bool forceSamsungLogin;
 
+        // Automatic / Public / Partner, the same choice as the phone (Core CertificatePreference).
         [ObservableProperty]
-        private bool partnerSigning;
+        [NotifyPropertyChangedFor(nameof(CertificateAutomatic), nameof(CertificatePublic), nameof(CertificatePartner))]
+        private string certificatePreference = Apps2Samsung.Certificate.CertificatePreference.Automatic;
+
+        // One per segment of the switch (RadioButtons bind a bool each).
+        public bool CertificateAutomatic
+        {
+            get => CertificatePreference == Apps2Samsung.Certificate.CertificatePreference.Automatic;
+            set { if (value) CertificatePreference = Apps2Samsung.Certificate.CertificatePreference.Automatic; }
+        }
+        public bool CertificatePublic
+        {
+            get => CertificatePreference == Apps2Samsung.Certificate.CertificatePreference.Public;
+            set { if (value) CertificatePreference = Apps2Samsung.Certificate.CertificatePreference.Public; }
+        }
+        public bool CertificatePartner
+        {
+            get => CertificatePreference == Apps2Samsung.Certificate.CertificatePreference.Partner;
+            set { if (value) CertificatePreference = Apps2Samsung.Certificate.CertificatePreference.Partner; }
+        }
+
+        // Public and Partner are Samsung's names for the two levels, not translated (as on the phone).
+        public string LblCertificatePublic => Apps2Samsung.Certificate.CertificatePreference.Public;
+        public string LblCertificatePartner => Apps2Samsung.Certificate.CertificatePreference.Partner;
 
         [ObservableProperty]
         private bool includeBetaUpdates;
@@ -87,7 +110,13 @@ namespace Apps2Samsung.ViewModels
         private NetworkInterfaceOption? selectedNetworkInterface;
 
         public ObservableCollection<LanguageOption> AvailableLanguages { get; }
+        // "Own certificate": "None" first, then the certificates the user added to the certificate
+        // folder. The app's generated ones are what the Automatic/Public/Partner switch picks, so
+        // they're not in here. The row only shows when there is something to pick.
         public ObservableCollection<ExistingCertificates> AvailableCertificates { get; } = new();
+
+        [ObservableProperty]
+        private bool hasOwnCertificates;
         public ObservableCollection<NetworkInterfaceOption> NetworkInterfaces { get; } = new();
 
         public char GitHubTokenPasswordChar => ShowGitHubToken ? '\0' : '*';
@@ -143,10 +172,10 @@ namespace Apps2Samsung.ViewModels
             _ = InitializeCertificatesAsync();
         }
 
-        // The installer flipped Partner signing on for a package that requires it — mirror it onto the
-        // toggle so this (singleton) view model doesn't keep showing the pre-install value.
+        // The installer switched the certificate to Partner for a package that requires it — mirror it
+        // onto the switch so this (singleton) view model doesn't keep showing the pre-install value.
         private void OnPartnerSigningAutoEnabled() =>
-            Dispatcher.UIThread.Post(() => PartnerSigning = true);
+            Dispatcher.UIThread.Post(() => CertificatePreference = AppSettings.Default.CertificatePreference);
 
         private void OnLanguageChanged(object? sender, EventArgs e)
         {
@@ -192,7 +221,7 @@ namespace Apps2Samsung.ViewModels
 
             DeletePreviousInstall = AppSettings.Default.DeletePreviousInstall;
             ForceSamsungLogin = AppSettings.Default.ForceSamsungLogin;
-            PartnerSigning = AppSettings.Default.PartnerSigning;
+            CertificatePreference = AppSettings.Default.CertificatePreference;
             IncludeBetaUpdates = AppSettings.Default.IncludeBetaUpdates;
             RtlReading = AppSettings.Default.RTLReading;
             LocalIP = AppSettings.Default.LocalIp ?? string.Empty;
@@ -244,29 +273,23 @@ namespace Apps2Samsung.ViewModels
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                var savedCertName = AppSettings.Default.Certificate;
                 foreach (var cert in certificates)
                 {
+                    // "Jelly2Sams (default)" is the "None" entry; the other generated "Jelly2Sams - …"
+                    // profiles belong to the switch. The shipped "Jellyfin" certificate (older TVs
+                    // get it by themselves) only stays listed while it is the saved pick.
                     if (cert.Name == Constants.AppIdentifiers.Jelly2SamsDefault)
-                        cert.DisplayName = _localizationService.GetString("lblCertificateAutomatic");
+                        cert.DisplayName = _localizationService.GetString("lblOwnCertificateNone");
+                    else if (cert.Name.StartsWith(Constants.AppIdentifiers.Jelly2Sams, StringComparison.OrdinalIgnoreCase) ||
+                             (cert.Name == Constants.AppIdentifiers.JellyfinAppName && cert.Name != savedCertName))
+                        continue;
                     AvailableCertificates.Add(cert);
                 }
+                HasOwnCertificates = AvailableCertificates.Count > 1;
 
-                var savedCertName = AppSettings.Default.Certificate;
-                ExistingCertificates? selectedCert = null;
-
-                if (!string.IsNullOrEmpty(savedCertName))
-                {
-                    selectedCert = AvailableCertificates
-                        .FirstOrDefault(c => c.Name == savedCertName);
-                }
-
-                selectedCert ??= AvailableCertificates
-                        .FirstOrDefault(c => c.Name == Constants.AppIdentifiers.Jelly2Sams);
-
-                selectedCert ??= AvailableCertificates
-                        .FirstOrDefault(c => c.Name == Constants.AppIdentifiers.Jelly2SamsDefault);
-
-                selectedCert ??= AvailableCertificates.FirstOrDefault();
+                var selectedCert = AvailableCertificates.FirstOrDefault(c => c.Name == savedCertName)
+                    ?? AvailableCertificates.FirstOrDefault(c => c.Name == Constants.AppIdentifiers.Jelly2SamsDefault);
 
                 if (selectedCert != null)
                     SelectedCertificate = selectedCert.Name;
@@ -497,9 +520,9 @@ namespace Apps2Samsung.ViewModels
             AppSettings.Default.Save();
         }
 
-        partial void OnPartnerSigningChanged(bool value)
+        partial void OnCertificatePreferenceChanged(string value)
         {
-            AppSettings.Default.PartnerSigning = value;
+            AppSettings.Default.CertificatePreference = Apps2Samsung.Certificate.CertificatePreference.Normalize(value);
             AppSettings.Default.Save();
         }
 

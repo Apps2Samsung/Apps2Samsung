@@ -64,6 +64,7 @@ public partial class SettingsBackupPage : ContentPage
 			["ForceSamsungLogin"] = MobileSettings.ForceSamsungLogin,
 			["TryOverwrite"] = MobileSettings.TryOverwrite,
 			["PartnerSigning"] = MobileSettings.PartnerSigning,
+			["CertificatePreference"] = MobileSettings.CertificatePreference,
 			["ManualDuids"] = MobileSettings.ManualDuids,
 			["GitHubToken"] = MobileSettings.GitHubToken,
 			["JellyfinIP"] = MobileSettings.JellyfinServerUrl,
@@ -167,6 +168,9 @@ public partial class SettingsBackupPage : ContentPage
 		if (GetBool("ForceSamsungLogin") is { } forceLogin) MobileSettings.ForceSamsungLogin = forceLogin;
 		if (GetBool("TryOverwrite") is { } tryOverwrite) MobileSettings.TryOverwrite = tryOverwrite;
 		if (GetBool("PartnerSigning") is { } partner) MobileSettings.PartnerSigning = partner;
+		// The three-way choice; older backups only carry PartnerSigning (read just above).
+		if (GetString("CertificatePreference") is { } preference)
+			MobileSettings.CertificatePreference = CertificatePreference.Normalize(preference);
 		if (GetBool("PatchYoutubePlugin") is { } patchYt) MobileSettings.JellyfinPatchYoutube = patchYt;
 		if (GetBool("TizenTubeProxyOverride") is { } ttProxy) MobileSettings.TizenTubeProxyOverride = ttProxy;
 
@@ -200,13 +204,9 @@ public partial class SettingsBackupPage : ContentPage
 			CertificateProvisioningService.HasUsableAuthorCert(
 				Path.Combine(store, CertificateProvisioningService.ProfileName(level)));
 
-		bool partner = Has(CertificatePrivilegeLevel.Partner);
-		bool pub = Has(CertificatePrivilegeLevel.Public);
-
-		if (partner && !pub)
-			MobileSettings.CertificatePreference = MobileSettings.CertificatePreferencePartner;
-		else if (pub && !partner)
-			MobileSettings.CertificatePreference = MobileSettings.CertificatePreferencePublic;
-		// If both or neither were imported, leave the preference as-is (Automatic covers "both").
+		MobileSettings.CertificatePreference = CertificatePreference.AfterImport(
+			MobileSettings.CertificatePreference,
+			hasPublic: Has(CertificatePrivilegeLevel.Public),
+			hasPartner: Has(CertificatePrivilegeLevel.Partner));
 	}
 }

@@ -12,10 +12,24 @@
 			<TextBlock Classes="grouptitle" Text="{l:Localize lblSigning}"/>
 			<Border Classes="group">
 				<StackPanel>
-					<Grid Classes="setting" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+					<!-- Automatic / Public / Partner, the same switch as the phone's Settings > Installing -->
+					<StackPanel Margin="14,12" Spacing="10">
+						<TextBlock Classes="settinglabel" Text="{Binding LblCertificate}"/>
+						<Border Padding="2" CornerRadius="8" Background="{DynamicResource FillBrush}" HorizontalAlignment="Left">
+							<UniformGrid Rows="1" MinWidth="330">
+								<RadioButton Classes="segment" GroupName="certificate" Content="{l:Localize lblCertificateAutomatic}" IsChecked="{Binding CertificateAutomatic}"/>
+								<RadioButton Classes="segment" GroupName="certificate" Content="{Binding LblCertificatePublic}" IsChecked="{Binding CertificatePublic}"/>
+								<RadioButton Classes="segment" GroupName="certificate" Content="{Binding LblCertificatePartner}" IsChecked="{Binding CertificatePartner}"/>
+							</UniformGrid>
+						</Border>
+						<TextBlock Classes="hint" Text="{l:Localize hintCertificateType}"/>
+					</StackPanel>
+					<Border Classes="rowline"/>
+					<!-- A certificate the user added to the certificate folder themselves; only when there is one. -->
+					<Grid Classes="setting" ColumnDefinitions="*,Auto" ColumnSpacing="12" IsVisible="{Binding HasOwnCertificates}">
 						<StackPanel Spacing="2" VerticalAlignment="Center">
-							<TextBlock Classes="settinglabel" Text="{Binding LblCertificate}"/>
-							<TextBlock Classes="hint" Text="{l:Localize hintCertificate}"/>
+							<TextBlock Classes="settinglabel" Text="{l:Localize lblOwnCertificate}"/>
+							<TextBlock Classes="hint" Text="{l:Localize hintOwnCertificate}"/>
 						</StackPanel>
 						<ComboBox Grid.Column="1" Classes="clean" MinWidth="150" VerticalAlignment="Center"
 						          ItemsSource="{Binding AvailableCertificates}"
@@ -27,21 +41,13 @@
 							</ComboBox.ItemTemplate>
 						</ComboBox>
 					</Grid>
-					<Border Classes="rowline"/>
+					<Border Classes="rowline" IsVisible="{Binding HasOwnCertificates}"/>
 					<Grid Classes="setting" ColumnDefinitions="*,Auto" ColumnSpacing="12">
 						<StackPanel Spacing="2" VerticalAlignment="Center">
 							<TextBlock Classes="settinglabel" Text="{Binding LblForceLogin}"/>
 							<TextBlock Classes="hint" Text="{l:Localize hintForceSamsungLogin}"/>
 						</StackPanel>
 						<ToggleSwitch Grid.Column="1" MinWidth="0" VerticalAlignment="Center" IsChecked="{Binding ForceSamsungLogin}"/>
-					</Grid>
-					<Border Classes="rowline"/>
-					<Grid Classes="setting" ColumnDefinitions="*,Auto" ColumnSpacing="12">
-						<StackPanel Spacing="2" VerticalAlignment="Center">
-							<TextBlock Classes="settinglabel" Text="{l:Localize lblPartnerSigning}"/>
-							<TextBlock Classes="hint" Text="{l:Localize lblPartnerSigningHint}"/>
-						</StackPanel>
-						<ToggleSwitch Grid.Column="1" MinWidth="0" VerticalAlignment="Center" IsChecked="{Binding PartnerSigning}"/>
 					</Grid>
 					<Border Classes="rowline"/>
 					<!-- Prepare the certificate now (#755): the install's certificate for the selected TV,
