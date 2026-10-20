@@ -16,10 +16,7 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
             new PluginMatrixEntry
             {
                 Name = "Media Bar",
-                FallbackUrls = new List<string>
-                {
-                    "https://cdn.jsdelivr.net/gh/IAmParadox27/jellyfin-plugin-media-bar@main/slideshowpure.js"
-                },
+                FallbackUrls = new(),
                 UseBabel = true
             },
             new PluginMatrixEntry
@@ -31,10 +28,7 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
             new PluginMatrixEntry
             {
                 Name = "Home Screen Sections",
-                FallbackUrls = new List<string>
-                {
-                    "https://raw.githubusercontent.com/IAmParadox27/jellyfin-plugin-home-sections/main/src/Jellyfin.Plugin.HomeScreenSections/Inject/HomeScreenSections.js"
-                },
+                FallbackUrls = new(),
                 UseBabel = true
             },
             new PluginMatrixEntry
@@ -72,16 +66,6 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
                     "/MediaCarousel/media-carousel.js"
                 },
                 MinimumVersion = new Version(4, 4, 2, 0)
-            },
-            new PluginMatrixEntry
-            {
-                Name = "KefinTweaks",
-                FallbackUrls = new List<string>
-                {
-                    "https://cdn.jsdelivr.net/gh/ranaldsgift/KefinTweaks@latest/kefinTweaks-plugin.js"
-                },
-                RawRoot = "https://raw.githubusercontent.com/ranaldsgift/KefinTweaks/v0.4.5/",
-                UseBabel = true
             }
         ];
         public static readonly List<ServerAssetRule> ServerAssetRules =
@@ -91,6 +75,9 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
                 match: url => url.Contains("/plugins/", StringComparison.OrdinalIgnoreCase),
                 treatAs: ServerAssetKind.PluginAsset),
 
+            // JS Injector's public.js carries the admin's public user scripts, KefinTweaks among them
+            // (JellyfinPluginPatcher patches it after caching). Its tag is "../JavaScriptInjector/public.js".
+            new ServerAssetRule("JavaScript Injector", url => url.Contains("javascriptinjector", StringComparison.OrdinalIgnoreCase), ServerAssetKind.PluginAsset),
             new ServerAssetRule("KefinTweaks", url => url.Contains("kefin", StringComparison.OrdinalIgnoreCase), ServerAssetKind.PluginAsset),
             new ServerAssetRule("Media Bar", url => url.Contains("mediabar", StringComparison.OrdinalIgnoreCase), ServerAssetKind.PluginAsset),
             new ServerAssetRule("Home Screen Sections", url => url.Contains("homescreensections", StringComparison.OrdinalIgnoreCase), ServerAssetKind.PluginAsset),

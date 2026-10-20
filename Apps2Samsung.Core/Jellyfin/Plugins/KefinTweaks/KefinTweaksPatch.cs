@@ -6,245 +6,243 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Apps2Samsung.Helpers.Jellyfin.Plugins.KefinTweaks
 {
+    /// <summary>
+    /// KefinTweaks is not a server plugin but a JavaScript Injector user script: a bootstrap in
+    /// public.js loads its installer from a root the admin picks (a jsDelivr tag, @latest, @main or a
+    /// self-hosted folder), and the installer and injector load every module from that root. From 0.5
+    /// on the KefinTweaks-Config script also carries the commit that root resolved to, which the loader
+    /// prefers, and a baked KefinTweaks-injector entry that adds the module tags itself.
+    ///
+    /// Every script under the root the server's web clients use is downloaded at install, transpiled to
+    /// ES2015 and stored in plugin_cache/kefinTweaks/ under the same relative path. A redirect loaded
+    /// before public.js points each script element under any KefinTweaks root at that copy. The config
+    /// is left as the server serves it: stylesheets, images and page HTML still come from the root (they
+    /// aren't code), and when an admin's TV saves the config back nothing local ends up on the server.
+    ///
+    /// Left out on purpose: scripts/games.js. The games pages run inline scripts out of fetched HTML,
+    /// which can't be transpiled, so the Games link stays off in the app.
+    /// </summary>
     public sealed class KefinTweaksPatch : IJellyfinPluginPatch
     {
-        private const string KefinTweaksRawRoot =
-            "https://raw.githubusercontent.com/ranaldsgift/KefinTweaks/v0.4.5/";
+        // Only used when none of the configured roots can be downloaded from at install time.
+        private const string FallbackRoot =
+            "https://raw.githubusercontent.com/ranaldsgift/KefinTweaks/v0.5.2/";
+
+        private const string LocalDir = "kefinTweaks";
+
+        // Fetched by the installer or injector by name rather than through the script definitions.
+        // The loader only exists from 0.5 on.
+        private static readonly string[] EntryScripts =
+        {
+            "injector.js",
+            "kefinTweaks-default-config.js",
+            "scripts/kefinTweaks-loader.js",
+        };
+
+        // Loaded by modules outside the script definitions (configuration UI, seasonal animations).
+        private static readonly string[] ExtraModules =
+        {
+            "scripts/configuration.js",
+            "scripts/snowverlay.js",
+            "scripts/seasonal/seasonalOverlay.js",
+        };
+
+        private static readonly string[] SkippedModules = { "scripts/games.js" };
+
+        private const string RedirectTemplate = @"(function () {
+    var LOCAL = 'plugin_cache/kefinTweaks/';
+    var ROOTS = __ROOTS__;
+    var KNOWN = /^https?:\/\/(?:cdn\.jsdelivr\.net\/gh\/ranaldsgift\/KefinTweaks@[^\/]+|raw\.githubusercontent\.com\/ranaldsgift\/KefinTweaks\/[^\/]+|ranaldsgift\.github\.io\/KefinTweaks)\//i;
+    function relative(url) {
+        var known = url.match(KNOWN);
+        if (known) {
+            return url.substring(known[0].length);
+        }
+        var cfg = window.KefinTweaksConfig || {};
+        var roots = [cfg.kefinTweaksRootResolved, cfg.kefinTweaksRoot].concat(ROOTS);
+        for (var i = 0; i < roots.length; i++) {
+            var root = roots[i];
+            if (typeof root !== 'string' || !root) {
+                continue;
+            }
+            if (root.charAt(root.length - 1) !== '/') {
+                root += '/';
+            }
+            if (url.indexOf(root) === 0) {
+                return url.substring(root.length);
+            }
+        }
+        return null;
+    }
+    function local(url) {
+        if (typeof url !== 'string') {
+            return url;
+        }
+        var path = relative(url);
+        if (path === null) {
+            return url;
+        }
+        var parts = path.split('#')[0].split('?')[0].split('/');
+        var stack = [];
+        for (var i = 0; i < parts.length; i++) {
+            if (parts[i] === '..') {
+                stack.pop();
+            } else if (parts[i] && parts[i] !== '.') {
+                stack.push(parts[i]);
+            }
+        }
+        path = stack.join('/');
+        return /\.js$/i.test(path) ? LOCAL + path : url;
+    }
+    var src = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, 'src');
+    if (!src || !src.set) {
+        return;
+    }
+    Object.defineProperty(HTMLScriptElement.prototype, 'src', {
+        configurable: true,
+        enumerable: src.enumerable,
+        get: src.get,
+        set: function (value) { src.set.call(this, local(value)); }
+    });
+})();
+";
 
         public async Task ApplyAsync(PluginPatchContext ctx)
         {
-            string pluginCacheDir = ctx.PluginCacheDir;
-            string serverUrl = ctx.ServerUrl;
-
-            string publicJsPath = Path.Combine(pluginCacheDir, "public.js");
+            string publicJsPath = Path.Combine(ctx.PluginCacheDir, "public.js");
             if (!File.Exists(publicJsPath))
+                return;
+
+            string publicJs = await File.ReadAllTextAsync(publicJsPath, Encoding.UTF8);
+            var roots = FindRoots(publicJs);
+            if (roots.Count == 0)
+                return;
+
+            Trace.WriteLine($"⚙ KefinTweaks: found in public.js, roots: {string.Join(", ", roots)}");
+
+            // Injected before anything is downloaded: whatever fails below, no KefinTweaks script may
+            // load from its root untranspiled. A script that isn't cached then simply doesn't load.
+            await WriteRedirectAsync(ctx, roots);
+
+            string? source = null;
+            foreach (var root in roots.Select(r => ToDownloadRoot(ctx.ServerUrl, r)).Append(FallbackRoot).Distinct())
             {
-                Trace.WriteLine("▶ KefinTweaks: public.js not found, skipping.");
+                if (await CacheAsync(ctx, root, "kefinTweaks-plugin.js") != null)
+                {
+                    source = root;
+                    break;
+                }
+            }
+
+            if (source == null)
+            {
+                Trace.WriteLine("⚠ KefinTweaks: kefinTweaks-plugin.js could not be downloaded from any root, KefinTweaks won't load in the app.");
                 return;
             }
 
-            string js = await File.ReadAllTextAsync(publicJsPath, Encoding.UTF8);
+            if (source == FallbackRoot)
+                Trace.WriteLine($"⚠ KefinTweaks: the server's root could not be reached, caching {FallbackRoot} instead.");
 
-            if (!RegexPatterns.KefinTweaks.Loader.IsMatch(js))
+            var modules = new SortedSet<string>(ExtraModules, StringComparer.Ordinal);
+            foreach (var entry in EntryScripts)
             {
-                Trace.WriteLine("▶ KefinTweaks: loader not found, skipping.");
-                return;
+                var text = await CacheAsync(ctx, source, entry);
+                if (text == null)
+                    continue;
+
+                foreach (Match m in RegexPatterns.KefinTweaks.ScriptEntry.Matches(text))
+                    modules.Add(NormalizePath("scripts/" + m.Groups[1].Value));
+                foreach (Match m in RegexPatterns.KefinTweaks.ThirdPartyEntry.Matches(text))
+                    modules.Add(NormalizePath("scripts/" + m.Groups[1].Value));
             }
 
-            Trace.WriteLine("⚙ KefinTweaks: patching public.js");
+            foreach (var skipped in SkippedModules.Where(modules.Remove))
+                Trace.WriteLine($"ℹ KefinTweaks: {skipped} left out (runs inline scripts from page HTML, which can't be transpiled).");
 
-            Directory.CreateDirectory(Path.Combine(pluginCacheDir, "kefinTweaks"));
-
-            // --- main plugin ---
-            await ctx.PluginManager.DownloadAndTranspileAsync(
-                KefinTweaksRawRoot + "kefinTweaks-plugin.js",
-                pluginCacheDir,
-                Path.Combine("kefinTweaks", "kefinTweaks-plugin.js"));
-
-            RewritePluginRoot(pluginCacheDir);
-
-            // --- injector ---
-            var injectorPath = await ctx.PluginManager.DownloadAndTranspileAsync(
-                KefinTweaksRawRoot + "injector.js",
-                pluginCacheDir,
-                Path.Combine("kefinTweaks", "injector.js"));
-
-            if (injectorPath != null)
+            int cached = 0;
+            foreach (var module in modules)
             {
-                await ProcessModulesAsync(ctx, injectorPath);
-                await ProcessCssAsync(ctx);
-                js = await InjectSkinCssAsync(ctx, js);
+                if (await CacheAsync(ctx, source, module) != null)
+                    cached++;
             }
 
-            // --- rewrite loader ---
-            js = RegexPatterns.KefinTweaks.Loader.Replace(
-                js,
-                "script.src = 'plugin_cache/kefinTweaks/kefinTweaks-plugin.js';");
-
-            js = RegexPatterns.KefinTweaks.TweaksRoot.Replace(
-                js,
-                @"""kefinTweaksRoot"": ""plugin_cache/kefinTweaks/""");
-
-            await File.WriteAllTextAsync(publicJsPath, js, Encoding.UTF8);
-
-            Trace.WriteLine("✓ KefinTweaks patched successfully");
+            Trace.WriteLine($"✓ KefinTweaks: {cached} of {modules.Count} modules cached from {source}");
         }
 
-        // ------------------------------------------------------------
-        // Core helpers
-        // ------------------------------------------------------------
-
-        private static void RewritePluginRoot(string pluginCacheDir)
+        /// <summary>
+        /// The roots public.js points at, in the order the loader prefers them: the resolved commit,
+        /// the admin's choice, then the folder the bootstrap loads the installer from.
+        /// </summary>
+        private static List<string> FindRoots(string publicJs)
         {
-            string path = Path.Combine(pluginCacheDir, "kefinTweaks", "kefinTweaks-plugin.js");
-            if (!File.Exists(path)) return;
+            var config = RegexPatterns.KefinTweaks.ConfigRoot.Matches(publicJs)
+                .Where(m => !string.IsNullOrWhiteSpace(m.Groups[2].Value))
+                .ToList();
 
-            var js = File.ReadAllText(path);
-            js = js.Replace(
-                "https://cdn.jsdelivr.net/gh/ranaldsgift/KefinTweaks",
-                "plugin_cache/kefinTweaks");
+            var roots = config.Where(m => m.Groups[1].Value == "kefinTweaksRootResolved")
+                .Concat(config.Where(m => m.Groups[1].Value == "kefinTweaksRoot"))
+                .Select(m => m.Groups[2].Value.Trim())
+                .ToList();
 
-            File.WriteAllText(path, js);
+            foreach (Match m in RegexPatterns.KefinTweaks.Bootstrap.Matches(publicJs))
+                roots.Add(m.Groups[1].Value.Trim());
+
+            return roots
+                .Where(r => r.Length > 0)
+                .Select(r => r.EndsWith('/') ? r : r + "/")
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
         }
 
-        private async Task ProcessModulesAsync(PluginPatchContext ctx, string injectorPath)
+        /// <summary>A root as the web client sees it, made absolute against the server for downloading.</summary>
+        private static string ToDownloadRoot(string serverUrl, string root)
+            => UrlHelper.IsValidHttpUrl(root) ? root : UrlHelper.GetAbsoluteUri(serverUrl, root).ToString();
+
+        private static async Task WriteRedirectAsync(PluginPatchContext ctx, List<string> roots)
         {
-            string src = await File.ReadAllTextAsync(injectorPath, Encoding.UTF8);
-            var matches = RegexPatterns.KefinTweaks.ScriptEntry.Matches(src);
+            var dir = Path.Combine(ctx.PluginCacheDir, LocalDir);
+            Directory.CreateDirectory(dir);
 
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var script = RedirectTemplate.Replace("__ROOTS__", JsonSerializer.Serialize(roots));
+            await File.WriteAllTextAsync(Path.Combine(dir, "redirect.js"), script, Encoding.UTF8);
 
-            foreach (Match m in matches)
-            {
-                string name = m.Groups[1].Value.Trim();
-                if (string.IsNullOrEmpty(name)) continue;
-                if (!name.EndsWith(".js", StringComparison.OrdinalIgnoreCase)) continue;
-                if (!seen.Add(name)) continue;
-                if (name is "kefinTweaks-plugin.js" or "injector.js") continue;
-
-                string modulePath =
-                    name.Equals("jquery.flurry.min.js", StringComparison.OrdinalIgnoreCase)
-                        ? "scripts/third%20party/" + name
-                        : "scripts/" + name;
-
-                string url = KefinTweaksRawRoot + modulePath;
-
-                string relPath = Path.Combine(
-                    "kefinTweaks",
-                    modulePath.Replace("%20", " ")
-                              .Replace("/", Path.DirectorySeparatorChar.ToString()));
-
-                await ctx.PluginManager.DownloadAndTranspileAsync(url, ctx.PluginCacheDir, relPath);
-            }
-
-            Trace.WriteLine("✓ KefinTweaks modules cached");
+            const string redirectSrc = "plugin_cache/kefinTweaks/redirect.js";
+            ctx.InjectScript($"<script src=\"{redirectSrc}\"></script>", redirectSrc);
         }
 
-        private async Task ProcessCssAsync(PluginPatchContext ctx)
+        /// <summary>Downloads and transpiles one script; returns the transpiled text, or null when it failed.</summary>
+        private static async Task<string?> CacheAsync(PluginPatchContext ctx, string root, string relPath)
         {
-            var cssFiles = new[]
-            {
-                "chromic-kefin.css",
-                "elegant-kefin.css",
-                "fin-kefin-10.11.css",
-                "flow-kefin.css",
-                "glassfin-kefin.css",
-                "jamfin-kefin-10.css",
-                "jamfin-kefin.css",
-                "neutralfin-kefin.css",
-                "scyfin-kefin.css",
-                "optional/ElegantFin/solidAppBar.css",
-                "optional/ElegantFin/libraryLabelVisibility.css",
-                "optional/ElegantFin/extraOverlayButtons.css",
-                "optional/ElegantFin/centerPlayButton.css",
-                "optional/ElegantFin/cardHoverEffect.css",
-            };
+            var localPath = await ctx.PluginManager.DownloadAndTranspileAsync(
+                root + relPath,
+                ctx.PluginCacheDir,
+                Path.Combine(LocalDir, relPath.Replace('/', Path.DirectorySeparatorChar)));
 
-            Trace.WriteLine("▶ KefinTweaks: caching CSS skins");
+            return localPath == null ? null : await File.ReadAllTextAsync(localPath, Encoding.UTF8);
+        }
 
-            foreach (var file in cssFiles)
+        /// <summary>Collapses "." and ".." the way the browser resolves "scripts/../configuration/x.js".</summary>
+        private static string NormalizePath(string path)
+        {
+            var stack = new List<string>();
+            foreach (var part in path.Split('/'))
             {
-                try
+                if (part == "..")
                 {
-                    string url = KefinTweaksRawRoot + "skins/" + file;
-
-                    string local = Path.Combine(
-                        ctx.PluginCacheDir,
-                        "kefinTweaks",
-                        "skins",
-                        "css",
-                        file.Replace("/", Path.DirectorySeparatorChar.ToString()));
-
-                    Directory.CreateDirectory(Path.GetDirectoryName(local)!);
-
-                    var bytes = await ctx.PluginManager.DownloadBytesAsync(url);
-                    if (bytes != null)
-                        await File.WriteAllBytesAsync(local, bytes);
+                    if (stack.Count > 0) stack.RemoveAt(stack.Count - 1);
                 }
-                catch (Exception ex)
+                else if (part.Length > 0 && part != ".")
                 {
-                    Trace.WriteLine($"⚠ KefinTweaks CSS failed: {file} {ex}");
+                    stack.Add(part);
                 }
             }
-        }
-
-        private async Task<string> InjectSkinCssAsync(PluginPatchContext ctx, string js)
-        {
-            var info = await ctx.PluginManager.Api.GetPublicSystemInfoAsync(ctx.ServerUrl);
-            var version = info?.Version ?? "0.0.0";
-            var majorMinor = string.Join(".", version.Split('.').Take(2));
-
-            var skin = GetKefinDefaultSkin(ctx.PluginCacheDir);
-            if (string.IsNullOrWhiteSpace(skin))
-                return js;
-
-            string skinLower = skin.ToLowerInvariant();
-
-            js = EnsureCssLinked(js,
-                $"plugin_cache/kefinTweaks/skins/css/{skinLower}-kefin.css");
-
-            js = EnsureCssLinked(js,
-                $"plugin_cache/kefinTweaks/skins/css/{skinLower}-kefin-{majorMinor}.css");
-
-            Trace.WriteLine($"✓ KefinTweaks skin injected: {skin} ({majorMinor})");
-
-            return js;
-        }
-
-
-        // ------------------------------------------------------------
-        // Utility helpers (verbatim behavior)
-        // ------------------------------------------------------------
-
-        private static string EnsureCssLinked(string js, string href)
-        {
-            if (js.Contains(href, StringComparison.OrdinalIgnoreCase))
-                return js;
-
-            return js + $@"
-(function () {{
-    try {{
-        var href = '{href}';
-        if (document.querySelector('link[href=""' + href + '""]')) return;
-        var link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = href;
-        document.head.appendChild(link);
-        console.log('🪼 KefinTweaks CSS injected:', href);
-    }} catch (e) {{
-        console.error('Failed to inject KefinTweaks CSS', e);
-    }}
-}})();
-";
-        }
-
-        private static string? GetKefinDefaultSkin(string pluginCacheDir)
-        {
-            try
-            {
-                string configPath = Path.Combine(
-                    pluginCacheDir,
-                    "kefinTweaks",
-                    "config",
-                    "config.json");
-
-                if (!File.Exists(configPath))
-                    return null;
-
-                var json = File.ReadAllText(configPath);
-                var match = RegexPatterns.PluginConfig.DefaultSkin.Match(json);
-
-                return match.Success ? match.Groups[1].Value : null;
-            }
-            catch
-            {
-                return null;
-            }
+            return string.Join("/", stack);
         }
     }
 }

@@ -1,0 +1,9 @@
+{
+  "name": "plugin-es2015-check",
+  "private": true,
+  "type": "module",
+  "description": "Checks that every upstream plugin file Apps2Samsung copies into the app transpiles to ES2015 (#801).",
+  "dependencies": {
+    "acorn": "8.15.0"
+  }
+}
