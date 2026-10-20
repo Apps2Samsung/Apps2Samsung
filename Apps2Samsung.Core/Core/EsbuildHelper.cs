@@ -49,24 +49,26 @@ namespace Apps2Samsung.Helpers.Core
             }
             catch (Exception ex)
             {
-                // Non-fatal: if this fails the process launch below will fall back to original JS.
+                // Non-fatal here: if this fails the process launch below fails and the file is skipped.
                 Trace.WriteLine($"Failed to set executable bit on esbuild: {ex}");
             }
         }
 
         /// <summary>
-        /// Transpiles ES2015+ JavaScript to ES5 using esbuild.
-        /// If esbuild is missing or fails, returns the original JS.
+        /// Transpiles plugin JavaScript down to ES2015 using esbuild.
+        /// Returns null when esbuild is missing or fails: the caller must then leave the file out,
+        /// because untranspiled plugin code does not parse on older TVs (#801).
         /// </summary>
-        public static async Task<string> TranspileAsync(string js, string? relPathForLog = null)
+        public static async Task<string?> TranspileAsync(string js, string? relPathForLog = null)
         {
+            string name = relPathForLog ?? "unknown";
             try
             {
                 string? esbuildPath = GetEsbuildPath();
                 if (string.IsNullOrEmpty(esbuildPath))
                 {
-                    Trace.WriteLine($"esbuild binary not found, skipping transpile for {relPathForLog ?? "unknown"}");
-                    return js;
+                    Trace.WriteLine($"⛔ esbuild binary not found, {name} not transpiled and left out of the app.");
+                    return null;
                 }
 
                 EnsureExecutable(esbuildPath);
@@ -99,8 +101,8 @@ namespace Apps2Samsung.Helpers.Core
 
                 if (proc.ExitCode != 0 || !File.Exists(outputPath))
                 {
-                    Trace.WriteLine($"esbuild failed for {relPathForLog ?? "unknown"} (exit {proc.ExitCode}): {stderr}");
-                    return js;
+                    Trace.WriteLine($"⛔ esbuild failed for {name} (exit {proc.ExitCode}), left out of the app: {stderr}");
+                    return null;
                 }
 
                 string transpiled = await File.ReadAllTextAsync(outputPath, Encoding.UTF8);
@@ -115,13 +117,13 @@ namespace Apps2Samsung.Helpers.Core
                     // ignore cleanup errors
                 }
 
-                Trace.WriteLine($"Transpiled {relPathForLog ?? "unknown"} via esbuild");
+                Trace.WriteLine($"Transpiled {name} via esbuild");
                 return transpiled;
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"esbuild transpile error for {relPathForLog ?? "unknown"}: {ex}");
-                return js;
+                Trace.WriteLine($"⛔ esbuild transpile error for {name}, left out of the app: {ex}");
+                return null;
             }
         }
     }

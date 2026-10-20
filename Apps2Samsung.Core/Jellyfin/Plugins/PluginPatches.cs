@@ -183,6 +183,8 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
                 return;
             }
             source = await EsbuildHelper.TranspileAsync(source, "EditorsChoice/script");
+            if (source == null)
+                return;
 
             // The default encoder escapes everything outside ASCII, U+2028/U+2029 included, which
             // older engines do not accept inside a string literal.
@@ -269,12 +271,13 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
                 return;
             }
 
+            var mainTranspiled = await EsbuildHelper.TranspileAsync(main, "JellyfinEnhanced/script");
+            if (mainTranspiled == null)
+                return;
+
             var dir = Path.Combine(ctx.PluginCacheDir, "JellyfinEnhanced");
             Directory.CreateDirectory(dir);
-            await File.WriteAllTextAsync(
-                Path.Combine(dir, "script.js"),
-                await EsbuildHelper.TranspileAsync(main, "JellyfinEnhanced/script"),
-                Encoding.UTF8);
+            await File.WriteAllTextAsync(Path.Combine(dir, "script.js"), mainTranspiled, Encoding.UTF8);
 
             var paths = new List<string>();
             foreach (Match m in ScriptLiteral.Matches(main))
@@ -361,80 +364,88 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
     }
 
     // ------------------------
-    // Media Bar (example: CSS + fallback JS)
+    // Media Bar and Home Screen Sections (the server's client files, GitHub as fallback)
     // ------------------------
-    public sealed class MediaBarPatch : IJellyfinPluginPatch
+
+    /// <summary>
+    /// Caches a plugin's client script and stylesheet from the plugin's own controller on the server,
+    /// which serves the copy built into the installed plugin, so the script never calls endpoints that
+    /// server doesn't have. GitHub main is only used when the server doesn't serve the file (older
+    /// plugin versions).
+    /// </summary>
+    internal static class ServerPluginFiles
     {
-        public async Task ApplyAsync(PluginPatchContext ctx)
+        public static async Task CacheAsync(
+            PluginPatchContext ctx,
+            string dir,
+            string scriptServerPath,
+            string scriptFallbackUrl,
+            string styleServerPath,
+            string styleFallbackUrl)
         {
-            // CSS
-            const string cssUrl = "https://cdn.jsdelivr.net/gh/IAmParadox27/jellyfin-plugin-media-bar@main/slideshowpure.css";
-            var bytes = await ctx.PluginManager.DownloadBytesAsync(cssUrl);
-            if (bytes != null)
+            var manager = ctx.PluginManager;
+            Directory.CreateDirectory(Path.Combine(ctx.PluginCacheDir, dir));
+
+            var styleName = Path.GetFileName(styleServerPath);
+            var style = await manager.DownloadBytesAsync(UrlHelper.CombineUrl(ctx.ServerUrl, styleServerPath))
+                ?? await manager.DownloadBytesAsync(styleFallbackUrl);
+            if (style != null)
             {
-                var dir = Path.Combine(ctx.PluginCacheDir, "mediabar");
-                Directory.CreateDirectory(dir);
-
-                var local = Path.Combine(dir, "slideshowpure.css");
-                await File.WriteAllBytesAsync(local, bytes);
-
-                ctx.InjectStyle("plugin_cache/mediabar/slideshowpure.css");
+                await File.WriteAllBytesAsync(Path.Combine(ctx.PluginCacheDir, dir, styleName), style);
+                ctx.InjectStyle($"plugin_cache/{dir}/{styleName}");
             }
 
-            // JS (from matrix fallback)
-            var entry = ctx.MatrixEntry;
-            foreach (var url in entry.FallbackUrls)
+            var scriptName = Path.GetFileName(scriptServerPath);
+            var relPath = Path.Combine(dir, scriptName);
+            var local = await manager.DownloadAndTranspileAsync(UrlHelper.CombineUrl(ctx.ServerUrl, scriptServerPath), ctx.PluginCacheDir, relPath);
+            if (local == null)
             {
-                var clean = "mediabar";
-                var fileName = Path.GetFileName(new Uri(url).AbsolutePath);
-                var relPath = Path.Combine(clean, fileName);
+                Trace.WriteLine($"⚠ {ctx.MatrixEntry.Name}: {scriptServerPath} not served, falling back to {scriptFallbackUrl}");
+                local = await manager.DownloadAndTranspileAsync(scriptFallbackUrl, ctx.PluginCacheDir, relPath);
+            }
 
-                var local = await ctx.PluginManager.DownloadAndTranspileAsync(url, ctx.PluginCacheDir, relPath);
-                if (local == null) continue;
-
-                var injectedSrc = $"plugin_cache/{clean}/{fileName}";
-                ctx.InjectScript($"<script src=\"{injectedSrc}\"></script>", injectedSrc);
-                break;
+            if (local != null)
+            {
+                var src = $"plugin_cache/{dir}/{scriptName}";
+                ctx.InjectScript($"<script src=\"{src}\"></script>", src);
             }
         }
     }
 
-    // ------------------------
-    // Home Screen Sections (CSS + fallback JS)
-    // ------------------------
-    public sealed class HomeScreenSectionsPatch : IJellyfinPluginPatch
+    public sealed class MediaBarPatch : IJellyfinPluginPatch
     {
         public async Task ApplyAsync(PluginPatchContext ctx)
         {
-            const string cssUrl =
-                "https://raw.githubusercontent.com/IAmParadox27/jellyfin-plugin-home-sections/main/src/Jellyfin.Plugin.HomeScreenSections/Inject/HomeScreenSections.css";
-
-            var bytes = await ctx.PluginManager.DownloadBytesAsync(cssUrl);
-            if (bytes != null)
+            // With File Transformation the server's index.html carries "../MediaBar/slideshowpure.js",
+            // which the "mediabar" asset rule has already cached and injected.
+            if (ctx.InjectedScripts.Contains("plugin_cache/slideshowpure.js"))
             {
-                var dir = Path.Combine(ctx.PluginCacheDir, "homescreensections");
-                Directory.CreateDirectory(dir);
-
-                var local = Path.Combine(dir, "HomeScreenSections.css");
-                await File.WriteAllBytesAsync(local, bytes);
-
-                ctx.InjectStyle("plugin_cache/homescreensections/HomeScreenSections.css");
+                Trace.WriteLine("ℹ Media Bar: already cached from the server's index.html.");
+                return;
             }
 
-            var entry = ctx.MatrixEntry;
-            foreach (var url in entry.FallbackUrls)
-            {
-                var clean = "homescreensections";
-                var fileName = Path.GetFileName(new Uri(url).AbsolutePath);
-                var relPath = Path.Combine(clean, fileName);
-
-                var local = await ctx.PluginManager.DownloadAndTranspileAsync(url, ctx.PluginCacheDir, relPath);
-                if (local == null) continue;
-
-                var injectedSrc = $"plugin_cache/{clean}/{fileName}";
-                ctx.InjectScript($"<script src=\"{injectedSrc}\"></script>", injectedSrc);
-                break;
-            }
+            await ServerPluginFiles.CacheAsync(
+                ctx,
+                "mediabar",
+                "/MediaBar/slideshowpure.js",
+                "https://cdn.jsdelivr.net/gh/IAmParadox27/jellyfin-plugin-media-bar@main/slideshowpure.js",
+                "/MediaBar/slideshowpure.css",
+                "https://cdn.jsdelivr.net/gh/IAmParadox27/jellyfin-plugin-media-bar@main/slideshowpure.css");
         }
+    }
+
+    public sealed class HomeScreenSectionsPatch : IJellyfinPluginPatch
+    {
+        private const string GitHubInject =
+            "https://raw.githubusercontent.com/IAmParadox27/jellyfin-plugin-home-sections/main/src/Jellyfin.Plugin.HomeScreenSections/Inject/";
+
+        public Task ApplyAsync(PluginPatchContext ctx)
+            => ServerPluginFiles.CacheAsync(
+                ctx,
+                "homescreensections",
+                "/HomeScreen/home-screen-sections.js",
+                GitHubInject + "HomeScreenSections.js",
+                "/HomeScreen/home-screen-sections.css",
+                GitHubInject + "HomeScreenSections.css");
     }
 }

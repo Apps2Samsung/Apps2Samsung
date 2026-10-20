@@ -1,6 +1,7 @@
 ﻿using Apps2Samsung.Configuration;
 using Apps2Samsung.Helpers.API;
 using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Helpers.Jellyfin.Plugins.KefinTweaks;
 using Apps2Samsung.Models;
 using System;
 using System.Collections.Generic;
@@ -50,6 +51,12 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
             StringBuilder headJsBuilder,
             StringBuilder bodyJsBuilder)
         {
+            if (workspace.TargetTizenVersion is { } tizen && tizen < new Version(Constants.TizenVersions.PluginScriptsMin))
+            {
+                Trace.WriteLine($"⏭ Tizen {tizen} can't run the transpiled plugin scripts (needs {Constants.TizenVersions.PluginScriptsMin}+), no plugins injected.");
+                return;
+            }
+
             string pluginCacheDir = Path.Combine(workspace.Root, "www", "plugin_cache");
             Directory.CreateDirectory(pluginCacheDir);
 
@@ -63,6 +70,20 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
                     cssBuilder,
                     bodyJsBuilder);
             }
+
+            // KefinTweaks is a JS Injector user script, not a server plugin, so /Plugins never lists
+            // it (and only answers admins). It is found in the public.js cached above.
+            await new KefinTweaksPatch().ApplyAsync(new PluginPatchContext(
+                workspace: workspace,
+                serverUrl: serverUrl,
+                pluginCacheDir: pluginCacheDir,
+                matrixEntry: new PluginMatrixEntry { Name = "KefinTweaks" },
+                pluginManager: _pluginManager,
+                cssBuilder: cssBuilder,
+                headJsBuilder: headJsBuilder,
+                bodyJsBuilder: bodyJsBuilder,
+                injectedScripts: _injectedScripts,
+                injectedStyles: _injectedStyles));
 
             await ApplyApiInstalledPluginsAsync(
                 workspace,
@@ -163,8 +184,9 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
 
                 var localPath = Path.Combine(pluginCacheDir, fileName);
 
-                var jsContent = await _httpClient.GetStringAsync(uri);
-                jsContent = await EsbuildHelper.TranspileAsync(jsContent, uri.ToString());
+                var jsContent = await EsbuildHelper.TranspileAsync(await _httpClient.GetStringAsync(uri), uri.ToString());
+                if (jsContent == null)
+                    return;
 
                 await File.WriteAllTextAsync(localPath, jsContent);
 

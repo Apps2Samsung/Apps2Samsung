@@ -1,0 +1,42 @@
+name: Plugin ES2015 check
+
+# The desktop installer copies the client scripts of supported Jellyfin plugins into the app and
+# runs each through the bundled esbuild with --target=es2015, because older TVs can't parse newer
+# syntax. A file esbuild can't transpile is left out of the app (EsbuildHelper.TranspileAsync), so
+# a plugin update that breaks the transpile silently drops that plugin from new installs (#801).
+#
+# This runs the same esbuild binary over the current upstream sources of every supported plugin
+# (tools/plugin-es2015-check/sources.json) and parses the output as ES2015 with acorn. The daily
+# schedule is the point: upstream plugins change without any PR here. It also runs on PRs that
+# touch the plugin code, the esbuild binaries or the check itself.
+#
+# Not a required check, so the `paths:` filter is fine here (unlike pr-build.yml).
+on:
+  schedule:
+    - cron: '17 5 * * *'
+  pull_request:
+    paths:
+      - 'Apps2Samsung.Core/Jellyfin/Plugins/**'
+      - 'Apps2Samsung.Core/Core/EsbuildHelper.cs'
+      - 'Apps2Samsung.Desktop/Assets/esbuild/**'
+      - 'tools/plugin-es2015-check/**'
+      - '.github/workflows/plugin-es2015-check.yml'
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Upstream plugins transpile to ES2015
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install acorn
+        working-directory: tools/plugin-es2015-check
+        run: npm ci
+
+      # The binary is committed without the executable bit (EsbuildHelper sets it at runtime).
+      - name: Run the check
+        working-directory: tools/plugin-es2015-check
+        run: |
+          chmod +x ../../Apps2Samsung.Desktop/Assets/esbuild/linux-x64/esbuild
+          node check.mjs ../../Apps2Samsung.Desktop/Assets/esbuild/linux-x64/esbuild "$RUNNER_TEMP/plugin-sources"
