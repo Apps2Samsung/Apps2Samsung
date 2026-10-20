@@ -43,13 +43,26 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Xcode in use
-        run: xcodebuild -version
-
       # Both workloads: on macOS the csproj lists net10.0-android too, and restore evaluates every
       # TFM even though only the iOS one is published below.
       - name: Install MAUI workloads
         run: dotnet workload install maui-ios maui-android
+
+      # The .NET for iOS workload names the Xcode it needs in its pack folder
+      # (Microsoft.iOS.Sdk.net10.0_27.1 needs Xcode 27.1), and a new workload can land before the
+      # image's default Xcode moves up: on 2026-10-20 workload 27.1 met default Xcode 27.0 and every
+      # iOS build failed. The image carries the newer Xcode too, so pick the one the workload asks for.
+      - name: Select the Xcode the iOS workload needs
+        shell: bash
+        run: |
+          PACK=$(ls -d "$DOTNET_ROOT"/packs/Microsoft.iOS.Sdk.net*_* | sort -V | tail -1)
+          XCODE_VERSION=${PACK##*_}
+          if [ -d "/Applications/Xcode_${XCODE_VERSION}.app" ]; then
+            sudo xcode-select -s "/Applications/Xcode_${XCODE_VERSION}.app"
+          else
+            echo "::warning::Xcode ${XCODE_VERSION} is not on this image, building with the default"
+          fi
+          xcodebuild -version
 
       # CFBundleVersion must be a number (the Android versionCode pattern); the run number is
       # unique per workflow, which is enough for a test build that no store sees.
