@@ -1,0 +1,87 @@
+name: SideStore Source
+
+# Publishes the SideStore source for the iPhone app (#753 step 6) to docs/sidestore on the `beta`
+# branch (GitHub Pages → https://apps2samsung.com/sidestore/apps.json), pointing at the unsigned
+# IPA of the latest stable release. Runs after a successful stable release, or on demand. The
+# same pattern as fdroid-repo.yml; the JSON itself is written by .github/scripts/sidestore-source.py.
+on:
+  workflow_run:
+    workflows: ["Stable Release"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sidestore-source
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # Only after a successful stable build (or a manual run), and only once releases carry an IPA:
+    # IOS_PUBLISH is the repository variable that gates the iOS jobs of both release workflows.
+    if: ${{ vars.IOS_PUBLISH == 'true' && (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success') }}
+    runs-on: ubuntu-latest
+    env:
+      PUSH_TOKEN: ${{ secrets.CI_PUSH_TOKEN }}
+    steps:
+      - name: Check the push token is configured
+        run: |
+          set -euo pipefail
+          if [ -z "${PUSH_TOKEN:-}" ]; then
+            echo "::error::CI_PUSH_TOKEN is not set. The publish step pushes straight to"
+            echo "::error::\`beta\`, which the 'Required PR checks' ruleset guards; GITHUB_TOKEN"
+            echo "::error::pushes on write level and is rejected there. Add a fine-grained PAT"
+            echo "::error::(Contents: read/write) owned by a repo admin as CI_PUSH_TOKEN."
+            exit 1
+          fi
+
+      # Checked out with the PAT so the push at the end uses it too (see fdroid-repo.yml).
+      - uses: actions/checkout@v7
+        with:
+          ref: beta
+          fetch-depth: 0
+          token: ${{ secrets.CI_PUSH_TOKEN }}
+
+      - name: Read the latest stable release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts \
+                --json tagName,isPrerelease --jq '[.[] | select(.isPrerelease==false)][0].tagName')
+          echo "Latest stable: $TAG"
+          mkdir -p build
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
+            --json tagName,publishedAt,body,assets > build/release.json
+
+      - name: Write the source
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/sidestore-source.py build/release.json docs/sidestore/apps.json
+          # The icon the source points at: the store icon of the F-Droid listing.
+          cp fastlane/metadata/android/en-US/images/icon.png docs/sidestore/icon.png
+
+      # fdroid-repo.yml runs on the same stable release and pushes to beta too, so whichever of
+      # the two finishes second rebases onto the other's commit.
+      - name: Publish to docs/sidestore (GitHub Pages, served from beta:/docs)
+        run: |
+          set -euo pipefail
+          git config user.name "Patrick"
+          git config user.email "patrick@madebypatrick.nl"
+          git add docs/sidestore
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+            exit 0
+          fi
+          git commit -m "sidestore: publish the source for the latest stable IPA [skip ci]"
+          for attempt in 1 2 3; do
+            if git push origin beta; then
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt), rebasing onto the current beta"
+            git pull --rebase origin beta
+          done
+          echo "::error::Could not push to beta after 3 attempts"
+          exit 1

@@ -125,6 +125,9 @@ jobs:
             echo "| 🐧 Linux | ⚠️ Beta | x64 + ARM64 (tar.gz / .deb) |"
             echo "| 🪟 Windows | ⚠️ Beta | CI-built |"
             echo "| 🤖 Android (.apk) | ⚠️ Beta | Sideload; phone as installer head |"
+            if [ "${{ vars.IOS_PUBLISH }}" = "true" ]; then
+              echo "| 📱 iPhone (.ipa) | 🧪 Unsigned | Import into SideStore by hand; betas are not in the source |"
+            fi
           } > RELEASE_NOTES.md
 
       - uses: actions/setup-dotnet@v6
@@ -430,6 +433,44 @@ jobs:
         run: |
           .github/scripts/android-version-code.sh verify \
             "dist/${PRODUCT_NAME}-${{ needs.beta-release.outputs.VERSION_TAG }}-android.apk"
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.beta-release.outputs.VERSION_TAG }}
+          name: ${{ needs.beta-release.outputs.VERSION_TAG }}
+          prerelease: true
+          overwrite_files: true
+          files: dist/*
+
+# ======================================================
+# IPHONE (unsigned .ipa for SideStore, #753)
+# ======================================================
+  ios-ipa:
+    runs-on: xcode-27
+    # Last in the upload chain, for the same reason android-apk waits for macos-app.
+    needs: [beta-release, android-apk]
+    # Gated on the IOS_PUBLISH repository variable (Settings → Secrets and variables → Actions →
+    # Variables) until the SideStore channel has been tried end to end on a real iPhone (#753
+    # step 5). Set IOS_PUBLISH=true to ship the IPA with every beta.
+    if: ${{ always() && needs.beta-release.result == 'success' && vars.IOS_PUBLISH == 'true' }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Fresh checkout — stamp the beta marker again (see the beta-release job). Like the APK, the
+      # IPA's shown version comes from display-version below, not from this file.
+      - name: Stamp beta version
+        shell: bash
+        run: python3 .github/scripts/stamp-beta-version.py
+
+      # CFBundleVersion must be numeric, so it gets the plain version; the shown version carries
+      # the beta marker, the same as the APK's versionName.
+      - name: Build IPA
+        uses: ./.github/actions/ios-ipa
+        with:
+          display-version: ${{ needs.beta-release.outputs.VERSION_BETA }}
+          bundle-version: ${{ needs.beta-release.outputs.VERSION }}
+          output: dist/${{ env.PRODUCT_NAME }}-${{ needs.beta-release.outputs.VERSION_TAG }}-ios-unsigned.ipa
 
       - uses: softprops/action-gh-release@v3
         with:
