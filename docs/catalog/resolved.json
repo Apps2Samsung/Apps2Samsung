@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-20T08:11:06.0961412+00:00",
+  "generatedAt": "2026-10-20T16:31:26.8230023+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -1092,44 +1092,44 @@
       "id": "litefin",
       "url": "https://api.github.com/repos/MoazSalem/litefin/releases",
       "ok": true,
-      "latestTag": "v2.0.20",
+      "latestTag": "v2.0.30-preview.1",
       "releases": [
         {
-          "url": "https://api.github.com/repos/MoazSalem/litefin/releases/416390350",
+          "url": "https://api.github.com/repos/MoazSalem/litefin/releases/418365308",
           "name": "Litefin",
-          "tag_name": "v2.0.20",
-          "published_at": "2026-10-18T10:45:34Z",
+          "tag_name": "v2.0.30-preview.1",
+          "published_at": "2026-10-20T12:19:35Z",
           "draft": false,
           "assets": [
             {
-              "name": "Litefin-2.0.20-Tizen-Legacy.wgt",
-              "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.20/Litefin-2.0.20-Tizen-Legacy.wgt",
-              "size": 6505067
+              "name": "Litefin-2.0.30-Tizen-Legacy.wgt",
+              "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.30-preview.1/Litefin-2.0.30-Tizen-Legacy.wgt",
+              "size": 6527132
             },
             {
-              "name": "Litefin-2.0.20-Tizen-Modern.wgt",
-              "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.20/Litefin-2.0.20-Tizen-Modern.wgt",
-              "size": 6188313
+              "name": "Litefin-2.0.30-Tizen-Modern.wgt",
+              "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.30-preview.1/Litefin-2.0.30-Tizen-Modern.wgt",
+              "size": 6207977
             },
             {
-              "name": "Litefin-2.0.20-Tizen-Normal-Oblong.wgt",
-              "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.20/Litefin-2.0.20-Tizen-Normal-Oblong.wgt",
-              "size": 6255128
+              "name": "Litefin-2.0.30-Tizen-Normal-Oblong.wgt",
+              "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.30-preview.1/Litefin-2.0.30-Tizen-Normal-Oblong.wgt",
+              "size": 6273991
             },
             {
-              "name": "Litefin-2.0.20-Tizen-Normal.wgt",
-              "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.20/Litefin-2.0.20-Tizen-Normal.wgt",
-              "size": 6229465
+              "name": "Litefin-2.0.30-Tizen-Normal.wgt",
+              "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.30-preview.1/Litefin-2.0.30-Tizen-Normal.wgt",
+              "size": 6248328
             },
             {
-              "name": "Litefin-2.0.20-Tizen-Ultra-Legacy-NoService.wgt",
-              "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.20/Litefin-2.0.20-Tizen-Ultra-Legacy-NoService.wgt",
-              "size": 5400036
+              "name": "Litefin-2.0.30-Tizen-Ultra-Legacy-NoService.wgt",
+              "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.30-preview.1/Litefin-2.0.30-Tizen-Ultra-Legacy-NoService.wgt",
+              "size": 5435119
             },
             {
-              "name": "Litefin-2.0.20-Tizen-Ultra-Legacy.wgt",
-              "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.20/Litefin-2.0.20-Tizen-Ultra-Legacy.wgt",
-              "size": 5412928
+              "name": "Litefin-2.0.30-Tizen-Ultra-Legacy.wgt",
+              "browser_download_url": "https://github.com/MoazSalem/litefin/releases/download/v2.0.30-preview.1/Litefin-2.0.30-Tizen-Ultra-Legacy.wgt",
+              "size": 5448011
             }
           ]
         }
@@ -1171,19 +1171,19 @@
       "id": "jellyfin-avplay",
       "url": "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases",
       "ok": true,
-      "latestTag": "v0.1.0-2026-10-18-0255",
+      "latestTag": "v0.1.0-2026-10-20-1620",
       "releases": [
         {
-          "url": "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases/416199762",
+          "url": "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases/418613661",
           "name": "Jellyfin - AVPlay",
-          "tag_name": "v0.1.0-2026-10-18-0255",
-          "published_at": "2026-10-18T02:55:42Z",
+          "tag_name": "v0.1.0-2026-10-20-1620",
+          "published_at": "2026-10-20T16:20:21Z",
           "draft": false,
           "assets": [
             {
               "name": "Jellyfin-AVPlay.wgt",
-              "browser_download_url": "https://github.com/PatrickSt1991/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-10-18-0255/Jellyfin-AVPlay.wgt",
-              "size": 10849740
+              "browser_download_url": "https://github.com/PatrickSt1991/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-10-20-1620/Jellyfin-AVPlay.wgt",
+              "size": 10850261
             }
           ]
         }
@@ -1193,19 +1193,19 @@
       "id": "jellyfin-avplay-smarthub",
       "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases",
       "ok": true,
-      "latestTag": "v0.1.0-2026-10-18-0311",
+      "latestTag": "v0.1.0-2026-10-20-1627",
       "releases": [
         {
-          "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases/416205277",
+          "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases/418621352",
           "name": "Jellyfin - AVPlay - 10.10z SmartHub",
-          "tag_name": "v0.1.0-2026-10-18-0311",
-          "published_at": "2026-10-18T03:11:16Z",
+          "tag_name": "v0.1.0-2026-10-20-1627",
+          "published_at": "2026-10-20T16:27:47Z",
           "draft": false,
           "assets": [
             {
-              "name": "Jellyfin-AVPlay-SmartHub-Oblonged-2026-10-18-0311.wgt",
-              "browser_download_url": "https://github.com/asamahy/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-10-18-0311/Jellyfin-AVPlay-SmartHub-Oblonged-2026-10-18-0311.wgt",
-              "size": 11143678
+              "name": "Jellyfin-AVPlay-SmartHub-Oblonged-2026-10-20-1627.wgt",
+              "browser_download_url": "https://github.com/asamahy/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-10-20-1627/Jellyfin-AVPlay-SmartHub-Oblonged-2026-10-20-1627.wgt",
+              "size": 11143681
             }
           ]
         }
