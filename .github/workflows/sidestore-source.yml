@@ -55,11 +55,14 @@ jobs:
           mkdir -p build
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
             --json tagName,publishedAt,body,assets > build/release.json
+          # The source lists the version and build number the IPA itself carries, so read them there.
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" \
+            --pattern '*-ios-unsigned.ipa' --output build/app.ipa
 
       - name: Write the source
         run: |
           set -euo pipefail
-          python3 .github/scripts/sidestore-source.py build/release.json docs/sidestore/apps.json
+          python3 .github/scripts/sidestore-source.py build/release.json build/app.ipa docs/sidestore/apps.json
           # The icon the source points at: the store icon of the F-Droid listing.
           cp fastlane/metadata/android/en-US/images/icon.png docs/sidestore/icon.png
 

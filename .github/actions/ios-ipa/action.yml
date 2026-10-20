@@ -6,11 +6,16 @@ description: >-
   Needs a macOS runner with Xcode 27 (the xcode-27 label, see pr-build.yml) and a checkout.
 
 inputs:
-  display-version:
-    description: CFBundleShortVersionString, the version the app shows (e.g. 3.0.0 or 3.0.0-beta).
+  version:
+    description: >-
+      The release version (e.g. 3.0.0, 2.3.1.1 or 3.0.0-beta). The IPA shows its first three
+      numeric parts, the only form Apple's CFBundleShortVersionString accepts
+      (.github/scripts/apple-version.sh).
     required: true
-  bundle-version:
-    description: CFBundleVersion, must be numeric (e.g. 3.0.0 or a run number).
+  build-number:
+    description: >-
+      CFBundleVersion, a whole number that grows with every build. Releases pass the Android
+      versionCode, so two releases that show the same version still differ here.
     required: true
   output:
     description: Path of the IPA to write, relative to the workspace.
@@ -48,17 +53,25 @@ runs:
     - name: Build IPA
       shell: bash
       env:
-        DISPLAY_VERSION: ${{ inputs.display-version }}
-        BUNDLE_VERSION: ${{ inputs.bundle-version }}
+        VERSION: ${{ inputs.version }}
+        BUILD_NUMBER: ${{ inputs.build-number }}
         OUTPUT: ${{ inputs.output }}
       run: |
+        set -euo pipefail
+        DISPLAY_VERSION=$(.github/scripts/apple-version.sh "$VERSION")
+        if [[ ! "$BUILD_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+          echo "❌ build-number '$BUILD_NUMBER' is not a whole number"
+          exit 1
+        fi
+        echo "CFBundleShortVersionString=$DISPLAY_VERSION CFBundleVersion=$BUILD_NUMBER (from $VERSION)"
+
         dotnet publish Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj \
           -c Release -f net10.0-ios \
           -p:RuntimeIdentifier=ios-arm64 \
           -p:EnableCodeSigning=false \
           -p:BuildIpa=true \
           -p:ApplicationDisplayVersion="$DISPLAY_VERSION" \
-          -p:ApplicationVersion="$BUNDLE_VERSION" \
+          -p:ApplicationVersion="$BUILD_NUMBER" \
           -o publish/ios
 
         IPA=$(find publish/ios Apps2Samsung.Mobile/bin -name '*.ipa' 2>/dev/null | head -n1)

@@ -244,6 +244,8 @@ jobs:
           chmod +x $APP/MacOS/Apps2Samsung
           cp jellyfin.icns $APP/Resources/
 
+          # Info.plist versions are at most three integers (see apple-version.sh).
+          APPLE_VERSION=$(.github/scripts/apple-version.sh "${{ needs.beta-release.outputs.VERSION }}")
           cat > $APP/Info.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -253,8 +255,8 @@ jobs:
             <key>CFBundleName</key><string>Apps2Samsung</string>
             <key>CFBundleExecutable</key><string>Apps2Samsung</string>
             <key>CFBundleIdentifier</key><string>org.madebypatrick.apps2samsung</string>
-            <key>CFBundleVersion</key><string>${{ needs.beta-release.outputs.VERSION }}</string>
-            <key>CFBundleShortVersionString</key><string>${{ needs.beta-release.outputs.VERSION }}</string>
+            <key>CFBundleVersion</key><string>$APPLE_VERSION</string>
+            <key>CFBundleShortVersionString</key><string>$APPLE_VERSION</string>
             <key>CFBundlePackageType</key><string>APPL</string>
             <key>LSMinimumSystemVersion</key><string>11.0</string>
           
@@ -294,6 +296,8 @@ jobs:
           chmod +x $APP/MacOS/Apps2Samsung
           cp jellyfin.icns $APP/Resources/
 
+          # Info.plist versions are at most three integers (see apple-version.sh).
+          APPLE_VERSION=$(.github/scripts/apple-version.sh "${{ needs.beta-release.outputs.VERSION }}")
           cat > $APP/Info.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -303,8 +307,8 @@ jobs:
             <key>CFBundleName</key><string>Apps2Samsung</string>
             <key>CFBundleExecutable</key><string>Apps2Samsung</string>
             <key>CFBundleIdentifier</key><string>org.madebypatrick.apps2samsung</string>
-            <key>CFBundleVersion</key><string>${{ needs.beta-release.outputs.VERSION }}</string>
-            <key>CFBundleShortVersionString</key><string>${{ needs.beta-release.outputs.VERSION }}</string>
+            <key>CFBundleVersion</key><string>$APPLE_VERSION</string>
+            <key>CFBundleShortVersionString</key><string>$APPLE_VERSION</string>
             <key>CFBundlePackageType</key><string>APPL</string>
             <key>LSMinimumSystemVersion</key><string>11.0</string>
           
@@ -346,6 +350,10 @@ jobs:
     needs: [beta-release, macos-app]
     if: ${{ always() && needs.beta-release.result == 'success' }}
 
+    # The iPhone job reuses the code as its CFBundleVersion (.github/scripts/apple-version.sh).
+    outputs:
+      VERSION_CODE: ${{ steps.version-code.outputs.version-code }}
+
     steps:
       - uses: actions/checkout@v7
 
@@ -358,6 +366,7 @@ jobs:
       # Runs before the build so a bad code fails in seconds instead of after a
       # ten-minute publish.
       - name: Compute Android versionCode
+        id: version-code
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -452,24 +461,25 @@ jobs:
     # Gated on the IOS_PUBLISH repository variable (Settings → Secrets and variables → Actions →
     # Variables) until the SideStore channel has been tried end to end on a real iPhone (#753
     # step 5). Set IOS_PUBLISH=true to ship the IPA with every beta.
-    if: ${{ always() && needs.beta-release.result == 'success' && vars.IOS_PUBLISH == 'true' }}
+    # Needs the APK's versionCode for its CFBundleVersion, so no IPA when the APK job failed.
+    if: ${{ always() && needs.beta-release.result == 'success' && needs.android-apk.result == 'success' && vars.IOS_PUBLISH == 'true' }}
 
     steps:
       - uses: actions/checkout@v7
 
-      # Fresh checkout — stamp the beta marker again (see the beta-release job). Like the APK, the
-      # IPA's shown version comes from display-version below, not from this file.
+      # Fresh checkout — stamp the beta marker again (see the beta-release job). The IPA's shown
+      # version comes from the version input below, not from this file.
       - name: Stamp beta version
         shell: bash
         run: python3 .github/scripts/stamp-beta-version.py
 
-      # CFBundleVersion must be numeric, so it gets the plain version; the shown version carries
-      # the beta marker, the same as the APK's versionName.
+      # iOS only takes three integers for the shown version, so unlike the APK's versionName the
+      # IPA can't carry the beta marker; the APK's versionCode tells the builds apart.
       - name: Build IPA
         uses: ./.github/actions/ios-ipa
         with:
-          display-version: ${{ needs.beta-release.outputs.VERSION_BETA }}
-          bundle-version: ${{ needs.beta-release.outputs.VERSION }}
+          version: ${{ needs.beta-release.outputs.VERSION }}
+          build-number: ${{ needs.android-apk.outputs.VERSION_CODE }}
           output: dist/${{ env.PRODUCT_NAME }}-${{ needs.beta-release.outputs.VERSION_TAG }}-ios-unsigned.ipa
 
       - uses: softprops/action-gh-release@v3

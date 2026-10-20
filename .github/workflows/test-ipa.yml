@@ -20,6 +20,7 @@ on:
     paths:
       - .github/workflows/test-ipa.yml
       - .github/actions/ios-ipa/**
+      - .github/scripts/apple-version.sh
 
 permissions:
   contents: read
@@ -40,16 +41,18 @@ jobs:
           fi
           BRANCH=$(echo "${{ github.ref_name }}" | tr -c 'A-Za-z0-9.\n-' '-')
           echo "VERSION_NAME=${VERSION#v}-${BRANCH}.${{ github.run_number }}" >> "$GITHUB_ENV"
+          echo "VERSION=${VERSION#v}" >> "$GITHUB_ENV"
 
       # Same build as the beta and stable releases (.github/actions/ios-ipa). It also sets up
       # dotnet, the workloads and the Xcode the simulator step below builds with.
-      # CFBundleVersion must be a number (the Android versionCode pattern); the run number is
-      # unique per workflow, which is enough for a test build that no store sees.
+      # The branch and run go in the file name only: the app shows the three-part version iOS
+      # accepts. The run number is unique per workflow, which is enough for a test build that no
+      # store sees.
       - name: Build IPA
         uses: ./.github/actions/ios-ipa
         with:
-          display-version: ${{ env.VERSION_NAME }}
-          bundle-version: ${{ github.run_number }}
+          version: ${{ env.VERSION }}
+          build-number: ${{ github.run_number }}
           output: dist/Apps2Samsung-${{ env.VERSION_NAME }}-ios.ipa
 
       - uses: actions/upload-artifact@v7
@@ -74,7 +77,7 @@ jobs:
               -c Release -f net10.0-ios \
               -p:RuntimeIdentifier=$RID \
               -p:EnableCodeSigning=false \
-              -p:ApplicationDisplayVersion="$VERSION_NAME" \
+              -p:ApplicationDisplayVersion="$(.github/scripts/apple-version.sh "$VERSION")" \
               -p:ApplicationVersion="${{ github.run_number }}" \
               -o "publish/$RID"
 
