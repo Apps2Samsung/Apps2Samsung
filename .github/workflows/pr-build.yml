@@ -48,6 +48,10 @@ jobs:
       - name: Build the catalog snapshot tool
         run: dotnet build tools/CatalogSnapshot/CatalogSnapshot.csproj -c Release
 
+      # Same for the plugin patch rig (run by plugin-es2015-check.yml, which only triggers on plugin paths).
+      - name: Build the plugin patch rig
+        run: dotnet build tools/PluginPatchRig/PluginPatchRig.csproj -c Release
+
   android:
     name: Mobile (Android)
     runs-on: ubuntu-latest

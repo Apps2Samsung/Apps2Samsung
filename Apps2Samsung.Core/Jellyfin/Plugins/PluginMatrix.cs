@@ -10,8 +10,11 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
         [
             new PluginMatrixEntry
             {
+                // Before 9.0 the main script loads its modules from an unnamed list the patch can't
+                // read, so only the main script would reach the app and Jellyfin Enhanced wouldn't start.
                 Name = "Jellyfin Enhanced",
-                FallbackUrls = new()
+                FallbackUrls = new(),
+                MinimumVersion = new Version(9, 0, 0, 0)
             },
             new PluginMatrixEntry
             {
