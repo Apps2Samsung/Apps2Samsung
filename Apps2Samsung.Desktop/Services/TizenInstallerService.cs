@@ -553,11 +553,6 @@ namespace Apps2Samsung.Services
             string selectedCertificate = _appSettings.Certificate;
             var chosenCertificate = _appSettings.ChosenCertificates;
 
-            // "Automatic" in Settings is resolved per install and never written back, so the pick
-            // doesn't silently turn into "Jelly2Sams - Public" after the next install (#719).
-            bool automaticPick = string.IsNullOrEmpty(selectedCertificate) ||
-                                 selectedCertificate == Constants.AppIdentifiers.Jelly2SamsDefault;
-
             // Handle intermediate Tizen versions that don't need Samsung cert
             if (deviceInfo.TizenVersion < certVersion &&
                 deviceInfo.TizenVersion > pushVersion &&
@@ -576,31 +571,31 @@ namespace Apps2Samsung.Services
 
             // Public and Partner distributor certs are kept as separate profiles ("Jelly2Sams - Public"
             // / "Jelly2Sams - Partner") so both can coexist and each is reused independently — switching
-            // level never clobbers the other. The requested level comes from the toggle (later also
-            // per-package via the manifest).
-            // Partner if the global toggle is on, OR the selected package's manifest declares it, OR
-            // the package itself declares a partner-level privilege (e.g. vpnservice in a .wgt's
+            // level never clobbers the other.
+            // The package requires Partner when the selected package's manifest declares it, OR the
+            // package itself declares a partner-level privilege (e.g. vpnservice in a .wgt's
             // config.xml, drminfo in a .tpk's tizen-manifest.xml) or a Partner-only launch setting
             // (on-boot="true" / auto-restart="true") — the automatic binding: a package that needs a
             // restricted API or launch mode must declare it, so we don't track cert levels per package.
             var partnerPrivilege = Apps2Samsung.Packaging.WgtPrivileges.FindPartnerPrivilege(packagePath);
+            bool requirePartner = _appSettings.RequiresPartnerSigning || partnerPrivilege is not null;
 
             // The package can only be installed Partner-signed, and there's no Partner certificate yet:
-            // turn the Settings toggle on so one is actually created (and so the UI matches what we
-            // sign with) instead of letting the install fail on the TV with MISMATCHED_PRIVILEGE_LEVEL.
-            if (partnerPrivilege is not null && !_appSettings.PartnerSigning &&
-                !CertificateProvisioningService.HasProfile(AppSettings.CertificatePath, CertificatePrivilegeLevel.Partner))
+            // switch the Settings choice to Partner so one is actually created (and so the UI matches
+            // what we sign with) instead of letting the install fail on the TV with
+            // MISMATCHED_PRIVILEGE_LEVEL. Same rule as the phone.
+            if (Apps2Samsung.Certificate.CertificatePreference.ShouldSwitchToPartner(
+                    _appSettings.CertificatePreference, requirePartner,
+                    CertificateProvisioningService.HasProfile(AppSettings.CertificatePath, CertificatePrivilegeLevel.Partner)))
             {
-                Trace.WriteLine($"[Cert] Auto-enabling Partner signing: package declares '{partnerPrivilege}'.");
+                Trace.WriteLine($"[Cert] Switching the certificate to Partner: package declares '{partnerPrivilege ?? "cert_level partner"}'.");
                 _appSettings.EnablePartnerSigning();
                 progress?.Invoke(Constants.LocalizationKeys.PartnerSigningAutoEnabled.Localized());
             }
 
-            var requestedLevel = (_appSettings.PartnerSigning
-                                  || _appSettings.RequiresPartnerSigning
-                                  || partnerPrivilege is not null)
-                ? CertificatePrivilegeLevel.Partner
-                : CertificatePrivilegeLevel.Public;
+            // Automatic / Public / Partner from Settings, a hard Partner requirement winning (Core).
+            var requestedLevel = Apps2Samsung.Certificate.CertificatePreference.ResolveLevel(
+                _appSettings.CertificatePreference, requirePartner);
             var jelly2SamsDir = Path.Combine(AppSettings.CertificatePath, AutoCertProfileName(requestedLevel));
             bool hasAuthor = HasUsableAuthorCert(jelly2SamsDir);
 
@@ -649,17 +644,6 @@ namespace Apps2Samsung.Services
                     await sheet.FinishAsync();
 
                     PackageCertificate = profile.ProfileName;
-                    if (!automaticPick)
-                    {
-                        _appSettings.Certificate = profile.ProfileName;
-                        _appSettings.ChosenCertificates = new ExistingCertificates
-                        {
-                            Name = profile.ProfileName,
-                            Duid = deviceInfo.Duid,
-                            File = profile.AuthorP12
-                        };
-                        _appSettings.Save();
-                    }
 
                     // Permit-install for older Tizen versions (thresholds shared with Core).
                     await Apps2Samsung.Sdb.TizenPermitInstall.EnsureAsync(
@@ -772,19 +756,7 @@ namespace Apps2Samsung.Services
                             Path.Combine(jelly2SamsDir, Constants.Certificate.PasswordFileName))).Trim();
                     }
 
-                    var profileName = AutoCertProfileName(requestedLevel);
-                    PackageCertificate = profileName;
-                    if (!automaticPick)
-                    {
-                        _appSettings.Certificate = profileName;
-                        _appSettings.ChosenCertificates = new ExistingCertificates
-                        {
-                            Name = profileName,
-                            Duid = deviceInfo.Duid,
-                            File = authorp12
-                        };
-                        _appSettings.Save();
-                    }
+                    PackageCertificate = AutoCertProfileName(requestedLevel);
                     await sheet.FinishAsync();
                 }
                 catch (Exception ex)
@@ -1450,11 +1422,10 @@ namespace Apps2Samsung.Services
                 return CertificatePreparation.Failed;
             }
 
-            // The level an install would sign with today (a package that needs Partner turns the
-            // toggle on by itself at install time, so Public is right until then).
-            var level = _appSettings.PartnerSigning || _appSettings.RequiresPartnerSigning
-                ? CertificatePrivilegeLevel.Partner
-                : CertificatePrivilegeLevel.Public;
+            // The level an install would sign with today (a package that needs Partner switches the
+            // choice by itself at install time, so Automatic means Public until then).
+            var level = Apps2Samsung.Certificate.CertificatePreference.ResolveLevel(
+                _appSettings.CertificatePreference, _appSettings.RequiresPartnerSigning);
             var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
             using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken);
             try

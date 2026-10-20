@@ -102,18 +102,18 @@ public static class MobileSettings
 	public static bool PartnerSigning
 	{
 		// Kept as a derived alias so IAppConfig/MobileAppConfig readers still work; the source of truth
-		// is now CertificatePreference (a 3-way choice), like the desktop's certificate picker.
+		// is CertificatePreference (a 3-way choice), the same one the desktop has.
 		get => CertificatePreference == CertificatePreferencePartner;
 		set => CertificatePreference = value ? CertificatePreferencePartner : CertificatePreferenceAuto;
 	}
 
-	public const string CertificatePreferenceAuto = "Automatic";
-	public const string CertificatePreferencePublic = "Public";
-	public const string CertificatePreferencePartner = "Partner";
+	public const string CertificatePreferenceAuto = Apps2Samsung.Certificate.CertificatePreference.Automatic;
+	public const string CertificatePreferencePublic = Apps2Samsung.Certificate.CertificatePreference.Public;
+	public const string CertificatePreferencePartner = Apps2Samsung.Certificate.CertificatePreference.Partner;
 	private const string KeyCertPreference = "certificate_preference";
 
 	/// <summary>Which signing certificate/level to use: "Automatic" (Public unless a package requires
-	/// Partner), "Public", or "Partner" — mirrors the desktop's certificate picker. Migrates from the old
+	/// Partner), "Public", or "Partner", the same choice as the desktop's (Core CertificatePreference). Migrates from the old
 	/// <see cref="KeyPartnerSigning"/> flag on first read.</summary>
 	public static string CertificatePreference
 	{

@@ -57,26 +57,18 @@ public sealed class CertificateProvisioner
 		// Settings preference to Partner so one is actually created, and so the picker shows the level
 		// we sign with. Without this the install reaches the TV as Public and is rejected with
 		// MISMATCHED_PRIVILEGE_LEVEL. The user can switch back to Automatic/Public afterwards.
-		if (requirePartner &&
-			MobileSettings.CertificatePreference != MobileSettings.CertificatePreferencePartner &&
-			!CertificateProvisioningService.HasProfile(_config.CertificateStorePath, CertificatePrivilegeLevel.Partner))
+		if (Apps2Samsung.Certificate.CertificatePreference.ShouldSwitchToPartner(
+				MobileSettings.CertificatePreference, requirePartner,
+				CertificateProvisioningService.HasProfile(_config.CertificateStorePath, CertificatePrivilegeLevel.Partner)))
 		{
 			MobileSettings.CertificatePreference = MobileSettings.CertificatePreferencePartner;
 			progress?.Invoke(L10n.Get("partnerSigningAutoEnabled"));
 		}
 
-		// Which certificate/level to sign with, from the user's Certificate preference (Settings):
-		//  • Partner   → always Partner.
-		//  • Public    → Public, unless the package requires Partner — a hard requirement wins over the
-		//                preference, because signing Public would simply be refused by the TV.
-		//  • Automatic → Public, unless the selected package declares it needs Partner (requirePartner).
-		// Partner is only needed by apps that use restricted privileges (e.g. vpnservice, drminfo).
-		var level = MobileSettings.CertificatePreference switch
-		{
-			MobileSettings.CertificatePreferencePartner => CertificatePrivilegeLevel.Partner,
-			MobileSettings.CertificatePreferencePublic when !requirePartner => CertificatePrivilegeLevel.Public,
-			_ => requirePartner ? CertificatePrivilegeLevel.Partner : CertificatePrivilegeLevel.Public,
-		};
+		// Which certificate/level to sign with, from the user's Certificate preference (Settings);
+		// the rule is shared with the desktop.
+		var level = Apps2Samsung.Certificate.CertificatePreference.ResolveLevel(
+			MobileSettings.CertificatePreference, requirePartner);
 
 		// The certificate service reports localization keys: localized here, and the sheet's step
 		// follows from the key.
