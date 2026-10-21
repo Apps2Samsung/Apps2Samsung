@@ -32,5 +32,17 @@ namespace Apps2Samsung.Samsung
         /// </summary>
         public static bool IsValidState(string? state) =>
             string.Equals(state, State, StringComparison.Ordinal);
+
+        /// <summary>
+        /// True when <paramref name="url"/> is Google's sign-in page, where SignInGate's "Sign in with
+        /// Google" button leads. Google refuses to serve that page to an embedded WebView
+        /// (<c>disallowed_useragent</c>), and Samsung only delivers the token to the loopback callback
+        /// from inside one (a real browser blocks the https → localhost POST), so on the mobile heads
+        /// that button can't work either way. The WebView hosts stop the navigation here and tell the
+        /// user to add a password to the Samsung account instead (#807).
+        /// </summary>
+        public static bool IsGoogleSignIn(string? url) =>
+            Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+            string.Equals(uri.Host, "accounts.google.com", StringComparison.OrdinalIgnoreCase);
     }
 }
