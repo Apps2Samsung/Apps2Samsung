@@ -5,6 +5,8 @@
   "vpnDetectedWarning": "A VPN or tunnel adapter looks active ({0}). It can stop the app from finding your TV or break installs midway. If your TV isn't listed or installs fail, turn the VPN / proxy / secure-DNS app off and rescan.",
   "InstallationSuccessfulOn": "{0} has been successfully installed!",
   "DownloadFailed": "Download failed:",
+  "errNetworkTimeout": "the download server didn't answer in time. Check your internet connection and any VPN, proxy or firewall. For most apps the server is GitHub (github.com and objects.githubusercontent.com), and some internet providers block it; another network or a VPN usually gets around that.",
+  "errNetworkUnreachable": "the download server can't be reached. Check your internet connection and any VPN, proxy or firewall. For most apps the server is GitHub (github.com and objects.githubusercontent.com), and some internet providers block it; another network or a VPN usually gets around that.",
   "FailedLoadingReleases": "Failed to load releases:",
   "ConnectingToDevice": "Connecting to device...",
   "TvNameNotFound": "TV Name could not be found...",
