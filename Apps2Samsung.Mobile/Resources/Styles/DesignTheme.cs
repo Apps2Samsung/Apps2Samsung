@@ -24,9 +24,25 @@ public static class DesignTheme
         app.RequestedThemeChanged += (_, _) => Fill(app);
     }
 
+    // The theme the platform reported itself, ahead of app.RequestedTheme. iOS sets it from the
+    // window scene (see Platforms/iOS/SceneDelegate.cs): MAUI reads the theme there from
+    // UIScreen.MainScreen, which under the UIScene life cycle does not follow dark mode.
+    private static AppTheme? _platformTheme;
+
+    /// <summary>Called by a head that knows the theme better than <see cref="Application.RequestedTheme"/>;
+    /// writes the colours again when it changed.</summary>
+    public static void SetPlatformTheme(AppTheme theme)
+    {
+        if (theme == AppTheme.Unspecified || theme == _platformTheme)
+            return;
+        _platformTheme = theme;
+        if (Application.Current is { } app)
+            Fill(app);
+    }
+
     private static void Fill(Application app)
     {
-        var dark = app.RequestedTheme == AppTheme.Dark;
+        var dark = (_platformTheme ?? app.RequestedTheme) == AppTheme.Dark;
         foreach (var (name, token) in DesignTokens.Colors.All)
         {
             var color = Microsoft.Maui.Graphics.Color.FromArgb(dark ? token.Dark : token.Light);
