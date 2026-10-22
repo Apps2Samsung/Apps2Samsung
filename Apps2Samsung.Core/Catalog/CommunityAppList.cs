@@ -31,6 +31,10 @@ namespace Apps2Samsung.Catalog
                 {
                     byFile.TryGetValue(asset.FileName, out var entry);
                     var category = AppCategories.Normalize(entry?.Category);
+                    // Kept only when the block is usable: a file and at least one field.
+                    asset.UserSettings = entry?.UserSettings is { Fields.Count: > 0 } spec && !string.IsNullOrWhiteSpace(spec.File)
+                        ? spec
+                        : null;
 
                     if (entry != null && !string.IsNullOrWhiteSpace(entry.Group))
                     {

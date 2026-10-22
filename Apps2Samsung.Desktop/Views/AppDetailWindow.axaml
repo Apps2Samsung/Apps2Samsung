@@ -1,0 +1,97 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:Apps2Samsung.Extensions"
+        xmlns:vm="clr-namespace:Apps2Samsung.ViewModels"
+        xmlns:models="clr-namespace:Apps2Samsung.Models;assembly=Apps2Samsung.Core"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        x:Class="Apps2Samsung.Views.AppDetailWindow"
+        x:DataType="vm:AppDetailViewModel"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        Title="{Binding Name}"
+        Width="460" SizeToContent="Height" MaxHeight="760"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="{DynamicResource BgBrush}">
+	<!-- The app sheet (#755): preview, description, the version or variant list, Install. -->
+	<Window.Styles>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+		<Style Selector="ListBoxItem">
+			<Setter Property="Padding" Value="0"/>
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="MinHeight" Value="48"/>
+		</Style>
+		<Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+			<Setter Property="Background" Value="Transparent"/>
+		</Style>
+		<Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource FillBrush}"/>
+		</Style>
+		<Style Selector="Border.radio">
+			<Setter Property="Width" Value="22"/>
+			<Setter Property="Height" Value="22"/>
+			<Setter Property="CornerRadius" Value="11"/>
+			<Setter Property="BorderThickness" Value="2"/>
+			<Setter Property="BorderBrush" Value="{DynamicResource HairBrush}"/>
+		</Style>
+		<Style Selector="ListBoxItem:selected Border.radio">
+			<Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+		</Style>
+	</Window.Styles>
+
+	<ScrollViewer>
+		<StackPanel Margin="16,8,16,16" Spacing="10">
+			<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
+			<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+				<TextBlock Text="{Binding Name}" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}" VerticalAlignment="Center"/>
+				<!-- the star: a favorite leads the Install screen's list -->
+				<Button Grid.Column="1" Classes="icon" Content="{Binding FavoriteGlyph}" FontSize="18" ToolTip.Tip="{Binding FavoriteText}"
+				        Command="{Binding ToggleFavoriteCommand}" Width="36" Height="36" CornerRadius="18"/>
+			</Grid>
+
+			<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource FillBrush}" IsVisible="{Binding HasPreview}">
+				<Image Source="{Binding Preview}" Stretch="UniformToFill" MaxHeight="240"/>
+			</Border>
+
+			<TextBlock Text="{Binding Description}" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+
+			<Border IsVisible="{Binding RequiresPartner}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
+			        BorderThickness="1" CornerRadius="10" Padding="12,10">
+				<StackPanel Spacing="2">
+					<TextBlock Text="{Binding PartnerNeededTitle}" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}"/>
+					<TextBlock Text="{Binding PartnerNeededBody}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource WarnBrush}"/>
+				</StackPanel>
+			</Border>
+
+			<Grid ColumnDefinitions="*,Auto" Margin="4,10,4,0">
+				<TextBlock Text="{Binding VersionsTitle}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"
+				           VerticalAlignment="Center"/>
+				<TextBlock Grid.Column="1" Text="{Binding Published}" FontSize="15" Foreground="{DynamicResource MutedBrush}"
+				           IsVisible="{Binding !CanShowAllVersions}"/>
+				<!-- an app with a version history: older versions on request -->
+				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" IsVisible="{Binding CanShowAllVersions}">
+					<TextBlock Text="{Binding ShowAllVersionsText}" FontSize="13" VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}"/>
+					<ToggleSwitch IsChecked="{Binding ShowAllVersions}" MinWidth="0" VerticalAlignment="Center"/>
+				</StackPanel>
+			</Grid>
+			<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
+				<ListBox ItemsSource="{Binding Assets}" SelectedItem="{Binding SelectedAsset, Mode=TwoWay}"
+				         Background="Transparent" BorderThickness="0" MaxHeight="300">
+					<ListBox.ItemTemplate>
+						<DataTemplate x:DataType="models:Asset">
+							<Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Margin="16,11">
+								<Border Classes="radio" VerticalAlignment="Center"/>
+								<TextBlock Grid.Column="1" Text="{Binding LongDisplayText}" TextWrapping="Wrap" VerticalAlignment="Center"
+								           Foreground="{DynamicResource InkBrush}"/>
+							</Grid>
+						</DataTemplate>
+					</ListBox.ItemTemplate>
+				</ListBox>
+			</Border>
+
+			<Button Classes="primary" Name="InstallButton" Content="{Binding InstallText}" IsEnabled="{Binding CanInstall}"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12" Margin="0,6,0,0"
+			        Click="OnInstallClick"/>
+		</StackPanel>
+	</ScrollViewer>
+</Window>

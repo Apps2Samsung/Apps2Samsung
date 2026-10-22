@@ -44,6 +44,9 @@ namespace Apps2Samsung.Models
         /// <summary>Human-readable install size for this app ("—" when unknown/0).</summary>
         public string SizeDisplay => FormatSize(SizeBytes);
 
+        /// <summary>The list row's second line: "v1.2.3 · 12.3 MB".</summary>
+        public string Subline => string.IsNullOrWhiteSpace(Version) ? SizeDisplay : $"v{Version} · {SizeDisplay}";
+
         /// <summary>
         /// Formats a byte count as a human-readable size ("—" when 0 or negative, else one decimal
         /// KB/MB/GB, e.g. "12.6 MB"). Invariant so the decimal separator is always a dot. Shared for

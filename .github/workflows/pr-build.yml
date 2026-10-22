@@ -41,12 +41,16 @@ jobs:
 
       # Apps2Samsung.Core comes along as a project reference, so this covers both.
       - name: Build
-        run: dotnet build Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj -c Release
+        run: dotnet build Apps2Samsung.Desktop/Apps2Samsung.csproj -c Release
 
       # The catalog-snapshot generator shares Core; a Core change that breaks it would otherwise
       # only show up when the next half-hourly snapshot run fails.
       - name: Build the catalog snapshot tool
         run: dotnet build tools/CatalogSnapshot/CatalogSnapshot.csproj -c Release
+
+      # Same for the plugin patch rig (run by plugin-es2015-check.yml, which only triggers on plugin paths).
+      - name: Build the plugin patch rig
+        run: dotnet build tools/PluginPatchRig/PluginPatchRig.csproj -c Release
 
   android:
     name: Mobile (Android)
@@ -86,13 +90,26 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Xcode in use
-        run: xcodebuild -version
-
       # Both workloads: on macOS the csproj lists net10.0-android too, and restore evaluates every
       # TFM even though only the iOS one is built below.
       - name: Install MAUI workloads
         run: dotnet workload install maui-ios maui-android
+
+      # The .NET for iOS workload names the Xcode it needs in its pack folder
+      # (Microsoft.iOS.Sdk.net10.0_27.1 needs Xcode 27.1), and a new workload can land before the
+      # image's default Xcode moves up: on 2026-10-20 workload 27.1 met default Xcode 27.0 and every
+      # iOS build failed. The image carries the newer Xcode too, so pick the one the workload asks for.
+      - name: Select the Xcode the iOS workload needs
+        shell: bash
+        run: |
+          PACK=$(ls -d "$DOTNET_ROOT"/packs/Microsoft.iOS.Sdk.net*_* | sort -V | tail -1)
+          XCODE_VERSION=${PACK##*_}
+          if [ -d "/Applications/Xcode_${XCODE_VERSION}.app" ]; then
+            sudo xcode-select -s "/Applications/Xcode_${XCODE_VERSION}.app"
+          else
+            echo "::warning::Xcode ${XCODE_VERSION} is not on this image, building with the default"
+          fi
+          xcodebuild -version
 
       # Compile + XAML check only, for the simulator. Code signing is turned off explicitly: the
       # project sets CodesignEntitlements (the keychain group SecureStorage needs), and with
@@ -129,7 +146,7 @@ jobs:
       - name: Publish and package (x64 + arm64)
         run: |
           for ARCH in x64 arm64; do
-            dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
+            dotnet publish Apps2Samsung.Desktop/Apps2Samsung.csproj \
               -c Release -r linux-$ARCH -p:SelfContained=true -o publish/linux-$ARCH
             # 0.0.0 rather than something like 0.0.0-pr: rpm forbids '-' in a version (it separates
             # version from release), which is what the first run of this job discovered.

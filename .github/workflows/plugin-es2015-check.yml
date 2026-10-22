@@ -1,0 +1,80 @@
+name: Plugin ES2015 check
+
+# The desktop installer copies the client scripts of supported Jellyfin plugins into the app and
+# runs each through the bundled esbuild with --target=es2015, because older TVs can't parse newer
+# syntax. A file esbuild can't transpile is left out of the app (EsbuildHelper.TranspileAsync), so
+# a plugin update that breaks the transpile silently drops that plugin from new installs (#801).
+#
+# Two jobs:
+# - `upstream` runs the same esbuild binary over the current upstream sources of every supported
+#   plugin (tools/plugin-es2015-check/sources.json) and parses the output as ES2015 with acorn. The
+#   daily schedule is for this one: upstream plugins change without any PR here.
+# - `rig` runs the real plugin patcher (tools/PluginPatchRig) against a fake server per supported
+#   plugin version (tools/PluginPatchRig/cases.json), checks which files end up in the app, and
+#   parses everything it cached as ES2015. This one guards the patch code. The supported versions
+#   are listed in Apps2Samsung.Core/Jellyfin/Plugins/README.md.
+# Both also run on PRs that touch the plugin code, the esbuild binaries or the tools.
+#
+# Not a required check, so the `paths:` filter is fine here (unlike pr-build.yml).
+on:
+  schedule:
+    - cron: '17 5 * * *'
+  pull_request:
+    paths:
+      - 'Apps2Samsung.Core/Jellyfin/Plugins/**'
+      - 'Apps2Samsung.Core/Core/EsbuildHelper.cs'
+      - 'Apps2Samsung.Desktop/Assets/esbuild/**'
+      - 'tools/plugin-es2015-check/**'
+      - 'tools/PluginPatchRig/**'
+      - '.github/workflows/plugin-es2015-check.yml'
+  workflow_dispatch:
+
+jobs:
+  upstream:
+    name: Upstream plugins transpile to ES2015
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install acorn
+        working-directory: tools/plugin-es2015-check
+        run: npm ci
+
+      # The binary is committed without the executable bit (EsbuildHelper sets it at runtime).
+      - name: Run the check
+        working-directory: tools/plugin-es2015-check
+        run: |
+          chmod +x ../../Apps2Samsung.Desktop/Assets/esbuild/linux-x64/esbuild
+          node check.mjs ../../Apps2Samsung.Desktop/Assets/esbuild/linux-x64/esbuild "$RUNNER_TEMP/plugin-sources"
+
+  rig:
+    name: Plugin patch rig
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install acorn
+        working-directory: tools/plugin-es2015-check
+        run: npm ci
+
+      - name: Run the rig
+        run: |
+          dotnet build tools/PluginPatchRig/PluginPatchRig.csproj -c Release
+          chmod +x tools/PluginPatchRig/bin/Release/net10.0/Assets/esbuild/linux-x64/esbuild
+          dotnet tools/PluginPatchRig/bin/Release/net10.0/PluginPatchRig.dll "$RUNNER_TEMP/rig-work" "$RUNNER_TEMP/rig-out"
+
+      - name: Parse everything the rig cached as ES2015
+        working-directory: tools/plugin-es2015-check
+        run: node parse-dir.mjs "$RUNNER_TEMP/rig-out"
+
+      # Per case: plugin_cache, the injected tags, the patcher's log and every request it made.
+      - name: Upload the rig output
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: plugin-patch-rig
+          path: ${{ runner.temp }}/rig-out

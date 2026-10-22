@@ -89,6 +89,14 @@ namespace Apps2Samsung.Models
         [JsonIgnore]
         public string? Variant { get; set; }
 
+        /// <summary>
+        /// What the user has to fill in before this file installs, from the community catalog
+        /// (#791). Null for a file that needs nothing. Stamped by <c>CommunityAppList</c>, never
+        /// serialized: the snapshot carries the catalog URL, and the catalog is read live.
+        /// </summary>
+        [JsonIgnore]
+        public UserSettingsSpec? UserSettings { get; set; }
+
         /// <summary>The variant label, or the bare file name when the file is not part of a group.</summary>
         [JsonIgnore]
         public string VariantLabel => string.IsNullOrWhiteSpace(Variant)

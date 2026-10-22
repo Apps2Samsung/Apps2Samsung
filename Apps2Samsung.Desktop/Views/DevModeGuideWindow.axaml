@@ -1,0 +1,97 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:Apps2Samsung.ViewModels"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        x:Class="Apps2Samsung.Views.DevModeGuideWindow"
+        x:DataType="vm:DevModeGuideViewModel"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        Title="{Binding TitleText}"
+        Width="460" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" CanResize="False"
+        Background="{DynamicResource BgBrush}">
+	<!-- The Developer Mode guide (#755): what is wrong with this TV right now, the five steps that fix
+	     it (the ones already done greyed), this PC's IP to type in, and a check every few seconds.
+	     Opened from the TV card, and from Install when the TV isn't ready. -->
+	<Window.Styles>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Catalog.axaml"/>
+		<Style Selector="Border.status">
+			<Setter Property="Background" Value="{DynamicResource WarnSoftBrush}"/>
+		</Style>
+		<Style Selector="Border.status.ready">
+			<Setter Property="Background" Value="{DynamicResource OkSoftBrush}"/>
+		</Style>
+		<Style Selector="Ellipse.dot">
+			<Setter Property="Fill" Value="{DynamicResource WarnBrush}"/>
+		</Style>
+		<Style Selector="Ellipse.dot.ready">
+			<Setter Property="Fill" Value="{DynamicResource OkBrush}"/>
+		</Style>
+		<Style Selector="Border.badge">
+			<Setter Property="Background" Value="{DynamicResource FillBrush}"/>
+		</Style>
+		<Style Selector="Border.badge.needed">
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.badgenumber">
+			<Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.badgenumber.needed">
+			<Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+		</Style>
+	</Window.Styles>
+
+	<StackPanel Margin="16,8,16,16" Spacing="14">
+		<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
+
+		<StackPanel Spacing="1">
+			<TextBlock Text="{Binding TitleText}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
+			<TextBlock Text="{Binding SubText}" FontSize="13" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
+		</StackPanel>
+
+		<Border Classes="status" Classes.ready="{Binding IsReady}" CornerRadius="12" Padding="14,10">
+			<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+				<Ellipse Classes="dot" Classes.ready="{Binding IsReady}" Width="8" Height="8" VerticalAlignment="Center"/>
+				<TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="14" TextWrapping="Wrap" VerticalAlignment="Center"
+				           Foreground="{DynamicResource InkBrush}"/>
+			</Grid>
+		</Border>
+
+		<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
+			<ItemsControl ItemsSource="{Binding Steps}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate x:DataType="vm:DevModeGuideStepItem">
+						<StackPanel>
+							<Border Classes="hairline" Margin="56,0,0,0" IsVisible="{Binding !IsFirst}"/>
+							<Grid ColumnDefinitions="28,*" ColumnSpacing="12" Margin="16,12" Opacity="{Binding Opacity}">
+								<Border Classes="badge" Classes.needed="{Binding Needed}" Width="28" Height="28" CornerRadius="14" VerticalAlignment="Top">
+									<TextBlock Classes="badgenumber" Classes.needed="{Binding Needed}" Text="{Binding Number}" FontSize="13"
+									           FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+								</Border>
+								<StackPanel Grid.Column="1" Spacing="2" Margin="0,3,0,0">
+									<TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
+									<TextBlock Text="{Binding Hint}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+									<StackPanel Orientation="Horizontal" Spacing="8" Margin="0,6,0,0" IsVisible="{Binding ShowsIp}">
+										<SelectableTextBlock Text="{Binding Ip}" FontSize="22" FontWeight="Bold" VerticalAlignment="Center"
+										                     Foreground="{DynamicResource InkBrush}"/>
+										<Button Classes="soft" Content="{Binding CopyText}" Command="{Binding CopyCommand}"
+										        Padding="12,4" CornerRadius="15" VerticalAlignment="Center" IsVisible="{Binding HasIp}"/>
+									</StackPanel>
+								</StackPanel>
+							</Grid>
+						</StackPanel>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</Border>
+
+		<StackPanel Spacing="8">
+			<Button Classes="primary" Content="{Binding PrimaryText}" Command="{Binding PrimaryCommand}" IsEnabled="{Binding !IsChecking}"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12"/>
+			<Button Classes="link" Content="{Binding AnywayText}" Command="{Binding AnywayCommand}" HorizontalAlignment="Center"
+			        IsVisible="{Binding ShowAnyway}"/>
+			<TextBlock Text="{Binding AutoCheckText}" FontSize="12" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center"
+			           IsVisible="{Binding !IsReady}"/>
+		</StackPanel>
+	</StackPanel>
+</Window>

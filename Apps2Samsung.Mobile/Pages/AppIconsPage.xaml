@@ -2,36 +2,30 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.AppIconsPage"
              Title="{l:Localize lblAppIcons}"
-             NavigationPage.HasNavigationBar="False"
-             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
-    <ScrollView>
-        <Border Margin="12" Padding="16" StrokeThickness="1"
-                StrokeShape="RoundRectangle 8"
-                Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
-                BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
-            <VerticalStackLayout Spacing="14">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+    <!-- the top bar (#755): Back and the title -->
+    <Grid RowDefinitions="Auto,*">
+        <controls:TopBarView Grid.Row="0" Title="{l:Localize lblAppIcons}" BackText="{l:Localize lblRemoteBack}" BackTapped="OnBackClicked" />
+        <ScrollView Grid.Row="1">
+            <Border Margin="12" Padding="16" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    Stroke="{DynamicResource HairBrush}"
+                    BackgroundColor="{DynamicResource SurfaceColor}">
+                <VerticalStackLayout Spacing="14">
 
-                <!-- Header banner with a back affordance -->
-                <Border BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
-                    <Grid ColumnDefinitions="44,*,44" VerticalOptions="Center">
-                        <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
-                                BackgroundColor="Transparent" BorderWidth="0" Padding="0"
-                                WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
-                        <Label Grid.Column="1" Text="{l:Localize lblAppIcons}" TextColor="White" FontAttributes="Bold"
-                               VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
-                    </Grid>
-                </Border>
+                    <Label FontSize="12" Opacity="0.6"
+                           Text="{l:Localize hintAppIconsPage}" />
 
-                <Label FontSize="12" Opacity="0.6"
-                       Text="{l:Localize hintAppIconsPage}" />
+                    <Label x:Name="StatusLabel" FontSize="12" Opacity="0.6" Text="{l:Localize lblLoadingAppList}" />
 
-                <Label x:Name="StatusLabel" FontSize="12" Opacity="0.6" Text="{l:Localize lblLoadingAppList}" />
+                    <VerticalStackLayout x:Name="IconsContainer" Spacing="10" />
 
-                <VerticalStackLayout x:Name="IconsContainer" Spacing="10" />
-
-            </VerticalStackLayout>
-        </Border>
-    </ScrollView>
+                </VerticalStackLayout>
+            </Border>
+        </ScrollView>
+    </Grid>
 </ContentPage>

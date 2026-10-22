@@ -22,7 +22,7 @@ permissions:
 
 env:
   PRODUCT_NAME: Apps2Samsung
-  PROJECT_DIR: Jellyfin2Samsung-CrossOS
+  PROJECT_DIR: Apps2Samsung.Desktop
   CONFIGURATION: Release
 
 jobs:
@@ -162,6 +162,9 @@ jobs:
             echo "| 🐧 Linux | ✅ Stable | x64 + ARM64 (tar.gz / .deb) |"
             echo "| 🪟 Windows | ✅ Stable | CI-built |"
             echo "| 🤖 Android (.apk) | ✅ Stable | Sideload; phone as installer head |"
+            if [ "${{ vars.IOS_PUBLISH }}" = "true" ]; then
+              echo "| 📱 iPhone (.ipa) | 🧪 Unsigned | Through SideStore, re-signed with your own Apple ID |"
+            fi
             echo ""
             echo "---"
             echo ""
@@ -187,7 +190,7 @@ jobs:
       - name: Build Linux
         run: |
           for ARCH in x64 arm64; do
-            dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
+            dotnet publish Apps2Samsung.Desktop/Apps2Samsung.csproj \
               -c Release -r linux-$ARCH -p:SelfContained=true \
               -o publish/linux-$ARCH
           done
@@ -272,6 +275,8 @@ jobs:
           chmod +x $APP/MacOS/Apps2Samsung
           cp jellyfin.icns $APP/Resources/
 
+          # Info.plist versions are at most three integers (see apple-version.sh).
+          APPLE_VERSION=$(.github/scripts/apple-version.sh "${{ needs.stable-release.outputs.VERSION }}")
           cat > $APP/Info.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -281,8 +286,8 @@ jobs:
             <key>CFBundleName</key><string>Apps2Samsung</string>
             <key>CFBundleExecutable</key><string>Apps2Samsung</string>
             <key>CFBundleIdentifier</key><string>org.madebypatrick.apps2samsung</string>
-            <key>CFBundleVersion</key><string>${{ needs.stable-release.outputs.VERSION }}</string>
-            <key>CFBundleShortVersionString</key><string>${{ needs.stable-release.outputs.VERSION }}</string>
+            <key>CFBundleVersion</key><string>$APPLE_VERSION</string>
+            <key>CFBundleShortVersionString</key><string>$APPLE_VERSION</string>
             <key>CFBundlePackageType</key><string>APPL</string>
             <key>LSMinimumSystemVersion</key><string>11.0</string>
 
@@ -322,6 +327,8 @@ jobs:
           chmod +x $APP/MacOS/Apps2Samsung
           cp jellyfin.icns $APP/Resources/
 
+          # Info.plist versions are at most three integers (see apple-version.sh).
+          APPLE_VERSION=$(.github/scripts/apple-version.sh "${{ needs.stable-release.outputs.VERSION }}")
           cat > $APP/Info.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -331,8 +338,8 @@ jobs:
             <key>CFBundleName</key><string>Apps2Samsung</string>
             <key>CFBundleExecutable</key><string>Apps2Samsung</string>
             <key>CFBundleIdentifier</key><string>org.madebypatrick.apps2samsung</string>
-            <key>CFBundleVersion</key><string>${{ needs.stable-release.outputs.VERSION }}</string>
-            <key>CFBundleShortVersionString</key><string>${{ needs.stable-release.outputs.VERSION }}</string>
+            <key>CFBundleVersion</key><string>$APPLE_VERSION</string>
+            <key>CFBundleShortVersionString</key><string>$APPLE_VERSION</string>
             <key>CFBundlePackageType</key><string>APPL</string>
             <key>LSMinimumSystemVersion</key><string>11.0</string>
 
@@ -376,6 +383,10 @@ jobs:
     needs: [stable-release, macos-app]
     if: ${{ always() && needs.stable-release.result == 'success' }}
 
+    # The iPhone job reuses the code as its CFBundleVersion (.github/scripts/apple-version.sh).
+    outputs:
+      VERSION_CODE: ${{ steps.version-code.outputs.version-code }}
+
     steps:
       # The explicit ref matters: without it a dispatched release built master's APK
       # while every other job built the requested ref.
@@ -392,6 +403,7 @@ jobs:
       # Runs before the build so a bad code fails in seconds instead of after a
       # ten-minute publish.
       - name: Compute Android versionCode
+        id: version-code
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -461,6 +473,40 @@ jobs:
         run: |
           .github/scripts/android-version-code.sh verify \
             "dist/${PRODUCT_NAME}-${{ needs.stable-release.outputs.VERSION_TAG }}-android.apk"
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.stable-release.outputs.VERSION_TAG }}
+          name: ${{ needs.stable-release.outputs.VERSION_TAG }}
+          prerelease: false
+          overwrite_files: true
+          files: dist/*
+
+# ======================================================
+# IPHONE (unsigned .ipa for SideStore, #753)
+# ======================================================
+  ios-ipa:
+    runs-on: xcode-27
+    # Last in the upload chain, for the same reason android-apk waits for macos-app.
+    needs: [stable-release, android-apk]
+    # Gated on the IOS_PUBLISH repository variable, the same one as the beta's iOS job: until the
+    # SideStore channel has been tried end to end on a real iPhone (#753 step 5) no release ships
+    # an IPA. The SideStore source (sidestore-source.yml) is generated from this asset.
+    # Needs the APK's versionCode for its CFBundleVersion, so no IPA when the APK job failed.
+    if: ${{ always() && needs.stable-release.result == 'success' && needs.android-apk.result == 'success' && vars.IOS_PUBLISH == 'true' }}
+
+    steps:
+      # The explicit ref, for the same reason as in android-apk.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
+
+      - name: Build IPA
+        uses: ./.github/actions/ios-ipa
+        with:
+          version: ${{ needs.stable-release.outputs.VERSION }}
+          build-number: ${{ needs.android-apk.outputs.VERSION_CODE }}
+          output: dist/${{ env.PRODUCT_NAME }}-${{ needs.stable-release.outputs.VERSION_TAG }}-ios-unsigned.ipa
 
       - uses: softprops/action-gh-release@v3
         with:

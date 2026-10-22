@@ -1,0 +1,46 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:Apps2Samsung.Views"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        x:Class="Apps2Samsung.Views.CertificateWaitWindow"
+        x:DataType="views:CertificateWaitWindow"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        Title="{Binding TitleText}"
+        Width="460" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" CanResize="False"
+        Background="{DynamicResource BgBrush}">
+	<!-- The certificate isn't valid yet (#755): a countdown to the moment it is, after which the
+	     install carries on by itself. Cancel (or closing the window) stops the install. -->
+	<Window.Styles>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+	</Window.Styles>
+
+	<StackPanel Margin="16,8,16,16" Spacing="14">
+		<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
+
+		<Grid ColumnDefinitions="44,*" ColumnSpacing="12">
+			<Border Width="44" Height="44" CornerRadius="11" Background="{DynamicResource WarnSoftBrush}">
+				<Path Width="22" Height="22" Stretch="Uniform" Stroke="{DynamicResource WarnBrush}" StrokeThickness="2.2"
+				      StrokeLineCap="Round" StrokeJoin="Round" Data="M12,3 A9,9 0 1 0 12.01,3 M12,7 L12,12 L15,14"/>
+			</Border>
+			<TextBlock Grid.Column="1" Text="{Binding TitleText}" FontSize="17" FontWeight="Bold" VerticalAlignment="Center"
+			           Foreground="{DynamicResource InkBrush}"/>
+		</Grid>
+
+		<Border CornerRadius="12" Padding="16,18" Background="{DynamicResource SurfaceBrush}">
+			<StackPanel Spacing="4">
+				<TextBlock Text="{Binding ValidInText}" FontSize="13" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center"/>
+				<!-- Monospaced so ticking seconds don't reflow the layout. -->
+				<TextBlock x:Name="CountdownText" FontSize="40" FontWeight="Bold" FontFamily="Consolas, Menlo, monospace"
+				           Foreground="{DynamicResource InkBrush}" HorizontalAlignment="Center"/>
+				<TextBlock x:Name="CaptionText" Text="{Binding ContinuesText}" FontSize="13" Foreground="{DynamicResource MutedBrush}"
+				           HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+			</StackPanel>
+		</Border>
+
+		<TextBlock Text="{Binding BodyText}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+
+		<Button Classes="danger" Content="{Binding CancelText}" Click="OnCancelClick"
+		        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="48" CornerRadius="12"/>
+	</StackPanel>
+</Window>

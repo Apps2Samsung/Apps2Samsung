@@ -68,6 +68,9 @@ namespace Apps2Samsung.Helpers.Core
             public const string CertificateRequired = "7.0";
             public const string PushInstallMax = "4.0";
             public const string IntermediateVersion = "3.0";
+            // Plugin scripts are transpiled to ES2015, which Tizen 4.0 (Chromium 56) runs. Tizen 3.0
+            // (Chromium 47) lacks parts of ES2015 and esbuild can't go lower, so plugins are skipped there (#801).
+            public const string PluginScriptsMin = "4.0";
             // Background <tizen:service> components are only reliably installable on
             // Samsung TVs from Tizen 4.0 onward. Below this, such a component must be
             // stripped or the whole package is rejected with a generic install failed[118].

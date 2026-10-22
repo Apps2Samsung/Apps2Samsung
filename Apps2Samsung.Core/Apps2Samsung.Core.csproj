@@ -27,9 +27,8 @@
   <ItemGroup>
     <!-- The translated strings, embedded so both heads read one copy through
          Localization/LocalizationCatalog (a MAUI head can't read an Avalonia avares:// resource).
-         The files deliberately stay in the desktop head's Assets folder: that is the path Crowdin
-         syncs (crowdin.yml), and moving them would orphan the existing translations. -->
-    <EmbeddedResource Include="..\Jellyfin2Samsung-CrossOS\Assets\Localization\*.json"
+         Localization/Languages is where the Crowdin CLI reads and writes them (crowdin.yml). -->
+    <EmbeddedResource Include="Localization\Languages\*.json"
                       LogicalName="Apps2Samsung.Core.Localization.%(Filename).json" />
   </ItemGroup>
   <ItemGroup>

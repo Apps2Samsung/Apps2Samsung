@@ -1,0 +1,49 @@
+{
+  "// note": "Upstream repos of the plugins Apps2Samsung copies into the app, and which of their files reach the TV. Paths are globs relative to the repo root (** = any depth). Keep in step with Apps2Samsung.Core/Jellyfin/Plugins.",
+  "plugins": [
+    {
+      "name": "Jellyfin Enhanced",
+      "repo": "n00bcodr/Jellyfin-Enhanced",
+      "files": ["Jellyfin.Plugin.JellyfinEnhanced/js/**/*.js"]
+    },
+    {
+      "name": "Editor's Choice",
+      "repo": "lachlandcp/jellyfin-editors-choice-plugin",
+      "files": ["EditorsChoicePlugin/Api/client.js"]
+    },
+    {
+      "name": "Media Bar",
+      "repo": "IAmParadox27/jellyfin-plugin-media-bar",
+      "files": ["slideshowpure.js"]
+    },
+    {
+      "name": "Home Screen Sections",
+      "repo": "IAmParadox27/jellyfin-plugin-home-sections",
+      "files": ["src/Jellyfin.Plugin.HomeScreenSections/Inject/*.js"]
+    },
+    {
+      "name": "NotifySync",
+      "repo": "peterdu1109/NotifySync",
+      "files": ["client.js"]
+    },
+    {
+      "name": "Media Carousel",
+      "repo": "peterdu1109/MediaCarousel",
+      "files": ["Web/media-carousel.js"]
+    },
+    {
+      "name": "KefinTweaks",
+      "repo": "ranaldsgift/KefinTweaks",
+      "ref": "latest-tag",
+      "files": [
+        "injector.js",
+        "kefinTweaks-plugin.js",
+        "kefinTweaks-default-config.js",
+        "scripts/**/*.js",
+        "configuration/**/*.js",
+        "helpers/**/*.js",
+        "thirdparty/**/*.js"
+      ]
+    }
+  ]
+}

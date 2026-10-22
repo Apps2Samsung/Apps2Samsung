@@ -32,6 +32,9 @@ namespace Apps2Samsung.Models
         /// </summary>
         public string ReleasesPageUrl { get; set; } = string.Empty;
 
+        /// <summary>Size of the download asset in bytes, when GitHub reported it.</summary>
+        public long? AssetSize { get; set; }
+
         /// <summary>
         /// Release title/name.
         /// </summary>

@@ -1,0 +1,92 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Extensions"
+             xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+             xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+             xmlns:models="clr-namespace:Apps2Samsung.Models;assembly=Apps2Samsung.Core"
+             x:Class="Apps2Samsung.Views.InstalledAppsView"
+             x:DataType="viewModels:InstalledAppsViewModel">
+    <!-- The "On the TV" section (#755, option C), hosted in the main window's content area under the
+         toolbar (status, Refresh, ⋯). The apps as grouped lists: tile, name, version and size, Open,
+         and a ⋯ with Run / Stop / Debug console / Uninstall; right-click a row for the same menu. -->
+    <DockPanel LastChildFill="True">
+
+        <!-- Busy indicator -->
+        <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" Height="3" Margin="0,0,0,8"
+                     IsVisible="{Binding IsProgressVisible}"/>
+
+        <ScrollViewer IsEnabled="{Binding !IsDebugging}">
+            <ScrollViewer.Styles>
+                <Style Selector="ScrollViewer[IsEnabled=False]">
+                    <Setter Property="Opacity" Value="0.4"/>
+                </Style>
+                <Style Selector="Grid.approw:pointerover">
+                    <Setter Property="Background" Value="{DynamicResource Surface2Brush}"/>
+                </Style>
+            </ScrollViewer.Styles>
+            <ItemsControl ItemsSource="{Binding Groups}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><StackPanel Spacing="16"/></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:InstalledAppGroup">
+                        <StackPanel Spacing="6">
+                            <TextBlock Classes="grouptitle" Text="{Binding Title}"/>
+                            <Border Classes="group">
+                                <ItemsControl ItemsSource="{Binding Apps}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="viewModels:InstalledAppViewModel">
+                                            <StackPanel>
+                                                <Grid Classes="approw" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="12" Background="Transparent">
+                                                    <Grid.ContextFlyout>
+                                                        <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                                            <MenuItem Header="{l:Localize lblRun}"
+                                                                      Command="{ReflectionBinding $parent[UserControl].DataContext.LaunchCommand}"
+                                                                      CommandParameter="{Binding App}"/>
+                                                            <MenuItem Header="{l:Localize lblStop}"
+                                                                      Command="{ReflectionBinding $parent[UserControl].DataContext.StopCommand}"
+                                                                      CommandParameter="{Binding App}"/>
+                                                            <MenuItem Header="{l:Localize lblDebug}"
+                                                                      Command="{ReflectionBinding $parent[UserControl].DataContext.DebugCommand}"
+                                                                      CommandParameter="{Binding App}"/>
+                                                            <MenuItem Header="{l:Localize lblUninstall}" IsVisible="{Binding App.IsRemovable}"
+                                                                      Foreground="{DynamicResource BadBrush}"
+                                                                      Command="{ReflectionBinding $parent[UserControl].DataContext.UninstallCommand}"
+                                                                      CommandParameter="{Binding App}"/>
+                                                        </MenuFlyout>
+                                                    </Grid.ContextFlyout>
+                                                    <Panel Width="38" Height="38" Margin="14,7,0,7" VerticalAlignment="Center">
+                                                        <Border CornerRadius="10" Background="{Binding App.FallbackColor}" IsVisible="{Binding App.MissingIcon}">
+                                                            <TextBlock Text="{Binding App.Initials}" Foreground="{DynamicResource GlassInkBrush}" FontWeight="Bold" FontSize="17"
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <Border CornerRadius="10" ClipToBounds="True" IsVisible="{Binding App.HasIcon}">
+                                                            <Image Source="{Binding IconBitmap}" Stretch="UniformToFill"/>
+                                                        </Border>
+                                                    </Panel>
+                                                    <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding App.DisplayName}" FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis"
+                                                                   Foreground="{DynamicResource InkBrush}"/>
+                                                        <TextBlock Text="{Binding App.Subline}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                                                   Foreground="{DynamicResource MutedBrush}"/>
+                                                    </StackPanel>
+                                                    <Button Grid.Column="2" Classes="pill" Content="{l:Localize lblOpenApp}" VerticalAlignment="Center"
+                                                            Command="{ReflectionBinding $parent[UserControl].DataContext.LaunchCommand}"
+                                                            CommandParameter="{Binding App}"/>
+                                                    <Button Grid.Column="3" Classes="more" Content="⋯" Margin="0,0,10,0" VerticalAlignment="Center"
+                                                            ToolTip.Tip="{Binding App.TizenId}" Click="OnMoreClick"/>
+                                                </Grid>
+                                                <Border Classes="rowline" Margin="64,0,0,0"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Border>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+    </DockPanel>
+</UserControl>

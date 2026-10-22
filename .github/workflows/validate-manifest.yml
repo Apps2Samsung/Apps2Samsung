@@ -9,12 +9,12 @@ on:
     branches: [main, beta]
     paths:
       - 'third-party-apps.json'
-      - 'Jellyfin2Samsung-CrossOS/Assets/third-party-apps.json'
+      - 'Apps2Samsung.Desktop/Assets/third-party-apps.json'
       - '.github/workflows/validate-manifest.yml'
   pull_request:
     paths:
       - 'third-party-apps.json'
-      - 'Jellyfin2Samsung-CrossOS/Assets/third-party-apps.json'
+      - 'Apps2Samsung.Desktop/Assets/third-party-apps.json'
   workflow_dispatch:
 
 permissions:
@@ -35,7 +35,7 @@ jobs:
         shell: bash
         run: |
           files=""
-          for f in third-party-apps.json Jellyfin2Samsung-CrossOS/Assets/third-party-apps.json; do
+          for f in third-party-apps.json Apps2Samsung.Desktop/Assets/third-party-apps.json; do
             [ -f "$f" ] && files="$files $f"
           done
           if [ -z "$files" ]; then

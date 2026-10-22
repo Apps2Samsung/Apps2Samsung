@@ -37,7 +37,7 @@ import urllib.request
 from pathlib import Path
 
 API = "https://api.crowdin.com/api/v2"
-LOCALIZATION = Path("Jellyfin2Samsung-CrossOS/Assets/Localization")
+LOCALIZATION = Path("Apps2Samsung.Core/Localization/Languages")
 SOURCE_FILE = "en.json"
 BRANCH = "beta"
 

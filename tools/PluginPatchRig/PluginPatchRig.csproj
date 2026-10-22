@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Runs the real JellyfinPluginPatcher against a fake Jellyfin server that serves each supported
+       plugin's client files straight from a release tag of its repository (cases.json), and checks
+       what ends up in plugin_cache. Run by .github/workflows/plugin-es2015-check.yml, which then
+       parses every cached script as ES2015. See Apps2Samsung.Core/Jellyfin/Plugins/README.md (#801).
+       Not in the solution on purpose: it is a CI tool, not a head. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Apps2Samsung.Tools.PluginPatchRig</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Apps2Samsung.Core\Apps2Samsung.Core.csproj" />
+  </ItemGroup>
+  <!-- EsbuildHelper looks for the binary under Assets/esbuild next to the executable, as in the desktop app. -->
+  <ItemGroup>
+    <None Include="..\..\Apps2Samsung.Desktop\Assets\esbuild\linux-x64\esbuild" Link="Assets\esbuild\linux-x64\esbuild" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Apps2Samsung.Desktop\Assets\esbuild\win-x64\esbuild.exe" Link="Assets\esbuild\win-x64\esbuild.exe" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="cases.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

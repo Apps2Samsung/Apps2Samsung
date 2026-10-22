@@ -19,7 +19,7 @@ on:
   push:
     branches: [beta]
     paths:
-      - 'Jellyfin2Samsung-CrossOS/Assets/Localization/en.json'
+      - 'Apps2Samsung.Core/Localization/Languages/en.json'
       - 'crowdin.yml'
   # Translations trickle in after an upload, so also collect whatever is ready once a week.
   schedule:

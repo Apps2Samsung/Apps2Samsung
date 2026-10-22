@@ -1,0 +1,377 @@
+{
+  "cases": [
+    {
+      "id": "jellyfin-enhanced-12.12.0.0",
+      "repo": "n00bcodr/Jellyfin-Enhanced",
+      "ref": "12.12.0.0",
+      "plugin": {
+        "name": "Jellyfin Enhanced",
+        "version": "12.12.0.0"
+      },
+      "server": {
+        "/JellyfinEnhanced/version": "=12.12.0.0",
+        "/JellyfinEnhanced/script": "Jellyfin.Plugin.JellyfinEnhanced/js/plugin.js",
+        "/JellyfinEnhanced/js/": "Jellyfin.Plugin.JellyfinEnhanced/js/",
+        "/JellyfinEnhanced/bundle.js": "@je-bundle"
+      },
+      "expect": {
+        "files": [
+          "JellyfinEnhanced/script.js",
+          "JellyfinEnhanced/redirect.js",
+          "JellyfinEnhanced/bundle.js"
+        ]
+      }
+    },
+    {
+      "id": "jellyfin-enhanced-11.12.0.0",
+      "repo": "n00bcodr/Jellyfin-Enhanced",
+      "ref": "11.12.0.0",
+      "plugin": {
+        "name": "Jellyfin Enhanced",
+        "version": "11.12.0.0"
+      },
+      "server": {
+        "/JellyfinEnhanced/version": "=11.12.0.0",
+        "/JellyfinEnhanced/script": "Jellyfin.Plugin.JellyfinEnhanced/js/plugin.js",
+        "/JellyfinEnhanced/js/": "Jellyfin.Plugin.JellyfinEnhanced/js/"
+      },
+      "expect": {
+        "files": [
+          "JellyfinEnhanced/script.js",
+          "JellyfinEnhanced/redirect.js"
+        ],
+        "minScripts": {
+          "JellyfinEnhanced/js": 10
+        }
+      }
+    },
+    {
+      "id": "jellyfin-enhanced-9.0.0.0",
+      "repo": "n00bcodr/Jellyfin-Enhanced",
+      "ref": "9.0.0.0",
+      "plugin": {
+        "name": "Jellyfin Enhanced",
+        "version": "9.0.0.0"
+      },
+      "server": {
+        "/JellyfinEnhanced/version": "=9.0.0.0",
+        "/JellyfinEnhanced/script": "Jellyfin.Plugin.JellyfinEnhanced/js/plugin.js",
+        "/JellyfinEnhanced/js/": "Jellyfin.Plugin.JellyfinEnhanced/js/"
+      },
+      "expect": {
+        "files": [
+          "JellyfinEnhanced/script.js",
+          "JellyfinEnhanced/redirect.js"
+        ],
+        "minScripts": {
+          "JellyfinEnhanced/js": 10
+        }
+      }
+    },
+    {
+      "id": "jellyfin-enhanced-8.1.0.0-below-minimum",
+      "repo": "n00bcodr/Jellyfin-Enhanced",
+      "ref": "8.1.0.0",
+      "plugin": {
+        "name": "Jellyfin Enhanced",
+        "version": "8.1.0.0"
+      },
+      "server": {
+        "/JellyfinEnhanced/version": "=8.1.0.0",
+        "/JellyfinEnhanced/script": "Jellyfin.Plugin.JellyfinEnhanced/js/plugin.js",
+        "/JellyfinEnhanced/js/": "Jellyfin.Plugin.JellyfinEnhanced/js/"
+      },
+      "expect": {
+        "skipped": [
+          "JellyfinEnhanced"
+        ]
+      }
+    },
+    {
+      "id": "jellyfin-enhanced-12.12.0.0-tizen3",
+      "repo": "n00bcodr/Jellyfin-Enhanced",
+      "ref": "12.12.0.0",
+      "tizen": "3.0",
+      "plugin": {
+        "name": "Jellyfin Enhanced",
+        "version": "12.12.0.0"
+      },
+      "server": {
+        "/JellyfinEnhanced/version": "=12.12.0.0",
+        "/JellyfinEnhanced/script": "Jellyfin.Plugin.JellyfinEnhanced/js/plugin.js",
+        "/JellyfinEnhanced/bundle.js": "@je-bundle"
+      },
+      "expect": {
+        "skipped": [
+          "JellyfinEnhanced"
+        ],
+        "notRequested": [
+          "/JellyfinEnhanced/"
+        ]
+      }
+    },
+    {
+      "id": "editors-choice-1.6.2",
+      "repo": "lachlandcp/jellyfin-editors-choice-plugin",
+      "ref": "1.6.2",
+      "plugin": {
+        "name": "EditorsChoice",
+        "version": "1.6.2.0"
+      },
+      "server": {
+        "/EditorsChoice/script": "EditorsChoicePlugin/Api/client.js"
+      },
+      "expect": {
+        "files": [
+          "editorschoice/loader.js"
+        ]
+      }
+    },
+    {
+      "id": "editors-choice-1.5.2",
+      "repo": "lachlandcp/jellyfin-editors-choice-plugin",
+      "ref": "1.5.2",
+      "plugin": {
+        "name": "EditorsChoice",
+        "version": "1.5.2.0"
+      },
+      "server": {
+        "/EditorsChoice/script": "EditorsChoicePlugin/Api/client.js"
+      },
+      "expect": {
+        "files": [
+          "editorschoice/loader.js"
+        ]
+      }
+    },
+    {
+      "id": "media-bar-3.0.1.0-from-server",
+      "repo": "IAmParadox27/jellyfin-plugin-media-bar",
+      "ref": "3.0.1.0",
+      "plugin": {
+        "name": "Media Bar",
+        "version": "3.0.1.0"
+      },
+      "server": {
+        "/MediaBar/slideshowpure.js": "slideshowpure.js",
+        "/MediaBar/slideshowpure.css": "slideshowpure.css"
+      },
+      "expect": {
+        "files": [
+          "mediabar/slideshowpure.js",
+          "mediabar/slideshowpure.css"
+        ],
+        "notRequested": [
+          "cdn.jsdelivr.net"
+        ]
+      }
+    },
+    {
+      "id": "media-bar-2.4.12.0-fallback-at-tag",
+      "repo": "IAmParadox27/jellyfin-plugin-media-bar",
+      "ref": "2.4.12.0",
+      "plugin": {
+        "name": "Media Bar",
+        "version": "2.4.12.0"
+      },
+      "expect": {
+        "files": [
+          "mediabar/slideshowpure.js",
+          "mediabar/slideshowpure.css"
+        ],
+        "requested": [
+          "cdn.jsdelivr.net/gh/IAmParadox27/jellyfin-plugin-media-bar@2.4.12.0/slideshowpure.js"
+        ],
+        "notRequested": [
+          "@main/"
+        ]
+      }
+    },
+    {
+      "id": "media-bar-file-transformation",
+      "repo": "IAmParadox27/jellyfin-plugin-media-bar",
+      "ref": "3.0.1.0",
+      "plugin": {
+        "name": "Media Bar",
+        "version": "3.0.1.0"
+      },
+      "index": [
+        "../MediaBar/slideshowpure.js"
+      ],
+      "server": {
+        "/MediaBar/slideshowpure.js": "slideshowpure.js",
+        "/MediaBar/slideshowpure.css": "slideshowpure.css"
+      },
+      "expect": {
+        "files": [
+          "slideshowpure.js"
+        ],
+        "skipped": [
+          "mediabar"
+        ]
+      }
+    },
+    {
+      "id": "home-screen-sections-3.0.3.0",
+      "repo": "IAmParadox27/jellyfin-plugin-home-sections",
+      "ref": "3.0.3.0",
+      "plugin": {
+        "name": "Home Screen Sections",
+        "version": "3.0.3.0"
+      },
+      "server": {
+        "/HomeScreen/home-screen-sections.js": "src/Jellyfin.Plugin.HomeScreenSections/Inject/HomeScreenSections.js",
+        "/HomeScreen/home-screen-sections.css": "src/Jellyfin.Plugin.HomeScreenSections/Inject/HomeScreenSections.css"
+      },
+      "expect": {
+        "files": [
+          "homescreensections/home-screen-sections.js",
+          "homescreensections/home-screen-sections.css"
+        ],
+        "notRequested": [
+          "raw.githubusercontent.com"
+        ]
+      }
+    },
+    {
+      "id": "home-screen-sections-2.5.11.0",
+      "repo": "IAmParadox27/jellyfin-plugin-home-sections",
+      "ref": "2.5.11.0",
+      "plugin": {
+        "name": "Home Screen Sections",
+        "version": "2.5.11.0"
+      },
+      "server": {
+        "/HomeScreen/home-screen-sections.js": "src/Jellyfin.Plugin.HomeScreenSections/Inject/HomeScreenSections.js",
+        "/HomeScreen/home-screen-sections.css": "src/Jellyfin.Plugin.HomeScreenSections/Inject/HomeScreenSections.css"
+      },
+      "expect": {
+        "files": [
+          "homescreensections/home-screen-sections.js",
+          "homescreensections/home-screen-sections.css"
+        ],
+        "notRequested": [
+          "raw.githubusercontent.com"
+        ]
+      }
+    },
+    {
+      "id": "notifysync-6.0.1.0",
+      "repo": "peterdu1109/NotifySync",
+      "ref": "v6.0.1.0-jf12",
+      "plugin": {
+        "name": "NotifySync",
+        "version": "6.0.1.0"
+      },
+      "server": {
+        "/NotifySync/client.js": "client.js"
+      },
+      "expect": {
+        "files": [
+          "NotifySync/client.js"
+        ]
+      }
+    },
+    {
+      "id": "notifysync-5.8.4.0-below-minimum",
+      "repo": "peterdu1109/NotifySync",
+      "ref": "v5.8.4.0",
+      "plugin": {
+        "name": "NotifySync",
+        "version": "5.8.4.0"
+      },
+      "server": {
+        "/NotifySync/client.js": "client.js"
+      },
+      "expect": {
+        "skipped": [
+          "NotifySync"
+        ]
+      }
+    },
+    {
+      "id": "media-carousel-4.4.4.0",
+      "repo": "peterdu1109/MediaCarousel",
+      "ref": "4.4.4-jf12",
+      "plugin": {
+        "name": "Media Carousel",
+        "version": "4.4.4.0"
+      },
+      "server": {
+        "/MediaCarousel/media-carousel.js": "Web/media-carousel.js"
+      },
+      "expect": {
+        "files": [
+          "MediaCarousel/media-carousel.js"
+        ]
+      }
+    },
+    {
+      "id": "media-carousel-3.15.1.0-below-minimum",
+      "repo": "peterdu1109/MediaCarousel",
+      "ref": "3.15.1",
+      "plugin": {
+        "name": "Media Carousel",
+        "version": "3.15.1.0"
+      },
+      "server": {
+        "/MediaCarousel/media-carousel.js": "Web/media-carousel.js"
+      },
+      "expect": {
+        "skipped": [
+          "MediaCarousel"
+        ]
+      }
+    },
+    {
+      "id": "kefintweaks-v0.5.2",
+      "repo": "ranaldsgift/KefinTweaks",
+      "ref": "v0.5.2",
+      "index": [
+        "../JavaScriptInjector/public.js"
+      ],
+      "server": {
+        "/JavaScriptInjector/public.js": "=(function () { var script = document.createElement('script'); script.src = `https://cdn.jsdelivr.net/gh/ranaldsgift/KefinTweaks@v0.5.2/kefinTweaks-plugin.js`; document.head.appendChild(script); })();"
+      },
+      "expect": {
+        "files": [
+          "public.js",
+          "kefinTweaks/redirect.js",
+          "kefinTweaks/kefinTweaks-plugin.js",
+          "kefinTweaks/injector.js"
+        ],
+        "minScripts": {
+          "kefinTweaks/scripts": 15
+        },
+        "requested": [
+          "KefinTweaks@v0.5.2/injector.js"
+        ]
+      }
+    },
+    {
+      "id": "kefintweaks-v0.4.5",
+      "repo": "ranaldsgift/KefinTweaks",
+      "ref": "v0.4.5",
+      "index": [
+        "../JavaScriptInjector/public.js"
+      ],
+      "server": {
+        "/JavaScriptInjector/public.js": "=(function () { var script = document.createElement('script'); script.src = `https://cdn.jsdelivr.net/gh/ranaldsgift/KefinTweaks@v0.4.5/kefinTweaks-plugin.js`; document.head.appendChild(script); })();"
+      },
+      "expect": {
+        "files": [
+          "public.js",
+          "kefinTweaks/redirect.js",
+          "kefinTweaks/kefinTweaks-plugin.js",
+          "kefinTweaks/injector.js"
+        ],
+        "minScripts": {
+          "kefinTweaks/scripts": 15
+        },
+        "requested": [
+          "KefinTweaks@v0.4.5/injector.js"
+        ]
+      }
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Apps2Samsung.Mobile;
 
@@ -7,12 +7,14 @@ public partial class App : Application
 	public App()
 	{
 		InitializeComponent();
+		// The design tokens (Core) as resources, before any page is built.
+		Apps2Samsung.Mobile.Resources.Styles.DesignTheme.Apply(this);
 	}
 
 	protected override Window CreateWindow(IActivationState? activationState)
 	{
-		// Resolve the first page from the DI container so its Core services are injected.
-		var services = IPlatformApplication.Current!.Services;
-		return new Window(new NavigationPage(services.GetRequiredService<Pages.InstallerPage>()));
+		// The Shell resolves each tab's page from the DI container (ContentTemplate), so the Core
+		// services reach them the same way they did through NavigationPage.
+		return new Window(new AppShell());
 	}
 }

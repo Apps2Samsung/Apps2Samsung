@@ -2,111 +2,126 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.TvToolboxPage"
              Title="{l:Localize lblToolbox}"
-             NavigationPage.HasNavigationBar="False"
-             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
 
+    <!-- The TV toolbox in the v3 language (#755): the top bar with back and reload, the status line
+         under it, then one grouped-list card per tool. The cards collapse (ExpanderSection), with
+         "Open an app" open by default, so the page is a list of headings rather than a wall. Rows
+         are the list idiom: name and subline on the left, a soft pill action on the right. The
+         names and handlers are the ones the code-behind drives; only the drawing changed. -->
     <ContentPage.Resources>
-        <Style x:Key="Card" TargetType="Border">
-            <Setter Property="Padding" Value="12" />
+        <!-- an input on the fill, like the search field on the Install tab -->
+        <Style x:Key="Field" TargetType="Border">
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 10" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource FillColor}" />
+        </Style>
+        <!-- what a section says about itself, under its title -->
+        <Style x:Key="Hint" TargetType="Label">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextColor" Value="{DynamicResource MutedColor}" />
+            <Setter Property="LineBreakMode" Value="WordWrap" />
+        </Style>
+        <!-- the status a tool reports back -->
+        <Style x:Key="Report" TargetType="Label">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="LineBreakMode" Value="WordWrap" />
+        </Style>
+        <!-- notices are read, not skimmed past: a soft tint with a border in the status colour -->
+        <Style x:Key="Notice" TargetType="Border">
+            <Setter Property="Padding" Value="12,10" />
             <Setter Property="StrokeThickness" Value="1" />
             <Setter Property="StrokeShape" Value="RoundRectangle 10" />
-            <Setter Property="Stroke" Value="{AppThemeBinding Light=#E2E2E2, Dark=#333}" />
-            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark=#1F1F1F}" />
         </Style>
-        <Style x:Key="Action" TargetType="Button">
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="HeightRequest" Value="44" />
-            <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="BackgroundColor" Value="#2C3E50" />
-            <Setter Property="TextColor" Value="White" />
-            <Setter Property="Padding" Value="10,0" />
+        <!-- one row of a tool's list; the hairline on top keeps rows apart inside the card -->
+        <Style x:Key="Row" TargetType="Grid">
+            <Setter Property="ColumnSpacing" Value="10" />
+            <Setter Property="Padding" Value="0,10" />
+            <Setter Property="MinimumHeightRequest" Value="48" />
         </Style>
-        <Style x:Key="Section" TargetType="Label">
+        <Style x:Key="RowTitle" TargetType="Label">
             <Setter Property="FontAttributes" Value="Bold" />
             <Setter Property="FontSize" Value="15" />
+            <Setter Property="LineBreakMode" Value="TailTruncation" />
         </Style>
-        <Style x:Key="Hint" TargetType="Label">
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Opacity" Value="0.55" />
+        <Style x:Key="RowSub" TargetType="Label">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextColor" Value="{DynamicResource MutedColor}" />
+            <Setter Property="LineBreakMode" Value="WordWrap" />
         </Style>
-        <!-- Notices are read, not skimmed past, so they keep full opacity and get a border. -->
-        <Style x:Key="Notice" TargetType="Border">
-            <Setter Property="Padding" Value="10,8" />
-            <Setter Property="StrokeThickness" Value="1" />
-            <Setter Property="StrokeShape" Value="RoundRectangle 6" />
-            <Setter Property="BackgroundColor" Value="Transparent" />
+        <Style x:Key="Hairline" TargetType="BoxView">
+            <Setter Property="HeightRequest" Value="1" />
+            <Setter Property="Color" Value="{DynamicResource HairColor}" />
         </Style>
         <Style x:Key="Step" TargetType="Label">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Margin" Value="4,0" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="LineBreakMode" Value="WordWrap" />
         </Style>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="12" RowSpacing="10">
+    <Grid RowDefinitions="Auto,Auto,*" Padding="16,0,16,0" RowSpacing="8">
 
-        <!-- Header banner with a back affordance -->
-        <Border Grid.Row="0" BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
-            <Grid ColumnDefinitions="44,*,44" ColumnSpacing="4" VerticalOptions="Center">
-                <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
-                        BackgroundColor="Transparent" BorderWidth="0" Padding="0"
-                        WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
-                <Label Grid.Column="1" Text="{l:Localize lblToolbox}" TextColor="White" FontAttributes="Bold"
-                       VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
-                <Button Grid.Column="2" Text="⟳" FontSize="18" TextColor="White"
-                        BackgroundColor="Transparent" BorderWidth="0" Padding="0"
-                        WidthRequest="44" HeightRequest="44" Clicked="OnReloadClicked" />
-            </Grid>
-        </Border>
+        <!-- the top bar (#755): Back, the title, reload -->
+        <controls:TopBarView Grid.Row="0" Margin="-16,0" Title="{l:Localize lblToolbox}" BackText="{l:Localize lblRemoteBack}"
+                             BackTapped="OnBackClicked" Action="Glyph" Glyph="⟳" GlyphTapped="OnReloadClicked" />
 
-        <!-- Which TV, and whether the channel is up -->
-        <Label Grid.Row="1" x:Name="StatusLabel" FontSize="12" Opacity="0.7"
+        <!-- which TV, and whether the channel is up -->
+        <Label Grid.Row="1" x:Name="StatusLabel" Style="{StaticResource Hint}" Margin="4,0"
                Text="{l:Localize lblRemoteConnecting}" />
 
         <ScrollView Grid.Row="2">
-            <VerticalStackLayout Spacing="10">
+            <VerticalStackLayout Spacing="10" Padding="0,0,0,24">
 
-                <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxOwnerNote}" />
+                <Label Style="{StaticResource Footnote}" Text="{l:Localize lblToolboxOwnerNote}" LineBreakMode="WordWrap" />
 
                 <!-- Only on a set the probe called hospitality: no Smart Hub, so no app store (#639) -->
-                <Border x:Name="HospitalityNotice" Style="{StaticResource Notice}" Stroke="#C77700" IsVisible="False">
-                    <Label FontSize="12" Text="{l:Localize lblToolboxHospitality}" />
+                <Border x:Name="HospitalityNotice" Style="{StaticResource Notice}" IsVisible="False"
+                        Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}">
+                    <Label FontSize="13" LineBreakMode="WordWrap" TextColor="{DynamicResource WarnColor}" Text="{l:Localize lblToolboxHospitality}" />
                 </Border>
-
-                <!-- The opposite case: an ordinary set with Smart Hub, on which the hospitality tools below
-                     are expected to open nothing. Said up front, so a dead Launch button isn't a mystery. -->
-                <Border x:Name="ConsumerNotice" Style="{StaticResource Notice}" Stroke="#3B7DD8" IsVisible="False">
-                    <Label FontSize="12" Text="{l:Localize lblToolboxConsumer}" />
+                <!-- The opposite case: an ordinary set with Smart Hub, on which the hospitality tools are
+                     expected to open nothing. Said up front, so a dead Launch button isn't a mystery. -->
+                <Border x:Name="ConsumerNotice" Style="{StaticResource Notice}" IsVisible="False"
+                        Stroke="{DynamicResource AccentBrush}" BackgroundColor="{DynamicResource AccentSoftColor}">
+                    <Label FontSize="13" LineBreakMode="WordWrap" Text="{l:Localize lblToolboxConsumer}" />
                 </Border>
 
                 <!-- ============ Open an app ============ -->
-                <Border Style="{StaticResource Card}">
+                <controls:ExpanderSection Title="{l:Localize lblToolboxApps}" IsExpanded="True">
                     <VerticalStackLayout Spacing="8">
-                        <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxApps}" />
                         <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxAppsHint}" />
                         <Label x:Name="OfflineHint" Style="{StaticResource Hint}" IsVisible="False"
                                Text="{l:Localize lblToolboxAppsOffline}" />
 
-                        <SearchBar x:Name="AppSearch" Placeholder="{l:Localize lblToolboxFilter}"
-                                   TextChanged="OnFilterChanged" />
+                        <Border Style="{StaticResource Field}">
+                            <Entry x:Name="AppSearch" Placeholder="{l:Localize lblToolboxFilter}" BackgroundColor="Transparent"
+                                   ReturnType="Search" TextChanged="OnFilterChanged" />
+                        </Border>
 
-                        <VerticalStackLayout x:Name="AppList" Spacing="4">
+                        <VerticalStackLayout x:Name="AppList" Spacing="0">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid ColumnDefinitions="36,*,Auto" ColumnSpacing="10" Padding="0,4">
-                                        <Image Grid.Column="0" WidthRequest="36" HeightRequest="36" Aspect="AspectFit"
-                                               VerticalOptions="Center" Source="{Binding IconUrl}" />
-                                        <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
-                                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="14"
-                                                   LineBreakMode="TailTruncation" />
-                                            <Label Text="{Binding Subtitle}" FontSize="11" Opacity="0.55"
-                                                   LineBreakMode="TailTruncation" />
-                                        </VerticalStackLayout>
-                                        <Button Grid.Column="2" Style="{StaticResource Action}" WidthRequest="88"
-                                                Text="{l:Localize lblToolboxLaunch}"
-                                                CommandParameter="{Binding}" Clicked="OnLaunchAppClicked" />
-                                    </Grid>
+                                    <VerticalStackLayout Spacing="0">
+                                        <BoxView Style="{StaticResource Hairline}" />
+                                        <Grid Style="{StaticResource Row}" ColumnDefinitions="40,*,Auto">
+                                            <Border Grid.Column="0" WidthRequest="40" HeightRequest="40" StrokeThickness="0"
+                                                    StrokeShape="RoundRectangle 10" BackgroundColor="{DynamicResource FillColor}"
+                                                    VerticalOptions="Center">
+                                                <Image WidthRequest="40" HeightRequest="40" Aspect="AspectFit" Source="{Binding IconUrl}" />
+                                            </Border>
+                                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                                <Label Style="{StaticResource RowTitle}" Text="{Binding Name}" />
+                                                <Label Style="{StaticResource RowSub}" LineBreakMode="TailTruncation" Text="{Binding Subtitle}" />
+                                            </VerticalStackLayout>
+                                            <Button Grid.Column="2" Style="{StaticResource RowButton}" Text="{l:Localize lblToolboxLaunch}"
+                                                    CommandParameter="{Binding}" Clicked="OnLaunchAppClicked" />
+                                        </Grid>
+                                    </VerticalStackLayout>
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
@@ -114,218 +129,225 @@
                         <!-- An ID from a forum post or a manual, for an app in neither list. Launch goes the
                              usual routes; "0 execute" is sdbd's other launcher verb, which answers in the
                              platform's own words - for a service, or an ID Smart Hub does not know. -->
-                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-                            <Entry Grid.Column="0" x:Name="ManualAppIdEntry" Keyboard="Text"
+                        <BoxView Style="{StaticResource Hairline}" />
+                        <Border Style="{StaticResource Field}" Margin="0,6,0,0">
+                            <Entry x:Name="ManualAppIdEntry" Keyboard="Text" BackgroundColor="Transparent"
                                    Placeholder="{l:Localize lblToolboxManualPlaceholder}" />
-                            <Button Grid.Column="1" Style="{StaticResource Action}" WidthRequest="88"
+                        </Border>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Style="{StaticResource SoftButton}" HeightRequest="44" MinimumHeightRequest="44" Padding="12,0"
                                     Text="{l:Localize lblToolboxLaunch}" Clicked="OnLaunchManualClicked" />
-                            <Button Grid.Column="2" x:Name="ExecuteManualBtn" Style="{StaticResource Action}" WidthRequest="96"
+                            <Button Grid.Column="1" x:Name="ExecuteManualBtn" Style="{StaticResource PlainButton}" HeightRequest="44" MinimumHeightRequest="44" Padding="12,0"
                                     Text="{l:Localize lblToolboxExecute}" Clicked="OnExecuteManualClicked" />
                         </Grid>
                         <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxExecuteHint}" />
                     </VerticalStackLayout>
-                </Border>
+                </controls:ExpanderSection>
 
                 <!-- ============ Hidden system apps ============ -->
-                <!-- Not part of the list above: these are the TV's own menus, addressed by ID because
-                     the key combination that used to open them has stopped answering. They launch
-                     through the debug agent below (#34); without it the SDB attempt still runs so the
-                     TV's own refusal is what the user reads (#641). -->
-                <Border Style="{StaticResource Card}">
+                <!-- The TV's own menus, addressed by ID because the key combination that used to open them
+                     has stopped answering. They launch through the debug agent below (#34); without it the
+                     SDB attempt still runs so the TV's own refusal is what the user reads (#641). -->
+                <controls:ExpanderSection Title="{l:Localize lblToolboxSystemApps}">
                     <VerticalStackLayout Spacing="8">
-                        <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxSystemApps}" />
                         <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxSystemAppsHint}" />
-
-                        <VerticalStackLayout x:Name="SystemAppList" Spacing="10">
+                        <VerticalStackLayout x:Name="SystemAppList" Spacing="0">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" Padding="0,4">
-                                        <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
-                                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="14" />
-                                            <Label Text="{Binding AppId}" FontSize="11" Opacity="0.55" />
-                                            <Label Text="{Binding Description}" FontSize="11" Opacity="0.55" />
-                                            <Label Text="{l:Localize lblToolboxSystemAppCaution}" FontSize="11"
-                                                   TextColor="#C77700" IsVisible="{Binding IsCaution}" />
-                                        </VerticalStackLayout>
-                                        <Button Grid.Column="1" Style="{StaticResource Action}" WidthRequest="88"
-                                                Text="{l:Localize lblToolboxLaunch}"
-                                                CommandParameter="{Binding}" Clicked="OnLaunchSystemAppClicked" />
-                                    </Grid>
+                                    <VerticalStackLayout Spacing="0">
+                                        <BoxView Style="{StaticResource Hairline}" />
+                                        <Grid Style="{StaticResource Row}" ColumnDefinitions="*,Auto">
+                                            <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                                                <Label Style="{StaticResource RowTitle}" Text="{Binding Name}" />
+                                                <Label Style="{StaticResource RowSub}" Text="{Binding Description}" />
+                                                <Label FontSize="12" TextColor="{DynamicResource MutedColor}" Text="{Binding AppId}" FontFamily="monospace" />
+                                                <Label FontSize="12" TextColor="{DynamicResource WarnColor}" LineBreakMode="WordWrap"
+                                                       Text="{l:Localize lblToolboxSystemAppCaution}" IsVisible="{Binding IsCaution}" />
+                                            </VerticalStackLayout>
+                                            <Button Grid.Column="1" Style="{StaticResource RowButton}" Text="{l:Localize lblToolboxLaunch}"
+                                                    CommandParameter="{Binding}" Clicked="OnLaunchSystemAppClicked" />
+                                        </Grid>
+                                    </VerticalStackLayout>
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
                     </VerticalStackLayout>
-                </Border>
+                </controls:ExpanderSection>
 
                 <!-- ============ Debug agent ============ -->
-                <!-- The route that reaches the rows above (#34): an app of ours on the TV, driven over
-                     the web inspector, asking the platform's own application manager. Also the one
-                     honest app list a hospitality set has. Needs Developer Mode. -->
-                <Border x:Name="AgentCard" Style="{StaticResource Card}">
+                <!-- The route that reaches the rows above (#34): an app of ours on the TV, driven over the
+                     web inspector, asking the platform's own application manager. Also the one honest app
+                     list a hospitality set has. Needs Developer Mode. -->
+                <controls:ExpanderSection x:Name="AgentCard" Title="{l:Localize lblToolboxAgent}">
                     <VerticalStackLayout Spacing="8">
-                        <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxAgent}" />
                         <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxAgentHint}" />
                         <Label x:Name="AgentNeedsSdbHint" Style="{StaticResource Hint}" IsVisible="False"
                                Text="{l:Localize lblToolboxAgentNeedsSdb}" />
 
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                            <Button Grid.Column="0" x:Name="AttachAgentBtn" Style="{StaticResource Action}"
+                            <Button Grid.Column="0" x:Name="AttachAgentBtn" HeightRequest="44" MinimumHeightRequest="44"
                                     Text="{l:Localize lblToolboxAgentAttach}" Clicked="OnAttachAgentClicked" />
-                            <Button Grid.Column="1" x:Name="DetachAgentBtn" Style="{StaticResource Action}" WidthRequest="100"
+                            <Button Grid.Column="1" x:Name="DetachAgentBtn" Style="{StaticResource PlainButton}" HeightRequest="44" MinimumHeightRequest="44" Padding="16,0"
                                     Text="{l:Localize lblToolboxAgentDetach}" Clicked="OnDetachAgentClicked" IsEnabled="False" />
                         </Grid>
-                        <Label x:Name="AgentStatusLabel" FontSize="12" Opacity="0.8" />
+                        <Label x:Name="AgentStatusLabel" Style="{StaticResource Report}" />
 
                         <VerticalStackLayout x:Name="AgentSection" Spacing="8" IsVisible="False">
-                            <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxAgentApps}" />
+                            <BoxView Style="{StaticResource Hairline}" Margin="0,4" />
+                            <Label Style="{StaticResource RowTitle}" Text="{l:Localize lblToolboxAgentApps}" />
                             <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxAgentAppsHint}" />
 
-                            <SearchBar x:Name="AgentSearch" Placeholder="{l:Localize lblToolboxFilter}"
-                                       TextChanged="OnAgentFilterChanged" />
+                            <Border Style="{StaticResource Field}">
+                                <Entry x:Name="AgentSearch" Placeholder="{l:Localize lblToolboxFilter}" BackgroundColor="Transparent"
+                                       ReturnType="Search" TextChanged="OnAgentFilterChanged" />
+                            </Border>
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                <Label Grid.Column="0" FontSize="12" Opacity="0.7" VerticalOptions="Center"
+                                <Label Grid.Column="0" Style="{StaticResource RowSub}" VerticalOptions="Center"
                                        Text="{l:Localize lblToolboxAgentHiddenOnly}" />
                                 <Switch Grid.Column="1" x:Name="AgentHiddenOnly" Toggled="OnAgentFilterChanged" />
                             </Grid>
 
-                            <VerticalStackLayout x:Name="AgentAppList" Spacing="4">
+                            <VerticalStackLayout x:Name="AgentAppList" Spacing="0">
                                 <BindableLayout.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" Padding="0,4">
-                                            <VerticalStackLayout Grid.Column="0" Spacing="1" VerticalOptions="Center">
-                                                <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="14"
-                                                       LineBreakMode="TailTruncation" />
-                                                <Label Text="{Binding Subtitle}" FontSize="11" Opacity="0.55"
-                                                       LineBreakMode="TailTruncation" />
-                                            </VerticalStackLayout>
-                                            <Button Grid.Column="1" Style="{StaticResource Action}" WidthRequest="80"
-                                                    Text="{l:Localize lblToolboxLaunch}"
-                                                    CommandParameter="{Binding}" Clicked="OnLaunchAgentAppClicked" />
-                                            <Button Grid.Column="2" Style="{StaticResource Action}" WidthRequest="100"
-                                                    Text="{l:Localize lblToolboxAgentAppControl}"
-                                                    CommandParameter="{Binding}" Clicked="OnLaunchAgentAppControlClicked" />
-                                        </Grid>
+                                        <VerticalStackLayout Spacing="0">
+                                            <BoxView Style="{StaticResource Hairline}" />
+                                            <Grid Style="{StaticResource Row}" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                                                <VerticalStackLayout Grid.Column="0" Spacing="1" VerticalOptions="Center">
+                                                    <Label Style="{StaticResource RowTitle}" Text="{Binding Name}" />
+                                                    <Label Style="{StaticResource RowSub}" LineBreakMode="TailTruncation" Text="{Binding Subtitle}" />
+                                                </VerticalStackLayout>
+                                                <Button Grid.Column="1" Style="{StaticResource RowButton}" Text="{l:Localize lblToolboxLaunch}"
+                                                        CommandParameter="{Binding}" Clicked="OnLaunchAgentAppClicked" />
+                                                <Button Grid.Column="2" Style="{StaticResource RowButton}" BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}"
+                                                        Text="{l:Localize lblToolboxAgentAppControl}"
+                                                        CommandParameter="{Binding}" Clicked="OnLaunchAgentAppControlClicked" />
+                                            </Grid>
+                                        </VerticalStackLayout>
                                     </DataTemplate>
                                 </BindableLayout.ItemTemplate>
                             </VerticalStackLayout>
 
                             <!-- Anything not a button yet, straight into the agent -->
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                <Entry Grid.Column="0" x:Name="AgentExpression" Keyboard="Text"
+                            <BoxView Style="{StaticResource Hairline}" />
+                            <Border Style="{StaticResource Field}" Margin="0,6,0,0">
+                                <Entry x:Name="AgentExpression" Keyboard="Text" BackgroundColor="Transparent"
                                        Placeholder="{l:Localize lblToolboxAgentEvaluatePlaceholder}" />
-                                <Button Grid.Column="1" Style="{StaticResource Action}" WidthRequest="100"
-                                        Text="{l:Localize lblToolboxAgentEvaluate}" Clicked="OnEvaluateAgentClicked" />
-                            </Grid>
+                            </Border>
+                            <Button Style="{StaticResource SoftButton}" HeightRequest="44" MinimumHeightRequest="44"
+                                    Text="{l:Localize lblToolboxAgentEvaluate}" Clicked="OnEvaluateAgentClicked" />
                             <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxAgentEvaluateHint}" />
-                            <Label x:Name="AgentExpressionResult" FontSize="11" FontFamily="monospace" LineBreakMode="WordWrap" />
+                            <Label x:Name="AgentExpressionResult" FontSize="12" FontFamily="monospace" LineBreakMode="WordWrap" />
                         </VerticalStackLayout>
                     </VerticalStackLayout>
-                </Border>
+                </controls:ExpanderSection>
 
                 <!-- ============ Install leftovers ============ -->
                 <!-- sdbd pushes every package to /home/owner/share/tmp/sdk_tools and leaves it there; its own
                      "0 rmfile" verb is accepted but deletes nothing on retail firmware. The agent runs as that
                      folder's owner, so it lists and clears the folder itself. Clear takes package files only;
-                     any other file goes by its own ✕ (#681). Installed apps are not involved. Needs the agent
-                     attached. -->
-                <Border x:Name="StagingCard" Style="{StaticResource Card}">
+                     any other file goes by its own ✕ (#681). Needs the agent attached. -->
+                <controls:ExpanderSection x:Name="StagingCard" Title="{l:Localize lblToolboxStaging}">
                     <VerticalStackLayout Spacing="8">
-                        <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxStaging}" />
                         <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxStagingHint}" />
                         <Label x:Name="StagingNeedsAgentHint" Style="{StaticResource Hint}"
                                Text="{l:Localize lblToolboxStagingNeedsAgent}" />
 
                         <VerticalStackLayout x:Name="StagingSection" Spacing="8" IsVisible="False">
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                <Button Grid.Column="0" x:Name="ClearStagingBtn" Style="{StaticResource Action}"
+                                <Button Grid.Column="0" x:Name="ClearStagingBtn" Style="{StaticResource DangerButton}" HeightRequest="44" MinimumHeightRequest="44"
                                         Text="{l:Localize lblToolboxStagingClear}" Clicked="OnClearStagingClicked" IsEnabled="False" />
-                                <Button Grid.Column="1" x:Name="RefreshStagingBtn" Style="{StaticResource Action}" WidthRequest="100"
+                                <Button Grid.Column="1" x:Name="RefreshStagingBtn" Style="{StaticResource PlainButton}" HeightRequest="44" MinimumHeightRequest="44" Padding="16,0"
                                         Text="{l:Localize lblToolboxStagingRefresh}" Clicked="OnRefreshStagingClicked" />
                             </Grid>
-                            <Label x:Name="StagingStatusLabel" FontSize="12" Opacity="0.8" />
+                            <Label x:Name="StagingStatusLabel" Style="{StaticResource Report}" />
 
-                            <VerticalStackLayout x:Name="StagedFileList" Spacing="2">
+                            <VerticalStackLayout x:Name="StagedFileList" Spacing="0">
                                 <BindableLayout.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-                                            <Label Grid.Column="0" Text="{Binding Name}" FontSize="12"
-                                                   LineBreakMode="TailTruncation" VerticalOptions="Center" />
-                                            <Label Grid.Column="1" Text="{Binding Detail}" FontSize="11" Opacity="0.55"
-                                                   VerticalOptions="Center" />
-                                            <Button Grid.Column="2" Text="✕" FontSize="12" Padding="10,0"
-                                                    HeightRequest="32" MinimumWidthRequest="40" VerticalOptions="Center"
-                                                    IsVisible="{Binding CanDelete}"
-                                                    SemanticProperties.Description="{l:Localize lblToolboxStagingDelete}"
-                                                    CommandParameter="{Binding}" Clicked="OnDeleteStagedFileClicked" />
-                                        </Grid>
+                                        <VerticalStackLayout Spacing="0">
+                                            <BoxView Style="{StaticResource Hairline}" />
+                                            <Grid Style="{StaticResource Row}" ColumnDefinitions="*,Auto,Auto" Padding="0,6" MinimumHeightRequest="40">
+                                                <Label Grid.Column="0" FontSize="13" LineBreakMode="TailTruncation" VerticalOptions="Center" Text="{Binding Name}" />
+                                                <Label Grid.Column="1" Style="{StaticResource RowSub}" VerticalOptions="Center" Text="{Binding Detail}" />
+                                                <Button Grid.Column="2" Text="✕" Style="{StaticResource IconButton}" WidthRequest="32" HeightRequest="32"
+                                                        MinimumWidthRequest="32" MinimumHeightRequest="32" CornerRadius="16" FontSize="12"
+                                                        TextColor="{DynamicResource BadColor}" IsVisible="{Binding CanDelete}"
+                                                        SemanticProperties.Description="{l:Localize lblToolboxStagingDelete}"
+                                                        CommandParameter="{Binding}" Clicked="OnDeleteStagedFileClicked" />
+                                            </Grid>
+                                        </VerticalStackLayout>
                                     </DataTemplate>
                                 </BindableLayout.ItemTemplate>
                             </VerticalStackLayout>
                         </VerticalStackLayout>
                     </VerticalStackLayout>
-                </Border>
+                </controls:ExpanderSection>
 
                 <!-- ============ Service menu ============ -->
-                <Border Style="{StaticResource Card}">
+                <controls:ExpanderSection Title="{l:Localize lblToolboxSequences}">
                     <VerticalStackLayout Spacing="8">
-                        <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxSequences}" />
                         <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxSequencesHint}" />
 
-                        <VerticalStackLayout x:Name="SequenceList" Spacing="10">
+                        <VerticalStackLayout x:Name="SequenceList" Spacing="0">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                        <VerticalStackLayout Grid.Column="0" Spacing="2">
-                                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="14" />
-                                            <Label Text="{Binding Keys}" FontSize="11" Opacity="0.75" />
-                                            <Label Text="{Binding Description}" FontSize="11" Opacity="0.55" />
-                                            <Label Text="{Binding Caveat}" FontSize="11" Opacity="0.75"
-                                                   IsVisible="{Binding HasCaveat}" />
-                                        </VerticalStackLayout>
-                                        <Button Grid.Column="1" Style="{StaticResource Action}" WidthRequest="88"
-                                                VerticalOptions="Center" Text="{l:Localize lblToolboxSend}"
-                                                CommandParameter="{Binding}" Clicked="OnSendSequenceClicked" />
-                                    </Grid>
-                                </DataTemplate>
-                            </BindableLayout.ItemTemplate>
-                        </VerticalStackLayout>
-
-                        <!-- Timing is the whole reason for sending these over the network -->
-                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-                            <Label Grid.Column="0" FontSize="12" Opacity="0.7" VerticalOptions="Center"
-                                   Text="{l:Localize lblToolboxGap}" />
-                            <Slider Grid.Column="1" x:Name="GapSlider" Minimum="100" Maximum="600" Value="250"
-                                    VerticalOptions="Center" />
-                            <Label Grid.Column="2" FontSize="12" Opacity="0.8" VerticalOptions="Center"
-                                   Text="{Binding Source={x:Reference GapSlider}, Path=Value, StringFormat='{0:0} ms'}" />
-                        </Grid>
-                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxGapHint}" />
-                    </VerticalStackLayout>
-                </Border>
-
-                <!-- ============ Combinations that start from standby ============ -->
-                <!-- Printed rather than offered: a sleeping set serves no channel, so a button for one
-                     of these could never fire. They are also the sequences most likely to rescue a
-                     locked set, which is why they are here at all (#639). -->
-                <Border Style="{StaticResource Card}">
-                    <VerticalStackLayout Spacing="8">
-                        <Label Style="{StaticResource Section}" Text="{l:Localize lblToolboxStandbySequences}" />
-                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxStandbyNote}" />
-
-                        <VerticalStackLayout x:Name="StandbySequenceList" Spacing="10">
-                            <BindableLayout.ItemTemplate>
-                                <DataTemplate>
-                                    <VerticalStackLayout Spacing="2">
-                                        <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="14" />
-                                        <Label Text="{Binding Keys}" FontSize="11" Opacity="0.75" />
-                                        <Label Text="{Binding Description}" FontSize="11" Opacity="0.55" />
+                                    <VerticalStackLayout Spacing="0">
+                                        <BoxView Style="{StaticResource Hairline}" />
+                                        <Grid Style="{StaticResource Row}" ColumnDefinitions="*,Auto">
+                                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                                <Label Style="{StaticResource RowTitle}" Text="{Binding Name}" />
+                                                <Label FontSize="13" FontFamily="monospace" Text="{Binding Keys}" />
+                                                <Label Style="{StaticResource RowSub}" Text="{Binding Description}" />
+                                                <Label FontSize="12" TextColor="{DynamicResource WarnColor}" LineBreakMode="WordWrap"
+                                                       Text="{Binding Caveat}" IsVisible="{Binding HasCaveat}" />
+                                            </VerticalStackLayout>
+                                            <Button Grid.Column="1" Style="{StaticResource RowButton}" Text="{l:Localize lblToolboxSend}"
+                                                    CommandParameter="{Binding}" Clicked="OnSendSequenceClicked" />
+                                        </Grid>
                                     </VerticalStackLayout>
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
 
-                        <Label FontSize="12" Text="{l:Localize lblToolboxStandbyHowTo}" />
-                        <VerticalStackLayout x:Name="StandbyStepList" Spacing="3">
+                        <!-- Timing is the whole reason for sending these over the network -->
+                        <BoxView Style="{StaticResource Hairline}" />
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Margin="0,4,0,0">
+                            <Label Grid.Column="0" Style="{StaticResource RowSub}" VerticalOptions="Center" Text="{l:Localize lblToolboxGap}" />
+                            <Slider Grid.Column="1" x:Name="GapSlider" Minimum="100" Maximum="600" Value="250" VerticalOptions="Center" />
+                            <Label Grid.Column="2" FontSize="13" VerticalOptions="Center" FontFamily="monospace"
+                                   Text="{Binding Source={x:Reference GapSlider}, Path=Value, StringFormat='{0:0} ms'}" />
+                        </Grid>
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxGapHint}" />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
+
+                <!-- ============ Combinations that start from standby ============ -->
+                <!-- Printed rather than offered: a sleeping set serves no channel, so a button for one of
+                     these could never fire. They are also the sequences most likely to rescue a locked
+                     set, which is why they are here at all (#639). -->
+                <controls:ExpanderSection Title="{l:Localize lblToolboxStandbySequences}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxStandbyNote}" />
+
+                        <VerticalStackLayout x:Name="StandbySequenceList" Spacing="0">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <VerticalStackLayout Spacing="0">
+                                        <BoxView Style="{StaticResource Hairline}" />
+                                        <VerticalStackLayout Spacing="2" Padding="0,10">
+                                            <Label Style="{StaticResource RowTitle}" Text="{Binding Name}" />
+                                            <Label FontSize="13" FontFamily="monospace" Text="{Binding Keys}" />
+                                            <Label Style="{StaticResource RowSub}" Text="{Binding Description}" />
+                                        </VerticalStackLayout>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <BoxView Style="{StaticResource Hairline}" />
+                        <Label Style="{StaticResource RowTitle}" Margin="0,6,0,0" Text="{l:Localize lblToolboxStandbyHowTo}" />
+                        <VerticalStackLayout x:Name="StandbyStepList" Spacing="4">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate>
                                     <Label Style="{StaticResource Step}" Text="{Binding}" />
@@ -333,11 +355,11 @@
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
 
-                        <Border Style="{StaticResource Notice}" Stroke="#B3261E">
-                            <Label FontSize="12" Text="{l:Localize lblToolboxStandbyWarning}" />
+                        <Border Style="{StaticResource Notice}" Stroke="{DynamicResource BadBrush}" BackgroundColor="{DynamicResource BadSoftColor}">
+                            <Label FontSize="13" LineBreakMode="WordWrap" TextColor="{DynamicResource BadColor}" Text="{l:Localize lblToolboxStandbyWarning}" />
                         </Border>
                     </VerticalStackLayout>
-                </Border>
+                </controls:ExpanderSection>
 
             </VerticalStackLayout>
         </ScrollView>

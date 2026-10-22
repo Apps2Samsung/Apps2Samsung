@@ -1,0 +1,107 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+        mc:Ignorable="d"
+        x:Class="Apps2Samsung.InstallationCompleteWindow"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        x:DataType="viewModels:InstallationCompleteViewModel"
+        Title="{Binding Title}"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        SizeToContent="WidthAndHeight"
+		ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1">
+	<!-- Solid background -->
+
+	<Window.Styles>
+		<StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>
+		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/TextBlocks.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/ComboBoxes.axaml"/>
+	</Window.Styles>
+
+	<Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+            Padding="10"
+            CornerRadius="8"
+            Margin="20"
+		    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1">
+		<Border.Effect>
+			<DropShadowEffect BlurRadius="15"
+                              OffsetX="2" OffsetY="2"
+                              Color="{StaticResource ShadowColor}"
+                              Opacity="0.15"/>
+		</Border.Effect>
+
+		<StackPanel Margin="20" HorizontalAlignment="Center" Spacing="14">
+
+			<!-- ✅ Icon -->
+			<TextBlock Text="✅"
+                       FontSize="40"
+                       TextAlignment="Center"
+                       HorizontalAlignment="Center"/>
+
+			<!-- Success Message -->
+			<TextBlock Text="{Binding SuccessMessage}"
+                       TextWrapping="Wrap"
+                       FontSize="16"
+                       TextAlignment="Center"
+                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                       FontWeight="Medium"/>
+
+			<!-- Extra Info -->
+			<TextBlock Text="{Binding EasyRight}"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                       FontSize="14"/>
+
+			<!-- Ko-fi QR Code -->
+			<Border Background="White"
+			        CornerRadius="6"
+			        Padding="8"
+			        HorizontalAlignment="Center">
+				<Image Source="avares://Apps2Samsung/Assets/ko-fi-qr.webp"
+				       Width="160"
+				       Height="160"
+				       Stretch="Uniform"
+				       ToolTip.Tip="{Binding Validation}"/>
+			</Border>
+
+			<!-- Action Buttons -->
+			<StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Spacing="20"
+                        Margin="0,12,0,0">
+
+				<!-- Ko-fi Button -->
+				<Button Content="{Binding Validation}"
+                        Command="{Binding OpenKoFiCommand}"
+                        Background="{DynamicResource AccentBrush}"
+                        Foreground="{DynamicResource OnAccentBrush}"
+                        BorderThickness="2"
+                        CornerRadius="6"
+                        Padding="15,8"
+                        FontWeight="Medium"
+                        Cursor="Hand"/>
+
+				<!-- Close Button -->
+				<Button Content="{Binding Close}"
+                        Command="{Binding CloseWindowCommand}"
+                        Background="{DynamicResource AccentBrush}"
+                        Foreground="{DynamicResource OnAccentBrush}"
+                        BorderThickness="0"
+                        CornerRadius="6"
+                        Padding="15,8"
+                        Width="90"
+                        FontWeight="Medium"
+                        Cursor="Hand"/>
+			</StackPanel>
+		</StackPanel>
+	</Border>
+</Window>

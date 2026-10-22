@@ -1,617 +1,97 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using Apps2Samsung.Backup;
-using Apps2Samsung.Certificate;
-using Apps2Samsung.Collections;
-using Apps2Samsung.Interfaces;
 using Apps2Samsung.Mobile.Localization;
+using Apps2Samsung.Mobile.Resources.Styles;
 using Apps2Samsung.Mobile.Services;
-using Apps2Samsung.Packaging;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Maui.ApplicationModel.DataTransfer;
-using Microsoft.Maui.Storage;
+using Microsoft.Maui.ApplicationModel;
 
 namespace Apps2Samsung.Mobile.Pages;
 
+/// <summary>
+/// The Settings hub (#755): the update card and Beta toggle, then a row per area that pushes its own
+/// page. The pages themselves hold the settings; this one only summarises them.
+/// </summary>
 public partial class SettingsPage : ContentPage
 {
 	private bool _loaded;
-	private readonly List<ChannelRow> _channelRows = new();
-	private readonly List<CameraRow> _cameraRows = new();
-
-	private sealed record ChannelRow(View Container, Entry Name, Entry Url);
-	private sealed record CameraRow(View Container, Entry Name, Entry VideoUrl, Entry MjpegUrl);
 
 	public SettingsPage()
 	{
 		InitializeComponent();
+		AppVersionLabel.Text = $"{L10n.Get("lblVersion")} {AppInfo.Current.VersionString}";
+		// Shows the app version (ApplicationDisplayVersion), so it stays in sync with the build.
+		VersionLabel.Text = $"v{AppInfo.Current.VersionString}";
 	}
 
 	protected override void OnAppearing()
 	{
 		base.OnAppearing();
 
-		// Load current values without firing the change handlers.
+		// Load current values without firing the change handlers; a sub-page may have changed them.
 		_loaded = false;
-		LoadLanguages();
-		TokenEntry.Text = MobileSettings.GitHubToken;
-		DuidsEditor.Text = MobileSettings.ManualDuids;
-		RemoveOldSwitch.IsToggled = MobileSettings.DeletePreviousInstall;
-		OpenAfterSwitch.IsToggled = MobileSettings.OpenAfterInstall;
-		KeepWgtSwitch.IsToggled = MobileSettings.KeepWgtFile;
-		ShowAllJfSwitch.IsToggled = MobileSettings.ShowAllJellyfinVersions;
 		BetaUpdatesSwitch.IsToggled = MobileSettings.IncludeBetaUpdates;
-		LoadCertificatePicker();
-		TryOverwriteSwitch.IsToggled = MobileSettings.TryOverwrite;
-		ForceLoginSwitch.IsToggled = MobileSettings.ForceSamsungLogin;
-
-		TizenTubeProxySwitch.IsToggled = MobileSettings.TizenTubeProxyOverride;
-		TizenTubeProxyHostEntry.Text = MobileSettings.TizenTubeProxyHost;
-		TizenTubeProxyHostError.IsVisible = false;
-
-		ChannelsContainer.Children.Clear();
-		_channelRows.Clear();
-		foreach (var channel in MobileSettings.GetTvAppChannels())
-			AddChannelRow(channel.Name, channel.Url);
-
-		ImmiTvServerEntry.Text = MobileSettings.ImmiTvServerUrl;
-		ImmiTvEmailEntry.Text = MobileSettings.ImmiTvEmail;
-		ImmiTvPasswordEntry.Text = MobileSettings.ImmiTvPassword;
-		ImmiTvApiKeyEntry.Text = MobileSettings.ImmiTvApiKey;
-
-		LoadCameraPip();
-
+		InstallingSummary.Text = CertificateName(MobileSettings.CertificatePreference);
+		LanguageSummary.Text = L10n.GetDisplayName(L10n.CurrentLanguage);
+		ShowUpdateState();
 		_loaded = true;
 	}
 
-	private async void OnBackClicked(object? sender, EventArgs e) => await Navigation.PopAsync();
+	/// <summary>The certificate choice as the Installing page's switch names it.</summary>
+	internal static string CertificateName(string preference) =>
+		preference == MobileSettings.CertificatePreferenceAuto ? L10n.Get("lblCertificateAutomatic") : preference;
 
-	private async void OnAppIconsClicked(object? sender, EventArgs e) =>
-		await Navigation.PushAsync(IPlatformApplication.Current!.Services.GetRequiredService<AppIconsPage>());
-
-	private async void OnJellyfinClicked(object? sender, EventArgs e) => await Navigation.PushAsync(new JellyfinSettingsPage());
-
-	// Hands the current session's debug log to the OS share sheet. The file lives in private app
-	// storage (FileSystem.AppDataDirectory/Logs) with no way to reach it otherwise, so this is how a
-	// user gets logs off the phone when reporting an issue. Saving is set up in MauiProgram via FileLog.
-	private async void OnShareLogClicked(object? sender, EventArgs e)
+	// Where the app stands, from the last update check that got an answer (the quiet one at startup
+	// or a manual one): up to date, a newer version, or not checked yet.
+	private void ShowUpdateState()
 	{
-		var logPath = Apps2Samsung.Diagnostics.FileLog.CurrentLogFile;
-		if (string.IsNullOrEmpty(logPath) || !File.Exists(logPath))
+		var result = IPlatformApplication.Current?.Services.GetService<UpdateFlow>()?.LastResult;
+		string? dot = null;
+		if (result is null)
+			UpdateStateLabel.Text = L10n.Get("lblUpdateNotChecked");
+		else if (result.IsUpdateAvailable)
 		{
-			await DisplayAlert(L10n.Get("lblDebugLog"), L10n.Get("statusNoLogFile"), L10n.Get("btn_Close"));
-			return;
+			UpdateStateLabel.Text = string.Format(L10n.Get("lblUpdateAvailableShort"), result.LatestVersion);
+			dot = "Warn";
 		}
+		else
+		{
+			UpdateStateLabel.Text = L10n.Get("lblUpToDate");
+			dot = "Ok";
+		}
+		UpdateDot.IsVisible = dot is not null;
+		if (dot is not null)
+			UpdateDot.Fill = new SolidColorBrush(DesignTheme.ColorOf(dot));
+	}
 
+	// The manual update check: every outcome is reported, and a skipped version is offered again.
+	private async void OnCheckUpdatesClicked(object? sender, EventArgs e)
+	{
+		CheckUpdatesBtn.IsEnabled = false;
+		UpdateStateLabel.Text = L10n.Get("UpdateChecking");
 		try
 		{
-			await Share.Default.RequestAsync(new ShareFileRequest
-			{
-				Title = "Apps2Samsung debug log",
-				File = new ShareFile(logPath),
-			});
+			var updates = IPlatformApplication.Current!.Services.GetRequiredService<UpdateFlow>();
+			await updates.RunAsync(this, manual: true);
 		}
-		catch (Exception ex)
+		finally
 		{
-			await DisplayAlert(L10n.Get("lblDebugLog"), string.Format(L10n.Get("statusLogShareFailed"), ex.Message), L10n.Get("btn_Close"));
+			CheckUpdatesBtn.IsEnabled = true;
+			ShowUpdateState();
 		}
 	}
 
-	// ---- Backup (export/import of settings + signing certificates) ----
-	// Uses the head-agnostic Apps2Samsung.Backup.BackupService: the archive holds a settings.json
-	// (desktop AppSettings schema, so configs move PC ↔ Mac ↔ mobile) plus the whole Certificate/ tree.
-
-	private static string CertStorePath => new MobileAppConfig().CertificateStorePath;
-
-	// Serialize the mobile settings into the shared desktop AppSettings JSON schema.
-	private static string BuildSettingsJson()
-	{
-		var obj = new JsonObject
-		{
-			["DeletePreviousInstall"] = MobileSettings.DeletePreviousInstall,
-			["OpenAfterInstall"] = MobileSettings.OpenAfterInstall,
-			["KeepWGTFile"] = MobileSettings.KeepWgtFile,
-			["ShowAllJellyfinVersions"] = MobileSettings.ShowAllJellyfinVersions,
-			["ForceSamsungLogin"] = MobileSettings.ForceSamsungLogin,
-			["TryOverwrite"] = MobileSettings.TryOverwrite,
-			["PartnerSigning"] = MobileSettings.PartnerSigning,
-			["ManualDuids"] = MobileSettings.ManualDuids,
-			["GitHubToken"] = MobileSettings.GitHubToken,
-			["JellyfinIP"] = MobileSettings.JellyfinServerUrl,
-			["JellyfinUserId"] = MobileSettings.JellyfinUserId,
-			["JellyfinServerId"] = MobileSettings.JellyfinServerId,
-			["JellyfinServerName"] = MobileSettings.JellyfinServerName,
-			["JellyfinServerLocalAddress"] = MobileSettings.JellyfinServerLocalAddress,
-			["CustomCss"] = MobileSettings.JellyfinCustomCss,
-			["PatchYoutubePlugin"] = MobileSettings.JellyfinPatchYoutube,
-			["JellyfinAccessToken"] = MobileSettings.JellyfinAccessToken,
-			["TvAppChannelsJson"] = MobileSettings.TvAppChannelsJson,
-			["CameraPipConfigJson"] = MobileSettings.CameraPipConfigJson,
-			["ImmiTvServerUrl"] = MobileSettings.ImmiTvServerUrl,
-			["ImmiTvEmail"] = MobileSettings.ImmiTvEmail,
-			["ImmiTvPassword"] = MobileSettings.ImmiTvPassword,
-			["ImmiTvApiKey"] = MobileSettings.ImmiTvApiKey,
-			["TizenTubeProxyOverride"] = MobileSettings.TizenTubeProxyOverride,
-			["TizenTubeProxyHost"] = MobileSettings.TizenTubeProxyHost,
-			["CustomAppIconsJson"] = MobileSettings.CustomAppIconsJson,
-		};
-		return obj.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
-	}
-
-	private async void OnExportBackupClicked(object? sender, EventArgs e)
-	{
-		try
-		{
-			var path = Path.Combine(FileSystem.CacheDirectory, "apps2samsung-backup.zip");
-			using (var stream = File.Create(path))
-				BackupService.Export(stream, BuildSettingsJson(), CertStorePath);
-
-			await Share.Default.RequestAsync(new ShareFileRequest("Apps2Samsung backup", new ShareFile(path)));
-		}
-		catch (Exception ex)
-		{
-			await DisplayAlert(
-				L10n.Get("lblExportBackup"),
-				string.Format(L10n.Get("statusExportBackupFailed"), ErrorText.Describe(ex, "backup/export")),
-				L10n.Get("lblOk"));
-		}
-	}
-
-	private async void OnImportBackupClicked(object? sender, EventArgs e)
-	{
-		try
-		{
-			// Some file managers hand a .zip to the picker as application/octet-stream.
-			var picked = await LocalFilePicker.PickAsync("application/zip", "application/octet-stream");
-			if (picked is null)
-				return;
-
-			BackupImportResult import;
-			using (var stream = File.OpenRead(picked.LocalPath))
-				import = BackupService.Import(stream, CertStorePath);
-
-			if (!string.IsNullOrEmpty(import.SettingsJson))
-				await ApplySettingsJsonAsync(import.SettingsJson!);
-
-			// Make the imported certificate the selected one.
-			DefaultCertificateToImportedProfile();
-
-			// Refresh visible controls from the newly-applied settings.
-			OnAppearing();
-
-			await DisplayAlert(
-				L10n.Get("lblImportBackup"),
-				string.Format(L10n.Get("statusImportedMobile"), import.CertificateFilesRestored),
-				L10n.Get("lblOk"));
-		}
-		catch (Exception ex)
-		{
-			await DisplayAlert(
-				L10n.Get("lblImportBackup"),
-				string.Format(L10n.Get("statusImportBackupFailed"), ErrorText.Describe(ex, "backup/import"))
-					+ "\n\n" + L10n.Get("statusSeeDebugLog"),
-				L10n.Get("lblOk"));
-		}
-	}
-
-	// Map the shared AppSettings JSON keys back onto MobileSettings. Missing keys are left untouched.
-	private static async Task ApplySettingsJsonAsync(string json)
-	{
-		JsonNode? root;
-		try { root = JsonNode.Parse(json); }
-		catch { return; }
-		if (root is not JsonObject o)
-			return;
-
-		bool? GetBool(string key)
-		{
-			try { return o[key]?.GetValue<bool>(); }
-			catch { return null; }
-		}
-		string? GetString(string key)
-		{
-			try { return o[key]?.GetValue<string>(); }
-			catch { return null; }
-		}
-
-		if (GetBool("DeletePreviousInstall") is { } deletePrev) MobileSettings.DeletePreviousInstall = deletePrev;
-		if (GetBool("OpenAfterInstall") is { } openAfter) MobileSettings.OpenAfterInstall = openAfter;
-		if (GetBool("KeepWGTFile") is { } keepWgt) MobileSettings.KeepWgtFile = keepWgt;
-		if (GetBool("ShowAllJellyfinVersions") is { } showAll) MobileSettings.ShowAllJellyfinVersions = showAll;
-		if (GetBool("ForceSamsungLogin") is { } forceLogin) MobileSettings.ForceSamsungLogin = forceLogin;
-		if (GetBool("TryOverwrite") is { } tryOverwrite) MobileSettings.TryOverwrite = tryOverwrite;
-		if (GetBool("PartnerSigning") is { } partner) MobileSettings.PartnerSigning = partner;
-		if (GetBool("PatchYoutubePlugin") is { } patchYt) MobileSettings.JellyfinPatchYoutube = patchYt;
-		if (GetBool("TizenTubeProxyOverride") is { } ttProxy) MobileSettings.TizenTubeProxyOverride = ttProxy;
-
-		if (GetString("ManualDuids") is { } duids) MobileSettings.ManualDuids = duids;
-		if (GetString("JellyfinIP") is { } jfIp) MobileSettings.JellyfinServerUrl = jfIp;
-		if (GetString("JellyfinUserId") is { } jfUser) MobileSettings.JellyfinUserId = jfUser;
-		if (GetString("JellyfinServerId") is { } jfServer) MobileSettings.JellyfinServerId = jfServer;
-		if (GetString("JellyfinServerName") is { } jfName) MobileSettings.JellyfinServerName = jfName;
-		if (GetString("JellyfinServerLocalAddress") is { } jfLocal) MobileSettings.JellyfinServerLocalAddress = jfLocal;
-		if (GetString("CustomCss") is { } css) MobileSettings.JellyfinCustomCss = css;
-		if (GetString("TvAppChannelsJson") is { } channels) MobileSettings.TvAppChannelsJson = channels;
-		if (GetString("CameraPipConfigJson") is { } cameraPip) MobileSettings.CameraPipConfigJson = cameraPip;
-		if (GetString("ImmiTvServerUrl") is { } immiServer) MobileSettings.ImmiTvServerUrl = immiServer;
-		if (GetString("ImmiTvEmail") is { } immiEmail) MobileSettings.ImmiTvEmail = immiEmail;
-		if (GetString("TizenTubeProxyHost") is { } ttHost) MobileSettings.TizenTubeProxyHost = ttHost;
-		if (GetString("CustomAppIconsJson") is { } icons) MobileSettings.CustomAppIconsJson = icons;
-
-		// Secrets go through the async SecureStorage-backed setters.
-		if (GetString("GitHubToken") is { } token) await MobileSettings.SetGitHubTokenAsync(token);
-		if (GetString("JellyfinAccessToken") is { } accessToken) await MobileSettings.SetJellyfinAccessTokenAsync(accessToken);
-		if (GetString("ImmiTvPassword") is { } immiPassword) await MobileSettings.SetImmiTvPasswordAsync(immiPassword);
-		if (GetString("ImmiTvApiKey") is { } immiApiKey) await MobileSettings.SetImmiTvApiKeyAsync(immiApiKey);
-	}
-
-	private void OnToggleTokenVisibility(object? sender, EventArgs e)
-	{
-		TokenEntry.IsPassword = !TokenEntry.IsPassword;
-		TokenEyeBtn.Opacity = TokenEntry.IsPassword ? 1.0 : 0.5;
-	}
-
-	private async void OnTokenUnfocused(object? sender, FocusEventArgs e)
+	private void OnBetaToggled(object? sender, ToggledEventArgs e)
 	{
 		if (_loaded)
-			await MobileSettings.SetGitHubTokenAsync(TokenEntry.Text);
+			MobileSettings.IncludeBetaUpdates = e.Value;
 	}
 
-	// One eye toggle covers both secrets (password + API key), like the GitHub token's.
-	private void OnToggleImmiTvVisibility(object? sender, EventArgs e)
-	{
-		var hide = !ImmiTvPasswordEntry.IsPassword;
-		ImmiTvPasswordEntry.IsPassword = hide;
-		ImmiTvApiKeyEntry.IsPassword = hide;
-		ImmiTvEyeBtn.Opacity = hide ? 1.0 : 0.5;
-	}
+	private async void OnInstallingTapped(object? sender, TappedEventArgs e) => await Navigation.PushAsync(new SettingsInstallPage());
 
-	// Saves all four ImmiTV fields on any of them losing focus; the secrets go through the
-	// async SecureStorage-backed setters.
-	private async void OnImmiTvUnfocused(object? sender, FocusEventArgs e)
-	{
-		if (!_loaded)
-			return;
+	private async void OnAppsTapped(object? sender, TappedEventArgs e) => await Navigation.PushAsync(new SettingsAppsPage());
 
-		MobileSettings.ImmiTvServerUrl = ImmiTvServerEntry.Text ?? string.Empty;
-		MobileSettings.ImmiTvEmail = ImmiTvEmailEntry.Text ?? string.Empty;
-		await MobileSettings.SetImmiTvPasswordAsync(ImmiTvPasswordEntry.Text);
-		await MobileSettings.SetImmiTvApiKeyAsync(ImmiTvApiKeyEntry.Text);
-	}
+	private async void OnLanguageTapped(object? sender, TappedEventArgs e) => await Navigation.PushAsync(new SettingsLanguagePage());
 
-	private void OnDuidsUnfocused(object? sender, FocusEventArgs e)
-	{
-		if (_loaded)
-			MobileSettings.ManualDuids = DuidsEditor.Text ?? string.Empty;
-	}
+	private async void OnBackupTapped(object? sender, TappedEventArgs e) => await Navigation.PushAsync(new SettingsBackupPage());
 
-	private void OnToggle(object? sender, ToggledEventArgs e)
-	{
-		if (!_loaded)
-			return;
-
-		MobileSettings.DeletePreviousInstall = RemoveOldSwitch.IsToggled;
-		MobileSettings.OpenAfterInstall = OpenAfterSwitch.IsToggled;
-		MobileSettings.KeepWgtFile = KeepWgtSwitch.IsToggled;
-		MobileSettings.ShowAllJellyfinVersions = ShowAllJfSwitch.IsToggled;
-		MobileSettings.IncludeBetaUpdates = BetaUpdatesSwitch.IsToggled;
-		MobileSettings.TryOverwrite = TryOverwriteSwitch.IsToggled;
-		MobileSettings.ForceSamsungLogin = ForceLoginSwitch.IsToggled;
-	}
-
-	private void OnTizenTubeProxyToggled(object? sender, ToggledEventArgs e)
-	{
-		if (_loaded)
-			MobileSettings.TizenTubeProxyOverride = e.Value;
-	}
-
-	// Empty means "the TV being installed to"; anything else must be a host[:port] or it isn't saved.
-	private void OnTizenTubeProxyHostUnfocused(object? sender, FocusEventArgs e)
-	{
-		if (!_loaded)
-			return;
-
-		var host = TizenTubeProxyHostEntry.Text?.Trim() ?? string.Empty;
-		var valid = host.Length == 0 || TizenTubeProxyPatcher.TryParseHost(host, out _, out _);
-		TizenTubeProxyHostError.IsVisible = !valid;
-		if (valid)
-			MobileSettings.TizenTubeProxyHost = host;
-	}
-
-	// Populates the certificate picker (Automatic / Public / Partner) and selects the current preference.
-	private void LoadCertificatePicker()
-	{
-		CertificatePicker.ItemsSource ??= new List<string>
-		{
-			MobileSettings.CertificatePreferenceAuto,
-			MobileSettings.CertificatePreferencePublic,
-			MobileSettings.CertificatePreferencePartner,
-		};
-		CertificatePicker.SelectedItem = MobileSettings.CertificatePreference;
-	}
-
-	private void OnCertificateChanged(object? sender, EventArgs e)
-	{
-		if (!_loaded)
-			return;
-		if (CertificatePicker.SelectedItem is string pref)
-			MobileSettings.CertificatePreference = pref;
-	}
-
-	// After an import, default the certificate picker to whichever level profile was restored — so the
-	// imported certificate becomes the selected one (when exactly one level is present).
-	private static void DefaultCertificateToImportedProfile()
-	{
-		var store = CertStorePath;
-		bool Has(CertificatePrivilegeLevel level) =>
-			CertificateProvisioningService.HasUsableAuthorCert(
-				Path.Combine(store, CertificateProvisioningService.ProfileName(level)));
-
-		bool partner = Has(CertificatePrivilegeLevel.Partner);
-		bool pub = Has(CertificatePrivilegeLevel.Public);
-
-		if (partner && !pub)
-			MobileSettings.CertificatePreference = MobileSettings.CertificatePreferencePartner;
-		else if (pub && !partner)
-			MobileSettings.CertificatePreference = MobileSettings.CertificatePreferencePublic;
-		// If both or neither were imported, leave the preference as-is (Automatic covers "both").
-	}
-
-	private void OnAddChannel(object? sender, EventArgs e) => AddChannelRow(string.Empty, string.Empty);
-
-	private void AddChannelRow(string name, string url)
-	{
-		var nameEntry = new Entry { Text = name, Placeholder = "Name", BackgroundColor = Colors.Transparent };
-		var urlEntry = new Entry { Text = url, Placeholder = "https://…/stream.m3u8", BackgroundColor = Colors.Transparent };
-		var upBtn = SmallChannelButton("↑", "#2C3E50");
-		var downBtn = SmallChannelButton("↓", "#2C3E50");
-		var removeBtn = SmallChannelButton("✕", "#B00020");
-
-		// Row 0: name + url. Row 1: reorder (↑ ↓) + remove, right-aligned, so the entries stay wide.
-		var grid = new Grid
-		{
-			ColumnSpacing = 8,
-			RowSpacing = 2,
-			ColumnDefinitions =
-			{
-				new ColumnDefinition(GridLength.Star),
-				new ColumnDefinition(GridLength.Star),
-			},
-			RowDefinitions =
-			{
-				new RowDefinition(GridLength.Auto),
-				new RowDefinition(GridLength.Auto),
-			},
-		};
-		Grid.SetColumn(nameEntry, 0); Grid.SetRow(nameEntry, 0);
-		Grid.SetColumn(urlEntry, 1); Grid.SetRow(urlEntry, 0);
-
-		var buttons = new HorizontalStackLayout { Spacing = 6, HorizontalOptions = LayoutOptions.End };
-		buttons.Children.Add(upBtn);
-		buttons.Children.Add(downBtn);
-		buttons.Children.Add(removeBtn);
-		Grid.SetColumn(buttons, 0); Grid.SetRow(buttons, 1); Grid.SetColumnSpan(buttons, 2);
-
-		grid.Children.Add(nameEntry);
-		grid.Children.Add(urlEntry);
-		grid.Children.Add(buttons);
-
-		var row = new ChannelRow(grid, nameEntry, urlEntry);
-		nameEntry.Unfocused += (_, _) => SaveChannels();
-		urlEntry.Unfocused += (_, _) => SaveChannels();
-		// Channels play on the TV in list order, so let the user reorder them (mirrors the desktop head).
-		upBtn.Clicked += (_, _) => MoveChannelRow(row, -1);
-		downBtn.Clicked += (_, _) => MoveChannelRow(row, +1);
-		removeBtn.Clicked += (_, _) =>
-		{
-			ChannelsContainer.Children.Remove(grid);
-			_channelRows.Remove(row);
-			SaveChannels();
-		};
-
-		_channelRows.Add(row);
-		ChannelsContainer.Children.Add(grid);
-	}
-
-	private static Button SmallChannelButton(string text, string textColor) => new()
-	{
-		Text = text,
-		FontSize = 14,
-		Padding = 0,
-		WidthRequest = 40,
-		HeightRequest = 40,
-		CornerRadius = 6,
-		BackgroundColor = Colors.Transparent,
-		BorderWidth = 1,
-		BorderColor = Color.FromArgb("#CDD3D8"),
-		TextColor = Color.FromArgb(textColor),
-	};
-
-	private void MoveChannelRow(ChannelRow row, int delta)
-	{
-		var i = _channelRows.IndexOf(row);
-		// Shared bounds rule with the desktop head (Core Collections.ListReorder).
-		if (ListReorder.TargetIndex(_channelRows.Count, i, delta) is not int j)
-			return;
-
-		_channelRows.RemoveAt(i);
-		_channelRows.Insert(j, row);
-
-		// Rebuild the visual order to match, then persist.
-		ChannelsContainer.Children.Clear();
-		foreach (var r in _channelRows)
-			ChannelsContainer.Children.Add(r.Container);
-
-		SaveChannels();
-	}
-
-	private void SaveChannels()
-	{
-		if (!_loaded)
-			return;
-
-		// Persist as the {name,url} JSON shape the Core injector expects; skip blank rows.
-		var channels = _channelRows
-			.Select(r => new { name = r.Name.Text ?? string.Empty, url = r.Url.Text ?? string.Empty })
-			.Where(c => !string.IsNullOrWhiteSpace(c.name) || !string.IsNullOrWhiteSpace(c.url))
-			.ToList();
-
-		MobileSettings.TvAppChannelsJson = JsonSerializer.Serialize(channels);
-	}
-
-	// ---- Camera PiP ----
-	// One to four cameras (name + HLS video URL + MJPEG URL), the mosaic style and sound, persisted
-	// as the JSON the shared CameraPipConfigInjector reads at install (mirrors the desktop head).
-
-	private void LoadCameraPip()
-	{
-		var settings = CameraPipConfigInjector.ParseSettingsJson(MobileSettings.CameraPipConfigJson);
-
-		CamerasContainer.Children.Clear();
-		_cameraRows.Clear();
-		foreach (var camera in settings.Cameras.Take(CameraPipSettings.MaxCameras))
-			AddCameraRow(camera.Name, camera.VideoUrl, camera.MjpegUrl);
-		UpdateAddCameraButton();
-
-		// Index 0 = tiled, 1 = overlay — the order of CameraPipMosaicValues.
-		CameraPipMosaicPicker.ItemsSource = new List<string>
-		{
-			L10n.Get("lblCameraPipMosaicTiled"),
-			L10n.Get("lblCameraPipMosaicOverlay"),
-		};
-		CameraPipMosaicPicker.SelectedIndex = settings.MosaicStyle == CameraPipSettings.MosaicOverlay ? 1 : 0;
-		CameraPipSoundSwitch.IsToggled = settings.Sound;
-	}
-
-	private static readonly string[] CameraPipMosaicValues = { CameraPipSettings.MosaicTiled, CameraPipSettings.MosaicOverlay };
-
-	private void OnAddCamera(object? sender, EventArgs e)
-	{
-		AddCameraRow(string.Empty, string.Empty, string.Empty);
-		UpdateAddCameraButton();
-	}
-
-	private void OnCameraPipMosaicChanged(object? sender, EventArgs e) => SaveCameraPip();
-
-	private void OnCameraPipSoundToggled(object? sender, ToggledEventArgs e) => SaveCameraPip();
-
-	// The app composes at most four cameras, so the button goes away at the limit.
-	private void UpdateAddCameraButton() => AddCameraBtn.IsVisible = _cameraRows.Count < CameraPipSettings.MaxCameras;
-
-	private void AddCameraRow(string name, string videoUrl, string mjpegUrl)
-	{
-		if (_cameraRows.Count >= CameraPipSettings.MaxCameras)
-			return;
-
-		var nameEntry = new Entry { Text = name, Placeholder = L10n.Get("lblCameraName"), BackgroundColor = Colors.Transparent };
-		var videoEntry = new Entry { Text = videoUrl, Placeholder = "http://…:8090/front.m3u8", Keyboard = Keyboard.Url, BackgroundColor = Colors.Transparent };
-		var mjpegEntry = new Entry { Text = mjpegUrl, Placeholder = "http://…:5000/api/front?h=360&fps=3", Keyboard = Keyboard.Url, BackgroundColor = Colors.Transparent };
-		var removeBtn = SmallChannelButton("✕", "#B00020");
-
-		// Row 0: name + remove. Rows 1 and 2: the two stream URLs, full width.
-		var grid = new Grid
-		{
-			ColumnSpacing = 8,
-			RowSpacing = 2,
-			ColumnDefinitions =
-			{
-				new ColumnDefinition(GridLength.Star),
-				new ColumnDefinition(GridLength.Auto),
-			},
-			RowDefinitions =
-			{
-				new RowDefinition(GridLength.Auto),
-				new RowDefinition(GridLength.Auto),
-				new RowDefinition(GridLength.Auto),
-			},
-		};
-		Grid.SetColumn(nameEntry, 0); Grid.SetRow(nameEntry, 0);
-		Grid.SetColumn(removeBtn, 1); Grid.SetRow(removeBtn, 0);
-		Grid.SetColumn(videoEntry, 0); Grid.SetRow(videoEntry, 1); Grid.SetColumnSpan(videoEntry, 2);
-		Grid.SetColumn(mjpegEntry, 0); Grid.SetRow(mjpegEntry, 2); Grid.SetColumnSpan(mjpegEntry, 2);
-
-		grid.Children.Add(nameEntry);
-		grid.Children.Add(removeBtn);
-		grid.Children.Add(videoEntry);
-		grid.Children.Add(mjpegEntry);
-
-		var row = new CameraRow(grid, nameEntry, videoEntry, mjpegEntry);
-		nameEntry.Unfocused += (_, _) => SaveCameraPip();
-		videoEntry.Unfocused += (_, _) => SaveCameraPip();
-		mjpegEntry.Unfocused += (_, _) => SaveCameraPip();
-		removeBtn.Clicked += (_, _) =>
-		{
-			CamerasContainer.Children.Remove(grid);
-			_cameraRows.Remove(row);
-			UpdateAddCameraButton();
-			SaveCameraPip();
-		};
-
-		_cameraRows.Add(row);
-		CamerasContainer.Children.Add(grid);
-	}
-
-	private void SaveCameraPip()
-	{
-		if (!_loaded)
-			return;
-
-		var cameras = _cameraRows
-			.Select(r => new CameraPipCamera(r.Name.Text ?? string.Empty, r.VideoUrl.Text ?? string.Empty, r.MjpegUrl.Text ?? string.Empty))
-			.ToList();
-		var index = CameraPipMosaicPicker.SelectedIndex;
-		var mosaic = index >= 0 && index < CameraPipMosaicValues.Length ? CameraPipMosaicValues[index] : CameraPipSettings.MosaicTiled;
-
-		MobileSettings.CameraPipConfigJson = CameraPipConfigInjector.ToJson(
-			new CameraPipSettings(cameras, mosaic, CameraPipSoundSwitch.IsToggled));
-	}
-
-	// The picker lists the languages that actually have a translation file, shown by their own
-	// endonym where .NET knows one ("Nederlands", not "nl") so the list is readable to the person
-	// looking for their language.
-	private readonly List<string> _languageCodes = new();
-
-	private void LoadLanguages()
-	{
-		if (_languageCodes.Count > 0)
-			return;
-
-		_languageCodes.AddRange(L10n.AvailableLanguages);
-		LanguagePicker.ItemsSource = _languageCodes.Select(L10n.GetDisplayName).ToList();
-		LanguagePicker.SelectedIndex = _languageCodes.IndexOf(L10n.CurrentLanguage);
-	}
-
-	private async void OnLanguageChanged(object? sender, EventArgs e)
-	{
-		if (!_loaded || LanguagePicker.SelectedIndex < 0 || LanguagePicker.SelectedIndex >= _languageCodes.Count)
-			return;
-
-		var code = _languageCodes[LanguagePicker.SelectedIndex];
-		if (code == L10n.CurrentLanguage)
-			return;
-
-		L10n.SetLanguage(code);
-
-		// {l:Localize} resolves while a page is being built, so every page already on the stack - this
-		// one and the installer page under it - still holds the old language. Asking the user to
-		// restart didn't help: Android keeps the process alive when the app is closed and reopened, so
-		// the same page objects came back. Rebuild the stack instead, and land the user back on this
-		// page so they can see the switch took.
-
-		// Let the picker finish closing before the tree it lives in is swapped out from under it.
-		await Task.Yield();
-
-		var services = IPlatformApplication.Current!.Services;
-		var window = Application.Current?.Windows.FirstOrDefault();
-		if (window is null)
-			return;
-
-		var root = new NavigationPage(services.GetRequiredService<InstallerPage>());
-		window.Page = root;
-		await root.Navigation.PushAsync(new SettingsPage(), animated: false);
-	}
+	private async void OnAdvancedTapped(object? sender, TappedEventArgs e) => await Navigation.PushAsync(new SettingsAdvancedPage());
 }
-

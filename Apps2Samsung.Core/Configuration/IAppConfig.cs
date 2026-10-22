@@ -48,6 +48,12 @@ namespace Apps2Samsung.Configuration
         string CustomAppTitlesJson { get; set; }
         /// <summary>JSON array of { name, url } TVApp channels injected into a TVApp wgt at install.</summary>
         string TvAppChannelsJson { get; set; }
+        /// <summary>
+        /// JSON map { package file name -> the user's values for that package's <c>user_settings</c>,
+        /// with the find/replace pairs they go into } as <c>UserSettingsStore</c> writes it. Filled by
+        /// the pre-install form, read by the shared UserSettingsPatcher at install (#791).
+        /// </summary>
+        string AppUserSettingsJson { get; set; }
 
         // ---- ImmiTV package patching ----
         // The shared ImmiTvPackagePatcher writes these into the IMMICH_DEFAULTS object of an ImmiTV

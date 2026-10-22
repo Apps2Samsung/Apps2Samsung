@@ -53,7 +53,7 @@
 		     .github/scripts/android-version-code.sh so it can never go backwards.
 		     A release build verifies the published APK against that value, so raising
 		     the number here has no effect on what users get. -->
-		<ApplicationDisplayVersion>2.8.3</ApplicationDisplayVersion>
+		<ApplicationDisplayVersion>3.0.0</ApplicationDisplayVersion>
 		<ApplicationVersion>5</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
@@ -72,11 +72,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- App Icon: the Apps2Samsung logo on a white tile. -->
-		<MauiIcon Include="Resources\AppIcon\appicon.png" Color="#FFFFFF" />
+		<!-- App Icon: the Apps2Samsung logo on the light grey tile (the Bg token's light value,
+		     Apps2Samsung.Core/Design/DesignTokens.cs): the logo was drawn for a light tile, and the
+		     grey doesn't glow on a dark home screen the way white does. Scaled into the adaptive
+		     icon's safe zone so a round or squircle mask never clips the ring. Android paints the
+		     tile whatever happens; a transparent one is not an option. -->
+		<MauiIcon Include="Resources\AppIcon\appicon.png" Color="#F2F2F7" ForegroundScale="0.68" />
 
-		<!-- Splash Screen: logo centered on white. -->
-		<MauiSplashScreen Include="Resources\Splash\a2s_splash.png" Color="#FFFFFF" BaseSize="120,120" />
+		<!-- Splash Screen: logo centered on the same light grey. -->
+		<MauiSplashScreen Include="Resources\Splash\a2s_splash.png" Color="#F2F2F7" BaseSize="120,120" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />

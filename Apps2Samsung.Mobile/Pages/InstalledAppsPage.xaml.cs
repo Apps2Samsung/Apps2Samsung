@@ -5,6 +5,8 @@ using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Sdb;
 using Apps2Samsung.Mobile.Localization;
+using Apps2Samsung.Mobile.Controls;
+using Apps2Samsung.Mobile.Services;
 
 namespace Apps2Samsung.Mobile.Pages;
 
@@ -16,32 +18,94 @@ namespace Apps2Samsung.Mobile.Pages;
 public partial class InstalledAppsPage : ContentPage
 {
 	private readonly ISdbEngine _sdb;
-	private readonly string _tvIp;
-	private readonly string _tvLabel;
+	private readonly TvSelection _tv;
+	// The TV this page is showing, read from the shared selection each time the tab appears.
+	private string _tvIp = string.Empty;
+	private string _tvLabel = string.Empty;
+	private string? _loadedFor;
 
-	public InstalledAppsPage(ISdbEngine sdb, string tvIp, string tvLabel)
+	public InstalledAppsPage(ISdbEngine sdb, TvSelection tv)
 	{
 		InitializeComponent();
 		_sdb = sdb;
-		_tvIp = tvIp;
-		_tvLabel = tvLabel;
+		_tv = tv;
 	}
 
 	protected override async void OnAppearing()
 	{
 		base.OnAppearing();
-		await LoadAsync();
+		_tv.Changed -= OnTvChanged;
+		_tv.Changed += OnTvChanged;
+		await ShowSelectedTvAsync(force: false);
 	}
 
-	private async void OnBackClicked(object? sender, EventArgs e) => await Navigation.PopAsync();
+	protected override void OnDisappearing()
+	{
+		base.OnDisappearing();
+		_tv.Changed -= OnTvChanged;
+	}
 
-	private async void OnRefreshClicked(object? sender, EventArgs e) => await LoadAsync();
+	// Another TV picked with the ▾ (here or, while this tab was hidden, elsewhere): load its apps.
+	private async void OnTvChanged()
+	{
+		if (_tv.Ip != _loadedFor || !_tv.HasTv)
+			await ShowSelectedTvAsync(force: false);
+	}
+
+	private async Task ShowSelectedTvAsync(bool force)
+	{
+		TopBar.Title = _tv.HasTv ? _tv.DisplayName : L10n.Get("lblNoTvFound");
+		TopBar.TvCount = _tv.Tvs.Count;
+		if (!_tv.HasTv)
+		{
+			_tvIp = string.Empty;
+			_tvLabel = string.Empty;
+			_loadedFor = null;
+			AppsList.ItemsSource = null;
+			SetSubtitle(L10n.Get("statusSelectTvFirst"), TopBarStatus.Warn);
+			return;
+		}
+		var changed = _tv.Ip != _loadedFor;
+		_tvIp = _tv.Ip!;
+		_tvLabel = _tv.Label;
+		_loadedFor = _tv.Ip;
+		if (force || changed || AppsList.ItemsSource is null)
+			await LoadAsync();
+	}
+
+	private async void OnChangeTvClicked(object? sender, EventArgs e) => await TvPicker.ChooseAsync(this, _tv);
+
+	// The ⋯ in the top bar: Refresh, TV information, and the escape hatch for a leftover package.
+	private async void OnMoreClicked(object? sender, EventArgs e)
+	{
+		var choice = await MoreMenu.ShowAsync(this,
+			new MoreMenuItem(L10n.Get("lblRefresh"), MoreMenu.IconRescan),
+			new MoreMenuItem(L10n.Get("lblTvInformation"), MoreMenu.IconInfo),
+			new MoreMenuItem(L10n.Get("lblRemoveLeftover"), MoreMenu.IconDelete, Destructive: true));
+		if (choice == 0)
+			await ShowSelectedTvAsync(force: true);
+		else if (choice == 1)
+		{
+			if (_tv.HasTv)
+				await Navigation.PushAsync(new DeviceInfoPage(_sdb, _tv.Ip!, _tv.Label, _tv.DebugPortOpen));
+		}
+		else if (choice == 2)
+			await RemoveLeftoverAsync();
+	}
+
+	private async void OnPulledToRefresh(object? sender, EventArgs e)
+	{
+		try { await ShowSelectedTvAsync(force: true); }
+		finally { Refresher.IsRefreshing = false; }
+	}
 
 	// A partial/failed install can leave a package dir that vd_applist never shows, so it can't be
 	// removed from the list above. vd_appuninstall <packageId> still reclaims it, so offer a manual
 	// escape hatch: type the package id and force-remove it.
-	private async void OnRemoveLeftoverClicked(object? sender, EventArgs e)
+	private async Task RemoveLeftoverAsync()
 	{
+		if (!_tv.HasTv)
+			return;
 		var id = await DisplayPromptAsync(
 			"Remove leftover",
 			"Enter the package id of a leftover/partial install to remove:",
@@ -107,20 +171,19 @@ public partial class InstalledAppsPage : ContentPage
 			if (apps.Count == 0)
 			{
 				EmptyLabel.Text = L10n.Get("statusNoInstalledApps");
-				CountLabel.Text = _tvLabel;
+				SetSubtitle(string.Empty, TopBarStatus.None);
 			}
 			else
 			{
-				var removable = apps.Count(a => a.IsRemovable);
 				var totalUsed = InstalledApp.FormatSize(apps.Sum(a => a.SizeBytes));
-				CountLabel.Text = $"{apps.Count} apps · {totalUsed} used on {_tvLabel} · {removable} removable";
+				SetSubtitle(string.Format(L10n.Get("lblAppsOnTvCount"), apps.Count, totalUsed), TopBarStatus.Ok);
 			}
 		}
 		catch (Exception ex)
 		{
 			AppsList.ItemsSource = null;
 			EmptyLabel.Text = $"Couldn't read the app list: {ex.Message}";
-			CountLabel.Text = _tvLabel;
+			SetSubtitle(string.Empty, TopBarStatus.None);
 		}
 		finally
 		{
@@ -128,10 +191,8 @@ public partial class InstalledAppsPage : ContentPage
 		}
 	}
 
-	private async void OnUninstallClicked(object? sender, EventArgs e)
+	private async Task UninstallAsync(InstalledApp app)
 	{
-		if (sender is not Button { BindingContext: InstalledApp app })
-			return;
 
 		var confirm = await DisplayAlert(
 			L10n.Get("lblUninstallApp"),
@@ -166,10 +227,8 @@ public partial class InstalledAppsPage : ContentPage
 		await LoadAsync();
 	}
 
-	private async void OnLaunchClicked(object? sender, EventArgs e)
+	private async Task LaunchAsync(InstalledApp app)
 	{
-		if (sender is not Button { BindingContext: InstalledApp app })
-			return;
 
 		SetBusy(true, $"Launching {app.DisplayName}…");
 		try
@@ -193,10 +252,8 @@ public partial class InstalledAppsPage : ContentPage
 	// Opens the app's console over the TV's web inspector. Confirmed first because attaching is not
 	// passive: the inspector only reports a port for the launch debug mode performs itself, so the app
 	// restarts and whatever the user was watching goes away.
-	private async void OnDebugClicked(object? sender, EventArgs e)
+	private async Task DebugAsync(InstalledApp app)
 	{
-		if (sender is not Button { BindingContext: InstalledApp app })
-			return;
 
 		var confirm = await DisplayAlert(
 			L10n.Get("lblDebugConsole"),
@@ -208,10 +265,8 @@ public partial class InstalledAppsPage : ContentPage
 		await Navigation.PushAsync(new DebugConsolePage(_sdb, _tvIp, app.TizenId, app.DisplayName));
 	}
 
-	private async void OnStopClicked(object? sender, EventArgs e)
+	private async Task StopAsync(InstalledApp app)
 	{
-		if (sender is not Button { BindingContext: InstalledApp app })
-			return;
 
 		SetBusy(true, $"Stopping {app.DisplayName}…");
 		try
@@ -232,12 +287,49 @@ public partial class InstalledAppsPage : ContentPage
 		}
 	}
 
+	// A row opens the app's sheet; the choice comes back here.
+	private async void OnRowTapped(object? sender, TappedEventArgs e)
+	{
+		if ((sender as BindableObject)?.BindingContext is not InstalledApp app)
+			return;
+		var sheet = new AppActionsSheetPage(app);
+		await Navigation.PushModalAsync(sheet);
+		switch (await sheet.Result)
+		{
+			case AppAction.Launch: await LaunchAsync(app); break;
+			case AppAction.Stop: await StopAsync(app); break;
+			case AppAction.Debug: await DebugAsync(app); break;
+			case AppAction.Uninstall: await UninstallAsync(app); break;
+		}
+	}
+
 	private void SetBusy(bool busy, string? status = null)
 	{
 		Busy.IsVisible = busy;
 		Busy.IsRunning = busy;
 		AppsList.IsVisible = !busy;
-		if (status is not null)
-			CountLabel.Text = status;
+		if (busy && status is not null)
+		{
+			TopBar.Subtitle = status;
+			TopBar.Status = TopBarStatus.Busy;
+		}
+		else if (!busy)
+		{
+			// The work is done: back to what the line said before it.
+			TopBar.Subtitle = _subtitle;
+			TopBar.Status = _subtitleStatus;
+		}
+	}
+
+	// The line under the TV's name in the top bar: the app count and space, or what went wrong.
+	private string _subtitle = string.Empty;
+	private TopBarStatus _subtitleStatus;
+
+	private void SetSubtitle(string text, TopBarStatus status)
+	{
+		_subtitle = text;
+		_subtitleStatus = status;
+		TopBar.Subtitle = text;
+		TopBar.Status = status;
 	}
 }

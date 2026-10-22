@@ -51,7 +51,15 @@ public sealed class ExpanderSection : ContentView
 		tap.Tapped += (_, _) => IsExpanded = !IsExpanded;
 		header.GestureRecognizers.Add(tap);
 
-		Content = new VerticalStackLayout { Spacing = 0, Children = { header, _host } };
+		// A grouped-list card (#755): surface, radius 12, the header row at list-row padding.
+		Content = new Border
+		{
+			StrokeThickness = 0,
+			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 12 },
+			BackgroundColor = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("Surface"),
+			Padding = new Thickness(16, 10),
+			Content = new VerticalStackLayout { Spacing = 0, Children = { header, _host } },
+		};
 	}
 
 	private static void OnIsExpandedChanged(BindableObject b, object oldValue, object newValue)

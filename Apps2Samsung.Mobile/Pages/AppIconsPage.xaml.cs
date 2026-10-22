@@ -8,6 +8,7 @@ using Apps2Samsung.Mobile.Catalog;
 using Apps2Samsung.Mobile.Services;
 using Microsoft.Maui.Storage;
 using Apps2Samsung.Mobile.Localization;
+using Apps2Samsung.Mobile.Resources.Styles;
 
 namespace Apps2Samsung.Mobile.Pages;
 
@@ -111,8 +112,8 @@ public partial class AppIconsPage : ContentPage
 			CornerRadius = 6,
 			BackgroundColor = Colors.Transparent,
 			BorderWidth = 1,
-			BorderColor = Color.FromArgb("#CDD3D8"),
-			TextColor = Color.FromArgb("#B00020"),
+			BorderColor = DesignTheme.ColorOf("Hair"),
+			TextColor = DesignTheme.ColorOf("Bad"),
 		};
 
 		var grid = new Grid

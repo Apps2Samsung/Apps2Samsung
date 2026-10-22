@@ -13,7 +13,7 @@ updates:
   - package-ecosystem: nuget
     directories:
       - "/Apps2Samsung.Core"
-      - "/Jellyfin2Samsung-CrossOS"
+      - "/Apps2Samsung.Desktop"
     schedule:
       interval: weekly
       day: monday

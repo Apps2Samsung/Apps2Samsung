@@ -1,0 +1,87 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:Apps2Samsung.ViewModels"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        x:Class="Apps2Samsung.Views.LogViewerWindow"
+        x:DataType="vm:LogViewerViewModel"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        Title="{Binding TitleText}"
+        Width="820" Height="740" MinWidth="560" MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource BgBrush}">
+	<!-- The debug log viewer (#755): a session, a level filter, a search, the entries as a table, and
+	     Open folder / Copy / Save as. Resizable; the current session follows new lines. -->
+	<Window.Styles>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Catalog.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/ComboBoxes.axaml"/>
+		<Style Selector="RadioButton.segment">
+			<Setter Property="Template">
+				<ControlTemplate>
+					<Border Name="PART_Back" CornerRadius="6" Padding="14,5" Background="Transparent">
+						<ContentPresenter Content="{TemplateBinding Content}" FontSize="13" FontWeight="SemiBold"
+						                  Foreground="{DynamicResource InkBrush}"/>
+					</Border>
+				</ControlTemplate>
+			</Setter>
+		</Style>
+		<Style Selector="RadioButton.segment:checked /template/ Border#PART_Back">
+			<Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+			<Setter Property="BoxShadow" Value="0 1 3 0 #1F000000"/>
+		</Style>
+		<Style Selector="ListBoxItem">
+			<Setter Property="Padding" Value="0"/>
+			<Setter Property="MinHeight" Value="0"/>
+		</Style>
+	</Window.Styles>
+
+	<Grid RowDefinitions="Auto,*,Auto" Margin="18,14,18,16" RowSpacing="12">
+		<WrapPanel Grid.Row="0" ItemSpacing="10" LineSpacing="10">
+			<ComboBox Classes="clean" MinWidth="200" ItemsSource="{Binding Sessions}" SelectedItem="{Binding SelectedSession}"/>
+			<Border Padding="2" CornerRadius="8" Background="{DynamicResource FillBrush}">
+				<StackPanel Orientation="Horizontal">
+					<RadioButton Classes="segment" GroupName="level" Content="{Binding AllText}" IsChecked="{Binding ShowAll}"/>
+					<RadioButton Classes="segment" GroupName="level" Content="{Binding WarningsText}" IsChecked="{Binding ShowWarnings}"/>
+					<RadioButton Classes="segment" GroupName="level" Content="{Binding ErrorsText}" IsChecked="{Binding ShowErrors}"/>
+				</StackPanel>
+			</Border>
+			<TextBox x:Name="SearchBox" Classes="search" MinWidth="240" Watermark="{Binding SearchText}" Text="{Binding Search}"/>
+		</WrapPanel>
+
+		<Border Grid.Row="1" CornerRadius="10" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}"
+		        BorderBrush="{DynamicResource HairBrush}" BorderThickness="1">
+			<Grid RowDefinitions="Auto,*">
+				<Grid ColumnDefinitions="76,64,*" ColumnSpacing="10" Margin="14,8">
+					<TextBlock Text="{Binding TimeHeader}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"/>
+					<TextBlock Grid.Column="1" Text="{Binding LevelHeader}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"/>
+					<TextBlock Grid.Column="2" Text="{Binding MessageHeader}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"/>
+				</Grid>
+				<ListBox x:Name="Lines" Grid.Row="1" ItemsSource="{Binding Rows}" Background="Transparent"
+				         BorderBrush="{DynamicResource HairBrush}" BorderThickness="0,1,0,0">
+					<ListBox.ItemTemplate>
+						<DataTemplate x:DataType="vm:LogViewerRow">
+							<Grid ColumnDefinitions="76,64,*" ColumnSpacing="10" Background="{Binding Back}" Margin="0">
+								<TextBlock Text="{Binding Time}" Margin="14,3,0,3" FontFamily="Consolas, Menlo, monospace" FontSize="12"
+								           Foreground="{DynamicResource MutedBrush}"/>
+								<TextBlock Grid.Column="1" Text="{Binding Level}" Margin="0,3" FontFamily="Consolas, Menlo, monospace" FontSize="12"
+								           FontWeight="SemiBold" Foreground="{Binding Ink}"/>
+								<SelectableTextBlock Grid.Column="2" Text="{Binding Message}" Margin="0,3,14,3" FontFamily="Consolas, Menlo, monospace"
+								                     FontSize="12" TextWrapping="Wrap" Foreground="{Binding Ink}"/>
+							</Grid>
+						</DataTemplate>
+					</ListBox.ItemTemplate>
+				</ListBox>
+				<TextBlock Grid.Row="1" Text="{Binding EmptyText}" IsVisible="{Binding IsEmpty}" Margin="16,20"
+				           HorizontalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
+			</Grid>
+		</Border>
+
+		<Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="10">
+			<TextBlock Text="{Binding FootText}" FontSize="12" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"
+			           TextTrimming="PrefixCharacterEllipsis" ToolTip.Tip="{Binding FootText}"/>
+			<Button Grid.Column="1" Classes="plain" Content="{Binding OpenFolderText}" Click="OnOpenFolderClick" Padding="14,7" CornerRadius="8"/>
+			<Button Grid.Column="2" Classes="plain" Content="{Binding CopyText}" Click="OnCopyClick" Padding="14,7" CornerRadius="8"/>
+			<Button Grid.Column="3" Classes="primary" Content="{Binding SaveAsText}" Click="OnSaveAsClick" Padding="14,7" CornerRadius="8"/>
+		</Grid>
+	</Grid>
+</Window>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+       xmlns:pages="clr-namespace:Apps2Samsung.Mobile.Pages"
+       x:Class="Apps2Samsung.Mobile.AppShell"
+       Shell.NavBarIsVisible="False">
+    <!-- The four sections (#755) as a bottom tab bar. Each tab keeps its own navigation stack, so a
+         page pushed from one (TV information, the toolbox, the debug console) stays inside it. The
+         pages are resolved through DI (ContentTemplate), the tab bar colours come from Styles.xaml. -->
+    <TabBar>
+        <Tab Title="{l:Localize lblInstall}" Icon="tab_install.svg" Route="install">
+            <ShellContent ContentTemplate="{DataTemplate pages:InstallerPage}" />
+        </Tab>
+        <Tab Title="{l:Localize lblOnTheTv}" Icon="tab_apps.svg" Route="apps">
+            <ShellContent ContentTemplate="{DataTemplate pages:InstalledAppsPage}" />
+        </Tab>
+        <Tab Title="{l:Localize lblRemote}" Icon="tab_remote.svg" Route="remote">
+            <ShellContent ContentTemplate="{DataTemplate pages:RemotePage}" />
+        </Tab>
+        <Tab Title="{l:Localize lblSettingsTab}" Icon="tab_settings.svg" Route="settings">
+            <ShellContent ContentTemplate="{DataTemplate pages:SettingsPage}" />
+        </Tab>
+    </TabBar>
+</Shell>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
+             x:Class="Apps2Samsung.Mobile.Pages.SettingsBackupPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+
+    <!-- Settings > Backup and diagnostics: export / import of the settings and signing certificates,
+         and the debug log to share when reporting an issue. -->
+    <Grid RowDefinitions="Auto,*">
+        <controls:TopBarView Grid.Row="0" Title="{l:Localize lblBackupAndDiagnostics}" BackText="{l:Localize lblSettingsTab}" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,4,16,20" Spacing="6">
+                <Label Text="{l:Localize lblBackup}" Style="{StaticResource GroupTitle}" />
+                <Border Style="{StaticResource Card}" Padding="16,12">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Style="{StaticResource RowHint}" Text="{l:Localize hintBackup}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Text="{l:Localize lblExportBackup}" Style="{StaticResource SoftButton}"
+                                    CornerRadius="12" Clicked="OnExportBackupClicked" />
+                            <Button Grid.Column="1" Text="{l:Localize lblImportBackup}" Style="{StaticResource PlainButton}"
+                                    CornerRadius="12" Clicked="OnImportBackupClicked" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="{l:Localize lblDiagnostics}" Style="{StaticResource GroupTitle}" Margin="4,16,4,0" />
+                <Border Style="{StaticResource Card}" Padding="16,12">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Style="{StaticResource RowHint}" Text="{l:Localize hintViewDebugLog}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Text="{l:Localize lblViewDebugLog}" Style="{StaticResource SoftButton}"
+                                    CornerRadius="12" Clicked="OnViewLogClicked" />
+                            <Button Grid.Column="1" Text="{l:Localize lblShareDebugLog}" Style="{StaticResource PlainButton}"
+                                    CornerRadius="12" Clicked="OnShareLogClicked" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+
+</ContentPage>

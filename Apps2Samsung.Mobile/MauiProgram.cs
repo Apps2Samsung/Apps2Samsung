@@ -65,6 +65,7 @@ public static class MauiProgram
 		// when it must (re)generate. Depends on the shared cert service + this head's login service.
 		builder.Services.AddSingleton<CertificateProvisioningService>();
 		builder.Services.AddSingleton<CertificateProvisioner>();
+		builder.Services.AddSingleton<CertificateFlow>();
 
 		// Package patchers applied at install (shared Core IPackagePatchers). Mobile ships no bundled
 		// "oblong" tiles, so a no-op oblong source — only user-supplied custom PNG icons apply here.
@@ -78,6 +79,9 @@ public static class MauiProgram
 		builder.Services.AddSingleton<IPackagePatcher, TizenTubeProxyPatcher>();
 		// Camera PiP: cameras → config.js window.PIP_CONFIG at install (shared Core patcher).
 		builder.Services.AddSingleton<IPackagePatcher, CameraPipPackagePatcher>();
+		// A community package's user_settings (API keys, server addresses asked for before the
+		// install) → the file the catalog names, by exact-text replacement (#791).
+		builder.Services.AddSingleton<IPackagePatcher, UserSettingsPatcher>();
 
 		// The pre-resolved catalog from apps2samsung.com (one download per 10 minutes, shared), so
 		// the app list and the info view load without api.github.com calls. Cached in the app's
@@ -106,14 +110,21 @@ public static class MauiProgram
 
 		// Self-update check (shared Core logic) — matches the .apk asset on the latest release.
 		builder.Services.AddSingleton(sp => new GitHubUpdateChecker(sp.GetRequiredService<HttpClient>()));
+		// The in-app updater: the check, the sheet, the download, the hand-off to the installer.
+		builder.Services.AddSingleton<UpdateFlow>();
 
 		// Session (holds the Samsung sign-in for the app's lifetime) + the installer page.
 		builder.Services.AddSingleton<SessionState>();
 		// Transient, not a singleton: {l:Localize} resolves while a page is being built, so a cached
 		// installer page would serve the language it was born with for the whole life of the process -
 		// and Android keeps the process alive across closing and reopening the app, so "restart it"
-		// didn't rebuild it either. A language change resolves a fresh one (see SettingsPage).
+		// didn't rebuild it either. A language change resolves a fresh one (see SettingsLanguagePage).
 		builder.Services.AddTransient<InstallerPage>();
+		// The TVs and the one in use, shared by every tab (the ▾ in each top bar), and the other tab roots.
+		builder.Services.AddSingleton<TvSelection>();
+		builder.Services.AddTransient<InstalledAppsPage>();
+		builder.Services.AddTransient<RemotePage>();
+		builder.Services.AddTransient<SettingsPage>();
 		// The icon/title editor needs the catalog services injected (shared app list).
 		builder.Services.AddTransient<AppIconsPage>();
 

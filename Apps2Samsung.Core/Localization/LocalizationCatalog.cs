@@ -14,11 +14,12 @@ namespace Apps2Samsung.Localization
     /// desktop head, which is why the mobile head shipped English-only and why Core code has had to
     /// carry a localization key *and* an English default string for anything it wanted to say.
     /// <para>
-    /// The language files themselves stay at <c>Jellyfin2Samsung-CrossOS/Assets/Localization/</c>
-    /// because that is the path Crowdin syncs (see crowdin.yml) — moving them would orphan the
-    /// existing translations. Core embeds them from there instead (see Apps2Samsung.Core.csproj), so
-    /// there is one copy at build time and no per-head asset plumbing: a MAUI head can't read an
-    /// Avalonia <c>avares://</c> resource, and neither head has to know where the files came from.
+    /// The language files live next to this class, in <c>Localization/Languages/</c>, and Core embeds
+    /// them (see Apps2Samsung.Core.csproj), so there is one copy at build time and no per-head asset
+    /// plumbing: a MAUI head can't read an Avalonia <c>avares://</c> resource, and neither head has
+    /// to know where the files came from. That folder is also where the Crowdin CLI reads and writes
+    /// them (crowdin.yml); in Crowdin itself the file sits at the branch root, so the repo location
+    /// can change without touching the translations.
     /// </para>
     /// Lookup order for a key: the current language, then English, then the key itself — so a string a
     /// translator hasn't reached yet shows in English rather than blank.
