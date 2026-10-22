@@ -29,6 +29,26 @@
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/appicon.appiconset</string>
 
+	<!-- The UIScene life cycle (SceneDelegate.cs): required for an app built with the iOS 27 SDK,
+	     which iOS otherwise stops right after launch. One window, MAUI's default configuration. -->
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>__MAUI_DEFAULT_SCENE_CONFIGURATION__</string>
+					<key>UISceneDelegateClassName</key>
+					<string>SceneDelegate</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+
 	<!-- The whole app is local-network traffic to the TV: the SDB port scan and protocol
 	     (TCP 26101), the TV's REST API (8001/8002) and the remote-control websocket. iOS 14+
 	     blocks all of it until the user grants local network access, and only shows that
