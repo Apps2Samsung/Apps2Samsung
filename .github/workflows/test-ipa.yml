@@ -68,8 +68,8 @@ jobs:
       # global property, so it reaches the referenced Core library too, which rejects it
       # (NETSDK1083), while a single RID is fine everywhere. No AOT, so each is quick next to
       # the device publish above.
-      # Signed, unlike the IPA: the build signs a simulator app ad hoc (no certificate needed),
-      # and it must, because on Apple Silicon unsigned arm64 code is killed as soon as dyld maps
+      # Signed, unlike the IPA: CodesignKey=- signs a simulator app ad hoc (no certificate; left
+      # out, the build looks for an Apple one and fails), and it must, because on Apple Silicon unsigned arm64 code is killed as soon as dyld maps
       # it ("SIGKILL (Code Signature Invalid)", which is what Appetize's "Unexpected error" was).
       - name: Build simulator apps
         shell: bash
@@ -79,6 +79,7 @@ jobs:
             dotnet build Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj \
               -c Release -f net10.0-ios \
               -p:RuntimeIdentifier=$RID \
+              -p:CodesignKey=- \
               -p:ApplicationDisplayVersion="$(.github/scripts/apple-version.sh "$VERSION")" \
               -p:ApplicationVersion="${{ github.run_number }}" \
               -o "publish/$RID"
