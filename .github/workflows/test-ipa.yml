@@ -99,3 +99,91 @@ jobs:
           path: dist-sim/*.zip
           retention-days: 14
           if-no-files-found: error
+
+      # Does the simulator app actually start? Boots Apple's own simulator on this runner, on the
+      # newest and the oldest iOS runtime the image has, installs the app for the runner's
+      # architecture, launches it and checks after 30 s that it is still running. Each run leaves a
+      # screenshot, the app's stdout/stderr (a .NET unhandled exception lands there), its unified
+      # log and any crash report in the smoke-test artifact, so a cloud simulator that only says
+      # "unexpected error" can be told apart from an app that crashes on start.
+      - name: Start the app in the iOS Simulator
+        id: smoke
+        shell: bash
+        run: |
+          set -uo pipefail
+          BUNDLE_ID=nl.madebypatrick.apps2samsung
+          RID=iossimulator-$([ "$(uname -m)" = arm64 ] && echo arm64 || echo x64)
+          APP=$(find "publish/$RID" -maxdepth 2 -type d -name '*.app' | head -n1)
+          mkdir -p smoke
+          xcrun simctl list runtimes > smoke/runtimes.txt
+
+          # "<runtime id> <iPhone device type id> <name>" for the newest and the oldest iOS runtime.
+          xcrun simctl list runtimes -j available | python3 -c '
+          import json, sys
+          rts = [r for r in json.load(sys.stdin)["runtimes"] if r.get("platform") == "iOS" and r.get("isAvailable")]
+          rts.sort(key=lambda r: [int(x) for x in r["version"].split(".")])
+          for r in {r["identifier"]: r for r in (rts[-1:] + rts[:1])}.values():
+              phones = [d for d in r.get("supportedDeviceTypes", []) if d.get("productFamily") == "iPhone"]
+              if phones:
+                  print(r["identifier"], phones[-1]["identifier"], r["name"].replace(" ", "-"))
+          ' > smoke/targets.txt
+          cat smoke/targets.txt
+          if [ ! -s smoke/targets.txt ]; then
+            echo "::error::No iOS simulator runtime with an iPhone on this image"
+            exit 1
+          fi
+
+          FAILED=0
+          while read -r RUNTIME DEVICE_TYPE NAME; do
+            OUT="smoke/$NAME"
+            mkdir -p "$OUT"
+            echo "::group::$NAME"
+            UDID=$(xcrun simctl create "smoke-$NAME" "$DEVICE_TYPE" "$RUNTIME")
+            xcrun simctl boot "$UDID"
+            xcrun simctl bootstatus "$UDID" -b > /dev/null
+            xcrun simctl install "$UDID" "$APP"
+
+            xcrun simctl spawn "$UDID" log stream --level debug \
+              --predicate 'process == "Apps2Samsung.Mobile"' > "$OUT/unified.log" 2>&1 &
+            LOG_PID=$!
+
+            LAUNCH=$(xcrun simctl launch --terminate-running-process \
+              --stdout="$PWD/$OUT/stdout.txt" --stderr="$PWD/$OUT/stderr.txt" "$UDID" "$BUNDLE_ID" 2>&1)
+            echo "$LAUNCH"
+            APP_PID=${LAUNCH##*: }
+
+            for i in $(seq 1 30); do
+              kill -0 "$APP_PID" 2>/dev/null || break
+              /bin/sleep 1
+            done
+
+            xcrun simctl io "$UDID" screenshot "$OUT/screen.png" > /dev/null 2>&1 || true
+            if kill -0 "$APP_PID" 2>/dev/null; then
+              echo "✅ $NAME: still running after 30 s" | tee "$OUT/result.txt"
+            else
+              echo "❌ $NAME: the app exited within 30 s" | tee "$OUT/result.txt"
+              echo "::error::$NAME: Apps2Samsung exited within 30 s of launch (see the smoke-test artifact)"
+              FAILED=1
+            fi
+
+            kill "$LOG_PID" 2>/dev/null || true
+            cp ~/Library/Logs/DiagnosticReports/Apps2Samsung.Mobile* "$OUT/" 2>/dev/null || true
+            tail -n 40 "$OUT/stderr.txt" 2>/dev/null || true
+            xcrun simctl shutdown "$UDID" || true
+            xcrun simctl delete "$UDID" || true
+            echo "::endgroup::"
+          done < smoke/targets.txt
+
+          {
+            echo "### iOS Simulator start test"
+            cat smoke/*/result.txt
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $FAILED
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ always() && steps.smoke.outcome != 'skipped' }}
+        with:
+          name: Apps2Samsung-${{ env.VERSION_NAME }}-ios-simulator-smoke-test
+          path: smoke/
+          retention-days: 14
+          if-no-files-found: warn
