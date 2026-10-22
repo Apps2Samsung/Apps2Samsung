@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-21T18:10:30.6676974+00:00",
+  "generatedAt": "2026-10-22T05:12:57.354267+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -1171,19 +1171,19 @@
       "id": "jellyfin-avplay",
       "url": "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases",
       "ok": true,
-      "latestTag": "v0.1.0-2026-10-21-1635",
+      "latestTag": "v0.1.0-2026-10-22-0310",
       "releases": [
         {
-          "url": "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases/419798188",
+          "url": "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases/420267608",
           "name": "Jellyfin - AVPlay",
-          "tag_name": "v0.1.0-2026-10-21-1635",
-          "published_at": "2026-10-21T16:35:40Z",
+          "tag_name": "v0.1.0-2026-10-22-0310",
+          "published_at": "2026-10-22T03:10:55Z",
           "draft": false,
           "assets": [
             {
               "name": "Jellyfin-AVPlay.wgt",
-              "browser_download_url": "https://github.com/PatrickSt1991/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-10-21-1635/Jellyfin-AVPlay.wgt",
-              "size": 10850191
+              "browser_download_url": "https://github.com/PatrickSt1991/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-10-22-0310/Jellyfin-AVPlay.wgt",
+              "size": 10850374
             }
           ]
         }
@@ -1193,19 +1193,19 @@
       "id": "jellyfin-avplay-smarthub",
       "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases",
       "ok": true,
-      "latestTag": "v0.1.0-2026-10-21-1643",
+      "latestTag": "v0.1.0-2026-10-22-0326",
       "releases": [
         {
-          "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases/419805876",
+          "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases/420275603",
           "name": "Jellyfin - AVPlay - 10.10z SmartHub",
-          "tag_name": "v0.1.0-2026-10-21-1643",
-          "published_at": "2026-10-21T16:43:37Z",
+          "tag_name": "v0.1.0-2026-10-22-0326",
+          "published_at": "2026-10-22T03:26:44Z",
           "draft": false,
           "assets": [
             {
-              "name": "Jellyfin-AVPlay-SmartHub-Oblonged-2026-10-21-1643.wgt",
-              "browser_download_url": "https://github.com/asamahy/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-10-21-1643/Jellyfin-AVPlay-SmartHub-Oblonged-2026-10-21-1643.wgt",
-              "size": 11143678
+              "name": "Jellyfin-AVPlay-SmartHub-Oblonged-2026-10-22-0326.wgt",
+              "browser_download_url": "https://github.com/asamahy/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-10-22-0326/Jellyfin-AVPlay-SmartHub-Oblonged-2026-10-22-0326.wgt",
+              "size": 11143677
             }
           ]
         }
