@@ -4,7 +4,8 @@
 SideStore (and AltStore, whose source format it reads) installs an app from a "source": a JSON
 file listing the app and where its IPA is. Ours lives at https://apps2samsung.com/sidestore/apps.json,
 served from docs/ on `beta` the way the F-Droid repo is, and points at the unsigned IPA of the
-latest stable release. Betas are not in it: they are a manual IPA import.
+latest stable release. Betas have a source of their own (--beta, written to sidestore/beta/apps.json),
+with its own identifier so SideStore keeps the two apart and a stable user never gets a beta.
 
 Everything that describes the app comes from the repo, so the source can't drift from the build:
   * bundle id and minimum iOS version   Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj
@@ -18,7 +19,7 @@ not the release tag (a tag like v2.3.1.1 is not a version iOS accepts).
 Both the current `versions` list and the older flat fields (version, versionDate, downloadURL,
 size) are written: older SideStore/AltStore builds only read the flat ones.
 
-Usage: .github/scripts/sidestore-source.py <release.json> <ipa> <output apps.json>
+Usage: .github/scripts/sidestore-source.py <release.json> <ipa> <output apps.json> [--beta]
        release.json = gh release view <tag> --json tagName,publishedAt,body,assets
        ipa          = that release's "-ios-unsigned.ipa" asset, downloaded
 Exits non-zero when the release has no "-ios-unsigned.ipa" asset, the IPA has no app Info.plist
@@ -72,11 +73,15 @@ def ipa_versions(ipa_path: Path) -> tuple[str, str]:
 
 
 def main() -> None:
-    if len(sys.argv) != 4:
-        fail("usage: sidestore-source.py <release.json> <ipa> <output apps.json>")
-    release = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-    version, build = ipa_versions(Path(sys.argv[2]))
-    output = Path(sys.argv[3])
+    args = sys.argv[1:]
+    beta = "--beta" in args
+    if beta:
+        args.remove("--beta")
+    if len(args) != 3:
+        fail("usage: sidestore-source.py <release.json> <ipa> <output apps.json> [--beta]")
+    release = json.loads(Path(args[0]).read_text(encoding="utf-8"))
+    version, build = ipa_versions(Path(args[1]))
+    output = Path(args[2])
 
     csproj = CSPROJ.read_text(encoding="utf-8")
     bundle_id = csproj_value(csproj, r"<ApplicationId>([^<]+)</ApplicationId>", "ApplicationId")
@@ -142,10 +147,12 @@ def main() -> None:
     }
 
     source = {
-        "name": title,
-        "identifier": f"{bundle_id}.source",
+        "name": f"{title} Beta" if beta else title,
+        "identifier": f"{bundle_id}.source.beta" if beta else f"{bundle_id}.source",
         "subtitle": subtitle,
-        "description": "The iPhone app of Apps2Samsung, from its GitHub stable releases.",
+        "description": "The iPhone app of Apps2Samsung, from its GitHub beta releases."
+        if beta
+        else "The iPhone app of Apps2Samsung, from its GitHub stable releases.",
         "iconURL": icon,
         "website": SITE,
         "tintColor": TINT,
