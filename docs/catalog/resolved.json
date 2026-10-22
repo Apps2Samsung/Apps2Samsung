@@ -1,14 +1,1060 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-22T15:02:11.02589+00:00",
+  "generatedAt": "2026-10-22T15:29:27.8707427+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
       "id": "jellyfin-tizen-builds",
       "url": "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases",
       "ok": true,
-      "latestTag": "2026-10-22-1007",
-      "releases": []
+      "latestTag": "2026-10-22-1513",
+      "releases": [
+        {
+          "url": "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases/420882351",
+          "name": "Jellyfin - 2026-10-22 15:13",
+          "tag_name": "2026-10-22-1513",
+          "published_at": "2026-10-22T15:22:59Z",
+          "draft": false,
+          "assets": [
+            {
+              "name": "Jellyfin-10.11.z-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-10.11.z-GrayFix.wgt",
+              "size": 10612155
+            },
+            {
+              "name": "Jellyfin-10.11.z-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-10.11.z-OblongIcon.wgt",
+              "size": 10718842
+            },
+            {
+              "name": "Jellyfin-10.11.z-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-10.11.z-OSA.wgt",
+              "size": 10729586
+            },
+            {
+              "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-10.11.z-secondary-TrailerFix.wgt",
+              "size": 10625765
+            },
+            {
+              "name": "Jellyfin-10.11.z-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-10.11.z-secondary.wgt",
+              "size": 10614601
+            },
+            {
+              "name": "Jellyfin-10.11.z-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-10.11.z-SmartHub.wgt",
+              "size": 10612801
+            },
+            {
+              "name": "Jellyfin-10.11.z-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-10.11.z-TrailerFix.wgt",
+              "size": 10623294
+            },
+            {
+              "name": "Jellyfin-10.11.z.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-10.11.z.wgt",
+              "size": 10612131
+            },
+            {
+              "name": "Jellyfin-12.z-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-12.z-GrayFix.wgt",
+              "size": 10768564
+            },
+            {
+              "name": "Jellyfin-12.z-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-12.z-OblongIcon.wgt",
+              "size": 10875253
+            },
+            {
+              "name": "Jellyfin-12.z-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-12.z-OSA.wgt",
+              "size": 10886000
+            },
+            {
+              "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-12.z-secondary-TrailerFix.wgt",
+              "size": 10782166
+            },
+            {
+              "name": "Jellyfin-12.z-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-12.z-secondary.wgt",
+              "size": 10771008
+            },
+            {
+              "name": "Jellyfin-12.z-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-12.z-SmartHub.wgt",
+              "size": 10769206
+            },
+            {
+              "name": "Jellyfin-12.z-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-12.z-TrailerFix.wgt",
+              "size": 10779715
+            },
+            {
+              "name": "Jellyfin-12.z.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-12.z.wgt",
+              "size": 10768540
+            },
+            {
+              "name": "Jellyfin-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-GrayFix.wgt",
+              "size": 10768349
+            },
+            {
+              "name": "Jellyfin-master-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-master-GrayFix.wgt",
+              "size": 10847729
+            },
+            {
+              "name": "Jellyfin-master-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-master-OblongIcon.wgt",
+              "size": 10954429
+            },
+            {
+              "name": "Jellyfin-master-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-master-OSA.wgt",
+              "size": 10965180
+            },
+            {
+              "name": "Jellyfin-master-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-master-secondary-TrailerFix.wgt",
+              "size": 10861353
+            },
+            {
+              "name": "Jellyfin-master-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-master-secondary.wgt",
+              "size": 10850185
+            },
+            {
+              "name": "Jellyfin-master-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-master-SmartHub.wgt",
+              "size": 10848384
+            },
+            {
+              "name": "Jellyfin-master-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-master-TrailerFix.wgt",
+              "size": 10858886
+            },
+            {
+              "name": "Jellyfin-master.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-master.wgt",
+              "size": 10847718
+            },
+            {
+              "name": "Jellyfin-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-OblongIcon.wgt",
+              "size": 10875051
+            },
+            {
+              "name": "Jellyfin-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-OSA.wgt",
+              "size": 10885799
+            },
+            {
+              "name": "Jellyfin-prerelease-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-prerelease-GrayFix.wgt",
+              "size": 10768361
+            },
+            {
+              "name": "Jellyfin-prerelease-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-prerelease-OblongIcon.wgt",
+              "size": 10875068
+            },
+            {
+              "name": "Jellyfin-prerelease-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-prerelease-OSA.wgt",
+              "size": 10885812
+            },
+            {
+              "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-prerelease-secondary-TrailerFix.wgt",
+              "size": 10781992
+            },
+            {
+              "name": "Jellyfin-prerelease-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-prerelease-secondary.wgt",
+              "size": 10770814
+            },
+            {
+              "name": "Jellyfin-prerelease-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-prerelease-SmartHub.wgt",
+              "size": 10769017
+            },
+            {
+              "name": "Jellyfin-prerelease-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-prerelease-TrailerFix.wgt",
+              "size": 10779523
+            },
+            {
+              "name": "Jellyfin-prerelease.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-prerelease.wgt",
+              "size": 10768354
+            },
+            {
+              "name": "Jellyfin-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-secondary-TrailerFix.wgt",
+              "size": 10781974
+            },
+            {
+              "name": "Jellyfin-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-secondary.wgt",
+              "size": 10770812
+            },
+            {
+              "name": "Jellyfin-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-SmartHub.wgt",
+              "size": 10769002
+            },
+            {
+              "name": "Jellyfin-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin-TrailerFix.wgt",
+              "size": 10779509
+            },
+            {
+              "name": "Jellyfin.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1513/Jellyfin.wgt",
+              "size": 10768340
+            }
+          ]
+        },
+        {
+          "url": "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases/420573435",
+          "name": "Jellyfin - 2026-10-22 10:07",
+          "tag_name": "2026-10-22-1007",
+          "published_at": "2026-10-22T10:16:52Z",
+          "draft": false,
+          "assets": [
+            {
+              "name": "Jellyfin-10.11.z-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-10.11.z-GrayFix.wgt",
+              "size": 10612148
+            },
+            {
+              "name": "Jellyfin-10.11.z-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-10.11.z-OblongIcon.wgt",
+              "size": 10718846
+            },
+            {
+              "name": "Jellyfin-10.11.z-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-10.11.z-OSA.wgt",
+              "size": 10729591
+            },
+            {
+              "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-10.11.z-secondary-TrailerFix.wgt",
+              "size": 10625774
+            },
+            {
+              "name": "Jellyfin-10.11.z-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-10.11.z-secondary.wgt",
+              "size": 10614600
+            },
+            {
+              "name": "Jellyfin-10.11.z-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-10.11.z-SmartHub.wgt",
+              "size": 10612794
+            },
+            {
+              "name": "Jellyfin-10.11.z-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-10.11.z-TrailerFix.wgt",
+              "size": 10623302
+            },
+            {
+              "name": "Jellyfin-10.11.z.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-10.11.z.wgt",
+              "size": 10612131
+            },
+            {
+              "name": "Jellyfin-12.z-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-12.z-GrayFix.wgt",
+              "size": 10768556
+            },
+            {
+              "name": "Jellyfin-12.z-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-12.z-OblongIcon.wgt",
+              "size": 10875251
+            },
+            {
+              "name": "Jellyfin-12.z-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-12.z-OSA.wgt",
+              "size": 10886017
+            },
+            {
+              "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-12.z-secondary-TrailerFix.wgt",
+              "size": 10782174
+            },
+            {
+              "name": "Jellyfin-12.z-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-12.z-secondary.wgt",
+              "size": 10771011
+            },
+            {
+              "name": "Jellyfin-12.z-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-12.z-SmartHub.wgt",
+              "size": 10769212
+            },
+            {
+              "name": "Jellyfin-12.z-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-12.z-TrailerFix.wgt",
+              "size": 10779702
+            },
+            {
+              "name": "Jellyfin-12.z.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-12.z.wgt",
+              "size": 10768541
+            },
+            {
+              "name": "Jellyfin-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-GrayFix.wgt",
+              "size": 10768351
+            },
+            {
+              "name": "Jellyfin-master-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-master-GrayFix.wgt",
+              "size": 10847723
+            },
+            {
+              "name": "Jellyfin-master-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-master-OblongIcon.wgt",
+              "size": 10954433
+            },
+            {
+              "name": "Jellyfin-master-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-master-OSA.wgt",
+              "size": 10965178
+            },
+            {
+              "name": "Jellyfin-master-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-master-secondary-TrailerFix.wgt",
+              "size": 10861359
+            },
+            {
+              "name": "Jellyfin-master-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-master-secondary.wgt",
+              "size": 10850187
+            },
+            {
+              "name": "Jellyfin-master-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-master-SmartHub.wgt",
+              "size": 10848386
+            },
+            {
+              "name": "Jellyfin-master-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-master-TrailerFix.wgt",
+              "size": 10858890
+            },
+            {
+              "name": "Jellyfin-master.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-master.wgt",
+              "size": 10847716
+            },
+            {
+              "name": "Jellyfin-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-OblongIcon.wgt",
+              "size": 10875043
+            },
+            {
+              "name": "Jellyfin-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-OSA.wgt",
+              "size": 10885802
+            },
+            {
+              "name": "Jellyfin-prerelease-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-prerelease-GrayFix.wgt",
+              "size": 10768368
+            },
+            {
+              "name": "Jellyfin-prerelease-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-prerelease-OblongIcon.wgt",
+              "size": 10875070
+            },
+            {
+              "name": "Jellyfin-prerelease-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-prerelease-OSA.wgt",
+              "size": 10885813
+            },
+            {
+              "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-prerelease-secondary-TrailerFix.wgt",
+              "size": 10781980
+            },
+            {
+              "name": "Jellyfin-prerelease-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-prerelease-secondary.wgt",
+              "size": 10770818
+            },
+            {
+              "name": "Jellyfin-prerelease-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-prerelease-SmartHub.wgt",
+              "size": 10769021
+            },
+            {
+              "name": "Jellyfin-prerelease-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-prerelease-TrailerFix.wgt",
+              "size": 10779525
+            },
+            {
+              "name": "Jellyfin-prerelease.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-prerelease.wgt",
+              "size": 10768353
+            },
+            {
+              "name": "Jellyfin-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-secondary-TrailerFix.wgt",
+              "size": 10781977
+            },
+            {
+              "name": "Jellyfin-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-secondary.wgt",
+              "size": 10770804
+            },
+            {
+              "name": "Jellyfin-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-SmartHub.wgt",
+              "size": 10769002
+            },
+            {
+              "name": "Jellyfin-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin-TrailerFix.wgt",
+              "size": 10779503
+            },
+            {
+              "name": "Jellyfin.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-22-1007/Jellyfin.wgt",
+              "size": 10768337
+            }
+          ]
+        },
+        {
+          "url": "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases/419839959",
+          "name": "Jellyfin - 2026-10-21 17:07",
+          "tag_name": "2026-10-21-1707",
+          "published_at": "2026-10-21T17:16:34Z",
+          "draft": false,
+          "assets": [
+            {
+              "name": "Jellyfin-10.11.z-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-10.11.z-GrayFix.wgt",
+              "size": 10612154
+            },
+            {
+              "name": "Jellyfin-10.11.z-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-10.11.z-OblongIcon.wgt",
+              "size": 10718844
+            },
+            {
+              "name": "Jellyfin-10.11.z-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-10.11.z-OSA.wgt",
+              "size": 10729591
+            },
+            {
+              "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-10.11.z-secondary-TrailerFix.wgt",
+              "size": 10625768
+            },
+            {
+              "name": "Jellyfin-10.11.z-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-10.11.z-secondary.wgt",
+              "size": 10614603
+            },
+            {
+              "name": "Jellyfin-10.11.z-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-10.11.z-SmartHub.wgt",
+              "size": 10612795
+            },
+            {
+              "name": "Jellyfin-10.11.z-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-10.11.z-TrailerFix.wgt",
+              "size": 10623288
+            },
+            {
+              "name": "Jellyfin-10.11.z.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-10.11.z.wgt",
+              "size": 10612126
+            },
+            {
+              "name": "Jellyfin-12.z-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-12.z-GrayFix.wgt",
+              "size": 10768554
+            },
+            {
+              "name": "Jellyfin-12.z-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-12.z-OblongIcon.wgt",
+              "size": 10875263
+            },
+            {
+              "name": "Jellyfin-12.z-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-12.z-OSA.wgt",
+              "size": 10886004
+            },
+            {
+              "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-12.z-secondary-TrailerFix.wgt",
+              "size": 10782175
+            },
+            {
+              "name": "Jellyfin-12.z-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-12.z-secondary.wgt",
+              "size": 10771019
+            },
+            {
+              "name": "Jellyfin-12.z-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-12.z-SmartHub.wgt",
+              "size": 10769201
+            },
+            {
+              "name": "Jellyfin-12.z-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-12.z-TrailerFix.wgt",
+              "size": 10779719
+            },
+            {
+              "name": "Jellyfin-12.z.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-12.z.wgt",
+              "size": 10768548
+            },
+            {
+              "name": "Jellyfin-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-GrayFix.wgt",
+              "size": 10768350
+            },
+            {
+              "name": "Jellyfin-master-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-master-GrayFix.wgt",
+              "size": 10847544
+            },
+            {
+              "name": "Jellyfin-master-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-master-OblongIcon.wgt",
+              "size": 10954246
+            },
+            {
+              "name": "Jellyfin-master-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-master-OSA.wgt",
+              "size": 10964988
+            },
+            {
+              "name": "Jellyfin-master-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-master-secondary-TrailerFix.wgt",
+              "size": 10861174
+            },
+            {
+              "name": "Jellyfin-master-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-master-secondary.wgt",
+              "size": 10850001
+            },
+            {
+              "name": "Jellyfin-master-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-master-SmartHub.wgt",
+              "size": 10848204
+            },
+            {
+              "name": "Jellyfin-master-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-master-TrailerFix.wgt",
+              "size": 10858709
+            },
+            {
+              "name": "Jellyfin-master.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-master.wgt",
+              "size": 10847526
+            },
+            {
+              "name": "Jellyfin-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-OblongIcon.wgt",
+              "size": 10875044
+            },
+            {
+              "name": "Jellyfin-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-OSA.wgt",
+              "size": 10885787
+            },
+            {
+              "name": "Jellyfin-prerelease-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-prerelease-GrayFix.wgt",
+              "size": 10768365
+            },
+            {
+              "name": "Jellyfin-prerelease-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-prerelease-OblongIcon.wgt",
+              "size": 10875058
+            },
+            {
+              "name": "Jellyfin-prerelease-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-prerelease-OSA.wgt",
+              "size": 10885810
+            },
+            {
+              "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-prerelease-secondary-TrailerFix.wgt",
+              "size": 10781988
+            },
+            {
+              "name": "Jellyfin-prerelease-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-prerelease-secondary.wgt",
+              "size": 10770824
+            },
+            {
+              "name": "Jellyfin-prerelease-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-prerelease-SmartHub.wgt",
+              "size": 10769023
+            },
+            {
+              "name": "Jellyfin-prerelease-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-prerelease-TrailerFix.wgt",
+              "size": 10779528
+            },
+            {
+              "name": "Jellyfin-prerelease.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-prerelease.wgt",
+              "size": 10768357
+            },
+            {
+              "name": "Jellyfin-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-secondary-TrailerFix.wgt",
+              "size": 10781979
+            },
+            {
+              "name": "Jellyfin-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-secondary.wgt",
+              "size": 10770800
+            },
+            {
+              "name": "Jellyfin-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-SmartHub.wgt",
+              "size": 10769005
+            },
+            {
+              "name": "Jellyfin-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin-TrailerFix.wgt",
+              "size": 10779512
+            },
+            {
+              "name": "Jellyfin.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1707/Jellyfin.wgt",
+              "size": 10768338
+            }
+          ]
+        },
+        {
+          "url": "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases/419496768",
+          "name": "Jellyfin - 2026-10-21 11:42",
+          "tag_name": "2026-10-21-1142",
+          "published_at": "2026-10-21T11:51:46Z",
+          "draft": false,
+          "assets": [
+            {
+              "name": "Jellyfin-10.11.z-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-10.11.z-GrayFix.wgt",
+              "size": 10612147
+            },
+            {
+              "name": "Jellyfin-10.11.z-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-10.11.z-OblongIcon.wgt",
+              "size": 10718840
+            },
+            {
+              "name": "Jellyfin-10.11.z-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-10.11.z-OSA.wgt",
+              "size": 10729592
+            },
+            {
+              "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-10.11.z-secondary-TrailerFix.wgt",
+              "size": 10625766
+            },
+            {
+              "name": "Jellyfin-10.11.z-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-10.11.z-secondary.wgt",
+              "size": 10614592
+            },
+            {
+              "name": "Jellyfin-10.11.z-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-10.11.z-SmartHub.wgt",
+              "size": 10612791
+            },
+            {
+              "name": "Jellyfin-10.11.z-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-10.11.z-TrailerFix.wgt",
+              "size": 10623298
+            },
+            {
+              "name": "Jellyfin-10.11.z.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-10.11.z.wgt",
+              "size": 10612133
+            },
+            {
+              "name": "Jellyfin-12.z-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-12.z-GrayFix.wgt",
+              "size": 10768496
+            },
+            {
+              "name": "Jellyfin-12.z-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-12.z-OblongIcon.wgt",
+              "size": 10875189
+            },
+            {
+              "name": "Jellyfin-12.z-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-12.z-OSA.wgt",
+              "size": 10885939
+            },
+            {
+              "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-12.z-secondary-TrailerFix.wgt",
+              "size": 10782121
+            },
+            {
+              "name": "Jellyfin-12.z-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-12.z-secondary.wgt",
+              "size": 10770949
+            },
+            {
+              "name": "Jellyfin-12.z-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-12.z-SmartHub.wgt",
+              "size": 10769152
+            },
+            {
+              "name": "Jellyfin-12.z-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-12.z-TrailerFix.wgt",
+              "size": 10779652
+            },
+            {
+              "name": "Jellyfin-12.z.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-12.z.wgt",
+              "size": 10768481
+            },
+            {
+              "name": "Jellyfin-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-GrayFix.wgt",
+              "size": 10768351
+            },
+            {
+              "name": "Jellyfin-master-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-master-GrayFix.wgt",
+              "size": 10847347
+            },
+            {
+              "name": "Jellyfin-master-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-master-OblongIcon.wgt",
+              "size": 10954055
+            },
+            {
+              "name": "Jellyfin-master-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-master-OSA.wgt",
+              "size": 10964796
+            },
+            {
+              "name": "Jellyfin-master-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-master-secondary-TrailerFix.wgt",
+              "size": 10860970
+            },
+            {
+              "name": "Jellyfin-master-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-master-secondary.wgt",
+              "size": 10849807
+            },
+            {
+              "name": "Jellyfin-master-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-master-SmartHub.wgt",
+              "size": 10848011
+            },
+            {
+              "name": "Jellyfin-master-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-master-TrailerFix.wgt",
+              "size": 10858506
+            },
+            {
+              "name": "Jellyfin-master.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-master.wgt",
+              "size": 10847337
+            },
+            {
+              "name": "Jellyfin-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-OblongIcon.wgt",
+              "size": 10875055
+            },
+            {
+              "name": "Jellyfin-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-OSA.wgt",
+              "size": 10885802
+            },
+            {
+              "name": "Jellyfin-prerelease-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-prerelease-GrayFix.wgt",
+              "size": 10768369
+            },
+            {
+              "name": "Jellyfin-prerelease-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-prerelease-OblongIcon.wgt",
+              "size": 10875061
+            },
+            {
+              "name": "Jellyfin-prerelease-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-prerelease-OSA.wgt",
+              "size": 10885808
+            },
+            {
+              "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-prerelease-secondary-TrailerFix.wgt",
+              "size": 10781988
+            },
+            {
+              "name": "Jellyfin-prerelease-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-prerelease-secondary.wgt",
+              "size": 10770812
+            },
+            {
+              "name": "Jellyfin-prerelease-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-prerelease-SmartHub.wgt",
+              "size": 10769028
+            },
+            {
+              "name": "Jellyfin-prerelease-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-prerelease-TrailerFix.wgt",
+              "size": 10779525
+            },
+            {
+              "name": "Jellyfin-prerelease.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-prerelease.wgt",
+              "size": 10768349
+            },
+            {
+              "name": "Jellyfin-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-secondary-TrailerFix.wgt",
+              "size": 10781972
+            },
+            {
+              "name": "Jellyfin-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-secondary.wgt",
+              "size": 10770810
+            },
+            {
+              "name": "Jellyfin-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-SmartHub.wgt",
+              "size": 10769009
+            },
+            {
+              "name": "Jellyfin-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin-TrailerFix.wgt",
+              "size": 10779505
+            },
+            {
+              "name": "Jellyfin.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-21-1142/Jellyfin.wgt",
+              "size": 10768339
+            }
+          ]
+        },
+        {
+          "url": "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases/418941298",
+          "name": "Jellyfin - 2026-10-20 22:15",
+          "tag_name": "2026-10-20-2215",
+          "published_at": "2026-10-20T22:24:29Z",
+          "draft": false,
+          "assets": [
+            {
+              "name": "Jellyfin-10.11.z-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-10.11.z-GrayFix.wgt",
+              "size": 10612158
+            },
+            {
+              "name": "Jellyfin-10.11.z-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-10.11.z-OblongIcon.wgt",
+              "size": 10718839
+            },
+            {
+              "name": "Jellyfin-10.11.z-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-10.11.z-OSA.wgt",
+              "size": 10729588
+            },
+            {
+              "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-10.11.z-secondary-TrailerFix.wgt",
+              "size": 10625767
+            },
+            {
+              "name": "Jellyfin-10.11.z-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-10.11.z-secondary.wgt",
+              "size": 10614596
+            },
+            {
+              "name": "Jellyfin-10.11.z-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-10.11.z-SmartHub.wgt",
+              "size": 10612801
+            },
+            {
+              "name": "Jellyfin-10.11.z-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-10.11.z-TrailerFix.wgt",
+              "size": 10623302
+            },
+            {
+              "name": "Jellyfin-10.11.z.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-10.11.z.wgt",
+              "size": 10612135
+            },
+            {
+              "name": "Jellyfin-12.z-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-12.z-GrayFix.wgt",
+              "size": 10768497
+            },
+            {
+              "name": "Jellyfin-12.z-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-12.z-OblongIcon.wgt",
+              "size": 10875193
+            },
+            {
+              "name": "Jellyfin-12.z-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-12.z-OSA.wgt",
+              "size": 10885941
+            },
+            {
+              "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-12.z-secondary-TrailerFix.wgt",
+              "size": 10782117
+            },
+            {
+              "name": "Jellyfin-12.z-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-12.z-secondary.wgt",
+              "size": 10770958
+            },
+            {
+              "name": "Jellyfin-12.z-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-12.z-SmartHub.wgt",
+              "size": 10769157
+            },
+            {
+              "name": "Jellyfin-12.z-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-12.z-TrailerFix.wgt",
+              "size": 10779654
+            },
+            {
+              "name": "Jellyfin-12.z.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-12.z.wgt",
+              "size": 10768484
+            },
+            {
+              "name": "Jellyfin-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-GrayFix.wgt",
+              "size": 10768352
+            },
+            {
+              "name": "Jellyfin-master-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-master-GrayFix.wgt",
+              "size": 10847346
+            },
+            {
+              "name": "Jellyfin-master-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-master-OblongIcon.wgt",
+              "size": 10954049
+            },
+            {
+              "name": "Jellyfin-master-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-master-OSA.wgt",
+              "size": 10964798
+            },
+            {
+              "name": "Jellyfin-master-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-master-secondary-TrailerFix.wgt",
+              "size": 10860978
+            },
+            {
+              "name": "Jellyfin-master-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-master-secondary.wgt",
+              "size": 10849809
+            },
+            {
+              "name": "Jellyfin-master-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-master-SmartHub.wgt",
+              "size": 10848007
+            },
+            {
+              "name": "Jellyfin-master-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-master-TrailerFix.wgt",
+              "size": 10858511
+            },
+            {
+              "name": "Jellyfin-master.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-master.wgt",
+              "size": 10847342
+            },
+            {
+              "name": "Jellyfin-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-OblongIcon.wgt",
+              "size": 10875052
+            },
+            {
+              "name": "Jellyfin-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-OSA.wgt",
+              "size": 10885799
+            },
+            {
+              "name": "Jellyfin-prerelease-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-prerelease-GrayFix.wgt",
+              "size": 10768364
+            },
+            {
+              "name": "Jellyfin-prerelease-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-prerelease-OblongIcon.wgt",
+              "size": 10875070
+            },
+            {
+              "name": "Jellyfin-prerelease-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-prerelease-OSA.wgt",
+              "size": 10885813
+            },
+            {
+              "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-prerelease-secondary-TrailerFix.wgt",
+              "size": 10781992
+            },
+            {
+              "name": "Jellyfin-prerelease-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-prerelease-secondary.wgt",
+              "size": 10770822
+            },
+            {
+              "name": "Jellyfin-prerelease-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-prerelease-SmartHub.wgt",
+              "size": 10769017
+            },
+            {
+              "name": "Jellyfin-prerelease-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-prerelease-TrailerFix.wgt",
+              "size": 10779522
+            },
+            {
+              "name": "Jellyfin-prerelease.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-prerelease.wgt",
+              "size": 10768351
+            },
+            {
+              "name": "Jellyfin-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-secondary-TrailerFix.wgt",
+              "size": 10781978
+            },
+            {
+              "name": "Jellyfin-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-secondary.wgt",
+              "size": 10770805
+            },
+            {
+              "name": "Jellyfin-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-SmartHub.wgt",
+              "size": 10769011
+            },
+            {
+              "name": "Jellyfin-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin-TrailerFix.wgt",
+              "size": 10779501
+            },
+            {
+              "name": "Jellyfin.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-10-20-2215/Jellyfin.wgt",
+              "size": 10768333
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "moonfin",
@@ -94,7 +1140,32 @@
       "url": "https://api.github.com/repos/reisxd/TizenTube/releases",
       "ok": true,
       "latestTag": "v2.1.1",
-      "releases": []
+      "releases": [
+        {
+          "url": "https://api.github.com/repos/reisxd/TizenTube/releases/387998219",
+          "name": "TizenTube",
+          "tag_name": "v2.1.1",
+          "published_at": "2026-09-13T18:48:04Z",
+          "draft": false,
+          "assets": [
+            {
+              "name": "TizenTubeCobalt.wgt",
+              "browser_download_url": "https://github.com/reisxd/TizenTube/releases/download/v2.1.1/TizenTubeCobalt.wgt",
+              "size": 1481054
+            },
+            {
+              "name": "TizenTubeCobaltTizenTubeProxyAddress.wgt",
+              "browser_download_url": "https://github.com/reisxd/TizenTube/releases/download/v2.1.1/TizenTubeCobaltTizenTubeProxyAddress.wgt",
+              "size": 1482231
+            },
+            {
+              "name": "TizenTubeOld.wgt",
+              "browser_download_url": "https://github.com/reisxd/TizenTube/releases/download/v2.1.1/TizenTubeOld.wgt",
+              "size": 1482127
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "jellyfin-avplay",
@@ -123,22 +1194,7 @@
       "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases",
       "ok": true,
       "latestTag": "v0.1.0-2026-10-22-0326",
-      "releases": [
-        {
-          "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases/420275603",
-          "name": "Jellyfin - AVPlay - 10.10z SmartHub",
-          "tag_name": "v0.1.0-2026-10-22-0326",
-          "published_at": "2026-10-22T03:26:44Z",
-          "draft": false,
-          "assets": [
-            {
-              "name": "Jellyfin-AVPlay-SmartHub-Oblonged-2026-10-22-0326.wgt",
-              "browser_download_url": "https://github.com/asamahy/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-10-22-0326/Jellyfin-AVPlay-SmartHub-Oblonged-2026-10-22-0326.wgt",
-              "size": 11143677
-            }
-          ]
-        }
-      ]
+      "releases": []
     },
     {
       "id": "jellyfin-legacy",
