@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-22T16:47:52.5731478+00:00",
+  "generatedAt": "2026-10-22T19:23:47.7160925+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -1061,7 +1061,32 @@
       "url": "https://api.github.com/repos/Moonfin-Client/Smart-TV/releases",
       "ok": true,
       "latestTag": "2.10.0",
-      "releases": []
+      "releases": [
+        {
+          "url": "https://api.github.com/repos/Moonfin-Client/Smart-TV/releases/408445433",
+          "name": "Moonfin",
+          "tag_name": "2.10.0",
+          "published_at": "2026-10-10T00:13:52Z",
+          "draft": false,
+          "assets": [
+            {
+              "name": "Moonfin_Tizen_Legacy_v2.10.0.wgt",
+              "browser_download_url": "https://github.com/Moonfin-Client/Smart-TV/releases/download/2.10.0/Moonfin_Tizen_Legacy_v2.10.0.wgt",
+              "size": 6015164
+            },
+            {
+              "name": "Moonfin_Tizen_Oblong_v2.10.0.wgt",
+              "browser_download_url": "https://github.com/Moonfin-Client/Smart-TV/releases/download/2.10.0/Moonfin_Tizen_Oblong_v2.10.0.wgt",
+              "size": 6010175
+            },
+            {
+              "name": "Moonfin_Tizen_Regular_v2.10.0.wgt",
+              "browser_download_url": "https://github.com/Moonfin-Client/Smart-TV/releases/download/2.10.0/Moonfin_Tizen_Regular_v2.10.0.wgt",
+              "size": 6016681
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "litefin",
@@ -1147,7 +1172,22 @@
       "url": "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases",
       "ok": true,
       "latestTag": "v0.1.0-2026-10-22-1637",
-      "releases": []
+      "releases": [
+        {
+          "url": "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases/420958735",
+          "name": "Jellyfin - AVPlay",
+          "tag_name": "v0.1.0-2026-10-22-1637",
+          "published_at": "2026-10-22T16:37:43Z",
+          "draft": false,
+          "assets": [
+            {
+              "name": "Jellyfin-AVPlay.wgt",
+              "browser_download_url": "https://github.com/PatrickSt1991/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-10-22-1637/Jellyfin-AVPlay.wgt",
+              "size": 10850377
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "jellyfin-avplay-smarthub",
