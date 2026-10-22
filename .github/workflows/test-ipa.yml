@@ -68,6 +68,9 @@ jobs:
       # global property, so it reaches the referenced Core library too, which rejects it
       # (NETSDK1083), while a single RID is fine everywhere. No AOT, so each is quick next to
       # the device publish above.
+      # Signed, unlike the IPA: the build signs a simulator app ad hoc (no certificate needed),
+      # and it must, because on Apple Silicon unsigned arm64 code is killed as soon as dyld maps
+      # it ("SIGKILL (Code Signature Invalid)", which is what Appetize's "Unexpected error" was).
       - name: Build simulator apps
         shell: bash
         run: |
@@ -76,7 +79,6 @@ jobs:
             dotnet build Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj \
               -c Release -f net10.0-ios \
               -p:RuntimeIdentifier=$RID \
-              -p:EnableCodeSigning=false \
               -p:ApplicationDisplayVersion="$(.github/scripts/apple-version.sh "$VERSION")" \
               -p:ApplicationVersion="${{ github.run_number }}" \
               -o "publish/$RID"
@@ -88,6 +90,7 @@ jobs:
               exit 1
             fi
             lipo -info "$APP/Apps2Samsung.Mobile" || true
+            codesign --verify --deep --strict --verbose=2 "$APP"
             # ditto keeps the bundle's resource forks and symlinks the way Xcode's export does.
             ditto -c -k --keepParent "$APP" "dist-sim/Apps2Samsung-${VERSION_NAME}-ios-simulator-${RID#iossimulator-}.zip"
           done
