@@ -190,6 +190,21 @@ jobs:
               FAILED=1
             fi
 
+            # Dark mode, both ways it reaches the app: switched while it runs, and already on at
+            # start. Screenshots only, no verdict: whether the pages follow is checked by eye.
+            if [ "$APP_PID" -gt 0 ] && kill -0 "$APP_PID" 2>/dev/null; then
+              xcrun simctl ui "$UDID" appearance dark
+              /bin/sleep 5
+              xcrun simctl io "$UDID" screenshot "$OUT/screen-dark-switched.png" > /dev/null 2>&1 || true
+              xcrun simctl terminate "$UDID" "$BUNDLE_ID" || true
+              xcrun simctl launch "$UDID" "$BUNDLE_ID" >> "$OUT/launch-output.txt" 2>&1 &
+              LAUNCHER=$!
+              /bin/sleep 20
+              kill "$LAUNCHER" 2>/dev/null || true
+              xcrun simctl io "$UDID" screenshot "$OUT/screen-dark-start.png" > /dev/null 2>&1 || true
+              xcrun simctl ui "$UDID" appearance light
+            fi
+
             kill "$LOG_PID" 2>/dev/null || true
             cp ~/Library/Logs/DiagnosticReports/Apps2Samsung.Mobile* "$OUT/" 2>/dev/null || true
             # The whole system log of the last 5 minutes, for whatever the predicate above missed.
