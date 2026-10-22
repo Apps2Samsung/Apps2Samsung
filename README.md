@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/github/v/release/Apps2Samsung/Apps2Samsung?label=stable&style=for-the-badge" />
   <img src="https://img.shields.io/github/v/release/Apps2Samsung/Apps2Samsung?include_prereleases&label=beta&style=for-the-badge" />
   <img src="https://img.shields.io/badge/Tizen-TV-blue?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/OS-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android-brightgreen?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/OS-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS%20(beta)-brightgreen?style=for-the-badge" />
   <a href="https://discord.gg/7mga3zh8Cv">
     <img src="https://img.shields.io/badge/Discord-Community-7289DA?style=for-the-badge&logo=discord&logoColor=white" />
   </a>
@@ -49,6 +49,20 @@ The phone app is the mobile installer head — run the whole install from your p
   [Add to Obtainium](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/Apps2Samsung/Apps2Samsung), or paste `https://github.com/Apps2Samsung/Apps2Samsung` into Obtainium's *Add App*.
 - **F-Droid** — add our repository in the F-Droid app (Settings → Repositories → Add): `https://apps2samsung.com/fdroid/repo`. It serves the latest **stable** and updates automatically. Works in F-Droid, Droid-ify and Neo Store.
 - **Direct** — grab the `-android.apk` from any [release](https://github.com/Apps2Samsung/Apps2Samsung/releases) and sideload it.
+
+### 🍏 Try the iPhone app (beta, testers wanted)
+
+Since v3 there is an iPhone app too, with the same screens as the Android one. It isn't on the App Store: you install it with [SideStore](https://sidestore.io), which signs it on the phone with your own Apple ID (a free one works). **It is new and hasn't been through a full install on a real iPhone yet**, so expect rough edges and please report what you find in [#753](https://github.com/Apps2Samsung/Apps2Samsung/issues/753).
+
+1. Install SideStore once, following [their guide](https://docs.sidestore.io) (needs a computer and a cable once, plus Developer Mode on the iPhone and the VPN app SideStore asks for).
+2. In SideStore, go to **Sources → +** and add `https://apps2samsung.com/sidestore/beta/apps.json`, then install **Apps2Samsung** from it. Or download the `-ios-unsigned.ipa` from the latest [beta release](https://github.com/Apps2Samsung/Apps2Samsung/releases) and add it under **My Apps → +**.
+3. Open the app and allow **Local Network** access when iOS asks: without it the app can't find your TV.
+
+Good to know:
+- A free Apple ID signs apps for **7 days**. SideStore refreshes them in the background; if the app stops opening, open SideStore and refresh it. If SideStore itself expired, you need the computer again.
+- A free Apple ID allows **3 sideloaded apps** at once, SideStore included.
+- Keep the app in front during an install: iOS pauses apps in the background.
+- Waking the TV from the remote may not work on iPhone (iOS blocks the network broadcast it needs for apps signed with a free Apple ID).
 
 ### 🐧 Arch Linux (AUR)
 
