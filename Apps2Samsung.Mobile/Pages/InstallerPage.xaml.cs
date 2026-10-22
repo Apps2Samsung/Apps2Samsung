@@ -621,11 +621,15 @@ public partial class InstallerPage : ContentPage
 		// timeout halfway through the push would leave the TV without the old copy or the new one.
 		DeviceDisplay.Current.KeepScreenOn = true;
 		string? wgtPath = null;
+		// True while the package downloads, so a connection failure there gets its own message.
+		bool downloading = false;
 		try
 		{
 			// Download first so we can inspect the package's declared privileges before signing.
 			SetStep(InstallStep.Download);
+			downloading = !custom;
 			wgtPath = custom ? customPath! : await _installer.DownloadAsync(asset!.DownloadUrl, SetStatus, cancel.Token);
+			downloading = false;
 			cancel.Token.ThrowIfCancellationRequested();
 
 			// Partner if the manifest declared it OR the .wgt itself needs a partner-level privilege.
@@ -670,6 +674,13 @@ public partial class InstallerPage : ContentPage
 			// TV still has what it had and there is nothing to report but that.
 			SetStatus(L10n.Get("statusInstallCancelled"));
 			await CloseProgressAsync();
+		}
+		catch (Exception ex) when (downloading && NetworkFailure.LocalizationKey(ex) is { } networkKey)
+		{
+			// The connection, not the app: an HttpClient timeout is a TaskCanceledException too, and
+			// used to fall into the sign-in catch below and say "sign-in cancelled" (#809).
+			System.Diagnostics.Trace.WriteLine($"[installer] Download failed: {ex}");
+			FailProgress($"{L10n.Get("DownloadFailed")} {L10n.Get(networkKey)}");
 		}
 		catch (TaskCanceledException)
 		{

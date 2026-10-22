@@ -38,7 +38,15 @@ namespace Apps2Samsung.Helpers.Core
             catch (Exception ex)
             {
                 progress?.Invoke("DownloadFailed".Localized());
-                await _dialogService.ShowErrorAsync($"{"DownloadFailed".Localized()} {ex}");
+                // A connection problem gets a plain explanation; the exception goes to the log only.
+                // Anything else keeps the full exception in the dialog, which reports rely on.
+                if (Apps2Samsung.Services.NetworkFailure.LocalizationKey(ex) is { } key)
+                {
+                    Trace.WriteLine($"[Download] {selectedAsset.DownloadUrl}: {ex}");
+                    await _dialogService.ShowErrorAsync($"{"DownloadFailed".Localized()} {key.Localized()}");
+                }
+                else
+                    await _dialogService.ShowErrorAsync($"{"DownloadFailed".Localized()} {ex}");
                 return null;
             }
         }
