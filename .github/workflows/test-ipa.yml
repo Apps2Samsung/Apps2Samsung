@@ -110,7 +110,8 @@ jobs:
         id: smoke
         shell: bash
         run: |
-          set -uo pipefail
+          # No -e: a failing simctl call is what this step is here to record, not a reason to stop.
+          set +e -uo pipefail
           BUNDLE_ID=nl.madebypatrick.apps2samsung
           RID=iossimulator-$([ "$(uname -m)" = arm64 ] && echo arm64 || echo x64)
           APP=$(find "publish/$RID" -maxdepth 2 -type d -name '*.app' | head -n1)
@@ -124,8 +125,12 @@ jobs:
           rts.sort(key=lambda r: [int(x) for x in r["version"].split(".")])
           for r in {r["identifier"]: r for r in (rts[-1:] + rts[:1])}.values():
               phones = [d for d in r.get("supportedDeviceTypes", []) if d.get("productFamily") == "iPhone"]
-              if phones:
-                  print(r["identifier"], phones[-1]["identifier"], r["name"].replace(" ", "-"))
+              # The newest plain iPhone ("iPhone 17", not "Pro"/"Plus"/"SE"); any iPhone otherwise.
+              plain = [d for d in phones if d["name"].replace("iPhone ", "").isdigit()]
+              plain.sort(key=lambda d: int(d["name"].replace("iPhone ", "")))
+              pick = (plain or phones)[-1:]
+              if pick:
+                  print(r["identifier"], pick[0]["identifier"], r["name"].replace(" ", "-"))
           ' > smoke/targets.txt
           cat smoke/targets.txt
           if [ ! -s smoke/targets.txt ]; then
@@ -143,14 +148,29 @@ jobs:
             xcrun simctl bootstatus "$UDID" -b > /dev/null
             xcrun simctl install "$UDID" "$APP"
 
+            # The app's own log, plus what SpringBoard / FrontBoard / RunningBoard say about starting it.
             xcrun simctl spawn "$UDID" log stream --level debug \
-              --predicate 'process == "Apps2Samsung.Mobile"' > "$OUT/unified.log" 2>&1 &
+              --predicate 'process == "Apps2Samsung.Mobile" OR eventMessage CONTAINS[c] "apps2samsung"' \
+              > "$OUT/unified.log" 2>&1 &
             LOG_PID=$!
 
-            LAUNCH=$(xcrun simctl launch --terminate-running-process \
-              --stdout="$PWD/$OUT/stdout.txt" --stderr="$PWD/$OUT/stderr.txt" "$UDID" "$BUNDLE_ID" 2>&1)
-            echo "$LAUNCH"
+            # simctl launch can hang when the app never finishes launching, so give it 90 s
+            # (macOS has no `timeout`).
+            xcrun simctl launch --terminate-running-process \
+              --stdout="$PWD/$OUT/stdout.txt" --stderr="$PWD/$OUT/stderr.txt" "$UDID" "$BUNDLE_ID" \
+              > "$OUT/launch-output.txt" 2>&1 &
+            LAUNCHER=$!
+            for i in $(seq 1 90); do
+              kill -0 "$LAUNCHER" 2>/dev/null || break
+              /bin/sleep 1
+            done
+            kill "$LAUNCHER" 2>/dev/null && echo "(simctl launch still waiting after 90 s, stopped)" >> "$OUT/launch-output.txt"
+            wait "$LAUNCHER"
+            LAUNCH_RC=$?
+            LAUNCH=$(cat "$OUT/launch-output.txt")
+            echo "simctl launch exit $LAUNCH_RC: $LAUNCH" | tee "$OUT/launch.txt"
             APP_PID=${LAUNCH##*: }
+            [[ "$APP_PID" =~ ^[0-9]+$ ]] || APP_PID=0
 
             for i in $(seq 1 30); do
               kill -0 "$APP_PID" 2>/dev/null || break
@@ -158,7 +178,7 @@ jobs:
             done
 
             xcrun simctl io "$UDID" screenshot "$OUT/screen.png" > /dev/null 2>&1 || true
-            if kill -0 "$APP_PID" 2>/dev/null; then
+            if [ "$APP_PID" -gt 0 ] && kill -0 "$APP_PID" 2>/dev/null; then
               echo "✅ $NAME: still running after 30 s" | tee "$OUT/result.txt"
             else
               echo "❌ $NAME: the app exited within 30 s" | tee "$OUT/result.txt"
@@ -168,6 +188,9 @@ jobs:
 
             kill "$LOG_PID" 2>/dev/null || true
             cp ~/Library/Logs/DiagnosticReports/Apps2Samsung.Mobile* "$OUT/" 2>/dev/null || true
+            # The whole system log of the last 5 minutes, for whatever the predicate above missed.
+            xcrun simctl spawn "$UDID" log show --last 5m --style compact > "$OUT/system.log" 2>&1 || true
+            xcrun simctl listapps "$UDID" > "$OUT/listapps.txt" 2>&1 || true
             tail -n 40 "$OUT/stderr.txt" 2>/dev/null || true
             xcrun simctl shutdown "$UDID" || true
             xcrun simctl delete "$UDID" || true
