@@ -1,14 +1,22 @@
 name: SideStore Source
 
-# Publishes the SideStore source for the iPhone app (#753 step 6) to docs/sidestore on the `beta`
-# branch (GitHub Pages → https://apps2samsung.com/sidestore/apps.json), pointing at the unsigned
-# IPA of the latest stable release. Runs after a successful stable release, or on demand. The
-# same pattern as fdroid-repo.yml; the JSON itself is written by .github/scripts/sidestore-source.py.
+# Publishes the SideStore sources for the iPhone app (#753 step 6) to docs/sidestore on the `beta`
+# branch (GitHub Pages), each pointing at the unsigned IPA of the latest release of its channel:
+#   stable  https://apps2samsung.com/sidestore/apps.json        after a successful Stable Release
+#   beta    https://apps2samsung.com/sidestore/beta/apps.json   after a successful Beta Pre-Release
+# or on demand. The same pattern as fdroid-repo.yml; the JSON itself is written by
+# .github/scripts/sidestore-source.py.
 on:
   workflow_run:
-    workflows: ["Stable Release"]
+    workflows: ["Stable Release", "Beta Pre-Release"]
     types: [completed]
   workflow_dispatch:
+    inputs:
+      channel:
+        description: "Which source to write"
+        type: choice
+        options: [stable, beta]
+        default: stable
 
 permissions:
   contents: write
@@ -44,14 +52,21 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.CI_PUSH_TOKEN }}
 
-      - name: Read the latest stable release
+      - name: Read the latest release of the channel
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHANNEL: ${{ github.event_name == 'workflow_dispatch' && inputs.channel || (github.event.workflow_run.name == 'Beta Pre-Release' && 'beta' || 'stable') }}
         run: |
           set -euo pipefail
+          [ "$CHANNEL" = "beta" ] && PRERELEASE=true || PRERELEASE=false
           TAG=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts \
-                --json tagName,isPrerelease --jq '[.[] | select(.isPrerelease==false)][0].tagName')
-          echo "Latest stable: $TAG"
+                --json tagName,isPrerelease --jq "[.[] | select(.isPrerelease==$PRERELEASE)][0].tagName")
+          if [ -z "$TAG" ]; then
+            echo "::error::No $CHANNEL release found"
+            exit 1
+          fi
+          echo "Latest $CHANNEL: $TAG"
+          echo "CHANNEL=$CHANNEL" >> "$GITHUB_ENV"
           mkdir -p build
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
             --json tagName,publishedAt,body,assets > build/release.json
@@ -62,8 +77,12 @@ jobs:
       - name: Write the source
         run: |
           set -euo pipefail
-          python3 .github/scripts/sidestore-source.py build/release.json build/app.ipa docs/sidestore/apps.json
-          # The icon the source points at: the store icon of the F-Droid listing.
+          if [ "$CHANNEL" = "beta" ]; then
+            python3 .github/scripts/sidestore-source.py build/release.json build/app.ipa docs/sidestore/beta/apps.json --beta
+          else
+            python3 .github/scripts/sidestore-source.py build/release.json build/app.ipa docs/sidestore/apps.json
+          fi
+          # The icon both sources point at: the store icon of the F-Droid listing.
           cp fastlane/metadata/android/en-US/images/icon.png docs/sidestore/icon.png
 
       # fdroid-repo.yml runs on the same stable release and pushes to beta too, so whichever of
@@ -78,7 +97,7 @@ jobs:
             echo "No changes to publish."
             exit 0
           fi
-          git commit -m "sidestore: publish the source for the latest stable IPA [skip ci]"
+          git commit -m "sidestore: publish the source for the latest $CHANNEL IPA [skip ci]"
           for attempt in 1 2 3; do
             if git push origin beta; then
               exit 0

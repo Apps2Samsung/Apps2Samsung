@@ -126,7 +126,7 @@ jobs:
             echo "| 🪟 Windows | ⚠️ Beta | CI-built |"
             echo "| 🤖 Android (.apk) | ⚠️ Beta | Sideload; phone as installer head |"
             if [ "${{ vars.IOS_PUBLISH }}" = "true" ]; then
-              echo "| 📱 iPhone (.ipa) | 🧪 Unsigned | Import into SideStore by hand; betas are not in the source |"
+              echo "| 📱 iPhone (.ipa) | 🧪 Unsigned | SideStore beta source: https://apps2samsung.com/sidestore/beta/apps.json |"
             fi
           } > RELEASE_NOTES.md
 
