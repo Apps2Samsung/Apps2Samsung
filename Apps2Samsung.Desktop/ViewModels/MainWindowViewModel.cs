@@ -405,9 +405,8 @@ namespace Apps2Samsung.ViewModels
         public static string FooterText =>
             $"{AppSettings.Default.AppVersion} " +
             $"- Copyright (c) {DateTime.Now.Year} - MIT License - Patrick Stel";
-        // The sidebar footer: the version, and the licence line under it.
+        // The sidebar footer: the version, and the licence line (LicenseFooter) under it.
         public static string VersionText => $"Apps2Samsung {AppSettings.Default.AppVersion}";
-        public string LicenseText => $"© {DateTime.Now.Year} · {L("lblLicenseFooter")}";
 
         public MainWindowViewModel(
             ITizenInstallerService tizenInstaller,
@@ -514,7 +513,6 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblSelectTv));
             OnPropertyChanged(nameof(DownloadAndInstall));
             OnPropertyChanged(nameof(FooterText));
-            OnPropertyChanged(nameof(LicenseText));
             OnPropertyChanged(nameof(StatusBar));
             OnPropertyChanged(nameof(lblCustomWgt));
             OnPropertyChanged(nameof(SelectWGT));
@@ -1340,6 +1338,7 @@ namespace Apps2Samsung.ViewModels
                         {
                             r.RequiresPartner = requiresPartner;
                             r.Category = category;
+                            SourceRepo.StampFromApiUrl(r, provider.Url);
                             if (provider.Take > 1)
                                 _multiVersionApps.Add(r.Name);
                         }

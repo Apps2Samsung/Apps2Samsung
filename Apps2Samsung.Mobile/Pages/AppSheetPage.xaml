@@ -28,6 +28,8 @@
             </Border>
 
             <Label x:Name="DescriptionLabel" TextColor="{DynamicResource MutedColor}" LineBreakMode="WordWrap" />
+            <!-- who makes it and where its source, releases and licence live (#820) -->
+            <Label x:Name="SourceLabel" FontSize="13" TextColor="{DynamicResource MutedColor}" IsVisible="False" />
 
             <Border x:Name="PartnerNotice" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 10"
                     Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="12,10">

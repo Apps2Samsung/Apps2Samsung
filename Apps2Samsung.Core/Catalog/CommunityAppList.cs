@@ -55,13 +55,14 @@ namespace Apps2Samsung.Catalog
                                 Category = category,
                                 HasVariants = true,
                             };
+                            SourceRepo.Stamp(group, entry.Repo, entry.Host);
                             groups[entry.Group] = group;
                         }
                         group.Assets.Add(asset);
                         continue;
                     }
 
-                    singles.Add(new GitHubRelease
+                    var single = new GitHubRelease
                     {
                         // The catalog's display name when it has one ("AquaPlay IPTV"), else the file name as before.
                         Name = string.IsNullOrWhiteSpace(entry?.Name) ? Path.GetFileNameWithoutExtension(asset.FileName) : entry!.Name,
@@ -71,7 +72,10 @@ namespace Apps2Samsung.Catalog
                         Assets = new List<Asset> { asset },
                         RequiresPartner = requiresPartner,
                         Category = category,
-                    });
+                    };
+                    if (entry != null)
+                        SourceRepo.Stamp(single, entry.Repo, entry.Host);
+                    singles.Add(single);
                 }
             }
 

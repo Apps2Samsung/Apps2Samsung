@@ -210,6 +210,21 @@ namespace Apps2Samsung.Helpers.Core
         }
 
         /// <summary>
+        /// Where the licence footer and the Contribute rows in Settings lead (#820), the same on both heads.
+        /// </summary>
+        public static class Links
+        {
+            public const string Website = "https://apps2samsung.com";
+            public const string SourceCode = "https://github.com/Apps2Samsung/Apps2Samsung";
+            public const string License = "https://github.com/Apps2Samsung/Apps2Samsung/blob/beta/LICENSE";
+            /// <summary>The name in the licence footer; it links to <see cref="Website"/>.</summary>
+            public const string AuthorName = "Patrick Stel";
+            public const string Translate = "https://crowdin.com/project/jellyfin2samsung";
+            public const string Discord = "https://discord.gg/7mga3zh8Cv";
+            public const string Donate = "https://ko-fi.com/patrickst";
+        }
+
+        /// <summary>
         /// Localization keys used for status messages.
         /// </summary>
         public static class LocalizationKeys

@@ -73,8 +73,7 @@
                     <Label x:Name="CatalogFoot" Style="{StaticResource Footnote}" />
                 </VerticalStackLayout>
 
-                <Label Text="{l:Localize lblLicenseFooter}"
-                       HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
+                <controls:LicenseFooter />
                 <Label x:Name="VersionLabel"
                        HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
 

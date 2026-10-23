@@ -4,6 +4,7 @@
              xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
              xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
              xmlns:settings="clr-namespace:Apps2Samsung.Views.Settings"
+             xmlns:controls="clr-namespace:Apps2Samsung.Views.Controls"
              x:Class="Apps2Samsung.Views.SettingsView"
              x:DataType="viewModels:SettingsViewModel">
 	<!-- The Settings section in the main window (#755, option C), list + detail: the update card and
@@ -70,8 +71,34 @@
 								</DataTemplate>
 							</ItemsControl.ItemTemplate>
 						</ItemsControl>
-						<TextBlock Text="{Binding LicenseText}" FontSize="11" TextWrapping="Wrap" Margin="8,0"
-						           Foreground="{DynamicResource MutedBrush}"/>
+						<!-- Contribute (#820): each row opens a page in the browser -->
+						<ItemsControl ItemsSource="{Binding ContributeRows}">
+							<ItemsControl.ItemsPanel>
+								<ItemsPanelTemplate><StackPanel Spacing="2"/></ItemsPanelTemplate>
+							</ItemsControl.ItemsPanel>
+							<ItemsControl.ItemTemplate>
+								<DataTemplate x:DataType="viewModels:SettingsLinkRow">
+									<Button Classes="settingsrow"
+									        Command="{Binding $parent[UserControl].((viewModels:SettingsViewModel)DataContext).OpenLinkCommand}"
+									        CommandParameter="{Binding Url}" ToolTip.Tip="{Binding Url}">
+										<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+											<Border Classes="icontile" Background="{Binding TileBrush}" VerticalAlignment="Center">
+												<Viewbox Width="15" Height="15">
+													<Canvas Width="24" Height="24">
+														<Path Classes="tileicon" Data="{Binding IconData}"/>
+													</Canvas>
+												</Viewbox>
+											</Border>
+											<StackPanel Grid.Column="1" VerticalAlignment="Center">
+												<TextBlock Classes="settingsrowlabel" Text="{Binding Label}" FontSize="14" Foreground="{DynamicResource InkBrush}"/>
+												<TextBlock Text="{Binding Summary}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
+											</StackPanel>
+										</Grid>
+									</Button>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+						<controls:LicenseFooter Margin="8,0"/>
 					</StackPanel>
 				</ScrollViewer>
 			</Border>

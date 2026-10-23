@@ -25,6 +25,11 @@ namespace Apps2Samsung.ViewModels
         public GitHubRelease Release { get; }
         public string Name => Release.Name;
         public string Description { get; }
+        /// <summary>"by owner" and the repository link under the description (#820); hidden without a repository.</summary>
+        public string AuthorText { get; }
+        public Uri? SourceUri { get; }
+        public bool HasSource => SourceUri is not null;
+        public string SourceCodeText { get; }
         public bool RequiresPartner => Release.RequiresPartner;
         public string VersionsTitle { get; }
         public string Published { get; }
@@ -96,6 +101,9 @@ namespace Apps2Samsung.ViewModels
             _previewUrl = previewUrl;
             _http = http;
             Description = description;
+            AuthorText = string.IsNullOrEmpty(release.Author) ? string.Empty : string.Format(localize("lblByAuthor"), release.Author);
+            SourceUri = Uri.TryCreate(release.SourceUrl, UriKind.Absolute, out var source) ? source : null;
+            SourceCodeText = localize("lblSourceCode");
             VersionsTitle = localize(release.HasVariants ? "lblVariant" : "lblVersion");
             Published = DateTime.TryParse(release.PublishedAt, out var date) ? date.ToShortDateString() : string.Empty;
             Assets = new ObservableCollection<Asset>(release.Assets);
