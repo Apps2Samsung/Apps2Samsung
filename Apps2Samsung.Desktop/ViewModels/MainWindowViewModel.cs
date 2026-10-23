@@ -1077,7 +1077,10 @@ namespace Apps2Samsung.ViewModels
                 return;
             try
             {
-                var vm = new InstalledAppsViewModel(_tizenInstaller, _dialogService, SelectedDevice!.IpAddress, SelectedTvLabel);
+                var vm = new InstalledAppsViewModel(_tizenInstaller, _dialogService, SelectedDevice!.IpAddress, SelectedTvLabel,
+                    catalog: () => Releases.ToList(),
+                    update: UpdateFromCatalogAsync,
+                    refreshCatalog: () => LoadReleasesAsync());
                 vm.OnRequestClose += () => SelectedSection = Section.Install;
                 InstalledAppsVm = vm;
             }
@@ -1086,6 +1089,18 @@ namespace Apps2Samsung.ViewModels
                 await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblInstalledApps"), ex));
             }
         }
+        // "Update" on an installed app (#820): the catalog entry it came from, installed the same
+        // way the app sheet does it. SelectedRelease first: changing it resets the asset.
+        private async Task UpdateFromCatalogAsync(GitHubRelease release, Asset asset)
+        {
+            SelectedSection = Section.Install;
+            CustomWgtPath = string.Empty;
+            SelectedRelease = release;
+            SelectedAsset = asset;
+            if (DownloadAndInstallCommand.CanExecute(null))
+                await DownloadAndInstallAsync();
+        }
+
         [RelayCommand]
         private async Task ShowDeviceInfoAsync()
         {

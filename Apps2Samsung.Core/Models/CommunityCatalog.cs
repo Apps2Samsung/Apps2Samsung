@@ -36,6 +36,17 @@ namespace Apps2Samsung.Models
         public string Host { get; set; } = "github";
 
         /// <summary>
+        /// What the file's own manifest says (config.xml / tizen-manifest.xml), read when the bundle is
+        /// assembled: the version the TV reports once the file is installed, and the ids an installed
+        /// app is matched on (#820). Null in a bundle built before these were recorded.
+        /// </summary>
+        public string? Version { get; set; }
+        [JsonPropertyName("app_id")]
+        public string? AppId { get; set; }
+        [JsonPropertyName("package_id")]
+        public string? PackageId { get; set; }
+
+        /// <summary>
         /// Values the user has to supply before this file installs (a per-user API key, a server
         /// address), written into the package by <c>UserSettingsPatcher</c>. Null for the usual
         /// package that needs nothing (#791).

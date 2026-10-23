@@ -19,6 +19,8 @@ public partial class InstalledAppsPage : ContentPage
 {
 	private readonly ISdbEngine _sdb;
 	private readonly TvSelection _tv;
+	// Installed app id → its catalog entry, for the row's Update button (#820).
+	private readonly Dictionary<string, Apps2Samsung.Catalog.CatalogMatch> _matches = new(StringComparer.OrdinalIgnoreCase);
 	// The TV this page is showing, read from the shared selection each time the tab appears.
 	private string _tvIp = string.Empty;
 	private string _tvLabel = string.Empty;
@@ -80,18 +82,52 @@ public partial class InstalledAppsPage : ContentPage
 	{
 		var choice = await MoreMenu.ShowAsync(this,
 			new MoreMenuItem(L10n.Get("lblRefresh"), MoreMenu.IconRescan),
+			new MoreMenuItem(L10n.Get("lblCheckForUpdates"), MoreMenu.IconRescan),
 			new MoreMenuItem(L10n.Get("lblTvInformation"), MoreMenu.IconInfo),
 			new MoreMenuItem(L10n.Get("lblRemoveLeftover"), MoreMenu.IconDelete, Destructive: true));
 		if (choice == 0)
 			await ShowSelectedTvAsync(force: true);
 		else if (choice == 1)
+			await CheckForUpdatesAsync();
+		else if (choice == 2)
 		{
 			if (_tv.HasTv)
 				await Navigation.PushAsync(new DeviceInfoPage(_sdb, _tv.Ip!, _tv.Label, _tv.DebugPortOpen));
 		}
-		else if (choice == 2)
+		else if (choice == 3)
 			await RemoveLeftoverAsync();
 	}
+
+	// A fresh catalog, then the TV's list again: the subtitle says how many apps can be updated (#820).
+	private async Task CheckForUpdatesAsync()
+	{
+		if (CatalogStore.Refresh is { } refresh)
+		{
+			SetBusy(true, L10n.Get("lblCheckForUpdates"));
+			try { await refresh(); }
+			catch (Exception ex) { System.Diagnostics.Trace.WriteLine($"[apps] Catalog refresh failed: {ex.Message}"); }
+		}
+		await ShowSelectedTvAsync(force: true);
+		if (AppsList.ItemsSource is List<InstalledApp> { Count: > 0 } apps && apps.Count(a => a.HasUpdate) == 0)
+			SetSubtitle(L10n.Get("statusNoUpdates"), TopBarStatus.Ok);
+	}
+
+	// "Update" on a row (#820): hand the catalog entry to the Install tab, which opens its sheet.
+	private async void OnUpdateClicked(object? sender, EventArgs e)
+	{
+		if ((sender as BindableObject)?.BindingContext is not InstalledApp app || !_matches.TryGetValue(app.TizenId, out var match))
+			return;
+		CatalogStore.RequestOpen(match.Release);
+		await Shell.Current.GoToAsync("//install");
+	}
+
+	private static string? CatalogLine(Apps2Samsung.Catalog.CatalogMatch match) => match.State switch
+	{
+		Apps2Samsung.Catalog.CatalogVersionState.UpdateAvailable => string.Format(L10n.Get("lblCatalogUpdateAvailable"), match.CatalogVersion),
+		Apps2Samsung.Catalog.CatalogVersionState.Different => string.Format(L10n.Get("lblCatalogDifferentVersion"), match.CatalogVersion),
+		Apps2Samsung.Catalog.CatalogVersionState.UpToDate => L10n.Get("lblCatalogUpToDate"),
+		_ => null,
+	};
 
 	private async void OnPulledToRefresh(object? sender, EventArgs e)
 	{
@@ -166,13 +202,26 @@ public partial class InstalledAppsPage : ContentPage
 					apps[i] = a with { IconUrl = iconUrl };
 				}
 			}
+			// The catalog entry each app came from, by the id its manifest declares (#820).
+			_matches.Clear();
+			var catalog = CatalogStore.Releases;
+			for (int i = 0; i < apps.Count; i++)
+			{
+				if (Apps2Samsung.Catalog.InstalledAppUpdates.Find(apps[i], catalog) is not { } match)
+					continue;
+				_matches[apps[i].TizenId] = match;
+				apps[i] = apps[i] with { CatalogLine = CatalogLine(match), HasUpdate = match.HasUpdate };
+			}
 			AppsList.ItemsSource = apps;
 
+			var updates = apps.Count(a => a.HasUpdate);
 			if (apps.Count == 0)
 			{
 				EmptyLabel.Text = L10n.Get("statusNoInstalledApps");
 				SetSubtitle(string.Empty, TopBarStatus.None);
 			}
+			else if (updates > 0)
+				SetSubtitle(string.Format(L10n.Get("statusUpdatesAvailable"), updates), TopBarStatus.Warn);
 			else
 			{
 				var totalUsed = InstalledApp.FormatSize(apps.Sum(a => a.SizeBytes));

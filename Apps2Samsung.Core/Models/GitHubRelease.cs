@@ -94,8 +94,24 @@ namespace Apps2Samsung.Models
         public bool IsDefault => FileName.Equals("Jellyfin.wgt", StringComparison.OrdinalIgnoreCase);
 
 
+        /// <summary>The file name, its manifest version when the catalog knows it, and the size.</summary>
         [JsonIgnore]
-        public string DisplayText => $"{FileName} ({FormatFileSize(Size)})";
+        public string DisplayText => string.IsNullOrWhiteSpace(PackageVersion)
+            ? $"{FileName} ({FormatFileSize(Size)})"
+            : $"{FileName} · v{PackageVersion} ({FormatFileSize(Size)})";
+
+        /// <summary>
+        /// The version in this file's manifest and the ids it declares, from the community catalog
+        /// (#820). The version is what the TV's app list shows once the file is installed; the app id
+        /// is what an installed app is matched on. Null when the catalog has no such record. Stamped
+        /// by <c>CommunityAppList</c>, never serialized.
+        /// </summary>
+        [JsonIgnore]
+        public string? PackageVersion { get; set; }
+        [JsonIgnore]
+        public string? AppId { get; set; }
+        [JsonIgnore]
+        public string? PackageId { get; set; }
 
         /// <summary>Label from the community catalog when this file is one variant of a grouped app.</summary>
         [JsonIgnore]

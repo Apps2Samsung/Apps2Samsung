@@ -37,7 +37,7 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="viewModels:InstalledAppViewModel">
                                             <StackPanel>
-                                                <Grid Classes="approw" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="12" Background="Transparent">
+                                                <Grid Classes="approw" ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="12" Background="Transparent">
                                                     <Grid.ContextFlyout>
                                                         <MenuFlyout Placement="BottomEdgeAlignedRight">
                                                             <MenuItem Header="{l:Localize lblRun}"
@@ -69,11 +69,18 @@
                                                                    Foreground="{DynamicResource InkBrush}"/>
                                                         <TextBlock Text="{Binding App.Subline}" FontSize="12" TextTrimming="CharacterEllipsis"
                                                                    Foreground="{DynamicResource MutedBrush}"/>
+                                                        <!-- What the catalog says about this app, when it is in there (#820). -->
+                                                        <TextBlock Text="{Binding App.CatalogLine}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                                                   IsVisible="{Binding App.HasCatalogLine}" Foreground="{DynamicResource MutedBrush}"/>
                                                     </StackPanel>
-                                                    <Button Grid.Column="2" Classes="pill" Content="{l:Localize lblOpenApp}" VerticalAlignment="Center"
+                                                    <Button Grid.Column="2" Classes="pill" Content="{l:Localize lblUpdate}" VerticalAlignment="Center"
+                                                            IsVisible="{Binding App.HasUpdate}"
+                                                            Command="{ReflectionBinding $parent[UserControl].DataContext.UpdateCommand}"
+                                                            CommandParameter="{Binding App}"/>
+                                                    <Button Grid.Column="3" Classes="pill" Content="{l:Localize lblOpenApp}" VerticalAlignment="Center"
                                                             Command="{ReflectionBinding $parent[UserControl].DataContext.LaunchCommand}"
                                                             CommandParameter="{Binding App}"/>
-                                                    <Button Grid.Column="3" Classes="more" Content="⋯" Margin="0,0,10,0" VerticalAlignment="Center"
+                                                    <Button Grid.Column="4" Classes="more" Content="⋯" Margin="0,0,10,0" VerticalAlignment="Center"
                                                             ToolTip.Tip="{Binding App.TizenId}" Click="OnMoreClick"/>
                                                 </Grid>
                                                 <Border Classes="rowline" Margin="64,0,0,0"/>
