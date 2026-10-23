@@ -756,6 +756,7 @@
   "lblRemoteFastForward": "Avança ràpid",
   "lblCheck": "Comprova",
   "lblUpToDate": "Al dia",
+  "lblCheckForUpdates": "Comprova si hi ha actualitzacions",
   "lblUpdateNotChecked": "Encara no s'ha comprovat",
   "lblUpdateAvailableShort": "La versió {0} ja està disponible",
   "hintSettingsApps": "S'incorpora a cada aplicació en instal·lar-la",
