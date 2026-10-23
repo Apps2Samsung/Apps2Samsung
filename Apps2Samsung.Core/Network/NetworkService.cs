@@ -23,18 +23,31 @@ namespace Apps2Samsung.Services
         private readonly ITvNameResolver? _tvNameResolver;
         private readonly IMacVendorLookup? _macVendorLookup;
         private readonly Func<string?>? _customIpProvider;
+        private readonly int? _maxConcurrentHosts;
+
+        // Per-scan probe tally behind LastScanBlockedByOs; reset when a sweep starts.
+        private int _probesInScan;
+        private int _probesBlockedInScan;
+
+        /// <inheritdoc/>
+        public bool LastScanBlockedByOs { get; private set; }
 
         /// <param name="tvNameResolver">Resolves a found TV's friendly name (SDB-backed). Optional.</param>
         /// <param name="macVendorLookup">Enriches a found device with its manufacturer. Optional; desktop-only in practice.</param>
         /// <param name="customIpProvider">Supplies a user-configured extra IP to fold into the scan. Optional.</param>
+        /// <param name="maxConcurrentHosts">How many hosts the sweep probes at once (two sockets each).
+        /// Null probes the whole range in one go, as the desktop always has; a phone sets a cap so a
+        /// /24 sweep stays under the process's open-file limit (#824).</param>
         public NetworkService(
             ITvNameResolver? tvNameResolver = null,
             IMacVendorLookup? macVendorLookup = null,
-            Func<string?>? customIpProvider = null)
+            Func<string?>? customIpProvider = null,
+            int? maxConcurrentHosts = null)
         {
             _tvNameResolver = tvNameResolver;
             _macVendorLookup = macVendorLookup;
             _customIpProvider = customIpProvider;
+            _maxConcurrentHosts = maxConcurrentHosts;
         }
 
         private string? CustomIp => _customIpProvider?.Invoke();
@@ -92,6 +105,9 @@ namespace Apps2Samsung.Services
             var foundDevices = new List<NetworkDevice>();
             var localInfos = GetLocalNetworkInfos(virtualScan);
             var lockObject = new object();
+            Interlocked.Exchange(ref _probesInScan, 0);
+            Interlocked.Exchange(ref _probesBlockedInScan, 0);
+            LastScanBlockedByOs = false;
 
             // Deduplicate by actual network address so overlapping interfaces don't double-scan
             var uniqueNetworks = localInfos
@@ -102,12 +118,20 @@ namespace Apps2Samsung.Services
                 .DistinctBy(r => r.Network.ToString())
                 .ToList();
 
+            using var gate = _maxConcurrentHosts is { } limit ? new SemaphoreSlim(limit, limit) : null;
             await Task.WhenAll(uniqueNetworks.SelectMany(range =>
                 GetHostAddresses(range.Network, range.Broadcast)
                     .Select(async ip =>
                     {
+                        var acquired = false;
                         try
                         {
+                            if (gate is not null)
+                            {
+                                await gate.WaitAsync(cancellationToken);
+                                acquired = true;
+                            }
+
                             var ports = await ProbeTvPortsAsync(ip, cancellationToken);
                             if (ports.DebugPortOpen)
                             {
@@ -152,9 +176,24 @@ namespace Apps2Samsung.Services
                             // silently — log so a systematic failure (e.g. an OS-level block) is visible.
                             Trace.WriteLine($"[Scan] host probe failed: {ex.GetType().Name} — {ex.Message}");
                         }
+                        finally
+                        {
+                            if (acquired)
+                                gate!.Release();
+                        }
                     })));
 
             Trace.WriteLine($"Scan complete! Found {foundDevices.Count} device(s) (debug port {TizenDevPort} or REST API {SamsungTvApiPort}).");
+
+            // Nothing found and not one probe got as far as the network: the OS refused them all.
+            // On a LAN without a TV the probes time out or are refused instead, so this does not
+            // fire for an ordinary empty result (#824).
+            var probes = Volatile.Read(ref _probesInScan);
+            var blockedProbes = Volatile.Read(ref _probesBlockedInScan);
+            LastScanBlockedByOs = foundDevices.Count == 0 && probes > 0 && blockedProbes == probes;
+            if (LastScanBlockedByOs)
+                Trace.WriteLine($"[Scan] all {probes} probes failed before reaching the network (unreachable / access denied): the OS is blocking this app's local network access.");
+
             return foundDevices;
         }
         public IEnumerable<IPAddress> GetRelevantLocalIPs(bool virtualScan = false)
@@ -224,6 +263,7 @@ namespace Apps2Samsung.Services
 
         public async Task<bool> IsPortOpenAsync(string ip, int port, CancellationToken ct)
         {
+            Interlocked.Increment(ref _probesInScan);
             try
             {
                 using var client = new TcpClient();
@@ -250,6 +290,14 @@ namespace Apps2Samsung.Services
                 var normal = ex is SocketException se && se.SocketErrorCode is
                     SocketError.ConnectionRefused or SocketError.TimedOut or
                     SocketError.HostUnreachable or SocketError.NetworkUnreachable;
+
+                // Failed before a packet went out. iOS answers every LAN connect with "No route to
+                // host" while its Local Network permission is denied or still being asked; macOS
+                // says "Operation not permitted". Tallied for LastScanBlockedByOs (#824).
+                if (ex is SocketException blocked && blocked.SocketErrorCode is
+                    SocketError.HostUnreachable or SocketError.NetworkUnreachable or SocketError.AccessDenied)
+                    Interlocked.Increment(ref _probesBlockedInScan);
+
                 if (!normal)
                 {
                     var code = (ex as SocketException)?.SocketErrorCode.ToString() ?? ex.GetType().Name;

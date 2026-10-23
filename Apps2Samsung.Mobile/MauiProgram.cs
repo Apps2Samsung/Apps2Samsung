@@ -43,7 +43,11 @@ public static class MauiProgram
 		// shared cert/install/patcher services read settings uniformly across both heads.
 		builder.Services.AddSingleton<IAppConfig, MobileAppConfig>();
 
-		builder.Services.AddSingleton<INetworkService>(_ => new NetworkService(customIpProvider: NetworkInfo.GetLocalIPv4));
+		// 64 hosts at a time (128 sockets): a /24 in four rounds of at most a second each, and well
+		// under the open-file limit an iOS process starts with, where the desktop's all-at-once sweep
+		// of 500 sockets would fail with "too many open files" (#824).
+		builder.Services.AddSingleton<INetworkService>(_ => new NetworkService(
+			customIpProvider: NetworkInfo.GetLocalIPv4, maxConcurrentHosts: 64));
 
 		// The SDB engine needs a writable directory to persist its RSA auth keypair (the desktop
 		// uses the profile dir; Android and iOS have no ambient writable path, so point it at the
