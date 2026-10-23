@@ -9,6 +9,7 @@ using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Packaging;
 using Apps2Samsung.Sdb;
+using Avalonia.Threading;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -247,6 +248,9 @@ namespace Apps2Samsung.Services
                 RetryAvailable = _appSettings.TryOverwrite,
                 ForceLogin = _appSettings.ForceSamsungLogin,
                 DeletePrevious = _appSettings.DeletePreviousInstall,
+                // "Uninstall installed version first" is already the user's choice to remove, so the
+                // recovery paths don't ask again; otherwise the question is open until it comes up.
+                RemovalConfirmed = _appSettings.DeletePreviousInstall ? true : null,
                 WasAlreadyInstalled = wasAlreadyInstalled.Value,
                 SourcePackage = packageUrl,
                 InstallProgress = installProgress,
@@ -955,6 +959,11 @@ namespace Apps2Samsung.Services
                 // another author certificate and re-create this exact mismatch on every other TV).
                 if (run.RetryAvailable && await GetTvDiagnoseAsync(tvIpAddress))
                 {
+                    // Removing the old copy erases its settings, sign-in and local data, so the user
+                    // decides first (#825). Declining leaves the TV exactly as it was.
+                    if (!await ConfirmRemovalAsync(run, packagePath))
+                        return RemovalDeclined(packagePath, progress);
+
                     run.RetryAvailable = false;
                     run.DeletePrevious = true;
                     return await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
@@ -991,12 +1000,17 @@ namespace Apps2Samsung.Services
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
                 Trace.WriteLine($"[Install] Package id blocked by the security manager ([118, -22]) on {tvIpAddress}: {installResults.Output}");
 
-                if (run.RetryAvailable &&
-                    await GetTvDiagnoseAsync(tvIpAddress) &&
-                    await TryRemoveConflictingPackageAsync(tvIpAddress, packagePath, progress))
+                if (run.RetryAvailable && await GetTvDiagnoseAsync(tvIpAddress))
                 {
-                    run.RetryAvailable = false;
-                    return await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
+                    // Same removal, same question (#825): nothing leaves the TV without the user's say.
+                    if (!await ConfirmRemovalAsync(run, packagePath))
+                        return RemovalDeclined(packagePath, progress);
+
+                    if (await TryRemoveConflictingPackageAsync(tvIpAddress, packagePath, progress))
+                    {
+                        run.RetryAvailable = false;
+                        return await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
+                    }
                 }
 
                 // Deliberately NOT falling through to the package-id rename below: a fresh id installs,
@@ -1021,6 +1035,11 @@ namespace Apps2Samsung.Services
                 if (run.RetryAvailable)
                 {
                     run.RetryAvailable = false;
+
+                    // The remedy below uninstalls the copy we collide with, which erases its data on
+                    // the TV, so the user decides first (#825).
+                    if (!await ConfirmRemovalAsync(run, packagePath))
+                        return RemovalDeclined(packagePath, progress);
 
                     // Preferred remedy: remove the copy we collide with and reinstall under the
                     // package's own id. Renaming works too, but keeping the id is strictly better —
@@ -1230,6 +1249,39 @@ namespace Apps2Samsung.Services
         /// (e.g. "Litefin-1.1.0.wgt" -> "Litefin"). Used for user messages and the
         /// installed-app lookup; matches how <see cref="CheckForInstalledApp"/> searches.
         /// </summary>
+        /// <summary>
+        /// Asks once per run whether the installed copy may be removed. Uninstalling a Tizen package
+        /// deletes its data directory (settings, sign-in, local history), so none of the recovery
+        /// paths removes anything without this answer (#825). The answer is kept on the run, so a
+        /// retry that lands on a second recovery path doesn't ask twice.
+        /// </summary>
+        private async Task<bool> ConfirmRemovalAsync(InstallRun run, string packagePath)
+        {
+            if (run.RemovalConfirmed is { } answered)
+                return answered;
+
+            var appTitle = GetPackageAppTitle(packagePath);
+            var confirmed = await Dispatcher.UIThread.InvokeAsync(() => _dialogService.ShowConfirmationAsync(
+                string.Format(Constants.LocalizationKeys.ConfirmRemoveTitle.Localized(), appTitle),
+                string.Format(Constants.LocalizationKeys.ConfirmRemove.Localized(), appTitle),
+                Constants.LocalizationKeys.RemoveAndInstall.Localized(),
+                Constants.LocalizationKeys.Cancel.Localized()));
+
+            run.RemovalConfirmed = confirmed;
+            Trace.WriteLine($"[Install] Removing the installed '{appTitle}' was {(confirmed ? "confirmed" : "declined")} by the user.");
+            return confirmed;
+        }
+
+        /// <summary>The user kept the installed copy: say so and stop, the TV is untouched.</summary>
+        private static InstallResult RemovalDeclined(string packagePath, ProgressCallback? progress)
+        {
+            var message = string.Format(
+                Constants.LocalizationKeys.RemoveDeclined.Localized(),
+                GetPackageAppTitle(packagePath));
+            progress?.Invoke(message);
+            return InstallResult.FailureResult(message);
+        }
+
         private static string GetPackageAppTitle(string packagePath)
             => Path.GetFileNameWithoutExtension(packagePath).Split('-')[0];
 
@@ -1372,6 +1424,12 @@ namespace Apps2Samsung.Services
 
             /// <summary>Uninstall the existing copy before installing (seeded from Remove old version).</summary>
             public bool DeletePrevious { get; set; }
+
+            /// <summary>
+            /// Whether the user allowed the recovery paths to remove the installed copy (#825).
+            /// Null until asked; seeded true when "Uninstall installed version first" is on.
+            /// </summary>
+            public bool? RemovalConfirmed { get; set; }
 
             /// <summary>Whether the app was on the TV before this run started.</summary>
             public bool WasAlreadyInstalled { get; set; }

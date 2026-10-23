@@ -499,7 +499,8 @@ public partial class InstallerPage : ContentPage
 		Func<string, Action<string>, Task<bool>> installWgt = async (wgtPath, report) =>
 		{
 			var (cert, _) = await _certFlow.RunAsync(Navigation, tvIp, label, false, report, new CancellationTokenSource());
-			await _installer.InstallAsync(tvIp, wgtPath, cert, report);
+			await _installer.InstallAsync(tvIp, wgtPath, cert, report,
+				confirmRemove: () => ConfirmRemoveAsync(Path.GetFileNameWithoutExtension(wgtPath)));
 			return true;
 		};
 
@@ -648,7 +649,8 @@ public partial class InstallerPage : ContentPage
 			{
 				try
 				{
-					await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus, SetStep, cancel.Token);
+					await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus, SetStep, cancel.Token,
+						confirmRemove: () => ConfirmRemoveAsync(appName));
 					break;
 				}
 				catch (CertificateNotYetValidException notYetValid)
@@ -694,6 +696,11 @@ public partial class InstallerPage : ContentPage
 				? string.Format(L10n.Get("statusUserSettingsFileMissing"), ex.PackageFile, ex.File)
 				: string.Format(L10n.Get("statusUserSettingsFindMissing"), ex.PackageFile, ex.Find, ex.File));
 		}
+		catch (RemovalDeclinedException)
+		{
+			// The user kept the installed copy (#825): the TV is as it was, say so without "failed".
+			FailProgress(string.Format(L10n.Get("removeDeclined"), appName));
+		}
 		catch (SamsungAccountEmailMissingException)
 		{
 			// The Samsung account has no email, so the distributor CSR has nothing to put in its
@@ -737,6 +744,19 @@ public partial class InstallerPage : ContentPage
 	}
 
 	// A failure: the status line, and the sheet turns the current step red with the reason.
+	// The remove-and-reinstall recovery erases the installed app's data on the TV, so it asks first
+	// (#825). Shown from the progress sheet, the topmost page while an install runs.
+	private Task<bool> ConfirmRemoveAsync(string appName) =>
+		MainThread.InvokeOnMainThreadAsync(() =>
+		{
+			Page host = _progress ?? (Page)this;
+			return host.DisplayAlert(
+				string.Format(L10n.Get("confirmRemoveTitle"), appName),
+				string.Format(L10n.Get("confirmRemove"), appName),
+				L10n.Get("keyRemoveAndInstall"),
+				L10n.Get("lblCancel"));
+		});
+
 	private void FailProgress(string message)
 	{
 		System.Diagnostics.Trace.WriteLine($"[installer] {message}");
