@@ -101,16 +101,18 @@ namespace Apps2Samsung.Models
             : $"{FileName} · v{PackageVersion} ({FormatFileSize(Size)})";
 
         /// <summary>
-        /// The version in this file's manifest and the ids it declares, from the community catalog
-        /// (#820). The version is what the TV's app list shows once the file is installed; the app id
-        /// is what an installed app is matched on. Null when the catalog has no such record. Stamped
-        /// by <c>CommunityAppList</c>, never serialized.
+        /// The version in this file's manifest and the ids it declares (#820). The version is what the
+        /// TV's app list shows once the file is installed; the app id is what an installed app is
+        /// matched on. For the community bundle they come from its catalog.json and are stamped by
+        /// <c>CommunityAppList</c>; for every other provider the snapshot tool reads them out of the
+        /// asset itself and they travel in resolved.json. Null when neither has a record: a live
+        /// GitHub API listing never carries them.
         /// </summary>
-        [JsonIgnore]
+        [JsonPropertyName("package_version")]
         public string? PackageVersion { get; set; }
-        [JsonIgnore]
+        [JsonPropertyName("app_id")]
         public string? AppId { get; set; }
-        [JsonIgnore]
+        [JsonPropertyName("package_id")]
         public string? PackageId { get; set; }
 
         /// <summary>Label from the community catalog when this file is one variant of a grouped app.</summary>

@@ -51,6 +51,8 @@ Console.WriteLine(string.IsNullOrWhiteSpace(token)
 
 using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
 http.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+// Package downloads for the manifest read (ManifestInfo): tens of MB each, so a longer budget.
+using var downloads = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
 var releases = new AddLatestRelease(http, () => token);
 var buildInfo = new BuildInfoService(http, () => token);
 
@@ -82,11 +84,12 @@ foreach (var provider in manifest.Providers)
     if (ok && string.IsNullOrEmpty(tag) && list.Count > 0)
         tag = list[0].TagName;
 
+    var old = previous?.Providers.FirstOrDefault(p =>
+        (!string.IsNullOrWhiteSpace(entry.Id) && string.Equals(p.Id, entry.Id, StringComparison.OrdinalIgnoreCase))
+        || string.Equals(p.Url, entry.Url, StringComparison.OrdinalIgnoreCase));
+
     if (!ok)
     {
-        var old = previous?.Providers.FirstOrDefault(p =>
-            (!string.IsNullOrWhiteSpace(entry.Id) && string.Equals(p.Id, entry.Id, StringComparison.OrdinalIgnoreCase))
-            || string.Equals(p.Url, entry.Url, StringComparison.OrdinalIgnoreCase));
         entry.Ok = false;
         entry.LatestTag = old?.LatestTag ?? string.Empty;
         entry.Releases = old?.Releases ?? new List<GitHubRelease>();
@@ -102,6 +105,11 @@ foreach (var provider in manifest.Providers)
     // limited), but inlining it saves the heads that request as well.
     if (provider.ExpandAssets && list.Count > 0)
         entry.Catalog = await releases.GetCommunityCatalogAsync(list[0].CatalogUrl);
+    // Everyone else: the version and ids from inside each asset, so the heads can compare an
+    // installed Jellyfin or TizenTube against the catalog the same way as a community app (#820).
+    // Unchanged assets keep last snapshot's values; only new releases are downloaded.
+    else
+        await ManifestInfo.FillAsync(downloads, entry.Id, list, old);
 
     okCount++;
     var assets = list.Sum(r => r.Assets.Count);

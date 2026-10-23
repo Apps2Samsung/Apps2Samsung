@@ -35,9 +35,9 @@ namespace Apps2Samsung.Catalog
                     asset.UserSettings = entry?.UserSettings is { Fields.Count: > 0 } spec && !string.IsNullOrWhiteSpace(spec.File)
                         ? spec
                         : null;
-                    asset.PackageVersion = Clean(entry?.Version);
-                    asset.AppId = Clean(entry?.AppId);
-                    asset.PackageId = Clean(entry?.PackageId);
+                    asset.PackageVersion = Clean(entry?.Version) ?? asset.PackageVersion;
+                    asset.AppId = Clean(entry?.AppId) ?? asset.AppId;
+                    asset.PackageId = Clean(entry?.PackageId) ?? asset.PackageId;
 
                     if (entry != null && !string.IsNullOrWhiteSpace(entry.Group))
                     {

@@ -58,6 +58,17 @@ namespace Apps2Samsung.Catalog
             }
             if (candidates.Count == 0)
                 return null;
+
+            // With "Show all versions" on, an app lists several releases and every one of them
+            // declares the same id. Only its newest release says anything about updates; the
+            // older ones would read as "a candidate that is not newer" and block the verdict.
+            var newestPerApp = candidates
+                .GroupBy(c => c.Release.Name ?? string.Empty, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.Max(c => PublishedAt(c.Release)), StringComparer.OrdinalIgnoreCase);
+            candidates = candidates
+                .Where(c => PublishedAt(c.Release) == newestPerApp[c.Release.Name ?? string.Empty])
+                .ToList();
+
             if (candidates.Count == 1)
                 return new CatalogMatch(candidates[0].Release, candidates[0].Asset, Compare(app.Version, candidates[0].Asset.PackageVersion));
 
@@ -96,6 +107,11 @@ namespace Apps2Samsung.Catalog
 
             return CatalogVersionState.Different;
         }
+
+        private static DateTimeOffset PublishedAt(GitHubRelease release) =>
+            DateTimeOffset.TryParse(release.PublishedAt, null, System.Globalization.DateTimeStyles.AssumeUniversal, out var at)
+                ? at
+                : DateTimeOffset.MinValue;
 
         private static string Normalize(string? s)
         {
