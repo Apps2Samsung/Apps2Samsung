@@ -20,7 +20,8 @@ public sealed class MoreMenu : ContentPage
 	public const string IconToolbox = "M3,8 L21,8 L21,20 L3,20 Z M8,8 L8,5 L16,5 L16,8 M3,13 L21,13";
 	public const string IconDelete = "M4,7 L20,7 M9,7 L9,4 L15,4 L15,7 M6,7 L7,20 L17,20 L18,7";
 
-	private readonly TaskCompletionSource<int> _result = new();
+	private readonly TaskCompletionSource<int> _result = new(TaskCreationOptions.RunContinuationsAsynchronously);
+	private bool _closing;
 
 	private MoreMenu(IReadOnlyList<MoreMenuItem> items)
 	{
@@ -93,12 +94,22 @@ public sealed class MoreMenu : ContentPage
 		return row;
 	}
 
+	// The menu is gone before the caller hears the choice. Handing it over first ran the caller
+	// (push TV information, open a prompt) while this modal was still being dismissed, and on
+	// Android that froze the app (#818).
 	private async void Close(int index)
 	{
-		if (_result.Task.IsCompleted)
+		if (_closing)
 			return;
-		_result.TrySetResult(index);
-		await Navigation.PopModalAsync(animated: false);
+		_closing = true;
+		try
+		{
+			await Navigation.PopModalAsync(animated: false);
+		}
+		finally
+		{
+			_result.TrySetResult(index);
+		}
 	}
 
 	// The system back button closes the menu like a tap on the scrim.
