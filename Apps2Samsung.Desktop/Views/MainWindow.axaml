@@ -234,6 +234,8 @@
 					<Button Grid.Column="3" Classes="tool square" Content="⋯" FontSize="18" ToolTip.Tip="{l:Localize lblMore}">
 						<Button.Flyout>
 							<MenuFlyout Placement="BottomEdgeAlignedRight">
+								<MenuItem Header="{l:Localize lblCheckForUpdates}" Command="{Binding InstalledAppsVm.CheckForUpdatesCommand}"
+								          IsEnabled="{Binding !InstalledAppsVm.IsDebugging}"/>
 								<MenuItem Header="{l:Localize lblRemoveLeftover}" Command="{Binding InstalledAppsVm.RemoveLeftoverCommand}"
 								          IsEnabled="{Binding !InstalledAppsVm.IsDebugging}" ToolTip.Tip="{l:Localize lblRemoveLeftoverHint}"/>
 								<MenuItem Header="{l:Localize lblTvInformation}" Command="{Binding ShowDeviceInfoCommand}"/>

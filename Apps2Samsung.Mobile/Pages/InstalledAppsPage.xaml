@@ -29,7 +29,7 @@
                     <DataTemplate>
                         <VerticalStackLayout Spacing="0">
                             <BoxView HeightRequest="1" Margin="16,0,0,0" Color="{DynamicResource HairColor}" />
-                            <Grid ColumnDefinitions="44,*,Auto" ColumnSpacing="12" Padding="16,11" MinimumHeightRequest="52">
+                            <Grid ColumnDefinitions="44,*,Auto,Auto" ColumnSpacing="12" Padding="16,11" MinimumHeightRequest="52">
                                 <Grid.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnRowTapped" />
                                 </Grid.GestureRecognizers>
@@ -48,8 +48,14 @@
                                 <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
                                     <Label Text="{Binding DisplayName}" FontAttributes="Bold" FontSize="15" LineBreakMode="TailTruncation" />
                                     <Label Text="{Binding Subline}" FontSize="13" TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
+                                    <!-- What the catalog says about this app, when it is in there (#820). -->
+                                    <Label Text="{Binding CatalogLine}" IsVisible="{Binding HasCatalogLine}" FontSize="12"
+                                           TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
                                 </VerticalStackLayout>
-                                <Path Grid.Column="2" Data="M1,1 L7,6.5 L1,12" Stroke="{DynamicResource InkBrush}" StrokeThickness="2"
+                                <Button Grid.Column="2" Text="{l:Localize lblUpdate}" IsVisible="{Binding HasUpdate}" Clicked="OnUpdateClicked"
+                                        HeightRequest="32" MinimumHeightRequest="32" CornerRadius="16" Padding="12,0" FontSize="13" FontAttributes="Bold"
+                                        BackgroundColor="{DynamicResource AccentColor}" TextColor="{DynamicResource OnAccentColor}" VerticalOptions="Center" />
+                                <Path Grid.Column="3" Data="M1,1 L7,6.5 L1,12" Stroke="{DynamicResource InkBrush}" StrokeThickness="2"
                                       Opacity="0.35" WidthRequest="8" HeightRequest="13" VerticalOptions="Center" />
                             </Grid>
                         </VerticalStackLayout>

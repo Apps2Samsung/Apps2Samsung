@@ -6,6 +6,7 @@ using Apps2Samsung.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Apps2Samsung.Extensions;
 
@@ -21,6 +22,14 @@ namespace Apps2Samsung.ViewModels
         private readonly ITizenInstallerService _installer;
         private readonly IDialogService _dialogService;
         private readonly string _tvIp;
+
+        // The catalog as the Install section lists it, the install the Update button runs, and the
+        // catalog reload behind "Check for updates" (#820). Null on a head that wires none of it.
+        private readonly Func<System.Collections.Generic.IReadOnlyList<GitHubRelease>>? _catalog;
+        private readonly Func<GitHubRelease, Asset, Task>? _update;
+        private readonly Func<Task>? _refreshCatalog;
+        private readonly System.Collections.Generic.Dictionary<string, Apps2Samsung.Catalog.CatalogMatch> _matches =
+            new(StringComparer.OrdinalIgnoreCase);
         private static readonly System.Net.Http.HttpClient _http = new();
         private static readonly System.Collections.Generic.Dictionary<string, Avalonia.Media.Imaging.Bitmap?> _bitmapCache = new(StringComparer.OrdinalIgnoreCase);
 
@@ -51,12 +60,18 @@ namespace Apps2Samsung.ViewModels
         /// <summary>The window hosts the console (it needs an owner window); the view model just asks for it.</summary>
         public event Action<DebugConsoleViewModel>? OnRequestDebugConsole;
 
-        public InstalledAppsViewModel(ITizenInstallerService installer, IDialogService dialogService, string tvIp, string tvLabel)
+        public InstalledAppsViewModel(ITizenInstallerService installer, IDialogService dialogService, string tvIp, string tvLabel,
+            Func<System.Collections.Generic.IReadOnlyList<GitHubRelease>>? catalog = null,
+            Func<GitHubRelease, Asset, Task>? update = null,
+            Func<Task>? refreshCatalog = null)
         {
             _installer = installer;
             _dialogService = dialogService;
             _tvIp = tvIp;
             TvLabel = tvLabel;
+            _catalog = catalog;
+            _update = update;
+            _refreshCatalog = refreshCatalog;
         }
 
         [RelayCommand]
@@ -69,9 +84,18 @@ namespace Apps2Samsung.ViewModels
                 var iconMap = await Apps2Samsung.Catalog.AppIconResolver.GetIconMapAsync();
                 var apps = (await _installer.GetInstalledAppsAsync(_tvIp)).ToList();
                 var viewModels = new System.Collections.Generic.List<InstalledAppViewModel>();
+                var catalog = _catalog?.Invoke() ?? Array.Empty<GitHubRelease>();
+                _matches.Clear();
 
                 for (int i = 0; i < apps.Count; i++)
                 {
+                    // The catalog entry this app came from, by the id its manifest declares (#820).
+                    if (Apps2Samsung.Catalog.InstalledAppUpdates.Find(apps[i], catalog) is { } match)
+                    {
+                        _matches[apps[i].TizenId] = match;
+                        apps[i] = apps[i] with { CatalogLine = CatalogLine(match), HasUpdate = match.HasUpdate };
+                    }
+
                     var a = apps[i];
                     if ((!string.IsNullOrEmpty(a.AppId) && iconMap.TryGetValue(a.AppId, out var iconUrl)) ||
                         iconMap.TryGetValue(a.TizenId, out iconUrl) ||
@@ -123,6 +147,42 @@ namespace Apps2Samsung.ViewModels
             {
                 IsBusy = false;
             }
+        }
+
+        private static string? CatalogLine(Apps2Samsung.Catalog.CatalogMatch match) => match.State switch
+        {
+            Apps2Samsung.Catalog.CatalogVersionState.UpdateAvailable => string.Format("lblCatalogUpdateAvailable".Localized(), match.CatalogVersion),
+            Apps2Samsung.Catalog.CatalogVersionState.Different => string.Format("lblCatalogDifferentVersion".Localized(), match.CatalogVersion),
+            Apps2Samsung.Catalog.CatalogVersionState.UpToDate => "lblCatalogUpToDate".Localized(),
+            _ => null,
+        };
+
+        /// <summary>"Update" on a row (#820): the catalog entry this app came from, installed the normal way.</summary>
+        [RelayCommand]
+        private async Task Update(InstalledApp? app)
+        {
+            if (app is null || _update is null || !_matches.TryGetValue(app.TizenId, out var match))
+                return;
+            await _update(match.Release, match.Asset);
+        }
+
+        /// <summary>Reloads the catalog and the TV's list, then says how many apps have a newer version (#820).</summary>
+        [RelayCommand]
+        private async Task CheckForUpdates()
+        {
+            if (_refreshCatalog is not null)
+            {
+                IsBusy = true;
+                try { await _refreshCatalog(); }
+                catch (Exception ex) { Trace.WriteLine($"[InstalledApps] Catalog refresh failed: {ex.Message}"); }
+            }
+            await Load();
+            if (Apps.Count == 0)
+                return;
+            var updates = Apps.Count(a => a.App.HasUpdate);
+            StatusText = updates > 0
+                ? string.Format("statusUpdatesAvailable".Localized(), updates)
+                : "statusNoUpdates".Localized();
         }
 
         [RelayCommand]

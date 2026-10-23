@@ -98,8 +98,14 @@ public partial class InstallerPage : ContentPage
 		_tv.Changed += OnTvChanged;
 		UpdateTvCard();
 		if (_initialized)
+		{
+			// "Update" on the On the TV tab (#820): that app's sheet, here where installs run.
+			if (CatalogStore.TakePendingOpen() is { } pending)
+				await OpenAppAsync(pending, SublineFor(pending));
 			return;
+		}
 		_initialized = true;
+		CatalogStore.Refresh = async () => { await LoadCatalogAsync(); };
 
 		await MobileSettings.InitAsync();
 		var catalog = await LoadCatalogAsync();
@@ -140,12 +146,14 @@ public partial class InstallerPage : ContentPage
 		{
 			result = await _catalog.LoadReleasesAsync();
 			_allReleases = result.Releases;
+			CatalogStore.Set(_allReleases);
 			_catalogFailed = result.Failed;
 		}
 		catch (Exception ex)
 		{
 			SetStatus(string.Format(L10n.Get("statusCatalogFailed"), ex.Message));
 			_allReleases = new List<GitHubRelease>();
+			CatalogStore.Set(_allReleases);
 		}
 		finally
 		{

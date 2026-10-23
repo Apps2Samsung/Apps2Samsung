@@ -35,6 +35,9 @@ namespace Apps2Samsung.Catalog
                     asset.UserSettings = entry?.UserSettings is { Fields.Count: > 0 } spec && !string.IsNullOrWhiteSpace(spec.File)
                         ? spec
                         : null;
+                    asset.PackageVersion = Clean(entry?.Version);
+                    asset.AppId = Clean(entry?.AppId);
+                    asset.PackageId = Clean(entry?.PackageId);
 
                     if (entry != null && !string.IsNullOrWhiteSpace(entry.Group))
                     {
@@ -90,6 +93,8 @@ namespace Apps2Samsung.Catalog
             singles.AddRange(groups.Values);
             return singles;
         }
+
+        private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
         /// <summary>The entries in <paramref name="category"/> (<see cref="AppCategories.All"/> keeps everything).</summary>
         public static IEnumerable<GitHubRelease> Filter(IEnumerable<GitHubRelease> entries, string category)
