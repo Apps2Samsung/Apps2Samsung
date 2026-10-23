@@ -1,3 +1,4 @@
+using Apps2Samsung.Mobile.Controls;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Models;
@@ -49,6 +50,7 @@ public partial class AppSheetPage : ContentPage
 		ShowFavorite();
 		TitleLabel.Text = release.Name;
 		DescriptionLabel.Text = description;
+		ShowSource(release);
 		PartnerNotice.IsVisible = release.RequiresPartner;
 		VersionsTitle.Text = L10n.Get(release.HasVariants ? "lblVariant" : "lblVersion");
 
@@ -71,6 +73,22 @@ public partial class AppSheetPage : ContentPage
 	}
 
 	private static Color DesignThemeColor(string token) => Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf(token);
+
+	// "by owner · Source code", the link opening the app's repository; hidden without one.
+	private void ShowSource(GitHubRelease release)
+	{
+		if (string.IsNullOrEmpty(release.SourceUrl))
+			return;
+		var url = release.SourceUrl;
+		var link = new Span { Text = L10n.Get("lblSourceCode"), TextColor = DesignThemeColor("Accent") };
+		link.GestureRecognizers.Add(new TapGestureRecognizer { Command = new Command(async () => await LinkOpener.OpenAsync(url)) });
+		var text = new FormattedString();
+		if (!string.IsNullOrEmpty(release.Author))
+			text.Spans.Add(new Span { Text = $"{string.Format(L10n.Get("lblByAuthor"), release.Author)} · " });
+		text.Spans.Add(link);
+		SourceLabel.FormattedText = text;
+		SourceLabel.IsVisible = true;
+	}
 
 	// One row per file; with several releases each row is "tag · file" (the file only when a release
 	// has more than one). The default file of the newest release is preselected.

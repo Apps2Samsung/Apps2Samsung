@@ -62,6 +62,18 @@ namespace Apps2Samsung.Models
         [JsonPropertyName("catalog_url")]
         public string? CatalogUrl { get; set; }
 
+        /// <summary>
+        /// The app's own repository page (https://github.com/owner/repo), shown on the app sheet as
+        /// the way to its source, releases and licence (#820). Stamped by <c>SourceRepo</c> from the
+        /// provider URL or the community catalog; null when neither names a repository.
+        /// </summary>
+        [JsonIgnore]
+        public string? SourceUrl { get; set; }
+
+        /// <summary>Who makes the app: the owner of <see cref="SourceUrl"/>'s repository.</summary>
+        [JsonIgnore]
+        public string? Author { get; set; }
+
         public GitHubRelease()
         {
         }

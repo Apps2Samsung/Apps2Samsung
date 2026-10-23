@@ -48,6 +48,18 @@
             <Setter Property="HeightRequest" Value="13" />
             <Setter Property="VerticalOptions" Value="Center" />
         </Style>
+        <!-- in place of the chevron on a row that leaves the app -->
+        <Style x:Key="ExternalLink" TargetType="shapes:Path">
+            <Setter Property="Data" Value="M5,1 L13,1 L13,9 M13,1 L1,13" />
+            <Setter Property="Stroke" Value="{DynamicResource InkBrush}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="StrokeLineJoin" Value="Round" />
+            <Setter Property="Opacity" Value="0.35" />
+            <Setter Property="WidthRequest" Value="12" />
+            <Setter Property="HeightRequest" Value="12" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
         <Style x:Key="HubDivider" TargetType="BoxView" BasedOn="{StaticResource RowDivider}">
             <Setter Property="Margin" Value="58,0,0,0" />
         </Style>
@@ -173,10 +185,70 @@
                     </VerticalStackLayout>
                 </Border>
 
+                <!-- Contribute (#820): each row opens a page in the browser -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout>
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnLinkTapped" CommandParameter="code" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource TileOtherColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M8,7 L3,12 L8,17 M16,7 L21,12 L16,17 M14,4 L10,20" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblContributeCode}" FontSize="16" />
+                                <Label Text="{l:Localize hintContributeCode}" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource ExternalLink}" />
+                        </Grid>
+                        <BoxView Style="{StaticResource HubDivider}" />
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnLinkTapped" CommandParameter="translate" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource TileGamesColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M4,5 L12,5 M8,3 L8,5 M6,5 C6,9 9,12 12,13 M10,5 C10,9 7,12 4,13 M13,20 L16.5,11 L20,20 M14.2,17 L18.8,17" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblContributeTranslate}" FontSize="16" />
+                                <Label Text="{l:Localize hintContributeTranslate}" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource ExternalLink}" />
+                        </Grid>
+                        <BoxView Style="{StaticResource HubDivider}" />
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnLinkTapped" CommandParameter="discord" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource TileMediaColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M4,5 L20,5 L20,16 L10,16 L6,20 L6,16 L4,16 Z" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblContributeDiscord}" FontSize="16" />
+                                <Label Text="{l:Localize hintContributeDiscord}" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource ExternalLink}" />
+                        </Grid>
+                        <BoxView Style="{StaticResource HubDivider}" />
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnLinkTapped" CommandParameter="donate" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource BadColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M12,20 C5,15 3,11 3,8.5 A4.5,4.5 0 0 1 12,7 A4.5,4.5 0 0 1 21,8.5 C21,11 19,15 12,20 Z" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblContributeDonate}" FontSize="16" />
+                                <Label Text="{l:Localize hintContributeDonate}" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource ExternalLink}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
                 <!-- the same footer as the Install tab -->
                 <VerticalStackLayout Spacing="2">
-                    <Label Text="{l:Localize lblLicenseFooter}"
-                           HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
+                    <controls:LicenseFooter />
                     <Label x:Name="VersionLabel"
                            HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
                 </VerticalStackLayout>

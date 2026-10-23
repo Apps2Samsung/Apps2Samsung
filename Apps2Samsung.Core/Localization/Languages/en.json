@@ -311,7 +311,6 @@
   "lblJellyfinServer": "Jellyfin server",
   "lblLoadingAppList": "Loading app list...",
   "lblLoading": "Loading...",
-  "lblLicenseFooter": "MIT License · Patrick Stel",
   "lblNoAppsToShow": "No apps to show.",
   "lblNoInformationToShow": "No information to show.",
   "lblScanToFindTvs": "Scan to find TVs",
@@ -857,5 +856,16 @@
   "statusUserSettingsFindMissing": "{0} changed upstream: '{1}' is no longer in {2}, so your settings can't be written in. Ask for the package to be updated.",
   "statusUserSettingsFileMissing": "{0} changed upstream: {1} is no longer in the package, so your settings can't be written in. Ask for the package to be updated.",
   "lblGoogleSignInUnavailable": "Google sign-in isn't available here",
-  "statusGoogleSignInUnavailable": "Google doesn't allow its sign-in page inside apps, and Samsung's login only works inside this app, so \"Sign in with Google\" can't be used on a phone.\n\nAdd a password to your Samsung account first: go to account.samsung.com, sign in with Google, open Security and privacy, then Password. If that option is missing, use Forgot password with your Google email.\n\nThen sign in here with that email and password."
+  "statusGoogleSignInUnavailable": "Google doesn't allow its sign-in page inside apps, and Samsung's login only works inside this app, so \"Sign in with Google\" can't be used on a phone.\n\nAdd a password to your Samsung account first: go to account.samsung.com, sign in with Google, open Security and privacy, then Password. If that option is missing, use Forgot password with your Google email.\n\nThen sign in here with that email and password.",
+  "lblMitLicense": "MIT License",
+  "lblByAuthor": "by {0}",
+  "lblSourceCode": "Source code",
+  "lblContributeCode": "Help with the code",
+  "hintContributeCode": "Source, issues and pull requests on GitHub",
+  "lblContributeTranslate": "Help translate",
+  "hintContributeTranslate": "Put Apps2Samsung in your language on Crowdin",
+  "lblContributeDiscord": "Join the Discord",
+  "hintContributeDiscord": "Questions, testing and news",
+  "lblContributeDonate": "Support the app",
+  "hintContributeDonate": "Buy me a coffee on Ko-fi"
 }

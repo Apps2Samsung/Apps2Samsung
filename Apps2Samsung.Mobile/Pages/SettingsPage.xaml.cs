@@ -1,3 +1,5 @@
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.Mobile.Controls;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Resources.Styles;
 using Apps2Samsung.Mobile.Services;
@@ -94,4 +96,19 @@ public partial class SettingsPage : ContentPage
 	private async void OnBackupTapped(object? sender, TappedEventArgs e) => await Navigation.PushAsync(new SettingsBackupPage());
 
 	private async void OnAdvancedTapped(object? sender, TappedEventArgs e) => await Navigation.PushAsync(new SettingsAdvancedPage());
+
+	// The Contribute rows (#820): the row's CommandParameter names the page.
+	private async void OnLinkTapped(object? sender, TappedEventArgs e)
+	{
+		var url = e.Parameter switch
+		{
+			"code" => Constants.Links.SourceCode,
+			"translate" => Constants.Links.Translate,
+			"discord" => Constants.Links.Discord,
+			"donate" => Constants.Links.Donate,
+			_ => null,
+		};
+		if (url is not null)
+			await LinkOpener.OpenAsync(url);
+	}
 }

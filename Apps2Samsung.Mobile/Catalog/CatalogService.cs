@@ -82,6 +82,7 @@ public sealed class CatalogService
 				{
 					r.RequiresPartner = requiresPartner;
 					r.Category = category;
+					SourceRepo.StampFromApiUrl(r, provider.Url);
 				}
 				entries.AddRange(releases);
 			}

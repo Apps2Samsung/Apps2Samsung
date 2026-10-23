@@ -90,7 +90,7 @@
 				<Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" ColumnSpacing="4" Margin="8,0,0,0">
 					<StackPanel VerticalAlignment="Center" ToolTip.Tip="{Binding FooterText}">
 						<TextBlock Text="{Binding VersionText}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
-						<TextBlock Text="{Binding LicenseText}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+						<controls:LicenseFooter/>
 					</StackPanel>
 					<ToggleButton Grid.Column="1" Classes="nav" Padding="8" VerticalAlignment="Center" IsChecked="{Binding DarkMode}">
 						<Panel>

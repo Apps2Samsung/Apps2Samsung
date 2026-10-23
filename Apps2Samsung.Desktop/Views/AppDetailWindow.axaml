@@ -55,6 +55,14 @@
 
 			<TextBlock Text="{Binding Description}" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
 
+			<!-- who makes it and where its source, releases and licence live (#820) -->
+			<StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasSource}">
+				<TextBlock Text="{Binding AuthorText}" FontSize="13" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
+				<TextBlock Text="·" FontSize="13" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
+				<HyperlinkButton Content="{Binding SourceCodeText}" NavigateUri="{Binding SourceUri}" ToolTip.Tip="{Binding SourceUri}"
+				                 Padding="0" MinHeight="0" FontSize="13" VerticalAlignment="Center"/>
+			</StackPanel>
+
 			<Border IsVisible="{Binding RequiresPartner}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
 			        BorderThickness="1" CornerRadius="10" Padding="12,10">
 				<StackPanel Spacing="2">

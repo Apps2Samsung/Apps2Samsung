@@ -2,12 +2,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Helpers;
+using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Styles;
 using Avalonia.Media;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -33,6 +35,9 @@ namespace Apps2Samsung.ViewModels
         /// <summary>The rows on the left, in two groups.</summary>
         public ObservableCollection<SettingsRow> MainRows { get; } = new();
         public ObservableCollection<SettingsRow> MoreRows { get; } = new();
+
+        /// <summary>Contribute (#820): rows that open a page in the browser instead of a settings page.</summary>
+        public ObservableCollection<SettingsLinkRow> ContributeRows { get; } = new();
 
         /// <summary>App customization: one row per app with settings, and App icons for all of them.</summary>
         public ObservableCollection<SettingsAppRow> AppRows { get; } = new();
@@ -60,7 +65,6 @@ namespace Apps2Samsung.ViewModels
         // The check itself (and its dialogs) lives with the main window, which sets the delegate.
         // The version gets its own wrapping line: a test build's is long (3.0.0-beta.787+b2a6ca8).
         public string VersionText => $"{L("lblVersion")} {AppSettings.Default.AppVersion}";
-        public string LicenseText => $"© {DateTime.Now.Year} · {L("lblLicenseFooter")}";
 
         [ObservableProperty]
         private string updateStatus = string.Empty;
@@ -114,6 +118,15 @@ namespace Apps2Samsung.ViewModels
             MoreRows.Add(new SettingsRow(Page.Advanced, "lblAdvanced", "summaryAdvanced", "TileOther",
                 "M8 7l-5 5 5 5M16 7l5 5-5 5"));
 
+            ContributeRows.Add(new SettingsLinkRow("lblContributeCode", "hintContributeCode", "TileOther",
+                "M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16", Constants.Links.SourceCode));
+            ContributeRows.Add(new SettingsLinkRow("lblContributeTranslate", "hintContributeTranslate", "TileGames",
+                "M4 5h8M8 3v2M6 5c0 4 3 7 6 8M10 5c0 4-3 7-6 8M13 20l3.5-9 3.5 9M14.2 17h4.6", Constants.Links.Translate));
+            ContributeRows.Add(new SettingsLinkRow("lblContributeDiscord", "hintContributeDiscord", "TileMedia",
+                "M4 5h16v11H10l-4 4v-4H4z", Constants.Links.Discord));
+            ContributeRows.Add(new SettingsLinkRow("lblContributeDonate", "hintContributeDonate", "Bad",
+                "M12 20C5 15 3 11 3 8.5a4.5 4.5 0 0 1 9-1.5a4.5 4.5 0 0 1 9 1.5C21 11 19 15 12 20z", Constants.Links.Donate));
+
             foreach (var provider in providers.OrderBy(p => p.SortOrder))
                 AppRows.Add(new SettingsAppRow(() => provider.DisplayName, provider.CreateSettingsViewModel()));
             AppIconsRow = new SettingsAppRow(() => AppIcons.LblAppIcons, appIcons);
@@ -140,6 +153,21 @@ namespace Apps2Samsung.ViewModels
 
         [RelayCommand]
         private void OpenApp(SettingsAppRow? row) => PushedPage = row;
+
+        [RelayCommand]
+        private void OpenLink(string? url)
+        {
+            if (string.IsNullOrEmpty(url))
+                return;
+            try
+            {
+                Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"Failed to open URL '{url}': {ex}");
+            }
+        }
 
         [RelayCommand]
         private void CloseApp() => PushedPage = null;
@@ -201,6 +229,11 @@ namespace Apps2Samsung.ViewModels
                     : row.SummaryKey is null ? string.Empty : L(row.SummaryKey);
                 row.IsSelected = row.Page == SelectedPage;
             }
+            foreach (var row in ContributeRows)
+            {
+                row.Label = L(row.LabelKey);
+                row.Summary = L(row.SummaryKey);
+            }
             foreach (var row in AppRows)
                 row.RefreshDisplayName();
             AppIconsRow.RefreshDisplayName();
@@ -218,7 +251,6 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblBetaUpdates));
             OnPropertyChanged(nameof(LblCheckForUpdates));
             OnPropertyChanged(nameof(PrepareCertificateText));
-            OnPropertyChanged(nameof(LicenseText));
         }
 
         public void Dispose()
@@ -255,6 +287,32 @@ namespace Apps2Samsung.ViewModels
             SummaryKey = summaryKey;
             TileToken = tileToken;
             IconData = iconData;
+        }
+    }
+
+    /// <summary>A Contribute row in the Settings list: the look of a <see cref="SettingsRow"/>, but it opens <see cref="Url"/>.</summary>
+    public partial class SettingsLinkRow : ObservableObject
+    {
+        public string LabelKey { get; }
+        public string SummaryKey { get; }
+        public string TileToken { get; }
+        public string IconData { get; }
+        public string Url { get; }
+        public IBrush TileBrush => DesignTheme.Brush(TileToken);
+
+        [ObservableProperty]
+        private string label = string.Empty;
+
+        [ObservableProperty]
+        private string summary = string.Empty;
+
+        public SettingsLinkRow(string labelKey, string summaryKey, string tileToken, string iconData, string url)
+        {
+            LabelKey = labelKey;
+            SummaryKey = summaryKey;
+            TileToken = tileToken;
+            IconData = iconData;
+            Url = url;
         }
     }
 
