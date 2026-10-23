@@ -257,6 +257,11 @@ namespace Apps2Samsung.Helpers.Core
             public const string CertificateWaitCancelled = "certificateWaitCancelled";
             public const string ApiVersionMismatch = "apiVersionMismatch";
             public const string PackageIdBlocked = "packageIdBlocked";
+            public const string ConfirmRemoveTitle = "confirmRemoveTitle";
+            public const string ConfirmRemove = "confirmRemove";
+            public const string RemoveAndInstall = "keyRemoveAndInstall";
+            public const string RemoveDeclined = "removeDeclined";
+            public const string Cancel = "lblCancel";
             public const string ModifyConfigRequired = "modiyConfigRequired";
             public const string DuidLimitReached = "duidLimitReached";
             public const string ScanningNetwork = "ScanningNetwork";

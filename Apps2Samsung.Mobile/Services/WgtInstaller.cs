@@ -72,8 +72,11 @@ public sealed class WgtInstaller
 	/// TV's install percentage while it reports one.</param>
 	/// <param name="ct">Honoured up to the moment the TV is touched for real (old copy removed, package
 	/// pushed); after that the install runs to the end, so it never leaves the TV halfway.</param>
+	/// <param name="confirmRemove">Asked before the failure recovery removes the installed copy, which
+	/// erases that app's settings, sign-in and local data on the TV (#825). False stops the install
+	/// with <see cref="RemovalDeclinedException"/>; null (no UI) keeps the remove-and-retry as it was.</param>
 	public async Task<string> InstallAsync(string tvIp, string wgtPath, CertificateProvisioner.Result cert, Action<string>? progress = null,
-		Action<InstallStep, int?>? step = null, CancellationToken ct = default)
+		Action<InstallStep, int?>? step = null, CancellationToken ct = default, Func<Task<bool>>? confirmRemove = null)
 	{
 		step?.Invoke(InstallStep.Sign, null);
 		progress?.Invoke("Reading TV capabilities…");
@@ -178,7 +181,7 @@ public sealed class WgtInstaller
 		// the app report "✓ Installed" for installs that never landed on the TV — so classify the
 		// OUTPUT as well, mirroring the desktop head, and route real failures into recovery.
 		if (install.ExitCode != 0 || TizenInstallDiagnostics.IndicatesFailure(install.Output))
-			install = await RecoverInstallAsync(tvIp, wgtPath, sdkToolPath, packageId, install, progress, wasInstalledBefore);
+			install = await RecoverInstallAsync(tvIp, wgtPath, sdkToolPath, packageId, install, progress, wasInstalledBefore, confirmRemove);
 
 		if (MobileSettings.OpenAfterInstall && !string.IsNullOrWhiteSpace(appId))
 		{
@@ -218,7 +221,7 @@ public sealed class WgtInstaller
 	// actionable message.
 	private async Task<ProcessResult> RecoverInstallAsync(
 		string tvIp, string wgtPath, string sdkToolPath, string? packageId, ProcessResult failed, Action<string>? progress,
-		bool wasInstalledBefore)
+		bool wasInstalledBefore, Func<Task<bool>>? confirmRemove)
 	{
 		var output = failed.Output ?? string.Empty;
 
@@ -272,6 +275,11 @@ public sealed class WgtInstaller
 
 		if (recoverable && TryOverwriteEnabled && !string.IsNullOrWhiteSpace(packageId))
 		{
+			// Removing the old copy erases its settings, sign-in and local data, so the user decides
+			// first (#825), unless "Uninstall installed version first" already made that choice.
+			if (!MobileSettings.DeletePreviousInstall && confirmRemove is not null && !await confirmRemove())
+				throw new RemovalDeclinedException();
+
 			progress?.Invoke("Install failed — removing the old copy and retrying…");
 			try { await _sdb.UninstallAsync(tvIp, packageId!); } catch { /* best-effort */ }
 
@@ -305,4 +313,13 @@ public sealed class WgtInstaller
 
 	private static string Detail(string error, string output) =>
 		!string.IsNullOrWhiteSpace(error) ? error : output.Trim();
+}
+
+/// <summary>
+/// The user kept the installed copy when the install could only continue by removing it (#825).
+/// Not a failure of the TV or the package: the TV is exactly as it was.
+/// </summary>
+public sealed class RemovalDeclinedException : Exception
+{
+	public RemovalDeclinedException() : base("The installed copy was kept at the user's request.") { }
 }
