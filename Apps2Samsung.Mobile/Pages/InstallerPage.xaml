@@ -27,15 +27,20 @@
                 <Border x:Name="NoTvCard" IsVisible="False" Padding="16,20" StrokeThickness="0" StrokeShape="RoundRectangle 16"
                         BackgroundColor="{DynamicResource SurfaceColor}">
                     <VerticalStackLayout Spacing="10">
-                        <Label Text="{l:Localize lblNoTvYetTitle}" FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center" />
-                        <Label Text="{l:Localize lblNoTvYetHint}" FontSize="13" TextColor="{DynamicResource MutedColor}"
+                        <Label x:Name="NoTvTitle" Text="{l:Localize lblNoTvYetTitle}" FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                        <Label x:Name="NoTvHint" Text="{l:Localize lblNoTvYetHint}" FontSize="13" TextColor="{DynamicResource MutedColor}"
                                HorizontalTextAlignment="Center" />
                         <HorizontalStackLayout Spacing="8" HorizontalOptions="Center" Margin="0,4,0,0">
                             <Button Text="{l:Localize lblRescan}" Clicked="OnNoTvRescanClicked" HeightRequest="40" CornerRadius="20"
                                     Padding="16,0" FontAttributes="Bold" BackgroundColor="{DynamicResource AccentColor}"
                                     TextColor="{DynamicResource OnAccentColor}" />
-                            <Button Text="{l:Localize lblAddTvByIp}" Clicked="OnNoTvAddClicked" HeightRequest="40" CornerRadius="20"
+                            <Button x:Name="NoTvAddBtn" Text="{l:Localize lblAddTvByIp}" Clicked="OnNoTvAddClicked" HeightRequest="40" CornerRadius="20"
                                     Padding="16,0" BackgroundColor="{DynamicResource AccentSoftColor}"
+                                    TextColor="{DynamicResource AccentColor}" />
+                            <!-- Takes Add by IP's place while the OS blocks local network access (#824):
+                                 a hand-typed IP runs into the same block, Settings is where it is lifted. -->
+                            <Button x:Name="NoTvSettingsBtn" IsVisible="False" Text="{l:Localize lblOpenSettings}" Clicked="OnNoTvSettingsClicked"
+                                    HeightRequest="40" CornerRadius="20" Padding="16,0" BackgroundColor="{DynamicResource AccentSoftColor}"
                                     TextColor="{DynamicResource AccentColor}" />
                         </HorizontalStackLayout>
                     </VerticalStackLayout>

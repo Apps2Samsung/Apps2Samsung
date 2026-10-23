@@ -472,6 +472,9 @@ public partial class InstallerPage : ContentPage
 	private async void OnNoTvRescanClicked(object? sender, EventArgs e) => await RescanAsync();
 	private async void OnNoTvAddClicked(object? sender, EventArgs e) => await AddTvByIpAsync();
 
+	// The app's own page in the system Settings, where the Local Network switch lives on iOS (#824).
+	private void OnNoTvSettingsClicked(object? sender, EventArgs e) => AppInfo.Current.ShowSettingsUI();
+
 	private async Task ShowDeviceInfoAsync()
 	{
 		if (!_tv.HasTv)
@@ -821,8 +824,13 @@ public partial class InstallerPage : ContentPage
 		var noTv = !_tv.HasTv && !_tv.IsScanning;
 		if (noTv)
 		{
-			TopBar.Subtitle = L10n.Get("lblNoTvFoundHint");
+			var blocked = _tv.LocalNetworkBlocked;
+			TopBar.Subtitle = L10n.Get(blocked ? "lblNoTvBlockedSubtitle" : "lblNoTvFoundHint");
 			TopBar.Status = TopBarStatus.Warn;
+			NoTvTitle.Text = L10n.Get(blocked ? "lblNoTvBlockedTitle" : "lblNoTvYetTitle");
+			NoTvHint.Text = L10n.Get(blocked ? "lblNoTvBlockedHint" : "lblNoTvYetHint");
+			NoTvAddBtn.IsVisible = !blocked;
+			NoTvSettingsBtn.IsVisible = blocked;
 		}
 		TvCard.IsVisible = !noTv;
 		NoTvCard.IsVisible = noTv;

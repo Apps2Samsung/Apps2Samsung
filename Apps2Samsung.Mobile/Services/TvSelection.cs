@@ -47,6 +47,14 @@ public sealed class TvSelection
 
 	public bool IsScanning { get; private set; }
 
+	/// <summary>
+	/// The last scan found nothing because the OS refused every probe (#824). On iOS that is the
+	/// Local Network permission: denied, or still on screen while the first scan ran. The card then
+	/// offers Settings instead of Add by IP, which the same block would stop.
+	/// </summary>
+	public bool LocalNetworkBlocked { get; private set; }
+	private bool _retriedBlockedScan;
+
 	/// <summary>Set by the Install tab while it installs: the TV can't change under a running install,
 	/// so the TV sheet stays shut.</summary>
 	public bool IsLocked { get; set; }
@@ -99,6 +107,18 @@ public sealed class TvSelection
 		try
 		{
 			var devices = await TizenDeveloperInfo.ScanAsync(_network);
+
+			// iOS asks for Local Network access on the first LAN connect, which is this very scan:
+			// every probe fails while the prompt is on screen. Once per app run, give the user a
+			// moment to tap Allow and sweep again, so the first scan doesn't end in "no TV" with
+			// the permission freshly granted (#824).
+			if (devices.Count == 0 && _network.LastScanBlockedByOs && OperatingSystem.IsIOS() && !_retriedBlockedScan)
+			{
+				_retriedBlockedScan = true;
+				await Task.Delay(TimeSpan.FromSeconds(3));
+				devices = await TizenDeveloperInfo.ScanAsync(_network);
+			}
+			LocalNetworkBlocked = devices.Count == 0 && _network.LastScanBlockedByOs && OperatingSystem.IsIOS();
 			var keepIp = Ip;
 
 			_tvs.Clear();
@@ -107,10 +127,13 @@ public sealed class TvSelection
 
 			var keep = keepIp is null ? -1 : _tvs.FindIndex(t => t.Ip == keepIp);
 			_selected = _tvs.Count > 0 ? (keep >= 0 ? keep : 0) : -1;
-			Status = _tvs.Count == 0 ? L10n.Get("statusNoTvsFoundHint") : SelectedStatus();
+			Status = _tvs.Count == 0
+				? L10n.Get(LocalNetworkBlocked ? "statusLocalNetworkBlocked" : "statusNoTvsFoundHint")
+				: SelectedStatus();
 		}
 		catch (Exception ex)
 		{
+			LocalNetworkBlocked = false;
 			Status = string.Format(L10n.Get("statusScanFailed"), ex.Message);
 		}
 		finally
