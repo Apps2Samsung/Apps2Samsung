@@ -33,22 +33,49 @@ namespace Apps2Samsung.Catalog
     /// </summary>
     public static class InstalledAppUpdates
     {
-        /// <summary>The catalog entry <paramref name="app"/> came from, or null when no listed file declares its id.</summary>
+        /// <summary>
+        /// The catalog entry <paramref name="app"/> came from, or null when no listed file declares its id.
+        /// Several files can declare the same id: the forks of one app (seven Moonlight builds), or one
+        /// app built per Tizen version. The TV cannot say which of them it has, so the comparison only
+        /// claims what holds for every candidate: the installed version appearing among them means up
+        /// to date; every candidate being newer means an update (the highest is named); anything else
+        /// is left undecided rather than guessed, with the entry still matched for the Update button.
+        /// </summary>
         public static CatalogMatch? Find(InstalledApp app, IEnumerable<GitHubRelease> catalog)
         {
             if (app is null || string.IsNullOrWhiteSpace(app.TizenId))
                 return null;
 
+            var candidates = new List<(GitHubRelease Release, Asset Asset)>();
             foreach (var release in catalog)
             {
                 foreach (var asset in release.Assets)
                 {
                     if (!string.IsNullOrWhiteSpace(asset.AppId) &&
                         string.Equals(asset.AppId, app.TizenId, StringComparison.OrdinalIgnoreCase))
-                        return new CatalogMatch(release, asset, Compare(app.Version, asset.PackageVersion));
+                        candidates.Add((release, asset));
                 }
             }
-            return null;
+            if (candidates.Count == 0)
+                return null;
+            if (candidates.Count == 1)
+                return new CatalogMatch(candidates[0].Release, candidates[0].Asset, Compare(app.Version, candidates[0].Asset.PackageVersion));
+
+            var states = candidates.Select(c => (c, State: Compare(app.Version, c.Asset.PackageVersion))).ToList();
+            var same = states.FirstOrDefault(x => x.State == CatalogVersionState.UpToDate &&
+                string.Equals(Normalize(app.Version), Normalize(x.c.Asset.PackageVersion), StringComparison.OrdinalIgnoreCase));
+            if (same.c.Asset is not null)
+                return new CatalogMatch(same.c.Release, same.c.Asset, CatalogVersionState.UpToDate);
+
+            if (states.All(x => x.State == CatalogVersionState.UpdateAvailable))
+            {
+                var newest = states
+                    .OrderByDescending(x => TryParse(Normalize(x.c.Asset.PackageVersion), out var v) ? v : new Version(0, 0))
+                    .First();
+                return new CatalogMatch(newest.c.Release, newest.c.Asset, CatalogVersionState.UpdateAvailable);
+            }
+
+            return new CatalogMatch(candidates[0].Release, candidates[0].Asset, CatalogVersionState.Unknown);
         }
 
         /// <summary>
