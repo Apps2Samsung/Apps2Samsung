@@ -124,24 +124,14 @@ namespace Apps2Samsung.Sdb
                 }
             }
 
-            // Which shell verbs this TV's sdbd recognises (TizenSdb.Core's SdbShellVerbs). sdbd is a
-            // fixed vocabulary, not a shell, and the launcher verb the tooling uses only resolves Smart
-            // Hub apps (tizen-community-packages#34); whether a set exposes a verb that reaches the
-            // platform's own launcher is a question no log had answered. Every probe carries an id
-            // that does not exist, so nothing on the TV changes. Appended after the "Testing" lines
-            // so the diagnose parser, which keys on the vd_appuninstall line, is unaffected — and so a
-            // user's debug log carries the answer without anyone asking for it.
-            try
-            {
-                var probes = await device.ProbeShellVerbsAsync();
-                sb.AppendLine($"  sdbd verbs: {probes.Count(p => p.Accepted)} of {probes.Count} probes accepted");
-                foreach (var probe in probes)
-                    sb.AppendLine(SdbShellVerbs.Format(probe));
-            }
-            catch (Exception ex)
-            {
-                sb.AppendLine($"  sdbd verbs: probe failed - {ex.Message}");
-            }
+            // No sdbd verb probe here any more. The probe (TizenSdb.Core's SdbShellVerbs.Candidates)
+            // sends "0 was_execute probe.invalid" and the other launcher verbs with an id that does not
+            // exist, and Smart Hub reacts to that like any failed app start: the TV shows "Error.
+            // Please wait and try again" on screen, in the middle of an install (#839). The diagnose
+            // runs on the retry and recovery paths of the desktop install, so the popup appeared right
+            // before the package was pushed. The question the probe answered (which launcher verbs a
+            // set exposes) is settled for the sets that mattered; a future toolbox button can ask it
+            // on demand, where a popup on the TV is expected.
 
             return sb.ToString();
         });
