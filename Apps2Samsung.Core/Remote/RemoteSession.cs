@@ -93,6 +93,9 @@ namespace Apps2Samsung.Remote
         // has put its prompt up, and the user should be told what it is and how to stop it.
         private static readonly TimeSpan RepromptGrace = TimeSpan.FromSeconds(3);
         private static readonly TimeSpan WakeTimeout = TimeSpan.FromSeconds(40);
+        // A set woken from standby by the power key can take over a minute to report awake (72 s seen
+        // on a QE48S90F), so this wait is longer than the Wake-on-LAN one.
+        private static readonly TimeSpan PowerKeyWakeTimeout = TimeSpan.FromSeconds(90);
 
         public static async Task<RemoteSessionResult> ConnectAsync(
             string tvIpAddress,
@@ -114,7 +117,7 @@ namespace Apps2Samsung.Remote
                 {
                     status?.Report(StatusWaking);
                     await using var standbyClient = new SamsungRemoteClient(tvIpAddress, token: standbyToken, secure: capability.UsesToken);
-                    if (await standbyClient.PowerOnFromStandbyAsync(WakeTimeout, cancellationToken).ConfigureAwait(false))
+                    if (await standbyClient.PowerOnFromStandbyAsync(PowerKeyWakeTimeout, cancellationToken).ConfigureAwait(false))
                         capability = await SamsungRemoteClient.ProbeAsync(tvIpAddress, cancellationToken).ConfigureAwait(false);
                 }
             }
