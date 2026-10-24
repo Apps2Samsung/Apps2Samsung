@@ -217,6 +217,58 @@ namespace Apps2Samsung.Remote
         }
 
         /// <summary>
+        /// Wakes a TV that answers <c>/api/v2/</c> but reports standby, by pressing power on the remote
+        /// channel. Such a set keeps 8002 open yet never sends the accept message
+        /// <see cref="ConnectAsync"/> waits for, so the key goes out on a bare connection (silently, so
+        /// only with a stored token) and the socket stays open while the set comes up. Returns true once
+        /// the set reports awake; false if it didn't within <paramref name="timeout"/>.
+        /// </summary>
+        public async Task<bool> PowerOnFromStandbyAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cts.CancelAfter(timeout);
+
+            try
+            {
+                using var socket = new ClientWebSocket();
+                socket.Options.RemoteCertificateValidationCallback = (_, _, _, _) => true;
+                await socket.ConnectAsync(BuildUri(), cts.Token).ConfigureAwait(false);
+
+                var key = new JsonObject
+                {
+                    ["method"] = "ms.remote.control",
+                    ["params"] = new JsonObject
+                    {
+                        ["Cmd"] = "Click",
+                        ["DataOfCmd"] = SamsungRemoteKeys.Power,
+                        ["Option"] = "false",
+                        ["TypeOfRemote"] = "SendRemoteKey",
+                    },
+                };
+                await socket.SendAsync(Encoding.UTF8.GetBytes(key.ToJsonString()), WebSocketMessageType.Text, endOfMessage: true, cts.Token)
+                    .ConfigureAwait(false);
+
+                while (true)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(2), cts.Token).ConfigureAwait(false);
+                    var capability = await ProbeAsync(_ip, cts.Token).ConfigureAwait(false);
+                    if (capability.Supported && capability.IsAwake)
+                        return true;
+                }
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                Trace.WriteLine($"[remote] {_ip} did not wake from the power key within {timeout.TotalSeconds:0}s.");
+                return false;
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                Trace.WriteLine($"[remote] power key to {_ip} failed: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Sends one key press (see <see cref="SamsungRemoteKeys"/>). Reconnects first if the channel
         /// has dropped. Returns false when the press could not be delivered.
         /// </summary>
