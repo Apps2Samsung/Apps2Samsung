@@ -43,6 +43,10 @@ jobs:
       - name: Build
         run: dotnet build Apps2Samsung.Desktop/Apps2Samsung.csproj -c Release
 
+      # The command-line head (#836) shares Core too and ships with every release.
+      - name: Build the CLI
+        run: dotnet build Apps2Samsung.Cli/Apps2Samsung.Cli.csproj -c Release
+
       # The catalog-snapshot generator shares Core; a Core change that breaks it would otherwise
       # only show up when the next half-hourly snapshot run fails.
       - name: Build the catalog snapshot tool
