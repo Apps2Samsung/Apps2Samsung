@@ -223,12 +223,13 @@
 			<DockPanel IsVisible="{Binding IsOnTheTvSection}">
 				<Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="10" Margin="20,16,20,0" MinHeight="36"
 				      IsVisible="{Binding InstalledAppsVm, Converter={x:Static ObjectConverters.IsNotNull}}">
-					<TextBlock Text="{Binding InstalledAppsVm.StatusText}" FontSize="13" VerticalAlignment="Center"
+					<TextBlock DataContext="{Binding InstalledAppsVm}" x:DataType="viewModels:InstalledAppsViewModel" Text="{Binding StatusText}" FontSize="13" VerticalAlignment="Center"
 					           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
-					<Button Grid.Column="1" Classes="tool" Content="{l:Localize lblRefresh}" Command="{Binding InstalledAppsVm.LoadCommand}"
-					        IsVisible="{Binding !InstalledAppsVm.IsDebugging}"/>
+					<Button Grid.Column="1" Classes="tool" Content="{l:Localize lblRefresh}" DataContext="{Binding InstalledAppsVm}" x:DataType="viewModels:InstalledAppsViewModel" Command="{Binding LoadCommand}"
+					        IsVisible="{Binding !IsDebugging}"/>
 					<Button Grid.Column="2" Classes="tool square" ToolTip.Tip="{l:Localize lblStopDebugging}"
-					        Command="{Binding InstalledAppsVm.StopDebugCommand}" IsVisible="{Binding InstalledAppsVm.IsDebugging}">
+					        DataContext="{Binding InstalledAppsVm}" x:DataType="viewModels:InstalledAppsViewModel"
+					        Command="{Binding StopDebugCommand}" IsVisible="{Binding IsDebugging}">
 						<fa:SymbolIcon Symbol="StopFilled" Width="16" Height="16" Foreground="{DynamicResource BadBrush}"/>
 					</Button>
 					<Button Grid.Column="3" Classes="tool square" Content="⋯" FontSize="18" ToolTip.Tip="{l:Localize lblMore}">
@@ -253,39 +254,40 @@
 			<!-- Remote -->
 			<DockPanel IsVisible="{Binding IsRemoteSection}">
 				<Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10" Margin="20,16,20,0" MinHeight="36"
-				      IsVisible="{Binding RemoteVm, Converter={x:Static ObjectConverters.IsNotNull}}">
+				      DataContext="{Binding RemoteVm}" x:DataType="viewModels:RemoteViewModel"
+				      IsVisible="{Binding Converter={x:Static ObjectConverters.IsNotNull}}">
 					<Panel Width="14" VerticalAlignment="Center">
 						<fa:ProgressRing IsIndeterminate="True" Width="14" Height="14" BorderThickness="2"
-						                 Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding RemoteVm.IsBusy}"/>
-						<Panel IsVisible="{Binding !RemoteVm.IsBusy}" HorizontalAlignment="Center">
-							<Ellipse Width="8" Height="8" Fill="{DynamicResource OkBrush}" IsVisible="{Binding RemoteVm.IsStatusOk}"/>
-							<Ellipse Width="8" Height="8" Fill="{DynamicResource WarnBrush}" IsVisible="{Binding RemoteVm.IsStatusWarn}"/>
-							<Ellipse Width="8" Height="8" Fill="{DynamicResource BadBrush}" IsVisible="{Binding RemoteVm.IsStatusBad}"/>
+						                 Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding IsBusy}"/>
+						<Panel IsVisible="{Binding !IsBusy}" HorizontalAlignment="Center">
+							<Ellipse Width="8" Height="8" Fill="{DynamicResource OkBrush}" IsVisible="{Binding IsStatusOk}"/>
+							<Ellipse Width="8" Height="8" Fill="{DynamicResource WarnBrush}" IsVisible="{Binding IsStatusWarn}"/>
+							<Ellipse Width="8" Height="8" Fill="{DynamicResource BadBrush}" IsVisible="{Binding IsStatusBad}"/>
 						</Panel>
 					</Panel>
 					<StackPanel Grid.Column="1" VerticalAlignment="Center">
-						<TextBlock Text="{Binding RemoteVm.StatusText}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+						<TextBlock Text="{Binding StatusText}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
 						<TextBlock Text="{l:Localize lblRemoteKeyboardHint}" FontSize="12" TextTrimming="CharacterEllipsis"
 						           Foreground="{DynamicResource MutedBrush}"/>
 					</StackPanel>
-					<Button Grid.Column="2" Classes="tool" Content="{l:Localize lblRemoteKeyboard}" IsEnabled="{Binding RemoteVm.IsConnected}">
+					<Button Grid.Column="2" Classes="tool" Content="{l:Localize lblRemoteKeyboard}" IsEnabled="{Binding IsConnected}">
 						<Button.Flyout>
 							<Flyout Placement="BottomEdgeAlignedRight">
 								<StackPanel Spacing="8" Width="320">
 									<TextBlock Text="{l:Localize lblRemoteTypeOnTv}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
 									<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-										<TextBox Grid.Column="0" Classes="search" Text="{Binding RemoteVm.TextToSend}"
+										<TextBox Grid.Column="0" Classes="search" Text="{Binding TextToSend}"
 										         Watermark="{l:Localize lblRemoteTextPlaceholder}"/>
 										<Button Grid.Column="1" Classes="primary" CornerRadius="10" Padding="16,8"
-										        Content="{l:Localize lblRemoteSend}" Command="{Binding RemoteVm.SendTextCommand}"/>
+										        Content="{l:Localize lblRemoteSend}" Command="{Binding SendTextCommand}"/>
 									</Grid>
 									<TextBlock Text="{l:Localize lblRemoteTextHint}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
 								</StackPanel>
 							</Flyout>
 						</Button.Flyout>
 					</Button>
-					<Button Grid.Column="3" Classes="tool square power" Content="⏻" FontSize="17" IsEnabled="{Binding !RemoteVm.IsBusy}"
-					        Command="{Binding RemoteVm.PowerOrWakeCommand}" ToolTip.Tip="{l:Localize lblRemotePowerWake}"/>
+					<Button Grid.Column="3" Classes="tool square power" Content="⏻" FontSize="17" IsEnabled="{Binding !IsBusy}"
+					        Command="{Binding PowerOrWakeCommand}" ToolTip.Tip="{l:Localize lblRemotePowerWake}"/>
 				</Grid>
 				<Panel Margin="20,14,20,0">
 					<ContentControl Content="{Binding RemoteVm}"/>

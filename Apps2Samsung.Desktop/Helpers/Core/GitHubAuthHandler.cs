@@ -109,7 +109,7 @@ namespace Apps2Samsung.Helpers.Core
 
             // Token is expired or revoked — retry this request unauthenticated (the endpoints we use
             // are public) and stop offering the token for the rest of the run.
-            if (response.StatusCode == HttpStatusCode.Unauthorized &&
+            if ((response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.NotFound) &&
                 request.Headers.Authorization != null)
             {
                 if (Interlocked.Exchange(ref _tokenRejected, 1) == 0)
@@ -135,9 +135,12 @@ namespace Apps2Samsung.Helpers.Core
         {
             if (uri == null) return false;
             var host = uri.Host;
-            return host.Equals("api.github.com", StringComparison.OrdinalIgnoreCase)
-                || host.Equals("raw.githubusercontent.com", StringComparison.OrdinalIgnoreCase)
-                || host.Equals("github.com", StringComparison.OrdinalIgnoreCase);
+            // Only api.github.com needs the token (60→5000 req/h). raw.githubusercontent.com and
+            // github.com are public for our repos, and a STALE token makes raw return 404 (not 401),
+            // which the 401-retry below can't catch — so the catalog manifest silently fell back to the
+            // cache on every run with an expired token. Don't authenticate those hosts at all; the
+            // mobile and CLI heads already don't.
+            return host.Equals("api.github.com", StringComparison.OrdinalIgnoreCase);
         }
 
         public static string? ResolveToken(AppSettings settings)
