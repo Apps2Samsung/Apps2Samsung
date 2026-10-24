@@ -11,7 +11,8 @@ namespace Apps2Samsung.Catalog
     /// the entries the installer lists, the same way for both heads. Without a catalog this is
     /// what the heads did inline: one entry per asset, named after the file. With the release's
     /// <c>catalog.json</c> every entry gets its display name and category, and files that share
-    /// a group fold into one entry whose assets are offered as variants.
+    /// a group fold into one entry whose assets are offered as variants. The package's description
+    /// rides along for the app sheet (#835); a group takes the description of its first file.
     /// </summary>
     public static class CommunityAppList
     {
@@ -57,6 +58,7 @@ namespace Apps2Samsung.Catalog
                                 RequiresPartner = requiresPartner,
                                 Category = category,
                                 HasVariants = true,
+                                Description = Clean(entry.Description) ?? string.Empty,
                             };
                             SourceRepo.Stamp(group, entry.Repo, entry.Host);
                             groups[entry.Group] = group;
@@ -75,6 +77,7 @@ namespace Apps2Samsung.Catalog
                         Assets = new List<Asset> { asset },
                         RequiresPartner = requiresPartner,
                         Category = category,
+                        Description = Clean(entry?.Description) ?? string.Empty,
                     };
                     if (entry != null)
                         SourceRepo.Stamp(single, entry.Repo, entry.Host);

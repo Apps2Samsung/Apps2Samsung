@@ -35,7 +35,8 @@ public partial class AppSheetPage : ContentPage
 	/// <param name="versions">The releases of this app, newest first; usually just the one.</param>
 	/// <param name="showAllVersions">For an app with older releases on offer: stores the setting and
 	/// reloads, handing back the releases to list. Null hides the switch.</param>
-	public AppSheetPage(IReadOnlyList<GitHubRelease> versions, string? previewUrl, string description, string? tvName, bool tvReady,
+	/// <param name="subline">The list row's info line: the category, and the variant count for a grouped app.</param>
+	public AppSheetPage(IReadOnlyList<GitHubRelease> versions, string? previewUrl, string subline, string? tvName, bool tvReady,
 		bool isFavorite = false, Action<string, bool>? setFavorite = null,
 		Func<bool, Task<IReadOnlyList<GitHubRelease>>>? showAllVersions = null)
 	{
@@ -49,7 +50,10 @@ public partial class AppSheetPage : ContentPage
 		_tvReady = tvReady;
 		ShowFavorite();
 		TitleLabel.Text = release.Name;
-		DescriptionLabel.Text = description;
+		// What the app is, from the catalog (#835); the paragraph stays hidden when the catalog has none.
+		DescriptionLabel.Text = release.Description;
+		DescriptionLabel.IsVisible = !string.IsNullOrWhiteSpace(release.Description);
+		SublineLabel.Text = subline;
 		ShowSource(release);
 		PartnerNotice.IsVisible = release.RequiresPartner;
 		VersionsTitle.Text = L10n.Get(release.HasVariants ? "lblVariant" : "lblVersion");

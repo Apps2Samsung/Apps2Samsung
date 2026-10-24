@@ -309,7 +309,7 @@ namespace Apps2Samsung.ViewModels
                 SelectedDevice = result.Device;
         }
 
-        /// <summary>Opens the app sheet; installs the asset it hands back.</summary>
+        /// <summary>Opens the app sheet (description, category line, versions); installs the asset it hands back.</summary>
         [RelayCommand]
         private async Task OpenAppAsync(CatalogRow? row)
         {
@@ -1354,6 +1354,7 @@ namespace Apps2Samsung.ViewModels
                             r.RequiresPartner = requiresPartner;
                             r.Category = category;
                             SourceRepo.StampFromApiUrl(r, provider.Url);
+                            r.Description = provider.BuildInfo?.Description?.Trim() ?? string.Empty;
                             if (provider.Take > 1)
                                 _multiVersionApps.Add(r.Name);
                         }
