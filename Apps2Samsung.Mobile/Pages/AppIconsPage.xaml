@@ -9,7 +9,7 @@
              BackgroundColor="{DynamicResource BgColor}">
     <!-- the top bar (#755): Back and the title -->
     <Grid RowDefinitions="Auto,*">
-        <controls:TopBarView Grid.Row="0" Title="{l:Localize lblAppIcons}" BackText="{l:Localize lblRemoteBack}" BackTapped="OnBackClicked" />
+        <controls:TopBarView Grid.Row="0" Title="{l:Localize lblAppIcons}" BackText="{l:Localize lblNavBack}" BackTapped="OnBackClicked" />
         <ScrollView Grid.Row="1">
             <Border Margin="12" Padding="16" StrokeThickness="1"
                     StrokeShape="RoundRectangle 8"

@@ -18,7 +18,7 @@
                HorizontalOptions="Start" VerticalOptions="Center" Margin="6,0,8,0" IsVisible="False" />
         <Grid x:Name="BackButton" Grid.Column="0" ColumnDefinitions="Auto,Auto" ColumnSpacing="4" IsVisible="False"
               HorizontalOptions="Start" VerticalOptions="Center" Padding="4,8,8,8" MinimumHeightRequest="44" MinimumWidthRequest="40"
-              SemanticProperties.Description="{l:Localize lblRemoteBack}">
+              SemanticProperties.Description="{l:Localize lblNavBack}">
             <Grid.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnBackTapped" />
             </Grid.GestureRecognizers>
