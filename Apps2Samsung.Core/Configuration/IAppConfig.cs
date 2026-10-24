@@ -54,6 +54,12 @@ namespace Apps2Samsung.Configuration
         /// the pre-install form, read by the shared UserSettingsPatcher at install (#791).
         /// </summary>
         string AppUserSettingsJson { get; set; }
+        /// <summary>
+        /// JSON list of <c>PackageIdRenameRecord</c>: the packages installed under another id, per
+        /// TV, as <c>PackageIdRenameStore</c> writes it (#839). Read before every install so the same
+        /// rename is applied again, and by the installed-apps views to match a renamed app.
+        /// </summary>
+        string PackageIdRenamesJson { get; set; }
 
         // ---- ImmiTV package patching ----
         // The shared ImmiTvPackagePatcher writes these into the IMMICH_DEFAULTS object of an ImmiTV

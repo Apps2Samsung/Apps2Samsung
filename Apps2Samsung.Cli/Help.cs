@@ -51,6 +51,8 @@ public static class Help
           --version <tag>       which release, for an app with a version history (implies --all-versions)
           --set key=value       a value the app asks for before it installs (repeatable; `catalog` lists the keys)
           --partner             sign with a Partner certificate (done by itself for apps that need one)
+          --new-id              install under a fresh package id, for a TV that refuses this app's own id
+                                ([118, -22]); remembered per TV, so later installs update the same tile
           --no-launch           do not open the app on the TV afterwards
           --remove-first        uninstall the installed copy before installing (erases its data on the TV)
           --keep                keep the downloaded package in the cache folder

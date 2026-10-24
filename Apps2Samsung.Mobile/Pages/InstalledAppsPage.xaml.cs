@@ -207,7 +207,7 @@ public partial class InstalledAppsPage : ContentPage
 			var catalog = CatalogStore.Releases;
 			for (int i = 0; i < apps.Count; i++)
 			{
-				if (Apps2Samsung.Catalog.InstalledAppUpdates.Find(apps[i], catalog) is not { } match)
+				if (Apps2Samsung.Catalog.InstalledAppUpdates.Find(apps[i], catalog, MobileSettings.PackageIdRenamesJson) is not { } match)
 					continue;
 				_matches[apps[i].TizenId] = match;
 				apps[i] = apps[i] with { CatalogLine = CatalogLine(match), HasUpdate = match.HasUpdate };

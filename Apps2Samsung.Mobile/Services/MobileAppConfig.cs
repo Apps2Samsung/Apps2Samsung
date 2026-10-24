@@ -62,6 +62,13 @@ public sealed class MobileAppConfig : IAppConfig
         set => MobileSettings.AppUserSettingsJson = value;
     }
 
+    // ---- Package-id renames (#839) ----
+    public string PackageIdRenamesJson
+    {
+        get => MobileSettings.PackageIdRenamesJson;
+        set => MobileSettings.PackageIdRenamesJson = value;
+    }
+
     // ---- Jellyfin package patching ----
     // Backed by the Settings → Jellyfin page (MobileSettings). Read by the shared
     // JellyfinPackagePatcher at install to inject server URL + auto-login + custom CSS.

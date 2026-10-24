@@ -41,6 +41,15 @@
                 </VerticalStackLayout>
             </Border>
 
+            <!-- another package id on this TV (#839), for a set that has this app's own id blocked -->
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="4,4,4,0">
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="{l:Localize lblNewPackageId}" FontSize="13" />
+                    <Label Text="{l:Localize lblNewPackageIdHint}" FontSize="12" TextColor="{DynamicResource MutedColor}" LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+                <Switch Grid.Column="1" x:Name="NewIdSwitch" OnColor="{DynamicResource AccentColor}" VerticalOptions="Center" />
+            </Grid>
+
             <!-- the Version header; "Show all versions" on the right for an app that has older
                  releases to offer (it reloads the catalog, so it is remembered as a setting) -->
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="4,10,4,0">

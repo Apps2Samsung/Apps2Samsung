@@ -28,6 +28,7 @@ public sealed class CliOptions
     public bool RemoveFirst { get; set; }
     public bool Keep { get; set; }
     public bool Yes { get; set; }
+    public bool NewId { get; set; }
 
     // Certificate
     public bool Prepare { get; set; }
@@ -84,6 +85,7 @@ public sealed class CliOptions
                     break;
                 }
                 case "--partner": o.Partner = true; break;
+                case "--new-id": o.NewId = true; break;
                 case "--no-launch": o.NoLaunch = true; break;
                 case "--remove-first": o.RemoveFirst = true; break;
                 case "--keep": o.Keep = true; break;
