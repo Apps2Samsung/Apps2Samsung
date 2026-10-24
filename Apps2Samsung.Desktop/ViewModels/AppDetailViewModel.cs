@@ -13,8 +13,8 @@ using Apps2Samsung.Models;
 namespace Apps2Samsung.ViewModels
 {
     /// <summary>
-    /// The app sheet (#755): preview, description, the version or variant to install, and the
-    /// Install button for the selected TV. Built by the main view model with everything it needs,
+    /// The app sheet (#755): preview, description (#835), category line, the version or variant
+    /// to install, and the Install button for the selected TV. Built by the main view model with everything it needs,
     /// so the window only shows and hands back the chosen asset.
     /// </summary>
     public partial class AppDetailViewModel : ObservableObject
@@ -24,7 +24,11 @@ namespace Apps2Samsung.ViewModels
 
         public GitHubRelease Release { get; }
         public string Name => Release.Name;
-        public string Description { get; }
+        /// <summary>What the app is, from the catalog (#835); the paragraph is hidden when the catalog has none.</summary>
+        public string Description => Release.Description;
+        public bool HasDescription => !string.IsNullOrWhiteSpace(Release.Description);
+        /// <summary>The list row's info line: the category, and the variant count for a grouped app.</summary>
+        public string Subline { get; }
         /// <summary>"by owner" and the repository link under the description (#820); hidden without a repository.</summary>
         public string AuthorText { get; }
         public Uri? SourceUri { get; }
@@ -87,7 +91,7 @@ namespace Apps2Samsung.ViewModels
 
         public bool HasPreview => Preview is not null;
 
-        public AppDetailViewModel(GitHubRelease release, string? previewUrl, string description,
+        public AppDetailViewModel(GitHubRelease release, string? previewUrl, string subline,
             string? tvName, bool tvReady, HttpClient http, Func<string, string> localize,
             bool isFavorite = false, Action<string, bool>? setFavorite = null, bool canShowAllVersions = false)
         {
@@ -100,7 +104,7 @@ namespace Apps2Samsung.ViewModels
             IsFavorite = isFavorite;
             _previewUrl = previewUrl;
             _http = http;
-            Description = description;
+            Subline = subline;
             AuthorText = string.IsNullOrEmpty(release.Author) ? string.Empty : string.Format(localize("lblByAuthor"), release.Author);
             SourceUri = Uri.TryCreate(release.SourceUrl, UriKind.Absolute, out var source) ? source : null;
             SourceCodeText = localize("lblSourceCode");

@@ -74,6 +74,15 @@ namespace Apps2Samsung.Models
         [JsonIgnore]
         public string? Author { get; set; }
 
+        /// <summary>
+        /// What the app is, in a sentence or two, shown on the app sheet above the category and
+        /// source line (#835). Stamped from the community catalog's per-package description or the
+        /// provider manifest's build info; empty when neither has one, and the sheet then shows
+        /// only the info line.
+        /// </summary>
+        [JsonIgnore]
+        public string Description { get; set; } = string.Empty;
+
         public GitHubRelease()
         {
         }

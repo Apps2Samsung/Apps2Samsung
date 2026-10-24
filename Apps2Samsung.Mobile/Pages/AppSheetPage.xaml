@@ -5,7 +5,7 @@
              x:Class="Apps2Samsung.Mobile.Pages.AppSheetPage"
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
-    <!-- The app sheet (#755): preview, description, the version or variant to install, Install.
+    <!-- The app sheet (#755): preview, description (#835), category line, the version or variant to install, Install.
          A modal page drawn as a bottom sheet: grabber, title with a close button, grouped content. -->
     <ScrollView>
         <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
@@ -27,7 +27,9 @@
                 <Image x:Name="PreviewImage" Aspect="AspectFill" />
             </Border>
 
-            <Label x:Name="DescriptionLabel" TextColor="{DynamicResource MutedColor}" LineBreakMode="WordWrap" />
+            <!-- what the app is, from the catalog (#835); then the category line the list row shows -->
+            <Label x:Name="DescriptionLabel" TextColor="{DynamicResource InkColor}" LineBreakMode="WordWrap" IsVisible="False" />
+            <Label x:Name="SublineLabel" TextColor="{DynamicResource MutedColor}" LineBreakMode="WordWrap" />
             <!-- who makes it and where its source, releases and licence live (#820) -->
             <Label x:Name="SourceLabel" FontSize="13" TextColor="{DynamicResource MutedColor}" IsVisible="False" />
 

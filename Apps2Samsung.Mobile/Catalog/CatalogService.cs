@@ -83,6 +83,7 @@ public sealed class CatalogService
 					r.RequiresPartner = requiresPartner;
 					r.Category = category;
 					SourceRepo.StampFromApiUrl(r, provider.Url);
+					r.Description = provider.BuildInfo?.Description?.Trim() ?? string.Empty;
 				}
 				entries.AddRange(releases);
 			}
