@@ -220,7 +220,7 @@ namespace Apps2Samsung.Sdb
                     progress.Report(percent);
             });
 
-        public async Task<ProcessResult> UninstallAsync(string tvIpAddress, string packageId) => await RunConnected(tvIpAddress, $"uninstall {tvIpAddress} {packageId}", async device =>
+        public async Task<ProcessResult> UninstallAsync(string tvIpAddress, string packageId) => await RunWithRetry(tvIpAddress, $"uninstall {tvIpAddress} {packageId}", async device =>
         {
             try
             {
@@ -229,9 +229,16 @@ namespace Apps2Samsung.Sdb
                     throw new Exception("Uninstallation failed");
                 return result;
             }
+            catch (Exception ex) when (SdbTransportErrors.IsTransient(ex.Message))
+            {
+                // The channel closed before the verb ran (the Tizen-3 "Remote closed channel before
+                // sending OKAY"): the pkgcmd fallback on this same wedged connection would close too,
+                // so let RunWithRetry repeat the whole thing on a fresh connection instead.
+                throw;
+            }
             catch
             {
-                // Fallback to pkgcmd, matching the CLI.
+                // A real refusal (not a dropped link): fall back to pkgcmd, matching the CLI.
                 var pkgName = packageId.Split('.')[0];
                 return await device.ShellCommandAsync($"pkgcmd -u -n {pkgName} -q");
             }
@@ -381,11 +388,14 @@ namespace Apps2Samsung.Sdb
                 }
             }, logOutput: false);
 
-        // As RunConnected, but retries a transient transport failure on a fresh connection: the TV
-        // drops the link mid-read, which is a race on it rather than a real failure, and a single such
-        // reset on the device-info read is what produced a spurious "TV Name could not be found" for a
-        // TV that had just been discovered (#524). Only for idempotent reads/queries — never for
-        // install/uninstall/resign, which aren't safe to blindly repeat. See SdbTransportErrors.
+        // As RunConnected, but retries a TRANSIENT transport failure on a fresh connection: the TV
+        // drops the link mid-handshake or closes a freshly-opened channel before OKAY, which is a race
+        // on it rather than a real failure (a single such reset on the device-info read produced a
+        // spurious "TV Name could not be found" for a just-discovered TV, #524). Only transient
+        // results repeat, and a channel closed before OKAY means the command never ran — so this is
+        // safe for the idempotent reads AND for uninstall (seen closing the channel on Tizen 3 sets
+        // where install works). Never wrap install/resign, whose partial failures are not transient
+        // and must not blindly repeat. See SdbTransportErrors.
         private async Task<ProcessResult> RunWithRetry(
             string ip, string command, Func<SdbTcpDevice, Task<string>> body, int attempts = 3)
         {
