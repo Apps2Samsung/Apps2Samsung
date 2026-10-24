@@ -26,6 +26,7 @@ public static class MobileSettings
 	private const string KeyTizenTubeProxyHost = "tizentube_proxy_host";
 	private const string KeyCameraPipConfig = "camerapip_config_json";
 	private const string KeyAppUserSettings = "app_user_settings_json";
+	private const string KeyPackageIdRenames = "package_id_renames_json";
 	private const string KeyPartnerSigning = "partner_signing";
 	private const string KeyForceLogin = "force_samsung_login";
 	private const string KeyTryOverwrite = "try_overwrite";
@@ -346,6 +347,13 @@ public static class MobileSettings
 	{
 		get => Preferences.Get(KeyAppUserSettings, string.Empty);
 		set => Preferences.Set(KeyAppUserSettings, value ?? string.Empty);
+	}
+
+	/// <summary>Packages installed under another id, per TV (#839, PackageIdRenameStore).</summary>
+	public static string PackageIdRenamesJson
+	{
+		get => Preferences.Get(KeyPackageIdRenames, string.Empty);
+		set => Preferences.Set(KeyPackageIdRenames, value ?? string.Empty);
 	}
 
 	/// <summary>Per-app custom launcher icons: JSON map { appKey -> "oblong" | custom PNG path },

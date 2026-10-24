@@ -90,7 +90,7 @@ namespace Apps2Samsung.ViewModels
                 for (int i = 0; i < apps.Count; i++)
                 {
                     // The catalog entry this app came from, by the id its manifest declares (#820).
-                    if (Apps2Samsung.Catalog.InstalledAppUpdates.Find(apps[i], catalog) is { } match)
+                    if (Apps2Samsung.Catalog.InstalledAppUpdates.Find(apps[i], catalog, Apps2Samsung.Helpers.AppSettings.Default.PackageIdRenamesJson) is { } match)
                     {
                         _matches[apps[i].TizenId] = match;
                         apps[i] = apps[i] with { CatalogLine = CatalogLine(match), HasUpdate = match.HasUpdate };

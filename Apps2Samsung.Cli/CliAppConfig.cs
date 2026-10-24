@@ -29,6 +29,30 @@ public sealed class CliAppConfig : IAppConfig
     public string TvAppChannelsJson { get; set; } = string.Empty;
     public string AppUserSettingsJson { get; set; } = string.Empty;
 
+    // The one setting the CLI keeps between runs: which packages were installed under another id on
+    // which TV (#839). Without it an update would push the original (blocked) id again.
+    private string? _renames;
+    public string PackageIdRenamesJson
+    {
+        get
+        {
+            if (_renames is null)
+            {
+                try { _renames = File.Exists(RenamesPath) ? File.ReadAllText(RenamesPath) : string.Empty; }
+                catch { _renames = string.Empty; }
+            }
+            return _renames;
+        }
+        set
+        {
+            _renames = value ?? string.Empty;
+            Directory.CreateDirectory(CliPaths.CliDir);
+            if (_renames.Length == 0) { try { File.Delete(RenamesPath); } catch { /* best-effort */ } }
+            else File.WriteAllText(RenamesPath, _renames);
+        }
+    }
+    private static string RenamesPath => Path.Combine(CliPaths.CliDir, "package-id-renames.json");
+
     public string ImmiTvServerUrl => string.Empty;
     public string ImmiTvEmail => string.Empty;
     public string ImmiTvPassword => string.Empty;

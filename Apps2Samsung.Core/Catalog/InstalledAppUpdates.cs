@@ -41,10 +41,14 @@ namespace Apps2Samsung.Catalog
         /// to date; every candidate being newer means an update (the highest is named); anything else
         /// is left undecided rather than guessed, with the entry still matched for the Update button.
         /// </summary>
-        public static CatalogMatch? Find(InstalledApp app, IEnumerable<GitHubRelease> catalog)
+        /// <param name="packageIdRenamesJson">The heads' rename store (#839): an app installed under
+        /// another id is matched by the id its package was built with, which is what the catalog records.</param>
+        public static CatalogMatch? Find(InstalledApp app, IEnumerable<GitHubRelease> catalog, string? packageIdRenamesJson = null)
         {
             if (app is null || string.IsNullOrWhiteSpace(app.TizenId))
                 return null;
+
+            var catalogId = Apps2Samsung.Packaging.PackageIdRenameStore.OriginalAppIdOf(packageIdRenamesJson, app.TizenId) ?? app.TizenId;
 
             var candidates = new List<(GitHubRelease Release, Asset Asset)>();
             foreach (var release in catalog)
@@ -52,7 +56,7 @@ namespace Apps2Samsung.Catalog
                 foreach (var asset in release.Assets)
                 {
                     if (!string.IsNullOrWhiteSpace(asset.AppId) &&
-                        string.Equals(asset.AppId, app.TizenId, StringComparison.OrdinalIgnoreCase))
+                        string.Equals(asset.AppId, catalogId, StringComparison.OrdinalIgnoreCase))
                         candidates.Add((release, asset));
                 }
             }

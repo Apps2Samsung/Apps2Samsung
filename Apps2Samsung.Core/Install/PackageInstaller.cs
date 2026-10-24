@@ -57,8 +57,11 @@ namespace Apps2Samsung.Install
         /// erases that app's settings, sign-in and local data on the TV (#825). False stops the install
         /// with <see cref="RemovalDeclinedException"/>; null (no UI) keeps the remove-and-retry as it was.</param>
         /// <returns>The TV's install output.</returns>
+        /// <param name="packageId">Which id to install under (#839): a new one on request, or the one
+        /// remembered for this TV. Null installs under the package's own id.</param>
         public async Task<string> InstallAsync(string tvIp, string wgtPath, SigningProfile cert, Action<string>? progress = null,
-            Action<InstallStage, int?>? stage = null, CancellationToken ct = default, Func<Task<bool>>? confirmRemove = null)
+            Action<InstallStage, int?>? stage = null, CancellationToken ct = default, Func<Task<bool>>? confirmRemove = null,
+            PackageIdPolicy? packageId = null)
         {
             stage?.Invoke(InstallStage.Sign, null);
             progress?.Invoke("Reading TV capabilities…");
@@ -68,9 +71,13 @@ namespace Apps2Samsung.Install
             var sdkToolPath = caps.SdkToolPath;
             var version = caps.Version;
 
+            // Another id for this TV, by request or as remembered (#839). Before anything reads the
+            // ids: from here on the package is the renamed one.
+            await PackageIds.ApplyAsync(wgtPath, packageId, _config, progress);
+
             // The Tizen app/package ids live in the package's config.xml; needed to remove an old
             // version before install and/or launch the app afterwards.
-            var (appId, packageId) = await WgtManifest.ReadIdsAsync(wgtPath);
+            var (appId, packageIdInFile) = await WgtManifest.ReadIdsAsync(wgtPath);
 
             // Pre-install Tizen version gate: a package that declares a required_version newer than
             // this TV fails up front with a clear message instead of signing + pushing and getting
@@ -84,14 +91,14 @@ namespace Apps2Samsung.Install
             // Was this package already on the TV before we started? The failure cleanup below only
             // clears a partial from a FRESH install and never removes a pre-existing working app.
             bool wasInstalledBefore = false;
-            if (!string.IsNullOrWhiteSpace(packageId))
+            if (!string.IsNullOrWhiteSpace(packageIdInFile))
             {
                 try
                 {
                     var listed = await _sdb.AppsAsync(tvIp);
-                    wasInstalledBefore = listed?.Output?.Contains(packageId!, StringComparison.OrdinalIgnoreCase) ?? false;
+                    wasInstalledBefore = listed?.Output?.Contains(packageIdInFile!, StringComparison.OrdinalIgnoreCase) ?? false;
                 }
-                catch { /* best-effort; if we can't tell, treat as fresh (cleanup guard still needs packageId) */ }
+                catch { /* best-effort; if we can't tell, treat as fresh (cleanup guard still needs packageIdInFile) */ }
             }
             ct.ThrowIfCancellationRequested();
 
@@ -149,10 +156,10 @@ namespace Apps2Samsung.Install
             ct.ThrowIfCancellationRequested();
             stage?.Invoke(InstallStage.Install, null);
 
-            if (_config.DeletePreviousInstall && !string.IsNullOrWhiteSpace(packageId))
+            if (_config.DeletePreviousInstall && !string.IsNullOrWhiteSpace(packageIdInFile))
             {
                 progress?.Invoke("Removing old version…");
-                try { await _sdb.UninstallAsync(tvIp, packageId!); } catch { /* nothing to remove */ }
+                try { await _sdb.UninstallAsync(tvIp, packageIdInFile!); } catch { /* nothing to remove */ }
             }
 
             progress?.Invoke("Installing on TV…");
@@ -161,7 +168,7 @@ namespace Apps2Samsung.Install
             // itself failed (e.g. "app_id[...] install failed[118]"), so classify the OUTPUT as well
             // and route real failures into recovery.
             if (install.ExitCode != 0 || TizenInstallDiagnostics.IndicatesFailure(install.Output))
-                install = await RecoverInstallAsync(tvIp, wgtPath, sdkToolPath, packageId, install, progress, wasInstalledBefore, confirmRemove);
+                install = await RecoverInstallAsync(tvIp, wgtPath, sdkToolPath, packageIdInFile, install, progress, wasInstalledBefore, confirmRemove);
 
             if (_config.OpenAfterInstall && !string.IsNullOrWhiteSpace(appId))
             {
@@ -189,7 +196,8 @@ namespace Apps2Samsung.Install
             "An older copy is still registered under a different signing certificate, or an interrupted " +
             "uninstall left a record behind that the app list no longer shows. Delete the app on the TV itself " +
             "(Apps list, press and hold, Remove) and install again, install a build that ships its own package " +
-            "id (a \"secondary\" variant), or reset Smart Hub as a last resort.";
+            "id (a \"secondary\" variant), or install it under a new package id (the option on the app's sheet, " +
+            "--new-id in the CLI): the app then gets a fresh id on this TV, which Apps2Samsung remembers for updates.";
 
         // Interprets a non-zero install result and, where it helps, removes the old copy and retries once.
         // Returns the successful result or throws with an actionable message.

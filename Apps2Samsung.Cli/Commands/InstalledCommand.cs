@@ -33,7 +33,7 @@ public static class InstalledCommand
 
         var rows = apps.Select(a =>
         {
-            var match = catalog.Count == 0 ? null : InstalledAppUpdates.Find(a, catalog);
+            var match = catalog.Count == 0 ? null : InstalledAppUpdates.Find(a, catalog, s.Config.PackageIdRenamesJson);
             return new Row(a.DisplayName, a.TizenId, string.IsNullOrWhiteSpace(a.Version) ? null : a.Version, a.InstallDate, a.IsRemovable,
                 match?.Release.Name, match?.Asset.FileName, match?.CatalogVersion,
                 match is null ? null : match.State switch

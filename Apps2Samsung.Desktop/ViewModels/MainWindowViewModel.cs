@@ -336,8 +336,18 @@ namespace Apps2Samsung.ViewModels
                 CustomWgtPath = string.Empty;
                 SelectedRelease = row.Release;
                 SelectedAsset = asset;
-                if (DownloadAndInstallCommand.CanExecute(null))
-                    await DownloadAndInstallAsync();
+                // The sheet's "Install under a new package id" (#839) holds for this install only; a
+                // rename made earlier for this TV applies by itself.
+                AppSettings.Default.InstallUnderNewPackageId = sheet.NewPackageId;
+                try
+                {
+                    if (DownloadAndInstallCommand.CanExecute(null))
+                        await DownloadAndInstallAsync();
+                }
+                finally
+                {
+                    AppSettings.Default.InstallUnderNewPackageId = false;
+                }
             }
             // "Show all versions" changed in the sheet: the catalog follows once it is closed.
             if (AppSettings.Default.ShowAllJellyfinVersions != showAllBefore)

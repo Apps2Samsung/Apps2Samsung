@@ -73,6 +73,15 @@
 				</StackPanel>
 			</Border>
 
+			<!-- another package id on this TV (#839), for a set that has this app's own id blocked -->
+			<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="4,4,4,0">
+				<StackPanel Spacing="2">
+					<TextBlock Text="{Binding NewPackageIdText}" FontSize="13" Foreground="{DynamicResource InkBrush}"/>
+					<TextBlock Text="{Binding NewPackageIdHint}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+				</StackPanel>
+				<ToggleSwitch Grid.Column="1" IsChecked="{Binding NewPackageId}" MinWidth="0" VerticalAlignment="Center"/>
+			</Grid>
+
 			<Grid ColumnDefinitions="*,Auto" Margin="4,10,4,0">
 				<TextBlock Text="{Binding VersionsTitle}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"
 				           VerticalAlignment="Center"/>

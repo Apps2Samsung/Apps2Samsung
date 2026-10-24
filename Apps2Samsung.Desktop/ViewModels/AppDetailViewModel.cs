@@ -91,6 +91,12 @@ namespace Apps2Samsung.ViewModels
 
         public bool HasPreview => Preview is not null;
 
+        /// <summary>"Install under a new package id" (#839): for a TV that has this package's own id blocked.</summary>
+        [ObservableProperty]
+        private bool newPackageId;
+        public string NewPackageIdText { get; }
+        public string NewPackageIdHint { get; }
+
         public AppDetailViewModel(GitHubRelease release, string? previewUrl, string subline,
             string? tvName, bool tvReady, HttpClient http, Func<string, string> localize,
             bool isFavorite = false, Action<string, bool>? setFavorite = null, bool canShowAllVersions = false)
@@ -115,6 +121,8 @@ namespace Apps2Samsung.ViewModels
             CanInstall = tvReady && !string.IsNullOrEmpty(tvName);
             InstallText = string.IsNullOrEmpty(tvName) ? localize("lblChooseTvFirst") : string.Format(localize("lblInstallOn"), tvName);
             PartnerNeededTitle = localize("lblPartnerNeededTitle");
+            NewPackageIdText = localize("lblNewPackageId");
+            NewPackageIdHint = localize("lblNewPackageIdHint");
             PartnerNeededBody = localize("lblPartnerNeededBody");
         }
 

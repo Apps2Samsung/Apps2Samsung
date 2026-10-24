@@ -145,9 +145,13 @@ public static class InstallCommand
                 },
                 stage: null,
                 ct: ct,
-                confirmRemove: () => Task.FromResult(s.Options.Yes));
+                confirmRemove: () => Task.FromResult(s.Options.Yes),
+                packageId: new PackageIdPolicy(duid, s.Options.NewId));
 
-            var launched = s.Config.OpenAfterInstall && !string.IsNullOrWhiteSpace(appId);
+            // The ids as installed: a rename (#839) changed them after the read above.
+            var (installedAppId, installedPackageId) = await WgtManifest.ReadIdsAsync(packagePath);
+            var renamed = !string.Equals(installedPackageId, packageId, StringComparison.Ordinal);
+            var launched = s.Config.OpenAfterInstall && !string.IsNullOrWhiteSpace(installedAppId);
             return s.Out.Result(
                 new
                 {
@@ -156,13 +160,14 @@ public static class InstallCommand
                     app = appName,
                     file = Path.GetFileName(packagePath),
                     version = asset?.PackageVersion,
-                    appId,
-                    packageId,
+                    appId = installedAppId,
+                    packageId = installedPackageId,
+                    originalPackageId = renamed ? packageId : null,
                     certificate = level.ToString(),
                     duid,
                     launched,
                 },
-                new[] { $"Installed {appName} on {tvIp}{(launched ? " and launched it" : "")}." });
+                new[] { $"Installed {appName} on {tvIp}{(renamed ? $" under package id {installedPackageId} (remembered for this TV)" : "")}{(launched ? " and launched it" : "")}." });
         }
         catch (RemovalDeclinedException)
         {

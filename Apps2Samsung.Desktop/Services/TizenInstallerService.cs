@@ -308,6 +308,21 @@ namespace Apps2Samsung.Services
                     return InstallResult.FailureResult(string.Format(Constants.LocalizationKeys.IncompatiblePackageDetailed.Localized(), requiredTizenVersion, deviceInfo.TizenVersion));
                 }
 
+                // Step 3b: another package id for this TV (#839): the sheet asked for a new one, or
+                // an earlier install on this TV already renamed this package and the update has to
+                // land on that tile. Not on the retry that keeps a [118]-renamed working copy, which
+                // already carries its new id.
+                run.TvDuid = deviceInfo.Duid;
+                if (!run.KeepWorkingPackage)
+                {
+                    var rename = await Apps2Samsung.Install.PackageIds.ApplyAsync(
+                        packagePath,
+                        new Apps2Samsung.Install.PackageIdPolicy(deviceInfo.Duid, AppSettings.Default.InstallUnderNewPackageId),
+                        _appSettings);
+                    if (rename is not null)
+                        progress?.Invoke(string.Format("statusPackageIdRenamed".Localized(), rename.OldId, rename.NewId));
+                }
+
                 // Step 4: Handle certificate selection/generation
                 var certificateResult = await HandleCertificateAsync(
                     tvIpAddress,
@@ -1060,6 +1075,25 @@ namespace Apps2Samsung.Services
                             $"[Install] Renamed package {rename.OldId} -> {rename.NewId} across " +
                             $"{rename.FilesChanged.Count} file(s) after a [118] conflict.");
 
+                        // Remembered like a requested rename (#839), so the next install of this
+                        // package on this TV updates the tile instead of adding a third id.
+                        if (!string.IsNullOrEmpty(run.TvDuid))
+                        {
+                            var (renamedAppId, _) = await WgtManifest.ReadIdsAsync(packagePath);
+                            _appSettings.PackageIdRenamesJson = Apps2Samsung.Packaging.PackageIdRenameStore.Set(
+                                _appSettings.PackageIdRenamesJson,
+                                new Apps2Samsung.Packaging.PackageIdRenameRecord
+                                {
+                                    TvDuid = run.TvDuid,
+                                    OriginalPackageId = rename.OldId,
+                                    NewPackageId = rename.NewId,
+                                    OriginalAppId = rename.OldId + (renamedAppId is { } id && id.StartsWith(rename.NewId) ? id.Substring(rename.NewId.Length) : string.Empty),
+                                    NewAppId = renamedAppId,
+                                    PackageFile = Path.GetFileName(run.SourcePackage),
+                                    RenamedAtUtc = DateTimeOffset.UtcNow,
+                                });
+                        }
+
                         // The rename lives in this attempt's working copy, so the retry has to keep it
                         // instead of starting over from the source package with the original id.
                         run.KeepWorkingPackage = true;
@@ -1451,6 +1485,9 @@ namespace Apps2Samsung.Services
             /// working copy instead of starting over from the (still original-id) source.
             /// </summary>
             public bool KeepWorkingPackage { get; set; }
+
+            /// <summary>The TV's DUID once Step 2 read it; the key of a package-id rename record (#839).</summary>
+            public string? TvDuid { get; set; }
 
             /// <summary>
             /// Returns the file this attempt may rewrite: a fresh copy of <see cref="SourcePackage"/>,

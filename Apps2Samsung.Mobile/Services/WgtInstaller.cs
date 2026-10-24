@@ -69,8 +69,11 @@ public sealed class WgtInstaller
 	/// <param name="confirmRemove">Asked before the failure recovery removes the installed copy, which
 	/// erases that app's settings, sign-in and local data on the TV (#825). False stops the install
 	/// with <see cref="RemovalDeclinedException"/>; null (no UI) keeps the remove-and-retry as it was.</param>
+	/// <param name="packageId">Which id to install under (#839); null keeps the package's own id unless
+	/// this TV already has it renamed.</param>
 	public Task<string> InstallAsync(string tvIp, string wgtPath, CertificateProvisioner.Result cert, Action<string>? progress = null,
-		Action<InstallStep, int?>? step = null, CancellationToken ct = default, Func<Task<bool>>? confirmRemove = null)
+		Action<InstallStep, int?>? step = null, CancellationToken ct = default, Func<Task<bool>>? confirmRemove = null,
+		PackageIdPolicy? packageId = null)
 	{
 		// The sequence itself lives in Core (PackageInstaller, shared with the CLI, #836); this
 		// head only maps its stages onto the progress sheet's numbered steps.
@@ -82,6 +85,6 @@ public sealed class WgtInstaller
 		}, percent);
 		return _installer.InstallAsync(tvIp, wgtPath,
 			new SigningProfile(cert.AuthorP12, cert.DistributorP12, cert.Password, cert.ProfileDir),
-			progress, stage, ct, confirmRemove);
+			progress, stage, ct, confirmRemove, packageId);
 	}
 }

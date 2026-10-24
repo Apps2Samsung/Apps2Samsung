@@ -5,8 +5,9 @@ using Apps2Samsung.Models;
 
 namespace Apps2Samsung.Mobile.Pages;
 
-/// <summary>What the app sheet hands back: the release and the file of it to install.</summary>
-public sealed record AppSheetChoice(GitHubRelease Release, Asset Asset);
+/// <summary>What the app sheet hands back: the release and the file of it to install, and whether
+/// it goes on the TV under a new package id (#839).</summary>
+public sealed record AppSheetChoice(GitHubRelease Release, Asset Asset, bool NewPackageId = false);
 
 /// <summary>
 /// Shows one catalog entry and hands back what to install, or null when the sheet is closed
@@ -193,7 +194,7 @@ public partial class AppSheetPage : ContentPage
 	private async void OnInstallClicked(object? sender, EventArgs e)
 	{
 		_closedWithResult = true;
-		_result.TrySetResult(_selected);
+		_result.TrySetResult(_selected is null ? null : _selected with { NewPackageId = NewIdSwitch.IsToggled });
 		await Navigation.PopModalAsync();
 	}
 
