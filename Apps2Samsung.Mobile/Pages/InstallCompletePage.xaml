@@ -12,7 +12,7 @@
                 StrokeShape="RoundRectangle 8"
                 Stroke="{DynamicResource HairBrush}"
                 BackgroundColor="{DynamicResource SurfaceColor}">
-            <VerticalStackLayout Spacing="14" HorizontalOptions="Center">
+            <VerticalStackLayout Spacing="14" HorizontalOptions="Fill">
 
                 <Label Text="✅" FontSize="40" HorizontalOptions="Center" />
 
@@ -28,10 +28,12 @@
                     <Image x:Name="QrImage" WidthRequest="160" HeightRequest="160" Aspect="AspectFit" />
                 </Border>
 
-                <HorizontalStackLayout Spacing="12" HorizontalOptions="Center" Margin="0,8,0,0">
-                    <Button Text="{l:Localize lblValidation}" Clicked="OnKoFiClicked" />
-                    <Button Text="{l:Localize btn_Close}" WidthRequest="100" Clicked="OnCloseClicked" />
-                </HorizontalStackLayout>
+                <!-- Two equal columns, like the progress sheet's footer: a stack layout never shrinks
+                     its children, so on a phone the wide Ko-fi button pushed Close off the card. -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,8,0,0">
+                    <Button Grid.Column="0" Text="{l:Localize lblValidation}" Padding="12,12" CornerRadius="12" HeightRequest="48" LineBreakMode="TailTruncation" Clicked="OnKoFiClicked" />
+                    <Button Grid.Column="1" Text="{l:Localize btn_Close}" Style="{StaticResource PlainButton}" Padding="12,12" CornerRadius="12" HeightRequest="48" Clicked="OnCloseClicked" />
+                </Grid>
 
             </VerticalStackLayout>
         </Border>

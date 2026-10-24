@@ -67,7 +67,7 @@
     <Grid RowDefinitions="Auto,Auto,*" Padding="16,0,16,0" RowSpacing="8">
 
         <!-- the top bar (#755): Back, the title, reload -->
-        <controls:TopBarView Grid.Row="0" Margin="-16,0" Title="{l:Localize lblToolbox}" BackText="{l:Localize lblRemoteBack}"
+        <controls:TopBarView Grid.Row="0" Margin="-16,0" Title="{l:Localize lblToolbox}" BackText="{l:Localize lblNavBack}"
                              BackTapped="OnBackClicked" Action="Glyph" Glyph="⟳" GlyphTapped="OnReloadClicked" />
 
         <!-- which TV, and whether the channel is up -->

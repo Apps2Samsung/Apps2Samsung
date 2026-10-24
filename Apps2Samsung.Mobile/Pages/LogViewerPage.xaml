@@ -26,7 +26,7 @@
     <!-- Settings > Backup and diagnostics > Debug log (#755): one session's log, newest session
          first in the ⋯ menu, filtered by level and searched, then copied or shared. -->
     <Grid RowDefinitions="Auto,Auto,*,Auto">
-        <controls:TopBarView x:Name="TopBar" Grid.Row="0" Title="{l:Localize lblDebugLog}" BackText="{l:Localize lblRemoteBack}"
+        <controls:TopBarView x:Name="TopBar" Grid.Row="0" Title="{l:Localize lblDebugLog}" BackText="{l:Localize lblNavBack}"
                              Action="More" MoreTapped="OnMoreClicked" />
 
         <VerticalStackLayout Grid.Row="1" Padding="16,4,16,10" Spacing="10">

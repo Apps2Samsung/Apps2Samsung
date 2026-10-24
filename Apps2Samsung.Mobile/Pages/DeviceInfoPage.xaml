@@ -11,7 +11,7 @@
     <Grid RowDefinitions="Auto,Auto,*" Margin="12" RowSpacing="10">
 
         <!-- the top bar (#755): Back, the title, and its own button on the right -->
-        <controls:TopBarView Grid.Row="0" Margin="-12,-12,-12,0" Title="{l:Localize lblTvInformation}" BackText="{l:Localize lblRemoteBack}"
+        <controls:TopBarView Grid.Row="0" Margin="-12,-12,-12,0" Title="{l:Localize lblTvInformation}" BackText="{l:Localize lblNavBack}"
                              BackTapped="OnBackClicked" Action="Glyph" Glyph="⟳" GlyphTapped="OnRefreshClicked" />
 
         <!-- Subtitle: which TV / status -->
