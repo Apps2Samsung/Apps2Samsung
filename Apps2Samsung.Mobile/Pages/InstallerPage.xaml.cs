@@ -4,6 +4,7 @@ using Apps2Samsung.Catalog;
 using Apps2Samsung.Mobile.Resources.Styles;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Design;
+using Apps2Samsung.Install;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Services;

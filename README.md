@@ -76,6 +76,23 @@ It installs the same build as the `.deb`/`.rpm` (x86_64 and aarch64). Other Linu
 
 **Packaging it yourself?** Build the desktop app with `-p:DisableSelfUpdate=true` to compile out the in-place self-update action (the app will still check for and announce new versions, but points to your package manager instead of replacing its own files). Useful for read-only or package-manager-owned installs such as Nix or Homebrew.
 
+### 🤖 Command line (scripts and AI agents)
+
+Every release also ships `apps2samsung-cli`: one self-contained binary per platform (`Apps2Samsung-cli-<version>-<platform>.zip` or `.tar.gz` on the [releases page](https://github.com/Apps2Samsung/Apps2Samsung/releases)). It runs the same catalog, certificate and install pipeline as the apps, from a terminal, a script, or an AI agent that has a shell.
+
+```sh
+apps2samsung-cli scan                                   # find TVs, and whether each is ready
+apps2samsung-cli catalog jellyfin                       # what can be installed (name, description, files)
+apps2samsung-cli install "Moonfin" --tv 192.168.1.50    # download, sign, install, launch
+apps2samsung-cli installed --tv 192.168.1.50            # what is on the TV, with catalog versions
+apps2samsung-cli cert --tv 192.168.1.50                 # which certificate covers this TV
+```
+
+- `--json` on any command prints one JSON document on stdout (progress stays on stderr); exit codes are 0 done, 1 failed, 2 usage, 3 stopped at a pre-install check that `--yes` continues past.
+- The first install for a TV creates a signing certificate, which needs a Samsung account sign-in in a browser on the same machine (`--no-browser` prints the address instead). Certificates are shared with the desktop app's folder, so a TV set up there needs no sign-in here.
+- Apps that ask for values before installing (an API key, a server address) take them as `--set key=value`; `catalog` lists the keys.
+- macOS blocks a downloaded binary until `xattr -d com.apple.quarantine apps2samsung-cli` has run once.
+
 ---
 
 ## ✨ What It Does
