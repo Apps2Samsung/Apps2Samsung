@@ -279,6 +279,15 @@
 										<Button Grid.Column="1" Classes="primary" CornerRadius="10" Padding="16,8"
 										        Content="{l:Localize lblRemoteSend}" Command="{Binding RemoteVm.SendTextCommand}"/>
 									</Grid>
+									<!-- Apps that paint their own keyboard (YouTube, Netflix, TizenTube) ignore typed text
+									     altogether, so the alternative is to press their keys with the d-pad. -->
+									<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+										<TextBlock Text="{l:Localize lblRemoteTypeOnAppKeyboard}" FontSize="12" TextWrapping="Wrap"
+										           VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}"/>
+										<ToggleSwitch Grid.Column="1" MinWidth="0" VerticalAlignment="Center"
+										              IsChecked="{Binding RemoteVm.TypeOnAppKeyboard}"/>
+									</Grid>
+									<TextBlock Text="{l:Localize lblRemoteKeyboardModeHint}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
 									<TextBlock Text="{l:Localize lblRemoteTextHint}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
 								</StackPanel>
 							</Flyout>

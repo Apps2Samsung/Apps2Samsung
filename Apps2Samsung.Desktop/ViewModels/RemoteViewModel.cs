@@ -37,6 +37,17 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private string textToSend = string.Empty;
 
+        /// <summary>
+        /// Type by walking the app's own on-screen keyboard with the d-pad instead of sending
+        /// <c>SendInputString</c>. Off by default because it is slower and it needs the app's keyboard
+        /// on screen, but it is the only way into apps that draw their own — YouTube and everything
+        /// built on it, TizenTube included — whose grids take nothing from the TV's IME. The layout
+        /// is YouTube's alphabetical grid, so other apps would need one of their own; see
+        /// <see cref="SamsungRemoteKeyboard"/> for why.
+        /// </summary>
+        [ObservableProperty]
+        private bool typeOnAppKeyboard;
+
         /// <summary>The dot beside the status line once nothing is in flight: green with the channel
         /// up, amber when a press or a text didn't get through, red when there is no channel.</summary>
         [ObservableProperty]
@@ -168,6 +179,12 @@ namespace Apps2Samsung.ViewModels
                 return;
             }
 
+            if (TypeOnAppKeyboard)
+            {
+                await TypeOnAppKeyboardAsync(remote, text);
+                return;
+            }
+
             if (await remote.SendTextAsync(text))
             {
                 TextToSend = string.Empty;
@@ -178,6 +195,53 @@ namespace Apps2Samsung.ViewModels
             {
                 Tone = StatusTone.Warn;
                 StatusText = "lblRemoteTextFailed".Localized();
+            }
+        }
+
+        /// <summary>
+        /// Types <paramref name="text"/> by pressing the keys the app's own on-screen keyboard
+        /// understands. The plan parks the cursor on the grid's first cell before typing, so it does
+        /// not matter where the app left it — but it does need that keyboard to be open and in front,
+        /// which is the caller's job and the honest caveat in the UI.
+        /// </summary>
+        private async Task TypeOnAppKeyboardAsync(SamsungRemoteClient remote, string text)
+        {
+            var plan = SamsungRemoteKeyboard.YouTubeSearch.PlanFromUnknownCursor(text);
+            if (plan.Keys.Count == 0)
+            {
+                Tone = StatusTone.Warn;
+                StatusText = string.Format("lblRemoteKeyboardUnsupported".Localized(), text);
+                return;
+            }
+
+            IsBusy = true;
+            try
+            {
+                if (await remote.SendKeysAsync(plan.Keys))
+                {
+                    Tone = StatusTone.Ok;
+                    // A grid that cannot spell the whole string types what it can; say so rather than
+                    // claiming the lot went in, and keep the box so the rest can be fixed up by hand.
+                    if (plan.Unsupported is null)
+                    {
+                        TextToSend = string.Empty;
+                        StatusText = "lblRemoteKeyboardTyped".Localized();
+                    }
+                    else
+                    {
+                        StatusText = string.Format("lblRemoteKeyboardUnsupported".Localized(), plan.Unsupported);
+                    }
+                }
+                else
+                {
+                    IsConnected = remote.IsConnected;
+                    Tone = StatusTone.Warn;
+                    StatusText = "lblRemoteKeyFailed".Localized();
+                }
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 
