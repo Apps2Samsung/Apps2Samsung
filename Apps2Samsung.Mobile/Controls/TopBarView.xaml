@@ -8,13 +8,16 @@
          pushed page, in the middle a page title or, on the tabs that work with a TV, the TV in a pill
          (with ▾ and the Switch TV sheet once more than one TV is found) over its status line, and ⋯
          or power on the right. It replaces the big page titles. Every colour is a design token. -->
-    <Grid ColumnDefinitions="56,*,56" Padding="8,6,8,6" MinimumHeightRequest="56">
+    <!-- The left column sizes to its content: "Back" plus the chevron is wider than 56 in most
+         languages, and a fixed column cut it to "Ba…" (and "Ac…" in Dutch) on the TV information
+         and toolbox pages. The label is capped so a long translation still leaves room for the title. -->
+    <Grid ColumnDefinitions="Auto,*,56" Padding="8,6,8,6" MinimumHeightRequest="56">
 
         <!-- left: the logo, or Back -->
         <Image x:Name="Logo" Grid.Column="0" Source="a2s_logo.png" WidthRequest="32" HeightRequest="32"
-               HorizontalOptions="Start" VerticalOptions="Center" Margin="6,0,0,0" IsVisible="False" />
-        <Grid x:Name="BackButton" Grid.Column="0" ColumnDefinitions="Auto,*" ColumnSpacing="2" IsVisible="False"
-              HorizontalOptions="Start" VerticalOptions="Center" Padding="4,8" MinimumHeightRequest="44"
+               HorizontalOptions="Start" VerticalOptions="Center" Margin="6,0,8,0" IsVisible="False" />
+        <Grid x:Name="BackButton" Grid.Column="0" ColumnDefinitions="Auto,Auto" ColumnSpacing="4" IsVisible="False"
+              HorizontalOptions="Start" VerticalOptions="Center" Padding="4,8,8,8" MinimumHeightRequest="44" MinimumWidthRequest="40"
               SemanticProperties.Description="{l:Localize lblRemoteBack}">
             <Grid.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnBackTapped" />
@@ -22,7 +25,7 @@
             <shapes:Path Grid.Column="0" Data="M10,2 L2,10 L10,18" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.4"
                          StrokeLineCap="Round" StrokeLineJoin="Round" WidthRequest="12" HeightRequest="20" VerticalOptions="Center" />
             <Label x:Name="BackLabel" Grid.Column="1" FontSize="16" TextColor="{DynamicResource AccentColor}"
-                   VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                   VerticalOptions="Center" LineBreakMode="TailTruncation" MaximumWidthRequest="120" />
         </Grid>
 
         <!-- middle: a page title, or the TV in a pill (status dot, name, ▾ only when there is
