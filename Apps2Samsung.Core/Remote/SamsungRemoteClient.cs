@@ -232,6 +232,9 @@ namespace Apps2Samsung.Remote
             {
                 using var socket = new ClientWebSocket();
                 socket.Options.RemoteCertificateValidationCallback = (_, _, _, _) => true;
+                // A set in standby answers the key with "No Authorized" unless the handshake says
+                // "Connection: Upgrade,Keep-Alive" (what .NET Framework sends); a bare "Upgrade" is refused.
+                socket.Options.SetRequestHeader("Connection", "Upgrade,Keep-Alive");
                 await socket.ConnectAsync(BuildUri(), cts.Token).ConfigureAwait(false);
 
                 var key = new JsonObject
