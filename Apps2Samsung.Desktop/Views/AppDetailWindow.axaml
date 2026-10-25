@@ -42,10 +42,15 @@
 	<ScrollViewer>
 		<StackPanel Margin="16,8,16,16" Spacing="10">
 			<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
-			<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+			<Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
 				<TextBlock Text="{Binding Name}" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}" VerticalAlignment="Center"/>
+				<!-- adult-only (#850) -->
+				<Border Grid.Column="1" IsVisible="{Binding IsAdult}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
+				        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblAdultOnly}">
+					<TextBlock Text="{l:Localize lblAdultBadge}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
+				</Border>
 				<!-- the star: a favorite leads the Install screen's list -->
-				<Button Grid.Column="1" Classes="icon" Content="{Binding FavoriteGlyph}" FontSize="18" ToolTip.Tip="{Binding FavoriteText}"
+				<Button Grid.Column="2" Classes="icon" Content="{Binding FavoriteGlyph}" FontSize="18" ToolTip.Tip="{Binding FavoriteText}"
 				        Command="{Binding ToggleFavoriteCommand}" Width="36" Height="36" CornerRadius="18"/>
 			</Grid>
 

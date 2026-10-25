@@ -31,6 +31,7 @@ namespace Apps2Samsung.ViewModels
     public partial class AppSettingsViewModel : ViewModelBase, IDisposable
     {
         private readonly ILocalizationService _localizationService;
+        private readonly IDialogService _dialogService;
         private readonly CertificateHelper _certificateHelper;
         private readonly INetworkService _networkService;
         private readonly IThemeService _themeService;
@@ -94,6 +95,14 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private bool keepWGTFile;
 
+        // Settings > Installing > Show adult (18+) apps (#850). Turning it on first asks "I am 18 or
+        // older"; the stored value only changes once that is confirmed, and the switch springs back
+        // when it is not. Fires ShowAdultAppsChanged for the main window to refilter the catalog.
+        [ObservableProperty]
+        private bool showAdultApps;
+        private bool _revertingShowAdultApps;
+        public event Action? ShowAdultAppsChanged;
+
         [ObservableProperty]
         private bool darkMode;
 
@@ -133,6 +142,7 @@ namespace Apps2Samsung.ViewModels
         public string LblDeletePrevious => _localizationService.GetString("lblDeletePrevious");
         public string LblForceLogin => _localizationService.GetString("lblForceSamsungLogin");
         public string LblIncludeBetaUpdates => _localizationService.GetString("lblIncludeBetaUpdates");
+        public string LblShowAdultApps => _localizationService.GetString("lblShowAdultApps");
         public string LblRTL => _localizationService.GetString("lblRTL");
         public string LblKeepWGTFile => _localizationService.GetString("lblKeepWGTFile");
         public string LblSettingsHeader => _localizationService.GetString("lblSettings");
@@ -146,9 +156,11 @@ namespace Apps2Samsung.ViewModels
             ILocalizationService localizationService,
             CertificateHelper certificateHelper,
             INetworkService networkService,
-            IThemeService themeService)
+            IThemeService themeService,
+            IDialogService dialogService)
         {
             _localizationService = localizationService;
+            _dialogService = dialogService;
             _certificateHelper = certificateHelper;
             _networkService = networkService;
             _themeService = themeService;
@@ -200,6 +212,7 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblDeletePrevious));
             OnPropertyChanged(nameof(LblForceLogin));
             OnPropertyChanged(nameof(LblIncludeBetaUpdates));
+            OnPropertyChanged(nameof(LblShowAdultApps));
             OnPropertyChanged(nameof(LblRTL));
             OnPropertyChanged(nameof(LblKeepWGTFile));
             OnPropertyChanged(nameof(LblSettingsHeader));
@@ -228,6 +241,7 @@ namespace Apps2Samsung.ViewModels
             TryOverwrite = AppSettings.Default.TryOverwrite;
             OpenAfterInstall = AppSettings.Default.OpenAfterInstall;
             KeepWGTFile = AppSettings.Default.KeepWGTFile;
+            ShowAdultApps = AppSettings.Default.ShowAdultApps;
             DarkMode = AppSettings.Default.DarkMode;
             GitHubToken = AppSettings.Default.GitHubToken ?? string.Empty;
             ManualDuids = AppSettings.Default.ManualDuids ?? string.Empty;
@@ -530,6 +544,40 @@ namespace Apps2Samsung.ViewModels
         {
             AppSettings.Default.IncludeBetaUpdates = value;
             AppSettings.Default.Save();
+        }
+
+        partial void OnShowAdultAppsChanged(bool value)
+        {
+            if (_revertingShowAdultApps || value == AppSettings.Default.ShowAdultApps)
+                return;
+            if (value)
+            {
+                _ = ConfirmShowAdultAppsAsync();
+                return;
+            }
+            AppSettings.Default.ShowAdultApps = false;
+            AppSettings.Default.Save();
+            ShowAdultAppsChanged?.Invoke();
+        }
+
+        // The one-time "I am 18 or older" before adult entries get listed (#850).
+        private async Task ConfirmShowAdultAppsAsync()
+        {
+            var confirmed = await _dialogService.ShowConfirmationAsync(
+                _localizationService.GetString("lblAdultConfirmTitle"),
+                _localizationService.GetString("lblAdultConfirmBody"),
+                _localizationService.GetString("lblAdultConfirmYes"),
+                _localizationService.GetString("keyNo"));
+            if (confirmed)
+            {
+                AppSettings.Default.ShowAdultApps = true;
+                AppSettings.Default.Save();
+                ShowAdultAppsChanged?.Invoke();
+                return;
+            }
+            _revertingShowAdultApps = true;
+            try { ShowAdultApps = false; }
+            finally { _revertingShowAdultApps = false; }
         }
 
         partial void OnDeletePreviousInstallChanged(bool value)

@@ -101,5 +101,22 @@
 				</StackPanel>
 			</Border>
 		</StackPanel>
+
+		<!-- The catalog (#850): entries the packages repo flags adult-only stay out of the list, the
+		     counts and the search until this is on; turning it on asks once for "I am 18 or older". -->
+		<StackPanel Spacing="6">
+			<TextBlock Classes="grouptitle" Text="{l:Localize lblCatalog}"/>
+			<Border Classes="group">
+				<StackPanel>
+					<Grid Classes="setting" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+						<StackPanel Spacing="2" VerticalAlignment="Center">
+							<TextBlock Classes="settinglabel" Text="{Binding LblShowAdultApps}"/>
+							<TextBlock Classes="hint" Text="{l:Localize hintShowAdultApps}"/>
+						</StackPanel>
+						<ToggleSwitch Grid.Column="1" MinWidth="0" VerticalAlignment="Center" IsChecked="{Binding ShowAdultApps}"/>
+					</Grid>
+				</StackPanel>
+			</Border>
+		</StackPanel>
 	</StackPanel>
 </UserControl>

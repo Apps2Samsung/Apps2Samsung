@@ -31,6 +31,7 @@ public partial class SettingsInstallPage : ContentPage
 		TryOverwriteSwitch.IsToggled = MobileSettings.TryOverwrite;
 		OpenAfterSwitch.IsToggled = MobileSettings.OpenAfterInstall;
 		KeepWgtSwitch.IsToggled = MobileSettings.KeepWgtFile;
+		AdultSwitch.IsToggled = MobileSettings.ShowAdultApps;
 		_loaded = true;
 	}
 
@@ -63,6 +64,29 @@ public partial class SettingsInstallPage : ContentPage
 		MobileSettings.TryOverwrite = TryOverwriteSwitch.IsToggled;
 		MobileSettings.OpenAfterInstall = OpenAfterSwitch.IsToggled;
 		MobileSettings.KeepWgtFile = KeepWgtSwitch.IsToggled;
+	}
+
+	// Show adult (18+) apps (#850): turning it on asks "I am 18 or older" first; declined, the switch
+	// springs back and nothing is stored. The Install tab refilters its list the next time it shows.
+	private async void OnAdultToggled(object? sender, ToggledEventArgs e)
+	{
+		if (!_loaded)
+			return;
+		if (!e.Value)
+		{
+			MobileSettings.ShowAdultApps = false;
+			return;
+		}
+		var confirmed = await DisplayAlert(
+			L10n.Get("lblAdultConfirmTitle"), L10n.Get("lblAdultConfirmBody"), L10n.Get("lblAdultConfirmYes"), L10n.Get("keyNo"));
+		if (confirmed)
+		{
+			MobileSettings.ShowAdultApps = true;
+			return;
+		}
+		_loaded = false;
+		AdultSwitch.IsToggled = false;
+		_loaded = true;
 	}
 
 	// Makes the certificate for the selected TV now, so the first install doesn't stop for a

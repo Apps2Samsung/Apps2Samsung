@@ -53,6 +53,15 @@ namespace Apps2Samsung.Models
         /// </summary>
         [JsonPropertyName("user_settings")]
         public UserSettingsSpec? UserSettings { get; set; }
+
+        /// <summary>
+        /// True for a package meant for adults only (#850). Independent of the category: the app
+        /// keeps the category that says what it is. The heads leave such entries out of the list
+        /// until the user turns "Show adult (18+) apps" on. The key is only written when true, the
+        /// same shape the packages repo emits, so the snapshot round-trips it as-is.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool Adult { get; set; }
     }
 
     /// <summary>

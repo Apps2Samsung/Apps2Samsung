@@ -11,13 +11,18 @@
         <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
             <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
                      Color="{DynamicResource HairColor}" />
-            <Grid ColumnDefinitions="*,32,32" ColumnSpacing="8" Margin="0,6,0,0">
+            <Grid ColumnDefinitions="*,Auto,32,32" ColumnSpacing="8" Margin="0,6,0,0">
                 <Label x:Name="TitleLabel" FontSize="20" FontAttributes="Bold" LineBreakMode="WordWrap" VerticalOptions="Center" />
+                <!-- adult-only (#850) -->
+                <Border Grid.Column="1" x:Name="AdultBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
+                        Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="7,2" VerticalOptions="Center">
+                    <Label Text="{l:Localize lblAdultBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}" />
+                </Border>
                 <!-- the star: a favorite leads the Install tab's list -->
-                <Button Grid.Column="1" x:Name="FavoriteBtn" Text="☆" FontSize="18" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
+                <Button Grid.Column="2" x:Name="FavoriteBtn" Text="☆" FontSize="18" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
                         MinimumWidthRequest="32" MinimumHeightRequest="32"
                         BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnFavoriteClicked" />
-                <Button Grid.Column="2" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
+                <Button Grid.Column="3" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
                         MinimumWidthRequest="32" MinimumHeightRequest="32"
                         BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnCloseClicked" />
             </Grid>

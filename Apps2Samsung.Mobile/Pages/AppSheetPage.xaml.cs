@@ -57,6 +57,7 @@ public partial class AppSheetPage : ContentPage
 		SublineLabel.Text = subline;
 		ShowSource(release);
 		PartnerNotice.IsVisible = release.RequiresPartner;
+		AdultBadge.IsVisible = release.IsAdult;
 		VersionsTitle.Text = L10n.Get(release.HasVariants ? "lblVariant" : "lblVersion");
 
 		if (!string.IsNullOrWhiteSpace(previewUrl))

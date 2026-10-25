@@ -195,7 +195,14 @@
 																				<TextBlock Text="{Binding Letter}" Foreground="{DynamicResource OnAccentBrush}"/>
 																			</Border>
 																			<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-																				<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
+																				<StackPanel Orientation="Horizontal" Spacing="6">
+																					<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
+																					<!-- adult-only (#850): shown only once the user opted in under Settings > Installing -->
+																					<Border IsVisible="{Binding IsAdult}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
+																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblAdultOnly}">
+																						<TextBlock Text="{l:Localize lblAdultBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
+																					</Border>
+																				</StackPanel>
 																				<TextBlock Text="{Binding Subline}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
 																			</StackPanel>
 																			<PathIcon Grid.Column="2" Width="8" Height="13" Opacity="0.35" VerticalAlignment="Center"

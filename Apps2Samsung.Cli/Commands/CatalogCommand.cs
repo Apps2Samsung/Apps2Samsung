@@ -7,7 +7,7 @@ public static class CatalogCommand
 {
     public sealed record FileInfo(string File, string? Variant, string? Version, long Size, bool Default, IReadOnlyList<SettingInfo>? Settings);
     public sealed record SettingInfo(string Key, string Label, string Type, bool Required, string? Pattern, string? HelpUrl);
-    public sealed record Entry(string Name, string Category, string Description, bool RequiresPartner, bool HasVariants,
+    public sealed record Entry(string Name, string Category, string Description, bool RequiresPartner, bool HasVariants, bool Adult,
         string? Tag, string? Published, string? Author, string? Source, IReadOnlyList<FileInfo> Files);
 
     public static async Task<int> RunAsync(CliServices s, CancellationToken ct)
@@ -17,7 +17,8 @@ public static class CatalogCommand
         if (catalog.FailedProviders > 0)
             s.Out.Warn($"{catalog.FailedProviders} source(s) could not be read; their apps are missing from this list");
 
-        IEnumerable<GitHubRelease> entries = catalog.Entries;
+        // Adult-only entries are left out unless asked for, as the apps do until the user opts in (#850).
+        IEnumerable<GitHubRelease> entries = CommunityAppList.Visible(catalog.Entries, s.Options.Adult);
         if (!string.IsNullOrWhiteSpace(s.Options.Category))
         {
             var id = AppCategories.Normalize(s.Options.Category);
@@ -35,7 +36,7 @@ public static class CatalogCommand
             text.Add("No app matches.");
         foreach (var e in list)
         {
-            var flags = e.RequiresPartner ? " (partner certificate)" : "";
+            var flags = (e.RequiresPartner ? " (partner certificate)" : "") + (e.Adult ? " (18+)" : "");
             text.Add($"{e.Name}  [{e.Category}]{flags}");
             if (e.Description.Length > 0)
                 text.Add($"    {e.Description}");
@@ -75,7 +76,7 @@ public static class CatalogCommand
             a.UserSettings is null ? null : a.UserSettings.Fields.Select(f =>
                 new SettingInfo(f.Key, f.Label, f.Type, f.Required, f.Pattern, a.UserSettings.HelpUrl)).ToList())).ToList();
         var published = DateTime.TryParse(r.PublishedAt, out var date) ? date.ToString("yyyy-MM-dd") : null;
-        return new Entry(r.Name, r.Category, r.Description, r.RequiresPartner, r.HasVariants,
+        return new Entry(r.Name, r.Category, r.Description, r.RequiresPartner, r.HasVariants, r.IsAdult,
             string.IsNullOrWhiteSpace(r.TagName) ? null : r.TagName, published, r.Author, r.SourceUrl, files);
     }
 }

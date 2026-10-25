@@ -54,6 +54,15 @@ namespace Apps2Samsung.Models
         public bool HasVariants { get; set; }
 
         /// <summary>
+        /// True when the community catalog flags this app adult-only (#850); a grouped app is adult
+        /// when any of its files is. Hidden from every list, count and search until the user opts
+        /// in (<c>CommunityAppList.Visible</c>), and shown with an 18+ badge after that. Stamped
+        /// from the catalog, never serialized: the snapshot carries the catalog itself.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsAdult { get; set; }
+
+        /// <summary>
         /// Download URL of the release's <c>catalog.json</c>, when the release ships one (the
         /// community bundle). Captured before the asset list is narrowed to .wgt/.tpk. Serialized
         /// (GitHub itself never sends a <c>catalog_url</c>) so the pre-resolved snapshot

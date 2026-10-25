@@ -242,6 +242,8 @@ namespace Apps2Samsung.ViewModels
         public sealed record CatalogRow(GitHubRelease Release, string Letter, IBrush TileBrush, string Subline)
         {
             public string Name => Release.Name;
+            /// <summary>The 18+ badge next to the name (#850); only ever true with the setting on.</summary>
+            public bool IsAdult => Release.IsAdult;
         }
 
         /// <summary>"Show all" / "Show less" on a group.</summary>
@@ -270,7 +272,7 @@ namespace Apps2Samsung.ViewModels
         private void RebuildCatalogRows()
         {
             CatalogGroupsView.Clear();
-            var all = _allReleases.Where(r => r != CustomEntry).ToList();
+            var all = VisibleReleases.Where(r => r != CustomEntry).ToList();
             var groups = CatalogGroups.Build(all, SearchText, _expandedCategories, L, _favorites);
             var any = false;
             foreach (var group in groups)
@@ -450,6 +452,12 @@ namespace Apps2Samsung.ViewModels
             _settingsViewModel.CheckForUpdatesHandler = () => CheckForUpdatesAsync(manual: true);
             // Settings > Installing > Prepare the certificate now: for the selected TV.
             _settingsViewModel.PrepareCertificateHandler = PrepareCertificateAsync;
+            // Settings > Installing > Show adult (18+) apps (#850): the list follows at once.
+            _settingsViewModel.Application.ShowAdultAppsChanged += () =>
+            {
+                RebuildCategories();
+                ApplyCategoryFilter();
+            };
             _httpClient = httpClient;
 
             // Snapshot-first: the pre-resolved catalog serves the manifest's providers; the GitHub
@@ -1396,6 +1404,11 @@ namespace Apps2Samsung.ViewModels
             }
         }
 
+        // Everything loaded minus the adult-only entries while the setting is off (#850): what the
+        // category dropdown, the counts, the grouped list and the search are built from.
+        private List<GitHubRelease> VisibleReleases =>
+            CommunityAppList.Visible(_allReleases, AppSettings.Default.ShowAdultApps).ToList();
+
         // The synthetic "Custom WGT / TPK" row: one instance, so the selection survives a re-filter.
         private GitHubRelease CustomEntry => _customEntry ??= new GitHubRelease
         {
@@ -1412,7 +1425,7 @@ namespace Apps2Samsung.ViewModels
         {
             var keep = SelectedCategory?.Id ?? AppCategories.All;
             Categories.Clear();
-            foreach (var (id, count) in CommunityAppList.Counts(_allReleases))
+            foreach (var (id, count) in CommunityAppList.Counts(VisibleReleases))
                 Categories.Add(new CategoryOption(id, AppCategories.DisplayName(id, L), count));
             SelectedCategory = Categories.FirstOrDefault(c => c.Id == keep) ?? Categories.FirstOrDefault();
         }
@@ -1425,7 +1438,7 @@ namespace Apps2Samsung.ViewModels
             var id = SelectedCategory?.Id ?? AppCategories.All;
 
             Releases.Clear();
-            foreach (var r in CommunityAppList.Filter(_allReleases, id))
+            foreach (var r in CommunityAppList.Filter(VisibleReleases, id))
                 Releases.Add(r);
             Releases.Add(CustomEntry);
 

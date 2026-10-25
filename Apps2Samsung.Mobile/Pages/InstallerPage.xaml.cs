@@ -100,6 +100,9 @@ public partial class InstallerPage : ContentPage
 		UpdateTvCard();
 		if (_initialized)
 		{
+			// Settings > Installing > Show adult (18+) apps changed while this tab was hidden (#850).
+			if (_listedAdult != MobileSettings.ShowAdultApps)
+				RebuildCatalog();
 			// "Update" on the On the TV tab (#820): that app's sheet, here where installs run.
 			if (CatalogStore.TakePendingOpen() is { } pending)
 				await OpenAppAsync(pending, SublineFor(pending));
@@ -183,12 +186,17 @@ public partial class InstallerPage : ContentPage
 		.OrderByDescending(r => DateTime.TryParse(r.PublishedAt, out var d) ? d : DateTime.MinValue)
 		.ToList();
 
-	// The catalog as listed: an app with several releases once, as its newest.
+	// Whether the list was last built with the adult-only entries in (#850), to refilter on a change.
+	private bool _listedAdult;
+
+	// The catalog as listed: an app with several releases once, as its newest; without the
+	// adult-only entries until the user opted in (#850).
 	private List<GitHubRelease> ListedReleases()
 	{
 		var listed = new List<GitHubRelease>();
 		var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-		foreach (var release in _allReleases)
+		_listedAdult = MobileSettings.ShowAdultApps;
+		foreach (var release in CommunityAppList.Visible(_allReleases, _listedAdult))
 		{
 			if (!HasSeveralReleases(release.Name))
 				listed.Add(release);
@@ -315,7 +323,7 @@ public partial class InstallerPage : ContentPage
 			Spacing = 1, VerticalOptions = LayoutOptions.Center,
 			Children =
 			{
-				new Label { Text = release.Name, FontAttributes = FontAttributes.Bold, LineBreakMode = LineBreakMode.TailTruncation },
+				NameLine(release),
 				new Label { Text = subline, FontSize = 13, TextColor = DesignTheme.ColorOf("Muted"), LineBreakMode = LineBreakMode.TailTruncation },
 			},
 		};
@@ -338,6 +346,33 @@ public partial class InstallerPage : ContentPage
 		grid.GestureRecognizers.Add(tap);
 		return grid;
 	}
+
+	// The name, with the 18+ badge after it for an adult-only app (#850); such a row is only ever
+	// built once the user opted in under Settings > Installing.
+	private static View NameLine(GitHubRelease release)
+	{
+		var name = new Label { Text = release.Name, FontAttributes = FontAttributes.Bold, LineBreakMode = LineBreakMode.TailTruncation };
+		if (!release.IsAdult)
+			return name;
+		return new HorizontalStackLayout
+		{
+			Spacing = 6,
+			Children = { name, AdultBadge(fontSize: 11, padding: new Thickness(5, 0)) },
+		};
+	}
+
+	/// <summary>The "18+" pill the list row and the app sheet share (#850).</summary>
+	internal static Border AdultBadge(double fontSize, Thickness padding) => new()
+	{
+		StrokeThickness = 1, Stroke = new SolidColorBrush(DesignTheme.ColorOf("Warn")),
+		BackgroundColor = DesignTheme.ColorOf("WarnSoft"), Padding = padding, VerticalOptions = LayoutOptions.Center,
+		StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 6 },
+		Content = new Label
+		{
+			Text = L10n.Get("lblAdultBadge"), FontSize = fontSize, FontAttributes = FontAttributes.Bold,
+			TextColor = DesignTheme.ColorOf("Warn"), VerticalOptions = LayoutOptions.Center,
+		},
+	};
 
 	private void OnSearchChanged(object? sender, TextChangedEventArgs e)
 	{
