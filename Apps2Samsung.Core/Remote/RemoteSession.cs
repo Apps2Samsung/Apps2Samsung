@@ -93,7 +93,6 @@ namespace Apps2Samsung.Remote
         // has put its prompt up, and the user should be told what it is and how to stop it.
         private static readonly TimeSpan RepromptGrace = TimeSpan.FromSeconds(3);
         private static readonly TimeSpan WakeTimeout = TimeSpan.FromSeconds(40);
-
         public static async Task<RemoteSessionResult> ConnectAsync(
             string tvIpAddress,
             IRemoteCredentialStore store,
@@ -105,8 +104,21 @@ namespace Apps2Samsung.Remote
             status?.Report(StatusConnecting);
             var capability = await SamsungRemoteClient.ProbeAsync(tvIpAddress, cancellationToken).ConfigureAwait(false);
 
-            // A sleeping TV serves neither the REST API nor the remote channel, so "no answer" and
-            // "standby" are one situation: nothing works until the set is woken.
+            // Many sets (Wi-Fi ones above all) ignore magic packets in standby but keep the REST API and
+            // the remote channel up. Those take the power key, which is faster and needs no MAC.
+            if (capability.Supported && !capability.IsAwake)
+            {
+                var standbyToken = store.GetToken(capability.DeviceId) ?? store.GetToken(tvIpAddress);
+                if (!string.IsNullOrEmpty(standbyToken))
+                {
+                    status?.Report(StatusWaking);
+                    await using var standbyClient = new SamsungRemoteClient(tvIpAddress, token: standbyToken, secure: capability.UsesToken);
+                    if (await standbyClient.PowerOnFromStandbyAsync(WakeTimeout, cancellationToken).ConfigureAwait(false))
+                        capability = await SamsungRemoteClient.ProbeAsync(tvIpAddress, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            // A set that answers nothing at all is asleep for real, and only a magic packet can reach it.
             if (!capability.Supported || !capability.IsAwake)
             {
                 var mac = store.GetMac(tvIpAddress);
