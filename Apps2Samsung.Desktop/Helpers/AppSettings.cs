@@ -95,6 +95,8 @@ namespace Apps2Samsung.Helpers
             }
         }
         public bool ShowAllJellyfinVersions { get; set; } = false;
+        // Catalog entries flagged adult-only (#850) stay out of the app list until this is on.
+        public bool ShowAdultApps { get; set; } = false;
         // When on, the in-app update check offers beta (pre-release) versions too, and downloads that
         // beta — not the older stable. Off by default on desktop (stable channel).
         public bool IncludeBetaUpdates { get; set; } = false;

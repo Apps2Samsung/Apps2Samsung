@@ -17,6 +17,8 @@ public sealed class CliOptions
     // Catalog
     public string? Category { get; set; }
     public bool AllVersions { get; set; }
+    /// <summary>List the entries the catalog flags adult-only (#850); left out otherwise, as in the apps.</summary>
+    public bool Adult { get; set; }
     public string GitHubToken { get; set; } = Environment.GetEnvironmentVariable("GITHUB_TOKEN") ?? string.Empty;
 
     // Install
@@ -72,6 +74,7 @@ public sealed class CliOptions
                 case "--data-dir": o.DataDir = Next(arg); if (o.DataDir is null) return (o, "--data-dir needs a path"); break;
                 case "--category": o.Category = Next(arg); if (o.Category is null) return (o, "--category needs a category id"); break;
                 case "--all-versions": o.AllVersions = true; break;
+                case "--adult": o.Adult = true; break;
                 case "--github-token": o.GitHubToken = Next(arg) ?? string.Empty; break;
                 case "--file": o.File = Next(arg); if (o.File is null) return (o, "--file needs a file or variant name"); break;
                 case "--version": o.Version = Next(arg); if (o.Version is null) return (o, "--version needs a release tag"); break;

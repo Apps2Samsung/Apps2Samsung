@@ -16,6 +16,7 @@ public static class MobileSettings
 	private const string KeyOpenAfter = "open_after_install";
 	private const string KeyKeepWgt = "keep_wgt_file";
 	private const string KeyShowAllJf = "show_all_jellyfin_versions";
+	private const string KeyShowAdult = "show_adult_apps";
 	private const string KeyManualDuids = "manual_duids";
 	private const string KeyTvAppChannels = "tvapp_channels_json";
 	private const string KeyImmiTvServerUrl = "immitv_server_url";
@@ -61,6 +62,13 @@ public static class MobileSettings
 	{
 		get => Preferences.Get(KeyKeepWgt, false);
 		set => Preferences.Set(KeyKeepWgt, value);
+	}
+
+	/// <summary>List the catalog entries flagged adult-only (#850); off until the user confirms they are 18 or older.</summary>
+	public static bool ShowAdultApps
+	{
+		get => Preferences.Get(KeyShowAdult, false);
+		set => Preferences.Set(KeyShowAdult, value);
 	}
 
 	/// <summary>List every Jellyfin release, not just the latest (desktop: "Show all Jellyfin versions").</summary>

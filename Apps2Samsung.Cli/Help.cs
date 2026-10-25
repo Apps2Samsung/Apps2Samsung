@@ -30,13 +30,14 @@ public static class Help
         """;
 
     private const string Catalog = """
-        usage: apps2samsung-cli catalog [words...] [--category <id>] [--all-versions] [--json]
+        usage: apps2samsung-cli catalog [words...] [--category <id>] [--all-versions] [--adult] [--json]
 
         Lists the apps Apps2Samsung can install: name, category, description, the files or variants to
         choose from (with the version each would install) and where the source lives. Words narrow the
         list to apps whose name or description contains all of them. Categories: media, iptv, streaming,
         games, casting, tools, other. --all-versions keeps every release of an app with a version
-        history (Jellyfin) instead of only the newest.
+        history (Jellyfin) instead of only the newest. Apps the catalog marks adult-only are left out
+        unless --adult is given; they are listed with (18+) then.
 
         An app that needs values from you before it installs (an API key, a server address) lists them
         under "settings"; pass them to `install` with --set key=value.
