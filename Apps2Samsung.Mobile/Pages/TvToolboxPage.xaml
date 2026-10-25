@@ -242,6 +242,20 @@
                     </VerticalStackLayout>
                 </controls:ExpanderSection>
 
+                <!-- ============ TV-Store ============ -->
+                <!-- The catalog on the TV itself (#844): TV-Store installs through the set's own sdbd and
+                     signs with the certificate this head hands it once, here. Needs Developer Mode. -->
+                <controls:ExpanderSection x:Name="TvStoreCard" Title="{l:Localize lblToolboxTvStore}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxTvStoreHint}" />
+                        <Label x:Name="TvStoreNeedsSdbHint" Style="{StaticResource Hint}" IsVisible="False"
+                               Text="{l:Localize lblToolboxAgentNeedsSdb}" />
+                        <Button x:Name="ArmTvStoreBtn" HeightRequest="44" MinimumHeightRequest="44"
+                                Text="{l:Localize lblToolboxTvStoreArm}" Clicked="OnArmTvStoreClicked" />
+                        <Label x:Name="TvStoreStatusLabel" Style="{StaticResource Report}" />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
+
                 <!-- ============ Install leftovers ============ -->
                 <!-- sdbd pushes every package to /home/owner/share/tmp/sdk_tools and leaves it there; its own
                      "0 rmfile" verb is accepted but deletes nothing on retail firmware. The agent runs as that

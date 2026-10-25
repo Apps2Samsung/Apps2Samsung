@@ -256,6 +256,19 @@
                                              TextWrapping="Wrap" MaxHeight="160"/>
                     </StackPanel>
 
+                    <!-- ============ TV-Store ============ -->
+                    <!-- The catalog on the TV itself (#844): TV-Store installs through the set's own sdbd
+                         and signs with the certificate this head hands it once, here. Needs Developer Mode. -->
+                    <TextBlock Classes="section" Text="{l:Localize lblToolboxTvStore}" Margin="0,12,0,0"/>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxTvStoreHint}"/>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsEnabled="{Binding HasSdb}">
+                        <Button Grid.Column="0" Classes="action" Width="120"
+                                Content="{l:Localize lblToolboxTvStoreArm}"
+                                Command="{Binding ArmTvStoreCommand}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding TvStoreStatus}" FontSize="12" Opacity="0.8"
+                                   TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </Grid>
+
                     <!-- ============ Install leftovers ============ -->
                     <!-- sdbd pushes every package to /home/owner/share/tmp/sdk_tools and leaves it there;
                          its own "0 rmfile" verb is accepted but deletes nothing on retail firmware. The

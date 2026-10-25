@@ -15,6 +15,7 @@ public static class Help
           uninstall <packageId> --tv <ip>
           launch <appId> --tv <ip>
           cert [--tv <ip>]             the signing certificates on this machine; --prepare makes one now
+          tvstore --tv <ip>            arm the TV-Store app on the TV: hand it the signing certificate once
 
         options
           --json                       one JSON document on stdout instead of text (progress stays on stderr)
@@ -80,11 +81,25 @@ public static class Help
         instead of during the first install); --partner selects the Partner level for that.
         """;
 
+    private const string TvStore = """
+        usage: apps2samsung-cli tvstore --tv <ip> [--partner] [--force-login] [--json]
+
+        Arms the Apps2Samsung TV-Store app on the TV: hands it the signing certificate this machine
+        installs with, so the TV signs and installs catalog apps on its own from then on, with no PC
+        or phone in the loop. TV-Store has to be on the TV already (install its .wgt like any
+        package); the certificate is made here first, with the Samsung sign-in, when none covers the
+        TV yet. --partner hands over the Partner certificate instead of the Public one.
+
+        On the TV, Developer Mode's Host PC IP must be set to the TV's own address, or its sdbd
+        refuses the connection TV-Store makes to it.
+        """;
+
     public static string For(string command) => command switch
     {
         "catalog" or "search" or "apps" => Catalog,
         "install" => Install,
         "cert" or "certificate" => Cert,
+        "tvstore" or "tv-store" => TvStore,
         _ => Usage,
     };
 }
