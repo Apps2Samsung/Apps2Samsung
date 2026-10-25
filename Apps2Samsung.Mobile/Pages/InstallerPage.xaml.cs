@@ -551,7 +551,15 @@ public partial class InstallerPage : ContentPage
 			return true;
 		};
 
-		await Navigation.PushAsync(new TvToolboxPage(_sdb, tvIp, label, installWgt));
+		// Arm TV-Store (#844) hands over the profile an install would sign with: the same
+		// certificate flow, sheet included, when none covers this TV yet.
+		Func<Action<string>, Task<Apps2Samsung.Install.SigningProfile?>> signingProfile = async report =>
+		{
+			var (cert, _) = await _certFlow.RunAsync(Navigation, tvIp, label, false, report, new CancellationTokenSource());
+			return new Apps2Samsung.Install.SigningProfile(cert.AuthorP12, cert.DistributorP12, cert.Password, cert.ProfileDir);
+		};
+
+		await Navigation.PushAsync(new TvToolboxPage(_sdb, tvIp, label, installWgt, signingProfile));
 	}
 
 	// Downloads (or takes the picked file), provisions the certificate, installs on the selected

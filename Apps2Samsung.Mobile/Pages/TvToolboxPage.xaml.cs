@@ -1,5 +1,8 @@
 using Apps2Samsung.Catalog;
 using Apps2Samsung.Agent;
+using Apps2Samsung.Certificate;
+using Apps2Samsung.Install;
+using Apps2Samsung.TvStore;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Mobile.Localization;
@@ -44,6 +47,11 @@ public partial class TvToolboxPage : ContentPage
 	private readonly Func<string, Action<string>, Task<bool>>? _installWgt;
 	private DebugAgentClient? _agent;
 
+	// The head's certificate flow for this TV (#844): the signing profile an install would use, made
+	// (with the Samsung sign-in sheet) when none covers the set yet; null when that was cancelled.
+	// What Arm TV-Store hands over. Null where the caller has no certificate flow.
+	private readonly Func<Action<string>, Task<SigningProfile?>>? _signingProfile;
+
 	// The full list behind the filtered one shown.
 	private IReadOnlyList<SamsungRemoteLaunchTarget> _targets = Array.Empty<SamsungRemoteLaunchTarget>();
 
@@ -54,15 +62,19 @@ public partial class TvToolboxPage : ContentPage
 	// presses with the first one's, which is not a combination the TV was ever shown.
 	private bool _busy;
 
-	public TvToolboxPage(ISdbEngine? sdb, string tvIp, string tvLabel, Func<string, Action<string>, Task<bool>>? installWgt = null)
+	public TvToolboxPage(ISdbEngine? sdb, string tvIp, string tvLabel, Func<string, Action<string>, Task<bool>>? installWgt = null,
+		Func<Action<string>, Task<SigningProfile?>>? signingProfile = null)
 	{
 		InitializeComponent();
 		_tvIp = tvIp;
 		_tvLabel = tvLabel;
 		_sdb = sdb;
 		_installWgt = installWgt;
+		_signingProfile = signingProfile;
 		AgentCard.IsEnabled = sdb is not null;
 		AgentNeedsSdbHint.IsVisible = sdb is null;
+		ArmTvStoreBtn.IsEnabled = sdb is not null;
+		TvStoreNeedsSdbHint.IsVisible = sdb is null;
 		ExecuteManualBtn.IsEnabled = sdb is not null;
 
 		// The TV's own menus, addressed by id (#641). Fixed, not filtered: a short list to try in
@@ -485,6 +497,68 @@ public partial class TvToolboxPage : ContentPage
 			AttachAgentBtn.IsEnabled = true;
 		}
 	}
+
+	// Hands the signing certificate to the TV-Store app on the TV (#844, phase 3): the profile this
+	// head installs with, as PEM, over TV-Store's page in debug mode. Once armed, the TV signs and
+	// installs catalog apps on its own. TV-Store has to be on the set already (installed from the
+	// catalog like any package).
+	private async void OnArmTvStoreClicked(object? sender, EventArgs e)
+	{
+		if (_sdb is null)
+		{
+			SetTvStoreStatus(L10n.Get("lblToolboxAgentNeedsSdb"));
+			return;
+		}
+
+		if (_busy)
+			return;
+
+		_busy = true;
+		ArmTvStoreBtn.IsEnabled = false;
+		try
+		{
+			if (!await TvStorePackage.IsInstalledAsync(_sdb, _tvIp))
+			{
+				SetTvStoreStatus(L10n.Get("lblToolboxTvStoreNotInstalled"));
+				return;
+			}
+
+			SetTvStoreStatus(L10n.Get("lblToolboxTvStoreCertificate"));
+			var profile = _signingProfile is null
+				? null
+				: await _signingProfile(message => MainThread.BeginInvokeOnMainThread(() => SetTvStoreStatus(message)));
+			if (profile is null)
+			{
+				SetTvStoreStatus(L10n.Get("lblToolboxTvStoreNoCertificate"));
+				return;
+			}
+			var pem = SigningCertificatePem.FromProfile(profile);
+
+			var progress = new Progress<string>(key => SetTvStoreStatus(L10n.Get(key)));
+			await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress);
+			SetTvStoreStatus(L10n.Get("lblToolboxTvStoreArming"));
+			await store.ArmAsync(pem);
+			var status = await store.StatusAsync();
+			SetTvStoreStatus(string.Format(L10n.Get("lblToolboxTvStoreArmed"), store.Version, status.OwnIp ?? _tvIp));
+		}
+		catch (OperationCanceledException)
+		{
+			// The certificate sheet was dismissed: nothing to hand over.
+			SetTvStoreStatus(L10n.Get("lblToolboxTvStoreNoCertificate"));
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[toolbox] arm TV-Store failed: {ex}");
+			SetTvStoreStatus(string.Format(L10n.Get("lblToolboxTvStoreFailed"), ex.Message));
+		}
+		finally
+		{
+			_busy = false;
+			ArmTvStoreBtn.IsEnabled = true;
+		}
+	}
+
+	private void SetTvStoreStatus(string message) => TvStoreStatusLabel.Text = message;
 
 	private async void OnDetachAgentClicked(object? sender, EventArgs e)
 	{
