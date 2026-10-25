@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-25T15:36:50.9517089+00:00",
+  "generatedAt": "2026-10-25T15:40:24.4303116+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -1832,19 +1832,19 @@
       "id": "jellyfin-avplay-smarthub",
       "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases",
       "ok": true,
-      "latestTag": "v0.1.0-2026-10-24-1528",
+      "latestTag": "v0.1.0-2026-10-25-1538",
       "releases": [
         {
-          "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases/422814327",
+          "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases/423492314",
           "name": "Jellyfin - AVPlay - 10.10z SmartHub",
-          "tag_name": "v0.1.0-2026-10-24-1528",
-          "published_at": "2026-10-24T15:29:00Z",
+          "tag_name": "v0.1.0-2026-10-25-1538",
+          "published_at": "2026-10-25T15:38:51Z",
           "draft": false,
           "assets": [
             {
-              "name": "Jellyfin-AVPlay-SmartHub-Oblonged-2026-10-24-1528.wgt",
-              "browser_download_url": "https://github.com/asamahy/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-10-24-1528/Jellyfin-AVPlay-SmartHub-Oblonged-2026-10-24-1528.wgt",
-              "size": 11143681,
+              "name": "Jellyfin-AVPlay-SmartHub-Oblonged-2026-10-25-1538.wgt",
+              "browser_download_url": "https://github.com/asamahy/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-10-25-1538/Jellyfin-AVPlay-SmartHub-Oblonged-2026-10-25-1538.wgt",
+              "size": 11143677,
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
               "package_id": "AprZAARz4r"
@@ -4018,7 +4018,8 @@
             "host": "github",
             "version": "0.37.1",
             "app_id": "stashzentv.StashZen",
-            "package_id": "stashzentv"
+            "package_id": "stashzentv",
+            "adult": true
           },
           {
             "file": "StreamixTV.wgt",
