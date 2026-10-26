@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using Apps2Samsung.Helpers.Core;
 
 namespace Apps2Samsung.Certificate
 {
@@ -94,7 +95,7 @@ namespace Apps2Samsung.Certificate
                     return new CertificateValidityResult(CertificateValidityState.Unreadable, p12Path ?? string.Empty, null, null);
 
 #pragma warning disable SYSLIB0057 // matches the loader used elsewhere; legacy PKCS#12 support
-                using var cert = new X509Certificate2(p12Path, password, X509KeyStorageFlags.Exportable);
+                using var cert = new X509Certificate2(p12Path, password, PlatformService.SigningCertificateFlags);
 #pragma warning restore SYSLIB0057
 
                 // X509Certificate2 exposes NotBefore/NotAfter in local time; compare in UTC so a
