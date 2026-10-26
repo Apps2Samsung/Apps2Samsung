@@ -1,4 +1,5 @@
 using Apps2Samsung.Catalog;
+using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Mobile.Controls;
 using Apps2Samsung.Mobile.Localization;
 
@@ -17,6 +18,7 @@ public partial class ContributeAppSheetPage : ContentPage
 		var optional = $" ({L10n.Get("lblOptional")})";
 		ProjectPathLabel.Text = L10n.Get("lblContributeProjectPath") + optional;
 		NotesLabel.Text = L10n.Get("lblContributeNotes") + optional;
+		WriteYourselfLink.Text = L10n.Get("lblContributeWriteYourself") + " ↗";
 
 		foreach (var id in AppCategories.Ordered)
 			CategoryPicker.Items.Add(AppCategories.DisplayName(id, L10n.Get));
@@ -102,6 +104,12 @@ public partial class ContributeAppSheetPage : ContentPage
 		if (Checked() is not { } app)
 			return;
 		await LinkOpener.OpenAsync(link(app));
+		await Navigation.PopModalAsync();
+	}
+
+	private async void OnWriteYourselfTapped(object? sender, TappedEventArgs e)
+	{
+		await LinkOpener.OpenAsync(Constants.Links.PackagesReadme);
 		await Navigation.PopModalAsync();
 	}
 

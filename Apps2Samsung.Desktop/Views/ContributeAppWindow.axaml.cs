@@ -5,6 +5,7 @@ using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Apps2Samsung.Catalog;
+using Apps2Samsung.Helpers.Core;
 
 namespace Apps2Samsung.Views
 {
@@ -36,6 +37,7 @@ namespace Apps2Samsung.Views
         public string NotesLabel { get; } = string.Empty;
         public string PullRequestText { get; } = string.Empty;
         public string IssueText { get; } = string.Empty;
+        public string WriteYourselfText { get; } = string.Empty;
         public string CancelText { get; } = string.Empty;
 
         public ContributeAppWindow()
@@ -64,6 +66,7 @@ namespace Apps2Samsung.Views
             NotesLabel = localize("lblContributeNotes") + optional;
             PullRequestText = localize("btnContributePullRequest");
             IssueText = localize("btnContributeIssue");
+            WriteYourselfText = localize("lblContributeWriteYourself") + " ↗";
             CancelText = localize("lblCancel");
             DataContext = this;
 
@@ -148,16 +151,27 @@ namespace Apps2Samsung.Views
 
         private void Send(Func<AppContribution, string> link)
         {
-            if (Checked() is not { } app)
-                return;
+            if (Checked() is { } app && Open(link(app)))
+                Close();
+        }
+
+        private void OnWriteYourselfClick(object? sender, RoutedEventArgs e)
+        {
+            if (Open(Constants.Links.PackagesReadme))
+                Close();
+        }
+
+        private static bool Open(string url)
+        {
             try
             {
-                Process.Start(new ProcessStartInfo { FileName = link(app), UseShellExecute = true });
-                Close();
+                Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+                return true;
             }
             catch (Exception ex)
             {
                 Trace.WriteLine($"[Contribute] Couldn't open GitHub: {ex.Message}");
+                return false;
             }
         }
 

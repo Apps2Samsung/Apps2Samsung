@@ -944,6 +944,7 @@
   "lblContributeNotes": "Notes for the maintainer",
   "btnContributePullRequest": "Open a pull request",
   "btnContributeIssue": "Let a maintainer add it",
+  "lblContributeWriteYourself": "Need more options? Write the package file yourself",
   "errContributeRequired": "Required",
   "errContributeOneLine": "One line, without |",
   "errContributeRepo": "Use owner/repo, for example yourname/your-app",

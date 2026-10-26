@@ -49,6 +49,8 @@
 			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12"/>
 			<Button Content="{Binding IssueText}" Click="OnIssueClick"
 			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" CornerRadius="12"/>
+			<!-- Everything the form doesn't ask (several files, build steps, user settings): the packages README. -->
+			<Button Classes="link" Content="{Binding WriteYourselfText}" Click="OnWriteYourselfClick" HorizontalAlignment="Center"/>
 			<Button Classes="link" Content="{Binding CancelText}" Click="OnCancelClick" HorizontalAlignment="Center"/>
 		</StackPanel>
 

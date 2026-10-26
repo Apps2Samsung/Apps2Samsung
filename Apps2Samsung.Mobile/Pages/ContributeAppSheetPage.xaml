@@ -118,6 +118,13 @@
                         CornerRadius="12" HeightRequest="50" Clicked="OnPullRequestClicked" />
                 <Button Text="{l:Localize btnContributeIssue}" BackgroundColor="{DynamicResource SurfaceColor}" TextColor="{DynamicResource InkColor}"
                         FontAttributes="Bold" CornerRadius="12" HeightRequest="48" Clicked="OnIssueClicked" />
+                <!-- Everything the form doesn't ask (several files, build steps, user settings): the packages README. -->
+                <Label x:Name="WriteYourselfLink" TextColor="{DynamicResource AccentColor}" FontAttributes="Bold" FontSize="14"
+                       HorizontalTextAlignment="Center" Padding="0,8">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnWriteYourselfTapped" />
+                    </Label.GestureRecognizers>
+                </Label>
                 <Button Text="{l:Localize lblCancel}" BackgroundColor="Transparent" TextColor="{DynamicResource InkColor}"
                         FontAttributes="Bold" HeightRequest="44" Clicked="OnCancelClicked" />
             </VerticalStackLayout>
