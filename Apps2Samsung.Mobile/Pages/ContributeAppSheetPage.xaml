@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+             x:Class="Apps2Samsung.Mobile.Pages.ContributeAppSheetPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+    <ContentPage.Resources>
+        <Style x:Key="Hint" TargetType="Label">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Opacity" Value="0.6" />
+        </Style>
+        <Style x:Key="FieldLabel" TargetType="Label">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+        </Style>
+        <Style x:Key="FieldError" TargetType="Label">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="{DynamicResource BadColor}" />
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style x:Key="Field" TargetType="Border">
+            <Setter Property="Padding" Value="8,0" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 8" />
+            <Setter Property="Stroke" Value="{DynamicResource HairColor}" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource Surface2Color}" />
+        </Style>
+        <Style TargetType="Entry">
+            <Setter Property="BackgroundColor" Value="Transparent" />
+        </Style>
+    </ContentPage.Resources>
+    <!-- Settings > Contribute > Add an app: the package fields, then a pull request (GitHub's new-file
+         page, filled in) or the "Contribute an App" issue form (filled in). See AppContribution. -->
+    <ScrollView>
+        <VerticalStackLayout Padding="16,8,16,24" Spacing="14">
+            <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
+                     Color="{DynamicResource HairColor}" />
+
+            <Grid ColumnDefinitions="44,*" ColumnSpacing="12">
+                <Border WidthRequest="44" HeightRequest="44" StrokeThickness="0" StrokeShape="RoundRectangle 11"
+                        BackgroundColor="{DynamicResource AccentSoftColor}">
+                    <!-- a box with a plus -->
+                    <shapes:Path Data="M4,4 L20,4 L20,20 L4,20 Z M12,8 L12,16 M8,12 L16,12"
+                                 Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.2" StrokeLineJoin="Round" StrokeLineCap="Round"
+                                 WidthRequest="22" HeightRequest="22" Aspect="Uniform"
+                                 HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <Label Grid.Column="1" Text="{l:Localize lblContributeAppTitle}" FontSize="17" FontAttributes="Bold" VerticalOptions="Center" />
+            </Grid>
+
+            <Label Text="{l:Localize hintContributeAppForm}" Style="{StaticResource Hint}" />
+
+            <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}" Padding="16,14">
+                <VerticalStackLayout Spacing="12">
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="{l:Localize lblContributeName}" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource Field}"><Entry x:Name="NameEntry" /></Border>
+                        <Label x:Name="NameError" Style="{StaticResource FieldError}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="{l:Localize lblContributeDescription}" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource Field}"><Entry x:Name="DescriptionEntry" /></Border>
+                        <Label x:Name="DescriptionError" Style="{StaticResource FieldError}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="{l:Localize lblContributeCategory}" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource Field}"><Picker x:Name="CategoryPicker" /></Border>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="{l:Localize lblContributeRepo}" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource Field}"><Entry x:Name="RepoEntry" Keyboard="Url" /></Border>
+                        <Label Text="{l:Localize hintContributeRepo}" Style="{StaticResource Hint}" FontSize="12" />
+                        <Label x:Name="RepoError" Style="{StaticResource FieldError}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="{l:Localize lblContributeSource}" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource Field}"><Picker x:Name="SourcePicker" SelectedIndexChanged="OnSourceChanged" /></Border>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout x:Name="BranchRow" Spacing="5">
+                        <Label Text="{l:Localize lblContributeBranch}" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource Field}"><Entry x:Name="BranchEntry" /></Border>
+                        <Label x:Name="BranchError" Style="{StaticResource FieldError}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout x:Name="UrlRow" Spacing="5">
+                        <Label Text="{l:Localize lblContributeUrl}" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource Field}"><Entry x:Name="UrlEntry" Keyboard="Url" /></Border>
+                        <Label x:Name="UrlError" Style="{StaticResource FieldError}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout x:Name="ProjectPathRow" Spacing="5">
+                        <Label x:Name="ProjectPathLabel" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource Field}"><Entry x:Name="ProjectPathEntry" /></Border>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="{l:Localize lblContributeOutputName}" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource Field}"><Entry x:Name="OutputNameEntry" /></Border>
+                        <Label x:Name="OutputNameError" Style="{StaticResource FieldError}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="{l:Localize lblContributeLicense}" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource Field}"><Entry x:Name="LicenseEntry" /></Border>
+                        <Label x:Name="LicenseError" Style="{StaticResource FieldError}" />
+                    </VerticalStackLayout>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <Label Text="{l:Localize lblContributeAdult}" FontSize="16" VerticalOptions="Center" />
+                        <Switch Grid.Column="1" x:Name="AdultSwitch" OnColor="{DynamicResource AccentColor}" VerticalOptions="Center" />
+                    </Grid>
+                    <VerticalStackLayout Spacing="5">
+                        <Label x:Name="NotesLabel" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource Field}"><Editor x:Name="NotesEditor" AutoSize="TextChanges" MinimumHeightRequest="72" BackgroundColor="Transparent" /></Border>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <VerticalStackLayout Spacing="8">
+                <Button Text="{l:Localize btnContributePullRequest}" Style="{StaticResource PrimaryButton}"
+                        CornerRadius="12" HeightRequest="50" Clicked="OnPullRequestClicked" />
+                <Button Text="{l:Localize btnContributeIssue}" BackgroundColor="{DynamicResource SurfaceColor}" TextColor="{DynamicResource InkColor}"
+                        FontAttributes="Bold" CornerRadius="12" HeightRequest="48" Clicked="OnIssueClicked" />
+                <Button Text="{l:Localize lblCancel}" BackgroundColor="Transparent" TextColor="{DynamicResource InkColor}"
+                        FontAttributes="Bold" HeightRequest="44" Clicked="OnCancelClicked" />
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

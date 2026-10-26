@@ -161,6 +161,12 @@ namespace Apps2Samsung.ViewModels
         {
             if (string.IsNullOrEmpty(url))
                 return;
+            // Add an app opens the form first; it sends the user on to GitHub itself.
+            if (url == Constants.Links.ContributeApp)
+            {
+                _ = _dialogService.ShowContributeAppAsync();
+                return;
+            }
             try
             {
                 Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });

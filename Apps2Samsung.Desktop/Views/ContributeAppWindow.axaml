@@ -1,0 +1,132 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:Apps2Samsung.Views"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        x:Class="Apps2Samsung.Views.ContributeAppWindow"
+        x:DataType="views:ContributeAppWindow"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        Title="{Binding TitleText}"
+        Width="500" Height="720" MinHeight="400"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource BgBrush}">
+	<!-- Settings > Contribute > Add an app: the package fields, then a pull request (GitHub's new-file
+	     page, filled in) or the "Contribute an App" issue form (filled in). See AppContribution. -->
+	<Window.Styles>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Catalog.axaml"/>
+		<Style Selector="TextBox.field">
+			<Setter Property="MinHeight" Value="40"/>
+			<Setter Property="CornerRadius" Value="10"/>
+			<Setter Property="FontSize" Value="14"/>
+		</Style>
+		<Style Selector="ComboBox.field">
+			<Setter Property="MinHeight" Value="40"/>
+			<Setter Property="CornerRadius" Value="10"/>
+			<Setter Property="HorizontalAlignment" Value="Stretch"/>
+		</Style>
+		<Style Selector="TextBlock.fieldlabel">
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="TextWrapping" Value="Wrap"/>
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.fieldhint">
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="TextWrapping" Value="Wrap"/>
+			<Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.fielderror">
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="TextWrapping" Value="Wrap"/>
+			<Setter Property="Foreground" Value="{DynamicResource BadBrush}"/>
+			<Setter Property="IsVisible" Value="False"/>
+		</Style>
+	</Window.Styles>
+
+	<DockPanel>
+		<StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="16,8,16,16">
+			<Button Classes="primary" Content="{Binding PullRequestText}" Click="OnPullRequestClick"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12"/>
+			<Button Content="{Binding IssueText}" Click="OnIssueClick"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" CornerRadius="12"/>
+			<Button Classes="link" Content="{Binding CancelText}" Click="OnCancelClick" HorizontalAlignment="Center"/>
+		</StackPanel>
+
+		<ScrollViewer>
+			<StackPanel Margin="16,8,16,8" Spacing="14">
+				<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
+
+				<Grid ColumnDefinitions="44,*" ColumnSpacing="12">
+					<Border Width="44" Height="44" CornerRadius="11" Background="{DynamicResource AccentSoftBrush}">
+						<!-- a box with a plus -->
+						<Path Width="22" Height="22" Stretch="Uniform" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.2"
+						      StrokeLineCap="Round" StrokeJoin="Round" Data="M4,4 L20,4 L20,20 L4,20 Z M12,8 L12,16 M8,12 L16,12"/>
+					</Border>
+					<TextBlock Grid.Column="1" Text="{Binding TitleText}" FontSize="17" FontWeight="Bold" VerticalAlignment="Center"
+					           TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+				</Grid>
+
+				<TextBlock Text="{Binding HintText}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+
+				<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}" Padding="16,14">
+					<StackPanel Spacing="12">
+						<StackPanel Spacing="5">
+							<TextBlock Classes="fieldlabel" Text="{Binding NameLabel}"/>
+							<TextBox x:Name="NameBox" Classes="field"/>
+							<TextBlock x:Name="NameError" Classes="fielderror"/>
+						</StackPanel>
+						<StackPanel Spacing="5">
+							<TextBlock Classes="fieldlabel" Text="{Binding DescriptionLabel}"/>
+							<TextBox x:Name="DescriptionBox" Classes="field"/>
+							<TextBlock x:Name="DescriptionError" Classes="fielderror"/>
+						</StackPanel>
+						<StackPanel Spacing="5">
+							<TextBlock Classes="fieldlabel" Text="{Binding CategoryLabel}"/>
+							<ComboBox x:Name="CategoryBox" Classes="field" DisplayMemberBinding="{Binding Name, x:DataType=views:ContributeAppWindow+Choice}"/>
+						</StackPanel>
+						<StackPanel Spacing="5">
+							<TextBlock Classes="fieldlabel" Text="{Binding RepoLabel}"/>
+							<TextBox x:Name="RepoBox" Classes="field"/>
+							<TextBlock Classes="fieldhint" Text="{Binding RepoHint}"/>
+							<TextBlock x:Name="RepoError" Classes="fielderror"/>
+						</StackPanel>
+						<StackPanel Spacing="5">
+							<TextBlock Classes="fieldlabel" Text="{Binding SourceLabel}"/>
+							<ComboBox x:Name="SourceBox" Classes="field" SelectionChanged="OnSourceChanged"
+							          DisplayMemberBinding="{Binding Name, x:DataType=views:ContributeAppWindow+Choice}"/>
+						</StackPanel>
+						<StackPanel x:Name="BranchRow" Spacing="5">
+							<TextBlock Classes="fieldlabel" Text="{Binding BranchLabel}"/>
+							<TextBox x:Name="BranchBox" Classes="field"/>
+							<TextBlock x:Name="BranchError" Classes="fielderror"/>
+						</StackPanel>
+						<StackPanel x:Name="UrlRow" Spacing="5">
+							<TextBlock Classes="fieldlabel" Text="{Binding UrlLabel}"/>
+							<TextBox x:Name="UrlBox" Classes="field"/>
+							<TextBlock x:Name="UrlError" Classes="fielderror"/>
+						</StackPanel>
+						<StackPanel x:Name="ProjectPathRow" Spacing="5">
+							<TextBlock Classes="fieldlabel" Text="{Binding ProjectPathLabel}"/>
+							<TextBox x:Name="ProjectPathBox" Classes="field"/>
+						</StackPanel>
+						<StackPanel Spacing="5">
+							<TextBlock Classes="fieldlabel" Text="{Binding OutputNameLabel}"/>
+							<TextBox x:Name="OutputNameBox" Classes="field"/>
+							<TextBlock x:Name="OutputNameError" Classes="fielderror"/>
+						</StackPanel>
+						<StackPanel Spacing="5">
+							<TextBlock Classes="fieldlabel" Text="{Binding LicenseLabel}"/>
+							<TextBox x:Name="LicenseBox" Classes="field"/>
+							<TextBlock x:Name="LicenseError" Classes="fielderror"/>
+						</StackPanel>
+						<CheckBox x:Name="AdultBox" Content="{Binding AdultLabel}"/>
+						<StackPanel Spacing="5">
+							<TextBlock Classes="fieldlabel" Text="{Binding NotesLabel}"/>
+							<TextBox x:Name="NotesBox" Classes="field" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="72"/>
+						</StackPanel>
+					</StackPanel>
+				</Border>
+			</StackPanel>
+		</ScrollViewer>
+	</DockPanel>
+</Window>
