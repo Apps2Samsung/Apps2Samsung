@@ -340,6 +340,7 @@
   "lblToolboxAgent": "Debug agent",
   "lblToolboxStagingClear": "Wissen",
   "lblToolboxStagingRefresh": "Vernieuwen",
+  "lblToolboxStagingSummary": "{0} pakket(ten) in de stagingmap, {1} in totaal.",
   "lblSysAppSettings": "Instellingen",
   "lblToolboxSend": "Verzenden",
   "lblToolboxLaunching": "Starten van {0}...",

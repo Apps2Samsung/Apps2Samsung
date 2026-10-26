@@ -1,4 +1,6 @@
+using System.IO.Compression;
 using System.Net.Http.Headers;
+using Apps2Samsung.Catalog;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Install;
@@ -30,7 +32,9 @@ public static class InstallCommand
             s.Out.Progress("Loading the app catalog…");
             var wantVersion = !string.IsNullOrWhiteSpace(s.Options.Version);
             var catalog = await s.Catalog.LoadAsync(s.Options.AllVersions || wantVersion, ct);
-            var (match, candidates) = CatalogLoader.Find(catalog.Entries, target);
+            // Adult-only entries are found by name only with --adult, as `catalog` lists them (#850).
+            var visible = CommunityAppList.Visible(catalog.Entries, s.Options.Adult).ToList();
+            var (match, candidates) = CatalogLoader.Find(visible, target);
             if (match is null)
             {
                 return candidates.Count == 0
@@ -41,7 +45,7 @@ public static class InstallCommand
             release = match;
             if (wantVersion)
             {
-                var versions = catalog.Entries.Where(e => string.Equals(e.Name, match.Name, StringComparison.OrdinalIgnoreCase)).ToList();
+                var versions = visible.Where(e => string.Equals(e.Name, match.Name, StringComparison.OrdinalIgnoreCase)).ToList();
                 release = versions.FirstOrDefault(v => string.Equals(v.TagName, s.Options.Version, StringComparison.OrdinalIgnoreCase));
                 if (release is null)
                     return s.Out.Fail($"{match.Name} has no release '{s.Options.Version}'. Known: {string.Join(", ", versions.Select(v => v.TagName))}");
@@ -103,29 +107,36 @@ public static class InstallCommand
                 Output.Stopped, new { checks = guards.Guards.Select(g => new { kind = g.Kind.ToString(), g.DefaultTitle, message = g.DefaultMessageWithDetail }) });
         var tvIp = guards.CorrectedTvIp ?? ip;
 
-        // ---- Download ----
+        // ---- Download, or a working copy of the local file ----
+        // The install renames, patches and re-signs the package in place, so it never runs on the
+        // user's own file: the apps copy a picked file the same way.
+        Directory.CreateDirectory(CliPaths.Downloads);
         string packagePath;
-        var downloaded = false;
         if (localFile is not null)
         {
-            packagePath = localFile;
+            // A folder of its own, so a file kept from an earlier --keep run is never copied onto itself.
+            var staging = Path.Combine(CliPaths.Downloads, "local");
+            Directory.CreateDirectory(staging);
+            packagePath = Path.Combine(staging, Path.GetFileName(localFile));
+            File.Copy(localFile, packagePath, overwrite: true);
         }
         else
         {
-            Directory.CreateDirectory(CliPaths.Downloads);
             packagePath = Path.Combine(CliPaths.Downloads, asset!.FileName);
             s.Out.Progress($"Downloading {asset.FileName} ({asset.DisplayText})…");
             await DownloadAsync(s, asset.DownloadUrl, packagePath, ct);
-            downloaded = true;
         }
 
         try
         {
             // ---- Certificate ----
-            var needsPartner = s.Options.Partner || (release?.RequiresPartner ?? false) || WgtPrivileges.RequiresPartner(packagePath);
-            if (needsPartner && !s.Options.Partner)
+            // The desktop's Automatic / Public / Partner setting, unless --partner; a package that
+            // needs Partner gets it either way.
+            var needsPartner = (release?.RequiresPartner ?? false) || WgtPrivileges.RequiresPartner(packagePath);
+            var preference = Certificates.Preference(s);
+            var level = CertificatePreference.ResolveLevel(preference, needsPartner);
+            if (needsPartner && CertificatePreference.ResolveLevel(preference, false) != CertificatePrivilegeLevel.Partner)
                 s.Out.Progress("This package needs a Partner-level certificate; signing as Partner.");
-            var level = needsPartner ? CertificatePrivilegeLevel.Partner : CertificatePrivilegeLevel.Public;
             var (profile, duid, _) = await Certificates.EnsureAsync(s, tvIp, level, ct);
 
             // ---- Install ----
@@ -145,13 +156,23 @@ public static class InstallCommand
                 },
                 stage: null,
                 ct: ct,
-                confirmRemove: () => Task.FromResult(s.Options.Yes),
+                confirmRemove: () => Task.FromResult(s.Options.AllowRemove),
                 packageId: new PackageIdPolicy(duid, s.Options.NewId));
 
             // The ids as installed: a rename (#839) changed them after the read above.
             var (installedAppId, installedPackageId) = await WgtManifest.ReadIdsAsync(packagePath);
             var renamed = !string.Equals(installedPackageId, packageId, StringComparison.Ordinal);
-            var launched = s.Config.OpenAfterInstall && !string.IsNullOrWhiteSpace(installedAppId);
+            // Launched here rather than by the installer, which swallows a failed launch: the result
+            // has to say whether it really opened.
+            var launched = false;
+            if (s.Options.Launch && !string.IsNullOrWhiteSpace(installedAppId))
+            {
+                s.Out.Progress("Launching on TV…");
+                var launch = await s.Sdb.LaunchAsync(tvIp, installedAppId);
+                launched = launch.ExitCode == 0;
+                if (!launched)
+                    s.Out.Warn($"installed, but the TV did not open it: {(string.IsNullOrWhiteSpace(launch.Error) ? launch.Output.Trim() : launch.Error)}");
+            }
             return s.Out.Result(
                 new
                 {
@@ -171,7 +192,7 @@ public static class InstallCommand
         }
         catch (RemovalDeclinedException)
         {
-            return s.Out.Fail($"The TV already has {appName} and only a remove-and-reinstall would get the new copy on; that erases the app's data on the TV. Rerun with --yes to allow it.", Output.Stopped);
+            return s.Out.Fail($"The TV already has {appName} and only a remove-and-reinstall would get the new copy on; that erases the app's data on the TV. Rerun with --allow-remove to allow it.", Output.Stopped);
         }
         catch (CertificateNotYetValidException ex)
         {
@@ -189,11 +210,11 @@ public static class InstallCommand
         }
         finally
         {
-            if (downloaded && !s.Options.Keep)
+            if (!s.Options.Keep)
             {
                 try { File.Delete(packagePath); } catch { /* best-effort */ }
             }
-            else if (downloaded)
+            else
             {
                 s.Out.Progress($"Kept {packagePath}");
             }
@@ -213,16 +234,46 @@ public static class InstallCommand
             req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", s.Options.GitHubToken);
         using var resp = await s.Http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
         resp.EnsureSuccessStatusCode();
+
+        // As the desktop does: into a .part file, checked for completeness and for being a real
+        // archive before it takes the package's name, so a cut-off download fails here and not
+        // later in the re-sign with an unreadable zip error.
+        var part = dest + ".part";
         try
         {
-            await using var src = await resp.Content.ReadAsStreamAsync(ct);
-            await using var dst = File.Create(dest);
-            await src.CopyToAsync(dst, ct);
+            await using (var src = await resp.Content.ReadAsStreamAsync(ct))
+            await using (var dst = File.Create(part))
+                await src.CopyToAsync(dst, ct);
+
+            var expected = resp.Content.Headers.ContentLength;
+            var actual = new FileInfo(part).Length;
+            if (expected.HasValue && actual != expected.Value)
+                throw new IOException($"Download incomplete: received {actual} of {expected.Value} bytes.");
+            if (!IsValidZipArchive(part))
+                throw new InvalidDataException("The downloaded package is not a valid .wgt/.tpk archive (corrupt or incomplete).");
+
+            File.Move(part, dest, overwrite: true);
         }
         catch
         {
-            try { File.Delete(dest); } catch { /* best-effort */ }
+            try { File.Delete(part); } catch { /* best-effort */ }
             throw;
+        }
+    }
+
+    private static bool IsValidZipArchive(string path)
+    {
+        try
+        {
+            // 22 bytes is the smallest zip there is (the end-of-directory record alone).
+            if (new FileInfo(path).Length < 22)
+                return false;
+            using var archive = ZipFile.OpenRead(path);
+            return archive.Entries.Count > 0;
+        }
+        catch (Exception ex) when (ex is InvalidDataException or IOException)
+        {
+            return false;
         }
     }
 }

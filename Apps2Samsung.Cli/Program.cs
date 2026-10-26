@@ -40,6 +40,7 @@ try
         "uninstall" or "remove" => await UninstallCommand.RunAsync(services, cancel.Token),
         "launch" or "open" => await LaunchCommand.RunAsync(services, cancel.Token),
         "cert" or "certificate" => await CertCommand.RunAsync(services, cancel.Token),
+        "tvstore" or "tv-store" => await TvStoreCommand.RunAsync(services, cancel.Token),
         _ => services.Out.Fail($"unknown command '{options.Command}'\n{Help.Usage}", Output.Usage),
     };
 }

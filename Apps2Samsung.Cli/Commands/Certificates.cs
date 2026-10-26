@@ -1,5 +1,6 @@
 using System.Security.Cryptography.X509Certificates;
 using Apps2Samsung.Certificate;
+using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Install;
 using Apps2Samsung.Sdb;
@@ -41,7 +42,7 @@ public static class Certificates
             level: level,
             storePath: CliPaths.CertificateStore,
             caPath: caPath,
-            manualDuids: s.Options.ManualDuids.Split(new[] { ',', ';', ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            manualDuids: s.Config.ManualDuids.Split(new[] { ',', ';', ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             forceLogin: s.Options.ForceLogin,
             onLoginStarting: null,
             progress: key => s.Out.Progress(s.Strings.GetString(key)),
@@ -50,6 +51,17 @@ public static class Certificates
 
         return (new SigningProfile(profile.AuthorP12, profile.DistributorP12, profile.Password, profile.ProfileDir), duid, profile);
     }
+
+    /// <summary>
+    /// The certificate choice for this run: Partner with --partner, otherwise the desktop app's
+    /// Automatic / Public / Partner setting, so both sign at the same level.
+    /// </summary>
+    public static string Preference(CliServices s) =>
+        s.Options.Partner ? CertificatePreference.Partner : s.Desktop.CertificatePreference;
+
+    /// <summary>The level a certificate made outside an install is made at, as the desktop's PrepareCertificateAsync.</summary>
+    public static CertificatePrivilegeLevel Level(CliServices s) =>
+        CertificatePreference.ResolveLevel(Preference(s), requirePartner: false);
 
     public sealed record ProfileState(string Level, bool Exists, bool Usable, string? ValidFrom, string? ValidUntil, IReadOnlyList<string> Duids, string? Path);
 
@@ -67,7 +79,7 @@ public static class Certificates
         {
             var password = File.ReadAllText(passwordFile).Trim();
 #pragma warning disable SYSLIB0057
-            using var cert = new X509Certificate2(author, password, X509KeyStorageFlags.Exportable);
+            using var cert = new X509Certificate2(author, password, PlatformService.SigningCertificateFlags);
 #pragma warning restore SYSLIB0057
             from = cert.NotBefore.ToString("yyyy-MM-dd");
             until = cert.NotAfter.ToString("yyyy-MM-dd");

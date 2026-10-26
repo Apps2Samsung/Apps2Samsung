@@ -8,7 +8,13 @@ public static class ScanCommand
     {
         s.Out.Progress("Scanning the network for Samsung TVs…");
         var localIp = LocalIp.Of(s);
-        var found = await TizenDeveloperInfo.ScanAsync(s.Network, ct);
+        var found = await TizenDeveloperInfo.ScanAsync(s.Network, ct, s.Options.Virtual);
+        if (found.Count == 0 && !s.Options.Virtual)
+        {
+            // The desktop offers this rescan when nothing turns up; a script gets it without asking.
+            s.Out.Progress("Nothing found; scanning again with VPN and virtual adapters included…");
+            found = await TizenDeveloperInfo.ScanAsync(s.Network, ct, virtualScan: true);
+        }
         var tvs = found.Select(d => TvState.From(d, localIp)).OrderBy(t => t.Ip, StringComparer.Ordinal).ToList();
 
         var text = new List<string>();

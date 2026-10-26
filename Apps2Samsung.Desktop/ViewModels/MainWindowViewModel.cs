@@ -1222,7 +1222,20 @@ namespace Apps2Samsung.ViewModels
                     return result.Success;
                 };
 
-                var vm = new TvToolboxViewModel(tvIp, label, _sdbEngine, installWgt);
+                // Arm TV-Store (#844) hands over the profile an install would sign with: made or
+                // extended here first (the certificate sheet when a sign-in is needed), then read back
+                // from the store for the TV's DUID.
+                Func<Action<string>, Task<Apps2Samsung.Install.SigningProfile?>> signingProfile = async report =>
+                {
+                    using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                    if (await _tizenInstaller.PrepareCertificateAsync(tvIp, timeout.Token) == CertificatePreparation.Failed)
+                        return null;
+                    report(L("lblToolboxTvStoreReadingDuid"));
+                    var duid = await Apps2Samsung.Sdb.TizenDuidReader.ReadAsync(_sdbEngine, tvIp, progress: report);
+                    return Apps2Samsung.Certificate.SigningCertificatePem.FindProfileCovering(AppSettings.CertificatePath, duid);
+                };
+
+                var vm = new TvToolboxViewModel(tvIp, label, _sdbEngine, installWgt, signingProfile);
                 var window = new Views.TvToolboxWindow(vm);
                 await window.ShowDialog(desktop.MainWindow);
             }

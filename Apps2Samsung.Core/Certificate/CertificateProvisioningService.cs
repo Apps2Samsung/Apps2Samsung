@@ -7,6 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Apps2Samsung.Extensions;
+using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Helpers.Tizen.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
@@ -168,7 +169,7 @@ namespace Apps2Samsung.Certificate
 
                 var password = File.ReadAllText(passwordFile).Trim();
 #pragma warning disable SYSLIB0057 // matches the proven loader used elsewhere; legacy PKCS#12 support
-                using var cert = new X509Certificate2(authorP12, password, X509KeyStorageFlags.Exportable);
+                using var cert = new X509Certificate2(authorP12, password, PlatformService.SigningCertificateFlags);
 #pragma warning restore SYSLIB0057
                 return cert.NotAfter.Date >= DateTime.Today;
             }

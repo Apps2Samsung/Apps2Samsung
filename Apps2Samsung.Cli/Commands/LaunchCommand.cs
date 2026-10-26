@@ -10,14 +10,9 @@ public static class LaunchCommand
             return s.Out.Fail("usage: apps2samsung-cli launch <appId> --tv <ip>", Output.Usage);
 
         s.Out.Progress($"Launching {appId} on {ip}…");
+        // LaunchAsync only, as the apps' Launch button: the `0 execute` verb answers exit 0 whatever the
+        // TV replies, so it cannot tell a launch from a refusal.
         var result = await s.Sdb.LaunchAsync(ip, appId);
-        if (result.ExitCode != 0)
-        {
-            // The platform launcher knows ids Smart Hub does not (system apps, services).
-            var second = await s.Sdb.ExecuteAsync(ip, appId);
-            if (second.ExitCode == 0)
-                result = second;
-        }
         return result.ExitCode == 0
             ? s.Out.Result(new { ok = true, tv = ip, appId, reply = result.Output.Trim() }, new[] { $"Launched {appId}." })
             : s.Out.Fail($"The TV did not launch {appId}: {(string.IsNullOrWhiteSpace(result.Error) ? result.Output.Trim() : result.Error)}");

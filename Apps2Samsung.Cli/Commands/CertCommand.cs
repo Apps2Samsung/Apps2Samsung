@@ -9,7 +9,7 @@ public static class CertCommand
     public static async Task<int> RunAsync(CliServices s, CancellationToken ct)
     {
         var ip = s.Options.Tv ?? s.Options.Arguments.FirstOrDefault();
-        var level = s.Options.Partner ? CertificatePrivilegeLevel.Partner : CertificatePrivilegeLevel.Public;
+        var level = Certificates.Level(s);
 
         if (s.Options.Prepare)
         {

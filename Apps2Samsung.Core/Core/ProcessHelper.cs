@@ -10,6 +10,7 @@ namespace Apps2Samsung.Helpers.Core
     /// at startup and, through <see cref="Apps2Samsung.Sdb.InProcessSdbEngine.ClearCompetingSdbServer"/>,
     /// before every fresh connect: Tizen Studio's Device Manager and Emulator Manager restart the
     /// server within seconds, so a single sweep at startup did not cover a connection made later.
+    /// In Core so the desktop and the CLI share it; the phone has no sdb server to clear.
     /// </summary>
     public static class ProcessHelper
     {

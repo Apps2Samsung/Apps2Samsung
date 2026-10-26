@@ -1,5 +1,8 @@
 using Apps2Samsung.Catalog;
 using Apps2Samsung.Agent;
+using Apps2Samsung.Certificate;
+using Apps2Samsung.Install;
+using Apps2Samsung.TvStore;
 using Apps2Samsung.Models;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Helpers.Core;
@@ -50,6 +53,11 @@ namespace Apps2Samsung.ViewModels
         private readonly Func<string, Action<string>, Task<bool>>? _installWgt;
 
         private DebugAgentClient? _agent;
+
+        // The head's certificate flow for this TV (#844): the signing profile an install would use,
+        // made (with the Samsung sign-in) when none covers the set yet; null when that was cancelled.
+        // What Arm TV-Store hands over. Null where the head has no certificate flow.
+        private readonly Func<Action<string>, Task<SigningProfile?>>? _signingProfile;
 
         // The full list behind the filtered one shown.
         private IReadOnlyList<SamsungRemoteLaunchTarget> _targets = Array.Empty<SamsungRemoteLaunchTarget>();
@@ -159,12 +167,14 @@ namespace Apps2Samsung.ViewModels
         public event Action? OnRequestClose;
 
         public TvToolboxViewModel(
-            string tvIp, string tvLabel, ISdbEngine? sdb = null, Func<string, Action<string>, Task<bool>>? installWgt = null)
+            string tvIp, string tvLabel, ISdbEngine? sdb = null, Func<string, Action<string>, Task<bool>>? installWgt = null,
+            Func<Action<string>, Task<SigningProfile?>>? signingProfile = null)
         {
             _tvIp = tvIp;
             TvLabel = tvLabel;
             _sdb = sdb;
             _installWgt = installWgt;
+            _signingProfile = signingProfile;
             Sequences = SamsungRemoteSequences.Sendable.Select(s => new ToolboxSequence(s)).ToList();
             StandbySequences = SamsungRemoteSequences.StandbyOnly.Select(s => new ToolboxSequence(s)).ToList();
             StandbySteps = SamsungRemoteSequences.StandbyStepKeys.Select(k => k.Localized()).ToList();
@@ -517,6 +527,64 @@ namespace Apps2Samsung.ViewModels
         // ---------------------------------------------------------------------------------------
         // The debug agent (#34)
         // ---------------------------------------------------------------------------------------
+
+        /// <summary>The TV-Store line: each step of arming, then the verdict (#844).</summary>
+        [ObservableProperty]
+        private string tvStoreStatus = string.Empty;
+
+        /// <summary>
+        /// Hands the signing certificate to the TV-Store app on the TV (#844, phase 3): the profile
+        /// the head installs with, as PEM, over TV-Store's page in debug mode. Once armed, the TV
+        /// signs and installs catalog apps on its own. TV-Store has to be on the set already; it
+        /// is installed from the catalog like any package.
+        /// </summary>
+        [RelayCommand]
+        private async Task ArmTvStore()
+        {
+            if (_sdb is null)
+            {
+                TvStoreStatus = "lblToolboxAgentNeedsSdb".Localized();
+                return;
+            }
+
+            if (IsBusy)
+                return;
+
+            IsBusy = true;
+            try
+            {
+                if (!await TvStorePackage.IsInstalledAsync(_sdb, _tvIp))
+                {
+                    TvStoreStatus = "lblToolboxTvStoreNotInstalled".Localized();
+                    return;
+                }
+
+                TvStoreStatus = "lblToolboxTvStoreCertificate".Localized();
+                var profile = _signingProfile is null ? null : await _signingProfile(message => TvStoreStatus = message);
+                if (profile is null)
+                {
+                    TvStoreStatus = "lblToolboxTvStoreNoCertificate".Localized();
+                    return;
+                }
+                var pem = SigningCertificatePem.FromProfile(profile);
+
+                var progress = new Progress<string>(key => TvStoreStatus = key.Localized());
+                await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress);
+                TvStoreStatus = "lblToolboxTvStoreArming".Localized();
+                await store.ArmAsync(pem);
+                var status = await store.StatusAsync();
+                TvStoreStatus = string.Format("lblToolboxTvStoreArmed".Localized(), store.Version, status.OwnIp ?? _tvIp);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[toolbox] arm TV-Store failed: {ex}");
+                TvStoreStatus = string.Format("lblToolboxTvStoreFailed".Localized(), ex.Message);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
 
         /// <summary>
         /// Installs the agent if the TV doesn't list it, starts it in debug mode, attaches, and reads
