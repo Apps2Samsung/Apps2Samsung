@@ -83,13 +83,17 @@ public static class Help
         """;
 
     private const string Cert = """
-        usage: apps2samsung-cli cert [--tv <ip>] [--partner] [--prepare] [--force-login] [--json]
+        usage: apps2samsung-cli cert [--tv <ip>] [--partner] [--prepare] [--duids <DUID,...>] [--force-login] [--json]
 
         Shows the Public and Partner signing certificates on this machine: whether one exists, until
         when it is valid and which TVs (DUIDs) it covers. With --tv, also whether that TV is covered.
         --prepare creates or extends the certificate for --tv now (the Samsung sign-in happens here
         instead of during the first install), at the level the desktop app's certificate setting picks;
         --partner selects the Partner level instead.
+        --prepare --duids <DUID,...> without --tv does the same for TVs whose DUID you already know,
+        without reading them over SDB: for a TV whose Host PC IP points elsewhere (127.0.0.1 for a
+        TV that roots itself, or another computer). The first DUID is the TV the profile is made for;
+        every DUID listed is covered.
         """;
 
     private const string TvStore = """
