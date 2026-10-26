@@ -37,7 +37,7 @@ namespace Apps2Samsung.Packaging
 
     /// <summary>
     /// The rename records as the heads store them in one JSON string (<c>IAppConfig.PackageIdRenamesJson</c>):
-    /// the desktop's settings.json, the phone's Preferences, the CLI's data folder.
+    /// the desktop's settings.json (which the CLI shares), the phone's Preferences.
     /// </summary>
     public static class PackageIdRenameStore
     {

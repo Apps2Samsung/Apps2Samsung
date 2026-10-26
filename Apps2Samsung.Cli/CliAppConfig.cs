@@ -1,4 +1,5 @@
 using Apps2Samsung.Configuration;
+using Apps2Samsung.Packaging;
 
 namespace Apps2Samsung.Cli;
 
@@ -6,12 +7,21 @@ namespace Apps2Samsung.Cli;
 /// The shared settings contract, filled from command-line flags for one run. The CLI persists
 /// nothing of its own: the package patchers that need a configured server or account (Jellyfin,
 /// ImmiTV, Camera PiP, TVApp channels, custom icons) stay off here, and a community package's
-/// <c>user_settings</c> come in through <c>--set key=value</c>.
+/// <c>user_settings</c> come in through <c>--set key=value</c>. The package-id renames live in the
+/// desktop's settings.json (<see cref="DesktopSettings"/>), shared with the desktop app.
 /// </summary>
 public sealed class CliAppConfig : IAppConfig
 {
+    private readonly DesktopSettings _desktop;
+
+    public CliAppConfig(DesktopSettings desktop)
+    {
+        _desktop = desktop;
+    }
+
     public bool DeletePreviousInstall { get; set; }
-    public bool OpenAfterInstall { get; set; } = true;
+    // The install command launches the app itself, so it can report whether that worked.
+    public bool OpenAfterInstall { get; set; }
     public bool KeepWgtFile { get; set; }
     public bool TryOverwrite { get; set; } = true;
 
@@ -29,29 +39,46 @@ public sealed class CliAppConfig : IAppConfig
     public string TvAppChannelsJson { get; set; } = string.Empty;
     public string AppUserSettingsJson { get; set; } = string.Empty;
 
-    // The one setting the CLI keeps between runs: which packages were installed under another id on
-    // which TV (#839). Without it an update would push the original (blocked) id again.
-    private string? _renames;
+    // Which packages were installed under another id on which TV (#839). Without it an update would
+    // push the original (blocked) id again. Kept in the desktop's settings.json, so the desktop and the
+    // CLI recognise each other's renames; a renames file an older CLI kept on its own is folded in once.
+    private bool _legacyMerged;
     public string PackageIdRenamesJson
     {
         get
         {
-            if (_renames is null)
+            if (!_legacyMerged)
             {
-                try { _renames = File.Exists(RenamesPath) ? File.ReadAllText(RenamesPath) : string.Empty; }
-                catch { _renames = string.Empty; }
+                _legacyMerged = true;
+                MergeLegacyRenames();
             }
-            return _renames;
+            return _desktop.PackageIdRenamesJson;
         }
-        set
+        set => _desktop.PackageIdRenamesJson = value ?? string.Empty;
+    }
+
+    private void MergeLegacyRenames()
+    {
+        var legacyPath = Path.Combine(CliPaths.CliDir, "package-id-renames.json");
+        if (!File.Exists(legacyPath))
+            return;
+        try
         {
-            _renames = value ?? string.Empty;
-            Directory.CreateDirectory(CliPaths.CliDir);
-            if (_renames.Length == 0) { try { File.Delete(RenamesPath); } catch { /* best-effort */ } }
-            else File.WriteAllText(RenamesPath, _renames);
+            var json = _desktop.PackageIdRenamesJson;
+            foreach (var record in PackageIdRenameStore.Read(File.ReadAllText(legacyPath)))
+            {
+                // The desktop's own record for the same TV and package wins.
+                if (PackageIdRenameStore.Find(json, record.TvDuid, record.OriginalPackageId) is null)
+                    json = PackageIdRenameStore.Set(json, record);
+            }
+            _desktop.PackageIdRenamesJson = json;
+            File.Delete(legacyPath);
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or UnauthorizedAccessException)
+        {
+            // Left in place; the next run tries again.
         }
     }
-    private static string RenamesPath => Path.Combine(CliPaths.CliDir, "package-id-renames.json");
 
     public string ImmiTvServerUrl => string.Empty;
     public string ImmiTvEmail => string.Empty;
@@ -72,5 +99,5 @@ public sealed class CliAppConfig : IAppConfig
     public bool EnableDevLogs => false;
     public string CustomCss => string.Empty;
     public string DisabledPluginIds => string.Empty;
-    public string LocalIp => string.Empty;
+    public string LocalIp { get; set; } = string.Empty;
 }

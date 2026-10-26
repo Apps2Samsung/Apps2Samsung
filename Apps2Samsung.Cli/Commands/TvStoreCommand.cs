@@ -16,7 +16,7 @@ public static class TvStoreCommand
         var ip = s.Options.Tv ?? s.Options.Arguments.FirstOrDefault();
         if (string.IsNullOrWhiteSpace(ip))
             return s.Out.Fail("tvstore needs --tv <ip>", Output.Usage);
-        var level = s.Options.Partner ? CertificatePrivilegeLevel.Partner : CertificatePrivilegeLevel.Public;
+        var level = Certificates.Level(s);
 
         s.Out.Progress($"Looking for TV-Store on {ip}…");
         if (!await TvStorePackage.IsInstalledAsync(s.Sdb, ip))
@@ -26,7 +26,10 @@ public static class TvStoreCommand
                 $"apps2samsung-cli install TV-Store.wgt --tv {ip} (the .wgt comes from {TvStorePackage.RepositoryUrl}).");
         }
 
-        var (profile, duid, raw) = await Certificates.EnsureAsync(s, ip, level, ct);
+        var (ensured, duid, _) = await Certificates.EnsureAsync(s, ip, level, ct);
+        // As the desktop's toolbox: whichever profile on this machine covers the TV, Public first.
+        var profile = SigningCertificatePem.FindProfileCovering(CliPaths.CertificateStore, duid) ?? ensured;
+        var profileName = Path.GetFileName(profile.ProfileDir);
         s.Out.Progress("Opening the certificate…");
         var pem = SigningCertificatePem.FromProfile(profile);
 
@@ -37,10 +40,10 @@ public static class TvStoreCommand
         var status = await store.StatusAsync(ct);
 
         return s.Out.Result(
-            new { ok = true, tv = ip, duid, level = level.ToString(), profile = raw.ProfileName, tvStoreVersion = store.Version, armed = status.Armed, ownIp = status.OwnIp },
+            new { ok = true, tv = ip, duid, profile = profileName, tvStoreVersion = store.Version, armed = status.Armed, ownIp = status.OwnIp },
             new[]
             {
-                $"TV-Store v{store.Version} on {ip} is armed with {raw.ProfileName} (DUID {duid}).",
+                $"TV-Store v{store.Version} on {ip} is armed with {profileName} (DUID {duid}).",
                 $"It signs and installs on its own from now on. On the TV, Developer Mode's Host PC IP must be the TV's own address ({status.OwnIp ?? ip}).",
             });
     }

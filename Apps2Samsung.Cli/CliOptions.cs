@@ -13,6 +13,10 @@ public sealed class CliOptions
     // Where
     public string? Tv { get; set; }
     public string? DataDir { get; set; }
+    /// <summary>This machine's address on the TV's network; default: the desktop's adapter choice, else the default route.</summary>
+    public string? LocalIp { get; set; }
+    /// <summary>Scan VPN and virtual adapters too, as the desktop's rescan does.</summary>
+    public bool Virtual { get; set; }
 
     // Catalog
     public string? Category { get; set; }
@@ -26,10 +30,12 @@ public sealed class CliOptions
     public string? Version { get; set; }
     public Dictionary<string, string> Settings { get; } = new(StringComparer.OrdinalIgnoreCase);
     public bool Partner { get; set; }
-    public bool NoLaunch { get; set; }
+    public bool Launch { get; set; }
     public bool RemoveFirst { get; set; }
     public bool Keep { get; set; }
     public bool Yes { get; set; }
+    /// <summary>Allow the remove-and-reinstall that erases the app's data on the TV (#825); separate from <see cref="Yes"/>, as the apps ask it separately.</summary>
+    public bool AllowRemove { get; set; }
     public bool NewId { get; set; }
 
     // Certificate
@@ -71,6 +77,9 @@ public sealed class CliOptions
                 case "-q" or "--quiet": o.Quiet = true; break;
                 case "-y" or "--yes": o.Yes = true; break;
                 case "--tv": o.Tv = Next(arg); if (o.Tv is null) return (o, "--tv needs the TV's IP address"); break;
+                case "--local-ip": o.LocalIp = Next(arg); if (o.LocalIp is null) return (o, "--local-ip needs this machine's IP address"); break;
+                case "--virtual": o.Virtual = true; break;
+                case "--allow-remove": o.AllowRemove = true; break;
                 case "--data-dir": o.DataDir = Next(arg); if (o.DataDir is null) return (o, "--data-dir needs a path"); break;
                 case "--category": o.Category = Next(arg); if (o.Category is null) return (o, "--category needs a category id"); break;
                 case "--all-versions": o.AllVersions = true; break;
@@ -89,7 +98,9 @@ public sealed class CliOptions
                 }
                 case "--partner": o.Partner = true; break;
                 case "--new-id": o.NewId = true; break;
-                case "--no-launch": o.NoLaunch = true; break;
+                case "--launch": o.Launch = true; break;
+                // Not launching is the default now, as in the apps; still accepted so older scripts keep working.
+                case "--no-launch": o.Launch = false; break;
                 case "--remove-first": o.RemoveFirst = true; break;
                 case "--keep": o.Keep = true; break;
                 case "--prepare": o.Prepare = true; break;

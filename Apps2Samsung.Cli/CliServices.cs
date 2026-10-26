@@ -1,4 +1,5 @@
 using Apps2Samsung.Certificate;
+using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Install;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Localization;
@@ -15,6 +16,8 @@ public sealed class CliServices : IAsyncDisposable
     public CliOptions Options { get; }
     public Output Out { get; }
     public CliAppConfig Config { get; }
+    /// <summary>The desktop app's settings, shared through the data directory.</summary>
+    public DesktopSettings Desktop { get; }
     public HttpClient Http { get; }
     public InProcessSdbEngine Sdb { get; }
     public INetworkService Network { get; }
@@ -31,15 +34,16 @@ public sealed class CliServices : IAsyncDisposable
         CliPaths.Use(options.DataDir);
         Directory.CreateDirectory(CliPaths.CliDir);
 
-        Config = new CliAppConfig
+        Desktop = new DesktopSettings(CliPaths.DataDir);
+        Config = new CliAppConfig(Desktop)
         {
             GitHubToken = options.GitHubToken,
-            OpenAfterInstall = !options.NoLaunch,
             DeletePreviousInstall = options.RemoveFirst,
             KeepWgtFile = options.Keep,
             ShowAllJellyfinVersions = options.AllVersions,
             ForceSamsungLogin = options.ForceLogin,
-            ManualDuids = options.ManualDuids,
+            ManualDuids = string.IsNullOrWhiteSpace(options.ManualDuids) ? Desktop.ManualDuids : options.ManualDuids,
+            LocalIp = options.LocalIp ?? Desktop.LocalIp,
         };
 
         Http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
@@ -48,8 +52,12 @@ public sealed class CliServices : IAsyncDisposable
         // The engine persists its RSA auth keypair; give it the CLI's own directory.
         SdbTcpDevice.KeyDirectory = CliPaths.CliDir;
         Sdb = new InProcessSdbEngine();
+        // As on the desktop: a Tizen Studio sdb server (Device Manager, Emulator Manager) holds the
+        // TV's one debug connection, so it is cleared before every fresh connect.
+        InProcessSdbEngine.ClearCompetingSdbServer = ProcessHelper.KillSdbServers;
 
-        Network = new NetworkService(maxConcurrentHosts: 64);
+        // The desktop's extra scan IP is folded into the sweep here too.
+        Network = new NetworkService(customIpProvider: () => Desktop.UserCustomIp, maxConcurrentHosts: 64);
         Catalog = new CatalogLoader(Http, options.GitHubToken);
         Strings = new LocalizationCatalog();
 

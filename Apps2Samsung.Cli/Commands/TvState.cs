@@ -47,9 +47,14 @@ public sealed record TvState(
 
 internal static class LocalIp
 {
-    /// <summary>This machine's LAN address, or null when it cannot be told.</summary>
+    /// <summary>
+    /// This machine's LAN address, or null when it cannot be told: --local-ip, else the adapter picked
+    /// in the desktop app's Settings, else the default route (which on a VPN is the tunnel's address).
+    /// </summary>
     public static string? Of(CliServices s)
     {
+        if (!string.IsNullOrWhiteSpace(s.Config.LocalIp))
+            return s.Config.LocalIp;
         try { return s.Network.GetLocalIPAddress(); } catch { return null; }
     }
 }
