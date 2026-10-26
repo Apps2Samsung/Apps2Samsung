@@ -687,7 +687,6 @@
   "lblPartnerNeededTitle": "Partner certificate needed",
   "lblPartnerNeededBody": "This app uses restricted rights: a Samsung Partner certificate will be created for it, which needs a Samsung sign-in.",
   "lblVariantsCount": "{0} variants",
-  "lblCatalog": "Catalog",
   "lblShowAdultApps": "Show adult (18+) apps",
   "hintShowAdultApps": "Apps marked adult-only stay out of the list until this is on.",
   "lblAdultConfirmTitle": "Adult (18+) apps",

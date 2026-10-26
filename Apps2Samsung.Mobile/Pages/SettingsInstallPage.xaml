@@ -105,31 +105,6 @@
                 </Border>
                 <Label Style="{StaticResource Footnote}" Text="{l:Localize hintEveryInstall}" FontSize="12" />
 
-                <!-- The catalog (#850): entries the packages repo flags adult-only stay out of the list,
-                     the counts and the search until this is on; turning it on asks once for "I am 18 or older". -->
-                <Label Text="{l:Localize lblCatalog}" Style="{StaticResource GroupTitle}" Margin="4,16,4,0" />
-                <Border Style="{StaticResource Card}">
-                    <VerticalStackLayout>
-                        <Grid Style="{StaticResource SettingRow}">
-                            <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
-                                <Label Text="{l:Localize lblShowAdultApps}" FontSize="16" />
-                                <Label Style="{StaticResource RowHint}" Text="{l:Localize hintShowAdultApps}" />
-                            </VerticalStackLayout>
-                            <Switch Grid.Column="1" x:Name="AdultSwitch" OnColor="{DynamicResource AccentColor}"
-                                    VerticalOptions="Center" Toggled="OnAdultToggled" />
-                        </Grid>
-                        <BoxView Style="{StaticResource RowDivider}" />
-                        <Grid Style="{StaticResource SettingRow}">
-                            <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
-                                <Label Text="{l:Localize lblShowRootApps}" FontSize="16" />
-                                <Label Style="{StaticResource RowHint}" Text="{l:Localize hintShowRootApps}" />
-                            </VerticalStackLayout>
-                            <Switch Grid.Column="1" x:Name="RootSwitch" OnColor="{DynamicResource AccentColor}"
-                                    VerticalOptions="Center" Toggled="OnToggle" />
-                        </Grid>
-                    </VerticalStackLayout>
-                </Border>
-
             </VerticalStackLayout>
         </ScrollView>
     </Grid>
