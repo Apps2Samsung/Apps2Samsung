@@ -120,6 +120,15 @@
 								<MenuItem Header="{l:Localize lblAddTvByIp}" Command="{Binding AddTvByIpCommand}"/>
 								<MenuItem Header="{l:Localize lblTvInformation}" Command="{Binding ShowDeviceInfoCommand}"/>
 								<MenuItem Header="{l:Localize lblToolbox}" Command="{Binding ShowTvToolboxCommand}"/>
+								<!-- What the catalog lists (#850): turning 18+ on asks "I am 18 or older" first and
+								     the check springs back when declined. -->
+								<Separator/>
+								<MenuItem Header="{Binding Settings.Application.LblShowAdultApps}" ToggleType="CheckBox"
+								          IsChecked="{Binding Settings.Application.ShowAdultApps, Mode=TwoWay}"
+								          ToolTip.Tip="{l:Localize hintShowAdultApps}"/>
+								<MenuItem Header="{Binding Settings.Application.LblShowRootApps}" ToggleType="CheckBox"
+								          IsChecked="{Binding Settings.Application.ShowRootApps, Mode=TwoWay}"
+								          ToolTip.Tip="{l:Localize hintShowRootApps}"/>
 							</MenuFlyout>
 						</Button.Flyout>
 					</Button>

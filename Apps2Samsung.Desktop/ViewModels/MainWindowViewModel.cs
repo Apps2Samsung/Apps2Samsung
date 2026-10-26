@@ -453,13 +453,13 @@ namespace Apps2Samsung.ViewModels
             _settingsViewModel.CheckForUpdatesHandler = () => CheckForUpdatesAsync(manual: true);
             // Settings > Installing > Prepare the certificate now: for the selected TV.
             _settingsViewModel.PrepareCertificateHandler = PrepareCertificateAsync;
-            // Settings > Installing > Show adult (18+) apps (#850): the list follows at once.
+            // The catalog ⋯ > Show adult (18+) apps (#850): the list follows at once.
             _settingsViewModel.Application.ShowAdultAppsChanged += () =>
             {
                 RebuildCategories();
                 ApplyCategoryFilter();
             };
-            // Settings > Installing > Show root apps: the same.
+            // The catalog ⋯ > Show root apps: the same.
             _settingsViewModel.Application.ShowRootAppsChanged += () =>
             {
                 RebuildCategories();

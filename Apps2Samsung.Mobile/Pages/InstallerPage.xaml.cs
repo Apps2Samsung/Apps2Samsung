@@ -100,7 +100,7 @@ public partial class InstallerPage : ContentPage
 		UpdateTvCard();
 		if (_initialized)
 		{
-			// Settings > Installing > Show adult (18+) apps / Show root apps changed while this tab was hidden (#850).
+			// Show adult (18+) apps / Show root apps changed from another tab's ⋯ while this one was hidden (#850).
 			if (_listedAdult != MobileSettings.ShowAdultApps || _listedRoot != MobileSettings.ShowRootApps)
 				RebuildCatalog();
 			// "Update" on the On the TV tab (#820): that app's sheet, here where installs run.
@@ -483,26 +483,45 @@ public partial class InstallerPage : ContentPage
 	}
 
 	// The ⋯ in the top bar: what used to be the chips on the TV card, plus adding a TV the scan
-	// didn't find. TV information and the toolbox need a TV, so they only show with one.
+	// didn't find, then what the catalog lists. TV information and the toolbox need a TV, so they
+	// only show with one.
 	private async void OnMoreClicked(object? sender, EventArgs e)
 	{
-		var items = new List<MoreMenuItem>
+		var entries = new List<(MoreMenuItem Item, Func<Task> Run)>
 		{
-			new(L10n.Get("lblRescanForTvs"), MoreMenu.IconRescan),
-			new(L10n.Get("lblAddTvByIp"), MoreMenu.IconAdd),
+			(new(L10n.Get("lblRescanForTvs"), MoreMenu.IconRescan), RescanAsync),
+			(new(L10n.Get("lblAddTvByIp"), MoreMenu.IconAdd), AddTvByIpAsync),
 		};
 		if (_tv.HasTv)
 		{
-			items.Add(new(L10n.Get("lblTvInformation"), MoreMenu.IconInfo));
-			items.Add(new(L10n.Get("lblToolbox"), MoreMenu.IconToolbox));
+			entries.Add((new(L10n.Get("lblTvInformation"), MoreMenu.IconInfo), ShowDeviceInfoAsync));
+			entries.Add((new(L10n.Get("lblToolbox"), MoreMenu.IconToolbox), ShowTvToolboxAsync));
 		}
-		switch (await MoreMenu.ShowAsync(this, items.ToArray()))
-		{
-			case 0: await RescanAsync(); break;
-			case 1: await AddTvByIpAsync(); break;
-			case 2: await ShowDeviceInfoAsync(); break;
-			case 3: await ShowTvToolboxAsync(); break;
-		}
+		entries.Add((new(L10n.Get("lblShowAdultApps"), MoreMenu.IconShow, Checked: MobileSettings.ShowAdultApps), ToggleAdultAppsAsync));
+		entries.Add((new(L10n.Get("lblShowRootApps"), MoreMenu.IconShow, Checked: MobileSettings.ShowRootApps), ToggleRootAppsAsync));
+
+		var chosen = await MoreMenu.ShowAsync(this, entries.Select(entry => entry.Item).ToArray());
+		if (chosen >= 0)
+			await entries[chosen].Run();
+	}
+
+	// Show adult (18+) apps (#850): turning it on asks "I am 18 or older" first; declined, nothing
+	// is stored. The list follows at once.
+	private async Task ToggleAdultAppsAsync()
+	{
+		if (!MobileSettings.ShowAdultApps
+			&& !await DisplayAlert(L10n.Get("lblAdultConfirmTitle"), L10n.Get("lblAdultConfirmBody"), L10n.Get("lblAdultConfirmYes"), L10n.Get("keyNo")))
+			return;
+		MobileSettings.ShowAdultApps = !MobileSettings.ShowAdultApps;
+		RebuildCatalog();
+	}
+
+	// Show root apps: on by default, no confirmation (the install asks).
+	private Task ToggleRootAppsAsync()
+	{
+		MobileSettings.ShowRootApps = !MobileSettings.ShowRootApps;
+		RebuildCatalog();
+		return Task.CompletedTask;
 	}
 
 	private async Task RescanAsync()

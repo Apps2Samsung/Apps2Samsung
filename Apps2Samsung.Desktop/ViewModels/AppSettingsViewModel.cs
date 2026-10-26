@@ -95,7 +95,7 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private bool keepWGTFile;
 
-        // Settings > Installing > Show adult (18+) apps (#850). Turning it on first asks "I am 18 or
+        // The catalog ⋯ > Show adult (18+) apps (#850). Turning it on first asks "I am 18 or
         // older"; the stored value only changes once that is confirmed, and the switch springs back
         // when it is not. Fires ShowAdultAppsChanged for the main window to refilter the catalog.
         [ObservableProperty]
@@ -103,7 +103,7 @@ namespace Apps2Samsung.ViewModels
         private bool _revertingShowAdultApps;
         public event Action? ShowAdultAppsChanged;
 
-        // Settings > Installing > Show root apps: on by default, no confirmation (the install asks).
+        // The catalog ⋯ > Show root apps: on by default, no confirmation (the install asks).
         // Fires ShowRootAppsChanged for the main window to refilter the catalog.
         [ObservableProperty]
         private bool showRootApps;
