@@ -130,9 +130,13 @@ namespace Apps2Samsung.Certificate
 
         // The key has to be exportable, and it should not land in an OS key store on the way: an
         // ephemeral set keeps it in memory, which macOS does not offer (it uses a temporary keychain).
+        // iOS refuses the Exportable flag outright (#856/#857), so there the key loads ephemeral
+        // only and ExportPkcs8PrivateKey relies on the in-memory key allowing it.
         private static X509KeyStorageFlags StorageFlags =>
-            RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-                ? X509KeyStorageFlags.Exportable
-                : X509KeyStorageFlags.Exportable | X509KeyStorageFlags.EphemeralKeySet;
+            PlatformService.IsAppleMobile
+                ? X509KeyStorageFlags.EphemeralKeySet
+                : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                    ? X509KeyStorageFlags.Exportable
+                    : X509KeyStorageFlags.Exportable | X509KeyStorageFlags.EphemeralKeySet;
     }
 }

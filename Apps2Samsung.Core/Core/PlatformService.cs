@@ -60,6 +60,12 @@ namespace Apps2Samsung.Helpers.Core
         public static bool IsUnixLike => IsLinux || IsMacOS;
 
         /// <summary>
+        /// Returns true on Apple's mobile platforms (iOS, Mac Catalyst, tvOS).
+        /// </summary>
+        public static bool IsAppleMobile =>
+            OperatingSystem.IsIOS() || OperatingSystem.IsMacCatalyst() || OperatingSystem.IsTvOS();
+
+        /// <summary>
         /// Returns true if the current process architecture is ARM64.
         /// </summary>
         public static bool IsArm64 => RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
@@ -114,6 +120,15 @@ namespace Apps2Samsung.Helpers.Core
                 ? X509KeyStorageFlags.EphemeralKeySet
                 : X509KeyStorageFlags.PersistKeySet;
         }
+
+        /// <summary>
+        /// Flags for opening a signing certificate (.p12). Exportable everywhere except Apple's mobile
+        /// platforms, whose PKCS#12 loader throws on Exportable and PersistKeySet ("The PKCS#12
+        /// Exportable flag is not supported on this platform", #856/#857); there the file is opened
+        /// in memory with EphemeralKeySet alone.
+        /// </summary>
+        public static X509KeyStorageFlags SigningCertificateFlags =>
+            IsAppleMobile ? X509KeyStorageFlags.EphemeralKeySet : X509KeyStorageFlags.Exportable;
 
         /// <summary>
         /// Gets firewall configuration help text for the current platform.
