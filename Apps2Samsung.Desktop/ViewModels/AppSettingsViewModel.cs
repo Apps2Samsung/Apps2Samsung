@@ -103,6 +103,12 @@ namespace Apps2Samsung.ViewModels
         private bool _revertingShowAdultApps;
         public event Action? ShowAdultAppsChanged;
 
+        // Settings > Installing > Show root apps: on by default, no confirmation (the install asks).
+        // Fires ShowRootAppsChanged for the main window to refilter the catalog.
+        [ObservableProperty]
+        private bool showRootApps;
+        public event Action? ShowRootAppsChanged;
+
         [ObservableProperty]
         private bool darkMode;
 
@@ -143,6 +149,7 @@ namespace Apps2Samsung.ViewModels
         public string LblForceLogin => _localizationService.GetString("lblForceSamsungLogin");
         public string LblIncludeBetaUpdates => _localizationService.GetString("lblIncludeBetaUpdates");
         public string LblShowAdultApps => _localizationService.GetString("lblShowAdultApps");
+        public string LblShowRootApps => _localizationService.GetString("lblShowRootApps");
         public string LblRTL => _localizationService.GetString("lblRTL");
         public string LblKeepWGTFile => _localizationService.GetString("lblKeepWGTFile");
         public string LblSettingsHeader => _localizationService.GetString("lblSettings");
@@ -213,6 +220,7 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblForceLogin));
             OnPropertyChanged(nameof(LblIncludeBetaUpdates));
             OnPropertyChanged(nameof(LblShowAdultApps));
+            OnPropertyChanged(nameof(LblShowRootApps));
             OnPropertyChanged(nameof(LblRTL));
             OnPropertyChanged(nameof(LblKeepWGTFile));
             OnPropertyChanged(nameof(LblSettingsHeader));
@@ -242,6 +250,7 @@ namespace Apps2Samsung.ViewModels
             OpenAfterInstall = AppSettings.Default.OpenAfterInstall;
             KeepWGTFile = AppSettings.Default.KeepWGTFile;
             ShowAdultApps = AppSettings.Default.ShowAdultApps;
+            ShowRootApps = AppSettings.Default.ShowRootApps;
             DarkMode = AppSettings.Default.DarkMode;
             GitHubToken = AppSettings.Default.GitHubToken ?? string.Empty;
             ManualDuids = AppSettings.Default.ManualDuids ?? string.Empty;
@@ -558,6 +567,15 @@ namespace Apps2Samsung.ViewModels
             AppSettings.Default.ShowAdultApps = false;
             AppSettings.Default.Save();
             ShowAdultAppsChanged?.Invoke();
+        }
+
+        partial void OnShowRootAppsChanged(bool value)
+        {
+            if (value == AppSettings.Default.ShowRootApps)
+                return;
+            AppSettings.Default.ShowRootApps = value;
+            AppSettings.Default.Save();
+            ShowRootAppsChanged?.Invoke();
         }
 
         // The one-time "I am 18 or older" before adult entries get listed (#850).

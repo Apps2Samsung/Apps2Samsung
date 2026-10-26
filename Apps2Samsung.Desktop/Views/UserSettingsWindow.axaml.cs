@@ -51,6 +51,8 @@ namespace Apps2Samsung.Views
                 {
                     Classes = { "field" },
                     Text = current.TryGetValue(field.Key, out var value) ? value : string.Empty,
+                    // What an empty optional field installs with.
+                    Watermark = field.Default,
                 };
                 var error = new TextBlock { Classes = { "fielderror" }, IsVisible = false };
                 var row = new Row(field, box, error);
@@ -70,7 +72,7 @@ namespace Apps2Samsung.Views
         private bool Validate(Row row)
         {
             var key = UserSettingsStore.Validate(row.Field, row.Box.Text);
-            row.Error.Text = key is null ? string.Empty : _localize(key);
+            row.Error.Text = key is null ? string.Empty : UserSettingsStore.Message(row.Field, key, _localize);
             row.Error.IsVisible = key is not null;
             return key is null;
         }

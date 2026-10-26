@@ -118,6 +118,15 @@
                             <Switch Grid.Column="1" x:Name="AdultSwitch" OnColor="{DynamicResource AccentColor}"
                                     VerticalOptions="Center" Toggled="OnAdultToggled" />
                         </Grid>
+                        <BoxView Style="{StaticResource RowDivider}" />
+                        <Grid Style="{StaticResource SettingRow}">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblShowRootApps}" FontSize="16" />
+                                <Label Style="{StaticResource RowHint}" Text="{l:Localize hintShowRootApps}" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" x:Name="RootSwitch" OnColor="{DynamicResource AccentColor}"
+                                    VerticalOptions="Center" Toggled="OnToggle" />
+                        </Grid>
                     </VerticalStackLayout>
                 </Border>
 

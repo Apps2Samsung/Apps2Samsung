@@ -32,6 +32,7 @@ public partial class SettingsInstallPage : ContentPage
 		OpenAfterSwitch.IsToggled = MobileSettings.OpenAfterInstall;
 		KeepWgtSwitch.IsToggled = MobileSettings.KeepWgtFile;
 		AdultSwitch.IsToggled = MobileSettings.ShowAdultApps;
+		RootSwitch.IsToggled = MobileSettings.ShowRootApps;
 		_loaded = true;
 	}
 
@@ -64,6 +65,8 @@ public partial class SettingsInstallPage : ContentPage
 		MobileSettings.TryOverwrite = TryOverwriteSwitch.IsToggled;
 		MobileSettings.OpenAfterInstall = OpenAfterSwitch.IsToggled;
 		MobileSettings.KeepWgtFile = KeepWgtSwitch.IsToggled;
+		// The Install tab refilters its list the next time it shows.
+		MobileSettings.ShowRootApps = RootSwitch.IsToggled;
 	}
 
 	// Show adult (18+) apps (#850): turning it on asks "I am 18 or older" first; declined, the switch

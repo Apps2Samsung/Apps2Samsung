@@ -32,10 +32,8 @@ namespace Apps2Samsung.Catalog
                 {
                     byFile.TryGetValue(asset.FileName, out var entry);
                     var category = AppCategories.Normalize(entry?.Category);
-                    // Kept only when the block is usable: a file and at least one field.
-                    asset.UserSettings = entry?.UserSettings is { Fields.Count: > 0 } spec && !string.IsNullOrWhiteSpace(spec.File)
-                        ? spec
-                        : null;
+                    // Kept only when this version can write it (UserSettingsSpec.IsUsable).
+                    asset.UserSettings = entry?.UserSettings is { IsUsable: true } spec ? spec : null;
                     asset.PackageVersion = Clean(entry?.Version) ?? asset.PackageVersion;
                     asset.AppId = Clean(entry?.AppId) ?? asset.AppId;
                     asset.PackageId = Clean(entry?.PackageId) ?? asset.PackageId;
@@ -66,6 +64,7 @@ namespace Apps2Samsung.Catalog
                         group.Assets.Add(asset);
                         // A group is adult when any of its files is (#850).
                         group.IsAdult |= entry.Adult;
+                        group.IsRoot |= entry.IsRoot;
                         continue;
                     }
 
@@ -81,6 +80,7 @@ namespace Apps2Samsung.Catalog
                         Category = category,
                         Description = Clean(entry?.Description) ?? string.Empty,
                         IsAdult = entry?.Adult == true,
+                        IsRoot = entry?.IsRoot == true,
                     };
                     if (entry != null)
                         SourceRepo.Stamp(single, entry.Repo, entry.Host);
@@ -106,10 +106,11 @@ namespace Apps2Samsung.Catalog
         /// The entries the user gets to see (#850): everything when "Show adult (18+) apps" is on,
         /// otherwise the list without the adult entries. Both heads and the CLI run their list
         /// through this before any grouping, count, category filter or search, so with the setting
-        /// off nothing in the UI shows that those entries exist.
+        /// off nothing in the UI shows that those entries exist. "Show root apps" works the same way
+        /// for entries flagged root, but is on by default.
         /// </summary>
-        public static IEnumerable<GitHubRelease> Visible(IEnumerable<GitHubRelease> entries, bool showAdult)
-            => showAdult ? entries : entries.Where(e => !e.IsAdult);
+        public static IEnumerable<GitHubRelease> Visible(IEnumerable<GitHubRelease> entries, bool showAdult, bool showRoot = true)
+            => entries.Where(e => (showAdult || !e.IsAdult) && (showRoot || !e.IsRoot));
 
         /// <summary>The entries in <paramref name="category"/> (<see cref="AppCategories.All"/> keeps everything).</summary>
         public static IEnumerable<GitHubRelease> Filter(IEnumerable<GitHubRelease> entries, string category)

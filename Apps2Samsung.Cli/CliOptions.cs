@@ -36,6 +36,8 @@ public sealed class CliOptions
     public bool Yes { get; set; }
     /// <summary>Allow the remove-and-reinstall that erases the app's data on the TV (#825); separate from <see cref="Yes"/>, as the apps ask it separately.</summary>
     public bool AllowRemove { get; set; }
+    /// <summary>Install a package the catalog flags root; separate from <see cref="Yes"/>, as the apps ask it separately.</summary>
+    public bool AllowRoot { get; set; }
     public bool NewId { get; set; }
 
     // Certificate
@@ -80,6 +82,7 @@ public sealed class CliOptions
                 case "--local-ip": o.LocalIp = Next(arg); if (o.LocalIp is null) return (o, "--local-ip needs this machine's IP address"); break;
                 case "--virtual": o.Virtual = true; break;
                 case "--allow-remove": o.AllowRemove = true; break;
+                case "--allow-root": o.AllowRoot = true; break;
                 case "--data-dir": o.DataDir = Next(arg); if (o.DataDir is null) return (o, "--data-dir needs a path"); break;
                 case "--category": o.Category = Next(arg); if (o.Category is null) return (o, "--category needs a category id"); break;
                 case "--all-versions": o.AllVersions = true; break;

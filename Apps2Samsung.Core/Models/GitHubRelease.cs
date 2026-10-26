@@ -63,6 +63,15 @@ namespace Apps2Samsung.Models
         public bool IsAdult { get; set; }
 
         /// <summary>
+        /// True when the community catalog flags this app <c>root</c>: it gains root on the TV and
+        /// runs a service from boot, and afterwards Host PC IP has to point at 127.0.0.1, which locks
+        /// every PC out of SDB. The heads confirm before installing it and show a root badge; a
+        /// grouped app is root when any of its files is. Stamped from the catalog, never serialized.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsRoot { get; set; }
+
+        /// <summary>
         /// Download URL of the release's <c>catalog.json</c>, when the release ships one (the
         /// community bundle). Captured before the asset list is narrowed to .wgt/.tpk. Serialized
         /// (GitHub itself never sends a <c>catalog_url</c>) so the pre-resolved snapshot

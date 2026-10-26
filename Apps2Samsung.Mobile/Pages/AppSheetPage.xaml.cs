@@ -58,6 +58,7 @@ public partial class AppSheetPage : ContentPage
 		ShowSource(release);
 		PartnerNotice.IsVisible = release.RequiresPartner;
 		AdultBadge.IsVisible = release.IsAdult;
+		RootBadge.IsVisible = release.IsRoot;
 		VersionsTitle.Text = L10n.Get(release.HasVariants ? "lblVariant" : "lblVersion");
 
 		if (!string.IsNullOrWhiteSpace(previewUrl))

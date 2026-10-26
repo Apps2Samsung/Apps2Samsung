@@ -40,7 +40,8 @@ public static class Help
         list to apps whose name or description contains all of them. Categories: media, iptv, streaming,
         games, casting, tools, other. --all-versions keeps every release of an app with a version
         history (Jellyfin) instead of only the newest. Apps the catalog marks adult-only are left out
-        unless --adult is given; they are listed with (18+) then.
+        unless --adult is given; they are listed with (18+) then. Apps that gain root on the TV are
+        listed with (root); `install` needs --allow-root for them.
 
         An app that needs values from you before it installs (an API key, a server address) lists them
         under "settings"; pass them to `install` with --set key=value.
@@ -64,6 +65,8 @@ public static class Help
           -y, --yes             continue past pre-install warnings
           --allow-remove        allow removing the installed copy when only a remove-and-reinstall gets
                                 the new one on (erases the app's data on the TV)
+          --allow-root          install an app the catalog marks (root): it gains root on the TV, and
+                                afterwards Host PC IP has to be 127.0.0.1, which locks this machine out
           --no-browser          print the Samsung sign-in address instead of opening a browser
           --login-timeout <s>   how long to wait for the Samsung sign-in (default 300)
           --force-login         make a new certificate even when a usable one exists

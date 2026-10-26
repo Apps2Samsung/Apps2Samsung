@@ -100,8 +100,8 @@ public partial class InstallerPage : ContentPage
 		UpdateTvCard();
 		if (_initialized)
 		{
-			// Settings > Installing > Show adult (18+) apps changed while this tab was hidden (#850).
-			if (_listedAdult != MobileSettings.ShowAdultApps)
+			// Settings > Installing > Show adult (18+) apps / Show root apps changed while this tab was hidden (#850).
+			if (_listedAdult != MobileSettings.ShowAdultApps || _listedRoot != MobileSettings.ShowRootApps)
 				RebuildCatalog();
 			// "Update" on the On the TV tab (#820): that app's sheet, here where installs run.
 			if (CatalogStore.TakePendingOpen() is { } pending)
@@ -188,6 +188,8 @@ public partial class InstallerPage : ContentPage
 
 	// Whether the list was last built with the adult-only entries in (#850), to refilter on a change.
 	private bool _listedAdult;
+	// The same for the root entries ("Show root apps").
+	private bool _listedRoot;
 
 	// The catalog as listed: an app with several releases once, as its newest; without the
 	// adult-only entries until the user opted in (#850).
@@ -196,7 +198,8 @@ public partial class InstallerPage : ContentPage
 		var listed = new List<GitHubRelease>();
 		var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		_listedAdult = MobileSettings.ShowAdultApps;
-		foreach (var release in CommunityAppList.Visible(_allReleases, _listedAdult))
+		_listedRoot = MobileSettings.ShowRootApps;
+		foreach (var release in CommunityAppList.Visible(_allReleases, _listedAdult, _listedRoot))
 		{
 			if (!HasSeveralReleases(release.Name))
 				listed.Add(release);
@@ -347,29 +350,31 @@ public partial class InstallerPage : ContentPage
 		return grid;
 	}
 
-	// The name, with the 18+ badge after it for an adult-only app (#850); such a row is only ever
-	// built once the user opted in under Settings > Installing.
+	// The name, with the 18+ badge after it for an adult-only app (#850; such a row is only ever
+	// built once the user opted in under Settings > Installing) and the root badge for a package
+	// that gains root on the TV.
 	private static View NameLine(GitHubRelease release)
 	{
 		var name = new Label { Text = release.Name, FontAttributes = FontAttributes.Bold, LineBreakMode = LineBreakMode.TailTruncation };
-		if (!release.IsAdult)
+		if (!release.IsAdult && !release.IsRoot)
 			return name;
-		return new HorizontalStackLayout
-		{
-			Spacing = 6,
-			Children = { name, AdultBadge(fontSize: 11, padding: new Thickness(5, 0)) },
-		};
+		var line = new HorizontalStackLayout { Spacing = 6, Children = { name } };
+		if (release.IsAdult)
+			line.Children.Add(Badge("lblAdultBadge", fontSize: 11, padding: new Thickness(5, 0)));
+		if (release.IsRoot)
+			line.Children.Add(Badge("lblRootBadge", fontSize: 11, padding: new Thickness(5, 0)));
+		return line;
 	}
 
-	/// <summary>The "18+" pill the list row and the app sheet share (#850).</summary>
-	internal static Border AdultBadge(double fontSize, Thickness padding) => new()
+	/// <summary>A warning pill after an app's name ("18+" (#850), "root").</summary>
+	internal static Border Badge(string textKey, double fontSize, Thickness padding) => new()
 	{
 		StrokeThickness = 1, Stroke = new SolidColorBrush(DesignTheme.ColorOf("Warn")),
 		BackgroundColor = DesignTheme.ColorOf("WarnSoft"), Padding = padding, VerticalOptions = LayoutOptions.Center,
 		StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 6 },
 		Content = new Label
 		{
-			Text = L10n.Get("lblAdultBadge"), FontSize = fontSize, FontAttributes = FontAttributes.Bold,
+			Text = L10n.Get(textKey), FontSize = fontSize, FontAttributes = FontAttributes.Bold,
 			TextColor = DesignTheme.ColorOf("Warn"), VerticalOptions = LayoutOptions.Center,
 		},
 	};
@@ -656,6 +661,16 @@ public partial class InstallerPage : ContentPage
 
 		tvIp = guardResult.CorrectedTvIp ?? tvIp;
 
+		// A package that gains root: what that means for this TV, before anything else.
+		if (!custom && release!.IsRoot && !await DisplayAlert(
+				string.Format(L10n.Get("lblRootConfirmTitle"), release.Name),
+				string.Format(L10n.Get("lblRootConfirmBody"), release.Name),
+				L10n.Get("lblRootConfirmYes"), L10n.Get("lblCancel")))
+		{
+			SetStatus(L10n.Get("statusInstallCancelled"));
+			return;
+		}
+
 		// A community package that needs the user's own values (#791): the sheet first.
 		if (!custom && !await CollectUserSettingsAsync(release!, asset!))
 			return;
@@ -726,6 +741,9 @@ public partial class InstallerPage : ContentPage
 
 			SetStatus("✓ " + string.Format(L10n.Get("statusInstalledOpenApps"), appName));
 			await CloseProgressAsync();
+			// The step only the user can take, now that the package is on the TV.
+			if (!custom && release!.IsRoot)
+				await DisplayAlert(string.Format(L10n.Get("lblRootAfterInstallTitle"), appName), L10n.Get("lblRootAfterInstallBody"), L10n.Get("lblOk"));
 			await Navigation.PushModalAsync(new InstallCompletePage(appName));
 		}
 		catch (OperationCanceledException) when (cancel.IsCancellationRequested)

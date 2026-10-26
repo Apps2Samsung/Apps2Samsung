@@ -44,11 +44,18 @@
 			<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
 			<Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
 				<TextBlock Text="{Binding Name}" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}" VerticalAlignment="Center"/>
-				<!-- adult-only (#850) -->
-				<Border Grid.Column="1" IsVisible="{Binding IsAdult}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
-				        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblAdultOnly}">
-					<TextBlock Text="{l:Localize lblAdultBadge}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
-				</Border>
+				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+					<!-- adult-only (#850) -->
+					<Border IsVisible="{Binding IsAdult}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
+					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblAdultOnly}">
+						<TextBlock Text="{l:Localize lblAdultBadge}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
+					</Border>
+					<!-- gains root on the TV: the install asks first -->
+					<Border IsVisible="{Binding IsRoot}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
+					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblRootPackage}">
+						<TextBlock Text="{l:Localize lblRootBadge}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
+					</Border>
+				</StackPanel>
 				<!-- the star: a favorite leads the Install screen's list -->
 				<Button Grid.Column="2" Classes="icon" Content="{Binding FavoriteGlyph}" FontSize="18" ToolTip.Tip="{Binding FavoriteText}"
 				        Command="{Binding ToggleFavoriteCommand}" Width="36" Height="36" CornerRadius="18"/>
