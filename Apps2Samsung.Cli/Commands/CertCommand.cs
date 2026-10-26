@@ -19,10 +19,9 @@ public static class CertCommand
             var (_, duid, raw) = string.IsNullOrWhiteSpace(ip)
                 ? await Certificates.EnsureForDuidAsync(s, manual[0], level, ct)
                 : await Certificates.EnsureAsync(s, ip, level, ct);
-            ip ??= $"DUID {duid}";
             return s.Out.Result(
                 new { ok = true, tv = ip, duid, level = level.ToString(), profile = Certificates.Describe(level) },
-                new[] { $"{raw.ProfileName} is ready and covers {ip} (DUID {duid})." });
+                new[] { $"{raw.ProfileName} is ready and covers {(string.IsNullOrWhiteSpace(ip) ? $"DUID {duid}" : $"{ip} (DUID {duid})")}." });
         }
 
         string? tvDuid = null;
