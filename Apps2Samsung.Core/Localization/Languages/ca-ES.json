@@ -687,7 +687,6 @@
   "lblPartnerNeededTitle": "Cal un certificat Partner",
   "lblPartnerNeededBody": "Aquesta aplicació fa servir permisos restringits: s'hi crearà un certificat Partner de Samsung, que requereix iniciar la sessió a Samsung.",
   "lblVariantsCount": "{0} variants",
-  "lblCatalog": "Catàleg",
   "lblShowAdultApps": "Mostra les aplicacions per a adults (18+)",
   "hintShowAdultApps": "Les aplicacions marcades com a només per a adults no surten a la llista fins que s'activa aquesta opció.",
   "lblAdultConfirmTitle": "Aplicacions per a adults (18+)",
@@ -909,5 +908,8 @@
   "lblContributeDiscord": "Uneix-te al Discord",
   "hintContributeDiscord": "Preguntes, proves i novetats",
   "lblContributeDonate": "Fes costat a l'aplicació",
-  "hintContributeDonate": "Convideu-me a un cafè a Ko-fi"
+  "hintContributeDonate": "Convideu-me a un cafè a Ko-fi",
+  "lblContributeCategory": "Categoria",
+  "lblContributeAdult": "Només per a adults (18+)",
+  "errContributeRequired": "Obligatori"
 }
