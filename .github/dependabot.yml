@@ -15,6 +15,7 @@ updates:
       - "/Apps2Samsung.Core"
       - "/Apps2Samsung.Desktop"
       - "/Apps2Samsung.Core.Tests"
+      - "/Apps2Samsung.Cli.Tests"
     schedule:
       interval: weekly
       day: monday
