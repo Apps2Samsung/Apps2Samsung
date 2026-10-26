@@ -104,6 +104,7 @@ public partial class SettingsPage : ContentPage
 		{
 			"code" => Constants.Links.SourceCode,
 			"translate" => Constants.Links.Translate,
+			"app" => Constants.Links.ContributeApp,
 			"discord" => Constants.Links.Discord,
 			"donate" => Constants.Links.Donate,
 			_ => null,

@@ -220,6 +220,8 @@ namespace Apps2Samsung.Helpers.Core
             /// <summary>The name in the licence footer; it links to <see cref="Website"/>.</summary>
             public const string AuthorName = "Patrick Stel";
             public const string Translate = "https://crowdin.com/project/jellyfin2samsung";
+            /// <summary>The "Contribute an App" form of the community packages repo, opened directly.</summary>
+            public const string ContributeApp = "https://github.com/Apps2Samsung/tizen-community-packages/issues/new?template=contribute-app.yml";
             public const string Discord = "https://discord.gg/7mga3zh8Cv";
             public const string Donate = "https://ko-fi.com/patrickst";
         }

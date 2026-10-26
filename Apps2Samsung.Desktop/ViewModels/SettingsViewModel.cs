@@ -122,6 +122,8 @@ namespace Apps2Samsung.ViewModels
                 "M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16", Constants.Links.SourceCode));
             ContributeRows.Add(new SettingsLinkRow("lblContributeTranslate", "hintContributeTranslate", "TileGames",
                 "M4 5h8M8 3v2M6 5c0 4 3 7 6 8M10 5c0 4-3 7-6 8M13 20l3.5-9 3.5 9M14.2 17h4.6", Constants.Links.Translate));
+            ContributeRows.Add(new SettingsLinkRow("lblContributeApp", "hintContributeApp", "TileTools",
+                "M4 4h16v16H4zM12 8v8M8 12h8", Constants.Links.ContributeApp));
             ContributeRows.Add(new SettingsLinkRow("lblContributeDiscord", "hintContributeDiscord", "TileMedia",
                 "M4 5h16v11H10l-4 4v-4H4z", Constants.Links.Discord));
             ContributeRows.Add(new SettingsLinkRow("lblContributeDonate", "hintContributeDonate", "Bad",

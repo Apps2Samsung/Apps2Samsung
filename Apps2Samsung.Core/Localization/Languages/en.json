@@ -918,6 +918,8 @@
   "hintContributeCode": "Source, issues and pull requests on GitHub",
   "lblContributeTranslate": "Help translate",
   "hintContributeTranslate": "Put Apps2Samsung in your language on Crowdin",
+  "lblContributeApp": "Add an app",
+  "hintContributeApp": "Suggest a Tizen app for the catalog",
   "lblContributeDiscord": "Join the Discord",
   "hintContributeDiscord": "Questions, testing and news",
   "lblContributeDonate": "Support the app",
