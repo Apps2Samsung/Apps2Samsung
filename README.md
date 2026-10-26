@@ -21,9 +21,7 @@
   <br/>
   It handles device detection, certificates, and installation so you don’t have to fight with Tizen Studio or manual sideloading.
   <br/><br/>
-  🌐 Fully translated into <b>30 languages</b>: Afrikaans, Arabic, Catalan, Chinese (Simplified &amp; Traditional), Czech, Danish, Dutch, English,
-  Finnish, French, German, Greek, Hebrew, Hungarian, Italian, Japanese, Korean, Norwegian, Polish, Portuguese (BR &amp; PT), Romanian, Russian,
-  Serbian, Spanish, Swedish, Turkish, Ukrainian and Vietnamese. It starts in your system language and can be switched at any time.
+  🌐 Available in <b>30 languages</b> and starts in yours. Missing a word, or your language? <a href="https://crowdin.com/project/jellyfin2samsung">Help translate on Crowdin</a>.
 </p>
 
 ---
