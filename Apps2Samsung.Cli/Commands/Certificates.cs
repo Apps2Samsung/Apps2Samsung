@@ -18,6 +18,16 @@ public static class Certificates
     {
         s.Out.Progress("Reading the TV's DUID…");
         var duid = await TizenDuidReader.ReadAsync(s.Sdb, tvIp, progress: s.Out.Progress);
+        return await EnsureForDuidAsync(s, duid, level, ct);
+    }
+
+    /// <summary>
+    /// The same, for a TV whose DUID is already known (<c>cert --prepare --duids</c> without <c>--tv</c>):
+    /// nothing is read over SDB, so it works while the TV's Host PC IP points elsewhere.
+    /// </summary>
+    public static async Task<(SigningProfile Profile, string Duid, CertificateProfile Raw)> EnsureForDuidAsync(
+        CliServices s, string duid, CertificatePrivilegeLevel level, CancellationToken ct)
+    {
         var caPath = CliPaths.EnsureCaFiles();
 
         var covered = CertificateProvisioningService.HasProfile(CliPaths.CertificateStore, level)

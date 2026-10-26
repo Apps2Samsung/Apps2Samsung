@@ -13,9 +13,13 @@ public static class CertCommand
 
         if (s.Options.Prepare)
         {
-            if (string.IsNullOrWhiteSpace(ip))
-                return s.Out.Fail("--prepare needs --tv <ip>: the certificate is made for a TV's DUID", Output.Usage);
-            var (_, duid, raw) = await Certificates.EnsureAsync(s, ip, level, ct);
+            var manual = s.Options.ManualDuids.Split(new[] { ',', ';', ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (string.IsNullOrWhiteSpace(ip) && manual.Length == 0)
+                return s.Out.Fail("--prepare needs --tv <ip>, or --duids <DUID,...> for a TV whose DUID you already know", Output.Usage);
+            var (_, duid, raw) = string.IsNullOrWhiteSpace(ip)
+                ? await Certificates.EnsureForDuidAsync(s, manual[0], level, ct)
+                : await Certificates.EnsureAsync(s, ip, level, ct);
+            ip ??= $"DUID {duid}";
             return s.Out.Result(
                 new { ok = true, tv = ip, duid, level = level.ToString(), profile = Certificates.Describe(level) },
                 new[] { $"{raw.ProfileName} is ready and covers {ip} (DUID {duid})." });
