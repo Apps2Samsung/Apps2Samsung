@@ -115,6 +115,14 @@
 						</StackPanel>
 						<ToggleSwitch Grid.Column="1" MinWidth="0" VerticalAlignment="Center" IsChecked="{Binding ShowAdultApps}"/>
 					</Grid>
+					<Border Classes="rowline"/>
+					<Grid Classes="setting" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+						<StackPanel Spacing="2" VerticalAlignment="Center">
+							<TextBlock Classes="settinglabel" Text="{Binding LblShowRootApps}"/>
+							<TextBlock Classes="hint" Text="{l:Localize hintShowRootApps}"/>
+						</StackPanel>
+						<ToggleSwitch Grid.Column="1" MinWidth="0" VerticalAlignment="Center" IsChecked="{Binding ShowRootApps}"/>
+					</Grid>
 				</StackPanel>
 			</Border>
 		</StackPanel>

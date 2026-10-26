@@ -15,7 +15,8 @@ namespace Apps2Samsung.Packaging
 {
     /// <summary>
     /// Writes the user's values for a community package's <c>user_settings</c> (#791) into the
-    /// package before it is signed: one file, each field an exact-text replacement. Generic, driven
+    /// package before it is signed: each field an exact-text replacement, in the spec's one file or
+    /// in every target the field lists (a port that lands in three files). Generic, driven
     /// by the catalog, so a new package of this kind needs no C#. Both heads ask for the values in a
     /// form before the install and keep them in <see cref="IAppConfig.AppUserSettingsJson"/>
     /// through <see cref="UserSettingsStore"/>; this patcher reads them back by package file name.
@@ -36,24 +37,28 @@ namespace Apps2Samsung.Packaging
             if (patch is null || patch.Fields.Count == 0)
                 return Task.FromResult(InstallResult.SuccessResult());
 
-            var target = Path.GetFullPath(Path.Combine(ws.Root, patch.File.Replace('/', Path.DirectorySeparatorChar)));
             var root = Path.GetFullPath(ws.Root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-            if (!target.StartsWith(root, StringComparison.Ordinal) || !File.Exists(target))
-                throw new UserSettingsPatchException(packageFile, patch.File, find: null);
-
-            var text = File.ReadAllText(target);
-            foreach (var field in patch.Fields)
+            // One read and one write per file, in the order the spec names them.
+            foreach (var file in patch.Edits().GroupBy(e => e.File, StringComparer.Ordinal))
             {
-                // A missing find means upstream changed the file: installing would hand the TV a
-                // package that silently can't connect, so stop here and say which text is gone.
-                if (!text.Contains(field.Find, StringComparison.Ordinal))
-                    throw new UserSettingsPatchException(packageFile, patch.File, field.Find);
-                // Every occurrence: a value that appears twice in a config file is still one setting.
-                text = text.Replace(field.Find, field.Replace.Replace("{value}", UserSettingsStore.Escape(field, field.Value)), StringComparison.Ordinal);
+                var target = Path.GetFullPath(Path.Combine(ws.Root, file.Key.Replace('/', Path.DirectorySeparatorChar)));
+                if (!target.StartsWith(root, StringComparison.Ordinal) || !File.Exists(target))
+                    throw new UserSettingsPatchException(packageFile, file.Key, find: null);
+
+                var text = File.ReadAllText(target);
+                foreach (var edit in file)
+                {
+                    // A missing find means upstream changed the file: installing would hand the TV a
+                    // package that silently can't connect, so stop here and say which text is gone.
+                    if (!text.Contains(edit.Find, StringComparison.Ordinal))
+                        throw new UserSettingsPatchException(packageFile, file.Key, edit.Find);
+                    // Every occurrence: a value that appears twice in a config file is still one setting.
+                    text = text.Replace(edit.Find, edit.Replace.Replace("{value}", UserSettingsStore.Escape(edit.Type, edit.Replace, edit.Value)), StringComparison.Ordinal);
+                }
+                File.WriteAllText(target, text);
+                // Keys only: a value can be a credential (Telegram's API hash).
+                System.Diagnostics.Trace.WriteLine($"[UserSettings] {packageFile}: wrote {string.Join(", ", file.Select(e => e.Key).Distinct())} into {file.Key}");
             }
-            File.WriteAllText(target, text);
-            // Keys only: a value can be a credential (Telegram's API hash).
-            System.Diagnostics.Trace.WriteLine($"[UserSettings] {packageFile}: wrote {string.Join(", ", patch.Fields.Select(f => f.Key))} into {patch.File}");
             return Task.FromResult(InstallResult.SuccessResult());
         }
     }
@@ -80,15 +85,26 @@ namespace Apps2Samsung.Packaging
         public string? Find { get; }
     }
 
-    /// <summary>One field as stored: the spec's find/replace with the user's value.</summary>
+    /// <summary>One field as stored: the spec's find/replace (or targets) with the user's value.</summary>
     public sealed class UserSettingsPatchField
     {
         public string Key { get; set; } = "";
         public string Type { get; set; } = "text";
         public string Find { get; set; } = "";
         public string Replace { get; set; } = "";
+        /// <summary>Every place the value goes, when the spec lists targets instead of one file.</summary>
+        public List<UserSettingsTarget>? Targets { get; set; }
         public string Value { get; set; } = "";
+        /// <summary>
+        /// The user left the field empty and <see cref="Value"/> is the spec's default: written into
+        /// the package, but not offered back in the form, so a later default change still applies.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool IsDefault { get; set; }
     }
+
+    /// <summary>One replacement the patcher makes: a file, the text in it, and what goes there.</summary>
+    public sealed record UserSettingsEdit(string Key, string Type, string File, string Find, string Replace, string Value);
 
     /// <summary>What <see cref="IAppConfig.AppUserSettingsJson"/> holds for one package file.</summary>
     public sealed class UserSettingsPatch
@@ -96,10 +112,16 @@ namespace Apps2Samsung.Packaging
         public string File { get; set; } = "";
         public List<UserSettingsPatchField> Fields { get; set; } = new();
 
-        /// <summary>The stored values by key, for prefilling the form.</summary>
+        /// <summary>The values the user typed, by key, for prefilling the form; defaults left out.</summary>
         [JsonIgnore]
         public IReadOnlyDictionary<string, string> Values =>
-            Fields.ToDictionary(f => f.Key, f => f.Value, StringComparer.OrdinalIgnoreCase);
+            Fields.Where(f => !f.IsDefault).ToDictionary(f => f.Key, f => f.Value, StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>Every replacement, in spec order: a field's targets, or its find/replace in <see cref="File"/>.</summary>
+        public IEnumerable<UserSettingsEdit> Edits() =>
+            Fields.SelectMany(f => f.Targets is { Count: > 0 } targets
+                ? targets.Select(t => new UserSettingsEdit(f.Key, f.Type, t.File, t.Find, t.Replace, f.Value))
+                : new[] { new UserSettingsEdit(f.Key, f.Type, File, f.Find, f.Replace, f.Value) });
     }
 
     /// <summary>
@@ -140,8 +162,9 @@ namespace Apps2Samsung.Packaging
 
         /// <summary>
         /// Stores <paramref name="values"/> for <paramref name="packageFile"/> together with the
-        /// current spec's find/replace pairs, so the install needs nothing but this JSON. Fields the
-        /// user left empty (allowed only when not required) are left out, and their text untouched.
+        /// current spec's find/replace pairs (or targets), so the install needs nothing but this
+        /// JSON. A field the user left empty (allowed only when not required) takes the spec's
+        /// default when it has one; without one it is left out, and its text untouched.
         /// </summary>
         public static string Set(string? json, string packageFile, UserSettingsSpec spec, IReadOnlyDictionary<string, string> values)
         {
@@ -150,6 +173,9 @@ namespace Apps2Samsung.Packaging
             foreach (var field in spec.Fields)
             {
                 var value = values.TryGetValue(field.Key, out var v) ? v.Trim() : string.Empty;
+                var isDefault = value.Length == 0 && !string.IsNullOrWhiteSpace(field.Default);
+                if (isDefault)
+                    value = field.Default!.Trim();
                 if (value.Length == 0)
                     continue;
                 patch.Fields.Add(new UserSettingsPatchField
@@ -158,7 +184,9 @@ namespace Apps2Samsung.Packaging
                     Type = field.Type,
                     Find = field.Find,
                     Replace = field.Replace,
+                    Targets = field.Targets,
                     Value = value,
+                    IsDefault = isDefault,
                 });
             }
             map[packageFile] = patch;
@@ -183,6 +211,19 @@ namespace Apps2Samsung.Packaging
                 return field.Required ? "userSettingRequired" : null;
             if (field.IsNumber && !v.All(char.IsDigit))
                 return "userSettingDigitsOnly";
+            if (field.IsNumber && (field.Min is not null || field.Max is not null || field.Disallow is { Count: > 0 }))
+            {
+                // Digits only by now, so a failed parse is a number too large for any range.
+                var inRange = long.TryParse(v, out var n)
+                    && (field.Min is null || n >= field.Min)
+                    && (field.Max is null || n <= field.Max);
+                if (!inRange)
+                    return field.Min is not null && field.Max is not null ? "userSettingRange"
+                        : field.Min is not null ? "userSettingMin"
+                        : "userSettingMax";
+                if (field.Disallow?.Contains(n) == true)
+                    return "userSettingNotAllowed";
+            }
             if (!string.IsNullOrEmpty(field.Pattern))
             {
                 try
@@ -202,18 +243,29 @@ namespace Apps2Samsung.Packaging
         }
 
         /// <summary>
+        /// The text for a <see cref="Validate"/> key: <paramref name="localize"/>'s string with the
+        /// field's <c>min</c> as {0} and <c>max</c> as {1}, for the range messages.
+        /// </summary>
+        public static string Message(UserSettingsField field, string key, Func<string, string> localize) =>
+            string.Format(localize(key), field.Min, field.Max);
+
+        /// <summary>
         /// The value as it goes into the file. <c>{value}</c> is substituted as-is, except that when
         /// the replacement text puts it inside a quoted string (the character right before
         /// <c>{value}</c> is <c>'</c> or <c>"</c>) a backslash and that quote in the value are
         /// escaped, which is right for both quoting styles. The manifests' patterns already keep
         /// quotes and backslashes out; this is the belt to that brace.
         /// </summary>
-        public static string Escape(UserSettingsPatchField field, string value)
+        public static string Escape(UserSettingsPatchField field, string value) =>
+            Escape(field.Type, field.Replace, value);
+
+        /// <inheritdoc cref="Escape(UserSettingsPatchField, string)"/>
+        public static string Escape(string type, string replace, string value)
         {
-            if (string.Equals(field.Type, "number", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(type, "number", StringComparison.OrdinalIgnoreCase))
                 return value;
-            var at = field.Replace.IndexOf("{value}", StringComparison.Ordinal);
-            var quote = at > 0 ? field.Replace[at - 1] : '\0';
+            var at = replace.IndexOf("{value}", StringComparison.Ordinal);
+            var quote = at > 0 ? replace[at - 1] : '\0';
             if (quote != '\'' && quote != '"')
                 return value;
             return value.Replace("\\", "\\\\").Replace(quote.ToString(), "\\" + quote);

@@ -202,6 +202,11 @@
 																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblAdultOnly}">
 																						<TextBlock Text="{l:Localize lblAdultBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
 																					</Border>
+																					<!-- gains root on the TV: the install asks first -->
+																					<Border IsVisible="{Binding IsRoot}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
+																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblRootPackage}">
+																						<TextBlock Text="{l:Localize lblRootBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
+																					</Border>
 																				</StackPanel>
 																				<TextBlock Text="{Binding Subline}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
 																			</StackPanel>
