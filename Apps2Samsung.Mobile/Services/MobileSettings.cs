@@ -17,6 +17,7 @@ public static class MobileSettings
 	private const string KeyKeepWgt = "keep_wgt_file";
 	private const string KeyShowAllJf = "show_all_jellyfin_versions";
 	private const string KeyShowAdult = "show_adult_apps";
+	private const string KeyShowRoot = "show_root_apps";
 	private const string KeyManualDuids = "manual_duids";
 	private const string KeyTvAppChannels = "tvapp_channels_json";
 	private const string KeyImmiTvServerUrl = "immitv_server_url";
@@ -69,6 +70,13 @@ public static class MobileSettings
 	{
 		get => Preferences.Get(KeyShowAdult, false);
 		set => Preferences.Set(KeyShowAdult, value);
+	}
+
+	/// <summary>List the catalog entries flagged root (they gain root on the TV); on by default, the install asks first.</summary>
+	public static bool ShowRootApps
+	{
+		get => Preferences.Get(KeyShowRoot, true);
+		set => Preferences.Set(KeyShowRoot, value);
 	}
 
 	/// <summary>List every Jellyfin release, not just the latest (desktop: "Show all Jellyfin versions").</summary>

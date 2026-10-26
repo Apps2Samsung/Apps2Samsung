@@ -69,6 +69,13 @@ public static class InstallCommand
                     s.Out.Warn($"{release.Name} has {release.Assets.Count} variants; installing '{asset.VariantLabel}'. --file picks another: {string.Join(", ", release.Assets.Select(a => a.VariantLabel))}");
             }
 
+            // A package that gains root: only when asked for by name, as the apps ask first.
+            if (release.IsRoot && !s.Options.AllowRoot)
+                return s.Out.Fail(
+                    $"{release.Name} gains root on the TV and runs a background service from boot. After the install, set Developer Mode's Host PC IP to 127.0.0.1 and restart the TV; " +
+                    "until it is set back to this machine, nothing can reach the TV over SDB (updates and other installs included). Rerun with --allow-root to install it.",
+                    Output.Stopped);
+
             // Values the package needs before it installs (#791).
             if (asset.UserSettings is { Fields.Count: > 0 } spec)
             {
@@ -78,11 +85,11 @@ public static class InstallCommand
                     s.Options.Settings.TryGetValue(field.Key, out var value);
                     var key = UserSettingsStore.Validate(field, value);
                     if (key is not null)
-                        problems.Add($"--set {field.Key}=<{field.Type}>  {field.Label}: {s.Strings.GetString(key)}");
+                        problems.Add($"--set {field.Key}=<{field.Type}>  {field.Label}: {UserSettingsStore.Message(field, key, s.Strings.GetString)}");
                 }
                 if (problems.Count > 0)
                     return s.Out.Fail($"{release.Name} needs values before it installs{(spec.HelpUrl is null ? "" : $" (see {spec.HelpUrl})")}:\n  {string.Join("\n  ", problems)}",
-                        details: new { settings = spec.Fields.Select(f => new { f.Key, f.Label, f.Type, f.Required, f.Pattern }), spec.HelpUrl });
+                        details: new { settings = spec.Fields.Select(f => new { f.Key, f.Label, f.Type, f.Required, f.Pattern, f.Default, f.Min, f.Max, f.Disallow }), spec.HelpUrl });
                 s.Config.AppUserSettingsJson = UserSettingsStore.Set(null, asset.FileName, spec, s.Options.Settings);
             }
         }
@@ -188,7 +195,13 @@ public static class InstallCommand
                     duid,
                     launched,
                 },
-                new[] { $"Installed {appName} on {tvIp}{(renamed ? $" under package id {installedPackageId} (remembered for this TV)" : "")}{(launched ? " and launched it" : "")}." });
+                release?.IsRoot == true
+                    ? new[]
+                    {
+                        $"Installed {appName} on {tvIp}{(renamed ? $" under package id {installedPackageId} (remembered for this TV)" : "")}{(launched ? " and launched it" : "")}.",
+                        "Now set Developer Mode's Host PC IP to 127.0.0.1 and restart the TV. Until it is set back to this machine, nothing can reach the TV over SDB.",
+                    }
+                    : new[] { $"Installed {appName} on {tvIp}{(renamed ? $" under package id {installedPackageId} (remembered for this TV)" : "")}{(launched ? " and launched it" : "")}." });
         }
         catch (RemovalDeclinedException)
         {

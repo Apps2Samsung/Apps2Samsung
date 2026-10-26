@@ -13,11 +13,18 @@
                      Color="{DynamicResource HairColor}" />
             <Grid ColumnDefinitions="*,Auto,32,32" ColumnSpacing="8" Margin="0,6,0,0">
                 <Label x:Name="TitleLabel" FontSize="20" FontAttributes="Bold" LineBreakMode="WordWrap" VerticalOptions="Center" />
-                <!-- adult-only (#850) -->
-                <Border Grid.Column="1" x:Name="AdultBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
-                        Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="7,2" VerticalOptions="Center">
-                    <Label Text="{l:Localize lblAdultBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}" />
-                </Border>
+                <HorizontalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
+                    <!-- adult-only (#850) -->
+                    <Border x:Name="AdultBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
+                            Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="7,2" VerticalOptions="Center">
+                        <Label Text="{l:Localize lblAdultBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}" />
+                    </Border>
+                    <!-- gains root on the TV: the install asks first -->
+                    <Border x:Name="RootBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
+                            Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="7,2" VerticalOptions="Center">
+                        <Label Text="{l:Localize lblRootBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}" />
+                    </Border>
+                </HorizontalStackLayout>
                 <!-- the star: a favorite leads the Install tab's list -->
                 <Button Grid.Column="2" x:Name="FavoriteBtn" Text="☆" FontSize="18" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
                         MinimumWidthRequest="32" MinimumHeightRequest="32"

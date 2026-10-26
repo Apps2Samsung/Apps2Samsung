@@ -244,6 +244,7 @@ namespace Apps2Samsung.ViewModels
             public string Name => Release.Name;
             /// <summary>The 18+ badge next to the name (#850); only ever true with the setting on.</summary>
             public bool IsAdult => Release.IsAdult;
+            public bool IsRoot => Release.IsRoot;
         }
 
         /// <summary>"Show all" / "Show less" on a group.</summary>
@@ -454,6 +455,12 @@ namespace Apps2Samsung.ViewModels
             _settingsViewModel.PrepareCertificateHandler = PrepareCertificateAsync;
             // Settings > Installing > Show adult (18+) apps (#850): the list follows at once.
             _settingsViewModel.Application.ShowAdultAppsChanged += () =>
+            {
+                RebuildCategories();
+                ApplyCategoryFilter();
+            };
+            // Settings > Installing > Show root apps: the same.
+            _settingsViewModel.Application.ShowRootAppsChanged += () =>
             {
                 RebuildCategories();
                 ApplyCategoryFilter();
@@ -1030,9 +1037,21 @@ namespace Apps2Samsung.ViewModels
                     if(SelectedRelease == null || SelectedDevice == null)
                         return;
 
+                    // A package that gains root: what that means for this TV, before anything else.
+                    if (SelectedRelease.IsRoot && !await _dialogService.ShowConfirmationAsync(
+                            string.Format(L("lblRootConfirmTitle"), SelectedRelease.Name),
+                            string.Format(L("lblRootConfirmBody"), SelectedRelease.Name),
+                            L("lblRootConfirmYes"), L("lblCancel")))
+                    {
+                        SetStatus("statusInstallCancelled");
+                        return;
+                    }
+
                     // A community package that needs the user's own values (#791): the form first.
                     if (!await CollectUserSettingsAsync(SelectedRelease, SelectedAsset ?? SelectedRelease.Assets.FirstOrDefault()))
                         return;
+
+                    var rootRelease = SelectedRelease.IsRoot ? SelectedRelease : null;
 
                     string? downloadPath = await _packageHelper.DownloadReleaseAsync(
                         SelectedRelease,
@@ -1041,9 +1060,10 @@ namespace Apps2Samsung.ViewModels
 
                     if (!string.IsNullOrEmpty(downloadPath))
                     {
+                        var installed = false;
                         try
                         {
-                            await _packageHelper.InstallPackageAsync(
+                            installed = await _packageHelper.InstallPackageAsync(
                                 downloadPath,
                                 SelectedDevice,
                                 _samsungLoginCts.Token,
@@ -1061,6 +1081,12 @@ namespace Apps2Samsung.ViewModels
 
                         if (!AppSettings.Default.KeepWGTFile)
                             _packageHelper.CleanupDownloadedPackage(downloadPath);
+
+                        // The step only the user can take, now that the package is on the TV.
+                        if (installed && rootRelease is not null)
+                            await _dialogService.ShowMessageAsync(
+                                string.Format(L("lblRootAfterInstallTitle"), rootRelease.Name),
+                                L("lblRootAfterInstallBody"));
                     }
                 }
             }
@@ -1417,10 +1443,11 @@ namespace Apps2Samsung.ViewModels
             }
         }
 
-        // Everything loaded minus the adult-only entries while the setting is off (#850): what the
-        // category dropdown, the counts, the grouped list and the search are built from.
+        // Everything loaded minus the adult-only entries while the setting is off (#850), and the
+        // root ones while "Show root apps" is off: what the category dropdown, the counts, the
+        // grouped list and the search are built from.
         private List<GitHubRelease> VisibleReleases =>
-            CommunityAppList.Visible(_allReleases, AppSettings.Default.ShowAdultApps).ToList();
+            CommunityAppList.Visible(_allReleases, AppSettings.Default.ShowAdultApps, AppSettings.Default.ShowRootApps).ToList();
 
         // The synthetic "Custom WGT / TPK" row: one instance, so the selection survives a re-filter.
         private GitHubRelease CustomEntry => _customEntry ??= new GitHubRelease

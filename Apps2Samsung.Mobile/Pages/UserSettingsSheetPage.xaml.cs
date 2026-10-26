@@ -43,6 +43,8 @@ public partial class UserSettingsSheetPage : ContentPage
 			{
 				Text = current.TryGetValue(field.Key, out var value) ? value : string.Empty,
 				Keyboard = field.IsNumber ? Keyboard.Numeric : Keyboard.Plain,
+				// What an empty optional field installs with.
+				Placeholder = field.Default,
 				BackgroundColor = Colors.Transparent,
 			};
 			var box = new Border { Style = (Style)Resources["Field"], Content = entry };
@@ -58,7 +60,7 @@ public partial class UserSettingsSheetPage : ContentPage
 	private bool Validate(Row row)
 	{
 		var key = UserSettingsStore.Validate(row.Field, row.Entry.Text);
-		row.Error.Text = key is null ? string.Empty : L10n.Get(key);
+		row.Error.Text = key is null ? string.Empty : UserSettingsStore.Message(row.Field, key, L10n.Get);
 		row.Error.IsVisible = key is not null;
 		return key is null;
 	}

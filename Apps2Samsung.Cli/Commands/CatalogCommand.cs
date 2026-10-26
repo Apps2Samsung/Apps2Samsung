@@ -6,8 +6,9 @@ namespace Apps2Samsung.Cli.Commands;
 public static class CatalogCommand
 {
     public sealed record FileInfo(string File, string? Variant, string? Version, long Size, bool Default, IReadOnlyList<SettingInfo>? Settings);
-    public sealed record SettingInfo(string Key, string Label, string Type, bool Required, string? Pattern, string? HelpUrl);
-    public sealed record Entry(string Name, string Category, string Description, bool RequiresPartner, bool HasVariants, bool Adult,
+    public sealed record SettingInfo(string Key, string Label, string Type, bool Required, string? Pattern, string? HelpUrl,
+        string? Default, long? Min, long? Max, IReadOnlyList<long>? Disallow);
+    public sealed record Entry(string Name, string Category, string Description, bool RequiresPartner, bool HasVariants, bool Adult, bool Root,
         string? Tag, string? Published, string? Author, string? Source, IReadOnlyList<FileInfo> Files);
 
     public static async Task<int> RunAsync(CliServices s, CancellationToken ct)
@@ -36,7 +37,7 @@ public static class CatalogCommand
             text.Add("No app matches.");
         foreach (var e in list)
         {
-            var flags = (e.RequiresPartner ? " (partner certificate)" : "") + (e.Adult ? " (18+)" : "");
+            var flags = (e.RequiresPartner ? " (partner certificate)" : "") + (e.Adult ? " (18+)" : "") + (e.Root ? " (root)" : "");
             text.Add($"{e.Name}  [{e.Category}]{flags}");
             if (e.Description.Length > 0)
                 text.Add($"    {e.Description}");
@@ -49,7 +50,7 @@ public static class CatalogCommand
                     text.Add($"    - {label}{version}{(f.Default ? " (default)" : "")}");
                     if (f.Settings is not null)
                         foreach (var st in f.Settings)
-                            text.Add($"        --set {st.Key}=…  {st.Label}{(st.Required ? "" : " (optional)")}{(st.HelpUrl is null ? "" : $"  see {st.HelpUrl}")}");
+                            text.Add($"        --set {st.Key}=…  {st.Label}{(st.Required ? "" : st.Default is null ? " (optional)" : $" (optional, default {st.Default})")}{(st.HelpUrl is null ? "" : $"  see {st.HelpUrl}")}");
                 }
             }
             else if (e.Files.Count == 1)
@@ -74,9 +75,10 @@ public static class CatalogCommand
             a.Size,
             a.IsDefault || (r.Assets.Count == 1),
             a.UserSettings is null ? null : a.UserSettings.Fields.Select(f =>
-                new SettingInfo(f.Key, f.Label, f.Type, f.Required, f.Pattern, a.UserSettings.HelpUrl)).ToList())).ToList();
+                new SettingInfo(f.Key, f.Label, f.Type, f.Required, f.Pattern, a.UserSettings.HelpUrl,
+                    f.Default, f.Min, f.Max, f.Disallow)).ToList())).ToList();
         var published = DateTime.TryParse(r.PublishedAt, out var date) ? date.ToString("yyyy-MM-dd") : null;
-        return new Entry(r.Name, r.Category, r.Description, r.RequiresPartner, r.HasVariants, r.IsAdult,
+        return new Entry(r.Name, r.Category, r.Description, r.RequiresPartner, r.HasVariants, r.IsAdult, r.IsRoot,
             string.IsNullOrWhiteSpace(r.TagName) ? null : r.TagName, published, r.Author, r.SourceUrl, files);
     }
 }

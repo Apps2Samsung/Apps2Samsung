@@ -62,11 +62,29 @@ namespace Apps2Samsung.Models
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool Adult { get; set; }
+
+        /// <summary>
+        /// Install-time properties the heads warn about before installing (<c>flags</c> in the
+        /// manifest). Null for the usual package; written only when present, so the snapshot
+        /// round-trips it as-is.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public List<string>? Flags { get; set; }
+
+        /// <summary>
+        /// The package gains root on the TV and runs a service from boot (<c>flags: ["root"]</c>).
+        /// After install the user points Developer Mode's Host PC IP at 127.0.0.1, which locks every
+        /// PC out of SDB until it is set back, so the heads confirm first.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsRoot => Flags?.Exists(f => string.Equals(f, "root", System.StringComparison.OrdinalIgnoreCase)) == true;
     }
 
     /// <summary>
-    /// A package's <c>user_settings</c> block: one file in the package, and the fields whose values
-    /// go into it by exact-text replacement. The schema lives in tizen-community-packages
+    /// A package's <c>user_settings</c> block: the fields whose values go into the package by
+    /// exact-text replacement. Two forms, never mixed: <see cref="File"/> plus find/replace on every
+    /// field (one file), or <see cref="UserSettingsField.Targets"/> on every field and no file (a
+    /// value that lands in several places). The schema lives in tizen-community-packages
     /// (<c>packages.schema.json</c>); the catalog copies the block through as-is.
     /// </summary>
     public sealed class UserSettingsSpec
@@ -75,10 +93,33 @@ namespace Apps2Samsung.Models
         [JsonPropertyName("help_url")]
         public string? HelpUrl { get; set; }
 
-        /// <summary>The file to patch, relative to the package root.</summary>
+        /// <summary>The file to patch, relative to the package root. Empty when the fields use targets.</summary>
         public string File { get; set; } = "";
 
         public List<UserSettingsField> Fields { get; set; } = new();
+
+        /// <summary>
+        /// Whether the block can be applied: at least one field, and either a file with find/replace
+        /// on every field or targets on every field. Anything else is a block this version can't
+        /// write and is dropped, so the package installs as if it declared none.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsUsable =>
+            Fields.Count > 0
+            && (string.IsNullOrWhiteSpace(File)
+                ? Fields.TrueForAll(f => f.Targets is { Count: > 0 } t && t.TrueForAll(x => x.IsUsable))
+                : Fields.TrueForAll(f => f.Targets is null && !string.IsNullOrEmpty(f.Find)));
+    }
+
+    /// <summary>One place a field's value goes: a file in the package and the exact text replaced there.</summary>
+    public sealed class UserSettingsTarget
+    {
+        public string File { get; set; } = "";
+        public string Find { get; set; } = "";
+        public string Replace { get; set; } = "";
+
+        [JsonIgnore]
+        public bool IsUsable => !string.IsNullOrWhiteSpace(File) && !string.IsNullOrEmpty(Find);
     }
 
     public sealed class UserSettingsField
@@ -95,6 +136,15 @@ namespace Apps2Samsung.Models
         public string Find { get; set; } = "";
         /// <summary>What replaces it; <c>{value}</c> is the user's value.</summary>
         public string Replace { get; set; } = "";
+        /// <summary>Every place the value goes, instead of the spec's file plus <see cref="Find"/>/<see cref="Replace"/>.</summary>
+        public List<UserSettingsTarget>? Targets { get; set; }
+        /// <summary>Written instead when the field is optional and left empty, so every find is always replaced.</summary>
+        public string? Default { get; set; }
+        /// <summary>number only: the smallest and largest accepted value, inclusive.</summary>
+        public long? Min { get; set; }
+        public long? Max { get; set; }
+        /// <summary>number only: values the form rejects (ports the TV itself uses).</summary>
+        public List<long>? Disallow { get; set; }
 
         public bool IsNumber => string.Equals(Type, "number", System.StringComparison.OrdinalIgnoreCase);
     }
