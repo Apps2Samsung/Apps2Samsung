@@ -62,6 +62,10 @@ jobs:
       - name: Test Core
         run: dotnet test Apps2Samsung.Core.Tests/Apps2Samsung.Core.Tests.csproj -c Release
 
+      # The CLI's own tests: what it shares with the desktop through settings.json.
+      - name: Test the CLI
+        run: dotnet test Apps2Samsung.Cli.Tests/Apps2Samsung.Cli.Tests.csproj -c Release
+
   android:
     name: Mobile (Android)
     runs-on: ubuntu-latest
