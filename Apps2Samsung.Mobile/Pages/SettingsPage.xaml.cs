@@ -97,9 +97,15 @@ public partial class SettingsPage : ContentPage
 
 	private async void OnAdvancedTapped(object? sender, TappedEventArgs e) => await Navigation.PushAsync(new SettingsAdvancedPage());
 
-	// The Contribute rows (#820): the row's CommandParameter names the page.
+	// The Contribute rows (#820): the row's CommandParameter names the page. Add an app opens
+	// the form first; it sends the user on to GitHub itself.
 	private async void OnLinkTapped(object? sender, TappedEventArgs e)
 	{
+		if (e.Parameter is "app")
+		{
+			await Navigation.PushModalAsync(new ContributeAppSheetPage());
+			return;
+		}
 		var url = e.Parameter switch
 		{
 			"code" => Constants.Links.SourceCode,

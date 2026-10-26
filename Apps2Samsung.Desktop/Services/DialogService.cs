@@ -356,6 +356,14 @@ namespace Apps2Samsung.Services
                     await new AccountEmailWindow(Localize).ShowDialog(window);
             });
 
+        public Task ShowContributeAppAsync() =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var window = GetMainWindow();
+                if (window != null)
+                    await new ContributeAppWindow(Localize).ShowDialog(window);
+            });
+
         public Task<bool> ShowDevModeGuideAsync(
             NetworkDevice device,
             string tvName,

@@ -218,6 +218,20 @@
                         <BoxView Style="{StaticResource HubDivider}" />
                         <Grid Style="{StaticResource HubRow}">
                             <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnLinkTapped" CommandParameter="app" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource TileToolsColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M4,4 L20,4 L20,20 L4,20 Z M12,8 L12,16 M8,12 L16,12" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblContributeApp}" FontSize="16" />
+                                <Label Text="{l:Localize hintContributeApp}" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource ExternalLink}" />
+                        </Grid>
+                        <BoxView Style="{StaticResource HubDivider}" />
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="OnLinkTapped" CommandParameter="discord" />
                             </Grid.GestureRecognizers>
                             <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource TileMediaColor}">

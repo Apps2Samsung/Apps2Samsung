@@ -38,6 +38,9 @@ namespace Apps2Samsung.Interfaces
         /// <summary>The Samsung account has no email address: what to do, and the account page.</summary>
         Task ShowAccountEmailMissingAsync();
 
+        /// <summary>Settings > Contribute > Add an app: the package fields, then a pull request or the issue form.</summary>
+        Task ShowContributeAppAsync();
+
         /// <summary>
         /// The Developer Mode guide for <paramref name="device"/>, re-read through
         /// <paramref name="refresh"/> while it is open. From Install (<paramref name="fromInstall"/>)
