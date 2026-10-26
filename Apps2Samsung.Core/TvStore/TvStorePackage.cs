@@ -15,10 +15,10 @@ namespace Apps2Samsung.TvStore
     public static class TvStorePackage
     {
         /// <summary>The Tizen package id, as <c>vd_applist</c> lists it under <c>app_package_name</c>.</summary>
-        public const string PackageId = "A2SStore001";
+        public const string PackageId = "A2STVStore";
 
         /// <summary>The Tizen application id: what <c>0 debug</c> and <c>0 was_kill</c> address.</summary>
-        public const string AppId = "A2SStore001.Store";
+        public const string AppId = "A2STVStore.Store";
 
         /// <summary>Where the package comes from, for a status line that tells the user to install it first.</summary>
         public const string RepositoryUrl = "https://github.com/Apps2Samsung/TV-Store";
