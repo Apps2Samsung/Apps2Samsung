@@ -638,5 +638,6 @@
   "lblTizenTubeProxyHostAutoIp": "Em branco = usar o IP da TV em que você instalar ({0})",
   "lblTizenTubeProxyHostInvalid": "Informe um endereço IP ou nome de host, opcionalmente seguido de :porta (por exemplo, 192.168.1.50).",
   "hintTizenTubeProxyHost": "O endereço é gravado no aplicativo, que deixará de funcionar se a TV receber outro IP. Reserve um IP fixo para a TV no roteador (reserva DHCP) e reinstale o TizenTube se o IP mudar.",
-  "lblAppsGroupRemovable": "Aplicativos instalados"
+  "lblAppsGroupRemovable": "Aplicativos instalados",
+  "lblContributeCategory": "Categoria"
 }
