@@ -141,6 +141,8 @@ namespace Apps2Samsung
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.TizenTubeProxyPatcher>();
             // Camera PiP: cameras → config.js window.PIP_CONFIG at install (shared Core patcher).
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.CameraPipPackagePatcher>();
+            // TV-Store: the TV's own IP in place of loopback for the page -> service calls (Tizen 10).
+            services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.TvStoreAddressPatcher>();
             // A community package's user_settings (API keys, server addresses asked for before the
             // install) → the file the catalog names, by exact-text replacement (#791).
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.UserSettingsPatcher>();
