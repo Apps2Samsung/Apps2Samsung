@@ -13,7 +13,7 @@ namespace Apps2Samsung.Mobile.Catalog;
 /// (remote → local cache → bundled fallback), then fetches each provider's GitHub releases via the
 /// shared Core <see cref="AddLatestRelease"/> (which carries a User-Agent + the settings PAT to
 /// dodge rate limits) and flattens them into a sorted list of selectable releases. Models and the
-/// fetcher live in Apps2Samsung.Core — this class is just the mobile-side loader/orchestration.
+/// fetcher live in Apps2Samsung.Core, this class is just the mobile-side loader/orchestration.
 /// </summary>
 public sealed class CatalogService
 {
@@ -25,10 +25,12 @@ public sealed class CatalogService
 	private readonly HttpClient _http;
 	private readonly AddLatestRelease _releases;
 	private readonly BuildInfoService _buildInfo;
+	private readonly DownloadStatsService _downloadStats;
 
-	public CatalogService(HttpClient http, ResolvedCatalogService resolvedCatalog)
+	public CatalogService(HttpClient http, ResolvedCatalogService resolvedCatalog, DownloadStatsService downloadStats)
 	{
 		_http = http;
+		_downloadStats = downloadStats;
 		// Mobile has no auth handler on its HttpClient, so supply the PAT here. The pre-resolved
 		// snapshot comes first either way; the PAT only matters for the providers it lacks.
 		_releases = new AddLatestRelease(http, () => MobileSettings.GitHubToken, resolvedCatalog);
@@ -50,8 +52,10 @@ public sealed class CatalogService
 	{
 		var manifest = await GetManifestAsync();
 		var providers = manifest.Providers.Where(p => !string.IsNullOrWhiteSpace(p.Url)).ToList();
+		// Fetched alongside the providers; never fails, at worst there are no counts.
+		var stats = _downloadStats.GetAsync();
 
-		// Fetch every provider concurrently — one slow/failing source no longer blocks the rest.
+		// Fetch every provider concurrently, one slow/failing source no longer blocks the rest.
 		var tasks = providers.Select(async provider =>
 		{
 			var take = provider.Take;
@@ -87,6 +91,7 @@ public sealed class CatalogService
 				}
 				entries.AddRange(releases);
 			}
+			DownloadStatsService.Stamp(entries, provider, await stats);
 
 			return (Entries: entries, Ok: ok);
 		}).ToList();

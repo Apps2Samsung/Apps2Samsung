@@ -18,6 +18,7 @@ public sealed class CatalogLoader
 
     private readonly HttpClient _http;
     private readonly AddLatestRelease _releases;
+    private readonly DownloadStatsService _downloadStats;
     private readonly string _token;
 
     public CatalogLoader(HttpClient http, string token)
@@ -26,6 +27,7 @@ public sealed class CatalogLoader
         _token = token;
         var snapshot = new ResolvedCatalogService(http, Path.Combine(CliPaths.CliDir, ResolvedCatalogService.CacheFileName));
         _releases = new AddLatestRelease(http, () => token, snapshot);
+        _downloadStats = new DownloadStatsService(http, Path.Combine(CliPaths.CliDir, DownloadStatsService.CacheFileName));
     }
 
     public sealed record Catalog(ProviderManifest Manifest, IReadOnlyList<GitHubRelease> Entries, int FailedProviders, IReadOnlySet<string> MultiVersionApps);
@@ -36,6 +38,8 @@ public sealed class CatalogLoader
         var manifest = await GetManifestAsync(ct);
         var providers = manifest.Providers.Where(p => !string.IsNullOrWhiteSpace(p.Url)).ToList();
         var multiVersion = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        // Fetched alongside the providers; never fails, at worst there are no counts.
+        var stats = _downloadStats.GetAsync(ct);
 
         var tasks = providers.Select(async provider =>
         {
@@ -65,6 +69,7 @@ public sealed class CatalogLoader
                 }
                 entries.AddRange(fetched.Releases);
             }
+            DownloadStatsService.Stamp(entries, provider, await stats);
             return (Entries: entries, fetched.Ok);
         }).ToList();
 

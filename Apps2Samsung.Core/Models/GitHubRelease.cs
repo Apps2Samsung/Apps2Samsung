@@ -33,7 +33,7 @@ namespace Apps2Samsung.Models
         public string? PrimaryDownloadUrl => Assets?.FirstOrDefault()?.DownloadUrl;
 
         /// <summary>
-        /// True when the source provider declared <c>cert_level: partner</c> — the installer then
+        /// True when the source provider declared <c>cert_level: partner</c>, the installer then
         /// auto-requests Partner signing for this package. Stamped from the manifest, not serialized.
         /// </summary>
         [JsonIgnore]
@@ -100,6 +100,13 @@ namespace Apps2Samsung.Models
         /// </summary>
         [JsonIgnore]
         public string Description { get; set; } = string.Empty;
+
+        /// <summary>
+        /// All-time downloads of this app (<c>DownloadStatsService.Stamp</c>): the "Most downloaded"
+        /// group's order and the count in its row. 0 when the counts could not be loaded.
+        /// </summary>
+        [JsonIgnore]
+        public long Downloads { get; set; }
 
         public GitHubRelease()
         {

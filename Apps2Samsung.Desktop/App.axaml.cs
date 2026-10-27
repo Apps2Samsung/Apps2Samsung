@@ -158,6 +158,10 @@ namespace Apps2Samsung
             services.AddSingleton(sp => new Apps2Samsung.Catalog.ResolvedCatalogService(
                 sp.GetRequiredService<System.Net.Http.HttpClient>(),
                 System.IO.Path.Combine(ProviderManifestService.CacheDirectory, Apps2Samsung.Catalog.ResolvedCatalogService.CacheFileName)));
+            // All-time download counts (the "Most downloaded" group), one download per hour.
+            services.AddSingleton(sp => new Apps2Samsung.Catalog.DownloadStatsService(
+                sp.GetRequiredService<System.Net.Http.HttpClient>(),
+                System.IO.Path.Combine(ProviderManifestService.CacheDirectory, Apps2Samsung.Catalog.DownloadStatsService.CacheFileName)));
             services.AddSingleton<Apps2Samsung.Catalog.AppCatalog>(sp => new Apps2Samsung.Catalog.AppCatalog(
                 new Apps2Samsung.Helpers.Core.AddLatestRelease(
                     sp.GetRequiredService<System.Net.Http.HttpClient>(),

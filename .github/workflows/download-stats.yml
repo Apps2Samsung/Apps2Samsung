@@ -1,0 +1,84 @@
+name: Download stats
+
+# Publishes all-time download counts to https://apps2samsung.com/catalog/downloads.json (GitHub
+# Pages, served from beta:/docs), for the heads' "Most downloaded" group and the count in each
+# catalog row. GitHub only counts downloads per release asset, and tizen-community-packages
+# re-uploads every app in each community-N release, so the per-release numbers reset with every
+# sync; tools/DownloadStats sums them over all releases of every provider in the manifest.
+#
+# Once a day: counts change constantly, and a commit every half hour (as the catalog snapshot
+# does when its content changes) would bury the history. The heads take a cached copy of any age.
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  push:
+    branches: [beta]
+    paths:
+      - 'tools/DownloadStats/**'
+      - 'Apps2Samsung.Core/Models/DownloadStats.cs'
+      - '.github/workflows/download-stats.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Not the catalog snapshot's group: a group keeps one pending run, so its half-hourly ticks would
+# cancel this one while it waits. The push below rebases over a snapshot commit instead.
+concurrency:
+  group: download-stats
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PUSH_TOKEN: ${{ secrets.CI_PUSH_TOKEN }}
+      STATS: docs/catalog/downloads.json
+      HISTORY: docs/catalog/downloads-history.json
+    steps:
+      - name: Check the push token is configured
+        run: |
+          set -euo pipefail
+          if [ -z "${PUSH_TOKEN:-}" ]; then
+            echo "::error::CI_PUSH_TOKEN is not set; see catalog-snapshot.yml."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          ref: beta
+          token: ${{ secrets.CI_PUSH_TOKEN }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Take the manifest from main
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin main
+          git show origin/main:third-party-apps.json > "$RUNNER_TEMP/third-party-apps.json"
+
+      - name: Sum the download counts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          dotnet run --project tools/DownloadStats -c Release -- \
+            "$RUNNER_TEMP/third-party-apps.json" "$STATS" "$HISTORY"
+
+      - name: Commit
+        run: |
+          set -euo pipefail
+          git config user.name "Patrick"
+          git config user.email "patrick@madebypatrick.nl"
+          git add "$STATS" "$HISTORY"
+          if git diff --cached --quiet; then
+            echo "Counts unchanged; nothing to publish."
+            exit 0
+          fi
+          git commit -m "chore(catalog): refresh download stats [skip ci]"
+          # The catalog snapshot may have pushed since the checkout.
+          git pull --rebase origin beta
+          git push origin beta

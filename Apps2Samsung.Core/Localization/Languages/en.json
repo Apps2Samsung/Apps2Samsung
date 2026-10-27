@@ -713,6 +713,8 @@
   "lblShowLess": "Show less",
   "lblResults": "Results",
   "lblFavorites": "Favorites",
+  "lblMostDownloaded": "Most downloaded",
+  "lblDownloadsCount": "{0} downloads",
   "lblAddFavorite": "Add to favorites",
   "lblRemoveFavorite": "Remove from favorites",
   "UpdateSheetAvailable": "{0} is available",

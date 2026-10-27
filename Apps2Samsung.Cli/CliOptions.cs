@@ -23,6 +23,8 @@ public sealed class CliOptions
     public bool AllVersions { get; set; }
     /// <summary>List the entries the catalog flags adult-only (#850); left out otherwise, as in the apps.</summary>
     public bool Adult { get; set; }
+    /// <summary>Most downloaded first, as the apps' "Most downloaded" group, instead of A-Z.</summary>
+    public bool Popular { get; set; }
     public string GitHubToken { get; set; } = Environment.GetEnvironmentVariable("GITHUB_TOKEN") ?? string.Empty;
 
     // Install
@@ -87,6 +89,7 @@ public sealed class CliOptions
                 case "--category": o.Category = Next(arg); if (o.Category is null) return (o, "--category needs a category id"); break;
                 case "--all-versions": o.AllVersions = true; break;
                 case "--adult": o.Adult = true; break;
+                case "--popular": o.Popular = true; break;
                 case "--github-token": o.GitHubToken = Next(arg) ?? string.Empty; break;
                 case "--file": o.File = Next(arg); if (o.File is null) return (o, "--file needs a file or variant name"); break;
                 case "--version": o.Version = Next(arg); if (o.Version is null) return (o, "--version needs a release tag"); break;
