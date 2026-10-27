@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Diagnostics;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Remote;
 using Apps2Samsung.Sdb;
 
 namespace Apps2Samsung.TvStore
@@ -65,14 +66,7 @@ namespace Apps2Samsung.TvStore
 
             // Debug mode hands out an inspector port only for the launch it performs itself.
             progress?.Report("lblToolboxTvStoreStopping");
-            try
-            {
-                await sdb.ShellAsync(tvIp, $"0 was_kill {TvStorePackage.AppId}").ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"[tvstore] pre-stop failed (continuing): {ex.Message}");
-            }
+            await StopAsync(sdb, tvIp, ct).ConfigureAwait(false);
 
             progress?.Report("lblToolboxTvStoreStarting");
             var session = await TizenAppDebugger.StartAsync(sdb, tvIp, TvStorePackage.AppId).ConfigureAwait(false);
@@ -106,6 +100,42 @@ namespace Apps2Samsung.TvStore
                 await session.DisposeAsync().ConfigureAwait(false);
                 throw;
             }
+        }
+
+        // Stops a running TV-Store so `0 debug` can launch it. `0 was_kill` first; a retail set refuses
+        // it ("wascmd cannot working in released image", 2019 Tizen 5.0 set, #881), and `0 debug` on
+        // an app that is still open then never answers, which made Arm hang whenever TV-Store was on
+        // screen. The TV's REST API closes it on those sets, so that is the fallback, and the app is
+        // given a few seconds to be gone before the debug launch.
+        private static async Task StopAsync(ISdbEngine sdb, string tvIp, CancellationToken ct)
+        {
+            try
+            {
+                var kill = await sdb.ShellAsync(tvIp, $"0 was_kill {TvStorePackage.AppId}").ConfigureAwait(false);
+                Trace.WriteLine($"[tvstore] was_kill: {kill.Output.Trim()}");
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[tvstore] was_kill failed (continuing): {ex.Message}");
+            }
+
+            if (await SamsungRemoteApps.IsRunningAsync(tvIp, TvStorePackage.AppId, ct).ConfigureAwait(false) != true)
+                return;
+
+            Trace.WriteLine("[tvstore] still running after was_kill; closing it over the REST API");
+            if (!await SamsungRemoteApps.TerminateAsync(tvIp, TvStorePackage.AppId, ct).ConfigureAwait(false))
+            {
+                Trace.WriteLine("[tvstore] the REST close was refused; the debug launch may not answer");
+                return;
+            }
+
+            for (var i = 0; i < 10; i++)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(500), ct).ConfigureAwait(false);
+                if (await SamsungRemoteApps.IsRunningAsync(tvIp, TvStorePackage.AppId, ct).ConfigureAwait(false) != true)
+                    return;
+            }
+            Trace.WriteLine("[tvstore] TV-Store still reports running 5 s after the REST close");
         }
 
         /// <summary>The service's own status: whether a certificate is stored, and the IP it uses.</summary>

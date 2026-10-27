@@ -8,6 +8,10 @@
 // these apps too (#820). An asset whose download URL and size are unchanged since the previous
 // snapshot keeps the fields it had, so a 30-minute cron tick downloads nothing; only a genuinely
 // new release costs its assets' bytes once.
+//
+// The same download also fills Asset.Digest (sha256:<hex>) when GitHub's API has none for the
+// asset (releases from before GitHub started recording digests): TV-Store only installs a package
+// whose hash is in the signed catalog (#881).
 
 using System.Diagnostics;
 using Apps2Samsung.Models;
@@ -38,11 +42,13 @@ internal static class ManifestInfo
                     continue;
                 }
 
-                if (known.TryGetValue(asset.DownloadUrl, out var old) && old.Size == asset.Size)
+                if (known.TryGetValue(asset.DownloadUrl, out var old) && old.Size == asset.Size &&
+                    (asset.Digest is not null || old.Digest is not null))
                 {
                     asset.PackageVersion = old.PackageVersion;
                     asset.AppId = old.AppId;
                     asset.PackageId = old.PackageId;
+                    asset.Digest ??= old.Digest;
                     reused++;
                     continue;
                 }
@@ -55,6 +61,12 @@ internal static class ManifestInfo
                         response.EnsureSuccessStatusCode();
                         await using var file = File.Create(tmp);
                         await response.Content.CopyToAsync(file);
+                    }
+
+                    if (asset.Digest is null)
+                    {
+                        await using var read = File.OpenRead(tmp);
+                        asset.Digest = "sha256:" + Convert.ToHexStringLower(await System.Security.Cryptography.SHA256.HashDataAsync(read));
                     }
 
                     var info = await WgtManifest.ReadPackageInfoAsync(tmp);
