@@ -70,5 +70,54 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+
+	<!-- .wgt and .tpk (Tizen packages; zip files inside) have no uniform type on iOS. Declaring
+	     them registers one when the app is installed, so the document picker
+	     (LocalFilePicker.iOS.cs) can allow them by name: a file of a type the system doesn't know
+	     is greyed out in the picker and can't be chosen. Imported, not exported: the formats are
+	     Tizen's, not ours. -->
+	<key>UTImportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>org.tizen.widget-package</string>
+			<key>UTTypeDescription</key>
+			<string>Tizen web app package</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.pkware.zip-archive</string>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>wgt</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/widget</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>org.tizen.package</string>
+			<key>UTTypeDescription</key>
+			<string>Tizen app package</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.pkware.zip-archive</string>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>tpk</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>
