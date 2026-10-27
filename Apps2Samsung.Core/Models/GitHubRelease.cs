@@ -124,6 +124,15 @@ namespace Apps2Samsung.Models
         [JsonPropertyName("size")]
         public long Size { get; set; }
 
+        /// <summary>
+        /// The file's SHA-256 as <c>sha256:&lt;hex&gt;</c>: GitHub's releases API reports it per asset,
+        /// and the snapshot tool computes it for an asset GitHub has none for. TV-Store installs a
+        /// download only when its bytes match this hash from the signed catalog (#881); null in a
+        /// live listing of an old release.
+        /// </summary>
+        [JsonPropertyName("digest")]
+        public string? Digest { get; set; }
+
         [JsonIgnore]
         public bool IsDefault => FileName.Equals("Jellyfin.wgt", StringComparison.OrdinalIgnoreCase);
 

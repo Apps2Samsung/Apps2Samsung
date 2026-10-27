@@ -15,6 +15,13 @@ name: Catalog snapshot
 # tizen-community-packages fires `repository_dispatch` (event community-release) at the end of its
 # sync workflow, right after a new community bundle is released, so a new bundle shows up in the
 # heads within a minute instead of at the next half-hour tick.
+#
+# Next to it goes resolved.json.signed for TV-Store (#881): line 1 is the base64 RSA-SHA256
+# signature of resolved.json made with the CATALOG_SIGNING_KEY secret, the rest is resolved.json
+# byte for byte. One file, so a Pages deploy can never pair a new catalog with an old signature.
+# The TVs cannot validate HTTPS (their CA store is too old), so TV-Store trusts the catalog only
+# through this signature, and a package only through the SHA-256 the catalog carries for it.
+# The matching public key is built into TV-Store (tizen-app/service/catalog-key.js).
 on:
   schedule:
     - cron: '*/30 * * * *'
@@ -44,6 +51,7 @@ jobs:
     env:
       PUSH_TOKEN: ${{ secrets.CI_PUSH_TOKEN }}
       SNAPSHOT: docs/catalog/resolved.json
+      SIGNED: docs/catalog/resolved.json.signed
     steps:
       - name: Check the push token is configured
         run: |
@@ -82,20 +90,51 @@ jobs:
           set -euo pipefail
           dotnet run --project tools/CatalogSnapshot -c Release -- "$RUNNER_TEMP/third-party-apps.json" "$SNAPSHOT"
 
+      - name: Sign the catalog for TV-Store
+        env:
+          CATALOG_SIGNING_KEY: ${{ secrets.CATALOG_SIGNING_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CATALOG_SIGNING_KEY:-}" ]; then
+            # The heads don't need the signature; publish their snapshot anyway. TV-Store refuses
+            # a signed catalog older than 7 days, so this has to be fixed within the week.
+            echo "::warning::CATALOG_SIGNING_KEY is not set; $SIGNED is not refreshed (TV-Store keeps the last signed catalog)."
+            exit 0
+          fi
+          KEY="$RUNNER_TEMP/catalog-key.pem"
+          ( umask 077 && printf '%s\n' "$CATALOG_SIGNING_KEY" > "$KEY" )
+          openssl dgst -sha256 -sign "$KEY" -out "$RUNNER_TEMP/resolved.sig" "$SNAPSHOT"
+          # Prove the pair before publishing: the same check TV-Store makes, with the public half.
+          openssl pkey -in "$KEY" -pubout -out "$RUNNER_TEMP/catalog-pub.pem"
+          openssl dgst -sha256 -verify "$RUNNER_TEMP/catalog-pub.pem" -signature "$RUNNER_TEMP/resolved.sig" "$SNAPSHOT"
+          rm -f "$KEY"
+          { base64 -w0 "$RUNNER_TEMP/resolved.sig"; printf '\n'; cat "$SNAPSHOT"; } > "$SIGNED"
+          echo "Signed $SNAPSHOT -> $SIGNED ($(stat -c %s "$SIGNED") bytes)"
+
       - name: Commit when the catalog changed
         run: |
           set -euo pipefail
           # Only generatedAt differs on a quiet half hour; a commit every 30 minutes for that would
-          # bury the history. Compare with the timestamp stripped and skip the push when it matches.
+          # bury the history. Compare with the timestamp stripped and skip the push when it matches,
+          # unless the published one is more than 12 hours old: the heads ignore a snapshot older
+          # than 24 hours and TV-Store one older than 7 days, so a quiet catalog still gets a fresh
+          # timestamp (and signature) twice a day.
           if git cat-file -e "HEAD:$SNAPSHOT" 2>/dev/null \
+             && git cat-file -e "HEAD:$SIGNED" 2>/dev/null \
              && cmp -s <(git show "HEAD:$SNAPSHOT" | jq -S 'del(.generatedAt)') \
                        <(jq -S 'del(.generatedAt)' "$SNAPSHOT"); then
-            echo "Catalog unchanged; nothing to publish."
-            git checkout -- "$SNAPSHOT"
-            exit 0
+            PUBLISHED=$(git show "HEAD:$SNAPSHOT" | jq -r '.generatedAt')
+            AGE=$(( $(date +%s) - $(date -d "$PUBLISHED" +%s) ))
+            if [ "$AGE" -lt 43200 ]; then
+              echo "Catalog unchanged (published $PUBLISHED); nothing to publish."
+              git checkout -- "$SNAPSHOT" "$SIGNED"
+              exit 0
+            fi
+            echo "Catalog unchanged but published $PUBLISHED ($((AGE / 3600)) h ago); refreshing it."
           fi
           git config user.name "Patrick"
           git config user.email "patrick@madebypatrick.nl"
           git add "$SNAPSHOT"
+          if [ -f "$SIGNED" ]; then git add "$SIGNED"; fi
           git commit -m "chore(catalog): refresh resolved catalog [skip ci]"
           git push origin beta
