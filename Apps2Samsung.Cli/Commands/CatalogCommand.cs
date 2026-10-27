@@ -9,7 +9,7 @@ public static class CatalogCommand
     public sealed record SettingInfo(string Key, string Label, string Type, bool Required, string? Pattern, string? HelpUrl,
         string? Default, long? Min, long? Max, IReadOnlyList<long>? Disallow);
     public sealed record Entry(string Name, string Category, string Description, bool RequiresPartner, bool HasVariants, bool Adult, bool Root,
-        string? Tag, string? Published, string? Author, string? Source, IReadOnlyList<FileInfo> Files);
+        string? Tag, string? Published, string? Author, string? Source, long? Downloads, IReadOnlyList<FileInfo> Files);
 
     public static async Task<int> RunAsync(CliServices s, CancellationToken ct)
     {
@@ -31,6 +31,8 @@ public static class CatalogCommand
                 e.Name.Contains(w, StringComparison.OrdinalIgnoreCase) ||
                 e.Description.Contains(w, StringComparison.OrdinalIgnoreCase)));
 
+        if (s.Options.Popular)
+            entries = entries.OrderByDescending(e => e.Downloads);
         var list = entries.Select(ToEntry).ToList();
         var text = new List<string>();
         if (list.Count == 0)
@@ -38,7 +40,7 @@ public static class CatalogCommand
         foreach (var e in list)
         {
             var flags = (e.RequiresPartner ? " (partner certificate)" : "") + (e.Adult ? " (18+)" : "") + (e.Root ? " (root)" : "");
-            text.Add($"{e.Name}  [{e.Category}]{flags}");
+            text.Add($"{e.Name}  [{e.Category}]{flags}{(e.Downloads is { } n ? $"  {n:N0} downloads" : "")}");
             if (e.Description.Length > 0)
                 text.Add($"    {e.Description}");
             if (e.Files.Count > 1 || e.Files.Any(f => f.Settings is not null))
@@ -79,6 +81,7 @@ public static class CatalogCommand
                     f.Default, f.Min, f.Max, f.Disallow)).ToList())).ToList();
         var published = DateTime.TryParse(r.PublishedAt, out var date) ? date.ToString("yyyy-MM-dd") : null;
         return new Entry(r.Name, r.Category, r.Description, r.RequiresPartner, r.HasVariants, r.IsAdult, r.IsRoot,
-            string.IsNullOrWhiteSpace(r.TagName) ? null : r.TagName, published, r.Author, r.SourceUrl, files);
+            string.IsNullOrWhiteSpace(r.TagName) ? null : r.TagName, published, r.Author, r.SourceUrl,
+            r.Downloads > 0 ? r.Downloads : null, files);
     }
 }

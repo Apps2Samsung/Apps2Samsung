@@ -48,6 +48,7 @@ namespace Apps2Samsung.ViewModels
         private readonly PackageHelper _packageHelper;
         private readonly SettingsViewModel _settingsViewModel;
         private readonly AddLatestRelease _addLatestRelease;
+        private readonly DownloadStatsService _downloadStats;
         private readonly ProviderManifestService _providerManifestService;
         private CancellationTokenSource? _samsungLoginCts;
         private CancellationTokenSource? _initializationCts;
@@ -94,7 +95,7 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private string statusBar = string.Empty;
 
-        /// <summary>The TV's install percentage (0–100), shown as the bar under the status line.</summary>
+        /// <summary>The TV's install percentage (0-100), shown as the bar under the status line.</summary>
         [ObservableProperty]
         private int installProgress;
 
@@ -264,6 +265,8 @@ namespace Apps2Samsung.ViewModels
             var subline = release.HasVariants
                 ? $"{category} · {string.Format(L("lblVariantsCount"), release.Assets.Count)}"
                 : category;
+            if (release.Downloads > 0)
+                subline += $" · {string.Format(L("lblDownloadsCount"), DownloadStatsService.Compact(release.Downloads))}";
             return new CatalogRow(release, AppTiles.Letter(release.Name),
                 DesignTheme.Brush(AppTiles.ColorToken(release.Category, release.Name)), subline);
         }
@@ -434,7 +437,8 @@ namespace Apps2Samsung.ViewModels
             PackageHelper packageHelper,
             FileHelper fileHelper,
             SettingsViewModel settingsViewModel,
-            ResolvedCatalogService resolvedCatalog
+            ResolvedCatalogService resolvedCatalog,
+            DownloadStatsService downloadStats
         )
         {
             _tizenInstaller = tizenInstaller;
@@ -470,6 +474,7 @@ namespace Apps2Samsung.ViewModels
             // Snapshot-first: the pre-resolved catalog serves the manifest's providers; the GitHub
             // API is only asked for what it lacks.
             _addLatestRelease = new AddLatestRelease(httpClient, snapshot: resolvedCatalog);
+            _downloadStats = downloadStats;
             _providerManifestService = new ProviderManifestService(httpClient);
 
             // A server certificate that failed validation (#656): tell the user, once per host, the
@@ -1183,7 +1188,7 @@ namespace Apps2Samsung.ViewModels
 
         /// <summary>
         /// Opens the remote for the selected TV. Unlike the installer views this needs no Developer
-        /// Mode or debug port — only a TV on the network — so it is offered for any selected TV.
+        /// Mode or debug port, only a TV on the network, so it is offered for any selected TV.
         /// </summary>
         [RelayCommand]
         private async Task ShowRemoteAsync()
@@ -1211,7 +1216,7 @@ namespace Apps2Samsung.ViewModels
         /// <summary>
         /// Opens the TV toolbox (#635): launching an app by id and sending a documented service-menu
         /// combination. Like the remote it rides the remote channel, so it needs no Developer Mode and
-        /// is offered for any TV on the network — including one the installer itself couldn't use.
+        /// is offered for any TV on the network, including one the installer itself couldn't use.
         /// </summary>
         [RelayCommand]
         private async Task ShowTvToolboxAsync()
@@ -1344,7 +1349,7 @@ namespace Apps2Samsung.ViewModels
 
 
         // True once the release list holds something other than the always-present
-        // "Custom WGT / TPK" entry — i.e. providers actually loaded.
+        // "Custom WGT / TPK" entry, i.e. providers actually loaded.
         private bool HasRealReleases =>
             Releases.Any(r => r.Name != Constants.AppIdentifiers.CustomWgtFile);
 
@@ -1372,6 +1377,8 @@ namespace Apps2Samsung.ViewModels
             {
                 var list = new List<GitHubRelease>();
                 _multiVersionApps.Clear();
+                // Fetched alongside the providers; never fails, at worst there are no counts.
+                var stats = _downloadStats.GetAsync(cancellationToken);
                 var manifest = await _providerManifestService.GetAsync();
                 _manifest = manifest;
                 foreach (var provider in manifest.Providers)
@@ -1401,7 +1408,9 @@ namespace Apps2Samsung.ViewModels
                         // variants. Without a catalog this is the flat list it always was.
                         var catalog = fetched.Catalog
                             ?? await _addLatestRelease.GetCommunityCatalogAsync(release[0].CatalogUrl);
-                        list.AddRange(CommunityAppList.Expand(release, catalog, requiresPartner));
+                        var apps = CommunityAppList.Expand(release, catalog, requiresPartner);
+                        DownloadStatsService.Stamp(apps, provider, await stats);
+                        list.AddRange(apps);
                     }
                     else
                     {
@@ -1415,6 +1424,7 @@ namespace Apps2Samsung.ViewModels
                             if (provider.Take > 1)
                                 _multiVersionApps.Add(r.Name);
                         }
+                        DownloadStatsService.Stamp(release, provider, await stats);
                         list.AddRange(release);
                     }
                 }

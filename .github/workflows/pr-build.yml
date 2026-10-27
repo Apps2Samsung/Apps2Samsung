@@ -1,9 +1,9 @@
 name: PR build
 
 # Nothing else compiles the app on a pull request: the release workflows only run on a push to
-# beta (beta-prerelease.yml) or a merge to master (stable-release.yml). So a compile error —
+# beta (beta-prerelease.yml) or a merge to master (stable-release.yml). So a compile error,
 # most easily in Apps2Samsung.Mobile, which needs the maui-android workload that isn't installed
-# on a normal dev machine — only surfaced *after* the merge, where it breaks the beta release.
+# on a normal dev machine, only surfaced *after* the merge, where it breaks the beta release.
 # Build both heads here instead, so a PR can't merge a head that doesn't compile.
 
 # The Linux packaging job builds the .deb/.rpm/AppImage the releases ship (#589). That packaging
@@ -52,6 +52,10 @@ jobs:
       - name: Build the catalog snapshot tool
         run: dotnet build tools/CatalogSnapshot/CatalogSnapshot.csproj -c Release
 
+      # The download-stats generator shares Core's DownloadStats model, for the same reason.
+      - name: Build the download stats tool
+        run: dotnet build tools/DownloadStats/DownloadStats.csproj -c Release
+
       # Same for the plugin patch rig (run by plugin-es2015-check.yml, which only triggers on plugin paths).
       - name: Build the plugin patch rig
         run: dotnet build tools/PluginPatchRig/PluginPatchRig.csproj -c Release
@@ -93,7 +97,7 @@ jobs:
   ios:
     name: Mobile (iOS)
     # The Xcode-major image, not macos-latest: the current .NET for iOS workload (27.x) demands
-    # Xcode 27.0, and macos-latest (macOS 26) tops out at Xcode 26.6 — the first run of this job
+    # Xcode 27.0, and macos-latest (macOS 26) tops out at Xcode 26.6, the first run of this job
     # failed on exactly that. When .NET for iOS moves to the next major, bump this label with it
     # (https://github.blog/changelog/2026-10-15-xcode-27-runner-image-generally-available/).
     runs-on: xcode-27
@@ -155,7 +159,7 @@ jobs:
           sudo chmod +x /usr/local/bin/appimagetool
 
       # BOTH architectures, like the releases do. An earlier version of this job packaged x64 only,
-      # on the assumption that arm64 differed by "three metadata strings" — it doesn't: the aarch64
+      # on the assumption that arm64 differed by "three metadata strings", it doesn't: the aarch64
       # rpm needs rpmbuild --target, and packaging x64 alone let that reach a release (#590).
       - name: Publish and package (x64 + arm64)
         run: |
@@ -183,7 +187,7 @@ jobs:
             grep -qx '/opt/apps2samsung/Apps2Samsung' "rpm-$ARCH.txt"
 
             # Present is not the same as whole. rpm's default post-install strip once reduced the
-            # x64 binary from 138 MB to 11 MB — a .NET single-file bundle with its payload cut off,
+            # x64 binary from 138 MB to 11 MB, a .NET single-file bundle with its payload cut off,
             # which installs happily and then cannot run. Compare against the published binary.
             EXPECTED=$(stat -c%s "publish/linux-$ARCH/Apps2Samsung")
             IN_DEB=$(awk '$6=="./opt/apps2samsung/Apps2Samsung"{print $3}' "deb-$ARCH.txt")

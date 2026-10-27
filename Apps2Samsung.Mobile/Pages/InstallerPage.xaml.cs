@@ -300,9 +300,12 @@ public partial class InstallerPage : ContentPage
 	private string SublineFor(GitHubRelease release)
 	{
 		var category = AppCategories.DisplayName(release.Category, L10n.Get);
-		return release.HasVariants
+		var subline = release.HasVariants
 			? $"{category} · {string.Format(L10n.Get("lblVariantsCount"), release.Assets.Count)}"
 			: category;
+		return release.Downloads > 0
+			? $"{subline} · {string.Format(L10n.Get("lblDownloadsCount"), DownloadStatsService.Compact(release.Downloads))}"
+			: subline;
 	}
 
 	private static BoxView Hairline() => new() { HeightRequest = 1, Margin = new Thickness(16, 0, 0, 0), Color = DesignTheme.ColorOf("Hair") };
@@ -643,7 +646,7 @@ public partial class InstallerPage : ContentPage
 
 		// Shared pre-install guards (Core): a TV that still needs a restart, Developer Mode off, a
 		// Developer-Mode IP pointing at another device or typed back to front, a TV on another subnet.
-		// Same checks and wording as the desktop head — each one is Continue/Stop, never a hard block.
+		// Same checks and wording as the desktop head, each one is Continue/Stop, never a hard block.
 		var guardResult = InstallGuards.Evaluate(
 			tv.Device,
 			new InstallGuardOptions
@@ -727,12 +730,12 @@ public partial class InstallerPage : ContentPage
 			// Partner if the manifest declared it OR the .wgt itself needs a partner-level privilege.
 			var needsPartner = requirePartner || WgtPrivileges.RequiresPartner(wgtPath);
 			// Provisioning reuses a valid cert already covering this TV and only triggers a Samsung
-			// sign-in when it must (re)generate — so no login prompt when a cert is already in place.
+			// sign-in when it must (re)generate, so no login prompt when a cert is already in place.
 			SetStep(InstallStep.Certificate);
 			var (cert, _) = await _certFlow.RunAsync(Navigation, tvIp, _tv.DisplayName, needsPartner, SetStatus, cancel);
 			cancel.Token.ThrowIfCancellationRequested();
 
-			// The signing certificate's validity period may not have started yet — a Samsung TV
+			// The signing certificate's validity period may not have started yet, a Samsung TV
 			// rejects such a package ("Certificate in signature is not valid yet"). Hold the install
 			// behind a countdown to the moment it becomes valid instead of pushing something the TV
 			// will refuse; the loop re-runs the check once the user chooses to continue.
@@ -799,7 +802,7 @@ public partial class InstallerPage : ContentPage
 		catch (SamsungAccountEmailMissingException)
 		{
 			// The Samsung account has no email, so the distributor CSR has nothing to put in its
-			// emailAddress field — this used to surface as a bare NullReferenceException (issue #606).
+			// emailAddress field, this used to surface as a bare NullReferenceException (issue #606).
 			// Only the user can fix it, on their Samsung account page, so offer to open it.
 			SetStatus(L10n.Get("statusSamsungAccountNoEmail"));
 			await CloseProgressAsync();
@@ -872,7 +875,7 @@ public partial class InstallerPage : ContentPage
 			await MainThread.InvokeOnMainThreadAsync(sheet.CloseAsync);
 	}
 
-	// The IPs this phone answers on — what the guards compare the TV's Developer-Mode IP against.
+	// The IPs this phone answers on, what the guards compare the TV's Developer-Mode IP against.
 	// On Android interface enumeration classifies nothing, so this resolves to the socket-derived
 	// phone IP the scanner is configured with (empty when offline: the guards then skip the IP
 	// checks rather than guess).
@@ -892,7 +895,7 @@ public partial class InstallerPage : ContentPage
 	private void SetStatus(string message)
 	{
 		// Mirror every status line to the debug log (timestamped) so the log is a full transcript of
-		// the scan/download/cert/install flow — not just the on-screen label.
+		// the scan/download/cert/install flow, not just the on-screen label.
 		System.Diagnostics.Trace.WriteLine($"[installer] {message}");
 		var sheet = _progress;
 		MainThread.BeginInvokeOnMainThread(() =>

@@ -38,9 +38,14 @@ namespace Apps2Samsung.Catalog
         public const string SearchId = "search";
         /// <summary>The category id of the favorites group.</summary>
         public const string FavoritesId = "favorites";
+        /// <summary>The category id of the most-downloaded group.</summary>
+        public const string PopularId = "popular";
 
         /// <param name="favorites">App names the user starred: they lead the list as a group of
         /// their own, never truncated, while the categories keep them too.</param>
+        /// <remarks>After the favorites comes "Most downloaded": every app with a download count,
+        /// highest first, truncated like a category, so "Show all" is the whole catalog by
+        /// downloads. Left out when no counts were loaded.</remarks>
         public static IReadOnlyList<CatalogGroup> Build(
             IReadOnlyCollection<GitHubRelease> all,
             string? query,
@@ -62,22 +67,36 @@ namespace Apps2Samsung.Catalog
                 if (starred.Count > 0)
                     groups.Add(new CatalogGroup(FavoritesId, localize("lblFavorites"), starred.Count, starred, false, false));
             }
+            // An app with several releases listed (the Jellyfin history) carries one count: rank it once.
+            var popular = all.Where(r => r.Downloads > 0)
+                .OrderByDescending(r => r.Downloads)
+                .ThenBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
+                .GroupBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(g => g.First())
+                .ToList();
+            if (popular.Count > 0)
+                groups.Add(Truncatable(PopularId, localize("lblMostDownloaded"), popular.Count, popular, expanded));
             foreach (var (id, count) in CommunityAppList.Counts(all))
             {
                 if (id == AppCategories.All)
                     continue;
                 var rows = CommunityAppList.Filter(all, id).ToList();
-                var isExpanded = expanded.Contains(id);
-                var truncated = rows.Count > PerGroup && !isExpanded;
-                groups.Add(new CatalogGroup(
-                    id,
-                    AppCategories.DisplayName(id, localize),
-                    count,
-                    truncated ? rows.Take(PerGroup).ToList() : rows,
-                    truncated,
-                    isExpanded && rows.Count > PerGroup));
+                groups.Add(Truncatable(id, AppCategories.DisplayName(id, localize), count, rows, expanded));
             }
             return groups;
+        }
+
+        private static CatalogGroup Truncatable(string id, string title, int count, List<GitHubRelease> rows, ISet<string> expanded)
+        {
+            var isExpanded = expanded.Contains(id);
+            var truncated = rows.Count > PerGroup && !isExpanded;
+            return new CatalogGroup(
+                id,
+                title,
+                count,
+                truncated ? rows.Take(PerGroup).ToList() : rows,
+                truncated,
+                isExpanded && rows.Count > PerGroup);
         }
     }
 }

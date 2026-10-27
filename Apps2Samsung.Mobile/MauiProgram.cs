@@ -33,13 +33,13 @@ public static class MauiProgram
 		// Shared Core services
 		// --------------------
 		// The TV scan is fully portable. This head has no arp vendor lookup and no SDB-backed
-		// name resolver yet, so NetworkService runs with those left null — detection relies only
+		// name resolver yet, so NetworkService runs with those left null, detection relies only
 		// on the open debug/REST ports, so found TVs still come back (just without a friendly name).
 		// On Android, NetworkInterface doesn't reliably classify the Wi-Fi adapter as
 		// Ethernet/Wireless80211 and IPv4Mask is unavailable, so the Core scan's interface
 		// enumeration yields nothing. Feed the device's own IPv4 as the custom scan IP: the
 		// scanner then covers its /24 (the mask fallback), which finds TVs on the same LAN.
-		// Shared settings contract — the mobile head's settings adapted to Core's IAppConfig, so the
+		// Shared settings contract, the mobile head's settings adapted to Core's IAppConfig, so the
 		// shared cert/install/patcher services read settings uniformly across both heads.
 		builder.Services.AddSingleton<IAppConfig, MobileAppConfig>();
 
@@ -55,7 +55,7 @@ public static class MauiProgram
 		SdbTcpDevice.KeyDirectory = FileSystem.AppDataDirectory;
 		builder.Services.AddSingleton<ISdbEngine, Apps2Samsung.Sdb.InProcessSdbEngine>();
 
-		// Samsung account OAuth (WebView + in-app loopback listener) — provides the token bundle
+		// Samsung account OAuth (WebView + in-app loopback listener), provides the token bundle
 		// the certificate provisioning needs.
 		builder.Services.AddSingleton<ISamsungLoginService, SamsungLoginService>();
 
@@ -72,7 +72,7 @@ public static class MauiProgram
 		builder.Services.AddSingleton<CertificateFlow>();
 
 		// Package patchers applied at install (shared Core IPackagePatchers). Mobile ships no bundled
-		// "oblong" tiles, so a no-op oblong source — only user-supplied custom PNG icons apply here.
+		// "oblong" tiles, so a no-op oblong source, only user-supplied custom PNG icons apply here.
 		builder.Services.AddSingleton<IOblongIconSource, NoOblongIconSource>();
 		builder.Services.AddSingleton<IPackagePatcher, CustomIconPackagePatcher>();
 		builder.Services.AddSingleton<IPackagePatcher, AppTitlePackagePatcher>();
@@ -93,6 +93,10 @@ public static class MauiProgram
 		builder.Services.AddSingleton(sp => new Apps2Samsung.Catalog.ResolvedCatalogService(
 			sp.GetRequiredService<HttpClient>(),
 			Path.Combine(FileSystem.AppDataDirectory, Apps2Samsung.Catalog.ResolvedCatalogService.CacheFileName)));
+		// All-time download counts (the "Most downloaded" group), one download per hour.
+		builder.Services.AddSingleton(sp => new Apps2Samsung.Catalog.DownloadStatsService(
+			sp.GetRequiredService<HttpClient>(),
+			Path.Combine(FileSystem.AppDataDirectory, Apps2Samsung.Catalog.DownloadStatsService.CacheFileName)));
 
 		// Shared app catalog for the icon/title editor (same list as desktop).
 		builder.Services.AddSingleton<Apps2Samsung.Catalog.AppCatalog>(sp => new Apps2Samsung.Catalog.AppCatalog(
@@ -109,10 +113,10 @@ public static class MauiProgram
 		// Install: download a .wgt and push it to the TV (patch -> resign -> [permit] -> install).
 		builder.Services.AddSingleton<WgtInstaller>();
 
-		// App catalog (App/Version dropdowns) — reuses the shared HttpClient for GitHub calls.
+		// App catalog (App/Version dropdowns), reuses the shared HttpClient for GitHub calls.
 		builder.Services.AddSingleton<CatalogService>();
 
-		// Self-update check (shared Core logic) — matches the .apk asset on the latest release.
+		// Self-update check (shared Core logic), matches the .apk asset on the latest release.
 		builder.Services.AddSingleton(sp => new GitHubUpdateChecker(sp.GetRequiredService<HttpClient>()));
 		// The in-app updater: the check, the sheet, the download, the hand-off to the installer.
 		builder.Services.AddSingleton<UpdateFlow>();
