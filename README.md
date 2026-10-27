@@ -106,7 +106,7 @@ apps2samsung-cli cert --tv 192.168.1.50                 # which certificate cove
 - **Tunes apps at install**: Jellyfin server + auto-login, JellyThemes/custom CSS, playback preferences, server plugins and the YouTube-trailer fix; TVapp channels; ImmiTV's Immich server + login; Camera PiP's cameras; custom launcher icons and titles.
 - **Diagnoses TVs**: DUID, Tizen version, model and Developer Mode state, plus a live TV log console you can save.
 - **Backup & restore**: move your settings and signing certificates to another PC, Mac or phone in one file.
-- **TV-Store (experimental)**: arm the [TV-Store](https://github.com/Apps2Samsung/TV-Store) app from the TV toolbox once, and the TV browses and installs catalog apps by itself, without a PC or phone.
+- **TV-Store on the TV itself**: install [TV-Store](https://github.com/Apps2Samsung/TV-Store) from the catalog, press Arm TV-Store in the TV toolbox once, set Developer Mode's Host PC IP to the TV's own address, and the TV browses and installs catalog apps by itself, without a PC or phone. Every catalog and package it installs is checked against a signed catalog.
 - **Updates itself**: in-app updater on desktop and Android, with an optional beta channel.
 
 ---
