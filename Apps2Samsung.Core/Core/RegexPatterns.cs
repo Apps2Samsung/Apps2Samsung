@@ -319,24 +319,6 @@ namespace Apps2Samsung.Helpers.Core
         }
 
         /// <summary>
-        /// Patterns for plugin configuration parsing.
-        /// </summary>
-        public static class PluginConfig
-        {
-            /// <summary>
-            /// Pattern to extract defaultSkin value from JSON config.
-            /// </summary>
-            public const string DefaultSkinPattern = @"""defaultSkin""\s*:\s*""([^""]+)""";
-
-            /// <summary>
-            /// Pre-compiled regex for defaultSkin extraction.
-            /// </summary>
-            public static readonly Regex DefaultSkin = new(
-                DefaultSkinPattern,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        }
-
-        /// <summary>
         /// Patterns for extension parsing in Tizen package manager output.
         /// </summary>
         public static class Extension
@@ -356,47 +338,45 @@ namespace Apps2Samsung.Helpers.Core
         }
 
         /// <summary>
-        /// Patterns for KefinTweaks plugin patching.
+        /// Patterns for KefinTweaks, which runs as a JavaScript Injector user script (public.js).
+        /// esbuild keeps the quotes of object keys and template literals, so these match before and after it.
         /// </summary>
         public static class KefinTweaks
         {
             /// <summary>
-            /// Pattern to detect KefinTweaks loader script reference in public.js.
+            /// The bootstrap users paste into JS Injector: <c>script.src = `{root}kefinTweaks-plugin.js`</c>,
+            /// with any quote style and any root (jsDelivr tag, @latest, @main, self-hosted).
+            /// Group 1 is the root.
             /// </summary>
-            public const string LoaderPattern =
-                @"script\.src\s*=\s*['""]https:\/\/cdn\.jsdelivr\.net\/gh\/ranaldsgift\/KefinTweaks[^'""]+['""]";
+            public const string BootstrapPattern =
+                @"script\.src\s*=\s*[`'""]([^`'""]*?)kefinTweaks-plugin\.js[^`'""]*[`'""]";
 
             /// <summary>
-            /// Pattern to match and replace kefinTweaksRoot configuration.
+            /// A root in the KefinTweaks-Config script: <c>"kefinTweaksRoot"</c> (what the admin picked)
+            /// or <c>"kefinTweaksRootResolved"</c> (0.5+: the commit that root resolved to, preferred by
+            /// the loader). Group 1 is the key, group 2 the root.
             /// </summary>
-            public const string TweaksRootPattern =
-                @"""kefinTweaksRoot""\s*:\s*""https:\/\/cdn\.jsdelivr\.net\/gh\/ranaldsgift\/KefinTweaks@latest\/""";
+            public const string ConfigRootPattern =
+                @"""(kefinTweaksRoot|kefinTweaksRootResolved)""\s*:\s*""([^""]*)""";
 
             /// <summary>
-            /// Pattern to extract script entries from injector.js.
+            /// A module in the script definitions of injector.js / scripts/kefinTweaks-loader.js,
+            /// relative to scripts/ (0.5 also points into ../configuration/).
             /// </summary>
-            public const string ScriptEntryPattern = @"script\s*:\s*""([^""]+)""";
+            public const string ScriptEntryPattern = @"\bscript\s*:\s*['""]([^'""]+\.js)['""]";
 
             /// <summary>
-            /// Pre-compiled regex for loader detection.
+            /// A bundled third-party library in the THIRD_PARTY_SCRIPTS table (0.5+), relative to scripts/.
             /// </summary>
-            public static readonly Regex Loader = new(
-                LoaderPattern,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            public const string ThirdPartyEntryPattern = @"['""](thirdparty/[^'""]+\.js)['""]";
 
-            /// <summary>
-            /// Pre-compiled regex for tweaks root replacement.
-            /// </summary>
-            public static readonly Regex TweaksRoot = new(
-                TweaksRootPattern,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            public static readonly Regex Bootstrap = new(BootstrapPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-            /// <summary>
-            /// Pre-compiled regex for script entry extraction.
-            /// </summary>
-            public static readonly Regex ScriptEntry = new(
-                ScriptEntryPattern,
-                RegexOptions.Compiled);
+            public static readonly Regex ConfigRoot = new(ConfigRootPattern, RegexOptions.Compiled);
+
+            public static readonly Regex ScriptEntry = new(ScriptEntryPattern, RegexOptions.Compiled);
+
+            public static readonly Regex ThirdPartyEntry = new(ThirdPartyEntryPattern, RegexOptions.Compiled);
         }
 
         /// <summary>

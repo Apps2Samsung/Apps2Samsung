@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Extensions"
+             x:Class="Apps2Samsung.Views.Controls.LicenseFooter">
+	<!-- The licence line under the sidebar and the Settings list (#820): "MIT License" opens the
+	     licence, the name opens the website. -->
+	<UserControl.Styles>
+		<Style Selector="TextBlock">
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+		</Style>
+		<Style Selector="HyperlinkButton">
+			<Setter Property="Padding" Value="0"/>
+			<Setter Property="MinHeight" Value="0"/>
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+		</Style>
+	</UserControl.Styles>
+	<WrapPanel>
+		<TextBlock x:Name="CopyrightText"/>
+		<HyperlinkButton x:Name="LicenseLink" Content="{l:Localize lblMitLicense}"/>
+		<TextBlock Text=" · "/>
+		<HyperlinkButton x:Name="AuthorLink"/>
+	</WrapPanel>
+</UserControl>

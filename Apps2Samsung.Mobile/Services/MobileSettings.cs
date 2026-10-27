@@ -16,6 +16,8 @@ public static class MobileSettings
 	private const string KeyOpenAfter = "open_after_install";
 	private const string KeyKeepWgt = "keep_wgt_file";
 	private const string KeyShowAllJf = "show_all_jellyfin_versions";
+	private const string KeyShowAdult = "show_adult_apps";
+	private const string KeyShowRoot = "show_root_apps";
 	private const string KeyManualDuids = "manual_duids";
 	private const string KeyTvAppChannels = "tvapp_channels_json";
 	private const string KeyImmiTvServerUrl = "immitv_server_url";
@@ -25,6 +27,8 @@ public static class MobileSettings
 	private const string KeyTizenTubeProxyOverride = "tizentube_proxy_override";
 	private const string KeyTizenTubeProxyHost = "tizentube_proxy_host";
 	private const string KeyCameraPipConfig = "camerapip_config_json";
+	private const string KeyAppUserSettings = "app_user_settings_json";
+	private const string KeyPackageIdRenames = "package_id_renames_json";
 	private const string KeyPartnerSigning = "partner_signing";
 	private const string KeyForceLogin = "force_samsung_login";
 	private const string KeyTryOverwrite = "try_overwrite";
@@ -59,6 +63,20 @@ public static class MobileSettings
 	{
 		get => Preferences.Get(KeyKeepWgt, false);
 		set => Preferences.Set(KeyKeepWgt, value);
+	}
+
+	/// <summary>List the catalog entries flagged adult-only (#850); off until the user confirms they are 18 or older.</summary>
+	public static bool ShowAdultApps
+	{
+		get => Preferences.Get(KeyShowAdult, false);
+		set => Preferences.Set(KeyShowAdult, value);
+	}
+
+	/// <summary>List the catalog entries flagged root (they gain root on the TV); on by default, the install asks first.</summary>
+	public static bool ShowRootApps
+	{
+		get => Preferences.Get(KeyShowRoot, true);
+		set => Preferences.Set(KeyShowRoot, value);
 	}
 
 	/// <summary>List every Jellyfin release, not just the latest (desktop: "Show all Jellyfin versions").</summary>
@@ -101,24 +119,41 @@ public static class MobileSettings
 	public static bool PartnerSigning
 	{
 		// Kept as a derived alias so IAppConfig/MobileAppConfig readers still work; the source of truth
-		// is now CertificatePreference (a 3-way choice), like the desktop's certificate picker.
+		// is CertificatePreference (a 3-way choice), the same one the desktop has.
 		get => CertificatePreference == CertificatePreferencePartner;
 		set => CertificatePreference = value ? CertificatePreferencePartner : CertificatePreferenceAuto;
 	}
 
-	public const string CertificatePreferenceAuto = "Automatic";
-	public const string CertificatePreferencePublic = "Public";
-	public const string CertificatePreferencePartner = "Partner";
+	public const string CertificatePreferenceAuto = Apps2Samsung.Certificate.CertificatePreference.Automatic;
+	public const string CertificatePreferencePublic = Apps2Samsung.Certificate.CertificatePreference.Public;
+	public const string CertificatePreferencePartner = Apps2Samsung.Certificate.CertificatePreference.Partner;
 	private const string KeyCertPreference = "certificate_preference";
 
 	/// <summary>Which signing certificate/level to use: "Automatic" (Public unless a package requires
-	/// Partner), "Public", or "Partner" — mirrors the desktop's certificate picker. Migrates from the old
+	/// Partner), "Public", or "Partner", the same choice as the desktop's (Core CertificatePreference). Migrates from the old
 	/// <see cref="KeyPartnerSigning"/> flag on first read.</summary>
 	public static string CertificatePreference
 	{
 		get => Preferences.Get(KeyCertPreference,
 			Preferences.Get(KeyPartnerSigning, false) ? CertificatePreferencePartner : CertificatePreferenceAuto);
 		set => Preferences.Set(KeyCertPreference, value ?? CertificatePreferenceAuto);
+	}
+
+	private const string KeyFavoriteApps = "favorite_apps";
+	/// <summary>The catalog apps the user starred, by name, ';'-separated (#755 favorites).</summary>
+	public static string FavoriteApps
+	{
+		get => Preferences.Get(KeyFavoriteApps, string.Empty);
+		set => Preferences.Set(KeyFavoriteApps, value ?? string.Empty);
+	}
+
+	private const string KeySkippedUpdate = "skipped_update_version";
+	/// <summary>The release tag the user chose to skip in the update sheet; offered again only when a
+	/// newer one appears.</summary>
+	public static string SkippedUpdateVersion
+	{
+		get => Preferences.Get(KeySkippedUpdate, string.Empty);
+		set => Preferences.Set(KeySkippedUpdate, value ?? string.Empty);
 	}
 
 	/// <summary>Extra TV DUIDs to pre-authorize in the signing cert (one per line/comma-separated).</summary>
@@ -319,6 +354,22 @@ public static class MobileSettings
 	{
 		get => Preferences.Get(KeyCameraPipConfig, string.Empty);
 		set => Preferences.Set(KeyCameraPipConfig, value ?? string.Empty);
+	}
+
+	/// <summary>A community package's user_settings values (#791), by package file, with the find /
+	/// replace pairs they go into (Core UserSettingsStore); written into the package at install by
+	/// the shared UserSettingsPatcher. Can hold a credential: never logged.</summary>
+	public static string AppUserSettingsJson
+	{
+		get => Preferences.Get(KeyAppUserSettings, string.Empty);
+		set => Preferences.Set(KeyAppUserSettings, value ?? string.Empty);
+	}
+
+	/// <summary>Packages installed under another id, per TV (#839, PackageIdRenameStore).</summary>
+	public static string PackageIdRenamesJson
+	{
+		get => Preferences.Get(KeyPackageIdRenames, string.Empty);
+		set => Preferences.Set(KeyPackageIdRenames, value ?? string.Empty);
 	}
 
 	/// <summary>Per-app custom launcher icons: JSON map { appKey -> "oblong" | custom PNG path },

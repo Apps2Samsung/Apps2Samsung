@@ -1,0 +1,83 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Apps2Samsung.Views.Controls.TvCard">
+	<!-- The TV drawn as a device (#755, "the hero"): a bezel around a dark glass screen with a
+	     reflection, a stand under it. What the screen says comes from a TvCardState (Core), the same
+	     one the mobile head draws; this control only paints it. Every colour is a design token. -->
+	<UserControl.Styles>
+		<Style Selector="Border.led">
+			<Setter Property="Width" Value="10"/>
+			<Setter Property="Height" Value="10"/>
+			<Setter Property="CornerRadius" Value="5"/>
+			<Setter Property="Margin" Value="0,5,0,0"/>
+			<Setter Property="Background" Value="{DynamicResource GlassMutedBrush}"/>
+		</Style>
+		<Style Selector="Border.led.ok">
+			<Setter Property="Background" Value="{DynamicResource LedOkBrush}"/>
+		</Style>
+		<Style Selector="Border.led.warn">
+			<Setter Property="Background" Value="{DynamicResource LedWarnBrush}"/>
+		</Style>
+		<Style Selector="Border.led.bad">
+			<Setter Property="Background" Value="{DynamicResource LedBadBrush}"/>
+		</Style>
+		<Style Selector="Border.led.busy">
+			<Setter Property="Background" Value="{DynamicResource LedBusyBrush}"/>
+			<Style.Animations>
+				<Animation Duration="0:0:1.2" IterationCount="Infinite" Easing="SineEaseInOut">
+					<KeyFrame Cue="0%"><Setter Property="Opacity" Value="1"/></KeyFrame>
+					<KeyFrame Cue="50%"><Setter Property="Opacity" Value="0.35"/></KeyFrame>
+					<KeyFrame Cue="100%"><Setter Property="Opacity" Value="1"/></KeyFrame>
+				</Animation>
+			</Style.Animations>
+		</Style>
+	</UserControl.Styles>
+
+	<StackPanel>
+		<Border Background="{DynamicResource BezelBrush}" CornerRadius="18" Padding="7">
+			<Border Background="{DynamicResource GlassBrush}" CornerRadius="12" MinHeight="150"
+			        Padding="18,18,18,16" ClipToBounds="True">
+				<Panel>
+					<!-- glass reflection -->
+					<Border IsHitTestVisible="False" CornerRadius="12" Margin="-18,-18,-18,-16">
+						<Border.Background>
+							<LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+								<GradientStop Color="{StaticResource GlassSheenColor}" Offset="0"/>
+								<GradientStop Color="{StaticResource GlassSheenFadeColor}" Offset="0.34"/>
+								<GradientStop Color="Transparent" Offset="0.35"/>
+							</LinearGradientBrush>
+						</Border.Background>
+					</Border>
+
+					<StackPanel Name="Content" VerticalAlignment="Bottom" Spacing="4"
+					            RenderTransformOrigin="50%,100%">
+						<StackPanel.RenderTransform>
+							<ScaleTransform/>
+						</StackPanel.RenderTransform>
+						<TextBlock Name="NameText" FontSize="23" FontWeight="Bold" TextWrapping="Wrap"
+						           Foreground="{DynamicResource GlassInkBrush}"/>
+						<TextBlock Name="SubText" FontSize="15" TextWrapping="Wrap"
+						           Foreground="{DynamicResource GlassMutedBrush}"/>
+						<Grid Name="StateRow" ColumnDefinitions="Auto,*" ColumnSpacing="9" Margin="0,8,0,0">
+							<Border Name="Led" Classes="led" VerticalAlignment="Top"/>
+							<TextBlock Name="MessageText" Grid.Column="1" FontSize="15" TextWrapping="Wrap"
+							           Foreground="{DynamicResource GlassInkBrush}"/>
+						</Grid>
+						<ProgressBar Name="Progress" Height="6" CornerRadius="3" Minimum="0" Maximum="100"
+						             Margin="0,10,0,0" IsVisible="False"
+						             Background="{DynamicResource GlassTrackBrush}"
+						             Foreground="{DynamicResource LedBusyBrush}"/>
+						<ContentPresenter Name="ActionsHost" Margin="0,14,0,0"/>
+					</StackPanel>
+				</Panel>
+			</Border>
+		</Border>
+		<!-- the stand: a neck 34 % wide, a wider foot under it -->
+		<Grid ColumnDefinitions="33*,34*,33*">
+			<Border Grid.Column="1" Height="9" Background="{DynamicResource BezelBrush}" CornerRadius="0,0,10,10"/>
+		</Grid>
+		<Grid ColumnDefinitions="23*,54*,23*" Margin="0,9,0,0">
+			<Border Grid.Column="1" Height="4" Background="{DynamicResource BezelBrush}" CornerRadius="4" Opacity="0.55"/>
+		</Grid>
+	</StackPanel>
+</UserControl>

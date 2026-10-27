@@ -18,7 +18,7 @@ permissions:
 
 env:
   PRODUCT_NAME: Apps2Samsung
-  PROJECT_DIR: Jellyfin2Samsung-CrossOS
+  PROJECT_DIR: Apps2Samsung.Desktop
   CONFIGURATION: Release
 
 jobs:
@@ -43,7 +43,7 @@ jobs:
         shell: bash
         run: |
           VERSION=$(grep -oE 'v[0-9]+(\.[0-9]+){1,3}' \
-            Jellyfin2Samsung-CrossOS/Helpers/AppSettings.cs)
+            Apps2Samsung.Desktop/Helpers/AppSettings.cs)
 
           if [ -z "$VERSION" ]; then
             echo "❌ Version not found"
@@ -125,6 +125,9 @@ jobs:
             echo "| 🐧 Linux | ⚠️ Beta | x64 + ARM64 (tar.gz / .deb) |"
             echo "| 🪟 Windows | ⚠️ Beta | CI-built |"
             echo "| 🤖 Android (.apk) | ⚠️ Beta | Sideload; phone as installer head |"
+            if [ "${{ vars.IOS_PUBLISH }}" = "true" ]; then
+              echo "| 📱 iPhone (.ipa) | 🧪 Unsigned | SideStore beta source: https://apps2samsung.com/sidestore/beta/apps.json |"
+            fi
           } > RELEASE_NOTES.md
 
       - uses: actions/setup-dotnet@v6
@@ -134,7 +137,7 @@ jobs:
       # ---------------- WINDOWS ----------------
       - name: Build Windows
         run: |
-          dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
+          dotnet publish Apps2Samsung.Desktop/Apps2Samsung.csproj \
             -c Release -r win-x64 -p:SelfContained=true \
             -o publish/win-x64
 
@@ -145,7 +148,7 @@ jobs:
       - name: Build Linux
         run: |
           for ARCH in x64 arm64; do
-            dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
+            dotnet publish Apps2Samsung.Desktop/Apps2Samsung.csproj \
               -c Release -r linux-$ARCH -p:SelfContained=true \
               -o publish/linux-$ARCH
           done
@@ -179,6 +182,57 @@ jobs:
           overwrite_files: true
           files: dist/*
           body_path: RELEASE_NOTES.md
+
+# ======================================================
+# CLI (ONE SELF-CONTAINED BINARY PER PLATFORM, #836)
+# ======================================================
+  cli:
+    name: CLI
+    runs-on: ubuntu-latest
+    needs: beta-release
+
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Fresh checkout — stamp the beta marker again (see the beta-release job).
+      - name: Stamp beta version
+        shell: bash
+        run: python3 .github/scripts/stamp-beta-version.py
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      # Single-file, self-contained: nothing to install next to it, no runtime needed. Windows gets a
+      # zip, everything else a tar.gz (which keeps the executable bit). The version is the release's,
+      # so `apps2samsung-cli --version` names the release it came from.
+      - name: Publish
+        env:
+          VERSION: ${{ needs.beta-release.outputs.VERSION_BETA }}
+          VERSION_TAG: ${{ needs.beta-release.outputs.VERSION_TAG }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          for RID in win-x64 win-arm64 linux-x64 linux-arm64 osx-x64 osx-arm64; do
+            dotnet publish Apps2Samsung.Cli/Apps2Samsung.Cli.csproj \
+              -c Release -r "$RID" -p:SelfContained=true -p:PublishSingleFile=true \
+              -p:DebugType=none -p:Version="$VERSION" -o "publish/cli/$RID"
+            NAME="${PRODUCT_NAME}-cli-${VERSION_TAG}-${RID}"
+            case "$RID" in
+              win-*) (cd "publish/cli/$RID" && zip -q -r "../../../dist/${NAME}.zip" .) ;;
+              *)     tar -C "publish/cli/$RID" -czf "dist/${NAME}.tar.gz" . ;;
+            esac
+          done
+          ls -l dist
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.beta-release.outputs.VERSION_TAG }}
+          name: ${{ needs.beta-release.outputs.VERSION_TAG }}
+          prerelease: true
+          overwrite_files: true
+          files: dist/*
 
 # ======================================================
 # MACOS (PER-ARCH CLI + APP + DMG)
@@ -226,7 +280,7 @@ jobs:
       # ---------------- ARM64 ----------------
       - name: macOS ARM64 publish
         run: |
-          dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
+          dotnet publish Apps2Samsung.Desktop/Apps2Samsung.csproj \
             -c Release -r osx-arm64 -p:SelfContained=true \
             -o publish/osx-arm64
 
@@ -241,6 +295,8 @@ jobs:
           chmod +x $APP/MacOS/Apps2Samsung
           cp jellyfin.icns $APP/Resources/
 
+          # Info.plist versions are at most three integers (see apple-version.sh).
+          APPLE_VERSION=$(.github/scripts/apple-version.sh "${{ needs.beta-release.outputs.VERSION }}")
           cat > $APP/Info.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -250,8 +306,8 @@ jobs:
             <key>CFBundleName</key><string>Apps2Samsung</string>
             <key>CFBundleExecutable</key><string>Apps2Samsung</string>
             <key>CFBundleIdentifier</key><string>org.madebypatrick.apps2samsung</string>
-            <key>CFBundleVersion</key><string>${{ needs.beta-release.outputs.VERSION }}</string>
-            <key>CFBundleShortVersionString</key><string>${{ needs.beta-release.outputs.VERSION }}</string>
+            <key>CFBundleVersion</key><string>$APPLE_VERSION</string>
+            <key>CFBundleShortVersionString</key><string>$APPLE_VERSION</string>
             <key>CFBundlePackageType</key><string>APPL</string>
             <key>LSMinimumSystemVersion</key><string>11.0</string>
           
@@ -277,7 +333,7 @@ jobs:
       # ---------------- INTEL ----------------
       - name: macOS Intel publish
         run: |
-          dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
+          dotnet publish Apps2Samsung.Desktop/Apps2Samsung.csproj \
             -c Release -r osx-x64 -p:SelfContained=true \
             -o publish/osx-x64
 
@@ -291,6 +347,8 @@ jobs:
           chmod +x $APP/MacOS/Apps2Samsung
           cp jellyfin.icns $APP/Resources/
 
+          # Info.plist versions are at most three integers (see apple-version.sh).
+          APPLE_VERSION=$(.github/scripts/apple-version.sh "${{ needs.beta-release.outputs.VERSION }}")
           cat > $APP/Info.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -300,8 +358,8 @@ jobs:
             <key>CFBundleName</key><string>Apps2Samsung</string>
             <key>CFBundleExecutable</key><string>Apps2Samsung</string>
             <key>CFBundleIdentifier</key><string>org.madebypatrick.apps2samsung</string>
-            <key>CFBundleVersion</key><string>${{ needs.beta-release.outputs.VERSION }}</string>
-            <key>CFBundleShortVersionString</key><string>${{ needs.beta-release.outputs.VERSION }}</string>
+            <key>CFBundleVersion</key><string>$APPLE_VERSION</string>
+            <key>CFBundleShortVersionString</key><string>$APPLE_VERSION</string>
             <key>CFBundlePackageType</key><string>APPL</string>
             <key>LSMinimumSystemVersion</key><string>11.0</string>
           
@@ -343,6 +401,10 @@ jobs:
     needs: [beta-release, macos-app]
     if: ${{ always() && needs.beta-release.result == 'success' }}
 
+    # The iPhone job reuses the code as its CFBundleVersion (.github/scripts/apple-version.sh).
+    outputs:
+      VERSION_CODE: ${{ steps.version-code.outputs.version-code }}
+
     steps:
       - uses: actions/checkout@v7
 
@@ -355,6 +417,7 @@ jobs:
       # Runs before the build so a bad code fails in seconds instead of after a
       # ten-minute publish.
       - name: Compute Android versionCode
+        id: version-code
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -430,6 +493,45 @@ jobs:
         run: |
           .github/scripts/android-version-code.sh verify \
             "dist/${PRODUCT_NAME}-${{ needs.beta-release.outputs.VERSION_TAG }}-android.apk"
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.beta-release.outputs.VERSION_TAG }}
+          name: ${{ needs.beta-release.outputs.VERSION_TAG }}
+          prerelease: true
+          overwrite_files: true
+          files: dist/*
+
+# ======================================================
+# IPHONE (unsigned .ipa for SideStore, #753)
+# ======================================================
+  ios-ipa:
+    runs-on: xcode-27
+    # Last in the upload chain, for the same reason android-apk waits for macos-app.
+    needs: [beta-release, android-apk]
+    # Gated on the IOS_PUBLISH repository variable (Settings → Secrets and variables → Actions →
+    # Variables) until the SideStore channel has been tried end to end on a real iPhone (#753
+    # step 5). Set IOS_PUBLISH=true to ship the IPA with every beta.
+    # Needs the APK's versionCode for its CFBundleVersion, so no IPA when the APK job failed.
+    if: ${{ always() && needs.beta-release.result == 'success' && needs.android-apk.result == 'success' && vars.IOS_PUBLISH == 'true' }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Fresh checkout — stamp the beta marker again (see the beta-release job). The IPA's shown
+      # version comes from the version input below, not from this file.
+      - name: Stamp beta version
+        shell: bash
+        run: python3 .github/scripts/stamp-beta-version.py
+
+      # iOS only takes three integers for the shown version, so unlike the APK's versionName the
+      # IPA can't carry the beta marker; the APK's versionCode tells the builds apart.
+      - name: Build IPA
+        uses: ./.github/actions/ios-ipa
+        with:
+          version: ${{ needs.beta-release.outputs.VERSION }}
+          build-number: ${{ needs.android-apk.outputs.VERSION_CODE }}
+          output: dist/${{ env.PRODUCT_NAME }}-${{ needs.beta-release.outputs.VERSION_TAG }}-ios-unsigned.ipa
 
       - uses: softprops/action-gh-release@v3
         with:

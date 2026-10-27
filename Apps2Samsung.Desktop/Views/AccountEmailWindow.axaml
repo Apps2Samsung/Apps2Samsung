@@ -1,0 +1,58 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:Apps2Samsung.Views"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        x:Class="Apps2Samsung.Views.AccountEmailWindow"
+        x:DataType="views:AccountEmailWindow"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        Title="{Binding TitleText}"
+        Width="460" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" CanResize="False"
+        Background="{DynamicResource BgBrush}">
+	<!-- The Samsung account has no email address (#606, #755): what to do, and the account page. -->
+	<Window.Styles>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Catalog.axaml"/>
+	</Window.Styles>
+
+	<StackPanel Margin="16,8,16,16" Spacing="14">
+		<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
+
+		<Grid ColumnDefinitions="44,*" ColumnSpacing="12">
+			<Border Width="44" Height="44" CornerRadius="11" Background="{DynamicResource WarnSoftBrush}">
+				<Path Width="22" Height="22" Stretch="Uniform" Stroke="{DynamicResource WarnBrush}" StrokeThickness="2.2"
+				      StrokeLineCap="Round" StrokeJoin="Round" Data="M4,6 L20,6 L20,18 L4,18 Z M4,7 L12,13 L20,7"/>
+			</Border>
+			<TextBlock Grid.Column="1" Text="{Binding TitleText}" FontSize="17" FontWeight="Bold" VerticalAlignment="Center"
+			           TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+		</Grid>
+
+		<TextBlock Text="{Binding BodyText}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+
+		<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
+			<ItemsControl ItemsSource="{Binding FixSteps}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate x:DataType="views:AccountEmailWindow+FixStep">
+						<StackPanel>
+							<Border Classes="hairline" Margin="56,0,0,0" IsVisible="{Binding !IsFirst}"/>
+							<Grid ColumnDefinitions="28,*" ColumnSpacing="12" Margin="16,12">
+								<Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource AccentSoftBrush}">
+									<TextBlock Text="{Binding Number}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"
+									           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+								</Border>
+								<TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="15" TextWrapping="Wrap" VerticalAlignment="Center"
+								           Foreground="{DynamicResource InkBrush}"/>
+							</Grid>
+						</StackPanel>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</Border>
+
+		<StackPanel Spacing="8">
+			<Button Classes="primary" Content="{Binding OpenText}" Click="OnOpenClick"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12"/>
+			<Button Classes="link" Content="{Binding CloseText}" Click="OnCloseClick" HorizontalAlignment="Center"/>
+		</StackPanel>
+	</StackPanel>
+</Window>

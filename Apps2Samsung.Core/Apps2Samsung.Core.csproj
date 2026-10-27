@@ -18,18 +18,17 @@
          The package ships lib/net10.0 and lib/net10.0-android36.0; Core compiles against net10.0
          while the MAUI head's own restore resolves the -android asset (with its Android-specific
          cert/socket branches) at build/run time. -->
-    <!-- 1.1.7 loads the signing certificates in-memory on iOS/Mac Catalyst as well as Android
-         (tizen-sdb#13); the iOS head resolves the plain net10.0 asset, whose platform branches are
-         runtime checks. It also depends on System.Security.Cryptography.Xml 10.0.13 itself, so the
-         NU1903 pin that used to sit here is gone. -->
-    <PackageReference Include="TizenSdb.Core" Version="1.1.7" />
+    <!-- 1.1.8 loads the signing certificates in-memory on iOS/Mac Catalyst without the Exportable
+         flag those platforms refuse (tizen-sdb#15, #856/#857); the iOS head resolves the plain
+         net10.0 asset, whose platform branches are runtime checks. It also depends on
+         System.Security.Cryptography.Xml 10.0.13 itself, so the NU1903 pin that used to sit here is gone. -->
+    <PackageReference Include="TizenSdb.Core" Version="1.1.8" />
   </ItemGroup>
   <ItemGroup>
     <!-- The translated strings, embedded so both heads read one copy through
          Localization/LocalizationCatalog (a MAUI head can't read an Avalonia avares:// resource).
-         The files deliberately stay in the desktop head's Assets folder: that is the path Crowdin
-         syncs (crowdin.yml), and moving them would orphan the existing translations. -->
-    <EmbeddedResource Include="..\Jellyfin2Samsung-CrossOS\Assets\Localization\*.json"
+         Localization/Languages is where the Crowdin CLI reads and writes them (crowdin.yml). -->
+    <EmbeddedResource Include="Localization\Languages\*.json"
                       LogicalName="Apps2Samsung.Core.Localization.%(Filename).json" />
   </ItemGroup>
   <ItemGroup>

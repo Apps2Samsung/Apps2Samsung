@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
+             x:Class="Apps2Samsung.Mobile.Pages.InstallProgressPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+    <!-- The install progress sheet (#755): the app and the TV, a bar with "Step n of 5", the numbered
+         steps (done ticked, the current one in accent with what it is doing right now), and Show log
+         for the full transcript. Cancel is there until the TV starts installing; on a failure the
+         current step turns red and Close appears. -->
+    <ScrollView>
+        <VerticalStackLayout Padding="16,8,16,24" Spacing="14">
+            <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
+                     Color="{DynamicResource HairColor}" />
+
+            <Grid ColumnDefinitions="44,*" ColumnSpacing="12">
+                <Border x:Name="Tile" WidthRequest="44" HeightRequest="44" StrokeThickness="0" StrokeShape="RoundRectangle 11">
+                    <Label x:Name="TileLetter" FontSize="20" FontAttributes="Bold" TextColor="{DynamicResource OnAccentColor}"
+                           HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                    <Label x:Name="TitleLabel" FontSize="17" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                    <Label x:Name="SubLabel" FontSize="13" TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <VerticalStackLayout Spacing="6">
+                <ProgressBar x:Name="Bar" HeightRequest="6" ProgressColor="{DynamicResource AccentColor}"
+                             BackgroundColor="{DynamicResource FillColor}" />
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label x:Name="StepLabel" FontSize="12" TextColor="{DynamicResource MutedColor}" />
+                    <Label x:Name="PercentLabel" Grid.Column="1" FontSize="12" TextColor="{DynamicResource MutedColor}" />
+                </Grid>
+            </VerticalStackLayout>
+
+            <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
+                <controls:StepListView x:Name="Steps" />
+            </Border>
+
+            <Border x:Name="LogCard" IsVisible="False" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                    BackgroundColor="{DynamicResource SurfaceColor}" Padding="14,12">
+                <Label x:Name="LogLabel" FontSize="12" FontFamily="monospace" TextColor="{DynamicResource MutedColor}"
+                       LineBreakMode="WordWrap" />
+            </Border>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <Button x:Name="LogBtn" Grid.Column="0" Text="{l:Localize lblShowLog}" Style="{StaticResource PlainButton}"
+                        CornerRadius="12" HeightRequest="48" Clicked="OnLogClicked" />
+                <Button x:Name="CancelBtn" Grid.Column="1" Text="{l:Localize lblCancel}" Style="{StaticResource PlainButton}"
+                        CornerRadius="12" HeightRequest="48" Clicked="OnCancelClicked" />
+                <Button x:Name="CloseBtn" Grid.Column="1" Text="{l:Localize btn_Close}" Style="{StaticResource PlainButton}"
+                        CornerRadius="12" HeightRequest="48" IsVisible="False" Clicked="OnCloseClicked" />
+            </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

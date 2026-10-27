@@ -31,27 +31,34 @@ namespace Apps2Samsung.Helpers.Core
         /// </summary>
         public string? TargetDeviceIp { get; }
 
+        /// <summary>
+        /// Tizen version of the TV this package is being installed to, when the installer knows it.
+        /// For patches that only work from a given Tizen version (plugin scripts need Tizen 4.0).
+        /// </summary>
+        public Version? TargetTizenVersion { get; }
+
         private readonly string _originalPackage;
         private readonly string _tempPackage;
         private readonly (int Files, DateTime Newest) _asExtracted;
 
-        private PackageWorkspace(string root, string original, string temp, string? targetDeviceIp)
+        private PackageWorkspace(string root, string original, string temp, string? targetDeviceIp, Version? targetTizenVersion)
         {
             Root = root;
             TargetDeviceIp = targetDeviceIp;
+            TargetTizenVersion = targetTizenVersion;
             _originalPackage = original;
             _tempPackage = temp;
             _asExtracted = Snapshot(root);
         }
 
-        public static PackageWorkspace Extract(string packagePath, string? targetDeviceIp = null)
+        public static PackageWorkspace Extract(string packagePath, string? targetDeviceIp = null, Version? targetTizenVersion = null)
         {
             var baseDir = Path.GetDirectoryName(packagePath)!;
             var tempDir = Path.Combine(baseDir, $"JellyTemp_{Guid.NewGuid():N}");
             Directory.CreateDirectory(tempDir);
 
             ZipFile.ExtractToDirectory(packagePath, tempDir);
-            return new PackageWorkspace(tempDir, packagePath, packagePath + ".tmp", targetDeviceIp);
+            return new PackageWorkspace(tempDir, packagePath, packagePath + ".tmp", targetDeviceIp, targetTizenVersion);
         }
 
         /// <summary>

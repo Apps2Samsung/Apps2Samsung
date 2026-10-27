@@ -68,6 +68,9 @@ namespace Apps2Samsung.Helpers.Core
             public const string CertificateRequired = "7.0";
             public const string PushInstallMax = "4.0";
             public const string IntermediateVersion = "3.0";
+            // Plugin scripts are transpiled to ES2015, which Tizen 4.0 (Chromium 56) runs. Tizen 3.0
+            // (Chromium 47) lacks parts of ES2015 and esbuild can't go lower, so plugins are skipped there (#801).
+            public const string PluginScriptsMin = "4.0";
             // Background <tizen:service> components are only reliably installable on
             // Samsung TVs from Tizen 4.0 onward. Below this, such a component must be
             // stripped or the whole package is rejected with a generic install failed[118].
@@ -207,6 +210,25 @@ namespace Apps2Samsung.Helpers.Core
         }
 
         /// <summary>
+        /// Where the licence footer and the Contribute rows in Settings lead (#820), the same on both heads.
+        /// </summary>
+        public static class Links
+        {
+            public const string Website = "https://apps2samsung.com";
+            public const string SourceCode = "https://github.com/Apps2Samsung/Apps2Samsung";
+            public const string License = "https://github.com/Apps2Samsung/Apps2Samsung/blob/beta/LICENSE";
+            /// <summary>The name in the licence footer; it links to <see cref="Website"/>.</summary>
+            public const string AuthorName = "Patrick Stel";
+            public const string Translate = "https://crowdin.com/project/jellyfin2samsung";
+            /// <summary>The "Contribute an App" form of the community packages repo, opened directly.</summary>
+            public const string ContributeApp = "https://github.com/Apps2Samsung/tizen-community-packages/issues/new?template=contribute-app.yml";
+            /// <summary>How the package files work, for what the Add an app form doesn't ask (several files, build steps, user settings).</summary>
+            public const string PackagesReadme = "https://github.com/Apps2Samsung/tizen-community-packages/blob/main/packages/README.md";
+            public const string Discord = "https://discord.gg/7mga3zh8Cv";
+            public const string Donate = "https://ko-fi.com/patrickst";
+        }
+
+        /// <summary>
         /// Localization keys used for status messages.
         /// </summary>
         public static class LocalizationKeys
@@ -239,6 +261,11 @@ namespace Apps2Samsung.Helpers.Core
             public const string CertificateWaitCancelled = "certificateWaitCancelled";
             public const string ApiVersionMismatch = "apiVersionMismatch";
             public const string PackageIdBlocked = "packageIdBlocked";
+            public const string ConfirmRemoveTitle = "confirmRemoveTitle";
+            public const string ConfirmRemove = "confirmRemove";
+            public const string RemoveAndInstall = "keyRemoveAndInstall";
+            public const string RemoveDeclined = "removeDeclined";
+            public const string Cancel = "lblCancel";
             public const string ModifyConfigRequired = "modiyConfigRequired";
             public const string DuidLimitReached = "duidLimitReached";
             public const string ScanningNetwork = "ScanningNetwork";

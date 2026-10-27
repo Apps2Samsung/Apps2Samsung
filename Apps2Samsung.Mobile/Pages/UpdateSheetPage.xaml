@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             x:Class="Apps2Samsung.Mobile.Pages.UpdateSheetPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+    <!-- The update sheet (#755): what is new, the release notes, and a download that ends in
+         Android's package installer. On iOS it points at the release instead. -->
+    <ScrollView>
+        <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
+            <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
+                     Color="{DynamicResource HairColor}" />
+            <Grid ColumnDefinitions="*,32" ColumnSpacing="8" Margin="0,6,0,0">
+                <Label x:Name="TitleLabel" FontSize="20" FontAttributes="Bold" LineBreakMode="WordWrap" VerticalOptions="Center" />
+                <Button Grid.Column="1" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
+                        MinimumWidthRequest="32" MinimumHeightRequest="32"
+                        BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnCloseClicked" />
+            </Grid>
+            <Label x:Name="SubLabel" TextColor="{DynamicResource MutedColor}" LineBreakMode="WordWrap" />
+
+            <Label Text="{l:Localize UpdateReleaseNotes}" Style="{StaticResource GroupTitle}" />
+            <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}" Padding="16,12">
+                <Label x:Name="NotesLabel" FontSize="14" LineBreakMode="WordWrap" MaxLines="30" />
+            </Border>
+
+            <Border x:Name="ErrorNotice" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 10"
+                    Stroke="{DynamicResource BadBrush}" BackgroundColor="{DynamicResource BadSoftColor}" Padding="12,10">
+                <Label x:Name="ErrorLabel" FontSize="13" LineBreakMode="WordWrap" TextColor="{DynamicResource BadColor}" />
+            </Border>
+
+            <VerticalStackLayout x:Name="ProgressSection" Spacing="6" IsVisible="False" Margin="0,4,0,0">
+                <ProgressBar x:Name="Progress" HeightRequest="6" ProgressColor="{DynamicResource AccentColor}" BackgroundColor="{DynamicResource FillColor}" />
+                <Label x:Name="ProgressLabel" FontSize="13" TextColor="{DynamicResource MutedColor}" />
+            </VerticalStackLayout>
+
+            <Button x:Name="PrimaryBtn" Clicked="OnPrimaryClicked" CornerRadius="12" HeightRequest="50" Margin="0,6,0,0" />
+            <Button x:Name="LaterBtn" Text="{l:Localize lblLater}" Style="{StaticResource PlainButton}" Clicked="OnCloseClicked" CornerRadius="12" HeightRequest="50" />
+            <Button x:Name="SkipBtn" Text="{l:Localize UpdateSkip}" Style="{StaticResource SoftButton}" BackgroundColor="Transparent" Clicked="OnSkipClicked" HeightRequest="44" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

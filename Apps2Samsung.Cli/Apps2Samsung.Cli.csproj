@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The command-line head (#836): the same catalog, certificate and install pipeline as the desktop
+       and phone apps, driven from a terminal or by an AI agent. Everything that talks to a TV lives in
+       Apps2Samsung.Core; this project is argument parsing, a loopback listener for the Samsung sign-in
+       (the system browser does the rest) and text/JSON output. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Apps2Samsung.Cli</RootNamespace>
+    <AssemblyName>apps2samsung-cli</AssemblyName>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- The release workflows pass the real version (-p:Version=); a local build reports 0.0.0-dev. -->
+    <Version Condition="'$(Version)' == ''">0.0.0-dev</Version>
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Apps2Samsung.Core\Apps2Samsung.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Samsung's CA chain for the generated certificates: the desktop's copy, embedded rather than
+         duplicated, and written to the data directory on first use (the certificate service wants a path). -->
+    <EmbeddedResource Include="..\Apps2Samsung.Desktop\Assets\TizenProfile\ca\vd_tizen_dev_author_ca.cer" LogicalName="ca.vd_tizen_dev_author_ca.cer" />
+    <EmbeddedResource Include="..\Apps2Samsung.Desktop\Assets\TizenProfile\ca\vd_tizen_dev_public2.crt" LogicalName="ca.vd_tizen_dev_public2.crt" />
+    <EmbeddedResource Include="..\Apps2Samsung.Desktop\Assets\TizenProfile\ca\vd_tizen_dev_partner2.crt" LogicalName="ca.vd_tizen_dev_partner2.crt" />
+  </ItemGroup>
+</Project>

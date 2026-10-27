@@ -1,0 +1,55 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:Apps2Samsung.Views"
+        xmlns:controls="clr-namespace:Apps2Samsung.Views.Controls"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        x:Class="Apps2Samsung.Views.CertificateWindow"
+        x:DataType="views:CertificateWindow"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        Title="{Binding TitleText}"
+        Width="460" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" CanResize="False"
+        Background="{DynamicResource BgBrush}">
+	<!-- The certificate sheet (#755): only when a certificate has to be made. Four steps, Sign in with
+	     Samsung opens the sign-in page in the browser, then the steps fill in and the window closes. -->
+	<Window.Styles>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Catalog.axaml"/>
+	</Window.Styles>
+
+	<StackPanel Margin="16,8,16,16" Spacing="14">
+		<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
+
+		<Grid ColumnDefinitions="44,*,Auto" ColumnSpacing="12">
+			<Border Width="44" Height="44" CornerRadius="11" Background="{DynamicResource AccentBrush}">
+				<Path Width="22" Height="22" Stretch="Uniform" Stroke="{DynamicResource OnAccentBrush}" StrokeThickness="2.2"
+				      StrokeLineCap="Round" StrokeJoin="Round"
+				      Data="M12,3 L19,6 L19,11 C19,15.5 16,19 12,21 C8,19 5,15.5 5,11 L5,6 Z M9,12 L11,14 L15,10"/>
+			</Border>
+			<StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+				<TextBlock Text="{Binding TitleText}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
+				<TextBlock Text="{Binding SubText}" FontSize="13" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
+			</StackPanel>
+			<Border Grid.Column="2" Padding="10,4" CornerRadius="13" VerticalAlignment="Center" Background="{DynamicResource AccentSoftBrush}">
+				<TextBlock Text="{Binding LevelText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+			</Border>
+		</Grid>
+
+		<TextBlock Text="{Binding IntroText}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+
+		<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
+			<controls:StepList Items="{Binding Steps}"/>
+		</Border>
+
+		<StackPanel x:Name="SignInButtons" Spacing="8">
+			<Button Classes="primary" Content="{Binding SignInText}" Click="OnSignInClick"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12"/>
+			<Button Classes="link" Content="{Binding CancelText}" Click="OnCancelClick" Foreground="{DynamicResource BadBrush}"
+			        HorizontalAlignment="Center"/>
+		</StackPanel>
+		<Button x:Name="CancelWaitButton" Classes="danger" Content="{Binding CancelText}" Click="OnCancelClick" IsVisible="False"
+		        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" CornerRadius="12"/>
+		<Button x:Name="CloseButton" Classes="plain" Content="{Binding CloseText}" Click="OnCloseClick" IsVisible="False"
+		        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" CornerRadius="12"/>
+	</StackPanel>
+</Window>

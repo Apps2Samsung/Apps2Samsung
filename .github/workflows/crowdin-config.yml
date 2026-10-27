@@ -1,7 +1,15 @@
 name: Crowdin config
 
-# Pushes the export pattern from crowdin.yml onto the Crowdin file, and clears the project's
-# per-language mapping.
+# Pushes the export pattern from crowdin.yml onto the Crowdin file, clears the project's
+# per-language mapping, and deletes orphaned source files and empty directories.
+#
+# The file itself sits at the branch root in Crowdin (/beta/en.json; crowdin.yml has
+# preserve_hierarchy off), so moving the language files inside the repo changes nothing on the
+# Crowdin side - only the empty folder tree of an earlier layout is left to clean up.
+#
+# The export pattern must agree with crowdin.yml on the branch crowdin-sync runs from (beta). To
+# run the cleanup from a branch that is ahead of beta with a different path, turn "pattern" off;
+# write the pattern from beta once the path has merged there.
 #
 # The export path is decided twice - Crowdin's own file setting builds the archive, crowdin.yml
 # only places what the CLI finds inside it - and only one of the two lives in this repo. They
@@ -16,6 +24,10 @@ on:
         description: 'Write the changes. Off = report what would change and touch nothing.'
         type: boolean
         default: false
+      pattern:
+        description: 'Also write the export pattern. Off while this branch has a path beta does not.'
+        type: boolean
+        default: true
 
 concurrency:
   # A build started mid-change would be half-renamed.
@@ -35,10 +47,12 @@ jobs:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
           APPLY: ${{ inputs.apply }}
+          PATTERN: ${{ inputs.pattern }}
         run: |
           if [ -z "$CROWDIN_PROJECT_ID" ] || [ -z "$CROWDIN_PERSONAL_TOKEN" ]; then
             echo "::error::CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN are not set."
             exit 1
           fi
           [ "$APPLY" = "true" ] && apply=--apply || apply=
-          python3 .github/scripts/crowdin_apply_config.py $apply | tee -a "$GITHUB_STEP_SUMMARY"
+          [ "$PATTERN" = "false" ] && leave=--leave-pattern || leave=
+          python3 .github/scripts/crowdin_apply_config.py $apply $leave | tee -a "$GITHUB_STEP_SUMMARY"

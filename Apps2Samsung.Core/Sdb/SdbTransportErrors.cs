@@ -21,6 +21,13 @@ namespace Apps2Samsung.Sdb
         {
             "forcibly closed by the remote host",
             "Remote closed stream while reading",
+            // sdbd closes a freshly-opened channel with a CLSE instead of an OKAY for an id it won't
+            // launch (TizenSdb.Core raises these two). Same signature as the reset cases above: the
+            // link died mid-handshake, the TV said nothing, so `0 debug`/`0 was_execute` should retry
+            // on a fresh connection and, failing that, report "the TV isn't running this id" rather
+            // than reading the socket phrasing back as the TV's refusal (reported for the debug agent).
+            "Remote closed channel before sending OKAY",
+            "Remote opened channel but did not supply remote id",
             "Unable to read data from the transport connection",
             "Connection reset by peer",
         };

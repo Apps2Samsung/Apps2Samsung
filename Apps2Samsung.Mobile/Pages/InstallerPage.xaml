@@ -2,157 +2,88 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.InstallerPage"
              Title="Apps2Samsung"
-             NavigationPage.HasNavigationBar="False"
-             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
 
-    <ScrollView>
-        <!-- Single card, mirroring the desktop window. -->
-        <Border Margin="12" Padding="16" StrokeThickness="1"
-                StrokeShape="RoundRectangle 8"
-                Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
-                BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
-            <VerticalStackLayout Spacing="14">
+    <!-- The Install screen (#755): the top bar (logo, the TV with ▾, ⋯), the TV card, then the
+         catalog as a grouped list with search, one short group per category. A row opens the app
+         sheet; "Your own package" takes a .wgt / .tpk from the phone. Every colour is a design token. -->
+    <Grid RowDefinitions="Auto,*">
+        <controls:TopBarView x:Name="TopBar" Grid.Row="0" ShowLogo="True" TvTitle="True" Action="More"
+                             TitleTapped="OnChangeTvClicked" MoreTapped="OnMoreClicked" />
 
-                <!-- Brand: logo + name (the desktop's title bar) -->
-                <HorizontalStackLayout HorizontalOptions="Center" Spacing="8" Padding="0,2">
-                    <Image Source="a2s_logo.png" HeightRequest="30" WidthRequest="30" VerticalOptions="Center" />
-                    <Label Text="Apps2Samsung" FontSize="19" FontAttributes="Bold" VerticalOptions="Center" />
-                </HorizontalStackLayout>
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,4,16,20" Spacing="14">
 
-                <!-- Header banner -->
-                <Border BackgroundColor="#2C3E50" Padding="24,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
-                    <Label Text="{l:Localize lblAppInstallerTitle}"
-                           TextColor="White" FontAttributes="Bold"
-                           HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                <!-- The TV: name, model + IP, an LED with the status line. What to do with it sits in
+                     the top bar now (▾ picks another, ⋯ has Rescan / TV information / Toolbox). -->
+                <controls:TvCardView x:Name="TvCard" />
+
+                <!-- No TV after a scan: what to check, and the two ways forward. -->
+                <Border x:Name="NoTvCard" IsVisible="False" Padding="16,20" StrokeThickness="0" StrokeShape="RoundRectangle 16"
+                        BackgroundColor="{DynamicResource SurfaceColor}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label x:Name="NoTvTitle" Text="{l:Localize lblNoTvYetTitle}" FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                        <Label x:Name="NoTvHint" Text="{l:Localize lblNoTvYetHint}" FontSize="13" TextColor="{DynamicResource MutedColor}"
+                               HorizontalTextAlignment="Center" />
+                        <HorizontalStackLayout Spacing="8" HorizontalOptions="Center" Margin="0,4,0,0">
+                            <Button Text="{l:Localize lblRescan}" Clicked="OnNoTvRescanClicked" HeightRequest="40" CornerRadius="20"
+                                    Padding="16,0" FontAttributes="Bold" BackgroundColor="{DynamicResource AccentColor}"
+                                    TextColor="{DynamicResource OnAccentColor}" />
+                            <Button x:Name="NoTvAddBtn" Text="{l:Localize lblAddTvByIp}" Clicked="OnNoTvAddClicked" HeightRequest="40" CornerRadius="20"
+                                    Padding="16,0" BackgroundColor="{DynamicResource AccentSoftColor}"
+                                    TextColor="{DynamicResource AccentColor}" />
+                            <!-- Takes Add by IP's place while the OS blocks local network access (#824):
+                                 a hand-typed IP runs into the same block, Settings is where it is lifted. -->
+                            <Button x:Name="NoTvSettingsBtn" IsVisible="False" Text="{l:Localize lblOpenSettings}" Clicked="OnNoTvSettingsClicked"
+                                    HeightRequest="40" CornerRadius="20" Padding="16,0" BackgroundColor="{DynamicResource AccentSoftColor}"
+                                    TextColor="{DynamicResource AccentColor}" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
                 </Border>
 
-                <!-- Category / App / Version / TV. Label above a full-width picker: next to it the
-                     picker kept only ~160dp on a 360dp phone once the round "?" and rescan buttons
-                     took their 44dp, and long names ("Jellyfin - AVPlay - 10.10z SmartHub") were cut.
-                     Those two buttons are now text actions on the label line. -->
-                <VerticalStackLayout Spacing="6">
-                    <Label Text="{l:Localize lblCategory}" FontSize="14" FontAttributes="Bold" />
-                    <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                            Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                        <Picker x:Name="CategoryPicker" Title="{l:Localize lblAllCategories}" BackgroundColor="Transparent"
-                                SelectedIndexChanged="OnCategoryChanged" />
+                <!-- Catalog -->
+                <VerticalStackLayout Spacing="10">
+                    <Border Padding="12,0" StrokeThickness="0" StrokeShape="RoundRectangle 10"
+                            BackgroundColor="{DynamicResource FillColor}">
+                        <Entry x:Name="SearchEntry" Placeholder="{l:Localize lblSearchApps}" BackgroundColor="Transparent"
+                               ReturnType="Search" TextChanged="OnSearchChanged" />
                     </Border>
+
+                    <!-- one short group per category, "Show all" expands it; a search is one flat group -->
+                    <VerticalStackLayout x:Name="CatalogList" Spacing="6" />
+
+                    <Label Text="{l:Localize lblYourOwnPackage}" Style="{StaticResource GroupTitle}" />
+                    <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
+                        <Grid ColumnDefinitions="44,*,Auto" ColumnSpacing="12" Padding="16,11" MinimumHeightRequest="52">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnOwnFileTapped" />
+                            </Grid.GestureRecognizers>
+                            <Border Grid.Column="0" WidthRequest="44" HeightRequest="44" StrokeThickness="0" StrokeShape="RoundRectangle 11"
+                                    BackgroundColor="{DynamicResource FillColor}">
+                                <Label Text="📁" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblCustomWgt}" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                                <Label Text="{l:Localize lblInstallOwnFile}" FontSize="13" TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Data="M1,1 L7,6.5 L1,12" Stroke="{DynamicResource InkBrush}" StrokeThickness="2"
+                                         Opacity="0.35" WidthRequest="8" HeightRequest="13" VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+                    <Label x:Name="CatalogFoot" Style="{StaticResource Footnote}" />
                 </VerticalStackLayout>
 
-                <VerticalStackLayout Spacing="6">
-                    <Label Text="{l:Localize lblApp}" FontSize="14" FontAttributes="Bold" />
-                    <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                            Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                        <Picker x:Name="AppPicker" Title="{l:Localize lblSelectAnApp}" BackgroundColor="Transparent"
-                                SelectedIndexChanged="OnAppChanged" />
-                    </Border>
-                </VerticalStackLayout>
-
-                <!-- Version, or Variant for a folded community app; "App details" opens the catalog ("?") -->
-                <VerticalStackLayout Spacing="6">
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                        <Label Grid.Column="0" x:Name="VersionCaption" Text="{l:Localize lblVersion}" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                        <Button Grid.Column="1" Text="{l:Localize lblAppDetails}" Clicked="OnCatalogClicked"
-                                FontSize="13" FontAttributes="Bold" BackgroundColor="Transparent" BorderWidth="0"
-                                TextColor="{AppThemeBinding Light=#34495E, Dark=#9FB6CC}"
-                                Padding="8,0" MinimumHeightRequest="32" HorizontalOptions="End" VerticalOptions="Center" />
-                    </Grid>
-                    <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                            Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                        <Picker x:Name="VersionPicker" BackgroundColor="Transparent" />
-                    </Border>
-                </VerticalStackLayout>
-
-                <!-- TV selection; "Rescan" replaces the round refresh button -->
-                <VerticalStackLayout Spacing="6">
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                        <Label Grid.Column="0" Text="{l:Localize lblSelectTv}" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                        <Button Grid.Column="1" x:Name="RefreshBtn" Text="{l:Localize lblRescan}" Clicked="OnRefreshClicked"
-                                FontSize="13" FontAttributes="Bold" BackgroundColor="Transparent" BorderWidth="0"
-                                TextColor="{AppThemeBinding Light=#34495E, Dark=#9FB6CC}"
-                                Padding="8,0" MinimumHeightRequest="32" HorizontalOptions="End" VerticalOptions="Center" />
-                    </Grid>
-                    <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                            Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                        <Picker x:Name="TvPicker" Title="{l:Localize lblScanToFindTvs}" BackgroundColor="Transparent"
-                                SelectedIndexChanged="OnTvChanged" />
-                    </Border>
-                </VerticalStackLayout>
-
-                <!-- Quick peek at what's already on the selected TV.
-                     Three chips in an even Grid rather than a row of flat text buttons: the labels
-                     need roughly 330dp of width, more than the ~304dp a 360dp phone leaves inside the
-                     card, so they used to wrap onto a second line and read as stray links. Even
-                     columns keep this a single row whatever the font scale or the wording these
-                     strings come back with from Crowdin - a long translation wraps inside its own
-                     chip - and the borders match the pickers above. -->
-                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
-                    <Button Grid.Column="0" Text="{l:Localize lblInstalledApps}"
-                            Clicked="OnShowInstalledAppsClicked"
-                            FontSize="12" LineBreakMode="WordWrap"
-                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}"
-                            BorderWidth="1" CornerRadius="8"
-                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                            Padding="4,8" MinimumHeightRequest="44" />
-                    <Button Grid.Column="1" Text="{l:Localize lblTvInformation}"
-                            Clicked="OnShowDeviceInfoClicked"
-                            FontSize="12" LineBreakMode="WordWrap"
-                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}"
-                            BorderWidth="1" CornerRadius="8"
-                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                            Padding="4,8" MinimumHeightRequest="44" />
-                    <Button Grid.Column="2" Text="{l:Localize lblRemote}"
-                            Clicked="OnShowRemoteClicked"
-                            FontSize="12" LineBreakMode="WordWrap"
-                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}"
-                            BorderWidth="1" CornerRadius="8"
-                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                            Padding="4,8" MinimumHeightRequest="44" />
-                    <Button Grid.Column="3" Text="{l:Localize lblToolbox}"
-                            Clicked="OnShowTvToolboxClicked"
-                            FontSize="12" LineBreakMode="WordWrap"
-                            BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}"
-                            BorderWidth="1" CornerRadius="8"
-                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                            Padding="4,8" MinimumHeightRequest="44" />
-                </Grid>
-
-                <!-- Status bar -->
-                <Border BackgroundColor="#2C3E50" Padding="16" StrokeThickness="0" StrokeShape="RoundRectangle 6">
-                    <Label x:Name="StatusLabel" Text="{l:Localize Ready}"
-                           TextColor="White" HorizontalOptions="Center"
-                           HorizontalTextAlignment="Center" LineBreakMode="WordWrap" />
-                </Border>
-
-                <!-- Action -->
-                <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
-                    <Button Grid.Column="0" x:Name="InstallBtn" Text="{l:Localize DownloadAndInstall}"
-                            Clicked="OnInstallClicked" HorizontalOptions="Fill" />
-                    <Button Grid.Column="1" x:Name="SettingsBtn" Text="⚙" FontSize="18"
-                            BackgroundColor="Transparent" BorderWidth="1"
-                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                            Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="22"
-                            Clicked="OnSettingsClicked" />
-                </Grid>
-
-                <Label Text="{l:Localize lblLicenseFooter}"
-                       HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
+                <controls:LicenseFooter />
                 <Label x:Name="VersionLabel"
                        HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
 
             </VerticalStackLayout>
-        </Border>
-    </ScrollView>
+        </ScrollView>
+    </Grid>
 
 </ContentPage>

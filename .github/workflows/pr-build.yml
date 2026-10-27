@@ -1,9 +1,9 @@
 name: PR build
 
 # Nothing else compiles the app on a pull request: the release workflows only run on a push to
-# beta (beta-prerelease.yml) or a merge to master (stable-release.yml). So a compile error —
+# beta (beta-prerelease.yml) or a merge to master (stable-release.yml). So a compile error,
 # most easily in Apps2Samsung.Mobile, which needs the maui-android workload that isn't installed
-# on a normal dev machine — only surfaced *after* the merge, where it breaks the beta release.
+# on a normal dev machine, only surfaced *after* the merge, where it breaks the beta release.
 # Build both heads here instead, so a PR can't merge a head that doesn't compile.
 
 # The Linux packaging job builds the .deb/.rpm/AppImage the releases ship (#589). That packaging
@@ -41,12 +41,34 @@ jobs:
 
       # Apps2Samsung.Core comes along as a project reference, so this covers both.
       - name: Build
-        run: dotnet build Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj -c Release
+        run: dotnet build Apps2Samsung.Desktop/Apps2Samsung.csproj -c Release
+
+      # The command-line head (#836) shares Core too and ships with every release.
+      - name: Build the CLI
+        run: dotnet build Apps2Samsung.Cli/Apps2Samsung.Cli.csproj -c Release
 
       # The catalog-snapshot generator shares Core; a Core change that breaks it would otherwise
       # only show up when the next half-hourly snapshot run fails.
       - name: Build the catalog snapshot tool
         run: dotnet build tools/CatalogSnapshot/CatalogSnapshot.csproj -c Release
+
+      # The download-stats generator shares Core's DownloadStats model, for the same reason.
+      - name: Build the download stats tool
+        run: dotnet build tools/DownloadStats/DownloadStats.csproj -c Release
+
+      # Same for the plugin patch rig (run by plugin-es2015-check.yml, which only triggers on plugin paths).
+      - name: Build the plugin patch rig
+        run: dotnet build tools/PluginPatchRig/PluginPatchRig.csproj -c Release
+
+      # Core's unit tests (parsers, certificate choices, manifests, rename records). Part of this
+      # required job rather than a job of its own, so a failing test blocks the merge without a
+      # change to the ruleset.
+      - name: Test Core
+        run: dotnet test Apps2Samsung.Core.Tests/Apps2Samsung.Core.Tests.csproj -c Release
+
+      # The CLI's own tests: what it shares with the desktop through settings.json.
+      - name: Test the CLI
+        run: dotnet test Apps2Samsung.Cli.Tests/Apps2Samsung.Cli.Tests.csproj -c Release
 
   android:
     name: Mobile (Android)
@@ -75,7 +97,7 @@ jobs:
   ios:
     name: Mobile (iOS)
     # The Xcode-major image, not macos-latest: the current .NET for iOS workload (27.x) demands
-    # Xcode 27.0, and macos-latest (macOS 26) tops out at Xcode 26.6 — the first run of this job
+    # Xcode 27.0, and macos-latest (macOS 26) tops out at Xcode 26.6, the first run of this job
     # failed on exactly that. When .NET for iOS moves to the next major, bump this label with it
     # (https://github.blog/changelog/2026-10-15-xcode-27-runner-image-generally-available/).
     runs-on: xcode-27
@@ -86,13 +108,26 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Xcode in use
-        run: xcodebuild -version
-
       # Both workloads: on macOS the csproj lists net10.0-android too, and restore evaluates every
       # TFM even though only the iOS one is built below.
       - name: Install MAUI workloads
         run: dotnet workload install maui-ios maui-android
+
+      # The .NET for iOS workload names the Xcode it needs in its pack folder
+      # (Microsoft.iOS.Sdk.net10.0_27.1 needs Xcode 27.1), and a new workload can land before the
+      # image's default Xcode moves up: on 2026-10-20 workload 27.1 met default Xcode 27.0 and every
+      # iOS build failed. The image carries the newer Xcode too, so pick the one the workload asks for.
+      - name: Select the Xcode the iOS workload needs
+        shell: bash
+        run: |
+          PACK=$(ls -d "$DOTNET_ROOT"/packs/Microsoft.iOS.Sdk.net*_* | sort -V | tail -1)
+          XCODE_VERSION=${PACK##*_}
+          if [ -d "/Applications/Xcode_${XCODE_VERSION}.app" ]; then
+            sudo xcode-select -s "/Applications/Xcode_${XCODE_VERSION}.app"
+          else
+            echo "::warning::Xcode ${XCODE_VERSION} is not on this image, building with the default"
+          fi
+          xcodebuild -version
 
       # Compile + XAML check only, for the simulator. Code signing is turned off explicitly: the
       # project sets CodesignEntitlements (the keychain group SecureStorage needs), and with
@@ -124,12 +159,12 @@ jobs:
           sudo chmod +x /usr/local/bin/appimagetool
 
       # BOTH architectures, like the releases do. An earlier version of this job packaged x64 only,
-      # on the assumption that arm64 differed by "three metadata strings" — it doesn't: the aarch64
+      # on the assumption that arm64 differed by "three metadata strings", it doesn't: the aarch64
       # rpm needs rpmbuild --target, and packaging x64 alone let that reach a release (#590).
       - name: Publish and package (x64 + arm64)
         run: |
           for ARCH in x64 arm64; do
-            dotnet publish Jellyfin2Samsung-CrossOS/Apps2Samsung.csproj \
+            dotnet publish Apps2Samsung.Desktop/Apps2Samsung.csproj \
               -c Release -r linux-$ARCH -p:SelfContained=true -o publish/linux-$ARCH
             # 0.0.0 rather than something like 0.0.0-pr: rpm forbids '-' in a version (it separates
             # version from release), which is what the first run of this job discovered.
@@ -152,7 +187,7 @@ jobs:
             grep -qx '/opt/apps2samsung/Apps2Samsung' "rpm-$ARCH.txt"
 
             # Present is not the same as whole. rpm's default post-install strip once reduced the
-            # x64 binary from 138 MB to 11 MB — a .NET single-file bundle with its payload cut off,
+            # x64 binary from 138 MB to 11 MB, a .NET single-file bundle with its payload cut off,
             # which installs happily and then cannot run. Compare against the published binary.
             EXPECTED=$(stat -c%s "publish/linux-$ARCH/Apps2Samsung")
             IN_DEB=$(awk '$6=="./opt/apps2samsung/Apps2Samsung"{print $3}' "deb-$ARCH.txt")

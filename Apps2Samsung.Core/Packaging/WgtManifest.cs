@@ -102,21 +102,82 @@ namespace Apps2Samsung.Packaging
             return match.Success ? match.Groups["pkg"].Value : null;
         }
 
-        /// <summary>Reads <c>config.xml</c> out of a .wgt, or null when there isn't one to read.</summary>
-        internal static async Task<string?> ReadConfigAsync(string wgtPath)
+        /// <summary>
+        /// The three things a package's manifest says about itself that the catalog records (#820):
+        /// the version the TV will report once it is installed, its application id and its package
+        /// id. A web package is read from <c>config.xml</c>, a native one from
+        /// <c>tizen-manifest.xml</c>, decided by what the file holds rather than its extension (a
+        /// native package has shipped under a .wgt name). All null for an unreadable file.
+        /// </summary>
+        public static async Task<WgtPackageInfo> ReadPackageInfoAsync(string packagePath)
         {
-            if (string.IsNullOrEmpty(wgtPath) || !File.Exists(wgtPath))
+            var config = await ReadConfigAsync(packagePath);
+            if (config is not null)
+            {
+                var (applicationId, packageId) = ParseIds(config);
+                return new WgtPackageInfo(ParseWidgetVersion(config), applicationId, packageId);
+            }
+
+            var native = await ReadEntryAsync(packagePath, "tizen-manifest.xml");
+            return native is null ? new WgtPackageInfo(null, null, null) : ParseNativeManifest(native);
+        }
+
+        private static string? ParseWidgetVersion(string config)
+        {
+            try
+            {
+                var version = XDocument.Parse(config).Root?.Attribute("version")?.Value;
+                if (!string.IsNullOrWhiteSpace(version))
+                    return version.Trim();
+            }
+            catch (System.Xml.XmlException)
+            {
+                // Fall through to the regex.
+            }
+            var match = Regex.Match(config, @"<widget\b[^>]*\bversion\s*=\s*""(?<version>[^""]+)""", RegexOptions.IgnoreCase);
+            return match.Success ? match.Groups["version"].Value.Trim() : null;
+        }
+
+        private static WgtPackageInfo ParseNativeManifest(string manifest)
+        {
+            try
+            {
+                var root = XDocument.Parse(manifest).Root;
+                if (root is null)
+                    return new WgtPackageInfo(null, null, null);
+                var packageId = root.Attribute("package")?.Value;
+                var version = root.Attribute("version")?.Value;
+                var appId = root.Descendants()
+                    .FirstOrDefault(e => e.Name.LocalName is "ui-application" or "service-application" or "widget-application" or "watch-application")
+                    ?.Attribute("appid")?.Value;
+                return new WgtPackageInfo(Clean(version), Clean(appId), Clean(packageId));
+            }
+            catch (System.Xml.XmlException)
+            {
+                return new WgtPackageInfo(null, null, null);
+            }
+
+            static string? Clean(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+        }
+
+        /// <summary>Reads <c>config.xml</c> out of a .wgt, or null when there isn't one to read.</summary>
+        internal static Task<string?> ReadConfigAsync(string wgtPath) => ReadEntryAsync(wgtPath, "config.xml");
+
+        /// <summary>Reads one root entry out of a package zip, or null when there isn't one to read.</summary>
+        private static async Task<string?> ReadEntryAsync(string packagePath, string entryName)
+        {
+            if (string.IsNullOrEmpty(packagePath) || !File.Exists(packagePath))
                 return null;
 
             try
             {
-                using var fs = File.OpenRead(wgtPath);
+                using var fs = File.OpenRead(packagePath);
                 using var archive = new ZipArchive(fs, ZipArchiveMode.Read);
-                var configEntry = archive.GetEntry("config.xml");
-                if (configEntry is null)
+                var entry = archive.GetEntry(entryName);
+                if (entry is null)
                     return null;
 
-                using var reader = new StreamReader(configEntry.Open(), Encoding.UTF8);
+                using var reader = new StreamReader(entry.Open(), Encoding.UTF8);
                 return await reader.ReadToEndAsync();
             }
             catch
@@ -173,4 +234,7 @@ namespace Apps2Samsung.Packaging
             && Version.TryParse(requiredVersion, out var required)
             && tvVersion < required;
     }
+
+    /// <summary>What a package's manifest says about itself; see <see cref="WgtManifest.ReadPackageInfoAsync"/>.</summary>
+    public sealed record WgtPackageInfo(string? Version, string? ApplicationId, string? PackageId);
 }

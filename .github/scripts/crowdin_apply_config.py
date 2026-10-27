@@ -20,10 +20,24 @@ en.json - the live one and two left from earlier layouts - so every build carrie
 29-language export came back with 56 entries. Whichever the API happens to list first is then a
 coin toss for any tool that looks a file up by name.
 
-Run it after changing the translation pattern in crowdin.yml. Idempotent - it reports "already
-correct" and writes nothing when the two sides agree.
+It also removes empty directories under the branch. crowdin.yml has preserve_hierarchy off, so
+the CLI puts en.json at the branch root (/beta/en.json) whatever folder it has in the repo; the
+repo path only says where the CLI reads and writes locally. The folder tree of an earlier layout
+(Jellyfin2Samsung-CrossOS/Assets/Localization, "Nothing to translate") stayed behind in Crowdin
+when that stopped being the upload path, and the desktop folder rename would otherwise have left
+a second one. A directory with no file anywhere beneath it holds nothing a translator can touch.
 
-  CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN in the environment; --apply to write.
+Run it after changing crowdin.yml. Idempotent - it reports "already correct" and writes nothing
+when the two sides agree.
+
+The export pattern has to agree with crowdin.yml on the branch crowdin-sync actually runs from
+(beta): the archive is built with Crowdin's pattern and the CLI only places what it finds under
+its own. While a branch ahead of beta already carries a new path, run from that branch with
+--leave-pattern so the cleanup happens but beta's downloads keep working; write the pattern from
+beta once the path has merged there.
+
+  CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN in the environment; --apply to write;
+  --leave-pattern to report the export pattern but not write it.
 """
 import json
 import os
@@ -67,6 +81,17 @@ def listing(path, **params):
         offset += 500
 
 
+def empty_directories(branch_id, project_files):
+    """Directories under the branch with no file anywhere beneath them, deepest first so a parent
+    is only deleted after its children. Deleting a directory in Crowdin deletes its contents, so
+    the check is against every file in the project, not just the ones named en.json."""
+    directories = listing(f"/projects/{PROJECT}/directories", branchId=branch_id, recursion=1)
+    file_paths = [f.get("path") or "" for f in project_files]
+    empty = [d for d in directories
+             if not any(path.startswith(d["path"] + "/") for path in file_paths)]
+    return sorted(empty, key=lambda d: d["path"].count("/"), reverse=True)
+
+
 def wanted_pattern():
     """The translation pattern from crowdin.yml. Read with a regex rather than a YAML parser so the
     job needs nothing installed beyond the interpreter."""
@@ -81,11 +106,14 @@ def main():
     if not TOKEN or not PROJECT:
         raise SystemExit("CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN are not set.")
     apply = "--apply" in sys.argv[1:]
+    leave_pattern = "--leave-pattern" in sys.argv[1:]
 
     pattern = wanted_pattern()
     print(f"{CONFIG} wants: {pattern}")
 
-    everything = listing(f"/projects/{PROJECT}/files")
+    # Recursive: the emptiness check below must see every file in every directory, or a
+    # directory with translated content in it would look empty and be deleted.
+    everything = listing(f"/projects/{PROJECT}/files", recursion=1)
     named = [f for f in everything if f["name"] == SOURCE_FILE]
     if not named:
         raise SystemExit(f"No '{SOURCE_FILE}' in the project.")
@@ -105,17 +133,28 @@ def main():
     current = (source.get("exportOptions") or {}).get("exportPattern")
     project = call(f"/projects/{PROJECT}")["data"]
     mapping = project.get("languageMapping") or {}
+    branches = [b for b in listing(f"/projects/{PROJECT}/branches") if b["name"] == BRANCH]
+    if not branches:
+        raise SystemExit(f"No '{BRANCH}' branch in the project.")
+    stale = empty_directories(branches[0]["id"], everything)
 
     print(f"Crowdin has:  {current}")
     print(f"languageMapping: {json.dumps(mapping)}")
+    for d in stale:
+        print(f"Empty:       id={d['id']} {d['path']} (no file beneath it)")
 
     changes = []
-    if current != pattern:
+    if current != pattern and leave_pattern:
+        print("Export pattern differs but is left alone (--leave-pattern): write it from the branch "
+              "crowdin-sync runs from once that branch has the new path.")
+    elif current != pattern:
         changes.append("export pattern")
     if mapping:
         changes.append(f"languageMapping ({len(mapping)} entr(y/ies) to clear)")
     if orphans:
         changes.append(f"{len(orphans)} orphaned source file(s) to delete")
+    if stale:
+        changes.append(f"{len(stale)} empty director(y/ies) to delete")
     if not changes:
         print("\nAlready correct - nothing to write.")
         return 0
@@ -125,7 +164,7 @@ def main():
         print("Nothing was written - re-run with --apply.")
         return 0
 
-    if current != pattern:
+    if current != pattern and not leave_pattern:
         call(f"/projects/{PROJECT}/files/{source['id']}", method="PATCH",
              body=[{"op": "replace", "path": "/exportOptions",
                     "value": {"exportPattern": pattern}}])
@@ -137,6 +176,11 @@ def main():
     for f in orphans:
         call(f"/projects/{PROJECT}/files/{f['id']}", method="DELETE")
         print(f"  deleted orphan id={f['id']} {f.get('path')}")
+    # Deepest directory first so Crowdin never has to cascade. A directory that only held an
+    # orphan shows up as empty on the next run, after the orphan is gone.
+    for d in stale:
+        call(f"/projects/{PROJECT}/directories/{d['id']}", method="DELETE")
+        print(f"  deleted empty directory id={d['id']} {d['path']}")
     return 0
 
 

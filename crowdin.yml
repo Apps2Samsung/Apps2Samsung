@@ -18,7 +18,13 @@
 # the catalog already falls back to English for a key a file doesn't carry. The corollary is that
 # a string translated by hand in the repo must be pushed up (the upload_translations input on the
 # sync) or the next download proposes deleting it.
+# preserve_hierarchy off (the CLI default, pinned here so it reads as a decision): the file sits at
+# the root of Crowdin's "beta" branch as /beta/en.json, and the paths below only say where the CLI
+# reads and writes locally. That is what lets the language files move around in the repo (desktop
+# Assets folder → Apps2Samsung.Core/Localization/Languages) without touching Crowdin or the
+# translations attached to the file.
+preserve_hierarchy: false
 files:
-  - source: /Jellyfin2Samsung-CrossOS/Assets/Localization/en.json
-    translation: /Jellyfin2Samsung-CrossOS/Assets/Localization/%locale%.json
+  - source: /Apps2Samsung.Core/Localization/Languages/en.json
+    translation: /Apps2Samsung.Core/Localization/Languages/%locale%.json
     skip_untranslated_strings: true

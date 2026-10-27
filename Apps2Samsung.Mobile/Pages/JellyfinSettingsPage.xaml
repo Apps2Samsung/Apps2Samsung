@@ -2,15 +2,16 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.JellyfinSettingsPage"
              Title="Jellyfin"
-             NavigationPage.HasNavigationBar="False"
-             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
 
     <ContentPage.Resources>
         <Style x:Key="Divider" TargetType="BoxView">
             <Setter Property="HeightRequest" Value="1" />
-            <Setter Property="Color" Value="{AppThemeBinding Light=#E2E2E2, Dark=#333}" />
+            <Setter Property="Color" Value="{DynamicResource HairColor}" />
             <Setter Property="Margin" Value="0,4" />
         </Style>
         <Style x:Key="Hint" TargetType="Label">
@@ -21,117 +22,110 @@
             <Setter Property="Padding" Value="8,0" />
             <Setter Property="StrokeThickness" Value="1" />
             <Setter Property="StrokeShape" Value="RoundRectangle 6" />
-            <Setter Property="Stroke" Value="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}" />
-            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark=#2A2A2A}" />
+            <Setter Property="Stroke" Value="{DynamicResource HairColor}" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource Surface2Color}" />
         </Style>
     </ContentPage.Resources>
 
-    <ScrollView>
-        <Border Margin="12" Padding="16" StrokeThickness="1"
-                StrokeShape="RoundRectangle 8"
-                Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
-                BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
-            <VerticalStackLayout Spacing="14">
+    <!-- the top bar (#755): Back and the title -->
+    <Grid RowDefinitions="Auto,*">
+        <controls:TopBarView Grid.Row="0" Title="{l:Localize lblJellyfinServer}" BackText="{l:Localize lblNavBack}" BackTapped="OnBackClicked" />
+        <ScrollView Grid.Row="1">
+            <Border Margin="12" Padding="16" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    Stroke="{DynamicResource HairBrush}"
+                    BackgroundColor="{DynamicResource SurfaceColor}">
+                <VerticalStackLayout Spacing="14">
 
-                <!-- Header banner with a back affordance -->
-                <Border BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8">
-                    <Grid ColumnDefinitions="44,*,44" VerticalOptions="Center">
-                        <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
-                                BackgroundColor="Transparent" BorderWidth="0" Padding="0"
-                                WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
-                        <Label Grid.Column="1" Text="{l:Localize lblJellyfinServer}" TextColor="White" FontAttributes="Bold"
-                               VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                    <Label Style="{StaticResource Hint}"
+                           Text="{l:Localize hintJellyfinSettingsPage}" />
+
+                    <!-- Server URL -->
+                    <Label Text="{l:Localize lblServerUrl}" FontAttributes="Bold" FontSize="14" />
+                    <Border Style="{StaticResource Field}">
+                        <Entry x:Name="ServerUrlEntry" Keyboard="Url" Placeholder="http://192.168.1.10:8096"
+                               BackgroundColor="Transparent" Unfocused="OnServerUrlUnfocused" />
+                    </Border>
+                    <Label Style="{StaticResource Hint}"
+                           Text="{l:Localize hintServerUrl}" />
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                        <Button Grid.Column="0" x:Name="TestBtn" Text="{l:Localize lblTestConnection}" Clicked="OnTestConnectionClicked"
+                                BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,6"
+                                HorizontalOptions="Start"
+                                BorderColor="{DynamicResource HairColor}"
+                                TextColor="{DynamicResource InkColor}" />
+                        <Label Grid.Column="1" x:Name="ServerTestLabel" Style="{StaticResource Hint}"
+                               VerticalOptions="Center" IsVisible="False" />
                     </Grid>
-                </Border>
+                    <Label x:Name="MdnsWarning" IsVisible="False" FontSize="12" TextColor="{DynamicResource WarnColor}"
+                           Text="{l:Localize hintMdnsAddress}" />
 
-                <Label Style="{StaticResource Hint}"
-                       Text="{l:Localize hintJellyfinSettingsPage}" />
+                    <BoxView Style="{StaticResource Divider}" />
 
-                <!-- Server URL -->
-                <Label Text="{l:Localize lblServerUrl}" FontAttributes="Bold" FontSize="14" />
-                <Border Style="{StaticResource Field}">
-                    <Entry x:Name="ServerUrlEntry" Keyboard="Url" Placeholder="http://192.168.1.10:8096"
-                           BackgroundColor="Transparent" Unfocused="OnServerUrlUnfocused" />
-                </Border>
-                <Label Style="{StaticResource Hint}"
-                       Text="{l:Localize hintServerUrl}" />
-                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                    <Button Grid.Column="0" x:Name="TestBtn" Text="{l:Localize lblTestConnection}" Clicked="OnTestConnectionClicked"
-                            BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,6"
-                            HorizontalOptions="Start"
-                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}" />
-                    <Label Grid.Column="1" x:Name="ServerTestLabel" Style="{StaticResource Hint}"
-                           VerticalOptions="Center" IsVisible="False" />
-                </Grid>
-                <Label x:Name="MdnsWarning" IsVisible="False" FontSize="12" TextColor="#B8860B"
-                       Text="{l:Localize hintMdnsAddress}" />
-
-                <BoxView Style="{StaticResource Divider}" />
-
-                <!-- Auto-login -->
-                <Label Text="{l:Localize lblAutoLoginOptional}" FontAttributes="Bold" FontSize="14" />
-                <Label Style="{StaticResource Hint}"
-                       Text="{l:Localize hintAutoLogin}" />
-                <Border Style="{StaticResource Field}">
-                    <Entry x:Name="UsernameEntry" Placeholder="{l:Localize lblJellyfinUsername}" BackgroundColor="Transparent" />
-                </Border>
-                <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
-                    <Border Grid.Column="0" Style="{StaticResource Field}">
-                        <Entry x:Name="PasswordEntry" IsPassword="True" Placeholder="{l:Localize lblJellyfinPassword}" BackgroundColor="Transparent" />
+                    <!-- Auto-login -->
+                    <Label Text="{l:Localize lblAutoLoginOptional}" FontAttributes="Bold" FontSize="14" />
+                    <Label Style="{StaticResource Hint}"
+                           Text="{l:Localize hintAutoLogin}" />
+                    <Border Style="{StaticResource Field}">
+                        <Entry x:Name="UsernameEntry" Placeholder="{l:Localize lblJellyfinUsername}" BackgroundColor="Transparent" />
                     </Border>
-                    <Button Grid.Column="1" x:Name="PwEyeBtn" Text="👁" FontSize="16"
-                            BackgroundColor="Transparent" BorderWidth="1"
-                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                            TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                            Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="6"
-                            Clicked="OnTogglePasswordVisibility" />
-                </Grid>
-                <Button x:Name="SignInBtn" Text="{l:Localize lblConnectAndSignIn}" Clicked="OnSignInClicked"
-                        HorizontalOptions="Start" BackgroundColor="#2C3E50" TextColor="White"
-                        CornerRadius="6" Padding="16,8" />
-                <Label x:Name="StatusLabel" Style="{StaticResource Hint}" IsVisible="False" />
-                <Button x:Name="SignOutBtn" Text="{l:Localize lblClearSavedSignIn}" Clicked="OnSignOutClicked"
-                        HorizontalOptions="Start" IsVisible="False"
-                        BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
-                        BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                        TextColor="{AppThemeBinding Light=#B00020, Dark=#FF6B6B}" />
+                    <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
+                        <Border Grid.Column="0" Style="{StaticResource Field}">
+                            <Entry x:Name="PasswordEntry" IsPassword="True" Placeholder="{l:Localize lblJellyfinPassword}" BackgroundColor="Transparent" />
+                        </Border>
+                        <Button Grid.Column="1" x:Name="PwEyeBtn" Text="👁" FontSize="16"
+                                BackgroundColor="Transparent" BorderWidth="1"
+                                BorderColor="{DynamicResource HairColor}"
+                                TextColor="{DynamicResource InkColor}"
+                                Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="6"
+                                Clicked="OnTogglePasswordVisibility" />
+                    </Grid>
+                    <Button x:Name="SignInBtn" Text="{l:Localize lblConnectAndSignIn}" Clicked="OnSignInClicked"
+                            HorizontalOptions="Start" BackgroundColor="{DynamicResource AccentColor}" TextColor="{DynamicResource OnAccentColor}"
+                            CornerRadius="6" Padding="16,8" />
+                    <Label x:Name="StatusLabel" Style="{StaticResource Hint}" IsVisible="False" />
+                    <Button x:Name="SignOutBtn" Text="{l:Localize lblClearSavedSignIn}" Clicked="OnSignOutClicked"
+                            HorizontalOptions="Start" IsVisible="False"
+                            BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
+                            BorderColor="{DynamicResource HairColor}"
+                            TextColor="{DynamicResource BadColor}" />
 
-                <BoxView Style="{StaticResource Divider}" />
+                    <BoxView Style="{StaticResource Divider}" />
 
-                <!-- YouTube fix -->
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                    <Label Grid.Column="0" Text="{l:Localize lblFixYoutubeTrailers}" VerticalOptions="Center" />
-                    <Switch Grid.Column="1" x:Name="YoutubeSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
-                </Grid>
-                <Label Style="{StaticResource Hint}"
-                       Text="{l:Localize hintFixYoutubeTrailers}" />
+                    <!-- YouTube fix -->
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <Label Grid.Column="0" Text="{l:Localize lblFixYoutubeTrailers}" VerticalOptions="Center" />
+                        <Switch Grid.Column="1" x:Name="YoutubeSwitch" OnColor="{DynamicResource AccentColor}" Toggled="OnToggle" />
+                    </Grid>
+                    <Label Style="{StaticResource Hint}"
+                           Text="{l:Localize hintFixYoutubeTrailers}" />
 
-                <BoxView Style="{StaticResource Divider}" />
+                    <BoxView Style="{StaticResource Divider}" />
 
-                <!-- Custom CSS -->
-                <Label Text="{l:Localize lblCustomCssMobile}" FontAttributes="Bold" FontSize="14" />
-                <Label Style="{StaticResource Hint}"
-                       Text="{l:Localize hintCustomCss}" />
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                    <Border Grid.Column="0" Style="{StaticResource Field}">
-                        <Picker x:Name="ThemePicker" Title="{l:Localize lblCommunityTheme}"
-                                BackgroundColor="Transparent" SelectedIndexChanged="OnThemeSelected" />
+                    <!-- Custom CSS -->
+                    <Label Text="{l:Localize lblCustomCssMobile}" FontAttributes="Bold" FontSize="14" />
+                    <Label Style="{StaticResource Hint}"
+                           Text="{l:Localize hintCustomCss}" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Border Grid.Column="0" Style="{StaticResource Field}">
+                            <Picker x:Name="ThemePicker" Title="{l:Localize lblCommunityTheme}"
+                                    BackgroundColor="Transparent" SelectedIndexChanged="OnThemeSelected" />
+                        </Border>
+                        <Button Grid.Column="1" Text="{l:Localize lblClearCss}" Clicked="OnClearCss"
+                                BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,0" HeightRequest="44"
+                                BorderColor="{DynamicResource HairColor}"
+                                TextColor="{DynamicResource BadColor}" />
+                    </Grid>
+                    <Border Style="{StaticResource Field}" Padding="8,4">
+                        <Editor x:Name="CssEditor" HeightRequest="120" Placeholder="/* your CSS here */"
+                                BackgroundColor="Transparent" Unfocused="OnCssUnfocused" />
                     </Border>
-                    <Button Grid.Column="1" Text="{l:Localize lblClearCss}" Clicked="OnClearCss"
-                            BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,0" HeightRequest="44"
-                            BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                            TextColor="{AppThemeBinding Light=#B00020, Dark=#FF6B6B}" />
-                </Grid>
-                <Border Style="{StaticResource Field}" Padding="8,4">
-                    <Editor x:Name="CssEditor" HeightRequest="120" Placeholder="/* your CSS here */"
-                            BackgroundColor="Transparent" Unfocused="OnCssUnfocused" />
-                </Border>
-                <Label Style="{StaticResource Hint}"
-                       Text="{l:Localize hintCommunityThemes}" />
+                    <Label Style="{StaticResource Hint}"
+                           Text="{l:Localize hintCommunityThemes}" />
 
-            </VerticalStackLayout>
-        </Border>
-    </ScrollView>
+                </VerticalStackLayout>
+            </Border>
+        </ScrollView>
+    </Grid>
 
 </ContentPage>

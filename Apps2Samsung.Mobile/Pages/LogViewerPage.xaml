@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
+             xmlns:pages="clr-namespace:Apps2Samsung.Mobile.Pages"
+             x:Class="Apps2Samsung.Mobile.Pages.LogViewerPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+
+    <ContentPage.Resources>
+        <!-- one third of the level filter -->
+        <Style x:Key="Segment" TargetType="Button">
+            <Setter Property="HeightRequest" Value="32" />
+            <Setter Property="MinimumHeightRequest" Value="32" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="BorderWidth" Value="0" />
+            <Setter Property="FontFamily" Value="OpenSansSemibold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+        </Style>
+    </ContentPage.Resources>
+
+    <!-- Settings > Backup and diagnostics > Debug log (#755): one session's log, newest session
+         first in the ⋯ menu, filtered by level and searched, then copied or shared. -->
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <controls:TopBarView x:Name="TopBar" Grid.Row="0" Title="{l:Localize lblDebugLog}" BackText="{l:Localize lblNavBack}"
+                             Action="More" MoreTapped="OnMoreClicked" />
+
+        <VerticalStackLayout Grid.Row="1" Padding="16,4,16,10" Spacing="10">
+            <Border Padding="2" StrokeThickness="0" StrokeShape="RoundRectangle 9" BackgroundColor="{DynamicResource FillColor}">
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="2">
+                    <Button x:Name="FilterAll" Grid.Column="0" Style="{StaticResource Segment}" Text="{l:Localize lblLogAll}" Clicked="OnFilterClicked" />
+                    <Button x:Name="FilterWarnings" Grid.Column="1" Style="{StaticResource Segment}" Text="{l:Localize lblLogWarnings}" Clicked="OnFilterClicked" />
+                    <Button x:Name="FilterErrors" Grid.Column="2" Style="{StaticResource Segment}" Text="{l:Localize lblLogErrors}" Clicked="OnFilterClicked" />
+                </Grid>
+            </Border>
+            <Border Padding="12,0" StrokeThickness="0" StrokeShape="RoundRectangle 10" BackgroundColor="{DynamicResource FillColor}">
+                <Entry x:Name="SearchEntry" Placeholder="{l:Localize lblSearchLog}" BackgroundColor="Transparent"
+                       ReturnType="Search" TextChanged="OnSearchChanged" />
+            </Border>
+        </VerticalStackLayout>
+
+        <Border Grid.Row="2" Margin="16,0" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
+            <CollectionView x:Name="Lines" SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <Label Text="{l:Localize lblLogNothingMatches}" Margin="16,20" HorizontalTextAlignment="Center"
+                           TextColor="{DynamicResource MutedColor}" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="pages:LogViewerRow">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" Padding="12,6" BackgroundColor="{Binding Back}">
+                            <Label Text="{Binding Time}" FontFamily="monospace" FontSize="11" TextColor="{DynamicResource MutedColor}" />
+                            <Label Grid.Column="1" Text="{Binding Message}" FontFamily="monospace" FontSize="11"
+                                   TextColor="{Binding Ink}" LineBreakMode="CharacterWrap" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Border>
+
+        <VerticalStackLayout Grid.Row="3" Padding="16,10,16,24" Spacing="6">
+            <Label x:Name="FootLabel" FontSize="12" TextColor="{DynamicResource MutedColor}" HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center" LineBreakMode="MiddleTruncation" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <Button x:Name="CopyBtn" Text="{l:Localize lblCopy}" Style="{StaticResource PlainButton}" CornerRadius="12"
+                        HeightRequest="48" Clicked="OnCopyClicked" />
+                <Button Grid.Column="1" Text="{l:Localize lblShare}" Style="{StaticResource PrimaryButton}" CornerRadius="12"
+                        HeightRequest="48" Clicked="OnShareClicked" />
+            </Grid>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

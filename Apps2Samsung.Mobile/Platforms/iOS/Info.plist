@@ -29,6 +29,26 @@
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/appicon.appiconset</string>
 
+	<!-- The UIScene life cycle (SceneDelegate.cs): required for an app built with the iOS 27 SDK,
+	     which iOS otherwise stops right after launch. One window, MAUI's default configuration. -->
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>__MAUI_DEFAULT_SCENE_CONFIGURATION__</string>
+					<key>UISceneDelegateClassName</key>
+					<string>SceneDelegate</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+
 	<!-- The whole app is local-network traffic to the TV: the SDB port scan and protocol
 	     (TCP 26101), the TV's REST API (8001/8002) and the remote-control websocket. iOS 14+
 	     blocks all of it until the user grants local network access, and only shows that
@@ -36,14 +56,68 @@
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Apps2Samsung looks for Samsung TVs on your Wi-Fi network and talks to the TV you pick to install apps on it.</string>
 
-	<!-- Counterpart of the Android network_security_config: plain HTTP to LAN hosts that can't be
-	     whitelisted ahead of time (the TV's DHCP-assigned IP for its REST API, and the Samsung
-	     SignInGate's POST to the in-app loopback listener on http://localhost:4794). Everything
-	     security-sensitive (Samsung OAuth, GitHub, catalog downloads) is HTTPS regardless. -->
+	<!-- Counterpart of the Android network_security_config (cleartext permitted everywhere): plain
+	     HTTP to hosts that can't be whitelisted ahead of time. The TV's DHCP-assigned IP for its
+	     REST API and the Samsung SignInGate's POST to the in-app loopback listener on
+	     http://localhost:4794 would pass with NSAllowsLocalNetworking alone, but the user's own
+	     Jellyfin server would not: http://nas.lan:8096 or http://jellyfin.example.nl is neither an
+	     IP, a single-label name nor .local, and the Jellyfin settings page and the install's server
+	     lookup talk to it. Don't add NSAllowsLocalNetworking next to this key: iOS ignores
+	     NSAllowsArbitraryLoads when it is present. Everything security-sensitive (Samsung OAuth,
+	     GitHub, catalog downloads) is HTTPS regardless. -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
-		<key>NSAllowsLocalNetworking</key>
+		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+
+	<!-- .wgt and .tpk (Tizen packages; zip files inside) have no uniform type on iOS. Declaring
+	     them registers one when the app is installed, so the document picker
+	     (LocalFilePicker.iOS.cs) can allow them by name: a file of a type the system doesn't know
+	     is greyed out in the picker and can't be chosen. Imported, not exported: the formats are
+	     Tizen's, not ours. -->
+	<key>UTImportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>org.tizen.widget-package</string>
+			<key>UTTypeDescription</key>
+			<string>Tizen web app package</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.pkware.zip-archive</string>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>wgt</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/widget</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>org.tizen.package</string>
+			<key>UTTypeDescription</key>
+			<string>Tizen app package</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.pkware.zip-archive</string>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>tpk</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>

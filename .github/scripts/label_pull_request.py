@@ -34,7 +34,7 @@ API = "https://api.github.com"
 CATEGORIES = {"feature", "enhancement", "bug", "fix", "translations", "l10n",
               "chore", "ci", "dependencies", "documentation"}
 
-LOCALIZATION = "Jellyfin2Samsung-CrossOS/Assets/Localization/"
+LOCALIZATION = "Apps2Samsung.Core/Localization/Languages/"
 
 TITLE_RULES = [
     (r"^docs\b", "documentation"),

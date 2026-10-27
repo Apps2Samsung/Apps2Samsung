@@ -1,0 +1,64 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:Apps2Samsung.Views"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        x:Class="Apps2Samsung.Views.UserSettingsWindow"
+        x:DataType="views:UserSettingsWindow"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        Title="{Binding TitleText}"
+        Width="460" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" CanResize="False"
+        Background="{DynamicResource BgBrush}">
+	<!-- A community package's user_settings (#791): the values it needs before it installs (an API
+	     key, a server address), one field each, written into the package by UserSettingsPatcher.
+	     The fields are built in code from the catalog's spec. -->
+	<Window.Styles>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Catalog.axaml"/>
+		<Style Selector="TextBox.field">
+			<Setter Property="MinHeight" Value="40"/>
+			<Setter Property="CornerRadius" Value="10"/>
+			<Setter Property="FontSize" Value="14"/>
+		</Style>
+		<Style Selector="TextBlock.fieldlabel">
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="TextWrapping" Value="Wrap"/>
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.fielderror">
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="TextWrapping" Value="Wrap"/>
+			<Setter Property="Foreground" Value="{DynamicResource BadBrush}"/>
+		</Style>
+	</Window.Styles>
+
+	<StackPanel Margin="16,8,16,16" Spacing="14">
+		<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
+
+		<Grid ColumnDefinitions="44,*" ColumnSpacing="12">
+			<Border Width="44" Height="44" CornerRadius="11" Background="{DynamicResource AccentSoftBrush}">
+				<!-- a key -->
+				<Path Width="22" Height="22" Stretch="Uniform" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.2"
+				      StrokeLineCap="Round" StrokeJoin="Round" Data="M15,7 A4,4 0 1 1 9.5,10.5 L4,16 L4,20 L8,20 L8,18 L10,18 L10,16 L12,16 L13.5,14.5 A4,4 0 0 1 15,7 Z"/>
+			</Border>
+			<TextBlock Grid.Column="1" Text="{Binding TitleText}" FontSize="17" FontWeight="Bold" VerticalAlignment="Center"
+			           TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+		</Grid>
+
+		<TextBlock Text="{Binding HintText}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+
+		<Button Classes="link" Content="{Binding HelpText}" Click="OnHelpClick" HorizontalAlignment="Left" Padding="0"
+		        IsVisible="{Binding HasHelp}"/>
+
+		<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}" Padding="16,14">
+			<StackPanel x:Name="Fields" Spacing="12"/>
+		</Border>
+
+		<StackPanel Spacing="8">
+			<Button Classes="primary" Content="{Binding InstallText}" Click="OnInstallClick"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12"/>
+			<Button Classes="link" Content="{Binding CancelText}" Click="OnCancelClick" HorizontalAlignment="Center"/>
+		</StackPanel>
+	</StackPanel>
+</Window>

@@ -7,6 +7,7 @@ using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Jellyfin;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Mobile.Localization;
+using Apps2Samsung.Mobile.Resources.Styles;
 
 namespace Apps2Samsung.Mobile.Pages;
 
@@ -107,7 +108,7 @@ public partial class JellyfinSettingsPage : ContentPage
 	private void ShowTest(string message, bool isError)
 	{
 		ServerTestLabel.Text = message;
-		ServerTestLabel.TextColor = isError ? Color.FromArgb("#B00020") : Color.FromArgb("#2E7D32");
+		ServerTestLabel.TextColor = isError ? DesignTheme.ColorOf("Bad") : DesignTheme.ColorOf("Ok");
 		ServerTestLabel.Opacity = 1.0;
 		ServerTestLabel.IsVisible = true;
 	}
@@ -242,7 +243,7 @@ public partial class JellyfinSettingsPage : ContentPage
 	{
 		System.Diagnostics.Trace.WriteLine($"[jellyfin] {message}");
 		StatusLabel.Text = message;
-		StatusLabel.TextColor = isError ? Color.FromArgb("#B00020") : Color.FromArgb("#2E7D32");
+		StatusLabel.TextColor = isError ? DesignTheme.ColorOf("Bad") : DesignTheme.ColorOf("Ok");
 		StatusLabel.Opacity = 1.0;
 		StatusLabel.IsVisible = true;
 	}

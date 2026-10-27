@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+             x:Class="Apps2Samsung.Mobile.Controls.TopBarView">
+    <!-- The top bar every page has (#755, option C): the app logo on the Install tab or Back on a
+         pushed page, in the middle a page title or, on the tabs that work with a TV, the TV in a pill
+         (with ▾ and the Switch TV sheet once more than one TV is found) over its status line, and ⋯
+         or power on the right. It replaces the big page titles. Every colour is a design token. -->
+    <!-- The left column sizes to its content: "Back" plus the chevron is wider than 56 in most
+         languages, and a fixed column cut it to "Ba…" (and "Ac…" in Dutch) on the TV information
+         and toolbox pages. The label is capped so a long translation still leaves room for the title. -->
+    <Grid ColumnDefinitions="Auto,*,56" Padding="8,6,8,6" MinimumHeightRequest="56">
+
+        <!-- left: the logo, or Back -->
+        <Image x:Name="Logo" Grid.Column="0" Source="a2s_logo.png" WidthRequest="32" HeightRequest="32"
+               HorizontalOptions="Start" VerticalOptions="Center" Margin="6,0,8,0" IsVisible="False" />
+        <Grid x:Name="BackButton" Grid.Column="0" ColumnDefinitions="Auto,Auto" ColumnSpacing="4" IsVisible="False"
+              HorizontalOptions="Start" VerticalOptions="Center" Padding="4,8,8,8" MinimumHeightRequest="44" MinimumWidthRequest="40"
+              SemanticProperties.Description="{l:Localize lblNavBack}">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnBackTapped" />
+            </Grid.GestureRecognizers>
+            <shapes:Path Grid.Column="0" Data="M10,2 L2,10 L10,18" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.4"
+                         StrokeLineCap="Round" StrokeLineJoin="Round" WidthRequest="12" HeightRequest="20" VerticalOptions="Center" />
+            <Label x:Name="BackLabel" Grid.Column="1" FontSize="16" TextColor="{DynamicResource AccentColor}"
+                   VerticalOptions="Center" LineBreakMode="TailTruncation" MaximumWidthRequest="120" />
+        </Grid>
+
+        <!-- middle: a page title, or the TV in a pill (status dot, name, ▾ only when there is
+             another TV to switch to) over its status line -->
+        <VerticalStackLayout Grid.Column="1" Spacing="3" HorizontalOptions="Center" VerticalOptions="Center">
+            <Label x:Name="TitleLabel" FontSize="17" FontAttributes="Bold" LineBreakMode="TailTruncation"
+                   HorizontalOptions="Center" VerticalOptions="Center" />
+            <Border x:Name="TvPill" HeightRequest="34" Padding="10,0,14,0" HorizontalOptions="Center" IsVisible="False"
+                    StrokeThickness="1" Stroke="{DynamicResource HairBrush}" StrokeShape="RoundRectangle 17"
+                    BackgroundColor="{DynamicResource SurfaceColor}">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnTitleTapped" />
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout Spacing="7" VerticalOptions="Center">
+                    <ActivityIndicator x:Name="PillSpinner" WidthRequest="12" HeightRequest="12" IsVisible="False" IsRunning="False"
+                                       VerticalOptions="Center" />
+                    <shapes:Ellipse x:Name="PillDot" WidthRequest="8" HeightRequest="8" VerticalOptions="Center" IsVisible="False" />
+                    <Label x:Name="PillLabel" FontSize="16" FontAttributes="Bold" LineBreakMode="TailTruncation"
+                           MaximumWidthRequest="200" VerticalOptions="Center" />
+                    <shapes:Path x:Name="PickerChevron" Data="M1,1.5 L6,6.5 L11,1.5" Stroke="{DynamicResource AccentBrush}"
+                                 StrokeThickness="2.2" StrokeLineCap="Round" WidthRequest="12" HeightRequest="8"
+                                 VerticalOptions="Center" IsVisible="False" />
+                </HorizontalStackLayout>
+            </Border>
+            <HorizontalStackLayout x:Name="SubRow" Spacing="5" HorizontalOptions="Center" IsVisible="False">
+                <ActivityIndicator x:Name="SubSpinner" WidthRequest="10" HeightRequest="10" IsVisible="False" IsRunning="False"
+                                   VerticalOptions="Center" />
+                <shapes:Ellipse x:Name="SubDot" WidthRequest="7" HeightRequest="7" VerticalOptions="Center" IsVisible="False" />
+                <Label x:Name="SubLabel" FontSize="12" TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation"
+                       MaximumWidthRequest="260" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+
+        <!-- right: ⋯, power, or a page's own glyph button (reload, share) -->
+        <Grid x:Name="MoreButton" Grid.Column="2" WidthRequest="44" HeightRequest="44" HorizontalOptions="End" VerticalOptions="Center"
+              IsVisible="False" SemanticProperties.Description="{l:Localize lblMore}">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnMoreTapped" />
+            </Grid.GestureRecognizers>
+            <HorizontalStackLayout Spacing="3" HorizontalOptions="Center" VerticalOptions="Center">
+                <shapes:Ellipse WidthRequest="5" HeightRequest="5" Fill="{DynamicResource InkBrush}" />
+                <shapes:Ellipse WidthRequest="5" HeightRequest="5" Fill="{DynamicResource InkBrush}" />
+                <shapes:Ellipse WidthRequest="5" HeightRequest="5" Fill="{DynamicResource InkBrush}" />
+            </HorizontalStackLayout>
+        </Grid>
+        <Button x:Name="GlyphButton" Grid.Column="2" Style="{StaticResource IconButton}" HorizontalOptions="End"
+                IsVisible="False" Clicked="OnGlyphClicked" />
+        <Border x:Name="PowerButton" Grid.Column="2" WidthRequest="44" HeightRequest="44" HorizontalOptions="End" VerticalOptions="Center"
+                StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}"
+                IsVisible="False" SemanticProperties.Description="{l:Localize lblRemotePower}">
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnPowerTapped" />
+            </Border.GestureRecognizers>
+            <shapes:Path Data="M12,3 L12,11 M6.3,6.3 A8,8 0 1 0 17.7,6.3" Stroke="{DynamicResource BadBrush}" StrokeThickness="2.2"
+                         StrokeLineCap="Round" WidthRequest="24" HeightRequest="24" HorizontalOptions="Center" VerticalOptions="Center" />
+        </Border>
+    </Grid>
+</ContentView>

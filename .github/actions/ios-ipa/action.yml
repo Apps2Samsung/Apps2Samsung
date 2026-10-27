@@ -1,0 +1,85 @@
+name: Build unsigned iOS IPA
+description: >-
+  The unsigned ios-arm64 IPA of Apps2Samsung.Mobile, shared by Test IPA and the beta and stable
+  releases so the three can't drift. Unsigned on purpose: SideStore re-signs it on the phone with
+  the user's own Apple ID (#753 step 6), so no certificate or provisioning profile is involved.
+  Needs a macOS runner with Xcode 27 (the xcode-27 label, see pr-build.yml) and a checkout.
+
+inputs:
+  version:
+    description: >-
+      The release version (e.g. 3.0.0, 2.3.1.1 or 3.0.0-beta). The IPA shows its first three
+      numeric parts, the only form Apple's CFBundleShortVersionString accepts
+      (.github/scripts/apple-version.sh).
+    required: true
+  build-number:
+    description: >-
+      CFBundleVersion, a whole number that grows with every build. Releases pass the Android
+      versionCode, so two releases that show the same version still differ here.
+    required: true
+  output:
+    description: Path of the IPA to write, relative to the workspace.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 10.0.x
+
+    # Both workloads: on macOS the csproj lists net10.0-android too, and restore evaluates every
+    # TFM even though only the iOS one is published below.
+    - name: Install MAUI workloads
+      shell: bash
+      run: dotnet workload install maui-ios maui-android
+
+    # The .NET for iOS workload names the Xcode it needs in its pack folder
+    # (Microsoft.iOS.Sdk.net10.0_27.1 needs Xcode 27.1), and a new workload can land before the
+    # image's default Xcode moves up: on 2026-10-20 workload 27.1 met default Xcode 27.0 and every
+    # iOS build failed. The image carries the newer Xcode too, so pick the one the workload asks for.
+    - name: Select the Xcode the iOS workload needs
+      shell: bash
+      run: |
+        PACK=$(ls -d "$DOTNET_ROOT"/packs/Microsoft.iOS.Sdk.net*_* | sort -V | tail -1)
+        XCODE_VERSION=${PACK##*_}
+        if [ -d "/Applications/Xcode_${XCODE_VERSION}.app" ]; then
+          sudo xcode-select -s "/Applications/Xcode_${XCODE_VERSION}.app"
+        else
+          echo "::warning::Xcode ${XCODE_VERSION} is not on this image, building with the default"
+        fi
+        xcodebuild -version
+
+    - name: Build IPA
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+        BUILD_NUMBER: ${{ inputs.build-number }}
+        OUTPUT: ${{ inputs.output }}
+      run: |
+        set -euo pipefail
+        DISPLAY_VERSION=$(.github/scripts/apple-version.sh "$VERSION")
+        if [[ ! "$BUILD_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+          echo "❌ build-number '$BUILD_NUMBER' is not a whole number"
+          exit 1
+        fi
+        echo "CFBundleShortVersionString=$DISPLAY_VERSION CFBundleVersion=$BUILD_NUMBER (from $VERSION)"
+
+        dotnet publish Apps2Samsung.Mobile/Apps2Samsung.Mobile.csproj \
+          -c Release -f net10.0-ios \
+          -p:RuntimeIdentifier=ios-arm64 \
+          -p:EnableCodeSigning=false \
+          -p:BuildIpa=true \
+          -p:ApplicationDisplayVersion="$DISPLAY_VERSION" \
+          -p:ApplicationVersion="$BUILD_NUMBER" \
+          -o publish/ios
+
+        IPA=$(find publish/ios Apps2Samsung.Mobile/bin -name '*.ipa' 2>/dev/null | head -n1)
+        if [ -z "$IPA" ]; then
+          echo "❌ No IPA produced"
+          echo "Publish output:"; find publish/ios -maxdepth 2 | head -50
+          exit 1
+        fi
+        mkdir -p "$(dirname "$OUTPUT")"
+        cp "$IPA" "$OUTPUT"
+        ls -la "$OUTPUT"

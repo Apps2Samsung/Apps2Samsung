@@ -1,3 +1,4 @@
+using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Samsung;
 using Foundation;
@@ -8,7 +9,9 @@ namespace Apps2Samsung.Mobile.Platforms.iOS;
 
 // Hosts the Samsung SignInGate in a WKWebView and captures the token it POSTs to the redirect_uri
 // through the shared SamsungCallbackListener. iOS counterpart of Platforms/Android/SamsungLoginActivity:
-// same flow, same listener, only the WebView hosting differs.
+// same flow, same listener, only the WebView hosting differs. "Sign in with Google" on the gate can't
+// work in here either (see SamsungOAuth.IsGoogleSignIn): that navigation is stopped and a notice tells
+// the user to add a Samsung account password.
 internal sealed class SamsungLoginViewController : UIViewController
 {
     private readonly TaskCompletionSource<string> _result;
@@ -39,8 +42,8 @@ internal sealed class SamsungLoginViewController : UIViewController
             CustomUserAgent =
                 "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) " +
                 "Version/17.5 Mobile/15E148 Safari/604.1",
-            UIDelegate = new PopupsInSameViewDelegate(),
-            NavigationDelegate = new MainFrameFailureDelegate(msg => Fault(new InvalidOperationException(msg))),
+            UIDelegate = new PopupsInSameViewDelegate(BlocksGoogleSignIn),
+            NavigationDelegate = new MainFrameFailureDelegate(msg => Fault(new InvalidOperationException(msg)), BlocksGoogleSignIn),
         };
         View.AddSubview(_web);
 
@@ -73,6 +76,23 @@ internal sealed class SamsungLoginViewController : UIViewController
         }
     }
 
+    // True when the navigation was stopped because it leads to Google's sign-in page, in which case the
+    // notice is up (once) and the login page stays where it is for the email + password route.
+    private bool BlocksGoogleSignIn(string? url)
+    {
+        if (!SamsungOAuth.IsGoogleSignIn(url))
+            return false;
+
+        if (PresentedViewController is null)
+        {
+            var notice = UIAlertController.Create(
+                L10n.Get("lblGoogleSignInUnavailable"), L10n.Get("statusGoogleSignInUnavailable"), UIAlertControllerStyle.Alert);
+            notice.AddAction(UIAlertAction.Create(L10n.Get("lblOk"), UIAlertActionStyle.Default, null));
+            PresentViewController(notice, true, null);
+        }
+        return true;
+    }
+
     private void Cancel()
     {
         _result.TrySetCanceled();
@@ -96,22 +116,32 @@ internal sealed class SamsungLoginViewController : UIViewController
     }
 
     // SignInGate's window.open() calls: WKWebView gives us no window to open, so load the request in
-    // the same view instead of dropping it (the Android side's SetSupportMultipleWindows).
-    private sealed class PopupsInSameViewDelegate : WKUIDelegate
+    // the same view instead of dropping it (the Android side's PopupsInSameViewClient) — unless it is
+    // the Google sign-in, which becomes the notice.
+    private sealed class PopupsInSameViewDelegate(Func<string?, bool> blocksGoogleSignIn) : WKUIDelegate
     {
         public override WKWebView? CreateWebView(WKWebView webView, WKWebViewConfiguration configuration,
             WKNavigationAction navigationAction, WKWindowFeatures windowFeatures)
         {
+            if (blocksGoogleSignIn(navigationAction.Request.Url?.AbsoluteString))
+                return null;
             if (navigationAction.TargetFrame is null || !navigationAction.TargetFrame.MainFrame)
                 webView.LoadRequest(navigationAction.Request);
             return null;
         }
     }
 
-    // Surfaces main-frame load failures with their real reason (the Android LoggingClient). Redirects
-    // cancel the in-flight load, which WebKit reports as an error too; that one is not a failure.
-    private sealed class MainFrameFailureDelegate(Action<string> fault) : WKNavigationDelegate
+    // Stops navigations to Google's sign-in page, and surfaces main-frame load failures with their
+    // real reason (the Android LoggingClient). Redirects cancel the in-flight load, which WebKit
+    // reports as an error too; that one is not a failure.
+    private sealed class MainFrameFailureDelegate(Action<string> fault, Func<string?, bool> blocksGoogleSignIn) : WKNavigationDelegate
     {
+        public override void DecidePolicy(WKWebView webView, WKNavigationAction navigationAction,
+            Action<WKNavigationActionPolicy> decisionHandler)
+            => decisionHandler(blocksGoogleSignIn(navigationAction.Request.Url?.AbsoluteString)
+                ? WKNavigationActionPolicy.Cancel
+                : WKNavigationActionPolicy.Allow);
+
         public override void DidFailProvisionalNavigation(WKWebView webView, WKNavigation navigation, NSError error)
         {
             if (error.Code == (nint)(long)NSUrlError.Cancelled)

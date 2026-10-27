@@ -8,8 +8,9 @@ public sealed record PickedFile(string FileName, string LocalPath);
 /// <see cref="PickedFile.LocalPath"/> and never see a content URI or a security-scoped URL.
 /// <para>
 /// <c>Platforms/Android</c> drives the Storage Access Framework itself rather than MAUI's
-/// <c>FilePicker</c> (see that file for why); <c>Platforms/iOS</c> uses MAUI's picker over
-/// <c>UIDocumentPickerViewController</c>. Both hand the picked stream to <see cref="CopyToCache"/>.
+/// <c>FilePicker</c> (see that file for why); <c>Platforms/iOS</c> presents its own
+/// <c>UIDocumentPickerViewController</c> in import mode (see that file for why). Both hand the
+/// picked stream to <see cref="CopyToCache"/>.
 /// </para>
 /// </summary>
 public static partial class LocalFilePicker

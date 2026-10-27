@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
+             x:Class="Apps2Samsung.Mobile.Pages.SettingsTizenTubePage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+
+    <!-- Settings > App customization > TizenTube: the opt-in Cobalt proxy rewrite (Tizen 9 "network error"). -->
+    <Grid RowDefinitions="Auto,*">
+        <controls:TopBarView x:Name="TopBar" Grid.Row="0" BackText="{l:Localize lblAppCustomization}" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,4,16,20" Spacing="8">
+                <Border Style="{StaticResource Card}" Padding="16,12">
+                    <VerticalStackLayout Spacing="8">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                            <Label Grid.Column="0" Text="{l:Localize lblTizenTubeProxyOverride}" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" x:Name="TizenTubeProxySwitch" OnColor="{DynamicResource AccentColor}" Toggled="OnTizenTubeProxyToggled" />
+                        </Grid>
+                        <Label Style="{StaticResource RowHint}"
+                               Text="{l:Localize hintTizenTubeProxyOverride}" />
+                        <Border Padding="8,4" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                                IsEnabled="{Binding Source={x:Reference TizenTubeProxySwitch}, Path=IsToggled}"
+                                Stroke="{DynamicResource HairBrush}"
+                                BackgroundColor="{DynamicResource Surface2Color}">
+                            <Entry x:Name="TizenTubeProxyHostEntry" Placeholder="{l:Localize lblTizenTubeProxyHostAuto}"
+                                   Keyboard="Url" BackgroundColor="Transparent" Unfocused="OnTizenTubeProxyHostUnfocused" />
+                        </Border>
+                        <Label x:Name="TizenTubeProxyHostError" Style="{StaticResource RowHint}" TextColor="{DynamicResource BadColor}"
+                               Text="{l:Localize lblTizenTubeProxyHostInvalid}" IsVisible="False" />
+                        <Label Style="{StaticResource RowHint}"
+                               Text="{l:Localize hintTizenTubeProxyHost}" />
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+
+</ContentPage>

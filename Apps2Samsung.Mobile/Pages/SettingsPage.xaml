@@ -3,331 +3,272 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.SettingsPage"
              Title="{l:Localize lblSettingsShort}"
-             NavigationPage.HasNavigationBar="False"
-             BackgroundColor="{AppThemeBinding Light=#ECEFF1, Dark=#141414}">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
 
     <ContentPage.Resources>
-        <Style x:Key="Divider" TargetType="BoxView">
-            <Setter Property="HeightRequest" Value="1" />
-            <Setter Property="Color" Value="{AppThemeBinding Light=#E2E2E2, Dark=#333}" />
-            <Setter Property="Margin" Value="0,4" />
-        </Style>
-        <Style x:Key="Hint" TargetType="Label">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Opacity" Value="0.6" />
-        </Style>
-        <Style x:Key="ToggleRow" TargetType="Grid">
-            <Setter Property="ColumnDefinitions" Value="*,Auto" />
+        <!-- a hub row: coloured icon tile, label over a one-line summary, chevron -->
+        <Style x:Key="HubRow" TargetType="Grid">
+            <Setter Property="ColumnDefinitions" Value="30,*,Auto" />
             <Setter Property="ColumnSpacing" Value="12" />
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="MinimumHeightRequest" Value="60" />
+        </Style>
+        <Style x:Key="HubTile" TargetType="Border">
+            <Setter Property="WidthRequest" Value="30" />
+            <Setter Property="HeightRequest" Value="30" />
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 8" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style x:Key="HubIcon" TargetType="shapes:Path">
+            <Setter Property="Stroke" Value="{DynamicResource OnAccentBrush}" />
+            <Setter Property="StrokeThickness" Value="2.2" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="StrokeLineJoin" Value="Round" />
+            <Setter Property="WidthRequest" Value="18" />
+            <Setter Property="HeightRequest" Value="18" />
+            <Setter Property="Aspect" Value="Uniform" />
+            <Setter Property="HorizontalOptions" Value="Center" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style x:Key="HubSummary" TargetType="Label">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextColor" Value="{DynamicResource MutedColor}" />
+            <Setter Property="LineBreakMode" Value="TailTruncation" />
+        </Style>
+        <Style x:Key="Chevron" TargetType="shapes:Path">
+            <Setter Property="Stroke" Value="{DynamicResource InkBrush}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="Opacity" Value="0.35" />
+            <Setter Property="WidthRequest" Value="8" />
+            <Setter Property="HeightRequest" Value="13" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <!-- in place of the chevron on a row that leaves the app -->
+        <Style x:Key="ExternalLink" TargetType="shapes:Path">
+            <Setter Property="Data" Value="M5,1 L13,1 L13,9 M13,1 L1,13" />
+            <Setter Property="Stroke" Value="{DynamicResource InkBrush}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="StrokeLineJoin" Value="Round" />
+            <Setter Property="Opacity" Value="0.35" />
+            <Setter Property="WidthRequest" Value="12" />
+            <Setter Property="HeightRequest" Value="12" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style x:Key="HubDivider" TargetType="BoxView" BasedOn="{StaticResource RowDivider}">
+            <Setter Property="Margin" Value="58,0,0,0" />
         </Style>
     </ContentPage.Resources>
 
-    <ScrollView>
-        <Border Margin="12" Padding="16" StrokeThickness="1"
-                StrokeShape="RoundRectangle 8"
-                Stroke="{AppThemeBinding Light=#E2E2E2, Dark=#333}"
-                BackgroundColor="{AppThemeBinding Light=White, Dark=#1F1F1F}">
-            <VerticalStackLayout Spacing="4">
+    <!-- The Settings hub (#755): one screen. The update card (version, where it stands, Check) with
+         the Beta toggle, then five rows that each push a page of their own: Installing, App
+         customization, Language, Backup and diagnostics, Advanced. The licence line and the version
+         close the page, as on the Install tab. -->
+    <Grid RowDefinitions="Auto,*">
+        <controls:TopBarView Grid.Row="0" Title="{l:Localize lblSettingsTab}" />
 
-                <!-- Header banner with a back affordance -->
-                <Border BackgroundColor="#2C3E50" Padding="12,18" StrokeThickness="0" StrokeShape="RoundRectangle 8" Margin="0,0,0,6">
-                    <Grid ColumnDefinitions="44,*,44" VerticalOptions="Center">
-                        <Button Grid.Column="0" Text="‹" FontSize="26" TextColor="White"
-                                BackgroundColor="Transparent" BorderWidth="0" Padding="0"
-                                WidthRequest="44" HeightRequest="44" Clicked="OnBackClicked" />
-                        <Label Grid.Column="1" Text="{l:Localize lblSettings}" TextColor="White" FontAttributes="Bold"
-                               VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
-                    </Grid>
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,4,16,20" Spacing="22">
+
+                <!-- updates -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout>
+                        <Grid ColumnDefinitions="44,*,Auto" ColumnSpacing="12" Padding="16,14">
+                            <Image Grid.Column="0" Source="a2s_logo.png" WidthRequest="44" HeightRequest="44" VerticalOptions="Center" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="Apps2Samsung" FontSize="16" FontAttributes="Bold" />
+                                <!-- its own line, wrapping: a test build's version is long (3.0.0-beta.787+b2a6ca8) -->
+                                <Label x:Name="AppVersionLabel" FontSize="13" LineBreakMode="CharacterWrap" />
+                                <HorizontalStackLayout Spacing="5">
+                                    <shapes:Ellipse x:Name="UpdateDot" WidthRequest="7" HeightRequest="7" VerticalOptions="Center" IsVisible="False" />
+                                    <Label x:Name="UpdateStateLabel" Style="{StaticResource HubSummary}" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                            <Button Grid.Column="2" x:Name="CheckUpdatesBtn" Text="{l:Localize lblCheck}" Style="{StaticResource SoftButton}"
+                                    CornerRadius="16" HeightRequest="32" MinimumHeightRequest="32" Padding="14,0" FontSize="14"
+                                    VerticalOptions="Center" Clicked="OnCheckUpdatesClicked" />
+                        </Grid>
+                        <BoxView Style="{StaticResource RowDivider}" />
+                        <Grid Style="{StaticResource SettingRow}">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblBetaUpdates}" FontSize="16" />
+                                <Label Style="{StaticResource RowHint}" Text="{l:Localize hintBetaUpdates}" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" x:Name="BetaUpdatesSwitch" OnColor="{DynamicResource AccentColor}"
+                                    VerticalOptions="Center" Toggled="OnBetaToggled" />
+                        </Grid>
+                    </VerticalStackLayout>
                 </Border>
 
-                <!-- GitHub Token -->
-                <controls:ExpanderSection Title="{l:Localize lblGitHubToken}">
-                    <VerticalStackLayout Spacing="8">
-                        <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
-                            <Border Grid.Column="0" Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                                    Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                    BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                                <Entry x:Name="TokenEntry" IsPassword="True" Placeholder="ghp_xxxxxxxxxxxxxxxxx"
-                                       BackgroundColor="Transparent" Unfocused="OnTokenUnfocused" />
+                <!-- what the app does -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout>
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnInstallingTapped" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource AccentColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M12,3 L12,15 M7,10 L12,15 L17,10 M4,19 L20,19" />
                             </Border>
-                            <Button Grid.Column="1" x:Name="TokenEyeBtn" Text="👁" FontSize="16"
-                                    BackgroundColor="Transparent" BorderWidth="1"
-                                    BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                    TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                                    Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="6"
-                                    Clicked="OnToggleTokenVisibility" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblSettingsInstalling}" FontSize="16" />
+                                <Label x:Name="InstallingSummary" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource Chevron}" Data="M1,1 L7,6.5 L1,12" />
                         </Grid>
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize hintGitHubToken}" />
-                    </VerticalStackLayout>
-                </controls:ExpanderSection>
-
-                <BoxView Style="{StaticResource Divider}" />
-
-                <!-- Jellyfin server -->
-                <controls:ExpanderSection Title="Jellyfin">
-                    <VerticalStackLayout Spacing="8">
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize hintConfigureJellyfinServer}" />
-                        <Button Text="{l:Localize lblConfigureJellyfinServer}" HorizontalOptions="Start"
-                                BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
-                                BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                                Clicked="OnJellyfinClicked" />
-                    </VerticalStackLayout>
-                </controls:ExpanderSection>
-
-                <BoxView Style="{StaticResource Divider}" />
-
-                <!-- Language: the shared Core catalog serves the same 28 translations as the desktop -->
-                <controls:ExpanderSection Title="{l:Localize lblLanguage}">
-                    <VerticalStackLayout Spacing="8">
-                        <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="{l:Localize lblLanguage}" VerticalOptions="Center" />
-                            <Picker Grid.Column="1" x:Name="LanguagePicker" SelectedIndexChanged="OnLanguageChanged"
-                                    HorizontalOptions="End" WidthRequest="140" />
-                        </Grid>
-                        <Label Style="{StaticResource Hint}" Text="{l:Localize hintLanguage}" />
-                    </VerticalStackLayout>
-                </controls:ExpanderSection>
-
-                <BoxView Style="{StaticResource Divider}" />
-
-                <!-- Install options -->
-                <controls:ExpanderSection Title="{l:Localize lblInstallOptions}">
-                    <VerticalStackLayout Spacing="8">
-                        <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="{l:Localize lblDeletePrevious}" VerticalOptions="Center" />
-                            <Switch Grid.Column="1" x:Name="RemoveOldSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
-                        </Grid>
-                        <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="{l:Localize lblOverrideExistingApp}" VerticalOptions="Center" />
-                            <Switch Grid.Column="1" x:Name="TryOverwriteSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
-                        </Grid>
-                        <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="{l:Localize lblLaunchOnInstall}" VerticalOptions="Center" />
-                            <Switch Grid.Column="1" x:Name="OpenAfterSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
-                        </Grid>
-                        <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="{l:Localize lblKeepWGTFile}" VerticalOptions="Center" />
-                            <Switch Grid.Column="1" x:Name="KeepWgtSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
-                        </Grid>
-                        <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="{l:Localize lblShowAllJellyfinVersions}" VerticalOptions="Center" />
-                            <Switch Grid.Column="1" x:Name="ShowAllJfSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
-                        </Grid>
-                        <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="{l:Localize lblBetaUpdates}" VerticalOptions="Center" />
-                            <Switch Grid.Column="1" x:Name="BetaUpdatesSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
-                        </Grid>
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize hintBetaUpdates}" />
-                    </VerticalStackLayout>
-                </controls:ExpanderSection>
-
-                <BoxView Style="{StaticResource Divider}" />
-
-                <!-- Extra TV device IDs -->
-                <controls:ExpanderSection Title="{l:Localize lblManualDuids}">
-                    <VerticalStackLayout Spacing="8">
-                        <Border Padding="8,4" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                                Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                            <Editor x:Name="DuidsEditor" HeightRequest="90" Placeholder="{l:Localize lblDuidsWatermark}"
-                                    BackgroundColor="Transparent" Unfocused="OnDuidsUnfocused" />
-                        </Border>
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize hintManualDuids}" />
-                    </VerticalStackLayout>
-                </controls:ExpanderSection>
-
-                <BoxView Style="{StaticResource Divider}" />
-
-                <!-- TVApp channels (m3u8) -->
-                <controls:ExpanderSection Title="{l:Localize lblTvAppChannels}">
-                    <VerticalStackLayout Spacing="8">
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize hintTvAppChannels}" />
-                        <VerticalStackLayout x:Name="ChannelsContainer" Spacing="8" />
-                        <Button Text="{l:Localize lblAddChannel}" HorizontalOptions="Start"
-                                BackgroundColor="Transparent" BorderWidth="1"
-                                BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                                Padding="14,8" Clicked="OnAddChannel" />
-                    </VerticalStackLayout>
-                </controls:ExpanderSection>
-
-                <BoxView Style="{StaticResource Divider}" />
-
-                <!-- ImmiTV: Immich server + login, pre-filled into the package's js/config.js -->
-                <controls:ExpanderSection Title="ImmiTV">
-                    <VerticalStackLayout Spacing="8">
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize hintImmiTv}" />
-                        <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                                Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                            <Entry x:Name="ImmiTvServerEntry" Placeholder="http://192.168.1.10:2283" Keyboard="Url"
-                                   BackgroundColor="Transparent" Unfocused="OnImmiTvUnfocused" />
-                        </Border>
-                        <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                                Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                            <Entry x:Name="ImmiTvEmailEntry" Placeholder="{l:Localize lblImmiTvEmail}" Keyboard="Email"
-                                   BackgroundColor="Transparent" Unfocused="OnImmiTvUnfocused" />
-                        </Border>
-                        <Grid ColumnDefinitions="*,44" ColumnSpacing="8">
-                            <Border Grid.Column="0" Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                                    Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                    BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                                <Entry x:Name="ImmiTvPasswordEntry" IsPassword="True" Placeholder="{l:Localize lblImmiTvPassword}"
-                                       BackgroundColor="Transparent" Unfocused="OnImmiTvUnfocused" />
+                        <BoxView Style="{StaticResource HubDivider}" />
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnAppsTapped" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource TileMediaColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M4,4 L10,4 L10,10 L4,10 Z M14,4 L20,4 L20,10 L14,10 Z M4,14 L10,14 L10,20 L4,20 Z M14,14 L20,14 L20,20 L14,20 Z" />
                             </Border>
-                            <Button Grid.Column="1" x:Name="ImmiTvEyeBtn" Text="👁" FontSize="16"
-                                    BackgroundColor="Transparent" BorderWidth="1"
-                                    BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                    TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                                    Padding="0" WidthRequest="44" HeightRequest="44" CornerRadius="6"
-                                    Clicked="OnToggleImmiTvVisibility" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblAppCustomization}" FontSize="16" />
+                                <Label Text="{l:Localize hintSettingsApps}" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource Chevron}" Data="M1,1 L7,6.5 L1,12" />
                         </Grid>
-                        <Border Padding="8,0" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                                Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                            <Entry x:Name="ImmiTvApiKeyEntry" IsPassword="True" Placeholder="{l:Localize lblImmiTvApiKey}"
-                                   BackgroundColor="Transparent" Unfocused="OnImmiTvUnfocused" />
-                        </Border>
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize lblImmiTvApiKeyHint}" />
-                    </VerticalStackLayout>
-                </controls:ExpanderSection>
-
-                <BoxView Style="{StaticResource Divider}" />
-
-                <!-- Camera PiP: cameras + mosaic style + sound, written into the package's config.js -->
-                <controls:ExpanderSection Title="{l:Localize lblCameraPip}">
-                    <VerticalStackLayout Spacing="8">
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize hintCameraPip}" />
-                        <VerticalStackLayout x:Name="CamerasContainer" Spacing="8" />
-                        <Button x:Name="AddCameraBtn" Text="{l:Localize lblAddCamera}" HorizontalOptions="Start"
-                                BackgroundColor="Transparent" BorderWidth="1"
-                                BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                                Padding="14,8" Clicked="OnAddCamera" />
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize lblCameraPipUrlsHint}" />
-                        <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="{l:Localize lblCameraPipMosaicStyle}" VerticalOptions="Center" />
-                            <Picker Grid.Column="1" x:Name="CameraPipMosaicPicker" SelectedIndexChanged="OnCameraPipMosaicChanged"
-                                    HorizontalOptions="End" WidthRequest="200" />
-                        </Grid>
-                        <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="{l:Localize lblCameraPipSound}" VerticalOptions="Center" />
-                            <Switch Grid.Column="1" x:Name="CameraPipSoundSwitch" OnColor="#2C3E50" Toggled="OnCameraPipSoundToggled" />
+                        <BoxView Style="{StaticResource HubDivider}" />
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnLanguageTapped" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource TileGamesColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M12,3 A9,9 0 1 0 12,21 A9,9 0 1 0 12,3 M3,12 L21,12 M12,3 C15.5,6.5 15.5,17.5 12,21 M12,3 C8.5,6.5 8.5,17.5 12,21" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblLanguage}" FontSize="16" />
+                                <Label x:Name="LanguageSummary" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource Chevron}" Data="M1,1 L7,6.5 L1,12" />
                         </Grid>
                     </VerticalStackLayout>
-                </controls:ExpanderSection>
+                </Border>
 
-                <BoxView Style="{StaticResource Divider}" />
-
-                <!-- TizenTube Cobalt: opt-in proxy address rewrite (Tizen 9 "network error") -->
-                <controls:ExpanderSection Title="{l:Localize lblTizenTubeProxy}">
-                    <VerticalStackLayout Spacing="8">
-                        <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="{l:Localize lblTizenTubeProxyOverride}" VerticalOptions="Center" />
-                            <Switch Grid.Column="1" x:Name="TizenTubeProxySwitch" OnColor="#2C3E50" Toggled="OnTizenTubeProxyToggled" />
+                <!-- keeping it working -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout>
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnBackupTapped" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource TileToolsColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M4,8 L20,8 L20,20 L4,20 Z M3,4 L21,4 L21,8 L3,8 Z M10,12 L14,12" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblBackupAndDiagnostics}" FontSize="16" />
+                                <Label Text="{l:Localize hintSettingsBackup}" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource Chevron}" Data="M1,1 L7,6.5 L1,12" />
                         </Grid>
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize hintTizenTubeProxyOverride}" />
-                        <Border Padding="8,4" StrokeThickness="1" StrokeShape="RoundRectangle 6"
-                                IsEnabled="{Binding Source={x:Reference TizenTubeProxySwitch}, Path=IsToggled}"
-                                Stroke="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}">
-                            <Entry x:Name="TizenTubeProxyHostEntry" Placeholder="{l:Localize lblTizenTubeProxyHostAuto}"
-                                   Keyboard="Url" BackgroundColor="Transparent" Unfocused="OnTizenTubeProxyHostUnfocused" />
-                        </Border>
-                        <Label x:Name="TizenTubeProxyHostError" Style="{StaticResource Hint}" TextColor="#C0392B"
-                               Text="{l:Localize lblTizenTubeProxyHostInvalid}" IsVisible="False" />
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize hintTizenTubeProxyHost}" />
-                    </VerticalStackLayout>
-                </controls:ExpanderSection>
-
-                <BoxView Style="{StaticResource Divider}" />
-
-                <!-- App icons -->
-                <controls:ExpanderSection Title="{l:Localize lblAppIcons}">
-                    <VerticalStackLayout Spacing="8">
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize hintManageAppIcons}" />
-                        <Button Text="{l:Localize lblManageAppIcons}" HorizontalOptions="Start"
-                                BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
-                                BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                                Clicked="OnAppIconsClicked" />
-                    </VerticalStackLayout>
-                </controls:ExpanderSection>
-
-                <BoxView Style="{StaticResource Divider}" />
-
-                <!-- Certificate: pick the signing type, force a fresh login, and note on auto-provisioning. -->
-                <controls:ExpanderSection Title="{l:Localize lblCertifcate}">
-                    <VerticalStackLayout Spacing="8">
-                        <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="{l:Localize lblCertificateType}" VerticalOptions="Center" />
-                            <Picker Grid.Column="1" x:Name="CertificatePicker" SelectedIndexChanged="OnCertificateChanged"
-                                    HorizontalOptions="End" MinimumWidthRequest="150" />
+                        <BoxView Style="{StaticResource HubDivider}" />
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnAdvancedTapped" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource TileOtherColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M8,7 L3,12 L8,17 M16,7 L21,12 L16,17" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblAdvanced}" FontSize="16" />
+                                <Label Text="{l:Localize hintSettingsAdvanced}" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource Chevron}" Data="M1,1 L7,6.5 L1,12" />
                         </Grid>
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize hintCertificateType}" />
-                        <Grid Style="{StaticResource ToggleRow}">
-                            <Label Grid.Column="0" Text="{l:Localize lblForceSamsungLogin}" VerticalOptions="Center" />
-                            <Switch Grid.Column="1" x:Name="ForceLoginSwitch" OnColor="#2C3E50" Toggled="OnToggle" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Contribute (#820): each row opens a page in the browser -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout>
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnLinkTapped" CommandParameter="code" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource TileOtherColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M8,7 L3,12 L8,17 M16,7 L21,12 L16,17 M14,4 L10,20" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblContributeCode}" FontSize="16" />
+                                <Label Text="{l:Localize hintContributeCode}" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource ExternalLink}" />
                         </Grid>
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize hintForceSamsungLogin}" />
+                        <BoxView Style="{StaticResource HubDivider}" />
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnLinkTapped" CommandParameter="translate" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource TileGamesColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M4,5 L12,5 M8,3 L8,5 M6,5 C6,9 9,12 12,13 M10,5 C10,9 7,12 4,13 M13,20 L16.5,11 L20,20 M14.2,17 L18.8,17" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblContributeTranslate}" FontSize="16" />
+                                <Label Text="{l:Localize hintContributeTranslate}" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource ExternalLink}" />
+                        </Grid>
+                        <BoxView Style="{StaticResource HubDivider}" />
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnLinkTapped" CommandParameter="app" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource TileToolsColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M4,4 L20,4 L20,20 L4,20 Z M12,8 L12,16 M8,12 L16,12" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblContributeApp}" FontSize="16" />
+                                <Label Text="{l:Localize hintContributeApp}" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource ExternalLink}" />
+                        </Grid>
+                        <BoxView Style="{StaticResource HubDivider}" />
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnLinkTapped" CommandParameter="discord" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource TileMediaColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M4,5 L20,5 L20,16 L10,16 L6,20 L6,16 L4,16 Z" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblContributeDiscord}" FontSize="16" />
+                                <Label Text="{l:Localize hintContributeDiscord}" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource ExternalLink}" />
+                        </Grid>
+                        <BoxView Style="{StaticResource HubDivider}" />
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnLinkTapped" CommandParameter="donate" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource BadColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M12,20 C5,15 3,11 3,8.5 A4.5,4.5 0 0 1 12,7 A4.5,4.5 0 0 1 21,8.5 C21,11 19,15 12,20 Z" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblContributeDonate}" FontSize="16" />
+                                <Label Text="{l:Localize hintContributeDonate}" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource ExternalLink}" />
+                        </Grid>
                     </VerticalStackLayout>
-                </controls:ExpanderSection>
+                </Border>
 
-                <BoxView Style="{StaticResource Divider}" />
-
-                <!-- Backup -->
-                <controls:ExpanderSection Title="{l:Localize lblBackup}">
-                    <VerticalStackLayout Spacing="8">
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize hintBackup}" />
-                        <Button Text="{l:Localize lblExportBackup}" HorizontalOptions="Start"
-                                BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
-                                BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                                Clicked="OnExportBackupClicked" />
-                        <Button Text="{l:Localize lblImportBackup}" HorizontalOptions="Start"
-                                BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
-                                BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                                Clicked="OnImportBackupClicked" />
-                    </VerticalStackLayout>
-                </controls:ExpanderSection>
-
-                <BoxView Style="{StaticResource Divider}" />
-
-                <!-- Diagnostics -->
-                <controls:ExpanderSection Title="{l:Localize lblDiagnostics}">
-                    <VerticalStackLayout Spacing="8">
-                        <Label Style="{StaticResource Hint}"
-                               Text="{l:Localize hintShareDebugLog}" />
-                        <Button Text="{l:Localize lblShareDebugLog}" HorizontalOptions="Start"
-                                BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,8"
-                                BorderColor="{AppThemeBinding Light=#CDD3D8, Dark=#3A3A3A}"
-                                TextColor="{AppThemeBinding Light=#2C3E50, Dark=White}"
-                                Clicked="OnShareLogClicked" />
-                    </VerticalStackLayout>
-                </controls:ExpanderSection>
+                <!-- the same footer as the Install tab -->
+                <VerticalStackLayout Spacing="2">
+                    <controls:LicenseFooter />
+                    <Label x:Name="VersionLabel"
+                           HorizontalOptions="Center" FontSize="11" Opacity="0.55" />
+                </VerticalStackLayout>
 
             </VerticalStackLayout>
-        </Border>
-    </ScrollView>
+        </ScrollView>
+    </Grid>
 
 </ContentPage>

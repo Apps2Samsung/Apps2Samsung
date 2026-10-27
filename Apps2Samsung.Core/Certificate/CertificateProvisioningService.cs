@@ -7,6 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Apps2Samsung.Extensions;
+using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Helpers.Tizen.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
@@ -67,6 +68,10 @@ namespace Apps2Samsung.Certificate
         /// <param name="caPath">Dir containing the Samsung CA files.</param>
         /// <param name="onLoginStarting">Invoked right before a Samsung login is triggered (heads use it
         /// to switch UI); not called on the silent-reuse path.</param>
+        /// <param name="beforeLoginAsync">Awaited before <paramref name="onLoginStarting"/>, with the
+        /// level about to be created: the heads show the certificate sheet here and return once the
+        /// user chose Sign in. Throwing (e.g. OperationCanceledException on Cancel) stops before any
+        /// login. Not called on the silent-reuse path either.</param>
         public async Task<CertificateProfile> EnsureAsync(
             string deviceDuid,
             CertificatePrivilegeLevel level,
@@ -76,6 +81,7 @@ namespace Apps2Samsung.Certificate
             bool forceLogin = false,
             Action? onLoginStarting = null,
             ProgressCallback? progress = null,
+            Func<CertificatePrivilegeLevel, CancellationToken, Task>? beforeLoginAsync = null,
             CancellationToken ct = default)
         {
             if (!TizenDuid.IsValid(deviceDuid))
@@ -109,6 +115,8 @@ namespace Apps2Samsung.Certificate
             }
 
             // ---- A Samsung login is required ----
+            if (beforeLoginAsync is not null)
+                await beforeLoginAsync(level, ct);
             onLoginStarting?.Invoke();
             var auth = await _login.LoginAsync(ct);
             if (string.IsNullOrEmpty(auth.access_token))
@@ -161,7 +169,7 @@ namespace Apps2Samsung.Certificate
 
                 var password = File.ReadAllText(passwordFile).Trim();
 #pragma warning disable SYSLIB0057 // matches the proven loader used elsewhere; legacy PKCS#12 support
-                using var cert = new X509Certificate2(authorP12, password, X509KeyStorageFlags.Exportable);
+                using var cert = new X509Certificate2(authorP12, password, PlatformService.SigningCertificateFlags);
 #pragma warning restore SYSLIB0057
                 return cert.NotAfter.Date >= DateTime.Today;
             }

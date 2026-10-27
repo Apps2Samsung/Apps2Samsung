@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Sums every provider's GitHub release download counts into the all-time counts apps2samsung.com
+       serves at /catalog/downloads.json. Run once a day by .github/workflows/download-stats.yml with
+       the workflow's GITHUB_TOKEN; references Core for the manifest and the file's model.
+       Not in the solution on purpose: it is a CI tool, not a head. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Apps2Samsung.Tools.DownloadStats</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Apps2Samsung.Core\Apps2Samsung.Core.csproj" />
+  </ItemGroup>
+</Project>

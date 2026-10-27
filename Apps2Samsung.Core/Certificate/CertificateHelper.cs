@@ -56,12 +56,12 @@ namespace Apps2Samsung.Helpers.Tizen.Certificate
                     var cert = new X509Certificate2(
                         p12Path,
                         password,
-                        X509KeyStorageFlags.Exportable);
+                        PlatformService.SigningCertificateFlags);
 
                     var dist = new X509Certificate2(
                         p12Path.Replace("author.p12", "distributor.p12"),
                         password,
-                        X509KeyStorageFlags.Exportable);
+                        PlatformService.SigningCertificateFlags);
 
                     // Extract DUID
                     string duid = "";
@@ -141,7 +141,7 @@ namespace Apps2Samsung.Helpers.Tizen.Certificate
                 if (!File.Exists(distributorP12Path))
                     return duids;
 
-                using var dist = new X509Certificate2(distributorP12Path, password, X509KeyStorageFlags.Exportable);
+                using var dist = new X509Certificate2(distributorP12Path, password, PlatformService.SigningCertificateFlags);
                 foreach (var ext in dist.Extensions)
                 {
                     if (ext.Oid?.Value != "2.5.29.17") // Subject Alternative Name

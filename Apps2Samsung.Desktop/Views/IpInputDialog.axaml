@@ -1,0 +1,91 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:Apps2Samsung.Extensions"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+        mc:Ignorable="d"
+        d:DesignWidth="420"
+        d:DesignHeight="220"
+        x:Class="Apps2Samsung.IpInputDialog"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        x:DataType="viewModels:IpInputDialogViewModel"
+        Width="420"
+        Height="250"
+		Title="{Binding Title}"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        CornerRadius="12">
+
+	<Window.Styles>
+		<StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>
+	</Window.Styles>
+
+	<Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+            Padding="20"
+            CornerRadius="12"
+            Margin="10"
+            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1">
+		<Border.Effect>
+			<DropShadowEffect BlurRadius="20"
+                              OffsetX="2"
+                              OffsetY="2"
+                              Color="{StaticResource ShadowColor}"
+                              Opacity="0.2"/>
+		</Border.Effect>
+
+		<StackPanel Spacing="14">
+
+			<!-- Title -->
+			<TextBlock Text="{Binding Title}"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,10"/>
+
+			<!-- Message -->
+			<TextBlock Text="{Binding Message}"
+                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                       FontSize="14"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,8"/>
+
+			<!-- IP Input -->
+			<TextBox Text="{Binding EnteredIp}"
+                     Watermark="{l:Localize lblEnterIpAddress}"
+                     SelectionBrush="{DynamicResource AccentBrush}"
+                     BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                     CornerRadius="8"
+                     Padding="8"
+                     FontSize="14"
+                     Margin="0,0,0,10"/>
+
+			<!-- Buttons -->
+			<StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Spacing="12">
+				<Button Content="{Binding OkText}"
+                        MinWidth="90"
+                        Height="35"
+                        Background="{DynamicResource AccentBrush}"
+                        Foreground="{DynamicResource OnAccentBrush}"
+                        CornerRadius="8"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Command="{Binding OkCommand}"/>
+				<Button Content="{Binding CancelText}"
+                        MinWidth="90"
+                        Height="35"
+                        Background="{DynamicResource MutedBrush}"
+                        Foreground="{DynamicResource OnAccentBrush}"
+                        CornerRadius="8"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Command="{Binding CancelCommand}"/>
+			</StackPanel>
+		</StackPanel>
+	</Border>
+</Window>

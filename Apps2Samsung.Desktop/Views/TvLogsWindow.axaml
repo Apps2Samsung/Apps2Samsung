@@ -1,0 +1,140 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:Apps2Samsung.Extensions"
+        xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+        xmlns:helpers="clr-namespace:Apps2Samsung.Helpers.Converters"
+        x:Class="Apps2Samsung.Views.TvLogsWindow"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        x:DataType="viewModels:TvLogsViewModel"
+        Width="900"
+        Height="650"
+        Title="{l:Localize lblTvLogOutput}"
+        WindowStartupLocation="CenterOwner">
+
+	<!-- ========================= -->
+	<!-- Resources -->
+	<!-- ========================= -->
+	<Window.Resources>
+		<helpers:TvLogStatusToBrushConverter x:Key="StatusToColorConverter"/>
+	</Window.Resources>
+
+	<!-- ========================= -->
+	<!-- Styles -->
+	<!-- ========================= -->
+	<Window.Styles>
+		<StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>
+		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/TextBlocks.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/ComboBoxes.axaml"/>
+
+		<!-- Pulsing animation while listening -->
+		<Style Selector="Border.listening">
+			<Style.Animations>
+				<Animation Duration="0:0:1"
+						   IterationCount="Infinite"
+						   PlaybackDirection="Alternate">
+					<KeyFrame Cue="0%">
+						<Setter Property="Opacity" Value="1"/>
+					</KeyFrame>
+					<KeyFrame Cue="100%">
+						<Setter Property="Opacity" Value="0.7"/>
+					</KeyFrame>
+				</Animation>
+			</Style.Animations>
+		</Style>
+
+	</Window.Styles>
+
+	<!-- ========================= -->
+	<!-- Layout -->
+	<!-- ========================= -->
+	<Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+			Padding="16"
+			CornerRadius="8"
+			Margin="12"
+			BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+			BorderThickness="1">
+		<StackPanel Spacing="16">
+
+			<!-- Header -->
+			<TextBlock Text="{l:Localize lblTvLogOutput}"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+
+			<!-- Status + Endpoint -->
+			<StackPanel Orientation="Horizontal"
+                        Spacing="12"
+                        VerticalAlignment="Center">
+
+				<!-- Status badge -->
+				<Border CornerRadius="10"
+                        Padding="8,4"
+                        Classes.listening="{Binding IsListening}"
+                        Background="{Binding ConnectionStatus,
+                                     Converter={StaticResource StatusToColorConverter}}">
+					<TextBlock Text="{Binding StatusText}"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource OnAccentBrush}"/>
+				</Border>
+
+				<!-- IP:Port -->
+				<TextBlock Text="{Binding EndpointText}"
+                           FontSize="12"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+			</StackPanel>
+
+			<!-- Log output -->
+			<Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                    BorderThickness="1"
+                    Background="{DynamicResource GlassBrush}"
+                    CornerRadius="4"
+                    Padding="6"
+                    Height="450">
+
+				<ScrollViewer x:Name="LogScrollViewer"
+                              VerticalScrollBarVisibility="Auto">
+					<TextBlock Text="{Binding Logs}"
+                               FontFamily="Consolas"
+                               FontSize="13"
+                               Foreground="{DynamicResource GlassInkBrush}"
+                               TextWrapping="Wrap"/>
+				</ScrollViewer>
+
+			</Border>
+
+			<!-- Buttons -->
+			<StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="10">
+
+				<Button Content="{Binding StartLog}"
+                        Width="100"
+                        Classes="primary"
+                        IsEnabled="{Binding CanStart}"
+                        Command="{Binding StartCommand}" />
+
+				<Button Content="{Binding StopLog}"
+                        Width="100"
+                        Classes="primary"
+                        IsEnabled="{Binding CanStop}"
+                        Command="{Binding StopCommand}" />
+
+				<Button Content="{Binding SaveLogFile}"
+                        Width="120"
+                        Classes="primary"
+                        Command="{Binding SaveLogsCommand}" />
+
+				<Button Content="{Binding Close}"
+                        Width="100"
+                        Classes="primary"
+                        Click="OnCloseClick" />
+
+			</StackPanel>
+
+		</StackPanel>
+	</Border>
+</Window>

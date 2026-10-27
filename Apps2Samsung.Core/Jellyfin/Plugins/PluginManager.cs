@@ -1,6 +1,5 @@
 ﻿using Apps2Samsung.Helpers.API;
 using Apps2Samsung.Helpers.Core;
-using Apps2Samsung.Helpers.Jellyfin.Plugins.KefinTweaks;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using System;
@@ -40,8 +39,8 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
                 ["Jellyfin Enhanced"]    = () => new JellyfinEnhancedPatch(),
                 ["Media Bar"]            = () => new MediaBarPatch(),
                 ["Home Screen Sections"] = () => new HomeScreenSectionsPatch(),
-                ["KefinTweaks"]          = () => new KefinTweaksPatch(),
                 ["NotifySync"]           = () => new NotifySyncPatch(),
+                ["Media Carousel"]       = () => new MediaCarouselPatch(),
             };
 
         public PluginMatrixEntry? FindPluginEntry(JellyfinPluginInfo? plugin)
@@ -108,10 +107,9 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
                     string url = UrlHelper.CombineUrl(serverUrl, rel);
                     Trace.WriteLine($"   → Fetch: {url}");
 
-                    string js = await _httpClient.GetStringAsync(url);
-
-                    // Transpile to es2015 using esbuild; fallback is original JS.
-                    js = await EsbuildHelper.TranspileAsync(js, rel);
+                    string? js = await EsbuildHelper.TranspileAsync(await _httpClient.GetStringAsync(url), rel);
+                    if (js == null)
+                        continue;
 
                     string relPath = rel.TrimStart('/');
                     string outPath = Path.Combine(pluginCacheDir, relPath.Replace('/', Path.DirectorySeparatorChar));
@@ -140,8 +138,9 @@ namespace Apps2Samsung.Helpers.Jellyfin.Plugins
             {
                 Trace.WriteLine($"▶ Downloading plugin JS: {url}");
 
-                string js = await _httpClient.GetStringAsync(url);
-                js = await EsbuildHelper.TranspileAsync(js, relPath);
+                string? js = await EsbuildHelper.TranspileAsync(await _httpClient.GetStringAsync(url), relPath);
+                if (js == null)
+                    return null;
 
                 string localPath = Path.Combine(cacheDir, relPath);
                 Directory.CreateDirectory(Path.GetDirectoryName(localPath)!);

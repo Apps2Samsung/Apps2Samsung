@@ -14,12 +14,21 @@ namespace Apps2Samsung.Models
         string InstallDate,
         bool IsRemovable,
         long SizeBytes = 0,
-        string? IconUrl = null)
+        string? IconUrl = null,
+        string? CatalogLine = null,
+        bool HasUpdate = false)
     {
         /// <summary>Title if the TV reported one, otherwise the Tizen id — never empty.</summary>
         public string DisplayName => string.IsNullOrWhiteSpace(Title) ? TizenId : Title;
 
         public bool HasIcon => !string.IsNullOrWhiteSpace(IconUrl);
+
+        /// <summary>
+        /// What the catalog says about this app, already in the user's language ("Version 2.1.0 is
+        /// available in the catalog"); null when the app is not in the catalog (#820). Filled by the
+        /// head from <c>InstalledAppUpdates</c>, together with <see cref="HasUpdate"/>.
+        /// </summary>
+        public bool HasCatalogLine => !string.IsNullOrWhiteSpace(CatalogLine);
         public bool MissingIcon => string.IsNullOrWhiteSpace(IconUrl);
         public string Initials => string.IsNullOrWhiteSpace(DisplayName) ? "" : DisplayName.Substring(0, 1).ToUpperInvariant();
 
@@ -43,6 +52,9 @@ namespace Apps2Samsung.Models
 
         /// <summary>Human-readable install size for this app ("—" when unknown/0).</summary>
         public string SizeDisplay => FormatSize(SizeBytes);
+
+        /// <summary>The list row's second line: "v1.2.3 · 12.3 MB".</summary>
+        public string Subline => string.IsNullOrWhiteSpace(Version) ? SizeDisplay : $"v{Version} · {SizeDisplay}";
 
         /// <summary>
         /// Formats a byte count as a human-readable size ("—" when 0 or negative, else one decimal

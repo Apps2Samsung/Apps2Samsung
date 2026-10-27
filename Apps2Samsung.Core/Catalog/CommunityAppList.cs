@@ -11,7 +11,8 @@ namespace Apps2Samsung.Catalog
     /// the entries the installer lists, the same way for both heads. Without a catalog this is
     /// what the heads did inline: one entry per asset, named after the file. With the release's
     /// <c>catalog.json</c> every entry gets its display name and category, and files that share
-    /// a group fold into one entry whose assets are offered as variants.
+    /// a group fold into one entry whose assets are offered as variants. The package's description
+    /// rides along for the app sheet (#835); a group takes the description of its first file.
     /// </summary>
     public static class CommunityAppList
     {
@@ -31,6 +32,11 @@ namespace Apps2Samsung.Catalog
                 {
                     byFile.TryGetValue(asset.FileName, out var entry);
                     var category = AppCategories.Normalize(entry?.Category);
+                    // Kept only when this version can write it (UserSettingsSpec.IsUsable).
+                    asset.UserSettings = entry?.UserSettings is { IsUsable: true } spec ? spec : null;
+                    asset.PackageVersion = Clean(entry?.Version) ?? asset.PackageVersion;
+                    asset.AppId = Clean(entry?.AppId) ?? asset.AppId;
+                    asset.PackageId = Clean(entry?.PackageId) ?? asset.PackageId;
 
                     if (entry != null && !string.IsNullOrWhiteSpace(entry.Group))
                     {
@@ -50,14 +56,19 @@ namespace Apps2Samsung.Catalog
                                 RequiresPartner = requiresPartner,
                                 Category = category,
                                 HasVariants = true,
+                                Description = Clean(entry.Description) ?? string.Empty,
                             };
+                            SourceRepo.Stamp(group, entry.Repo, entry.Host);
                             groups[entry.Group] = group;
                         }
                         group.Assets.Add(asset);
+                        // A group is adult when any of its files is (#850).
+                        group.IsAdult |= entry.Adult;
+                        group.IsRoot |= entry.IsRoot;
                         continue;
                     }
 
-                    singles.Add(new GitHubRelease
+                    var single = new GitHubRelease
                     {
                         // The catalog's display name when it has one ("AquaPlay IPTV"), else the file name as before.
                         Name = string.IsNullOrWhiteSpace(entry?.Name) ? Path.GetFileNameWithoutExtension(asset.FileName) : entry!.Name,
@@ -67,7 +78,13 @@ namespace Apps2Samsung.Catalog
                         Assets = new List<Asset> { asset },
                         RequiresPartner = requiresPartner,
                         Category = category,
-                    });
+                        Description = Clean(entry?.Description) ?? string.Empty,
+                        IsAdult = entry?.Adult == true,
+                        IsRoot = entry?.IsRoot == true,
+                    };
+                    if (entry != null)
+                        SourceRepo.Stamp(single, entry.Repo, entry.Host);
+                    singles.Add(single);
                 }
             }
 
@@ -82,6 +99,18 @@ namespace Apps2Samsung.Catalog
             singles.AddRange(groups.Values);
             return singles;
         }
+
+        private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+        /// <summary>
+        /// The entries the user gets to see (#850): everything when "Show adult (18+) apps" is on,
+        /// otherwise the list without the adult entries. Both heads and the CLI run their list
+        /// through this before any grouping, count, category filter or search, so with the setting
+        /// off nothing in the UI shows that those entries exist. "Show root apps" works the same way
+        /// for entries flagged root, but is on by default.
+        /// </summary>
+        public static IEnumerable<GitHubRelease> Visible(IEnumerable<GitHubRelease> entries, bool showAdult, bool showRoot = true)
+            => entries.Where(e => (showAdult || !e.IsAdult) && (showRoot || !e.IsRoot));
 
         /// <summary>The entries in <paramref name="category"/> (<see cref="AppCategories.All"/> keeps everything).</summary>
         public static IEnumerable<GitHubRelease> Filter(IEnumerable<GitHubRelease> entries, string category)

@@ -1,13 +1,13 @@
 using Apps2Samsung.Certificate;
+using Apps2Samsung.Mobile.Localization;
 
 namespace Apps2Samsung.Mobile.Pages;
 
 /// <summary>
 /// Holds an install whose signing certificate isn't valid yet, counting down to the moment it
-/// becomes valid. "Install now" only unlocks once the countdown reaches zero — before that a Samsung
-/// TV would reject the package with "Certificate in signature is not valid yet". Awaiting
-/// <see cref="Completion"/> yields true when the user waited it out and chose to continue, false if
-/// they cancelled (or dismissed the page).
+/// becomes valid, then carries on by itself: before that a Samsung TV would reject the package with
+/// "Certificate in signature is not valid yet". Awaiting <see cref="Completion"/> yields true when
+/// the wait is over, false if the user cancelled (or dismissed the sheet).
 /// </summary>
 public partial class CertificateWaitPage : ContentPage
 {
@@ -18,12 +18,10 @@ public partial class CertificateWaitPage : ContentPage
 	public CertificateWaitPage(CertificateValidityResult validity)
 	{
 		InitializeComponent();
-
 		_validFromUtc = validity.NotBeforeUtc ?? DateTime.UtcNow;
-		MessageLabel.Text = CertificateValidity.DescribeNotYetValid(validity);
 	}
 
-	/// <summary>True once the wait is over and the user chose to continue; false if cancelled.</summary>
+	/// <summary>True once the wait is over; false if cancelled.</summary>
 	public Task<bool> Completion => _completion.Task;
 
 	protected override void OnAppearing()
@@ -46,25 +44,20 @@ public partial class CertificateWaitPage : ContentPage
 		_completion.TrySetResult(false);
 	}
 
-	private void Tick()
+	private async void Tick()
 	{
 		var remaining = _validFromUtc - DateTime.UtcNow;
-		if (remaining <= TimeSpan.Zero)
+		if (remaining > TimeSpan.Zero)
 		{
-			_timer?.Stop();
-			CountdownLabel.Text = CertificateValidity.FormatCountdown(TimeSpan.Zero);
-			CaptionLabel.Text = "Your certificate is valid now — you can install.";
-			InstallNowBtn.IsEnabled = true;
+			CountdownLabel.Text = CertificateValidity.FormatCountdown(remaining);
 			return;
 		}
 
-		CountdownLabel.Text = CertificateValidity.FormatCountdown(remaining);
-	}
-
-	private async void OnInstallNowClicked(object? sender, EventArgs e)
-	{
-		_completion.TrySetResult(true);
-		await Navigation.PopModalAsync();
+		_timer?.Stop();
+		CountdownLabel.Text = CertificateValidity.FormatCountdown(TimeSpan.Zero);
+		CaptionLabel.Text = L10n.Get("certificateCountdownReady");
+		if (_completion.TrySetResult(true))
+			await Navigation.PopModalAsync();
 	}
 
 	private async void OnCancelClicked(object? sender, EventArgs e)

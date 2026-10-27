@@ -124,24 +124,14 @@ namespace Apps2Samsung.Sdb
                 }
             }
 
-            // Which shell verbs this TV's sdbd recognises (TizenSdb.Core's SdbShellVerbs). sdbd is a
-            // fixed vocabulary, not a shell, and the launcher verb the tooling uses only resolves Smart
-            // Hub apps (tizen-community-packages#34); whether a set exposes a verb that reaches the
-            // platform's own launcher is a question no log had answered. Every probe carries an id
-            // that does not exist, so nothing on the TV changes. Appended after the "Testing" lines
-            // so the diagnose parser, which keys on the vd_appuninstall line, is unaffected — and so a
-            // user's debug log carries the answer without anyone asking for it.
-            try
-            {
-                var probes = await device.ProbeShellVerbsAsync();
-                sb.AppendLine($"  sdbd verbs: {probes.Count(p => p.Accepted)} of {probes.Count} probes accepted");
-                foreach (var probe in probes)
-                    sb.AppendLine(SdbShellVerbs.Format(probe));
-            }
-            catch (Exception ex)
-            {
-                sb.AppendLine($"  sdbd verbs: probe failed - {ex.Message}");
-            }
+            // No sdbd verb probe here any more. The probe (TizenSdb.Core's SdbShellVerbs.Candidates)
+            // sends "0 was_execute probe.invalid" and the other launcher verbs with an id that does not
+            // exist, and Smart Hub reacts to that like any failed app start: the TV shows "Error.
+            // Please wait and try again" on screen, in the middle of an install (#839). The diagnose
+            // runs on the retry and recovery paths of the desktop install, so the popup appeared right
+            // before the package was pushed. The question the probe answered (which launcher verbs a
+            // set exposes) is settled for the sets that mattered; a future toolbox button can ask it
+            // on demand, where a popup on the TV is expected.
 
             return sb.ToString();
         });
@@ -230,7 +220,7 @@ namespace Apps2Samsung.Sdb
                     progress.Report(percent);
             });
 
-        public async Task<ProcessResult> UninstallAsync(string tvIpAddress, string packageId) => await RunConnected(tvIpAddress, $"uninstall {tvIpAddress} {packageId}", async device =>
+        public async Task<ProcessResult> UninstallAsync(string tvIpAddress, string packageId) => await RunWithRetry(tvIpAddress, $"uninstall {tvIpAddress} {packageId}", async device =>
         {
             try
             {
@@ -239,9 +229,16 @@ namespace Apps2Samsung.Sdb
                     throw new Exception("Uninstallation failed");
                 return result;
             }
+            catch (Exception ex) when (SdbTransportErrors.IsTransient(ex.Message))
+            {
+                // The channel closed before the verb ran (the Tizen-3 "Remote closed channel before
+                // sending OKAY"): the pkgcmd fallback on this same wedged connection would close too,
+                // so let RunWithRetry repeat the whole thing on a fresh connection instead.
+                throw;
+            }
             catch
             {
-                // Fallback to pkgcmd, matching the CLI.
+                // A real refusal (not a dropped link): fall back to pkgcmd, matching the CLI.
                 var pkgName = packageId.Split('.')[0];
                 return await device.ShellCommandAsync($"pkgcmd -u -n {pkgName} -q");
             }
@@ -391,11 +388,14 @@ namespace Apps2Samsung.Sdb
                 }
             }, logOutput: false);
 
-        // As RunConnected, but retries a transient transport failure on a fresh connection: the TV
-        // drops the link mid-read, which is a race on it rather than a real failure, and a single such
-        // reset on the device-info read is what produced a spurious "TV Name could not be found" for a
-        // TV that had just been discovered (#524). Only for idempotent reads/queries — never for
-        // install/uninstall/resign, which aren't safe to blindly repeat. See SdbTransportErrors.
+        // As RunConnected, but retries a TRANSIENT transport failure on a fresh connection: the TV
+        // drops the link mid-handshake or closes a freshly-opened channel before OKAY, which is a race
+        // on it rather than a real failure (a single such reset on the device-info read produced a
+        // spurious "TV Name could not be found" for a just-discovered TV, #524). Only transient
+        // results repeat, and a channel closed before OKAY means the command never ran — so this is
+        // safe for the idempotent reads AND for uninstall (seen closing the channel on Tizen 3 sets
+        // where install works). Never wrap install/resign, whose partial failures are not transient
+        // and must not blindly repeat. See SdbTransportErrors.
         private async Task<ProcessResult> RunWithRetry(
             string ip, string command, Func<SdbTcpDevice, Task<string>> body, int attempts = 3)
         {
