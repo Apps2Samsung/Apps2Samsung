@@ -66,7 +66,7 @@ public sealed class CliServices : IAsyncDisposable
         Provisioning = new CertificateProvisioningService(certService, login);
 
         // Only the patcher that has input here: a community package's user_settings (#791).
-        Installer = new PackageInstaller(Sdb, Config, new IPackagePatcher[] { new UserSettingsPatcher(Config) });
+        Installer = new PackageInstaller(Sdb, Config, new IPackagePatcher[] { new UserSettingsPatcher(Config), new TvStoreAddressPatcher() });
     }
 
     public async ValueTask DisposeAsync()
