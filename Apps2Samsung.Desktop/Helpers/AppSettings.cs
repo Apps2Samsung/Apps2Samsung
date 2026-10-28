@@ -62,6 +62,8 @@ namespace Apps2Samsung.Helpers
         public string TvIp { get; set; } = "";
         /// <summary>The catalog apps the user starred, by name, ';'-separated (#755 favorites).</summary>
         public string FavoriteApps { get; set; } = "";
+        /// <summary>How On the TV orders the apps (#888): an <see cref="Apps2Samsung.Sdb.InstalledAppOrder"/> name.</summary>
+        public string InstalledAppsOrder { get; set; } = nameof(Apps2Samsung.Sdb.InstalledAppOrder.Size);
         public static AppSettings Default => _instance ??= Load();
 
         // ----- User-scoped settings -----

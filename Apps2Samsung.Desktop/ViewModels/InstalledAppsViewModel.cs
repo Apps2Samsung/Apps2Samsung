@@ -37,6 +37,59 @@ namespace Apps2Samsung.ViewModels
 
         public ObservableCollection<InstalledAppViewModel> Apps { get; } = new();
 
+        // Every app the TV listed, as read; Apps and Groups are this in the chosen order.
+        private System.Collections.Generic.List<InstalledAppViewModel> _all = new();
+
+        /// <summary>How the list is ordered (#888); apps with an update stay on top whichever it is.</summary>
+        public Apps2Samsung.Sdb.InstalledAppOrder Order =>
+            Enum.TryParse<Apps2Samsung.Sdb.InstalledAppOrder>(Apps2Samsung.Helpers.AppSettings.Default.InstalledAppsOrder, out var order)
+                ? order
+                : Apps2Samsung.Sdb.InstalledAppOrder.Size;
+
+        public string SortHeader => string.Format("lblSortBy".Localized(), (Order switch
+        {
+            Apps2Samsung.Sdb.InstalledAppOrder.Name => "lblSortName",
+            Apps2Samsung.Sdb.InstalledAppOrder.Newest => "lblSortNewest",
+            _ => "lblSortSize",
+        }).Localized());
+
+        public bool IsSortSize => Order == Apps2Samsung.Sdb.InstalledAppOrder.Size;
+        public bool IsSortName => Order == Apps2Samsung.Sdb.InstalledAppOrder.Name;
+        public bool IsSortNewest => Order == Apps2Samsung.Sdb.InstalledAppOrder.Newest;
+
+        /// <summary>The ⋯ menu's Sort entries: remembers the order and re-sorts what is on screen.</summary>
+        [RelayCommand]
+        private void Sort(string order)
+        {
+            if (!Enum.TryParse<Apps2Samsung.Sdb.InstalledAppOrder>(order, out var picked) || picked == Order)
+                return;
+            Apps2Samsung.Helpers.AppSettings.Default.InstalledAppsOrder = picked.ToString();
+            Apps2Samsung.Helpers.AppSettings.Default.Save();
+            OnPropertyChanged(nameof(Order));
+            OnPropertyChanged(nameof(SortHeader));
+            OnPropertyChanged(nameof(IsSortSize));
+            OnPropertyChanged(nameof(IsSortName));
+            OnPropertyChanged(nameof(IsSortNewest));
+            ShowInOrder();
+        }
+
+        // Fills Apps and Groups from _all in the chosen order: the apps that can be removed, then the TV's own.
+        private void ShowInOrder()
+        {
+            var byApp = _all.ToDictionary(vm => vm.App, System.Collections.Generic.ReferenceEqualityComparer.Instance);
+            var sorted = Apps2Samsung.Sdb.InstalledAppSort.Sort(_all.Select(vm => vm.App), Order).Select(a => byApp[a]).ToList();
+            Apps.Clear();
+            foreach (var a in sorted)
+                Apps.Add(a);
+            Groups.Clear();
+            var removableApps = sorted.Where(a => a.App.IsRemovable).ToList();
+            var builtInApps = sorted.Where(a => !a.App.IsRemovable).ToList();
+            if (removableApps.Count > 0)
+                Groups.Add(new InstalledAppGroup("lblAppsGroupRemovable".Localized(), removableApps));
+            if (builtInApps.Count > 0)
+                Groups.Add(new InstalledAppGroup("lblAppsGroupBuiltIn".Localized(), builtInApps));
+        }
+
         /// <summary>The list as the section shows it: the apps that can be removed, then the TV's own.</summary>
         public ObservableCollection<InstalledAppGroup> Groups { get; } = new();
 
@@ -109,16 +162,8 @@ namespace Apps2Samsung.ViewModels
 
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    Apps.Clear();
-                    foreach (var a in viewModels)
-                        Apps.Add(a);
-                    Groups.Clear();
-                    var removableApps = viewModels.Where(a => a.App.IsRemovable).ToList();
-                    var builtInApps = viewModels.Where(a => !a.App.IsRemovable).ToList();
-                    if (removableApps.Count > 0)
-                        Groups.Add(new InstalledAppGroup("lblAppsGroupRemovable".Localized(), removableApps));
-                    if (builtInApps.Count > 0)
-                        Groups.Add(new InstalledAppGroup("lblAppsGroupBuiltIn".Localized(), builtInApps));
+                    _all = viewModels;
+                    ShowInOrder();
                 });
                 
                 // Start loading bitmaps in the background
