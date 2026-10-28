@@ -23,11 +23,11 @@
       "versions": [
         {
           "version": "3.1.0",
-          "buildVersion": "11490",
+          "buildVersion": "11491",
           "date": "2026-10-28T11:23:12Z",
-          "localizedDescription": "## 📦 v3.1.0-beta — 2026-10-28\n\n\n### 🚀 New features\n- On the TV: sort by size, name or install date, updates on top (#888) (#892)\n- Desktop On the TV: sort by size, name or install date (#888) (#898)\n### 🐛 Bug fixes\n- Arm TV-Store: a failed app listing is not \"not installed\" (#889), version 3.1.0 (#890)\n- On the TV: Update opens the app's sheet, Update button, View in catalog (#888) (#891)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.0.0-beta...v3.1.0-beta",
+          "localizedDescription": "## 📦 v3.1.0-beta — 2026-10-28\n\n\n### 🚀 New features\n- On the TV: sort by size, name or install date, updates on top (#888) (#892)\n- Desktop On the TV: sort by size, name or install date (#888) (#898)\n### 🐛 Bug fixes\n- Arm TV-Store: a failed app listing is not \"not installed\" (#889), version 3.1.0 (#890)\n- On the TV: Update opens the app's sheet, Update button, View in catalog (#888) (#891)\n- fix(mobile): pace the TV card LED pulse so animations-off phones don't hang (#899) (#903)\n### 🧰 Maintenance & CI\n- CI: /no-logs command to waive the log requirement on bug reports (#900)\n- CI: one bug report form for every head, with per-head log steps (#901)\n- Issue templates: set issue type Bug / Feature (#902)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.0.0-beta...v3.1.0-beta",
           "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.1.0-beta/Apps2Samsung-v3.1.0-beta-ios-unsigned.ipa",
-          "size": 42004420,
+          "size": 42002117,
           "minOSVersion": "15.0"
         }
       ],
@@ -39,9 +39,9 @@
       },
       "version": "3.1.0",
       "versionDate": "2026-10-28T11:23:12Z",
-      "versionDescription": "## 📦 v3.1.0-beta — 2026-10-28\n\n\n### 🚀 New features\n- On the TV: sort by size, name or install date, updates on top (#888) (#892)\n- Desktop On the TV: sort by size, name or install date (#888) (#898)\n### 🐛 Bug fixes\n- Arm TV-Store: a failed app listing is not \"not installed\" (#889), version 3.1.0 (#890)\n- On the TV: Update opens the app's sheet, Update button, View in catalog (#888) (#891)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.0.0-beta...v3.1.0-beta",
+      "versionDescription": "## 📦 v3.1.0-beta — 2026-10-28\n\n\n### 🚀 New features\n- On the TV: sort by size, name or install date, updates on top (#888) (#892)\n- Desktop On the TV: sort by size, name or install date (#888) (#898)\n### 🐛 Bug fixes\n- Arm TV-Store: a failed app listing is not \"not installed\" (#889), version 3.1.0 (#890)\n- On the TV: Update opens the app's sheet, Update button, View in catalog (#888) (#891)\n- fix(mobile): pace the TV card LED pulse so animations-off phones don't hang (#899) (#903)\n### 🧰 Maintenance & CI\n- CI: /no-logs command to waive the log requirement on bug reports (#900)\n- CI: one bug report form for every head, with per-head log steps (#901)\n- Issue templates: set issue type Bug / Feature (#902)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.0.0-beta...v3.1.0-beta",
       "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.1.0-beta/Apps2Samsung-v3.1.0-beta-ios-unsigned.ipa",
-      "size": 42004420
+      "size": 42002117
     }
   ],
   "news": []
