@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-27T20:35:05.179205+00:00",
+  "generatedAt": "2026-10-28T04:11:23.6061867+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -2019,20 +2019,20 @@
       "id": "jellyfin-avplay",
       "url": "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases",
       "ok": true,
-      "latestTag": "v0.1.0-2026-10-27-1727",
+      "latestTag": "v0.1.0-2026-10-28-0351",
       "releases": [
         {
-          "url": "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases/425776486",
+          "url": "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases/426243329",
           "name": "Jellyfin - AVPlay",
-          "tag_name": "v0.1.0-2026-10-27-1727",
-          "published_at": "2026-10-27T17:28:05Z",
+          "tag_name": "v0.1.0-2026-10-28-0351",
+          "published_at": "2026-10-28T03:51:41Z",
           "draft": false,
           "assets": [
             {
               "name": "Jellyfin-AVPlay.wgt",
-              "browser_download_url": "https://github.com/PatrickSt1991/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-10-27-1727/Jellyfin-AVPlay.wgt",
-              "size": 10850961,
-              "digest": "sha256:da86b03a190a38dc33f160c5fdd8e0b28eec88ee54f0ae23ee23110fe00110c7",
+              "browser_download_url": "https://github.com/PatrickSt1991/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-10-28-0351/Jellyfin-AVPlay.wgt",
+              "size": 10851994,
+              "digest": "sha256:c192688ff4d6d6fd1d8ab5417e35f042df18647f919e6aacf04850fe51656abb",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
               "package_id": "AprZAARz4r"
