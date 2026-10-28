@@ -83,8 +83,16 @@ public partial class InstalledAppsPage : ContentPage
 		var choice = await MoreMenu.ShowAsync(this,
 			new MoreMenuItem(L10n.Get("lblRefresh"), MoreMenu.IconRescan),
 			new MoreMenuItem(L10n.Get("lblCheckForUpdates"), MoreMenu.IconRescan),
+			new MoreMenuItem(string.Format(L10n.Get("lblSortBy"), OrderLabel(MobileSettings.InstalledAppOrder)), MoreMenu.IconSort),
 			new MoreMenuItem(L10n.Get("lblTvInformation"), MoreMenu.IconInfo),
 			new MoreMenuItem(L10n.Get("lblRemoveLeftover"), MoreMenu.IconDelete, Destructive: true));
+		if (choice == 2)
+		{
+			await ChooseOrderAsync();
+			return;
+		}
+		if (choice > 2)
+			choice--;
 		if (choice == 0)
 			await ShowSelectedTvAsync(force: true);
 		else if (choice == 1)
@@ -112,13 +120,43 @@ public partial class InstalledAppsPage : ContentPage
 			SetSubtitle(L10n.Get("statusNoUpdates"), TopBarStatus.Ok);
 	}
 
+	private static readonly InstalledAppOrder[] Orders = { InstalledAppOrder.Size, InstalledAppOrder.Name, InstalledAppOrder.Newest };
+
+	private static string OrderLabel(InstalledAppOrder order) => L10n.Get(order switch
+	{
+		InstalledAppOrder.Name => "lblSortName",
+		InstalledAppOrder.Newest => "lblSortNewest",
+		_ => "lblSortSize",
+	});
+
+	// Sort by (#888): size, name or install date, the current one switched on. Apps with an update
+	// stay on top whichever is picked.
+	private async Task ChooseOrderAsync()
+	{
+		var current = MobileSettings.InstalledAppOrder;
+		var picked = await MoreMenu.ShowAsync(this,
+			Orders.Select(o => new MoreMenuItem(OrderLabel(o), MoreMenu.IconSort, Checked: o == current)).ToArray());
+		if (picked < 0 || Orders[picked] == current)
+			return;
+		MobileSettings.InstalledAppOrder = Orders[picked];
+		if (AppsList.ItemsSource is List<InstalledApp> apps)
+			AppsList.ItemsSource = InstalledAppSort.Sort(apps, Orders[picked]).ToList();
+	}
+
 	// "Update" on a row (#820): hand the catalog entry to the Install tab, which opens its sheet.
 	private async void OnUpdateClicked(object? sender, EventArgs e)
 	{
-		if ((sender as BindableObject)?.BindingContext is not InstalledApp app || !_matches.TryGetValue(app.TizenId, out var match))
+		if ((sender as BindableObject)?.BindingContext is InstalledApp app)
+			await OpenInCatalogAsync(app);
+	}
+
+	// The app's sheet on the Install tab, with the TV's version on it and, when the catalog has
+	// another, its button as Update (#888).
+	private async Task OpenInCatalogAsync(InstalledApp app)
+	{
+		if (!_matches.TryGetValue(app.TizenId, out var match))
 			return;
-		CatalogStore.RequestOpen(match.Release);
-		await Shell.Current.GoToAsync("//install");
+		await CatalogStore.OpenOnInstallTabAsync(new CatalogOpenRequest(match.Release, app.Version, match.HasUpdate));
 	}
 
 	private static string? CatalogLine(Apps2Samsung.Catalog.CatalogMatch match) => match.State switch
@@ -212,7 +250,7 @@ public partial class InstalledAppsPage : ContentPage
 				_matches[apps[i].TizenId] = match;
 				apps[i] = apps[i] with { CatalogLine = CatalogLine(match), HasUpdate = match.HasUpdate };
 			}
-			AppsList.ItemsSource = apps;
+			AppsList.ItemsSource = InstalledAppSort.Sort(apps, MobileSettings.InstalledAppOrder).ToList();
 
 			var updates = apps.Count(a => a.HasUpdate);
 			if (apps.Count == 0)
@@ -341,7 +379,7 @@ public partial class InstalledAppsPage : ContentPage
 	{
 		if ((sender as BindableObject)?.BindingContext is not InstalledApp app)
 			return;
-		var sheet = new AppActionsSheetPage(app);
+		var sheet = new AppActionsSheetPage(app, _matches.ContainsKey(app.TizenId));
 		await Navigation.PushModalAsync(sheet);
 		switch (await sheet.Result)
 		{
@@ -349,6 +387,7 @@ public partial class InstalledAppsPage : ContentPage
 			case AppAction.Stop: await StopAsync(app); break;
 			case AppAction.Debug: await DebugAsync(app); break;
 			case AppAction.Uninstall: await UninstallAsync(app); break;
+			case AppAction.ViewInCatalog: await OpenInCatalogAsync(app); break;
 		}
 	}
 

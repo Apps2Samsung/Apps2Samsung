@@ -77,7 +77,10 @@ public partial class TvCardView : ContentView
 	}
 
 	// Accent LED breathing at 1.2 s while something runs; the generation counter ends the loop
-	// of an earlier state without a race.
+	// of an earlier state without a race. Each half-cycle is paced by a delay as well as the fade:
+	// with the phone's animations off (Developer options animator scale 0, Accessibility "Remove
+	// animations") FadeTo completes at once, and the loop alone would spin the UI thread at 100 %
+	// until Android reports the app as not responding (#899).
 	private async void Pulse(bool on)
 	{
 		var generation = ++_pulseGeneration;
@@ -88,9 +91,9 @@ public partial class TvCardView : ContentView
 		}
 		while (generation == _pulseGeneration)
 		{
-			await Led.FadeTo(0.35, 600, Easing.SinInOut);
+			await Task.WhenAll(Led.FadeTo(0.35, 600, Easing.SinInOut), Task.Delay(600));
 			if (generation != _pulseGeneration) break;
-			await Led.FadeTo(1, 600, Easing.SinInOut);
+			await Task.WhenAll(Led.FadeTo(1, 600, Easing.SinInOut), Task.Delay(600));
 		}
 		Led.Opacity = 1;
 	}

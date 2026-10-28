@@ -103,13 +103,13 @@ public partial class InstallerPage : ContentPage
 			// Show adult (18+) apps / Show root apps changed from another tab's ⋯ while this one was hidden (#850).
 			if (_listedAdult != MobileSettings.ShowAdultApps || _listedRoot != MobileSettings.ShowRootApps)
 				RebuildCatalog();
-			// "Update" on the On the TV tab (#820): that app's sheet, here where installs run.
-			if (CatalogStore.TakePendingOpen() is { } pending)
-				await OpenAppAsync(pending, SublineFor(pending));
 			return;
 		}
 		_initialized = true;
 		CatalogStore.Refresh = async () => { await LoadCatalogAsync(); };
+		// "Update" and "View in catalog" on the On the TV tab (#820, #888): that app's sheet, here
+		// where installs run.
+		CatalogStore.Open = request => OpenAppAsync(request.Release, SublineFor(request.Release), request.InstalledVersion, request.IsUpdate);
 
 		await MobileSettings.InitAsync();
 		var catalog = await LoadCatalogAsync();
@@ -390,7 +390,7 @@ public partial class InstallerPage : ContentPage
 
 	// The app sheet: preview, description, the version or variant to install, Install for the
 	// selected TV. Hands back the release and file, or null when closed.
-	private async Task OpenAppAsync(GitHubRelease release, string subline)
+	private async Task OpenAppAsync(GitHubRelease release, string subline, string? installedVersion = null, bool isUpdate = false)
 	{
 		if (_busy)
 			return;
@@ -413,8 +413,11 @@ public partial class InstallerPage : ContentPage
 			}
 			: null;
 
+		// The version the TV runs, when this sheet came from the On the TV tab (#888).
+		if (!string.IsNullOrWhiteSpace(installedVersion))
+			subline = string.Format(L10n.Get("lblInstalledVersionOnTv"), installedVersion) + " · " + subline;
 		var sheet = new AppSheetPage(versions, CatalogPreviews.For(_manifest, release), subline, tvName, tvReady,
-			_favorites.Contains(release.Name), SetFavorite, showAll);
+			_favorites.Contains(release.Name), SetFavorite, showAll, isUpdate);
 		await Navigation.PushModalAsync(sheet);
 		var choice = await sheet.Result;
 		if (choice is not null)

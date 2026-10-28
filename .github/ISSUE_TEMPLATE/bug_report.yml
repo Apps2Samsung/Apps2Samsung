@@ -1,0 +1,88 @@
+name: Bug report
+description: Something in Apps2Samsung doesn't work (desktop, Android, iPhone or CLI)
+title: "[Bug] "
+labels: [bug, keep-alive]
+type: Bug
+assignees: [PatrickSt1991]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. Please check the [FAQ](https://github.com/Apps2Samsung/Apps2Samsung/wiki/FAQ) first, a lot of install errors are answered there.
+
+        Problems with the **TV-Store** app on the TV itself go to the [TV-Store repo](https://github.com/Apps2Samsung/TV-Store/issues).
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Where do you run Apps2Samsung?
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Android
+        - iPhone / iPad
+        - CLI (apps2samsung-cli)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Shown in Settings, or run `apps2samsung-cli --version`.
+      placeholder: v3.0.0
+    validations:
+      required: true
+  - type: dropdown
+    id: tizen
+    attributes:
+      label: Tizen version of the TV
+      description: Not sure? Pick "Don't know" and fill in the TV model below.
+      options:
+        - Tizen 2.x or 3.0
+        - Tizen 4.0
+        - Tizen 5.0
+        - Tizen 5.5
+        - Tizen 6.0
+        - Tizen 6.5
+        - Tizen 7.0
+        - Tizen 8.0
+        - Tizen 9.0
+        - Tizen 10.0
+        - Don't know
+        - Not about a TV (the app itself fails)
+    validations:
+      required: true
+  - type: input
+    id: tv-model
+    attributes:
+      label: TV model
+      placeholder: UE55AU7100
+  - type: dropdown
+    id: developer-mode
+    attributes:
+      label: Is the TV in developer mode?
+      options:
+        - "Yes"
+        - "No"
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead. Screenshots are welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: |
+        Without a log we can't see what went wrong. Drag the log file into this box, or paste it inside a ``` code block.
+        - **Windows:** Settings → Open Logs Folder, or the `Logs` folder next to `Apps2Samsung.exe`
+        - **macOS:** Settings → Open Logs Folder, or `~/Library/Logs/Apps2Samsung/Logs`
+        - **Linux:** Settings → Open Logs Folder, or `~/.local/state/Apps2Samsung/Logs`
+        - **Android / iPhone:** Settings → Backup and diagnostics → View debug log, pick the session where it went wrong, then Copy or Share
+        - **CLI:** run the command again and paste the full console output
+        Pick the newest `debug_<date>.log` on desktop.

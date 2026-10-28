@@ -62,6 +62,8 @@ namespace Apps2Samsung.Helpers
         public string TvIp { get; set; } = "";
         /// <summary>The catalog apps the user starred, by name, ';'-separated (#755 favorites).</summary>
         public string FavoriteApps { get; set; } = "";
+        /// <summary>How On the TV orders the apps (#888): an <see cref="Apps2Samsung.Sdb.InstalledAppOrder"/> name.</summary>
+        public string InstalledAppsOrder { get; set; } = nameof(Apps2Samsung.Sdb.InstalledAppOrder.Size);
         public static AppSettings Default => _instance ??= Load();
 
         // ----- User-scoped settings -----
@@ -187,7 +189,7 @@ namespace Apps2Samsung.Helpers
         [JsonIgnore]
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
         [JsonIgnore]
-        public string AppVersion { get; set; } = "v3.0.0";
+        public string AppVersion { get; set; } = "v3.1.0";
         [JsonIgnore]
         public string JellyfinAvReleaseFork { get; set; } = "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases";
         [JsonIgnore]
