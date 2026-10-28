@@ -22,6 +22,7 @@ public sealed class MoreMenu : ContentPage
 	public const string IconInfo = "M3,12 A9,9 0 1 0 21,12 A9,9 0 1 0 3,12 M12,11 L12,17 M12,7.5 L12,7.6";
 	public const string IconToolbox = "M3,8 L21,8 L21,20 L3,20 Z M8,8 L8,5 L16,5 L16,8 M3,13 L21,13";
 	public const string IconDelete = "M4,7 L20,7 M9,7 L9,4 L15,4 L15,7 M6,7 L7,20 L17,20 L18,7";
+	public const string IconSort = "M4,6 L14,6 M4,12 L11,12 M4,18 L8,18 M18,5 L18,19 M15,16 L18,19 L21,16";
 	public const string IconShow = "M2,12 C5,6 19,6 22,12 C19,18 5,18 2,12 Z M9,12 A3,3 0 1 0 15,12 A3,3 0 1 0 9,12";
 
 	private readonly TaskCompletionSource<int> _result = new(TaskCreationOptions.RunContinuationsAsynchronously);
