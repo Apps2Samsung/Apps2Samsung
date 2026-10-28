@@ -23,18 +23,66 @@ jobs:
           script: |
             const LABEL = 'Missing Log Files';
             const MARKER = '<!-- missing-log-files-bot -->';
+            const MAINTAINER = ['OWNER', 'MEMBER', 'COLLABORATOR'];
 
             const issue = context.payload.issue;
             if (!issue || issue.pull_request) return;
 
-            // Only bug reports, and never the maintainers' own.
             const isBug = issue.labels.some(l => l.name.toLowerCase() === 'bug');
             if (!isBug) return;
-            const MAINTAINER = ['OWNER', 'MEMBER', 'COLLABORATOR'];
-            if (MAINTAINER.includes(issue.author_association)) return;
 
             const { owner, repo } = context.repo;
             const issue_number = issue.number;
+            const body = issue.body || '';
+
+            // Issue forms render every field as "### <label>" followed by the answer,
+            // or "_No response_" when an optional field was left empty.
+            const field = (label) => {
+              const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const match = body.match(new RegExp(`^### ${escaped}\\s*\\n([\\s\\S]*?)(?=^### |(?![\\s\\S]))`, 'm'));
+              const value = match ? match[1].trim() : '';
+              return value === '_No response_' ? '' : value;
+            };
+
+            const platform = field('Where do you run Apps2Samsung?');
+            const tizen = field('Tizen version of the TV');
+
+            // Label the head and the Tizen generation from the form, so the issue list
+            // can be filtered without opening every report.
+            const PLATFORM_LABELS = {
+              'Windows': 'win-x64',
+              'macOS': 'osx-x64',
+              'Linux': 'linux-x64',
+              'Android': 'android',
+              'iPhone / iPad': 'ios',
+              'CLI (apps2samsung-cli)': 'cli',
+            };
+            const wanted = [];
+            if (PLATFORM_LABELS[platform]) wanted.push(PLATFORM_LABELS[platform]);
+            const tizenVersion = parseFloat((tizen.match(/^Tizen (\d+(\.\d+)?)/) || [])[1]);
+            if (!isNaN(tizenVersion)) wanted.push(tizenVersion < 7 ? 'tizen 7-' : 'tizen 7+');
+
+            const has = (name) => issue.labels.some(l => l.name.toLowerCase() === name.toLowerCase());
+
+            // Create a label up front so it gets this colour and description rather
+            // than the random one an unknown label is given.
+            const ensureLabel = async (name, color, description) => {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name });
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                await github.rest.issues.createLabel({ owner, repo, name, color, description });
+              }
+            };
+
+            const missing = wanted.filter(name => !has(name));
+            if (missing.length) {
+              if (missing.includes('cli')) await ensureLabel('cli', '5319e7', 'apps2samsung-cli');
+              await github.rest.issues.addLabels({ owner, repo, issue_number, labels: missing });
+            }
+
+            // Maintainers don't need to be asked for their own logs.
+            if (MAINTAINER.includes(issue.author_association)) return;
 
             const hasLogs = (text) => {
               const linked = [
@@ -54,14 +102,18 @@ jobs:
               });
             };
 
-            const labelled = issue.labels.some(l => l.name === LABEL);
+            // The form's Log box takes a paste without fences, so judge its content as a whole.
+            const log = field('Log');
+            const hasFormLog = log.length >= 200 || log.split('\n').length >= 6;
+
+            const labelled = has(LABEL);
             const clear = async () => {
               if (labelled) await github.rest.issues.removeLabel({ owner, repo, issue_number, name: LABEL });
             };
 
             // The body on its own usually settles it, and a freshly opened issue
             // has no comments to fetch anyway.
-            if (hasLogs(issue.body || '')) return clear();
+            if (hasFormLog || hasLogs(body)) return clear();
 
             // Otherwise a follow-up upload in a comment counts just the same.
             const comments = await github.paginate(github.rest.issues.listComments, {
@@ -85,26 +137,39 @@ jobs:
             }
 
             if (!labelled) {
-              // Create the label up front so it gets this colour and description
-              // rather than the random one an unknown label is given.
-              try {
-                await github.rest.issues.getLabel({ owner, repo, name: LABEL });
-              } catch (error) {
-                if (error.status !== 404) throw error;
-                await github.rest.issues.createLabel({
-                  owner,
-                  repo,
-                  name: LABEL,
-                  color: 'd93f0b',
-                  description: 'Bug report opened without the application log files',
-                });
-              }
-
+              await ensureLabel(LABEL, 'd93f0b', 'Bug report opened without the application log files');
               await github.rest.issues.addLabels({ owner, repo, issue_number, labels: [LABEL] });
             }
 
             // Ask once, not on every edit.
             if (comments.some(c => (c.body || '').includes(MARKER))) return;
+
+            // Where the log lives on each head, plus what to send when the app
+            // won't start far enough to write or show one.
+            const STEPS = {
+              'Windows': [
+                '**Windows:** open **Settings → Open Logs Folder** in the app. If the app won\'t start, it\'s the `Logs` folder next to `Apps2Samsung.exe`. Pick the newest `debug_<date>.log`.',
+              ],
+              'macOS': [
+                '**macOS:** open **Settings → Open Logs Folder** in the app. If the app won\'t start, the folder is `~/Library/Logs/Apps2Samsung/Logs`. Pick the newest `debug_<date>.log`.',
+              ],
+              'Linux': [
+                '**Linux:** open **Settings → Open Logs Folder** in the app. If the app won\'t start, the folder is `~/.local/state/Apps2Samsung/Logs` (or `$XDG_STATE_HOME/Apps2Samsung/Logs`). Pick the newest `debug_<date>.log`.',
+              ],
+              'Android': [
+                '**Android:** in the app, open **Settings → Backup and diagnostics → View debug log**, pick the session where it went wrong, then **Copy** or **Share** it.',
+                'If the app hangs or closes before you get there: enable Developer options (Settings → About phone → Software information, tap **Build number** 7 times), reproduce the problem, then use **Developer options → Take bug report** and attach the zip.',
+              ],
+              'iPhone / iPad': [
+                '**iPhone / iPad:** in the app, open **Settings → Backup and diagnostics → View debug log**, pick the session where it went wrong, then **Copy** or **Share** it.',
+                'If the app crashes or hangs before you get there: open the iOS **Settings → Privacy & Security → Analytics & Improvements → Analytics Data**, find the newest entry starting with `Apps2Samsung` and share it.',
+              ],
+              'CLI (apps2samsung-cli)': [
+                '**CLI:** the CLI has no log file. Run the command again and paste the complete console output, including the command line you used (remove any tokens).',
+              ],
+            };
+            const steps = (STEPS[platform] ? [STEPS[platform]] : Object.values(STEPS))
+              .flatMap(([where, ...fallbacks]) => [`- ${where}`, ...fallbacks.map(f => `  - ${f}`)]);
 
             await github.rest.issues.createComment({
               owner,
@@ -114,18 +179,16 @@ jobs:
                 MARKER,
                 `Thanks for the report, @${issue.user.login}.`,
                 '',
-                "This issue doesn't include any log files, so it has been labelled **Missing Log Files**. Without a log we can't see what actually went wrong on your machine, so this can't be looked at yet.",
+                "This issue doesn't include any log files, so it has been labelled **Missing Log Files**. Without a log we can't see what actually went wrong, so this can't be looked at yet.",
                 '',
                 '**How to attach your log**',
                 '',
-                '1. Reproduce the problem once more, so the run is covered by a log.',
-                "2. Open **Settings → Open Logs Folder** in the app. If you can't start the app, the folder is:",
-                '   - Windows and Linux: a `Logs` folder next to the Apps2Samsung executable',
-                '   - macOS: `~/Library/Logs/Apps2Samsung`',
-                '3. Pick the newest `debug_<date>.log` and drag it into a comment below, or paste its contents inside a code block.',
+                'Reproduce the problem once more so the run is covered by a log, then:',
+                '',
+                ...steps,
+                '',
+                'Drag the file into a comment below, or paste its contents inside a code block.',
                 '',
                 "The label is removed automatically once a log file or a pasted log shows up on this issue. Screenshots of an error message are welcome, but they aren't a substitute for the log.",
-                '',
-                'If you skipped them in the template, please also confirm the app version, your Tizen version, and whether the TV is in developer mode.',
               ].join('\n'),
             });
