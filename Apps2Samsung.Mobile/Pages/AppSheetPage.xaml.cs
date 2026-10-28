@@ -26,6 +26,8 @@ public partial class AppSheetPage : ContentPage
 	private readonly string _name;
 	private readonly bool _tvReady;
 	private readonly string? _tvName;
+	// Opened for an app the TV runs another version of: the button says Update (#888).
+	private readonly bool _isUpdate;
 	private bool _isFavorite;
 	private bool _loadingVersions;
 	// False while the constructor sets the switch, so that doesn't count as the user flipping it.
@@ -48,6 +50,7 @@ public partial class AppSheetPage : ContentPage
 		_setFavorite = setFavorite;
 		_showAllVersions = showAllVersions;
 		_tvName = tvName;
+		_isUpdate = isUpdate;
 		_tvReady = tvReady;
 		ShowFavorite();
 		TitleLabel.Text = release.Name;
@@ -127,7 +130,7 @@ public partial class AppSheetPage : ContentPage
 
 		// An app the TV runs an older (or other) version of: the same install, called an update (#888).
 		InstallBtn.Text = string.IsNullOrEmpty(_tvName) ? L10n.Get("lblChooseTvFirst")
-			: string.Format(L10n.Get(isUpdate ? "lblUpdateOn" : "lblInstallOn"), _tvName);
+			: string.Format(L10n.Get(_isUpdate ? "lblUpdateOn" : "lblInstallOn"), _tvName);
 		InstallBtn.IsEnabled = _tvReady && !string.IsNullOrEmpty(_tvName) && _selected is not null;
 	}
 
