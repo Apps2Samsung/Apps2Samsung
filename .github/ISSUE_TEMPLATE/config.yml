@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: FAQ
+    url: https://github.com/Apps2Samsung/Apps2Samsung/wiki/FAQ
+    about: Common install errors and how to fix them.
+  - name: TV-Store app on the TV
+    url: https://github.com/Apps2Samsung/TV-Store/issues
+    about: Bugs in the TV-Store app running on your TV belong in its own repo.
