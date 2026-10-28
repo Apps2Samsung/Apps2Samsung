@@ -1,6 +1,7 @@
 {
   "connectionInterrupted": "Koblingen til TV-en din falt under installasjon (\"tilkobling tilbakestilt av peer\"). Dette er vanligvis ikke et problem med appen — det er nesten alltid en VPN, proxy, eller en \"sikker DNS\"-app på denne datamaskinen som fanger ruten til TV-en din, eller en ustabil Wi-Fi-lenke. Prøv dette, installer igjen: 1) slå av hvilken som helst VPN / tunnel / secure-DNS app, 2) koble TV-en til Ethernet eller beveg den nærmere ruteren, 3) sørg for at denne datamaskinen og TV-en er på samme nettverk.",
   "vpnDetectedWarning": "En VPN eller tunnel adapter ser aktiv ut ({0}). Det kan hindre appen i å finne din TV eller i å gå i stykker. Hvis TV-en ikke er oppført eller installerer mislykket, slå av VPN / proxy / secure-DNS app og rescan.",
+  "Output": "Resultat",
   "lblCustomIcon": "Tilpasset ikon",
   "lblCustomIconHint": "Valgfri. Velg et PNG å bruke som programmets oppstartsikon – husket per app og skrevet i pakken når den installeres. La være tom for å beholde standard.",
   "lblBrowse": "Bla gjennom…",
