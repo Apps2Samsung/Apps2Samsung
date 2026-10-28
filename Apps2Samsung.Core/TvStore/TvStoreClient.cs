@@ -53,7 +53,8 @@ namespace Apps2Samsung.TvStore
         /// Starts TV-Store in debug mode and attaches to its page. <paramref name="progress"/> gets
         /// localization keys, as the debug agent reports them.
         /// </summary>
-        /// <exception cref="TvStoreNotInstalledException">The TV does not list TV-Store.</exception>
+        /// <exception cref="TvStoreNotInstalledException">The TV does not list TV-Store, or only an old one.</exception>
+        /// <exception cref="TvStoreUnreachableException">The TV sent no app listing.</exception>
         /// <exception cref="InvalidOperationException">Debug mode was refused, the inspector never came up, or the page is not TV-Store (or an older one without the API).</exception>
         public static async Task<TvStoreClient> AttachAsync(
             ISdbEngine sdb, string tvIp, IProgress<string>? progress = null, CancellationToken ct = default)
@@ -61,8 +62,9 @@ namespace Apps2Samsung.TvStore
             ArgumentNullException.ThrowIfNull(sdb);
             ArgumentException.ThrowIfNullOrWhiteSpace(tvIp);
 
-            if (!await TvStorePackage.IsInstalledAsync(sdb, tvIp).ConfigureAwait(false))
-                throw new TvStoreNotInstalledException();
+            var state = await TvStorePackage.GetInstallStateAsync(sdb, tvIp).ConfigureAwait(false);
+            if (state != TvStoreInstallState.Installed)
+                throw new TvStoreNotInstalledException(state == TvStoreInstallState.Outdated);
 
             // Debug mode hands out an inspector port only for the launch it performs itself.
             progress?.Report("lblToolboxTvStoreStopping");
@@ -203,9 +205,32 @@ namespace Apps2Samsung.TvStore
     /// <summary>TV-Store is not on the TV. It is installed through a head like any package.</summary>
     public sealed class TvStoreNotInstalledException : Exception
     {
-        public TvStoreNotInstalledException()
-            : base($"TV-Store ({TvStorePackage.PackageId}) is not installed on this TV. Install it from Apps2Samsung first ({TvStorePackage.RepositoryUrl}).")
+        public TvStoreNotInstalledException(bool outdated = false)
+            : base(outdated
+                ? $"An old TV-Store ({TvStorePackage.LegacyAppId}) is installed on this TV. Update it from Apps2Samsung first ({TvStorePackage.RepositoryUrl})."
+                : $"TV-Store ({TvStorePackage.PackageId}) is not installed on this TV. Install it from Apps2Samsung first ({TvStorePackage.RepositoryUrl}).")
         {
+            IsOutdated = outdated;
         }
+
+        /// <summary>The TV lists only the pre-0.3.5 <see cref="TvStorePackage.LegacyAppId"/>.</summary>
+        public bool IsOutdated { get; }
+    }
+
+    /// <summary>
+    /// The TV sent no app listing, so whether TV-Store is there is unknown (#889). Almost always the
+    /// set's sdbd refusing this device: Developer Mode off, or its Host PC IP not this device's
+    /// current address, or changed without restarting the TV.
+    /// </summary>
+    public sealed class TvStoreUnreachableException : Exception
+    {
+        public TvStoreUnreachableException(string reason, Exception? inner = null)
+            : base($"The TV did not list its apps ({reason}). While arming, Developer Mode's Host PC IP must be this device's current address, and the TV restarted after changing it.", inner)
+        {
+            Reason = reason;
+        }
+
+        /// <summary>What the engine said when it could not list.</summary>
+        public string Reason { get; }
     }
 }

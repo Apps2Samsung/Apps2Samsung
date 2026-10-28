@@ -517,9 +517,10 @@ public partial class TvToolboxPage : ContentPage
 		ArmTvStoreBtn.IsEnabled = false;
 		try
 		{
-			if (!await TvStorePackage.IsInstalledAsync(_sdb, _tvIp))
+			var state = await TvStorePackage.GetInstallStateAsync(_sdb, _tvIp);
+			if (state != TvStoreInstallState.Installed)
 			{
-				SetTvStoreStatus(L10n.Get("lblToolboxTvStoreNotInstalled"));
+				SetTvStoreStatus(L10n.Get(state == TvStoreInstallState.Outdated ? "lblToolboxTvStoreOutdated" : "lblToolboxTvStoreNotInstalled"));
 				return;
 			}
 
@@ -545,6 +546,12 @@ public partial class TvToolboxPage : ContentPage
 		{
 			// The certificate sheet was dismissed: nothing to hand over.
 			SetTvStoreStatus(L10n.Get("lblToolboxTvStoreNoCertificate"));
+		}
+		catch (TvStoreUnreachableException ex)
+		{
+			// The listing failed, so TV-Store may well be there: point at Developer Mode, not the catalog (#889).
+			System.Diagnostics.Trace.WriteLine($"[toolbox] arm TV-Store: no app listing: {ex.Reason}");
+			SetTvStoreStatus(string.Format(L10n.Get("lblToolboxTvStoreUnreachable"), ex.Reason));
 		}
 		catch (Exception ex)
 		{

@@ -553,9 +553,10 @@ namespace Apps2Samsung.ViewModels
             IsBusy = true;
             try
             {
-                if (!await TvStorePackage.IsInstalledAsync(_sdb, _tvIp))
+                var state = await TvStorePackage.GetInstallStateAsync(_sdb, _tvIp);
+                if (state != TvStoreInstallState.Installed)
                 {
-                    TvStoreStatus = "lblToolboxTvStoreNotInstalled".Localized();
+                    TvStoreStatus = (state == TvStoreInstallState.Outdated ? "lblToolboxTvStoreOutdated" : "lblToolboxTvStoreNotInstalled").Localized();
                     return;
                 }
 
@@ -574,6 +575,12 @@ namespace Apps2Samsung.ViewModels
                 await store.ArmAsync(pem);
                 var status = await store.StatusAsync();
                 TvStoreStatus = string.Format("lblToolboxTvStoreArmed".Localized(), store.Version, status.OwnIp ?? _tvIp);
+            }
+            catch (TvStoreUnreachableException ex)
+            {
+                // The listing failed, so TV-Store may well be there: point at Developer Mode, not the catalog (#889).
+                System.Diagnostics.Trace.WriteLine($"[toolbox] arm TV-Store: no app listing: {ex.Reason}");
+                TvStoreStatus = string.Format("lblToolboxTvStoreUnreachable".Localized(), ex.Reason);
             }
             catch (Exception ex)
             {
