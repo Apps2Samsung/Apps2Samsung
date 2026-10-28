@@ -83,8 +83,16 @@ public partial class InstalledAppsPage : ContentPage
 		var choice = await MoreMenu.ShowAsync(this,
 			new MoreMenuItem(L10n.Get("lblRefresh"), MoreMenu.IconRescan),
 			new MoreMenuItem(L10n.Get("lblCheckForUpdates"), MoreMenu.IconRescan),
+			new MoreMenuItem(string.Format(L10n.Get("lblSortBy"), OrderLabel(MobileSettings.InstalledAppOrder)), MoreMenu.IconSort),
 			new MoreMenuItem(L10n.Get("lblTvInformation"), MoreMenu.IconInfo),
 			new MoreMenuItem(L10n.Get("lblRemoveLeftover"), MoreMenu.IconDelete, Destructive: true));
+		if (choice == 2)
+		{
+			await ChooseOrderAsync();
+			return;
+		}
+		if (choice > 2)
+			choice--;
 		if (choice == 0)
 			await ShowSelectedTvAsync(force: true);
 		else if (choice == 1)
@@ -110,6 +118,29 @@ public partial class InstalledAppsPage : ContentPage
 		await ShowSelectedTvAsync(force: true);
 		if (AppsList.ItemsSource is List<InstalledApp> { Count: > 0 } apps && apps.Count(a => a.HasUpdate) == 0)
 			SetSubtitle(L10n.Get("statusNoUpdates"), TopBarStatus.Ok);
+	}
+
+	private static readonly InstalledAppOrder[] Orders = { InstalledAppOrder.Size, InstalledAppOrder.Name, InstalledAppOrder.Newest };
+
+	private static string OrderLabel(InstalledAppOrder order) => L10n.Get(order switch
+	{
+		InstalledAppOrder.Name => "lblSortName",
+		InstalledAppOrder.Newest => "lblSortNewest",
+		_ => "lblSortSize",
+	});
+
+	// Sort by (#888): size, name or install date, the current one switched on. Apps with an update
+	// stay on top whichever is picked.
+	private async Task ChooseOrderAsync()
+	{
+		var current = MobileSettings.InstalledAppOrder;
+		var picked = await MoreMenu.ShowAsync(this,
+			Orders.Select(o => new MoreMenuItem(OrderLabel(o), MoreMenu.IconSort, Checked: o == current)).ToArray());
+		if (picked < 0 || Orders[picked] == current)
+			return;
+		MobileSettings.InstalledAppOrder = Orders[picked];
+		if (AppsList.ItemsSource is List<InstalledApp> apps)
+			AppsList.ItemsSource = InstalledAppSort.Sort(apps, Orders[picked]).ToList();
 	}
 
 	// "Update" on a row (#820): hand the catalog entry to the Install tab, which opens its sheet.
@@ -219,7 +250,7 @@ public partial class InstalledAppsPage : ContentPage
 				_matches[apps[i].TizenId] = match;
 				apps[i] = apps[i] with { CatalogLine = CatalogLine(match), HasUpdate = match.HasUpdate };
 			}
-			AppsList.ItemsSource = apps;
+			AppsList.ItemsSource = InstalledAppSort.Sort(apps, MobileSettings.InstalledAppOrder).ToList();
 
 			var updates = apps.Count(a => a.HasUpdate);
 			if (apps.Count == 0)

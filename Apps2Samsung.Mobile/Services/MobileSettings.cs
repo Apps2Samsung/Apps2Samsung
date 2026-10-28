@@ -18,6 +18,7 @@ public static class MobileSettings
 	private const string KeyShowAllJf = "show_all_jellyfin_versions";
 	private const string KeyShowAdult = "show_adult_apps";
 	private const string KeyShowRoot = "show_root_apps";
+	private const string KeyInstalledOrder = "installed_apps_order";
 	private const string KeyManualDuids = "manual_duids";
 	private const string KeyTvAppChannels = "tvapp_channels_json";
 	private const string KeyImmiTvServerUrl = "immitv_server_url";
@@ -77,6 +78,15 @@ public static class MobileSettings
 	{
 		get => Preferences.Get(KeyShowRoot, true);
 		set => Preferences.Set(KeyShowRoot, value);
+	}
+
+	/// <summary>How On the TV orders the apps (#888); largest first until the user picks another.</summary>
+	public static Apps2Samsung.Sdb.InstalledAppOrder InstalledAppOrder
+	{
+		get => Enum.TryParse<Apps2Samsung.Sdb.InstalledAppOrder>(Preferences.Get(KeyInstalledOrder, string.Empty), out var order)
+			? order
+			: Apps2Samsung.Sdb.InstalledAppOrder.Size;
+		set => Preferences.Set(KeyInstalledOrder, value.ToString());
 	}
 
 	/// <summary>List every Jellyfin release, not just the latest (desktop: "Show all Jellyfin versions").</summary>
