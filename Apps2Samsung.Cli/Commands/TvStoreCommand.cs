@@ -19,7 +19,25 @@ public static class TvStoreCommand
         var level = Certificates.Level(s);
 
         s.Out.Progress($"Looking for TV-Store on {ip}…");
-        if (!await TvStorePackage.IsInstalledAsync(s.Sdb, ip))
+        TvStoreInstallState state;
+        try
+        {
+            state = await TvStorePackage.GetInstallStateAsync(s.Sdb, ip);
+        }
+        catch (TvStoreUnreachableException ex)
+        {
+            // No listing is not "not installed" (#889): the TV's sdbd refused this machine.
+            return s.Out.Fail(
+                $"{ip} did not list its apps ({ex.Reason}), so TV-Store can't be checked. In Developer Mode on the TV, " +
+                "Host PC IP must be this machine's current address and Developer Mode on; restart the TV after changing either.");
+        }
+        if (state == TvStoreInstallState.Outdated)
+        {
+            return s.Out.Fail(
+                $"An old TV-Store ({TvStorePackage.LegacyAppId}) is installed on {ip}. Update it first, like any package: " +
+                $"apps2samsung-cli install TV-Store.wgt --tv {ip} (the .wgt comes from {TvStorePackage.RepositoryUrl}).");
+        }
+        if (state != TvStoreInstallState.Installed)
         {
             return s.Out.Fail(
                 $"TV-Store ({TvStorePackage.PackageId}) is not installed on {ip}. Install it first, like any package: " +

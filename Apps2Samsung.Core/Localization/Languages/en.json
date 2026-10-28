@@ -445,6 +445,8 @@
   "lblToolboxTvStoreHint": "The Apps2Samsung catalog on the TV itself: TV-Store installs apps natively through the set's own developer connection, with no PC or phone in the loop. It signs with the same certificate this app uses, so hand that over once with Arm TV-Store. Install TV-Store from the catalog first, and set Developer Mode's Host PC IP on the TV to the TV's own address.",
   "lblToolboxTvStoreArm": "Arm TV-Store",
   "lblToolboxTvStoreNotInstalled": "TV-Store is not installed on this TV. Install it from the catalog first.",
+  "lblToolboxTvStoreOutdated": "An old TV-Store is installed on this TV. Update it from the catalog first.",
+  "lblToolboxTvStoreUnreachable": "The TV's developer connection refused this device, so it can't tell whether TV-Store is installed ({0}). In Developer Mode on the TV, Host PC IP must be this device's current IP address and Developer Mode must be on. Restart the TV after changing either.",
   "lblToolboxTvStoreReadingDuid": "Reading the TV's DUID...",
   "lblToolboxTvStoreCertificate": "Preparing the signing certificate for this TV...",
   "lblToolboxTvStoreNoCertificate": "No certificate on this device covers this TV, and none was made.",
