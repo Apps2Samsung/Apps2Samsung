@@ -5,9 +5,10 @@ using Apps2Samsung.Models;
 namespace Apps2Samsung.Mobile.Pages;
 
 /// <summary>What the user chose for an installed app.</summary>
-public enum AppAction { Launch, Stop, Debug, Uninstall }
+public enum AppAction { Launch, Stop, Debug, Uninstall, ViewInCatalog }
 
-/// <summary>The per-app sheet: the app, then Launch / Stop / Debug console / Uninstall as rows.
+/// <summary>The per-app sheet: the app, then Launch / Stop / Debug console / Uninstall as rows,
+/// and View in catalog for an app the catalog lists (#888).
 /// <see cref="Result"/> completes with the choice, or null when closed.</summary>
 public partial class AppActionsSheetPage : ContentPage
 {
@@ -16,7 +17,7 @@ public partial class AppActionsSheetPage : ContentPage
 
 	public Task<AppAction?> Result => _result.Task;
 
-	public AppActionsSheetPage(InstalledApp app)
+	public AppActionsSheetPage(InstalledApp app, bool inCatalog = false)
 	{
 		InitializeComponent();
 		TitleLabel.Text = app.DisplayName;
@@ -43,6 +44,12 @@ public partial class AppActionsSheetPage : ContentPage
 		{
 			Actions.Add(Hairline());
 			Actions.Add(Row(L10n.Get("lblUninstall"), "M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z", "Bad", AppAction.Uninstall));
+		}
+		if (inCatalog)
+		{
+			// Back to the app's catalog sheet: its description, versions and variants (#888).
+			Actions.Insert(0, Hairline());
+			Actions.Insert(0, Row(L10n.Get("lblViewInCatalog"), "M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z", "Ink", AppAction.ViewInCatalog));
 		}
 	}
 

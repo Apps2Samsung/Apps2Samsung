@@ -115,10 +115,17 @@ public partial class InstalledAppsPage : ContentPage
 	// "Update" on a row (#820): hand the catalog entry to the Install tab, which opens its sheet.
 	private async void OnUpdateClicked(object? sender, EventArgs e)
 	{
-		if ((sender as BindableObject)?.BindingContext is not InstalledApp app || !_matches.TryGetValue(app.TizenId, out var match))
+		if ((sender as BindableObject)?.BindingContext is InstalledApp app)
+			await OpenInCatalogAsync(app);
+	}
+
+	// The app's sheet on the Install tab, with the TV's version on it and, when the catalog has
+	// another, its button as Update (#888).
+	private async Task OpenInCatalogAsync(InstalledApp app)
+	{
+		if (!_matches.TryGetValue(app.TizenId, out var match))
 			return;
-		CatalogStore.RequestOpen(match.Release);
-		await Shell.Current.GoToAsync("//install");
+		await CatalogStore.OpenOnInstallTabAsync(new CatalogOpenRequest(match.Release, app.Version, match.HasUpdate));
 	}
 
 	private static string? CatalogLine(Apps2Samsung.Catalog.CatalogMatch match) => match.State switch
@@ -341,7 +348,7 @@ public partial class InstalledAppsPage : ContentPage
 	{
 		if ((sender as BindableObject)?.BindingContext is not InstalledApp app)
 			return;
-		var sheet = new AppActionsSheetPage(app);
+		var sheet = new AppActionsSheetPage(app, _matches.ContainsKey(app.TizenId));
 		await Navigation.PushModalAsync(sheet);
 		switch (await sheet.Result)
 		{
@@ -349,6 +356,7 @@ public partial class InstalledAppsPage : ContentPage
 			case AppAction.Stop: await StopAsync(app); break;
 			case AppAction.Debug: await DebugAsync(app); break;
 			case AppAction.Uninstall: await UninstallAsync(app); break;
+			case AppAction.ViewInCatalog: await OpenInCatalogAsync(app); break;
 		}
 	}
 
