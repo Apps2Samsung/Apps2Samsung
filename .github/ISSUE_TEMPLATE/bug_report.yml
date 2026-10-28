@@ -2,6 +2,7 @@ name: Bug report
 description: Something in Apps2Samsung doesn't work (desktop, Android, iPhone or CLI)
 title: "[Bug] "
 labels: [bug, keep-alive]
+type: Bug
 assignees: [PatrickSt1991]
 body:
   - type: markdown

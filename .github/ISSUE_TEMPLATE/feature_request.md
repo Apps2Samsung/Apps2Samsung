@@ -3,6 +3,7 @@ name: Feature Request
 about: Suggest a new feature or improvement for the application
 title: "[Feature] "
 labels: enhancement, keep-alive
+type: Feature
 assignees: PatrickSt1991
 ---
 
