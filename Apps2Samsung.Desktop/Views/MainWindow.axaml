@@ -258,6 +258,18 @@
 							<MenuFlyout Placement="BottomEdgeAlignedRight">
 								<MenuItem Header="{l:Localize lblCheckForUpdates}" Command="{Binding InstalledAppsVm.CheckForUpdatesCommand}"
 								          IsEnabled="{Binding !InstalledAppsVm.IsDebugging}"/>
+								<!-- Size / Name / Newest installed; apps with an update stay on top (#888). -->
+								<MenuItem Header="{Binding InstalledAppsVm.SortHeader}">
+									<MenuItem Header="{l:Localize lblSortSize}" ToggleType="Radio" GroupName="installedOrder"
+									          IsChecked="{Binding InstalledAppsVm.IsSortSize, Mode=OneWay}"
+									          Command="{Binding InstalledAppsVm.SortCommand}" CommandParameter="Size"/>
+									<MenuItem Header="{l:Localize lblSortName}" ToggleType="Radio" GroupName="installedOrder"
+									          IsChecked="{Binding InstalledAppsVm.IsSortName, Mode=OneWay}"
+									          Command="{Binding InstalledAppsVm.SortCommand}" CommandParameter="Name"/>
+									<MenuItem Header="{l:Localize lblSortNewest}" ToggleType="Radio" GroupName="installedOrder"
+									          IsChecked="{Binding InstalledAppsVm.IsSortNewest, Mode=OneWay}"
+									          Command="{Binding InstalledAppsVm.SortCommand}" CommandParameter="Newest"/>
+								</MenuItem>
 								<MenuItem Header="{l:Localize lblRemoveLeftover}" Command="{Binding InstalledAppsVm.RemoveLeftoverCommand}"
 								          IsEnabled="{Binding !InstalledAppsVm.IsDebugging}" ToolTip.Tip="{l:Localize lblRemoveLeftoverHint}"/>
 								<MenuItem Header="{l:Localize lblTvInformation}" Command="{Binding ShowDeviceInfoCommand}"/>
