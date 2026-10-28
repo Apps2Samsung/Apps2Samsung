@@ -225,7 +225,7 @@ namespace Apps2Samsung.TvStore
     public sealed class TvStoreUnreachableException : Exception
     {
         public TvStoreUnreachableException(string reason, Exception? inner = null)
-            : base($"The TV did not list its apps ({reason}). Check Developer Mode on the TV: Host PC IP must be this device's current address, and the TV restarted after changing it.", inner)
+            : base($"The TV did not list its apps ({reason}). While arming, Developer Mode's Host PC IP must be this device's current address, and the TV restarted after changing it.", inner)
         {
             Reason = reason;
         }
