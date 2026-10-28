@@ -30,7 +30,8 @@ jobs:
             // Only bug reports, and never the maintainers' own.
             const isBug = issue.labels.some(l => l.name.toLowerCase() === 'bug');
             if (!isBug) return;
-            if (['OWNER', 'MEMBER', 'COLLABORATOR'].includes(issue.author_association)) return;
+            const MAINTAINER = ['OWNER', 'MEMBER', 'COLLABORATOR'];
+            if (MAINTAINER.includes(issue.author_association)) return;
 
             const { owner, repo } = context.repo;
             const issue_number = issue.number;
@@ -71,6 +72,17 @@ jobs:
             });
 
             if (comments.some(c => c.user.type !== 'Bot' && hasLogs(c.body || ''))) return clear();
+
+            // A maintainer can waive the log with a /no-logs comment, for reports
+            // where there is no log to get (an app that hangs before it can write one).
+            const waiver = comments.find(c =>
+              MAINTAINER.includes(c.author_association) && /^\/no-logs\b/im.test(c.body || ''));
+            if (waiver) {
+              if (context.eventName === 'issue_comment' && context.payload.comment.id === waiver.id) {
+                await github.rest.reactions.createForIssueComment({ owner, repo, comment_id: waiver.id, content: '+1' });
+              }
+              return clear();
+            }
 
             if (!labelled) {
               // Create the label up front so it gets this colour and description
