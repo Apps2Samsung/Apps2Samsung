@@ -7,7 +7,9 @@ namespace Apps2Samsung.Mobile.Pages;
 
 /// <summary>What the app sheet hands back: the release and the file of it to install, and whether
 /// it goes on the TV under a new package id (#839).</summary>
-public sealed record AppSheetChoice(GitHubRelease Release, Asset Asset, bool NewPackageId = false);
+/// <param name="NewPackageId">"Install under a new package id" (#839).</param>
+/// <param name="OwnPackageId">"Back to its own package id" (#839): forget the rename remembered for the TV.</param>
+public sealed record AppSheetChoice(GitHubRelease Release, Asset Asset, bool NewPackageId = false, bool OwnPackageId = false);
 
 /// <summary>
 /// Shows one catalog entry and hands back what to install, or null when the sheet is closed
@@ -68,6 +70,9 @@ public partial class AppSheetPage : ContentPage
 		AdultBadge.IsVisible = release.IsAdult;
 		RootBadge.IsVisible = release.IsRoot;
 		VersionsTitle.Text = L10n.Get(release.HasVariants ? "lblVariant" : "lblVersion");
+		// The way back to the package's own id (#839), only for an app renamed on some TV before.
+		OwnIdRow.IsVisible = versions.Any(v => v.Assets.Any(a =>
+			Apps2Samsung.Packaging.PackageIdRenameStore.IsRenamedAnywhere(MobileSettings.PackageIdRenamesJson, a.PackageId)));
 
 		if (!string.IsNullOrWhiteSpace(previewUrl))
 		{
@@ -221,9 +226,13 @@ public partial class AppSheetPage : ContentPage
 	private async void OnInstallClicked(object? sender, EventArgs e)
 	{
 		_closedWithResult = true;
-		_result.TrySetResult(_selected is null ? null : _selected with { NewPackageId = NewIdSwitch.IsToggled });
+		_result.TrySetResult(_selected is null ? null : _selected with { NewPackageId = NewIdSwitch.IsToggled, OwnPackageId = OwnIdSwitch.IsToggled });
 		await Navigation.PopModalAsync();
 	}
+
+	// One or the other: a fresh id and the package's own id exclude each other.
+	private void OnNewIdToggled(object? sender, ToggledEventArgs e) { if (e.Value) OwnIdSwitch.IsToggled = false; }
+	private void OnOwnIdToggled(object? sender, ToggledEventArgs e) { if (e.Value) NewIdSwitch.IsToggled = false; }
 
 	private async void OnCloseClicked(object? sender, EventArgs e) => await Navigation.PopModalAsync();
 

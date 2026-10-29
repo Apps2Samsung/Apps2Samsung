@@ -164,7 +164,10 @@ namespace Apps2Samsung.Helpers
         public string PackageIdRenamesJson { get; set; } = "";  // JSON list of PackageIdRenameRecord: packages installed under another id, per TV (#839, PackageIdRenameStore)
         /// <summary>The app sheet's "Install under a new package id" for the install that follows (#839). Runtime-only.</summary>
         [JsonIgnore]
-        public bool InstallUnderNewPackageId { get; set; }  // JSON map { package file -> the user's user_settings values + find/replace } written into the package at install (#791, UserSettingsStore)
+        public bool InstallUnderNewPackageId { get; set; }
+        /// <summary>The app sheet's "Back to its own package id" for the install that follows (#839): forget the rename remembered for this TV. Runtime-only.</summary>
+        [JsonIgnore]
+        public bool InstallUnderOwnPackageId { get; set; }  // JSON map { package file -> the user's user_settings values + find/replace } written into the package at install (#791, UserSettingsStore)
         // Remote control (#544), keyed by TV IP: the pairing token the TV handed back, and the MAC
         // read from /api/v2/ while it was awake (the only way to wake it later). See RemoteStore.
         public string RemoteTokensJson { get; set; } = "";

@@ -106,6 +106,17 @@ namespace Apps2Samsung.ViewModels
         public string NewPackageIdText { get; }
         public string NewPackageIdHint { get; }
 
+        /// <summary>
+        /// "Back to its own package id" (#839): forget the rename remembered for the TV and install
+        /// under the package's own id. Offered only when this app was renamed on some TV; the sheet
+        /// has no DUID to tell which.
+        /// </summary>
+        [ObservableProperty]
+        private bool ownPackageId;
+        public bool HasPackageIdRename { get; }
+        public string OwnPackageIdText { get; }
+        public string OwnPackageIdHint { get; }
+
         public AppDetailViewModel(GitHubRelease release, string? previewUrl, string subline,
             string? tvName, bool tvReady, HttpClient http, Func<string, string> localize,
             bool isFavorite = false, Action<string, bool>? setFavorite = null, bool canShowAllVersions = false)
@@ -133,10 +144,18 @@ namespace Apps2Samsung.ViewModels
             PartnerNeededTitle = localize("lblPartnerNeededTitle");
             NewPackageIdText = localize("lblNewPackageId");
             NewPackageIdHint = localize("lblNewPackageIdHint");
+            OwnPackageIdText = localize("lblOwnPackageId");
+            OwnPackageIdHint = localize("lblOwnPackageIdHint");
+            HasPackageIdRename = release.Assets.Any(a =>
+                Apps2Samsung.Packaging.PackageIdRenameStore.IsRenamedAnywhere(Helpers.AppSettings.Default.PackageIdRenamesJson, a.PackageId));
             PartnerNeededBody = localize("lblPartnerNeededBody");
         }
 
         partial void OnPreviewChanged(Bitmap? value) => OnPropertyChanged(nameof(HasPreview));
+
+        // One or the other: a fresh id and the package's own id exclude each other.
+        partial void OnNewPackageIdChanged(bool value) { if (value) OwnPackageId = false; }
+        partial void OnOwnPackageIdChanged(bool value) { if (value) NewPackageId = false; }
 
         /// <summary>Loads the preview after the window is up, so the sheet opens at once.</summary>
         public async Task LoadPreviewAsync()
