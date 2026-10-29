@@ -851,6 +851,8 @@
   "certStageSignInHintApp": "Opens Samsung's sign-in page in the app",
   "certStageSignInHintBrowser": "Opens Samsung's sign-in page in your browser",
   "certStageSignInWaiting": "Waiting for the sign-in in your browser...",
+  "certSignInBrowserHelp": "If Samsung's page says Access Denied, your browser's privacy protection or an extension blocked the sign-in. Copy the link and paste it into another browser (Safari, Chrome, Edge), or allow account.samsung.com in this one.",
+  "lblCopySignInLink": "Copy sign-in link",
   "lblSignInWithSamsung": "Sign in with Samsung",
   "lblPrepareCertificateNow": "Prepare the certificate now",
   "hintPrepareCertificateNow": "Creates the certificate for the selected TV without installing anything, so the first install doesn't stop for a sign-in.",

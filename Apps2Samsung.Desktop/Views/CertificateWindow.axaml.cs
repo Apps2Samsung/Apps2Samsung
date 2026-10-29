@@ -7,6 +7,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Samsung;
 using Apps2Samsung.Views.Controls;
 
 namespace Apps2Samsung.Views
@@ -32,6 +33,9 @@ namespace Apps2Samsung.Views
         public string SignInText { get; } = string.Empty;
         public string CancelText { get; } = string.Empty;
         public string CloseText { get; } = string.Empty;
+        /// <summary>The sign-in link for another browser, when the default one is refused by Samsung's page.</summary>
+        public string CopyLinkText { get; } = string.Empty;
+        public string SignInHelpText { get; } = string.Empty;
 
         /// <summary>Cancel while the browser sign-in runs.</summary>
         public event EventHandler? CancelRequested;
@@ -51,6 +55,8 @@ namespace Apps2Samsung.Views
             SignInText = localize("lblSignInWithSamsung");
             CancelText = localize("lblCancel");
             CloseText = localize("btn_Close");
+            CopyLinkText = localize("lblCopySignInLink");
+            SignInHelpText = localize("certSignInBrowserHelp");
 
             foreach (var item in StepList.Build(CertificateStages.Steps.Select(s => localize(s.TitleKey)), keepDoneDetails: true))
                 Steps.Add(item);
@@ -74,7 +80,7 @@ namespace Apps2Samsung.Views
             {
                 // Signed in: from here Samsung is making the certificate and there is nothing to stop.
                 _signingIn = false;
-                CancelWaitButton.IsVisible = false;
+                WaitPanel.IsVisible = false;
                 Steps[_index[CertificateStage.SignIn]].Detail = null;
             }
             StepList.SetCurrent(Steps, index);
@@ -91,7 +97,7 @@ namespace Apps2Samsung.Views
             _signingIn = false;
             StepList.Fail(Steps, message);
             SignInButtons.IsVisible = false;
-            CancelWaitButton.IsVisible = false;
+            WaitPanel.IsVisible = false;
             CloseButton.IsVisible = true;
         }
 
@@ -108,9 +114,23 @@ namespace Apps2Samsung.Views
         {
             _signingIn = true;
             SignInButtons.IsVisible = false;
-            CancelWaitButton.IsVisible = true;
+            WaitPanel.IsVisible = true;
             Steps[_index[CertificateStage.SignIn]].Detail = _localize("certStageSignInWaiting");
             _signIn.TrySetResult(true);
+        }
+
+        // The same URL the browser was sent to (fixed state, loopback callback), so pasting it into
+        // another browser completes the sign-in on the listener that is already waiting. Firefox
+        // with strict tracking protection is refused by Samsung's page ("Access Denied"); Safari,
+        // Chrome and Edge pass.
+        private async void OnCopyLinkClick(object? sender, RoutedEventArgs e)
+        {
+            if (Clipboard is null)
+                return;
+            await Clipboard.SetTextAsync(SamsungOAuth.BuildAuthorizeUrl(SamsungOAuth.LoopbackRedirectUri));
+            CopyLinkButton.Content = _localize("lblCopied");
+            await Task.Delay(1500);
+            CopyLinkButton.Content = CopyLinkText;
         }
 
         private void OnCancelClick(object? sender, RoutedEventArgs e) => Close();
