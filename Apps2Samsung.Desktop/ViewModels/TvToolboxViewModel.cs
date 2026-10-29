@@ -571,7 +571,9 @@ namespace Apps2Samsung.ViewModels
             CanShowTvStoreInCatalog = false;
             try
             {
-                var state = await TvStorePackage.GetInstallStateAsync(_sdb, _tvIp);
+                // This device's package-id renames (#839): a TV-Store installed under a new id is TV-Store too.
+                var renames = Apps2Samsung.Helpers.AppSettings.Default.PackageIdRenamesJson;
+                var state = await TvStorePackage.GetInstallStateAsync(_sdb, _tvIp, renames);
                 if (state != TvStoreInstallState.Installed)
                 {
                     TvStoreStatus = (state == TvStoreInstallState.Outdated ? "lblToolboxTvStoreOutdated" : "lblToolboxTvStoreNotInstalled").Localized();
@@ -590,7 +592,7 @@ namespace Apps2Samsung.ViewModels
                 var pem = SigningCertificatePem.FromProfile(profile);
 
                 var progress = new Progress<string>(key => TvStoreStatus = key.Localized());
-                await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress);
+                await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress, renames);
                 TvStoreStatus = "lblToolboxTvStoreArming".Localized();
                 await store.ArmAsync(pem);
                 var status = await store.StatusAsync();

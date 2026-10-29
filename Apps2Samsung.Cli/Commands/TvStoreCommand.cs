@@ -22,7 +22,8 @@ public static class TvStoreCommand
         TvStoreInstallState state;
         try
         {
-            state = await TvStorePackage.GetInstallStateAsync(s.Sdb, ip);
+            // This machine's package-id renames (#839): a TV-Store installed under a new id is TV-Store too.
+            state = await TvStorePackage.GetInstallStateAsync(s.Sdb, ip, s.Config.PackageIdRenamesJson);
         }
         catch (TvStoreUnreachableException ex)
         {
@@ -52,13 +53,13 @@ public static class TvStoreCommand
         var pem = SigningCertificatePem.FromProfile(profile);
 
         var progress = new Progress<string>(key => s.Out.Progress(s.Strings.GetString(key)));
-        await using var store = await TvStoreClient.AttachAsync(s.Sdb, ip, progress, ct);
+        await using var store = await TvStoreClient.AttachAsync(s.Sdb, ip, progress, s.Config.PackageIdRenamesJson, ct);
         s.Out.Progress(s.Strings.GetString("lblToolboxTvStoreArming"));
         await store.ArmAsync(pem, ct);
         var status = await store.StatusAsync(ct);
 
         return s.Out.Result(
-            new { ok = true, tv = ip, duid, profile = profileName, tvStoreVersion = store.Version, armed = status.Armed, ownIp = status.OwnIp },
+            new { ok = true, tv = ip, duid, profile = profileName, tvStoreVersion = store.Version, tvStoreAppId = store.AppId, armed = status.Armed, ownIp = status.OwnIp },
             new[]
             {
                 $"TV-Store v{store.Version} on {ip} is armed with {profileName} (DUID {duid}).",
