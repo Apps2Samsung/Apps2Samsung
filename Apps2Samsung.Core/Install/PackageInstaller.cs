@@ -237,6 +237,15 @@ namespace Apps2Samsung.Install
                     "Not enough free space on the TV [116]. Remove some apps on the TV (Settings → Support → Device Care → Manage Storage), then install again.");
             }
 
+            // The TV refused the certificate itself (#907): removing an installed copy can't help, and
+            // there usually is none, so no prompt and no retry. Say what the TV said and what fixes it.
+            var rejection = TizenInstallDiagnostics.GetCertificateRejection(output);
+            if (rejection != CertificateRejection.None)
+            {
+                await ClearPartialIfFresh();
+                throw new InvalidOperationException(CertificateRejectionMessage(rejection, output));
+            }
+
             bool certMismatch = TizenInstallDiagnostics.IsCertificateMismatch(output);
 
             // [118, -22]: the TV's security manager refused the package id itself. Removing the old copy
@@ -256,7 +265,7 @@ namespace Apps2Samsung.Install
                 if (!_config.DeletePreviousInstall && confirmRemove is not null && !await confirmRemove())
                     throw new RemovalDeclinedException();
 
-                progress?.Invoke("Install failed — removing the old copy and retrying…");
+                progress?.Invoke("Install failed, removing the old copy and retrying…");
                 try { await _sdb.UninstallAsync(tvIp, packageId!); } catch { /* best-effort */ }
 
                 var retry = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath, InstallPercentFor(progress, null));
@@ -289,6 +298,20 @@ namespace Apps2Samsung.Install
 
         private static string Detail(string error, string output) =>
             !string.IsNullOrWhiteSpace(error) ? error : output.Trim();
+
+        // English, like the other Core messages: the mobile head has no string catalog. The desktop
+        // head has the same four texts as localized keys (certificateRejected*).
+        private static string CertificateRejectionMessage(CertificateRejection rejection, string output) => rejection switch
+        {
+            CertificateRejection.InvalidFormat =>
+                "The TV rejected the signing certificate itself ([118, -12], \"Invalid format of certificate in signature\"). This is not about an installed copy. Most often the TV's date and time are off, which happens on a TV without internet or an antenna signal: check Settings → General → System Manager → Time on the TV, then install again. If the clock is right, create a new certificate and retry.",
+            CertificateRejection.NotYetValid =>
+                "The TV says the signing certificate isn't valid yet ([118, -12]). The certificate is fine on this device, so the TV's clock is behind: set the TV's date and time (Settings → General → System Manager → Time) or wait a few minutes, then install again.",
+            CertificateRejection.Expired =>
+                "The TV says the signing certificate has expired ([118, -12]). Either the TV's clock is ahead (Settings → General → System Manager → Time) or the certificate is past its end date: create a new one and install again.",
+            _ =>
+                $"The TV rejected the signing certificate ([118, -12]: {TizenInstallDiagnostics.CertificateRejectionReason(output) ?? "check certificate error"}). Removing an installed copy won't help. Check the TV's date and time (Settings → General → System Manager → Time); if that is right, create a new certificate and install again.",
+        };
     }
 
     /// <summary>

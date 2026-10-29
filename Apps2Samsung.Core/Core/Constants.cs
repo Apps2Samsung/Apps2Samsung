@@ -25,11 +25,22 @@ namespace Apps2Samsung.Helpers.Core
             public const string DownloadFailed116 = "download failed[116]";
             public const string InstallFailed118012 = "install failed[118012]";
             public const string InstallFailed118Minus12 = "install failed[118, -12]";
+            // [118, -12] comes with a reason from Tizen's signature validator, "Check certificate error
+            // : :<text>:<code>". Only one of those texts is the "installed with another certificate"
+            // case that removing the old copy fixes; the others are the TV rejecting the certificate
+            // itself (#907), where a removal prompt is wrong and only the TV's clock or a new
+            // certificate can help.
+            public const string CheckCertificateError = "Check certificate error";
+            public const string CertificateSameIdDifferent = "same id and different certificate";
+            public const string CertificateInvalidFormat = "Invalid format of certificate";   // <-2>
+            public const string CertificateInvalidChain = "Invalid certificate chain";        // <-3>
+            public const string CertificateExpired = "expired";                               // <-6>
+            public const string CertificateNotYetValid = "not valid yet";                     // <-7>
             // API-version incompatibility: the package targets a higher Tizen API level than the TV
             // supports. Distinct from the generic [118] and the [118, -12] cert mismatch.
             public const string InstallFailed118Minus4 = "install failed[118, -4]";
             // The TV's security manager refused the package id itself: SECURITY_MANAGER_ERROR_INPUT_PARAM
-            // ("Security error : :Invalid function parameter was given:<2>"). Note the comma — it does NOT
+            // ("Security error : :Invalid function parameter was given:<2>"). Note the comma, it does NOT
             // contain the plain "install failed[118]" token, so it used to fall through to the generic
             // branch and dump the raw wascmd output at the user (#702, #422).
             public const string InstallFailed118Minus22 = "install failed[118, -22]";
@@ -169,7 +180,7 @@ namespace Apps2Samsung.Helpers.Core
             public const string SigningAlgorithm = "SHA256withRSA";
             public const int RsaKeySize = 2048;
             // Max device IDs a single Samsung distributor certificate can cover. (Conservative
-            // cap; verify against Samsung if you hit it — extra DUIDs beyond this are dropped.)
+            // cap; verify against Samsung if you hit it, extra DUIDs beyond this are dropped.)
             public const int MaxDistributorDuids = 10;
         }
 
@@ -255,6 +266,10 @@ namespace Apps2Samsung.Helpers.Core
             public const string InsufficientSpace = "insufficientSpace";
             public const string AuthorMismatch = "AuthorMismatch";
             public const string CertificateMismatch = "certificateMismatch";
+            public const string CertificateRejectedInvalidFormat = "certificateRejectedInvalidFormat";
+            public const string CertificateRejectedNotYetValid = "certificateRejectedNotYetValid";
+            public const string CertificateRejectedExpired = "certificateRejectedExpired";
+            public const string CertificateRejectedOther = "certificateRejectedOther";
             public const string CertificateNotYetValid = "certificateNotYetValid";
             public const string CertificateNotYetValidTitle = "certificateNotYetValidTitle";
             public const string CertificateWaiting = "certificateWaiting";
