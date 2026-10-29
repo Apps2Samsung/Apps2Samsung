@@ -291,7 +291,7 @@
 
 			<!-- Remote -->
 			<DockPanel IsVisible="{Binding IsRemoteSection}">
-				<Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10" Margin="20,16,20,0" MinHeight="36"
+				<Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="10" Margin="20,16,20,0" MinHeight="36"
 				      DataContext="{Binding RemoteVm}" x:DataType="viewModels:RemoteViewModel"
 				      IsVisible="{Binding Converter={x:Static ObjectConverters.IsNotNull}}">
 					<Panel Width="14" VerticalAlignment="Center">
@@ -308,7 +308,21 @@
 						<TextBlock Text="{l:Localize lblRemoteKeyboardHint}" FontSize="12" TextTrimming="CharacterEllipsis"
 						           Foreground="{DynamicResource MutedBrush}"/>
 					</StackPanel>
-					<Button Grid.Column="2" Classes="tool" Content="{l:Localize lblRemoteKeyboard}" IsEnabled="{Binding IsConnected}">
+					<!-- Live typing: the laptop keyboard is forwarded to the TV. d-pad mode presses every
+					     character on the app's own grid (works where typed text is ignored); direct mode
+					     sends text (fast, but only where the TV accepts it). Icons rather than words, and never
+					     focusable: with focus, Space toggled the very button that was forwarding it. -->
+					<ToggleButton Grid.Column="2" Classes="tool square" Content="✥" FontSize="17"
+					              Focusable="False"
+					              IsEnabled="{Binding IsConnected}"
+					              IsChecked="{Binding IsLiveDpad, Mode=TwoWay}"
+					              ToolTip.Tip="{l:Localize lblRemoteLiveDpad}"/>
+					<ToggleButton Grid.Column="3" Classes="tool square" Content="⌨" FontSize="17"
+					              Focusable="False"
+					              IsEnabled="{Binding IsConnected}"
+					              IsChecked="{Binding IsLiveDirect, Mode=TwoWay}"
+					              ToolTip.Tip="{l:Localize lblRemoteLiveDirect}"/>
+					<Button Grid.Column="4" Classes="tool" Focusable="False" Content="{l:Localize lblRemoteKeyboard}" IsEnabled="{Binding IsConnected}">
 						<Button.Flyout>
 							<Flyout Placement="BottomEdgeAlignedRight">
 								<StackPanel Spacing="8" Width="380">
@@ -369,7 +383,7 @@
 							</Flyout>
 						</Button.Flyout>
 					</Button>
-					<Button Grid.Column="3" Classes="tool square power" Content="⏻" FontSize="17" IsEnabled="{Binding !IsBusy}"
+					<Button Grid.Column="5" Classes="tool square power" Focusable="False" Content="⏻" FontSize="17" IsEnabled="{Binding !IsBusy}"
 					        Command="{Binding PowerOrWakeCommand}" ToolTip.Tip="{l:Localize lblRemotePowerWake}"/>
 				</Grid>
 				<Panel Margin="20,14,20,0">

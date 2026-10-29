@@ -38,7 +38,44 @@ namespace Apps2Samsung.Views
         {
             if (DataContext is not MainWindowViewModel { IsRemoteSection: true, RemoteVm: { } remote })
                 return;
+
+            // Live typing: whatever is typed at the laptop goes to the TV, like the arrow keys already do.
+            // Handled here (tunnel, before any focused control) so a text box elsewhere cannot swallow it.
+            if (remote.LiveMode != RemoteViewModel.LiveKeyboardMode.Off
+                && FocusManager?.GetFocusedElement() is not TextBox
+                && (e.KeyModifiers & (Avalonia.Input.KeyModifiers.Control | Avalonia.Input.KeyModifiers.Meta
+                                      | Avalonia.Input.KeyModifiers.Alt)) == 0)
+            {
+                // Characters, Space, Backspace and Enter are typed on the TV. Shift is deliberately allowed
+                // through `KeySymbol`, so capitals and punctuation like `?` arrive with it.
+                var typed = e.Key switch
+                {
+                    Avalonia.Input.Key.Back => "\b",
+                    Avalonia.Input.Key.Enter => "\r",
+                    Avalonia.Input.Key.Space => " ",
+                    _ => null,
+                };
+
+                if (typed is null)
+                {
+                    var text = e.KeySymbol;
+                    if (!string.IsNullOrEmpty(text) && text.Length == 1 && !char.IsControl(text[0]))
+                        typed = text;
+                }
+
+                if (typed is not null)
+                {
+                    e.Handled = true;
+                    await remote.SendLiveKeyAsync(typed);
+                    return;
+                }
+
+                // Anything else — arrows, Home/Menu/Back on the remote, Escape — is not typing, so it falls
+                // through to the normal handler below and keeps driving the TV.
+            }
+
             await RemoteView.HandleKeyAsync(remote, e, FocusManager?.GetFocusedElement());
         }
+
     }
 }

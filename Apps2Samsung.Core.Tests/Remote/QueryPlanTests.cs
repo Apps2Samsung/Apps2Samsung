@@ -4,73 +4,126 @@ using Apps2Samsung.Remote;
 namespace Apps2Samsung.Tests.Remote;
 
 /// <summary>
-/// Typing alone fills the box and shows suggestions; a search needs the field emptied first (the app
-/// appends) and the app's search cell pressed afterwards. These pin that composed run, which is what
-/// the remote actually sends.
+/// Typing a whole query: clear the field, type, press search. Each step homes first, because the app
+/// moves focus to its suggestion row after every character (see <see cref="LiveTypingFocusTests"/>).
 /// </summary>
 public class QueryPlanTests
 {
     private static readonly SamsungRemoteKeyboard Keyboard = SamsungRemoteKeyboard.YouTube();
 
-    private static string Show(System.Collections.Generic.IEnumerable<string> keys) =>
-        string.Join(" ", keys.Select(key => key switch
-        {
-            SamsungRemoteKeys.Up => "↑", SamsungRemoteKeys.Down => "↓",
-            SamsungRemoteKeys.Left => "←", SamsungRemoteKeys.Right => "→",
-            SamsungRemoteKeys.Enter => "⏎", _ => key.Replace("KEY_", string.Empty),
-        }));
+    /// <summary>The composed run types the query on a modelled screen, which is the behaviour that matters.</summary>
+    [Fact]
+    public void QueryTypesExactlyOnTheModelledScreen()
+    {
+        var screen = new FakeSearchScreen();
+
+        screen.Run(Keyboard.PlanQuery("hi", clearFirst: true, submitAfter: false).Keys);
+
+        Assert.Equal("hi", screen.Text);
+    }
 
     [Fact]
-    public void QueryClearsTypesThenSearches()
+    public void QueryTypesExactlyThroughAWholeWord()
     {
-        var plan = Keyboard.PlanQuery("a", clearFirst: true, submitAfter: true);
-        var shown = Show(plan.Keys);
+        var screen = new FakeSearchScreen();
 
-        // home (6 Up + its own Down, landing on 'a')
-        //   → CLEAR: four Downs onto the wide row (column resets), one Right, Enter
-        //   → back to 'a': four Ups, one Left (column 1 → 0, safe mid-row), Enter types 'a'
-        //   → SEARCH: four Downs, two Rights, Enter
-        Assert.Equal("↑ ↑ ↑ ↑ ↑ ↑ ↓ ↓ ↓ ↓ ↓ → ⏎ ↑ ↑ ↑ ↑ ← ⏎ ↓ ↓ ↓ ↓ → → ⏎", shown);
+        screen.Run(Keyboard.PlanQuery("lofi", clearFirst: true, submitAfter: false).Keys);
+
+        Assert.Equal("lofi", screen.Text);
+    }
+
+    [Fact]
+    public void QueryClearsFirstSoASecondSearchDoesNotAppend()
+    {
+        var screen = new FakeSearchScreen();
+        screen.Run(Keyboard.PlanQuery("hi", clearFirst: true, submitAfter: false).Keys);
+
+        screen.Run(Keyboard.PlanQuery("yo", clearFirst: true, submitAfter: false).Keys);
+
+        Assert.Equal("yo", screen.Text);
     }
 
     [Fact]
     public void QueryCanSkipTheClear()
     {
-        var plan = Keyboard.PlanQuery("a", clearFirst: false, submitAfter: true);
+        var screen = new FakeSearchScreen();
+        screen.Run(Keyboard.PlanQuery("hi", clearFirst: true, submitAfter: false).Keys);
 
-        Assert.Equal("↑ ↑ ↑ ↑ ↑ ↑ ↓ ⏎ ↓ ↓ ↓ ↓ → → ⏎", Show(plan.Keys));
+        screen.Run(Keyboard.PlanQuery("ya", clearFirst: false, submitAfter: false).Keys);
+
+        Assert.Equal("hiya", screen.Text);
     }
 
     [Fact]
-    public void QueryCanSkipTheSearch()
+    public void QueryCanPressSearch()
     {
-        var plan = Keyboard.PlanQuery("a", clearFirst: true, submitAfter: false);
+        var screen = new FakeSearchScreen();
 
-        Assert.Equal("↑ ↑ ↑ ↑ ↑ ↑ ↓ ↓ ↓ ↓ ↓ → ⏎ ↑ ↑ ↑ ↑ ← ⏎", Show(plan.Keys));
+        screen.Run(Keyboard.PlanQuery("hi", clearFirst: true, submitAfter: true).Keys);
+
+        Assert.Equal("hi", screen.Text);
+        Assert.True(screen.Searched);
     }
 
-    /// <summary>Nothing typeable must not press search over an empty box.</summary>
+    /// <summary>Nothing typeable must send nothing: no clear, no search over an empty box.</summary>
     [Fact]
     public void UnsupportedQuerySendsNothing()
     {
-        Assert.True(Keyboard.PlanQuery("€").IsEmpty);
+        var plan = Keyboard.PlanQuery("€");
+
+        Assert.True(plan.IsEmpty);
+        Assert.Equal("€", plan.Unsupported);
     }
 
-    /// <summary>The clear button is one press target, reachable from anywhere via the home presses.</summary>
+    /// <summary>Each character is preceded by the profile's home presses — the fix, made explicit.</summary>
+    [Fact]
+    public void EveryCharacterIsPrecededByTheHomePresses()
+    {
+        var plan = Keyboard.PlanQuery("hi", clearFirst: false, submitAfter: false);
+
+        var homes = CountOccurrences(plan.Keys, Keyboard.Profile.HomeKeys);
+        Assert.Equal(2, homes);   // one per character
+    }
+
     [Fact]
     public void ClearButtonPressesTheClearCell()
     {
         var plan = Keyboard.PlanPress(SamsungRemoteKeyboard.ClearCell);
 
-        Assert.Equal("↑ ↑ ↑ ↑ ↑ ↑ ↓ ↓ ↓ ↓ ↓ → ⏎", Show(plan.Keys));
-        Assert.Equal((4, 1), (plan.Row, plan.Col));
+        Assert.Equal("CLEAR", Keyboard.Profile.Rows[plan.Row][plan.Col]);
     }
 
     [Fact]
-    public void ClearButtonEndsOnTheClearCell()
+    public void ClearButtonEmptiesTheFieldFromTheSuggestionRow()
     {
-        var plan = Keyboard.PlanPress(SamsungRemoteKeyboard.ClearCell);
+        var screen = new FakeSearchScreen();
+        screen.Run(Keyboard.PlanQuery("hi", clearFirst: false, submitAfter: false).Keys);
 
-        Assert.Equal("CLEAR", Keyboard.Profile.Rows[plan.Row][plan.Col]);
+        screen.Run(Keyboard.PlanPress(SamsungRemoteKeyboard.ClearCell).Keys);
+
+        Assert.Equal(string.Empty, screen.Text);
+    }
+
+    private static int CountOccurrences(System.Collections.Generic.IReadOnlyList<string> keys,
+        System.Collections.Generic.IReadOnlyList<string> needle)
+    {
+        var count = 0;
+        for (var i = 0; i + needle.Count <= keys.Count; i++)
+        {
+            var match = true;
+            for (var j = 0; j < needle.Count; j++)
+            {
+                if (keys[i + j] != needle[j])
+                {
+                    match = false;
+                    break;
+                }
+            }
+
+            if (match)
+                count++;
+        }
+
+        return count;
     }
 }
