@@ -265,7 +265,7 @@ namespace Apps2Samsung.Install
                 if (!_config.DeletePreviousInstall && confirmRemove is not null && !await confirmRemove())
                     throw new RemovalDeclinedException();
 
-                progress?.Invoke("Install failed — removing the old copy and retrying…");
+                progress?.Invoke("Install failed, removing the old copy and retrying…");
                 try { await _sdb.UninstallAsync(tvIp, packageId!); } catch { /* best-effort */ }
 
                 var retry = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath, InstallPercentFor(progress, null));

@@ -12,7 +12,7 @@ namespace Apps2Samsung.Sdb
     {
         private const StringComparison IC = StringComparison.OrdinalIgnoreCase;
 
-        /// <summary>Environmental transport failure (reset/lost connection) — retrying the same push
+        /// <summary>Environmental transport failure (reset/lost connection), retrying the same push
         /// can't help; it's a VPN/firewall/Wi-Fi issue, not a packaging one.</summary>
         public static bool IsTransportLost(string? output) =>
             Has(output, Constants.TizenErrorCodes.TransportConnectionLost) ||
@@ -81,18 +81,18 @@ namespace Apps2Samsung.Sdb
 
         /// <summary>The TV refused the package with [118, -4] ("operation not allowed" / "load archive
         /// info fail"). Ambiguous: usually the package targets a newer Tizen than the TV, OR it needs
-        /// Partner signing / a privilege the certificate doesn't grant — so don't present it as a flat
+        /// Partner signing / a privilege the certificate doesn't grant, so don't present it as a flat
         /// "TV too old" (misleading when other apps install fine). Retrying/overwriting won't help.</summary>
         public static bool IsApiVersionMismatch(string? output) =>
             Has(output, Constants.TizenErrorCodes.InstallFailed118Minus4);
 
         /// <summary>
         /// The TV's security manager rejected the package ([118, -22], or [118022] on Tizen 4 / "Security
-        /// error : :Invalid function parameter was given:&lt;2&gt;" — SECURITY_MANAGER_ERROR_INPUT_PARAM).
+        /// error : :Invalid function parameter was given:&lt;2&gt;", SECURITY_MANAGER_ERROR_INPUT_PARAM).
         /// In practice this means the package <b>id</b> is blocked on this set: it is still bound to a
         /// different author certificate, or a broken uninstall left a record behind that the app list no
         /// longer shows, so there is nothing for us to remove over SDB (#702, #422). Re-signing and
-        /// pushing the same file again cannot clear it — only deleting the old copy on the TV itself,
+        /// pushing the same file again cannot clear it, only deleting the old copy on the TV itself,
         /// installing a build with a different package id, or a Smart Hub reset can.
         /// <para>Checked before <see cref="IsPackageIdConflict"/>: the text is "install failed[118, -22]",
         /// which does not contain the plain "install failed[118]" token either way, so without this it
@@ -116,10 +116,10 @@ namespace Apps2Samsung.Sdb
             Has(output, Constants.TizenErrorCodes.InstallCompleted);
 
         /// <summary>
-        /// The output reports the install actually FAILED — regardless of the process exit code.
+        /// The output reports the install actually FAILED, regardless of the process exit code.
         /// Tizen's install helper returns process exit 0 (<c>cmd_ret:0</c>) even when the app install
         /// itself failed (e.g. <c>app_id[...] install failed[118]</c>), so a caller must not treat a
-        /// zero exit code as success on its own — it has to classify the output. Matches any
+        /// zero exit code as success on its own, it has to classify the output. Matches any
         /// <c>install failed[...]</c> code, a <c>val[fail]</c> result marker, and the transport /
         /// out-of-space signals. Deliberately does NOT match a bare "failed" substring, so an
         /// unrelated line (e.g. "Pull skipped or failed") can't be mistaken for an install failure.

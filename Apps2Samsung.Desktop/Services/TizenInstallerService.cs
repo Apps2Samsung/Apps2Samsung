@@ -103,7 +103,7 @@ namespace Apps2Samsung.Services
                 if (expected.HasValue && actual != expected.Value)
                     throw new IOException($"Download incomplete: received {actual} of {expected.Value} bytes.");
 
-                // .wgt is a zip — if the trailer isn't there, the file is truncated/corrupt.
+                // .wgt is a zip, if the trailer isn't there, the file is truncated/corrupt.
                 if (!IsValidZipArchive(tempPath))
                     throw new InvalidDataException("Downloaded package is not a valid .wgt archive (corrupt or incomplete).");
 
@@ -224,7 +224,7 @@ namespace Apps2Samsung.Services
             // Record whether the app was already on the TV BEFORE this run. This gates the fresh-install
             // partial cleanup in HandleInstallationResultAsync: we only clear a partial for an app that
             // wasn't there to begin with, never a pre-existing working app. If we can't tell, assume
-            // installed (fail safe — never uninstall).
+            // installed (fail safe, never uninstall).
             if (wasAlreadyInstalled is null)
             {
                 try
@@ -339,7 +339,7 @@ namespace Apps2Samsung.Services
                 // Step 4b: the certificate we're about to sign with must already be inside its
                 // validity window. Tizen checks the signature against the TV's clock and refuses a
                 // certificate whose start date is still in the future ("Certificate in signature is
-                // not valid yet"); re-signing or overwriting can't help — only waiting. So hold the
+                // not valid yet"); re-signing or overwriting can't help, only waiting. So hold the
                 // install here and count down to the start date instead of pushing a doomed package.
                 // Loops because the certificate is re-checked after the wait: only a genuinely valid
                 // certificate gets past this point.
@@ -361,7 +361,7 @@ namespace Apps2Samsung.Services
 
                     if (!proceed)
                     {
-                        // Cancelled during the wait — a deliberate stop, not a failed install.
+                        // Cancelled during the wait, a deliberate stop, not a failed install.
                         progress?.Invoke(Constants.LocalizationKeys.CertificateWaitCancelled.Localized());
                         return InstallResult.CancelledResult(
                             Constants.LocalizationKeys.CertificateWaitCancelled.Localized());
@@ -434,7 +434,7 @@ namespace Apps2Samsung.Services
             {
                 progress?.Invoke($"Installation error: {ex}");
 
-                // Surface the innermost cause too — outer messages like "The SSL connection could
+                // Surface the innermost cause too, outer messages like "The SSL connection could
                 // not be established, see inner exception" are useless on their own (e.g. an old
                 // Windows 7 TLS stack rejecting GitHub's certificate chain).
                 var baseEx = ex.GetBaseException();
@@ -589,12 +589,12 @@ namespace Apps2Samsung.Services
             string authorp12, distributorp12, p12Password;
 
             // Public and Partner distributor certs are kept as separate profiles ("Jelly2Sams - Public"
-            // / "Jelly2Sams - Partner") so both can coexist and each is reused independently — switching
+            // / "Jelly2Sams - Partner") so both can coexist and each is reused independently, switching
             // level never clobbers the other.
             // The package requires Partner when the selected package's manifest declares it, OR the
             // package itself declares a partner-level privilege (e.g. vpnservice in a .wgt's
             // config.xml, drminfo in a .tpk's tizen-manifest.xml) or a Partner-only launch setting
-            // (on-boot="true" / auto-restart="true") — the automatic binding: a package that needs a
+            // (on-boot="true" / auto-restart="true"), the automatic binding: a package that needs a
             // restricted API or launch mode must declare it, so we don't track cert levels per package.
             var partnerPrivilege = Apps2Samsung.Packaging.WgtPrivileges.FindPartnerPrivilege(packagePath);
             bool requirePartner = _appSettings.RequiresPartnerSigning || partnerPrivilege is not null;
@@ -618,7 +618,7 @@ namespace Apps2Samsung.Services
             var jelly2SamsDir = Path.Combine(AppSettings.CertificatePath, AutoCertProfileName(requestedLevel));
             bool hasAuthor = HasUsableAuthorCert(jelly2SamsDir);
 
-            // Older Tizen TVs use the shipped "Jellyfin" certificate (set just above) — it's always
+            // Older Tizen TVs use the shipped "Jellyfin" certificate (set just above), it's always
             // present and never regenerated, so it bypasses all Samsung-login / regeneration logic
             // and is just reused from disk (unless the user forces a fresh login).
             bool isBundledJellyfin = selectedCertificate == Constants.AppIdentifiers.JellyfinAppName;
@@ -627,7 +627,7 @@ namespace Apps2Samsung.Services
             // placeholder, or one of our generated "Jelly2Sams[ - Public/Partner]" profiles. In auto
             // mode we REUSE an existing valid profile for the requested level rather than logging in
             // again. Crucially, the "(default)"/empty placeholder must NOT force a fresh Samsung login
-            // when a usable level cert is already on disk — that placeholder was the cause of the
+            // when a usable level cert is already on disk, that placeholder was the cause of the
             // "sign in every time" bug (the dropdown often reverts to "(default)" even though
             // "Jelly2Sams - Public/Partner" exists).
             bool autoMode = string.IsNullOrEmpty(selectedCertificate) || IsAutoCertName(selectedCertificate);
@@ -743,7 +743,7 @@ namespace Apps2Samsung.Services
                     var certProgress = sheet.Progress(progress);
 
                     // Union of DUIDs the (re)generated distributor cert should cover: this TV first,
-                    // then manual entries, then already-covered ones — capped at Samsung's per-cert limit.
+                    // then manual entries, then already-covered ones, capped at Samsung's per-cert limit.
                     var duids = BuildDistributorDuids(deviceInfo.Duid, manualDuids, coveredDuids, progress);
 
                     if (needsFullProfile)
@@ -785,7 +785,7 @@ namespace Apps2Samsung.Services
             }
             else
             {
-                // Reuse in place. For the auto-generated cert, use THIS level's folder — the stored
+                // Reuse in place. For the auto-generated cert, use THIS level's folder, the stored
                 // ChosenCertificates path may point at the other level from a previous install.
                 // Bundled/imported certs keep using their stored path.
                 bool reuseAutoCert = !isBundledJellyfin && autoMode;
@@ -813,7 +813,7 @@ namespace Apps2Samsung.Services
             };
         }
 
-        // True when a generated author cert exists and is still valid — i.e. we can keep that
+        // True when a generated author cert exists and is still valid, i.e. we can keep that
         // author identity and only regenerate the distributor cert for a new TV.
         private static bool HasUsableAuthorCert(string certDir)
         {
@@ -875,20 +875,20 @@ namespace Apps2Samsung.Services
             $"{Constants.AppIdentifiers.Jelly2Sams} - {(level == CertificatePrivilegeLevel.Partner ? "Partner" : "Public")}";
 
         // True for any auto-generated Jelly2Sams profile ("Jelly2Sams", "Jelly2Sams (default)",
-        // "Jelly2Sams - Public/Partner") — as opposed to the bundled Jellyfin or a user-imported cert.
+        // "Jelly2Sams - Public/Partner"), as opposed to the bundled Jellyfin or a user-imported cert.
         private static bool IsAutoCertName(string? name) =>
             !string.IsNullOrEmpty(name) &&
             name.StartsWith(Constants.AppIdentifiers.Jelly2Sams, StringComparison.OrdinalIgnoreCase);
 
         // The DUID set a (re)generated distributor cert should cover: this TV first, then manual
-        // entries, then already-covered ones — capped at Samsung's per-cert limit (extras dropped).
+        // entries, then already-covered ones, capped at Samsung's per-cert limit (extras dropped).
         private static IReadOnlyCollection<string> BuildDistributorDuids(
             string currentDuid, HashSet<string> manual, HashSet<string> covered, ProgressCallback? progress)
         {
             var ordered = new List<string>();
             void Add(string d)
             {
-                // Only ever embed well-formed DUIDs — never a stray error string or typo'd manual entry.
+                // Only ever embed well-formed DUIDs, never a stray error string or typo'd manual entry.
                 if (TizenDuid.IsValid(d) && !ordered.Contains(d.Trim(), StringComparer.OrdinalIgnoreCase))
                     ordered.Add(d.Trim());
             }
@@ -922,7 +922,7 @@ namespace Apps2Samsung.Services
             InstallRun run)
         {
             // Best-effort cleanup of a partial left behind by a FRESH failed install. Guarded on
-            // WasAlreadyInstalled: only clear a package that wasn't on the TV before this run — never
+            // WasAlreadyInstalled: only clear a package that wasn't on the TV before this run, never
             // uninstall a pre-existing working app on a failed reinstall. Swallows all errors.
             async Task ClearPartialIfFresh()
             {
@@ -940,8 +940,8 @@ namespace Apps2Samsung.Services
             var installResults = await InstallPackageOnDeviceAsync(tvIpAddress, packagePath, sdkToolPath, run.InstallProgress);
 
             // Transport / connection failure (e.g. "Unable to read data from the transport
-            // connection: Connection reset by peer"). Environmental — a VPN/proxy/firewall on
-            // the host capturing the route to the TV, or an unstable Wi-Fi link — not a packaging
+            // connection: Connection reset by peer"). Environmental, a VPN/proxy/firewall on
+            // the host capturing the route to the TV, or an unstable Wi-Fi link, not a packaging
             // problem, so retrying or overwriting can't help. Fail fast with an actionable hint
             // instead of looping a re-sign+re-push over the same broken route.
             if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsTransportLost(installResults.Output))
@@ -952,7 +952,7 @@ namespace Apps2Samsung.Services
             }
 
             // [116] "download failed": the TV has no room for the package. A re-sign + re-push of the
-            // same file cannot create space, so don't loop through the overwrite retry — tell the user
+            // same file cannot create space, so don't loop through the overwrite retry, tell the user
             // straight away (#666). Same rule as the mobile head's WgtInstaller.
             if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsInsufficientSpace(installResults.Output))
             {
@@ -1014,7 +1014,7 @@ namespace Apps2Samsung.Services
 
             // Handle API-version incompatibility ([118, -4] "Operation not allowed"): the package
             // targets a higher Tizen API level than this TV supports. Not a certificate or privilege
-            // problem, and re-signing/overwriting can't help — the TV simply can't run this build.
+            // problem, and re-signing/overwriting can't help, the TV simply can't run this build.
             // Give the user a clear reason instead of a raw error code.
             if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsApiVersionMismatch(installResults.Output))
             {
@@ -1077,7 +1077,7 @@ namespace Apps2Samsung.Services
                         return RemovalDeclined(packagePath, progress);
 
                     // Preferred remedy: remove the copy we collide with and reinstall under the
-                    // package's own id. Renaming works too, but keeping the id is strictly better —
+                    // package's own id. Renaming works too, but keeping the id is strictly better , 
                     // a package's service components (<tizen:service id="Pkg.Service">) and the app
                     // code that launches them by literal id are only valid while the id stays what
                     // the package was built with, and the TV keeps one app entry instead of two.
@@ -1085,7 +1085,7 @@ namespace Apps2Samsung.Services
                         return await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
 
                     // Fallback: give the package a new id and retry. Only retry if the rename actually
-                    // happened — if config.xml couldn't be read/modified (previously silent for any
+                    // happened, if config.xml couldn't be read/modified (previously silent for any
                     // non-".Jellyfin" variant like LiteFin, #400), retrying would hit the identical
                     // [118] conflict, so fall through to a clear failure instead.
                     var rename = await PackageIdRewriter.RandomizeAsync(packagePath);
@@ -1136,7 +1136,7 @@ namespace Apps2Samsung.Services
                     return await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
                 }
 
-                // Retries exhausted on a generic failure — clear any partial left by a fresh install.
+                // Retries exhausted on a generic failure, clear any partial left by a fresh install.
                 await ClearPartialIfFresh();
                 return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(), installResults.Output));
             }
@@ -1167,7 +1167,7 @@ namespace Apps2Samsung.Services
                 return await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
             }
 
-            // Retries exhausted on an unknown result — clear any partial left by a fresh install.
+            // Retries exhausted on an unknown result, clear any partial left by a fresh install.
             await ClearPartialIfFresh();
             return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(), installResults.Output));
         }
@@ -1257,7 +1257,7 @@ namespace Apps2Samsung.Services
 
         // Debug-mode launch + inspector tunnel live in Core (Sdb/TizenAppDebugger), shared with the
         // mobile head. Only what happens with the local port differs: here it is handed to Chrome's
-        // inspect page, which looks for 9222 specifically — hence the fixed port rather than a free one.
+        // inspect page, which looks for 9222 specifically, hence the fixed port rather than a free one.
         public async Task<(int LocalPort, IAsyncDisposable ForwardSession)> DebugAppAsync(
             string tvIpAddress, string tizenId, int localPort = 9222)
         {
@@ -1278,7 +1278,7 @@ namespace Apps2Samsung.Services
 
         private async Task<string> GetTvDuidAsync(string tvIpAddress)
         {
-            // Retry the read — old/slow TVs often return an empty reply or drop the connection on the
+            // Retry the read, old/slow TVs often return an empty reply or drop the connection on the
             // first try. Returns blank on total failure so the caller's IsValid check handles it.
             try
             {
@@ -1342,7 +1342,7 @@ namespace Apps2Samsung.Services
         /// <summary>
         /// Removes the package we collide with on a [118] id conflict, so the install can be retried
         /// under the package's own id instead of a renamed one. False when there was nothing to
-        /// remove or the TV refused — the caller then falls back to renaming.
+        /// remove or the TV refused, the caller then falls back to renaming.
         /// </summary>
         private async Task<bool> TryRemoveConflictingPackageAsync(
             string tvIpAddress, string packagePath, ProgressCallback? progress)
@@ -1390,7 +1390,7 @@ namespace Apps2Samsung.Services
                 return (true, wgtAppId);
             }
 
-            // Case 0: the app id the package declares is the reliable signal — look for it first.
+            // Case 0: the app id the package declares is the reliable signal, look for it first.
             // The title search below has to guess the title from the wgt filename, which misses
             // whenever the two differ ("NuvioTV-Tizen-1.0.4.wgt" vs the TV's "Nuvio TV"). That miss
             // reported a plainly-installed app as absent, so nothing was uninstalled and the install

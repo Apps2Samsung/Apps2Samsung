@@ -40,7 +40,7 @@ namespace Apps2Samsung.Helpers.Core
             // supports. Distinct from the generic [118] and the [118, -12] cert mismatch.
             public const string InstallFailed118Minus4 = "install failed[118, -4]";
             // The TV's security manager refused the package id itself: SECURITY_MANAGER_ERROR_INPUT_PARAM
-            // ("Security error : :Invalid function parameter was given:<2>"). Note the comma — it does NOT
+            // ("Security error : :Invalid function parameter was given:<2>"). Note the comma, it does NOT
             // contain the plain "install failed[118]" token, so it used to fall through to the generic
             // branch and dump the raw wascmd output at the user (#702, #422).
             public const string InstallFailed118Minus22 = "install failed[118, -22]";
@@ -180,7 +180,7 @@ namespace Apps2Samsung.Helpers.Core
             public const string SigningAlgorithm = "SHA256withRSA";
             public const int RsaKeySize = 2048;
             // Max device IDs a single Samsung distributor certificate can cover. (Conservative
-            // cap; verify against Samsung if you hit it — extra DUIDs beyond this are dropped.)
+            // cap; verify against Samsung if you hit it, extra DUIDs beyond this are dropped.)
             public const int MaxDistributorDuids = 10;
         }
 
