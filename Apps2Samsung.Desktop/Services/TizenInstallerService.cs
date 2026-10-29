@@ -962,6 +962,26 @@ namespace Apps2Samsung.Services
                     Constants.LocalizationKeys.InsufficientSpace.Localized()));
             }
 
+            // The TV refused the certificate itself ([118, -12] with a validator reason that isn't the
+            // installed-copy one, #907): removing a copy can't help, and there usually is none, so no
+            // prompt and no retry. The TV's clock or a new certificate are the fixes.
+            var rejection = Apps2Samsung.Sdb.TizenInstallDiagnostics.GetCertificateRejection(installResults.Output);
+            if (rejection != Apps2Samsung.Sdb.CertificateRejection.None)
+            {
+                progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
+                Trace.WriteLine($"[Install] Certificate rejected by {tvIpAddress} ({rejection}): {installResults.Output}");
+                var rejectedMessage = rejection switch
+                {
+                    Apps2Samsung.Sdb.CertificateRejection.InvalidFormat => Constants.LocalizationKeys.CertificateRejectedInvalidFormat.Localized(),
+                    Apps2Samsung.Sdb.CertificateRejection.NotYetValid => Constants.LocalizationKeys.CertificateRejectedNotYetValid.Localized(),
+                    Apps2Samsung.Sdb.CertificateRejection.Expired => Constants.LocalizationKeys.CertificateRejectedExpired.Localized(),
+                    _ => string.Format(Constants.LocalizationKeys.CertificateRejectedOther.Localized(),
+                        Apps2Samsung.Sdb.TizenInstallDiagnostics.CertificateRejectionReason(installResults.Output) ?? "[118, -12]"),
+                };
+                progress?.Invoke(rejectedMessage);
+                return InstallResult.FailureResult(rejectedMessage);
+            }
+
             // Handle certificate mismatch: the installed copy was signed with a different
             // certificate, so Tizen refuses to overwrite it. The only fix is removing the old copy.
             if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsCertificateMismatch(installResults.Output))

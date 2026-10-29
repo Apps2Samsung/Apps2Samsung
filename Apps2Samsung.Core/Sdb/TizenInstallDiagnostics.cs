@@ -22,9 +22,60 @@ namespace Apps2Samsung.Sdb
         public static bool IsInsufficientSpace(string? output) =>
             Has(output, Constants.TizenErrorCodes.DownloadFailed116);
 
-        /// <summary>The installed copy was signed with a different certificate ([118012] / [118, -12]);
-        /// Tizen won't overwrite it — the old copy must be removed first.</summary>
+        /// <summary>The installed copy was signed with a different certificate ([118012] / [118, -12],
+        /// "Package with the same id and different certificate has been already installed"); Tizen won't
+        /// overwrite it, so the old copy must be removed first. A [118, -12] whose reason is the TV
+        /// rejecting the certificate itself is <b>not</b> this (see <see cref="GetCertificateRejection"/>):
+        /// there is nothing to remove, and the prompt to do so sent a user chasing an app that was never
+        /// installed (#907).</summary>
         public static bool IsCertificateMismatch(string? output) =>
+            IsCertificateFailure(output) && GetCertificateRejection(output) == CertificateRejection.None;
+
+        /// <summary>
+        /// The TV refused the signing certificate itself ([118, -12] with a "Check certificate error"
+        /// reason other than the same-id-different-certificate one). Which kind decides the advice:
+        /// a TV clock that is off (a set without internet or an antenna signal has no time source,
+        /// #907) or a certificate past its dates. <see cref="CertificateRejection.None"/> when the
+        /// output is not a [118, -12] at all, carries no reason (older sets), or names the installed
+        /// copy, i.e. the <see cref="IsCertificateMismatch"/> case.
+        /// </summary>
+        public static CertificateRejection GetCertificateRejection(string? output)
+        {
+            if (!IsCertificateFailure(output) || !Has(output, Constants.TizenErrorCodes.CheckCertificateError))
+                return CertificateRejection.None;
+            if (Has(output, Constants.TizenErrorCodes.CertificateSameIdDifferent))
+                return CertificateRejection.None;
+            if (Has(output, Constants.TizenErrorCodes.CertificateInvalidFormat))
+                return CertificateRejection.InvalidFormat;
+            if (Has(output, Constants.TizenErrorCodes.CertificateNotYetValid))
+                return CertificateRejection.NotYetValid;
+            if (Has(output, Constants.TizenErrorCodes.CertificateExpired))
+                return CertificateRejection.Expired;
+            if (Has(output, Constants.TizenErrorCodes.CertificateInvalidChain))
+                return CertificateRejection.InvalidChain;
+            return CertificateRejection.Other;
+        }
+
+        /// <summary>The validator's own words for a rejection, "Invalid format of certificate in
+        /// signature." for <c>reason: Check certificate error : :Invalid format of certificate in
+        /// signature.:&lt;-2&gt;</c>; the whole reason when the shape differs, null without one.</summary>
+        public static string? CertificateRejectionReason(string? output)
+        {
+            if (string.IsNullOrEmpty(output))
+                return null;
+            var at = output.IndexOf(Constants.TizenErrorCodes.CheckCertificateError, IC);
+            if (at < 0)
+                return null;
+            var line = output.Substring(at);
+            var end = line.IndexOfAny(new[] { '\r', '\n' });
+            if (end >= 0)
+                line = line.Substring(0, end);
+            // "Check certificate error : :<text>:<code>" -> <text>
+            var parts = line.Split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            return parts.Length >= 2 ? parts[1] : line.Trim();
+        }
+
+        private static bool IsCertificateFailure(string? output) =>
             Has(output, Constants.TizenErrorCodes.InstallFailed118012) ||
             Has(output, Constants.TizenErrorCodes.InstallFailed118Minus12);
 
@@ -81,5 +132,22 @@ namespace Apps2Samsung.Sdb
 
         private static bool Has(string? output, string token) =>
             !string.IsNullOrEmpty(output) && output.Contains(token, IC);
+    }
+
+    /// <summary>Why the TV rejected the signing certificate, from the [118, -12] reason text.</summary>
+    public enum CertificateRejection
+    {
+        /// <summary>Not a rejection of the certificate: no [118, -12], no reason, or the installed-copy case.</summary>
+        None,
+        /// <summary>Tizen &lt;-2&gt; "Invalid format of certificate in signature": the chain didn't verify on the TV (#907).</summary>
+        InvalidFormat,
+        /// <summary>Tizen &lt;-7&gt; "Certificate in signature is not valid yet": the TV's clock is behind the certificate's start.</summary>
+        NotYetValid,
+        /// <summary>Tizen &lt;-6&gt; "Certificate in signature is expired": past its end date, or the TV's clock is ahead.</summary>
+        Expired,
+        /// <summary>Tizen &lt;-3&gt; "Invalid certificate chain in signature".</summary>
+        InvalidChain,
+        /// <summary>Another "Check certificate error" text.</summary>
+        Other,
     }
 }
