@@ -71,8 +71,10 @@
 
 			<!-- who makes it and where its source, releases and licence live (#820) -->
 			<StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasSource}">
-				<TextBlock Text="{Binding AuthorText}" FontSize="13" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
-				<TextBlock Text="·" FontSize="13" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
+				<!-- the name is a link: every app by this developer, as a catalog search (#888) -->
+				<HyperlinkButton Content="{Binding AuthorText}" ToolTip.Tip="{Binding AuthorTip}" Click="OnAuthorClick"
+				                 IsVisible="{Binding HasAuthor}" Padding="0" MinHeight="0" FontSize="13" VerticalAlignment="Center"/>
+				<TextBlock Text="·" FontSize="13" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}" IsVisible="{Binding HasAuthor}"/>
 				<HyperlinkButton Content="{Binding SourceCodeText}" NavigateUri="{Binding SourceUri}" ToolTip.Tip="{Binding SourceUri}"
 				                 Padding="0" MinHeight="0" FontSize="13" VerticalAlignment="Center"/>
 			</StackPanel>

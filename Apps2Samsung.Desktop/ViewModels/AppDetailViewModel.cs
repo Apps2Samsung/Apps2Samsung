@@ -31,6 +31,11 @@ namespace Apps2Samsung.ViewModels
         public string Subline { get; }
         /// <summary>"by owner" and the repository link under the description (#820); hidden without a repository.</summary>
         public string AuthorText { get; }
+        /// <summary>"All apps by owner": the tooltip on the name; a click closes the sheet with <see cref="SearchAuthorRequested"/> set (#888).</summary>
+        public string AuthorTip { get; }
+        public bool HasAuthor => !string.IsNullOrEmpty(Release.Author);
+        /// <summary>The user clicked the developer's name: the main window searches the catalog for them.</summary>
+        public bool SearchAuthorRequested { get; set; }
         public Uri? SourceUri { get; }
         public bool HasSource => SourceUri is not null;
         public string SourceCodeText { get; }
@@ -116,6 +121,7 @@ namespace Apps2Samsung.ViewModels
             _http = http;
             Subline = subline;
             AuthorText = string.IsNullOrEmpty(release.Author) ? string.Empty : string.Format(localize("lblByAuthor"), release.Author);
+            AuthorTip = string.IsNullOrEmpty(release.Author) ? string.Empty : string.Format(localize("lblAppsByAuthor"), release.Author);
             SourceUri = Uri.TryCreate(release.SourceUrl, UriKind.Absolute, out var source) ? source : null;
             SourceCodeText = localize("lblSourceCode");
             VersionsTitle = localize(release.HasVariants ? "lblVariant" : "lblVersion");

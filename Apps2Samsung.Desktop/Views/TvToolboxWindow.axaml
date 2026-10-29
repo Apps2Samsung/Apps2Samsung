@@ -128,7 +128,7 @@
 
                     <!-- An id from a forum post or a manual, for an app in neither list. Launch goes the
                          usual routes (remote channel / was_execute); "0 execute" is sdbd's other launcher
-                         verb, which answers in the platform's own words — for a service, or an id Smart
+                         verb, which answers in the platform's own words, for a service, or an id Smart
                          Hub does not know. Needs Developer Mode. -->
                     <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
                         <TextBox Grid.Column="0" Text="{Binding ManualAppId}"
@@ -268,6 +268,10 @@
                         <TextBlock Grid.Column="1" Text="{Binding TvStoreStatus}" FontSize="12" Opacity="0.8"
                                    TextWrapping="Wrap" VerticalAlignment="Center"/>
                     </Grid>
+                    <!-- No (or an old) TV-Store on the set: straight to its catalog sheet (#888) -->
+                    <Button Classes="action" HorizontalAlignment="Left" IsVisible="{Binding CanShowTvStoreInCatalog}"
+                            Content="{l:Localize lblToolboxTvStoreShowInCatalog}"
+                            Command="{Binding ShowTvStoreInCatalogCommand}"/>
 
                     <!-- ============ Install leftovers ============ -->
                     <!-- sdbd pushes every package to /home/owner/share/tmp/sdk_tools and leaves it there;

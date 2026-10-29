@@ -23,6 +23,8 @@ public partial class AppSheetPage : ContentPage
 	private bool _closedWithResult;
 	private readonly Action<string, bool>? _setFavorite;
 	private readonly Func<bool, Task<IReadOnlyList<GitHubRelease>>>? _showAllVersions;
+	// A tap on the developer's name closes the sheet and searches the catalog for them (#888).
+	private readonly Action<string>? _searchAuthor;
 	private readonly string _name;
 	private readonly bool _tvReady;
 	private readonly string? _tvName;
@@ -39,9 +41,11 @@ public partial class AppSheetPage : ContentPage
 	/// <param name="showAllVersions">For an app with older releases on offer: stores the setting and
 	/// reloads, handing back the releases to list. Null hides the switch.</param>
 	/// <param name="subline">The list row's info line: the category, and the variant count for a grouped app.</param>
+	/// <param name="searchAuthor">Called with the developer's name when the user taps it; null leaves the name plain.</param>
 	public AppSheetPage(IReadOnlyList<GitHubRelease> versions, string? previewUrl, string subline, string? tvName, bool tvReady,
 		bool isFavorite = false, Action<string, bool>? setFavorite = null,
-		Func<bool, Task<IReadOnlyList<GitHubRelease>>>? showAllVersions = null, bool isUpdate = false)
+		Func<bool, Task<IReadOnlyList<GitHubRelease>>>? showAllVersions = null, bool isUpdate = false,
+		Action<string>? searchAuthor = null)
 	{
 		InitializeComponent();
 		var release = versions[0];
@@ -49,6 +53,7 @@ public partial class AppSheetPage : ContentPage
 		_isFavorite = isFavorite;
 		_setFavorite = setFavorite;
 		_showAllVersions = showAllVersions;
+		_searchAuthor = searchAuthor;
 		_tvName = tvName;
 		_isUpdate = isUpdate;
 		_tvReady = tvReady;
@@ -94,7 +99,22 @@ public partial class AppSheetPage : ContentPage
 		link.GestureRecognizers.Add(new TapGestureRecognizer { Command = new Command(async () => await LinkOpener.OpenAsync(url)) });
 		var text = new FormattedString();
 		if (!string.IsNullOrEmpty(release.Author))
-			text.Spans.Add(new Span { Text = $"{string.Format(L10n.Get("lblByAuthor"), release.Author)} · " });
+		{
+			var author = release.Author;
+			var by = new Span { Text = string.Format(L10n.Get("lblByAuthor"), author) };
+			if (_searchAuthor is { } search)
+			{
+				// Every app by this developer: close, then let the Install page fill its search box (#888).
+				by.TextColor = DesignThemeColor("Accent");
+				by.GestureRecognizers.Add(new TapGestureRecognizer { Command = new Command(async () =>
+				{
+					await Navigation.PopModalAsync();
+					search(author);
+				}) });
+			}
+			text.Spans.Add(by);
+			text.Spans.Add(new Span { Text = " · " });
+		}
 		text.Spans.Add(link);
 		SourceLabel.FormattedText = text;
 		SourceLabel.IsVisible = true;

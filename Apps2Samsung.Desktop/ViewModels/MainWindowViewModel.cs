@@ -358,6 +358,9 @@ namespace Apps2Samsung.ViewModels
             // "Show all versions" changed in the sheet: the catalog follows once it is closed.
             if (AppSettings.Default.ShowAllJellyfinVersions != showAllBefore)
                 await LoadReleasesAsync();
+            // The developer's name clicked: the search box takes it, the list shows their apps (#888).
+            if (sheet.SearchAuthorRequested && !string.IsNullOrEmpty(row.Release.Author))
+                SearchText = row.Release.Author;
         }
 
         /// <summary>The "Your own package" row: pick a .wgt / .tpk, then install it on the selected TV.</summary>
@@ -1266,9 +1269,17 @@ namespace Apps2Samsung.ViewModels
                     return Apps2Samsung.Certificate.SigningCertificatePem.FindProfileCovering(AppSettings.CertificatePath, duid);
                 };
 
-                var vm = new TvToolboxViewModel(tvIp, label, _sdbEngine, installWgt, signingProfile);
+                // No (or an old) TV-Store on the set: the toolbox closes itself and TV-Store's sheet
+                // opens here, where installs run (#888). Only offered while the catalog lists it.
+                GitHubRelease? tvStoreToShow = null;
+                var tvStoreEntry = TvStore.TvStorePackage.FindInCatalog(_allReleases);
+                Action? showTvStoreInCatalog = tvStoreEntry is null ? null : () => tvStoreToShow = tvStoreEntry;
+
+                var vm = new TvToolboxViewModel(tvIp, label, _sdbEngine, installWgt, signingProfile, showTvStoreInCatalog);
                 var window = new Views.TvToolboxWindow(vm);
                 await window.ShowDialog(desktop.MainWindow);
+                if (tvStoreToShow is not null)
+                    await OpenAppAsync(RowFor(tvStoreToShow));
             }
             catch (Exception ex)
             {

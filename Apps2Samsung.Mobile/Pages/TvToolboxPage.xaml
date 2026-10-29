@@ -253,6 +253,9 @@
                         <Button x:Name="ArmTvStoreBtn" HeightRequest="44" MinimumHeightRequest="44"
                                 Text="{l:Localize lblToolboxTvStoreArm}" Clicked="OnArmTvStoreClicked" />
                         <Label x:Name="TvStoreStatusLabel" Style="{StaticResource Report}" />
+                        <!-- No (or an old) TV-Store on the set: straight to its catalog sheet (#888) -->
+                        <Button x:Name="ShowTvStoreBtn" Style="{StaticResource SoftButton}" HeightRequest="44" MinimumHeightRequest="44"
+                                IsVisible="False" Text="{l:Localize lblToolboxTvStoreShowInCatalog}" Clicked="OnShowTvStoreClicked" />
                     </VerticalStackLayout>
                 </controls:ExpanderSection>
 
