@@ -31,6 +31,14 @@ namespace Apps2Samsung.TvStore
         /// </summary>
         public const string LegacyAppId = "A2SStore001.Store";
 
+        /// <summary>
+        /// TV-Store's own catalog entry, for a head that wants to send the user there when the TV
+        /// has no TV-Store yet (#888): the release whose package carries <see cref="PackageId"/>.
+        /// Null when the catalog has none, or when the catalog hasn't loaded.
+        /// </summary>
+        public static GitHubRelease? FindInCatalog(IEnumerable<GitHubRelease> releases) =>
+            releases.FirstOrDefault(r => r.Assets.Any(a => string.Equals(a.PackageId, PackageId, StringComparison.Ordinal)));
+
         /// <summary>Whether the TV lists TV-Store, read off <c>vd_applist</c> like the debug agent's check.</summary>
         /// <exception cref="TvStoreUnreachableException">The TV sent no listing (#889).</exception>
         public static async Task<bool> IsInstalledAsync(ISdbEngine sdb, string tvIp) =>

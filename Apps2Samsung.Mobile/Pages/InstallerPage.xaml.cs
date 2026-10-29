@@ -417,7 +417,9 @@ public partial class InstallerPage : ContentPage
 		if (!string.IsNullOrWhiteSpace(installedVersion))
 			subline = string.Format(L10n.Get("lblInstalledVersionOnTv"), installedVersion) + " · " + subline;
 		var sheet = new AppSheetPage(versions, CatalogPreviews.For(_manifest, release), subline, tvName, tvReady,
-			_favorites.Contains(release.Name), SetFavorite, showAll, isUpdate);
+			_favorites.Contains(release.Name), SetFavorite, showAll, isUpdate,
+			// The developer's name tapped: the search box takes it, and the list shows their apps (#888).
+			searchAuthor: author => SearchEntry.Text = author);
 		await Navigation.PushModalAsync(sheet);
 		var choice = await sheet.Result;
 		if (choice is not null)
