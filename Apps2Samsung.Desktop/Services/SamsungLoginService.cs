@@ -19,8 +19,7 @@ namespace Apps2Samsung.Services
     {
         private IWebHost? _callbackServer;
 
-        private string CallbackUrl =>
-            $"http://{Constants.Samsung.LoopbackHost}:{SamsungOAuth.CallbackPort}{SamsungOAuth.CallbackPath}";
+        private string CallbackUrl => SamsungOAuth.LoopbackRedirectUri;
 
         public Action<SamsungAuth>? CallbackReceived;
 

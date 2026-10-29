@@ -47,8 +47,16 @@
 			<Button Classes="link" Content="{Binding CancelText}" Click="OnCancelClick" Foreground="{DynamicResource BadBrush}"
 			        HorizontalAlignment="Center"/>
 		</StackPanel>
-		<Button x:Name="CancelWaitButton" Classes="danger" Content="{Binding CancelText}" Click="OnCancelClick" IsVisible="False"
-		        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" CornerRadius="12"/>
+		<!-- While the browser has the sign-in: the link to paste into another browser, for when the
+		     default one is refused by Samsung's page (Firefox with strict tracking protection gets an
+		     Akamai "Access Denied"), and Cancel. -->
+		<StackPanel x:Name="WaitPanel" Spacing="8" IsVisible="False">
+			<TextBlock Text="{Binding SignInHelpText}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+			<Button x:Name="CopyLinkButton" Classes="soft" Content="{Binding CopyLinkText}" Click="OnCopyLinkClick"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" CornerRadius="12"/>
+			<Button Classes="danger" Content="{Binding CancelText}" Click="OnCancelClick"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" CornerRadius="12"/>
+		</StackPanel>
 		<Button x:Name="CloseButton" Classes="plain" Content="{Binding CloseText}" Click="OnCloseClick" IsVisible="False"
 		        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" CornerRadius="12"/>
 	</StackPanel>
