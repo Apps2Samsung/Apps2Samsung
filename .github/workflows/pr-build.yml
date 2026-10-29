@@ -15,10 +15,19 @@ name: PR build
 # uses GitHub's per-Xcode runner image (`xcode-27`) rather than macos-latest: .NET for iOS refuses an
 # Xcode older than the one its SDK was built with, and macos-latest lags a major behind.
 
-# The two build jobs are required status checks on the Default ruleset, so there is deliberately no
-# `paths:` filter: a check that never runs is never reported, and a required check that is never
-# reported blocks the PR forever. A docs-only PR therefore pays ~3 minutes of Android build
-# rather than hanging.
+# All four jobs here (Core + desktop, Mobile (Android), Mobile (iOS), Linux packages) are required
+# status checks on the "Required PR checks" ruleset, together with check-localization.yml. Every one
+# of them guards something a release ships: a head that fails here would otherwise fail in the beta
+# or stable release workflow, after the merge. So there is deliberately no `paths:` filter: a check
+# that never runs is never reported, and a required check that is never reported blocks the PR
+# forever. A docs-only PR therefore pays a few minutes of builds rather than hanging. The iOS job
+# depends on GitHub's Xcode runner image; when that image lags .NET for iOS, the check goes red
+# for every PR until the label is bumped, and a maintainer merges past it with the ruleset bypass.
+
+# Core + desktop also runs .github/scripts/check-version.sh first: the four version fields agree,
+# the version is a clean vX.Y.Z past the last stable tag, and the beta stamp still finds its line.
+# A beta merged at a version master already shipped would move that stable's beta tag
+# (beta-prerelease.yml tags with -f) and the stable release of it would then be refused.
 
 on:
   pull_request:
@@ -38,6 +47,11 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
+
+      # Before the builds, so a forgotten bump fails in seconds, not after the compile. Reads the
+      # stable tags off origin, so the shallow checkout is enough.
+      - name: Check the version
+        run: bash .github/scripts/check-version.sh
 
       # Apps2Samsung.Core comes along as a project reference, so this covers both.
       - name: Build
@@ -155,7 +169,7 @@ jobs:
           sudo apt-get install -y librsvg2-bin dpkg-dev rpm
           rsvg-convert -w 256 -h 256 jellyfin-tizen-logo.svg -o jellyfin.png
           curl -fsSL -o /usr/local/bin/appimagetool \
-            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+            https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage
           sudo chmod +x /usr/local/bin/appimagetool
 
       # BOTH architectures, like the releases do. An earlier version of this job packaged x64 only,

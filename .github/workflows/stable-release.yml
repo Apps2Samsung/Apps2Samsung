@@ -204,7 +204,7 @@ jobs:
           sudo apt-get install -y librsvg2-bin dpkg-dev rpm
           rsvg-convert -w 256 -h 256 jellyfin-tizen-logo.svg -o jellyfin.png
           curl -fsSL -o /usr/local/bin/appimagetool \
-            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+            https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage
           sudo chmod +x /usr/local/bin/appimagetool
 
       - name: Build Linux packages
