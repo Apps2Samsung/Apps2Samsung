@@ -23,11 +23,11 @@
       "versions": [
         {
           "version": "3.2.0",
-          "buildVersion": "11497",
+          "buildVersion": "11498",
           "date": "2026-10-29T08:39:14Z",
           "localizedDescription": "## 📦 v3.2.0-beta — 2026-10-29\n\n\n### 🚀 New features\n- Certificate sheet: copy the sign-in link for another browser (#912)\n### 🐛 Bug fixes\n- On the TV: View in catalog crash, search by developer, developer tap, TV-Store catalog button (#888), version 3.2.0 (#906)\n- Install: a TV rejecting the certificate is not a certificate mismatch (#907) (#910)\n- Certificate rejected [118, -12]: say the TV needs internet to verify it (#907) (#915)\n### 🌍 Translations\n- i18n: new translations from Crowdin (#916)\n### 🧰 Maintenance & CI\n- Refactor: redesign the Apps2Samsung download page (#904)\n- CI: version guard on PRs, pin appimagetool, document the required checks (#908)\n- Update Ko-fi link for Patrick's support (#914)\n\n## New Contributors\n* @elias4044 made their first contribution in https://github.com/Apps2Samsung/Apps2Samsung/pull/904\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.1.0-beta...v3.2.0-beta",
           "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.2.0-beta/Apps2Samsung-v3.2.0-beta-ios-unsigned.ipa",
-          "size": 42012943,
+          "size": 42015410,
           "minOSVersion": "15.0"
         }
       ],
@@ -41,7 +41,7 @@
       "versionDate": "2026-10-29T08:39:14Z",
       "versionDescription": "## 📦 v3.2.0-beta — 2026-10-29\n\n\n### 🚀 New features\n- Certificate sheet: copy the sign-in link for another browser (#912)\n### 🐛 Bug fixes\n- On the TV: View in catalog crash, search by developer, developer tap, TV-Store catalog button (#888), version 3.2.0 (#906)\n- Install: a TV rejecting the certificate is not a certificate mismatch (#907) (#910)\n- Certificate rejected [118, -12]: say the TV needs internet to verify it (#907) (#915)\n### 🌍 Translations\n- i18n: new translations from Crowdin (#916)\n### 🧰 Maintenance & CI\n- Refactor: redesign the Apps2Samsung download page (#904)\n- CI: version guard on PRs, pin appimagetool, document the required checks (#908)\n- Update Ko-fi link for Patrick's support (#914)\n\n## New Contributors\n* @elias4044 made their first contribution in https://github.com/Apps2Samsung/Apps2Samsung/pull/904\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.1.0-beta...v3.2.0-beta",
       "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.2.0-beta/Apps2Samsung-v3.2.0-beta-ios-unsigned.ipa",
-      "size": 42012943
+      "size": 42015410
     }
   ],
   "news": []
