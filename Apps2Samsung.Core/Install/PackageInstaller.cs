@@ -304,13 +304,13 @@ namespace Apps2Samsung.Install
         private static string CertificateRejectionMessage(CertificateRejection rejection, string output) => rejection switch
         {
             CertificateRejection.InvalidFormat =>
-                "The TV rejected the signing certificate itself ([118, -12], \"Invalid format of certificate in signature\"). This is not about an installed copy. Most often the TV's date and time are off, which happens on a TV without internet or an antenna signal: check Settings → General → System Manager → Time on the TV, then install again. If the clock is right, create a new certificate and retry.",
+                "The TV rejected the signing certificate itself ([118, -12], \"Invalid format of certificate in signature\"). This is not about an installed copy. The TV verifies a developer certificate online, so a TV without internet access fails exactly like this (#907): connect the TV to the internet for the install, then install again. Also check the TV's date and time (Settings → General → System Manager → Time); if both are fine, create a new certificate and retry.",
             CertificateRejection.NotYetValid =>
                 "The TV says the signing certificate isn't valid yet ([118, -12]). The certificate is fine on this device, so the TV's clock is behind: set the TV's date and time (Settings → General → System Manager → Time) or wait a few minutes, then install again.",
             CertificateRejection.Expired =>
                 "The TV says the signing certificate has expired ([118, -12]). Either the TV's clock is ahead (Settings → General → System Manager → Time) or the certificate is past its end date: create a new one and install again.",
             _ =>
-                $"The TV rejected the signing certificate ([118, -12]: {TizenInstallDiagnostics.CertificateRejectionReason(output) ?? "check certificate error"}). Removing an installed copy won't help. Check the TV's date and time (Settings → General → System Manager → Time); if that is right, create a new certificate and install again.",
+                $"The TV rejected the signing certificate ([118, -12]: {TizenInstallDiagnostics.CertificateRejectionReason(output) ?? "check certificate error"}). Removing an installed copy won't help. Make sure the TV has internet access during the install (it verifies the certificate online) and that its date and time are right (Settings → General → System Manager → Time); if both are, create a new certificate and install again.",
         };
     }
 
