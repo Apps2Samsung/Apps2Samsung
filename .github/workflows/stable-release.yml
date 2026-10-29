@@ -495,7 +495,7 @@ jobs:
         run: dotnet workload install maui-android
 
       # The persistent signing key is required. The old fallback minted a throwaway
-      # key, which produces an APK that installs but can never update in place —
+      # key, which produces an APK that installs but can never update in place -
       # Android rejects a signing-key change - so it is the same "users are stuck"
       # failure as a versionCode downgrade, just with a different dialog.
       - name: Prepare Android signing key
