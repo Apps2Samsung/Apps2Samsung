@@ -76,6 +76,27 @@ namespace Apps2Samsung.Helpers
         public string Certificate { get; set; } = Constants.AppIdentifiers.Jelly2SamsDefault;
         public bool DeletePreviousInstall { get; set; } = false;
         public string UserCustomIP { get; set; } = "";
+
+        /// <summary>
+        /// Which app's on-screen keyboard the remote types into. Grid walking is only correct for the
+        /// app its profile was measured on, so this is stored rather than guessed (see
+        /// SamsungRemoteKeyboardProfiles).
+        /// </summary>
+        public string KeyboardProfileAppId { get; set; } = Remote.SamsungRemoteKeyboardProfiles.DefaultAppId;
+
+        /// <summary>
+        /// User profiles for apps we don't ship, keyed by app id, stored as the editable JSON from
+        /// SamsungRemoteKeyboardJson. A built-in profile can be overridden by adding its app id here.
+        /// </summary>
+        public Dictionary<string, string> KeyboardProfiles { get; set; } = new();
+
+        /// <summary>Empty the app's search field before typing: these apps append, so without this a
+        /// second search becomes the two queries run together.</summary>
+        public bool KeyboardClearBeforeTyping { get; set; } = true;
+
+        /// <summary>Press the app's search cell after typing: typing alone only fills the box and shows
+        /// suggestions, it does not search.</summary>
+        public bool KeyboardSubmitAfterTyping { get; set; } = true;
         public string SavedNetworkInterfaceName { get; set; } = "";
         public bool ForceSamsungLogin { get; set; } = false;
         // Automatic / Public / Partner, the same choice as the phone (Core CertificatePreference).
