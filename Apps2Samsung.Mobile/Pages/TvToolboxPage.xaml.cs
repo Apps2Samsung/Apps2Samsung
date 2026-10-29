@@ -518,7 +518,9 @@ public partial class TvToolboxPage : ContentPage
 		ShowTvStoreBtn.IsVisible = false;
 		try
 		{
-			var state = await TvStorePackage.GetInstallStateAsync(_sdb, _tvIp);
+			// This device's package-id renames (#839): a TV-Store installed under a new id is TV-Store too.
+			var renames = MobileSettings.PackageIdRenamesJson;
+			var state = await TvStorePackage.GetInstallStateAsync(_sdb, _tvIp, renames);
 			if (state != TvStoreInstallState.Installed)
 			{
 				SetTvStoreStatus(L10n.Get(state == TvStoreInstallState.Outdated ? "lblToolboxTvStoreOutdated" : "lblToolboxTvStoreNotInstalled"));
@@ -541,7 +543,7 @@ public partial class TvToolboxPage : ContentPage
 			var pem = SigningCertificatePem.FromProfile(profile);
 
 			var progress = new Progress<string>(key => SetTvStoreStatus(L10n.Get(key)));
-			await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress);
+			await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress, renames);
 			SetTvStoreStatus(L10n.Get("lblToolboxTvStoreArming"));
 			await store.ArmAsync(pem);
 			var status = await store.StatusAsync();

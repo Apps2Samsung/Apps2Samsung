@@ -39,39 +39,49 @@ namespace Apps2Samsung.TvStore
         private readonly DevToolsConsole _console;
         private bool _disposed;
 
-        private TvStoreClient(TizenDebugSession session, DevToolsConsole console, string version)
+        private TvStoreClient(TizenDebugSession session, DevToolsConsole console, string version, string appId)
         {
             _session = session;
             _console = console;
             Version = version;
+            AppId = appId;
         }
 
         /// <summary>The <c>A2SStore.version</c> the page reported.</summary>
         public string Version { get; }
 
         /// <summary>
+        /// The application id the TV lists TV-Store under: <see cref="TvStorePackage.AppId"/>, or the id
+        /// of a copy installed under a new package id (#839).
+        /// </summary>
+        public string AppId { get; }
+
+        /// <summary>
         /// Starts TV-Store in debug mode and attaches to its page. <paramref name="progress"/> gets
-        /// localization keys, as the debug agent reports them.
+        /// localization keys, as the debug agent reports them. Every verb addresses the id the TV
+        /// lists TV-Store under, which is not its own after an install under a new package id (#839);
+        /// <paramref name="packageIdRenamesJson"/> is this device's record of those renames.
         /// </summary>
         /// <exception cref="TvStoreNotInstalledException">The TV does not list TV-Store, or only an old one.</exception>
         /// <exception cref="TvStoreUnreachableException">The TV sent no app listing.</exception>
         /// <exception cref="InvalidOperationException">Debug mode was refused, the inspector never came up, or the page is not TV-Store (or an older one without the API).</exception>
         public static async Task<TvStoreClient> AttachAsync(
-            ISdbEngine sdb, string tvIp, IProgress<string>? progress = null, CancellationToken ct = default)
+            ISdbEngine sdb, string tvIp, IProgress<string>? progress = null, string? packageIdRenamesJson = null, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(sdb);
             ArgumentException.ThrowIfNullOrWhiteSpace(tvIp);
 
-            var state = await TvStorePackage.GetInstallStateAsync(sdb, tvIp).ConfigureAwait(false);
-            if (state != TvStoreInstallState.Installed)
-                throw new TvStoreNotInstalledException(state == TvStoreInstallState.Outdated);
+            var found = await TvStorePackage.FindAsync(sdb, tvIp, packageIdRenamesJson).ConfigureAwait(false);
+            if (!found.IsInstalled || found.AppId is null)
+                throw new TvStoreNotInstalledException(found.State == TvStoreInstallState.Outdated);
+            var appId = found.AppId;
 
             // Debug mode hands out an inspector port only for the launch it performs itself.
             progress?.Report("lblToolboxTvStoreStopping");
-            await StopAsync(sdb, tvIp, ct).ConfigureAwait(false);
+            await StopAsync(sdb, tvIp, appId, ct).ConfigureAwait(false);
 
             progress?.Report("lblToolboxTvStoreStarting");
-            var session = await TizenAppDebugger.StartAsync(sdb, tvIp, TvStorePackage.AppId).ConfigureAwait(false);
+            var session = await TizenAppDebugger.StartAsync(sdb, tvIp, appId).ConfigureAwait(false);
 
             DevToolsConsole? console = null;
             try
@@ -92,8 +102,8 @@ namespace Apps2Samsung.TvStore
                         $"The page on the TV's inspector is not TV-Store, or a TV-Store older than {HandOverSince} without the hand-over API ({target.Title}: {target.Url}).");
                 }
 
-                Trace.WriteLine($"[tvstore] attached to {TvStorePackage.AppId} v{version} on {tvIp} via local port {session.LocalPort}");
-                return new TvStoreClient(session, console, version);
+                Trace.WriteLine($"[tvstore] attached to {appId} v{version} on {tvIp} via local port {session.LocalPort}");
+                return new TvStoreClient(session, console, version, appId);
             }
             catch
             {
@@ -109,11 +119,11 @@ namespace Apps2Samsung.TvStore
         // an app that is still open then never answers, which made Arm hang whenever TV-Store was on
         // screen. The TV's REST API closes it on those sets, so that is the fallback, and the app is
         // given a few seconds to be gone before the debug launch.
-        private static async Task StopAsync(ISdbEngine sdb, string tvIp, CancellationToken ct)
+        private static async Task StopAsync(ISdbEngine sdb, string tvIp, string appId, CancellationToken ct)
         {
             try
             {
-                var kill = await sdb.ShellAsync(tvIp, $"0 was_kill {TvStorePackage.AppId}").ConfigureAwait(false);
+                var kill = await sdb.ShellAsync(tvIp, $"0 was_kill {appId}").ConfigureAwait(false);
                 Trace.WriteLine($"[tvstore] was_kill: {kill.Output.Trim()}");
             }
             catch (Exception ex)
@@ -121,11 +131,11 @@ namespace Apps2Samsung.TvStore
                 Trace.WriteLine($"[tvstore] was_kill failed (continuing): {ex.Message}");
             }
 
-            if (await SamsungRemoteApps.IsRunningAsync(tvIp, TvStorePackage.AppId, ct).ConfigureAwait(false) != true)
+            if (await SamsungRemoteApps.IsRunningAsync(tvIp, appId, ct).ConfigureAwait(false) != true)
                 return;
 
             Trace.WriteLine("[tvstore] still running after was_kill; closing it over the REST API");
-            if (!await SamsungRemoteApps.TerminateAsync(tvIp, TvStorePackage.AppId, ct).ConfigureAwait(false))
+            if (!await SamsungRemoteApps.TerminateAsync(tvIp, appId, ct).ConfigureAwait(false))
             {
                 Trace.WriteLine("[tvstore] the REST close was refused; the debug launch may not answer");
                 return;
@@ -134,7 +144,7 @@ namespace Apps2Samsung.TvStore
             for (var i = 0; i < 10; i++)
             {
                 await Task.Delay(TimeSpan.FromMilliseconds(500), ct).ConfigureAwait(false);
-                if (await SamsungRemoteApps.IsRunningAsync(tvIp, TvStorePackage.AppId, ct).ConfigureAwait(false) != true)
+                if (await SamsungRemoteApps.IsRunningAsync(tvIp, appId, ct).ConfigureAwait(false) != true)
                     return;
             }
             Trace.WriteLine("[tvstore] TV-Store still reports running 5 s after the REST close");
