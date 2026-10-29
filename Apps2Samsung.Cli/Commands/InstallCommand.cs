@@ -164,7 +164,7 @@ public static class InstallCommand
                 stage: null,
                 ct: ct,
                 confirmRemove: () => Task.FromResult(s.Options.AllowRemove),
-                packageId: new PackageIdPolicy(duid, s.Options.NewId));
+                packageId: new PackageIdPolicy(duid, s.Options.NewId, s.Options.OwnId));
 
             // The ids as installed: a rename (#839) changed them after the read above.
             var (installedAppId, installedPackageId) = await WgtManifest.ReadIdsAsync(packagePath);

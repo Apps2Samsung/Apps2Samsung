@@ -342,9 +342,10 @@ namespace Apps2Samsung.ViewModels
                 CustomWgtPath = string.Empty;
                 SelectedRelease = row.Release;
                 SelectedAsset = asset;
-                // The sheet's "Install under a new package id" (#839) holds for this install only; a
-                // rename made earlier for this TV applies by itself.
+                // The sheet's "Install under a new package id" and "Back to its own package id" (#839)
+                // hold for this install only; a rename made earlier for this TV applies by itself.
                 AppSettings.Default.InstallUnderNewPackageId = sheet.NewPackageId;
+                AppSettings.Default.InstallUnderOwnPackageId = sheet.OwnPackageId;
                 try
                 {
                     if (DownloadAndInstallCommand.CanExecute(null))
@@ -353,6 +354,7 @@ namespace Apps2Samsung.ViewModels
                 finally
                 {
                     AppSettings.Default.InstallUnderNewPackageId = false;
+                    AppSettings.Default.InstallUnderOwnPackageId = false;
                 }
             }
             // "Show all versions" changed in the sheet: the catalog follows once it is closed.

@@ -60,6 +60,8 @@ public static class Help
                                 setting; apps that need Partner get it by themselves)
           --new-id              install under a fresh package id, for a TV that refuses this app's own id
                                 ([118, -22]); remembered per TV, so later installs update the same tile
+          --own-id              back to the app's own package id on this TV: forget the id remembered by
+                                --new-id (the TV then shows a new tile next to the renamed copy)
           --launch              open the app on the TV afterwards
           --remove-first        uninstall the installed copy before installing (erases its data on the TV)
           --keep                keep the downloaded package in the cache folder

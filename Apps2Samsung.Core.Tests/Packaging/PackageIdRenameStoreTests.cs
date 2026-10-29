@@ -29,6 +29,19 @@ public class PackageIdRenameStoreTests
         Assert.Equal(string.Empty, PackageIdRenameStore.Write(new List<PackageIdRenameRecord>()));
     }
 
+    // The app sheet has no DUID yet offers "Back to its own package id" only when there is a rename to undo.
+    [Fact]
+    public void IsRenamedAnywhere_AnyTv_Counts()
+    {
+        var json = PackageIdRenameStore.Set(null, Rename("DUID-2", "A2STVStore", "KUW3HHjMUR", "Store"));
+
+        Assert.True(PackageIdRenameStore.IsRenamedAnywhere(json, "A2STVStore"));
+        Assert.False(PackageIdRenameStore.IsRenamedAnywhere(json, "KUW3HHjMUR"));
+        Assert.False(PackageIdRenameStore.IsRenamedAnywhere(json, "Other00001"));
+        Assert.False(PackageIdRenameStore.IsRenamedAnywhere(json, null));
+        Assert.False(PackageIdRenameStore.IsRenamedAnywhere(null, "A2STVStore"));
+    }
+
     [Fact]
     public void Set_ThenFind_RoundTrips()
     {

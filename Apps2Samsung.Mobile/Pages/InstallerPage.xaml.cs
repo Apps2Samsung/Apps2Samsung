@@ -423,7 +423,7 @@ public partial class InstallerPage : ContentPage
 		await Navigation.PushModalAsync(sheet);
 		var choice = await sheet.Result;
 		if (choice is not null)
-			await InstallAsync(choice.Release, choice.Asset, null, choice.NewPackageId);
+			await InstallAsync(choice.Release, choice.Asset, null, choice.NewPackageId, choice.OwnPackageId);
 	}
 
 	// "Your own package": a .wgt or .tpk from the phone, then the same install as a catalog app.
@@ -629,7 +629,9 @@ public partial class InstallerPage : ContentPage
 
 	/// <param name="newPackageId">The sheet's "Install under a new package id" (#839); a rename made
 	/// earlier for this TV applies either way.</param>
-	private async Task InstallAsync(GitHubRelease? release, Asset? asset, string? customPath, bool newPackageId = false)
+	/// <param name="ownPackageId">The sheet's "Back to its own package id" (#839): forget the rename
+	/// remembered for this TV and install under the package's own id.</param>
+	private async Task InstallAsync(GitHubRelease? release, Asset? asset, string? customPath, bool newPackageId = false, bool ownPackageId = false)
 	{
 		if (_tv.Selected is not { } tv)
 		{
@@ -750,7 +752,7 @@ public partial class InstallerPage : ContentPage
 				{
 					await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus, SetStep, cancel.Token,
 						confirmRemove: () => ConfirmRemoveAsync(appName),
-						packageId: new PackageIdPolicy(cert.Duid, newPackageId));
+						packageId: new PackageIdPolicy(cert.Duid, newPackageId, ownPackageId));
 					break;
 				}
 				catch (CertificateNotYetValidException notYetValid)

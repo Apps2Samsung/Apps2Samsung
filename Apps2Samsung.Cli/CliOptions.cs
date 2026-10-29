@@ -41,6 +41,8 @@ public sealed class CliOptions
     /// <summary>Install a package the catalog flags root; separate from <see cref="Yes"/>, as the apps ask it separately.</summary>
     public bool AllowRoot { get; set; }
     public bool NewId { get; set; }
+    /// <summary>Back to the package's own id on this TV (#839): forget the rename remembered for it.</summary>
+    public bool OwnId { get; set; }
 
     // Certificate
     public bool Prepare { get; set; }
@@ -104,6 +106,7 @@ public sealed class CliOptions
                 }
                 case "--partner": o.Partner = true; break;
                 case "--new-id": o.NewId = true; break;
+                case "--own-id": o.OwnId = true; break;
                 case "--launch": o.Launch = true; break;
                 // Not launching is the default now, as in the apps; still accepted so older scripts keep working.
                 case "--no-launch": o.Launch = false; break;

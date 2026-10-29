@@ -96,6 +96,15 @@
 				<ToggleSwitch Grid.Column="1" IsChecked="{Binding NewPackageId}" MinWidth="0" VerticalAlignment="Center"/>
 			</Grid>
 
+			<!-- back to the package's own id (#839): only for an app that was renamed on a TV before -->
+			<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="4,4,4,0" IsVisible="{Binding HasPackageIdRename}">
+				<StackPanel Spacing="2">
+					<TextBlock Text="{Binding OwnPackageIdText}" FontSize="13" Foreground="{DynamicResource InkBrush}"/>
+					<TextBlock Text="{Binding OwnPackageIdHint}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+				</StackPanel>
+				<ToggleSwitch Grid.Column="1" IsChecked="{Binding OwnPackageId}" MinWidth="0" VerticalAlignment="Center"/>
+			</Grid>
+
 			<Grid ColumnDefinitions="*,Auto" Margin="4,10,4,0">
 				<TextBlock Text="{Binding VersionsTitle}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"
 				           VerticalAlignment="Center"/>

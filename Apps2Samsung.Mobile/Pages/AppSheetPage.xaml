@@ -59,7 +59,16 @@
                     <Label Text="{l:Localize lblNewPackageId}" FontSize="13" />
                     <Label Text="{l:Localize lblNewPackageIdHint}" FontSize="12" TextColor="{DynamicResource MutedColor}" LineBreakMode="WordWrap" />
                 </VerticalStackLayout>
-                <Switch Grid.Column="1" x:Name="NewIdSwitch" OnColor="{DynamicResource AccentColor}" VerticalOptions="Center" />
+                <Switch Grid.Column="1" x:Name="NewIdSwitch" OnColor="{DynamicResource AccentColor}" VerticalOptions="Center" Toggled="OnNewIdToggled" />
+            </Grid>
+
+            <!-- back to the package's own id (#839): only for an app that was renamed on a TV before -->
+            <Grid x:Name="OwnIdRow" ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="4,4,4,0" IsVisible="False">
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="{l:Localize lblOwnPackageId}" FontSize="13" />
+                    <Label Text="{l:Localize lblOwnPackageIdHint}" FontSize="12" TextColor="{DynamicResource MutedColor}" LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+                <Switch Grid.Column="1" x:Name="OwnIdSwitch" OnColor="{DynamicResource AccentColor}" VerticalOptions="Center" Toggled="OnOwnIdToggled" />
             </Grid>
 
             <!-- the Version header; "Show all versions" on the right for an app that has older

@@ -310,15 +310,21 @@ namespace Apps2Samsung.Services
 
                 // Step 3b: another package id for this TV (#839): the sheet asked for a new one, or
                 // an earlier install on this TV already renamed this package and the update has to
-                // land on that tile. Not on the retry that keeps a [118]-renamed working copy, which
-                // already carries its new id.
+                // land on that tile, unless the sheet asked for the package's own id back. Not on
+                // the retry that keeps a [118]-renamed working copy, which already carries its new id.
                 run.TvDuid = deviceInfo.Duid;
                 if (!run.KeepWorkingPackage)
                 {
+                    var (_, ownPackageId) = await WgtManifest.ReadIdsAsync(packagePath);
+                    var forgotten = AppSettings.Default.InstallUnderOwnPackageId
+                        ? Apps2Samsung.Packaging.PackageIdRenameStore.Find(_appSettings.PackageIdRenamesJson, deviceInfo.Duid, ownPackageId)
+                        : null;
                     var rename = await Apps2Samsung.Install.PackageIds.ApplyAsync(
                         packagePath,
-                        new Apps2Samsung.Install.PackageIdPolicy(deviceInfo.Duid, AppSettings.Default.InstallUnderNewPackageId),
+                        new Apps2Samsung.Install.PackageIdPolicy(deviceInfo.Duid, AppSettings.Default.InstallUnderNewPackageId, AppSettings.Default.InstallUnderOwnPackageId),
                         _appSettings);
+                    if (forgotten is not null)
+                        progress?.Invoke(string.Format("statusPackageIdForgotten".Localized(), forgotten.OriginalPackageId, forgotten.NewPackageId));
                     if (rename is not null)
                         progress?.Invoke(string.Format("statusPackageIdRenamed".Localized(), rename.OldId, rename.NewId));
                 }
