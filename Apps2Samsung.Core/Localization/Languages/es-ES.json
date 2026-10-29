@@ -1,6 +1,12 @@
 {
+  "DownloadAndInstall": "Descargar e instalar",
+  "InstallationFailed": "Instalación fallida",
   "connectionInterrupted": "La conexión a su televisor falló durante la instalación (\"conexión restablecida por un par de conexiones\"). Normalmente esto no es un problema con la aplicación, casi siempre es un proxy de VPN o aplicación \"DNS seguro\" en este equipo que captura la ruta a su televisor, o un enlace inestable de Wi-Fi. Prueba esto, luego vuelve a instalar: 1) apaga cualquier aplicación VPN / túnel / seguro DNS, 2) conectar el televisor por Ethernet o acercarlo al router, 3) asegúrese de que este ordenador y el televisor están en la misma red.",
   "vpnDetectedWarning": "Un adaptador VPN o túnel parece activo ({0}). Puede evitar que la aplicación encuentre su televisor o interrumpa las instalaciones a mitad de camino. Si el televisor no aparece en la lista o la instalación falla, desactiva la aplicación VPN / proxy / seguro DNS y vuelve a escanear.",
+  "InstallationSuccessfulOn": "{0} ¡se ha instalado correctamente!",
+  "DownloadFailed": "Error de descarga:",
+  "errNetworkTimeout": "el servidor de descarga no respondió a tiempo. Comprueba tu conexión a Internet y revisa si algún servicio VPN, proxy o cortafuegos está bloqueando la conexión. En la mayoría de las aplicaciones, el servidor de descarga es GitHub (github.com y objects.githubusercontent.com). Algunos proveedores de Internet bloquean el acceso a estos sitios. Prueba con otra red o utiliza una VPN para solucionar el problema.",
+  "errNetworkUnreachable": "No se puede acceder al servidor de descarga. Comprueba tu conexión a Internet y revisa si alguna VPN, proxy o cortafuegos está bloqueando el acceso. En la mayoría de las aplicaciones, el servidor de descarga es GitHub (github.com y objects.githubusercontent.com). Algunos proveedores de Internet bloquean estos sitios. Prueba con otra red o utiliza una VPN para solucionar el problema.",
   "lblCustomIcon": "Icono personalizado",
   "lblCustomIconHint": "Opcional. Escoja un PNG para usar como icono de lanzador de esta aplicación, recordado por aplicación y escrito en el paquete al instalar. Dejar en blanco para mantener el valor predeterminado.",
   "lblBrowse": "Navegar…",
