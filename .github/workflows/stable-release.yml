@@ -51,7 +51,7 @@ jobs:
       # ---------------- VERSION (NO -beta allowed) ----------------
       # The beta marker is added by CI at build time (.github/scripts/stamp-beta-version.py, run
       # from the Beta Pre-Release workflow) and never committed, so the version in the branch must
-      # always be clean. A "-beta" here means someone hand-edited it — fail instead of shipping a
+      # always be clean. A "-beta" here means someone hand-edited it - fail instead of shipping a
       # stable release that calls itself a beta.
       - name: Validate AppVersion (must be stable)
         id: version
@@ -64,7 +64,7 @@ jobs:
           if echo "$VERSION_LINE" | grep -q '\-beta"'; then
             echo "❌ AppVersion still contains '-beta'"
             echo "   Stable releases must use a clean version like v2.0.0.1"
-            echo "   CI stamps the beta marker itself — don't commit it (see stamp-beta-version.py)"
+            echo "   CI stamps the beta marker itself - don't commit it (see stamp-beta-version.py)"
             exit 1
           fi
 
@@ -88,9 +88,9 @@ jobs:
         shell: bash
         run: |
           if git tag --list | grep -qx "$VERSION_TAG"; then
-            echo "ℹ️ Stable release $VERSION_TAG already exists — will update assets"
+            echo "ℹ️ Stable release $VERSION_TAG already exists - will update assets"
           else
-            echo "ℹ️ Stable release $VERSION_TAG does not exist — will create it"
+            echo "ℹ️ Stable release $VERSION_TAG does not exist - will create it"
           fi
 
       # --------------------------------------------------
@@ -101,7 +101,7 @@ jobs:
         shell: bash
         run: |
           if git tag --list | grep -qx "$VERSION_TAG"; then
-            echo "ℹ️ Release $VERSION_TAG already exists and allow_existing_release=false — exiting"
+            echo "ℹ️ Release $VERSION_TAG already exists and allow_existing_release=false - exiting"
             exit 0
           fi
 
@@ -150,7 +150,7 @@ jobs:
           mv CHANGELOG.clean.md CHANGELOG.md
 
           {
-            echo "## 📦 ${VERSION_TAG} — ${DATE}"
+            echo "## 📦 ${VERSION_TAG} - ${DATE}"
             echo ""
             cat CHANGELOG.md
             echo ""
@@ -197,7 +197,7 @@ jobs:
 
       # ---------------- LINUX PACKAGES (tar.gz + deb + rpm + AppImage, x64 + arm64) ----------------
       # One script for all of them, shared with the beta release and with the PR check that proves it
-      # still builds — see .github/scripts/package-linux.sh (#589).
+      # still builds - see .github/scripts/package-linux.sh (#589).
       - name: Linux packaging tools
         run: |
           sudo apt-get update
@@ -225,6 +225,30 @@ jobs:
           overwrite_files: true
           files: dist/*
           body_path: RELEASE_NOTES.md
+
+      # ---------------- WINGET ----------------
+      # winget-apps2samsung builds the MSI from the Windows zip that is on the release by now and
+      # opens the microsoft/winget-pkgs PR. Without this nudge it only has a daily cron, which
+      # GitHub runs hours late, so a stable could sit a day without a WinGet update. Same pattern
+      # as tizen-community-packages -> catalog-snapshot.yml. Deliberately absent from
+      # beta-prerelease.yml: WinGet only ever gets stable releases.
+      - name: Notify winget-apps2samsung
+        env:
+          # Fine-grained PAT, Contents read/write on Apps2Samsung/winget-apps2samsung only
+          # (Settings -> Secrets and variables -> Actions). Missing token = warning, never a red
+          # release: the winget repo's cron picks the release up later.
+          GH_TOKEN: ${{ secrets.WINGET_DISPATCH_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::warning::WINGET_DISPATCH_TOKEN is not set; winget-apps2samsung picks up $VERSION_TAG on its next scheduled run instead."
+            exit 0
+          fi
+          gh api --method POST repos/Apps2Samsung/winget-apps2samsung/dispatches \
+            -f event_type=stable-release \
+            -f "client_payload[tag]=${VERSION_TAG}"
+          echo "Dispatched stable-release for $VERSION_TAG to winget-apps2samsung."
 
 # ======================================================
 # CLI (ONE SELF-CONTAINED BINARY PER PLATFORM, #836)
@@ -422,7 +446,7 @@ jobs:
           files: dist/*
 
 # ======================================================
-# ANDROID (.apk — the mobile installer head)
+# ANDROID (.apk - the mobile installer head)
 # ======================================================
   android-apk:
     runs-on: ubuntu-latest
@@ -471,14 +495,14 @@ jobs:
         run: dotnet workload install maui-android
 
       # The persistent signing key is required. The old fallback minted a throwaway
-      # key, which produces an APK that installs but can never update in place —
-      # Android rejects a signing-key change — so it is the same "users are stuck"
+      # key, which produces an APK that installs but can never update in place -
+      # Android rejects a signing-key change - so it is the same "users are stuck"
       # failure as a versionCode downgrade, just with a different dialog.
       - name: Prepare Android signing key
         run: |
           set -euo pipefail
           if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
-            echo "::error::ANDROID_KEYSTORE_BASE64 is not set. An APK signed with a throwaway key cannot update existing installs — set ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS."
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not set. An APK signed with a throwaway key cannot update existing installs - set ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS."
             exit 1
           fi
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$PWD/a2s.keystore"
@@ -515,7 +539,7 @@ jobs:
         env:
           # SHA-256 of the release signing certificate (CN=Apps2Samsung, O=MadeByPatrick),
           # taken from the published APKs. Android refuses an update signed by a different
-          # key just as hard as a versionCode downgrade, so this must never change — if
+          # key just as hard as a versionCode downgrade, so this must never change - if
           # this step fails, the ANDROID_KEYSTORE_* secrets were swapped, and the fix is to
           # restore the original keystore, not to update this value.
           EXPECTED_SIGNER_SHA256: bd4dee21ebeee1b0b690c612318808d27f35c46fa53ba31d256379a7fed7e107
@@ -589,8 +613,8 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
 
-      # The exact files the PKGBUILD points users at, fetched from where they will fetch them — not
-      # the build job's dist/ folder — so the checksums describe what is actually on the release, and
+      # The exact files the PKGBUILD points users at, fetched from where they will fetch them - not
+      # the build job's dist/ folder - so the checksums describe what is actually on the release, and
       # a bad upload fails here rather than on every Arch user's machine.
       - name: Download the published sources
         shell: bash
@@ -610,7 +634,7 @@ jobs:
 
       # What the AUR has now decides pkgrel: a re-run of this workflow rebuilds the tarballs and so
       # changes their checksums, and Arch users only pick that up if pkgrel goes up. A 404 means the
-      # package isn't on the AUR yet — the first push creates it.
+      # package isn't on the AUR yet - the first push creates it.
       - name: Render PKGBUILD
         id: render
         shell: bash
@@ -619,7 +643,7 @@ jobs:
           if ! curl -fsSL -o aur/current.SRCINFO \
                "https://aur.archlinux.org/cgit/aur.git/plain/.SRCINFO?h=apps2samsung"; then
             rm -f aur/current.SRCINFO
-            echo "apps2samsung is not on the AUR yet — this run creates it"
+            echo "apps2samsung is not on the AUR yet - this run creates it"
           fi
           .github/scripts/aur-pkgbuild.sh "$VERSION" aur/src aur/pkg aur/current.SRCINFO
           echo "----- PKGBUILD -----"; cat aur/pkg/PKGBUILD
@@ -631,7 +655,7 @@ jobs:
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
         run: |
           if [ -z "$AUR_SSH_PRIVATE_KEY" ]; then
-            echo "::error::AUR_SSH_PRIVATE_KEY is not set — add the private half of the SSH key registered on the AUR account that owns apps2samsung."
+            echo "::error::AUR_SSH_PRIVATE_KEY is not set - add the private half of the SSH key registered on the AUR account that owns apps2samsung."
             exit 1
           fi
 
