@@ -47,6 +47,15 @@ namespace Apps2Samsung.Models
         public string? PackageId { get; set; }
 
         /// <summary>
+        /// The Tizen version the file asks for (<c>required_version</c> in config.xml, <c>api-version</c>
+        /// in tizen-manifest.xml), read with the three above. A TV older than this refuses the package
+        /// with install failed[118, -19] (TV-Store#44), so TV-Store labels such an app and stops the
+        /// install before the push. Null in a bundle built before it was recorded.
+        /// </summary>
+        [JsonPropertyName("required_version")]
+        public string? RequiredVersion { get; set; }
+
+        /// <summary>
         /// Values the user has to supply before this file installs (a per-user API key, a server
         /// address), written into the package by <c>UserSettingsPatcher</c>. Null for the usual
         /// package that needs nothing (#791).

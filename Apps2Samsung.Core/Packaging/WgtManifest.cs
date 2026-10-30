@@ -19,7 +19,7 @@ namespace Apps2Samsung.Packaging
     {
         private static readonly XNamespace Tizen = "http://tizen.org/ns/widgets";
 
-        // <tizen:application ... required_version="X.Y" ...> — the minimum Tizen platform the package runs on.
+        // <tizen:application ... required_version="X.Y" ...>: the minimum Tizen platform the package runs on.
         private static readonly Regex RequiredVersionRegex = new(
             @"<tizen:application\b[^>]*\brequired_version\s*=\s*""(?<version>[^""]+)""",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -50,7 +50,7 @@ namespace Apps2Samsung.Packaging
             }
             catch
             {
-                // A corrupt/unreadable package shouldn't crash the version gate — treat as "no requirement"
+                // A corrupt/unreadable package shouldn't crash the version gate: treat as "no requirement"
                 // and let the actual install surface the real error.
                 return null;
             }
@@ -59,7 +59,7 @@ namespace Apps2Samsung.Packaging
         /// <summary>
         /// Reads the package's Tizen application id and package id from its <c>config.xml</c>
         /// (<c>&lt;tizen:application id="Pkg.App" package="Pkg"&gt;</c>). Returns nulls for anything
-        /// unreadable rather than throwing — every caller treats "unknown" as a normal case.
+        /// unreadable rather than throwing: every caller treats "unknown" as a normal case.
         /// </summary>
         public static async Task<(string? ApplicationId, string? PackageId)> ReadIdsAsync(string wgtPath)
         {
@@ -115,11 +115,13 @@ namespace Apps2Samsung.Packaging
             if (config is not null)
             {
                 var (applicationId, packageId) = ParseIds(config);
-                return new WgtPackageInfo(ParseWidgetVersion(config), applicationId, packageId);
+                var required = RequiredVersionRegex.Match(config);
+                return new WgtPackageInfo(ParseWidgetVersion(config), applicationId, packageId,
+                    required.Success ? required.Groups["version"].Value.Trim() : null);
             }
 
             var native = await ReadEntryAsync(packagePath, "tizen-manifest.xml");
-            return native is null ? new WgtPackageInfo(null, null, null) : ParseNativeManifest(native);
+            return native is null ? new WgtPackageInfo(null, null, null, null) : ParseNativeManifest(native);
         }
 
         private static string? ParseWidgetVersion(string config)
@@ -144,17 +146,18 @@ namespace Apps2Samsung.Packaging
             {
                 var root = XDocument.Parse(manifest).Root;
                 if (root is null)
-                    return new WgtPackageInfo(null, null, null);
+                    return new WgtPackageInfo(null, null, null, null);
                 var packageId = root.Attribute("package")?.Value;
                 var version = root.Attribute("version")?.Value;
+                var apiVersion = root.Attribute("api-version")?.Value;
                 var appId = root.Descendants()
                     .FirstOrDefault(e => e.Name.LocalName is "ui-application" or "service-application" or "widget-application" or "watch-application")
                     ?.Attribute("appid")?.Value;
-                return new WgtPackageInfo(Clean(version), Clean(appId), Clean(packageId));
+                return new WgtPackageInfo(Clean(version), Clean(appId), Clean(packageId), Clean(apiVersion));
             }
             catch (System.Xml.XmlException)
             {
-                return new WgtPackageInfo(null, null, null);
+                return new WgtPackageInfo(null, null, null, null);
             }
 
             static string? Clean(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
@@ -187,7 +190,7 @@ namespace Apps2Samsung.Packaging
             }
         }
 
-        // Parsed as XML first — attribute order and whitespace vary between packagers, and the regex
+        // Parsed as XML first: attribute order and whitespace vary between packagers, and the regex
         // below only matches the id="Pkg.App" package="Pkg" order. The regex stays as the fallback for
         // a config.xml that isn't well-formed enough for XDocument (some third-party packagers).
         private static (string? ApplicationId, string? PackageId) ParseIds(string config)
@@ -227,7 +230,7 @@ namespace Apps2Samsung.Packaging
         /// True when the TV can't run the package because its Tizen version is older than the package's
         /// <paramref name="requiredVersion"/>. Lenient: returns false (allow the install) when the TV
         /// version is unknown or the required version can't be parsed, so a malformed value never wrongly
-        /// blocks an install — the install itself will still surface any real incompatibility.
+        /// blocks an install: the install itself will still surface any real incompatibility.
         /// </summary>
         public static bool RequiresNewerTizen(Version? tvVersion, string? requiredVersion) =>
             tvVersion is not null
@@ -235,6 +238,10 @@ namespace Apps2Samsung.Packaging
             && tvVersion < required;
     }
 
-    /// <summary>What a package's manifest says about itself; see <see cref="WgtManifest.ReadPackageInfoAsync"/>.</summary>
-    public sealed record WgtPackageInfo(string? Version, string? ApplicationId, string? PackageId);
+    /// <summary>
+    /// What a package's manifest says about itself; see <see cref="WgtManifest.ReadPackageInfoAsync"/>.
+    /// <paramref name="RequiredVersion"/> is the Tizen version it asks for: <c>required_version</c> on
+    /// a web package, <c>api-version</c> on a native one.
+    /// </summary>
+    public sealed record WgtPackageInfo(string? Version, string? ApplicationId, string? PackageId, string? RequiredVersion);
 }
