@@ -952,6 +952,7 @@
   "lblLogTime": "Hora",
   "lblLogLevel": "Nível",
   "lblLogMessage": "Mensagem",
+  "lblLogLevelInfo": "Informação",
   "lblLogLevelWarning": "Aviso",
   "lblLogLevelError": "Erro",
   "lblChooseLogSession": "Escolher um registo",
