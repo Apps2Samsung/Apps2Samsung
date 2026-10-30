@@ -1,7 +1,7 @@
-uEsxh1v/6MhxzCKhaN6U7MTIeXOlavDQW4q6d744n61ANCx66jEDqCHZVEL8mU++KSqTk3VhMI+ANGWLGEBWOj6Q33VaJsXfPzIHNDbJjAzaF2PvdksimAWMRqPLkkw3fRFx+p7SnVhFq0HY0Kn9gmUviPQYMpWWlsgKG3uK/+TVFoxiHVbAdcXQMOzC+Z+PWRClHu5LzimHZEzgRSni0SwiL0BddwP3b/ALzd/vXoStWHSuaJxBX5WnfwVhZuXaPl5tJQdp6X6mTiiKVvelTkbi1PdXKMVjrZlWtSguyDiKXTwRjaokgTbMnsl2RmNSP/inasb4CYCXS0xxuwMnByWmFUrrKpj+l04RpXt3IbC9O++Np6kgizmPR+mDgR90DytuNrinQnIKKUr5aQtzWTMX4SWlSBQvpGMHMimbY/cLiwF6PjRS75r6KJYHHIgG707vHPXQFbD587BJqCjtZ3Ncfo7jVTsIDNaQ53g7smnui2IR0CG3R6F266hkth4a
+BBZsPPEGBBaQonPkrbU7aooXmWVaTayMPuL6AXo5OaytEVkLDe3uJc2yapzfuu4NGIDM4PLBuKrojSqiq4Vh9G28YvqYqY2TFxys6r1B9gMJQio8Bh4WtkWci/r1VhUSCDtFrInkn//XixO0IbG32E8tLbHJ0HwIc5pYaf2ihKGrA3PobX4RTcChJjHGkLZUuIXFkX8crsV4WXelyd1d5UQSJB5gB+ZrV5ZLU5PYdwBu/u6sEm7WRVsF3U2X6fNzLHYWt6gJG3qF6wiHpiGpD2EfLmltf2F8+XqqbfYNBycVVnoY/DECaACyXO86a2N998iyI88ns1lm0JUPFVuevugigm8yKz/82oM9hKXiIwpzxwKGsX1PZ0jsxMzzDguP88t7FYwAVLGlYim5DEQ4Yt2shsZtAM9DEDiILztC5/zD9bOxsMpkGOT7eXIcB8NPYYd/Z2WICImcA9sSIdrsyFQlmDh4XwhxStua9yeHthCO3GWM6m+/5YowPg+aF6/c
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-29T22:09:21.7915408+00:00",
+  "generatedAt": "2026-10-30T00:24:48.4205001+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -1861,39 +1861,39 @@ uEsxh1v/6MhxzCKhaN6U7MTIeXOlavDQW4q6d744n61ANCx66jEDqCHZVEL8mU++KSqTk3VhMI+ANGWL
       "id": "moonfin",
       "url": "https://api.github.com/repos/Moonfin-Client/Smart-TV/releases",
       "ok": true,
-      "latestTag": "2.10.0",
+      "latestTag": "2.11.0",
       "releases": [
         {
-          "url": "https://api.github.com/repos/Moonfin-Client/Smart-TV/releases/408445433",
+          "url": "https://api.github.com/repos/Moonfin-Client/Smart-TV/releases/428471685",
           "name": "Moonfin",
-          "tag_name": "2.10.0",
-          "published_at": "2026-10-10T00:13:52Z",
+          "tag_name": "2.11.0",
+          "published_at": "2026-10-29T23:50:03Z",
           "draft": false,
           "assets": [
             {
-              "name": "Moonfin_Tizen_Legacy_v2.10.0.wgt",
-              "browser_download_url": "https://github.com/Moonfin-Client/Smart-TV/releases/download/2.10.0/Moonfin_Tizen_Legacy_v2.10.0.wgt",
-              "size": 6015164,
-              "digest": "sha256:c34c7cfb63a18a9d42d291cdd1222934223290cfe670769957fced93c315304e",
-              "package_version": "2.10.0",
+              "name": "Moonfin_Tizen_Legacy_v2.11.0.wgt",
+              "browser_download_url": "https://github.com/Moonfin-Client/Smart-TV/releases/download/2.11.0/Moonfin_Tizen_Legacy_v2.11.0.wgt",
+              "size": 8351355,
+              "digest": "sha256:37121d0da6eef1dc789fe16d343279172b84c50342c56a2ff6d3bdcc100f992c",
+              "package_version": "2.11.0",
               "app_id": "MoonfinApp.moonfin",
               "package_id": "MoonfinApp"
             },
             {
-              "name": "Moonfin_Tizen_Oblong_v2.10.0.wgt",
-              "browser_download_url": "https://github.com/Moonfin-Client/Smart-TV/releases/download/2.10.0/Moonfin_Tizen_Oblong_v2.10.0.wgt",
-              "size": 6010175,
-              "digest": "sha256:6fc114bca55329909573a9a0815bf3eef2d39758b9fef3e844faca882a59048a",
-              "package_version": "2.10.0",
+              "name": "Moonfin_Tizen_Oblong_v2.11.0.wgt",
+              "browser_download_url": "https://github.com/Moonfin-Client/Smart-TV/releases/download/2.11.0/Moonfin_Tizen_Oblong_v2.11.0.wgt",
+              "size": 8413271,
+              "digest": "sha256:0244812077ba08ff03a87f896c01818aabb9b39e90d4877cd1b1a793bd994b04",
+              "package_version": "2.11.0",
               "app_id": "MoonfinApp.moonfin",
               "package_id": "MoonfinApp"
             },
             {
-              "name": "Moonfin_Tizen_Regular_v2.10.0.wgt",
-              "browser_download_url": "https://github.com/Moonfin-Client/Smart-TV/releases/download/2.10.0/Moonfin_Tizen_Regular_v2.10.0.wgt",
-              "size": 6016681,
-              "digest": "sha256:410eb81dfda41ca8eb4635d502a9ffb44c6e56ad627d8bf7a43809ef21f6935f",
-              "package_version": "2.10.0",
+              "name": "Moonfin_Tizen_Regular_v2.11.0.wgt",
+              "browser_download_url": "https://github.com/Moonfin-Client/Smart-TV/releases/download/2.11.0/Moonfin_Tizen_Regular_v2.11.0.wgt",
+              "size": 8353079,
+              "digest": "sha256:77990c6c97e871c4db4055e70c4c2a52cfc3d93a631664079df058514fa37968",
+              "package_version": "2.11.0",
               "app_id": "MoonfinApp.moonfin",
               "package_id": "MoonfinApp"
             }
