@@ -1,5 +1,5 @@
-// Fills each release asset's manifest version and ids (Asset.PackageVersion / AppId / PackageId)
-// for the providers whose packages are plain GitHub release assets: the Jellyfin family, TizenTube
+// Fills each release asset's manifest version, ids and the Tizen version it asks for
+// (Asset.PackageVersion / AppId / PackageId / RequiredVersion) for the providers whose packages are plain GitHub release assets: the Jellyfin family, TizenTube
 // and the like. The community bundle is skipped here; its catalog.json already carries the same
 // three fields per file (tizen-community-packages#133), and CommunityAppList stamps them.
 //
@@ -24,7 +24,7 @@ internal static class ManifestInfo
         var known = (previous?.Releases ?? new List<GitHubRelease>())
             .SelectMany(r => r.Assets)
             .Where(a => !string.IsNullOrWhiteSpace(a.DownloadUrl) &&
-                        (a.PackageVersion is not null || a.AppId is not null || a.PackageId is not null))
+                        (a.PackageVersion is not null || a.AppId is not null || a.PackageId is not null || a.RequiredVersion is not null))
             .GroupBy(a => a.DownloadUrl, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
@@ -42,12 +42,15 @@ internal static class ManifestInfo
                     continue;
                 }
 
+                // A snapshot from before required_version was recorded (TV-Store#47) reads the asset
+                // once more, so every entry gets the field without waiting for a new release.
                 if (known.TryGetValue(asset.DownloadUrl, out var old) && old.Size == asset.Size &&
-                    (asset.Digest is not null || old.Digest is not null))
+                    (asset.Digest is not null || old.Digest is not null) && old.RequiredVersion is not null)
                 {
                     asset.PackageVersion = old.PackageVersion;
                     asset.AppId = old.AppId;
                     asset.PackageId = old.PackageId;
+                    asset.RequiredVersion = old.RequiredVersion;
                     asset.Digest ??= old.Digest;
                     reused++;
                     continue;
@@ -73,6 +76,7 @@ internal static class ManifestInfo
                     asset.PackageVersion = info.Version;
                     asset.AppId = info.ApplicationId;
                     asset.PackageId = info.PackageId;
+                    asset.RequiredVersion = info.RequiredVersion;
                     downloaded++;
                     if (info.Version is null && info.ApplicationId is null)
                         Console.WriteLine($"::warning::{providerId}: {name} has no readable manifest; no version recorded");

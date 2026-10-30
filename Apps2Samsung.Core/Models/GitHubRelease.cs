@@ -158,6 +158,14 @@ namespace Apps2Samsung.Models
         [JsonPropertyName("package_id")]
         public string? PackageId { get; set; }
 
+        /// <summary>
+        /// The Tizen version the file asks for (config.xml <c>required_version</c> or tizen-manifest.xml
+        /// <c>api-version</c>), recorded next to the three above the same way (TV-Store#47). Null when
+        /// unknown; a TV below it refuses the package.
+        /// </summary>
+        [JsonPropertyName("required_version")]
+        public string? RequiredVersion { get; set; }
+
         /// <summary>Label from the community catalog when this file is one variant of a grouped app.</summary>
         [JsonIgnore]
         public string? Variant { get; set; }

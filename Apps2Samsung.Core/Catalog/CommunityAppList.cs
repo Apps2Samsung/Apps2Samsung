@@ -37,6 +37,7 @@ namespace Apps2Samsung.Catalog
                     asset.PackageVersion = Clean(entry?.Version) ?? asset.PackageVersion;
                     asset.AppId = Clean(entry?.AppId) ?? asset.AppId;
                     asset.PackageId = Clean(entry?.PackageId) ?? asset.PackageId;
+                    asset.RequiredVersion = Clean(entry?.RequiredVersion) ?? asset.RequiredVersion;
 
                     if (entry != null && !string.IsNullOrWhiteSpace(entry.Group))
                     {

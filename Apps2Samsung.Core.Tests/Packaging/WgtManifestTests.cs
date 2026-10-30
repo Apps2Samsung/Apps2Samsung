@@ -80,7 +80,7 @@ public sealed class WgtManifestTests : IDisposable
     {
         var info = await WgtManifest.ReadPackageInfoAsync(Package("config.xml", Config));
 
-        Assert.Equal(new WgtPackageInfo("2.1.0", "AprZAARz4r.Jellyfin", "AprZAARz4r"), info);
+        Assert.Equal(new WgtPackageInfo("2.1.0", "AprZAARz4r.Jellyfin", "AprZAARz4r", "4.0"), info);
     }
 
     [Fact]
@@ -95,7 +95,16 @@ public sealed class WgtManifestTests : IDisposable
 
         var info = await WgtManifest.ReadPackageInfoAsync(Package("tizen-manifest.xml", manifest, "native.tpk"));
 
-        Assert.Equal(new WgtPackageInfo("1.4.2", "org.example.native.main", "org.example.native"), info);
+        Assert.Equal(new WgtPackageInfo("1.4.2", "org.example.native.main", "org.example.native", "6.0"), info);
+    }
+
+    [Fact]
+    public async Task ReadPackageInfo_NoRequiredVersion_IsNull()
+    {
+        var info = await WgtManifest.ReadPackageInfoAsync(Package("config.xml", Config.Replace(" required_version=\"4.0\"", ""), "plain.wgt"));
+
+        Assert.Null(info.RequiredVersion);
+        Assert.Equal("AprZAARz4r", info.PackageId);
     }
 
     [Theory]

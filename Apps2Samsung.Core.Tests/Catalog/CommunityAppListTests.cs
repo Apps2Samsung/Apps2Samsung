@@ -13,7 +13,7 @@ public class CommunityAppListTests
         {
           "schemaVersion": 1,
           "apps": [
-            { "file": "Vetro.wgt", "name": "Vetro", "category": "tools", "repo": "andrearicci93/vetro", "flags": ["root"],
+            { "file": "Vetro.wgt", "name": "Vetro", "category": "tools", "repo": "andrearicci93/vetro", "flags": ["root"], "required_version": "6.0",
               "user_settings": { "fields": [ { "key": "port", "label": "Port", "type": "number", "required": false, "default": "8099",
                 "min": 1024, "max": 65535, "disallow": [8001, 8002, 26101],
                 "targets": [ { "file": "config.xml", "find": "8099", "replace": "{value}" } ] } ] } },
@@ -40,6 +40,15 @@ public class CommunityAppListTests
     }
 
     private static GitHubRelease Named(List<GitHubRelease> list, string name) => list.Single(r => r.Name == name);
+
+    [Fact]
+    public void RequiredVersion_IsStampedOnTheAsset_AndNullWhenTheCatalogHasNone()
+    {
+        var list = Expand();
+
+        Assert.Equal("6.0", Named(list, "Vetro").Assets[0].RequiredVersion);
+        Assert.Null(Named(list, "Frame Dashboard").Assets[0].RequiredVersion);
+    }
 
     [Fact]
     public void RootFlag_IsStamped_AndAGroupIsRootWhenAnyFileIs()
