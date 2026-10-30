@@ -311,7 +311,7 @@
 					<Button Grid.Column="2" Classes="tool" Content="{l:Localize lblRemoteKeyboard}" IsEnabled="{Binding IsConnected}">
 						<Button.Flyout>
 							<Flyout Placement="BottomEdgeAlignedRight">
-								<StackPanel Spacing="8" Width="320">
+								<StackPanel Spacing="8" Width="380">
 									<TextBlock Text="{l:Localize lblRemoteTypeOnTv}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
 									<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
 										<TextBox Grid.Column="0" Classes="search" Text="{Binding TextToSend}"
@@ -319,6 +319,51 @@
 										<Button Grid.Column="1" Classes="primary" CornerRadius="10" Padding="16,8"
 										        Content="{l:Localize lblRemoteSend}" Command="{Binding SendTextCommand}"/>
 									</Grid>
+									<!-- Apps that paint their own keyboard (YouTube, Netflix, TizenTube) ignore typed text
+									     altogether, so the alternative is to press their keys with the d-pad. -->
+									<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+										<TextBlock Text="{l:Localize lblRemoteTypeOnAppKeyboard}" FontSize="12" TextWrapping="Wrap"
+										           VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}"/>
+										<ToggleSwitch Grid.Column="1" MinWidth="0" VerticalAlignment="Center"
+										              IsChecked="{Binding TypeOnAppKeyboard}"/>
+									</Grid>
+									<TextBlock Text="{l:Localize lblRemoteKeyboardModeHint}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+									<!-- Which app's keyboard: a grid walk is only correct for the app its profile was
+									     measured on, so the app is picked explicitly and remembered. -->
+									<Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+										<TextBlock Text="{l:Localize lblRemoteKeyboardProfile}" FontSize="12" VerticalAlignment="Center"
+										           Foreground="{DynamicResource InkBrush}"/>
+										<ComboBox Grid.Column="1" Classes="clean" HorizontalAlignment="Stretch"
+										          ItemsSource="{Binding KeyboardProfileChoices}"
+										          SelectedItem="{Binding SelectedKeyboardProfile, Mode=TwoWay}"/>
+									</Grid>
+									<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+										<TextBlock Text="{l:Localize lblRemoteKeyboardClearFirst}" FontSize="12" TextWrapping="Wrap"
+										           VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}"/>
+										<ToggleSwitch Grid.Column="1" MinWidth="0" VerticalAlignment="Center"
+										              IsChecked="{Binding ClearBeforeTyping}"/>
+									</Grid>
+									<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+										<TextBlock Text="{l:Localize lblRemoteKeyboardSubmitAfter}" FontSize="12" TextWrapping="Wrap"
+										           VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}"/>
+										<ToggleSwitch Grid.Column="1" MinWidth="0" VerticalAlignment="Center"
+										              IsChecked="{Binding SubmitAfterTyping}"/>
+									</Grid>
+									<Button Classes="tool" HorizontalAlignment="Left" CornerRadius="10" Padding="14,7"
+									        Content="{l:Localize lblRemoteKeyboardClear}"
+									        Command="{Binding ClearFieldCommand}"/>
+									<Expander Header="{l:Localize lblRemoteKeyboardProfileSave}" HorizontalAlignment="Stretch">
+										<StackPanel Spacing="6">
+											<TextBox Text="{Binding KeyboardProfileJson, Mode=TwoWay}"
+											         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="120" MaxHeight="220"
+											         FontFamily="monospace" FontSize="11"/>
+											<Button Classes="primary" CornerRadius="10" Padding="14,7" HorizontalAlignment="Right"
+											        Content="{l:Localize lblRemoteKeyboardProfileSave}"
+											        Command="{Binding SaveKeyboardProfileCommand}"/>
+											<TextBlock Text="{l:Localize lblRemoteKeyboardProfileHint}" FontSize="12" TextWrapping="Wrap"
+											           Foreground="{DynamicResource MutedBrush}"/>
+										</StackPanel>
+									</Expander>
 									<TextBlock Text="{l:Localize lblRemoteTextHint}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
 								</StackPanel>
 							</Flyout>

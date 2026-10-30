@@ -28,6 +28,10 @@
     <!-- The translated strings, embedded so both heads read one copy through
          Localization/LocalizationCatalog (a MAUI head can't read an Avalonia avares:// resource).
          Localization/Languages is where the Crowdin CLI reads and writes them (crowdin.yml). -->
+    <!-- On-screen keyboard profiles, one JSON file per app keyboard: adding support for another app
+         is a file drop plus a test, not a code change (see Remote/Keyboards/README.md). -->
+    <EmbeddedResource Include="Remote\Keyboards\*.json"
+                      LogicalName="Apps2Samsung.Core.Remote.Keyboards.%(Filename).json" />
     <EmbeddedResource Include="Localization\Languages\*.json"
                       LogicalName="Apps2Samsung.Core.Localization.%(Filename).json" />
   </ItemGroup>
