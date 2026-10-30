@@ -119,6 +119,7 @@ public sealed class TvSelection
 				devices = await TizenDeveloperInfo.ScanAsync(_network);
 			}
 			LocalNetworkBlocked = devices.Count == 0 && _network.LastScanBlockedByOs && OperatingSystem.IsIOS();
+			TraceScanDiagnostics(devices);
 			var keepIp = Ip;
 
 			_tvs.Clear();
@@ -195,6 +196,22 @@ public sealed class TvSelection
 		return notReady > 0
 			? string.Format(L10n.Get("statusTvsFoundNotReady"), _tvs.Count, notReady)
 			: L10n.Get("Ready");
+	}
+
+	// One line per scan with everything the readiness verdict was computed from, the same line the
+	// desktop writes (#922): what to look at in the debug log when a TV is shown as not ready.
+	private void TraceScanDiagnostics(IReadOnlyList<NetworkDevice> devices)
+	{
+		try
+		{
+			var localIps = _network.GetRelevantLocalIPs().Select(ip => ip.ToString()).ToList();
+			System.Diagnostics.Trace.WriteLine(ScanDiagnostics.Describe(
+				NetworkInfo.GetLocalIPv4(), _network.GetLocalIPAddress(), localIps, devices));
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[Scan] diagnostics failed: {ex.Message}");
+		}
 	}
 
 	// Reads a TV's Developer-Mode state over its REST API; null when it doesn't answer.

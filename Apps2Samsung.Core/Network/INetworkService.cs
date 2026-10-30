@@ -12,7 +12,12 @@ namespace Apps2Samsung.Interfaces
         Task<NetworkDevice?> ValidateManualTizenAddress(string ip, CancellationToken cancellationToken = default);
         IEnumerable<IPAddress> GetRelevantLocalIPs(bool virtualScan = false);
         Task<bool> IsPortOpenAsync(string ip, int port, CancellationToken ct);
-        string GetLocalIPAddress();
+        /// <summary>
+        /// The address of the interface that carries this machine's default route, read now (a UDP
+        /// socket "connected" towards the internet; nothing is sent). Null when there is no route or
+        /// the OS answers with loopback / 0.0.0.0, never a loopback address.
+        /// </summary>
+        string? GetLocalIPAddress();
         string InvertIPAddress(string ipAddress);
         bool IsDifferentSubnet(string ip1, string ip2);
         Task<IReadOnlyList<NetworkInterfaceOption>> GetNetworkInterfaceOptionsAsync();

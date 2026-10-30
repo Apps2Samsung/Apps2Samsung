@@ -21,6 +21,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
 using Apps2Samsung.Extensions;
@@ -458,6 +459,7 @@ namespace Apps2Samsung.ViewModels
             _updateDialogService = updateDialogService;
             _fileHelper = fileHelper;
             _settingsViewModel = settingsViewModel;
+            SubscribeToNetworkChanges();
             // Settings > Check: the same check as at startup, but it always speaks.
             _settingsViewModel.CheckForUpdatesHandler = () => CheckForUpdatesAsync(manual: true);
             // Settings > Installing > Prepare the certificate now: for the selected TV.
@@ -613,7 +615,11 @@ namespace Apps2Samsung.ViewModels
         /// </summary>
         private void UpdateTvCard()
         {
-            var localIp = AppSettings.Default.LocalIp;
+            // The card the user picked in Settings, else the first interface we have: an empty
+            // address only means "say nothing about the IP", never 127.0.0.1.
+            var localIp = string.IsNullOrEmpty(AppSettings.Default.LocalIp)
+                ? _localIps.FirstOrDefault()
+                : AppSettings.Default.LocalIp;
             var device = SelectedDevice;
             TvCardState state;
             if (IsLoadingDevices)
@@ -634,6 +640,92 @@ namespace Apps2Samsung.ViewModels
         }
 
         private IReadOnlyCollection<string> _localIps = Array.Empty<string>();
+
+        // ---- The local side of the readiness verdict (#922) ----
+        // Everything "this machine" is compared against is re-read on every scan and when the OS
+        // reports an address change (a Mac waking up tears the Wi-Fi interface down and brings it
+        // back; the addresses read at startup then describe an interface that no longer exists, and
+        // the TV stays "not ready" until a relaunch re-reads them).
+
+        private CancellationTokenSource? _networkChangeDebounce;
+
+        private void SubscribeToNetworkChanges()
+        {
+            try
+            {
+                NetworkChange.NetworkAddressChanged += OnNetworkChanged;
+                NetworkChange.NetworkAvailabilityChanged += OnNetworkChanged;
+            }
+            catch (Exception ex)
+            {
+                // Not every platform raises these; the per-scan refresh still covers it.
+                Trace.WriteLine($"[Network] Address change notifications unavailable: {ex.Message}");
+            }
+        }
+
+        // Interfaces flap several times while one re-associates; wait for them to settle, then
+        // re-read the local side and re-probe the TVs we know about. Quiet: no "no TV found, retry?"
+        // dialog from a rescan nobody asked for.
+        private void OnNetworkChanged(object? sender, EventArgs e)
+        {
+            _networkChangeDebounce?.Cancel();
+            var cts = new CancellationTokenSource();
+            _networkChangeDebounce = cts;
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(3), cts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+
+                await Dispatcher.UIThread.InvokeAsync(async () =>
+                {
+                    if (!_windowOpened || IsLoadingDevices || IsLoading || IsInstallProgressVisible || IsSamsungLoginActive)
+                        return;
+                    Trace.WriteLine("[Network] Address change: re-reading the local side and rescanning.");
+                    await LoadDevicesAsync(quiet: true);
+                });
+            });
+        }
+
+        // Re-read the configured local IP (Settings' network card list) and the interface addresses
+        // before a scan, so the verdicts of this scan are computed against the machine as it is now.
+        private async Task RefreshLocalSideAsync()
+        {
+            await _settingsViewModel.Application.RefreshNetworkInterfacesAsync();
+            _localIps = _packageHelper.LocalIps();
+        }
+
+        // The SDB engine reuses one connection per TV; after a sleep that connection follows a route
+        // that is gone. Drop them so the next install connects fresh along the current route.
+        private async Task ForgetSdbConnectionsAsync(IEnumerable<string> tvIps)
+        {
+            foreach (var ip in tvIps)
+            {
+                try { await _sdbEngine.DisconnectAsync(ip); }
+                catch (Exception ex) { Trace.WriteLine($"[Network] Could not drop the SDB connection to {ip}: {ex.Message}"); }
+            }
+        }
+
+        private void TraceScanDiagnostics()
+        {
+            try
+            {
+                Trace.WriteLine(ScanDiagnostics.Describe(
+                    AppSettings.Default.LocalIp,
+                    _networkService.GetLocalIPAddress(),
+                    _localIps,
+                    AvailableDevices.Where(d => d.IpAddress != L("lblOther"))));
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Scan] diagnostics failed: {ex.Message}");
+            }
+        }
 
         /// <summary>The card is clickable while the TV isn't ready and nothing runs on it.</summary>
         private bool CanOpenTvGuide() =>
@@ -1509,9 +1601,13 @@ namespace Apps2Samsung.ViewModels
             RebuildCatalogRows();
         }
 
-        private async Task LoadDevicesAsync(CancellationToken cancellationToken = default, bool virtualScan = false)
+        private async Task LoadDevicesAsync(CancellationToken cancellationToken = default, bool virtualScan = false, bool quiet = false)
         {
             IsLoadingDevices = true;
+            var knownIps = AvailableDevices
+                .Select(d => d.IpAddress)
+                .Where(ip => !string.IsNullOrWhiteSpace(ip) && ip != L("lblOther"))
+                .ToList();
             AvailableDevices.Clear();
             RefreshVpnWarning();
 
@@ -1519,14 +1615,20 @@ namespace Apps2Samsung.ViewModels
             {
                 string? selectedIp = SelectedDevice?.IpAddress;
 
+                // This machine's side first, as it is now, not as it was at startup (#922).
+                await RefreshLocalSideAsync();
+                await ForgetSdbConnectionsAsync(knownIps);
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // Scan + Developer-Mode enrichment, shared with the mobile head (Core).
                 var devices = await TizenDeveloperInfo.ScanAsync(_networkService, cancellationToken, virtualScan);
                 foreach (var device in devices)
                     AvailableDevices.Add(device);
+                TraceScanDiagnostics();
 
                 if (AvailableDevices.Count == 0)
                 {
-                    if (!virtualScan)
+                    if (!virtualScan && !quiet)
                     {
                         SetStatus("NoDevicesFoundRetry");
                         var rescan = await _dialogService.ShowConfirmationAsync(
@@ -1592,6 +1694,9 @@ namespace Apps2Samsung.ViewModels
                 }
 
                 IsLoadingDevices = false;
+                // The verdict on the card is recomputed from the freshly read local side even when
+                // the selection did not change (same TV found again).
+                UpdateTvCard();
             }
         }
         private async Task PromptForManualIpAsync()

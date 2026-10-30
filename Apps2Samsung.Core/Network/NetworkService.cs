@@ -522,13 +522,24 @@ namespace Apps2Samsung.Services
             }
         }
 
-        public string GetLocalIPAddress()
+        /// <inheritdoc/>
+        public string? GetLocalIPAddress()
         {
-            using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+            try
             {
+                using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0);
                 socket.Connect("8.8.8.8", 65530);
-                var endPoint = socket.LocalEndPoint as IPEndPoint;
-                return endPoint?.Address.ToString();
+                var address = (socket.LocalEndPoint as IPEndPoint)?.Address;
+                // With no route (Wi-Fi still re-associating after a wake) the OS answers with
+                // 0.0.0.0 or loopback; neither is "this machine" to a TV, so say "unknown" rather
+                // than let 127.0.0.1 reach a verdict or the screen (#922).
+                if (address is null || IPAddress.IsLoopback(address) || address.Equals(IPAddress.Any))
+                    return null;
+                return address.ToString();
+            }
+            catch (SocketException)
+            {
+                return null;
             }
         }
         public string InvertIPAddress(string ipAddress)
