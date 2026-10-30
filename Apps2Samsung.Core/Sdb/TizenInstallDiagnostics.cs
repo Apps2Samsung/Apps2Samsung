@@ -88,6 +88,12 @@ namespace Apps2Samsung.Sdb
         public static bool IsApiVersionMismatch(string? output) =>
             Has(output, Constants.TizenErrorCodes.InstallFailed118Minus4);
 
+        /// <summary>The installer could not read the manifest ([118, -19], "Parsing error"; 118019 on a
+        /// 2018 set): in practice the package asks for a newer Tizen than the TV runs (TV-Store#44).</summary>
+        public static bool IsManifestParseError(string? output) =>
+            Has(output, Constants.TizenErrorCodes.InstallFailed118Minus19) ||
+            Has(output, Constants.TizenErrorCodes.InstallFailed118019);
+
         /// <summary>
         /// The TV's security manager rejected the package ([118, -22], or [118022] on Tizen 4 / "Security
         /// error : :Invalid function parameter was given:&lt;2&gt;", SECURITY_MANAGER_ERROR_INPUT_PARAM).

@@ -230,6 +230,19 @@ namespace Apps2Samsung.Install
                 throw new InvalidOperationException(
                     "The TV refused this package ([118, -4]). Either the app needs a newer Tizen than this TV, or it needs Partner signing / a privilege your certificate doesn't allow. If other apps install fine, turn on Partner signing and retry, or try an older build.");
 
+            // [118, -19] "parsing error" (118019 on a 2018 set): the TV could not read the manifest, which
+            // in practice means the package asks for a newer Tizen than the set runs (TV-Store#44).
+            if (TizenInstallDiagnostics.IsManifestParseError(output))
+            {
+                var asksFor = await WgtManifest.ReadRequiredVersionAsync(wgtPath);
+                var tvRuns = TizenVersionCache.TryGet(tvIp);
+                throw new InvalidOperationException(
+                    "The TV refused this package ([118, -19]): it could not read the package's manifest. " +
+                    (asksFor is not null
+                        ? $"The app asks for Tizen {asksFor} or newer" + (tvRuns is not null ? $", and this TV runs Tizen {tvRuns}" : "") + ". Try an older build of the app."
+                        : "This usually means the app asks for a newer Tizen than this TV runs. Try an older build of the app."));
+            }
+
             // [116] "download failed": the TV has no room for the package (#666).
             if (TizenInstallDiagnostics.IsInsufficientSpace(output))
             {

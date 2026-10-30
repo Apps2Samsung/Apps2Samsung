@@ -43,6 +43,11 @@ namespace Apps2Samsung.Helpers.Core
             // API-version incompatibility: the package targets a higher Tizen API level than the TV
             // supports. Distinct from the generic [118] and the [118, -12] cert mismatch.
             public const string InstallFailed118Minus4 = "install failed[118, -4]";
+            // The installer's "parsing error" on the manifest: in practice a package that asks for a
+            // newer Tizen than the set runs (TV-Store#44, required_version 6.0 on a 2018 set). Tizen 4
+            // prints it as six digits.
+            public const string InstallFailed118Minus19 = "install failed[118, -19]";
+            public const string InstallFailed118019 = "install failed[118019]";
             // The TV's security manager refused the package id itself: SECURITY_MANAGER_ERROR_INPUT_PARAM
             // ("Security error : :Invalid function parameter was given:<2>"). Note the comma, it does NOT
             // contain the plain "install failed[118]" token, so it used to fall through to the generic

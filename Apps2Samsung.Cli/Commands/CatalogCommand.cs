@@ -5,7 +5,8 @@ namespace Apps2Samsung.Cli.Commands;
 
 public static class CatalogCommand
 {
-    public sealed record FileInfo(string File, string? Variant, string? Version, long Size, bool Default, IReadOnlyList<SettingInfo>? Settings);
+    /// <param name="Tizen">The Tizen version the file asks for ("6.0"), from the catalog; null when it does not say (TV-Store#47).</param>
+    public sealed record FileInfo(string File, string? Variant, string? Version, long Size, bool Default, IReadOnlyList<SettingInfo>? Settings, string? Tizen = null);
     public sealed record SettingInfo(string Key, string Label, string Type, bool Required, string? Pattern, string? HelpUrl,
         string? Default, long? Min, long? Max, IReadOnlyList<long>? Disallow);
     public sealed record Entry(string Name, string Category, string Description, bool RequiresPartner, bool HasVariants, bool Adult, bool Root,
@@ -49,7 +50,8 @@ public static class CatalogCommand
                 {
                     var label = f.Variant is not null ? $"{f.Variant}: {f.File}" : f.File;
                     var version = f.Version is not null ? $" v{f.Version}" : "";
-                    text.Add($"    - {label}{version}{(f.Default ? " (default)" : "")}");
+                    var tizen = f.Tizen is not null ? $"  Tizen {f.Tizen}+" : "";
+                    text.Add($"    - {label}{version}{(f.Default ? " (default)" : "")}{tizen}");
                     if (f.Settings is not null)
                         foreach (var st in f.Settings)
                             text.Add($"        --set {st.Key}=…  {st.Label}{(st.Required ? "" : st.Default is null ? " (optional)" : $" (optional, default {st.Default})")}{(st.HelpUrl is null ? "" : $"  see {st.HelpUrl}")}");
@@ -59,8 +61,9 @@ public static class CatalogCommand
             {
                 // The package's own version when the catalog knows it, else the release tag.
                 var version = e.Files[0].Version is not null ? $"v{e.Files[0].Version}" : e.Tag;
-                if (version is not null)
-                    text.Add($"    {version}");
+                var tizen = e.Files[0].Tizen is not null ? $"Tizen {e.Files[0].Tizen}+" : null;
+                if (version is not null || tizen is not null)
+                    text.Add($"    {string.Join("  ", new[] { version, tizen }.Where(x => x is not null))}");
             }
         }
         if (list.Count > 0)
@@ -78,7 +81,8 @@ public static class CatalogCommand
             a.IsDefault || (r.Assets.Count == 1),
             a.UserSettings is null ? null : a.UserSettings.Fields.Select(f =>
                 new SettingInfo(f.Key, f.Label, f.Type, f.Required, f.Pattern, a.UserSettings.HelpUrl,
-                    f.Default, f.Min, f.Max, f.Disallow)).ToList())).ToList();
+                    f.Default, f.Min, f.Max, f.Disallow)).ToList(),
+            string.IsNullOrWhiteSpace(a.RequiredVersion) ? null : a.RequiredVersion)).ToList();
         var published = DateTime.TryParse(r.PublishedAt, out var date) ? date.ToString("yyyy-MM-dd") : null;
         return new Entry(r.Name, r.Category, r.Description, r.RequiresPartner, r.HasVariants, r.IsAdult, r.IsRoot,
             string.IsNullOrWhiteSpace(r.TagName) ? null : r.TagName, published, r.Author, r.SourceUrl,
