@@ -167,19 +167,52 @@ namespace Apps2Samsung.TvStore
         /// package it installs with it from then on. The TV then needs no head for an install.
         /// </summary>
         /// <exception cref="InvalidOperationException">The service refused or did not answer; the message carries its words.</exception>
-        public async Task ArmAsync(SigningCertificatePem certificate, CancellationToken ct = default)
+        public Task ArmAsync(SigningCertificatePem certificate, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(certificate);
-            var payload = JsonSerializer.Serialize(new
-            {
-                authorKeyPem = certificate.AuthorKeyPem,
-                authorCertPem = certificate.AuthorCertPem,
-                distributorKeyPem = certificate.DistributorKeyPem,
-                distributorCertPem = certificate.DistributorCertPem,
-            });
-            var node = await CallAsync($"A2SStore.setCertificate({payload})", ArmTimeout, ct).ConfigureAwait(false);
+            return ArmAsync(new[] { certificate }, ct);
+        }
+
+        /// <summary>
+        /// Hands every signing profile this device holds to TV-Store, the one an install on that TV
+        /// would sign with first (#44). A Samsung TV only updates an app with the author certificate
+        /// it was installed with, so with all of them TV-Store can update an app that any of them
+        /// installed, instead of removing it. A TV-Store before 0.3.12 reads the first profile only.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The service refused or did not answer; the message carries its words.</exception>
+        public async Task ArmAsync(IReadOnlyList<SigningCertificatePem> certificates, CancellationToken ct = default)
+        {
+            var node = await CallAsync($"A2SStore.setCertificate({ArmPayload(certificates)})", ArmTimeout, ct).ConfigureAwait(false);
             if (node?["ok"]?.GetValue<bool>() != true)
                 throw new InvalidOperationException($"TV-Store did not take the certificate: {node?["error"]?.ToString() ?? "no reply"}");
+        }
+
+        /// <summary>
+        /// The JSON A2SStore.setCertificate takes: the first profile's four PEM fields at the top
+        /// level, as every TV-Store since 0.2.0 reads them, plus <c>certificates</c> with all of them
+        /// (name included) for 0.3.12 and later.
+        /// </summary>
+        public static string ArmPayload(IReadOnlyList<SigningCertificatePem> certificates)
+        {
+            ArgumentNullException.ThrowIfNull(certificates);
+            if (certificates.Count == 0)
+                throw new ArgumentException("At least one certificate is needed.", nameof(certificates));
+            var first = certificates[0];
+            return JsonSerializer.Serialize(new
+            {
+                authorKeyPem = first.AuthorKeyPem,
+                authorCertPem = first.AuthorCertPem,
+                distributorKeyPem = first.DistributorKeyPem,
+                distributorCertPem = first.DistributorCertPem,
+                certificates = certificates.Select((c, i) => new
+                {
+                    name = string.IsNullOrWhiteSpace(c.Name) ? $"certificate {i + 1}" : c.Name,
+                    authorKeyPem = c.AuthorKeyPem,
+                    authorCertPem = c.AuthorCertPem,
+                    distributorKeyPem = c.DistributorKeyPem,
+                    distributorCertPem = c.DistributorCertPem,
+                }).ToList(),
+            });
         }
 
         private async Task<JsonNode?> CallAsync(string expression, TimeSpan timeout, CancellationToken ct)
