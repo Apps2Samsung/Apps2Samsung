@@ -218,7 +218,6 @@
   "lblRemoteTextPlaceholder": "Küldendő szöveg...",
   "lblRemoteSend": "Küldés",
   "lblRemoteTextHint": "Előbb kattintson egy szövegmezőbe a TV-n. Nem minden modell fogadja a gépelt szöveget.",
-  "lblRemoteKeyboardCleared": "A mező tartalmát töröltük a TV-n.",
   "lblRemoteTextLivePlaceholder": "Gépeljen ide - a TV követi",
   "lblRemoteTextLiveHint": "Előbb kattintson egy szövegmezőbe a TV-n, aztán csak gépeljen - gépelés közben ott is megjelenik. Nem minden modell fogadja a gépelt szöveget.",
   "lblRemoteTextMirrored": "A TV-n: „{0}”",

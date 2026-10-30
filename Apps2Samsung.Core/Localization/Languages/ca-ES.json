@@ -389,7 +389,6 @@
   "lblRemoteTextPlaceholder": "Text per enviar...",
   "lblRemoteSend": "Envia",
   "lblRemoteTextHint": "Poseu primer el focus en un camp de text del televisor. No tots els models accepten text escrit.",
-  "lblRemoteKeyboardCleared": "S'ha buidat el camp del televisor.",
   "lblRemoteTextLivePlaceholder": "Escriviu aquí - el televisor us segueix",
   "lblRemoteTextLiveHint": "Poseu primer el focus en un camp de text del televisor i escriviu: hi apareix a mesura que escriviu. No tots els models accepten text escrit.",
   "lblRemoteTextMirrored": "Al televisor: «{0}»",

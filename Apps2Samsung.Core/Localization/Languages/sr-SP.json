@@ -179,7 +179,6 @@
   "lblRemoteTextPlaceholder": "Текст за слање...",
   "lblRemoteSend": "Пошаљи",
   "lblRemoteTextHint": "Прво изаберите поље за текст на телевизору. Не примају сви модели откуцани текст.",
-  "lblRemoteKeyboardCleared": "Поље на телевизору је обрисано.",
   "lblRemoteTextLivePlaceholder": "Куцајте овде - телевизор прати",
   "lblRemoteTextLiveHint": "Прво изаберите поље за текст на телевизору, па само куцајте - појављује се тамо док куцате. Не примају сви модели откуцани текст.",
   "lblRemoteTextMirrored": "На телевизору: „{0}“",

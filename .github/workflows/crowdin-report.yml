@@ -5,6 +5,11 @@ name: Crowdin report
 # never arrives, it just ships fewer files than the project has languages.
 
 on:
+  # Weekly, ahead of the Monday approve run (05:30) and the sync, so the per-language progress
+  # is in the Actions tab every week without anyone remembering to click: the repo files only
+  # carry real translations (skip_untranslated_strings), so this is the one place the gap shows.
+  schedule:
+    - cron: '0 5 * * 1'
   workflow_dispatch:
 
 jobs:

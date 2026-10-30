@@ -315,7 +315,6 @@
   "lblRemoteTextPlaceholder": "要发送的文本...",
   "lblRemoteSend": "发送",
   "lblRemoteTextHint": "首先在电视上聚焦一个文本字段。不是每个模型接受的文本。",
-  "lblRemoteKeyboardCleared": "清除电视上的字段。",
   "lblRemoteTextLivePlaceholder": "在此处输入 - 电视关注",
   "lblRemoteTextLiveHint": "首先在电视上聚焦一个文本字段，然后只需键入 - 它出现在这里。不是每个模型接受的文本。",
   "lblRemoteTextMirrored": "在电视上：“{0}”",
