@@ -179,6 +179,7 @@
   "lblRemoteTextPlaceholder": "Текст для надсилання...",
   "lblRemoteSend": "Відправити",
   "lblRemoteTextHint": "Спершу фокусуйтеся на текстовому полі телевізора. Не кожна модель приймає введений текст.",
+  "lblRemoteKeyboardCleared": "Очищено поле по телевізору.",
   "lblRemoteTextLivePlaceholder": "Введіть тут - ТВ слідує",
   "lblRemoteTextLiveHint": "Спершу сфокусуйтесь на текстовому полі телевізора, а потім просто набирайте типізований текст.",
   "lblRemoteTextMirrored": "В телевізорі: \"{0}\"",

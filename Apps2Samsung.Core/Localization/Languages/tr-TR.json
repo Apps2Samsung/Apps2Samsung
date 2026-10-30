@@ -315,6 +315,7 @@
   "lblRemoteTextPlaceholder": "Gönderilecek metin...",
   "lblRemoteSend": "Gönder",
   "lblRemoteTextHint": "Önce TV'de bir metin alanına odaklanın. Her model yazılan metni kabul etmez.",
+  "lblRemoteKeyboardCleared": "TV'deki alan temizlendi.",
   "lblRemoteTextLivePlaceholder": "Buraya yazın - TV takip eder",
   "lblRemoteTextLiveHint": "Önce TV'de bir metin alanına odaklanın, sonra yazmaya başlayın - yazdıkça orada görünür. Her model yazılan metni kabul etmez.",
   "lblRemoteTextMirrored": "TV'de: \"{0}\"",

@@ -184,6 +184,7 @@
   "lblRemoteTextPlaceholder": "Texto a enviar...",
   "lblRemoteSend": "Enviar",
   "lblRemoteTextHint": "Concentrar un campo de texto en el televisor primero. No todos los modelos aceptan texto escrito.",
+  "lblRemoteKeyboardCleared": "Limpiado el campo en el televisor.",
   "lblRemoteTextLivePlaceholder": "Escriba aquí - el televisor sigue",
   "lblRemoteTextLiveHint": "Enfoca un campo de texto en el televisor primero, luego escribe - aparece allí a medida que vayas. No todos los modelos aceptan texto escrito.",
   "lblRemoteTextMirrored": "En la TV: \"{0}\"",

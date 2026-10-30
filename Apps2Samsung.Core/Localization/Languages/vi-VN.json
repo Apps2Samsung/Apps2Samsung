@@ -179,6 +179,7 @@
   "lblRemoteTextPlaceholder": "Nội dung cần gửi...",
   "lblRemoteSend": "Gửi",
   "lblRemoteTextHint": "Hãy đặt con trỏ vào một ô nhập trên TV trước. Không phải model nào cũng nhận văn bản gõ vào.",
+  "lblRemoteKeyboardCleared": "Đã xoá nội dung trong ô trên TV.",
   "lblRemoteTextLivePlaceholder": "Gõ vào đây - TV sẽ hiện theo",
   "lblRemoteTextLiveHint": "Hãy đặt con trỏ vào một ô nhập trên TV trước, rồi cứ gõ - chữ hiện lên đó ngay khi bạn gõ. Không phải model nào cũng nhận văn bản gõ vào.",
   "lblRemoteTextMirrored": "Trên TV: \"{0}\"",

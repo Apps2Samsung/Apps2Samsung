@@ -179,6 +179,7 @@
   "lblRemoteTextPlaceholder": "نص للإرسال...",
   "lblRemoteSend": "إرسال",
   "lblRemoteTextHint": "تركيز حقل نص على التلفزيون أولاً. لا يقبل كل نموذج النص المكتوب.",
+  "lblRemoteKeyboardCleared": "مسح الحقل على التلفزيون.",
   "lblRemoteTextLivePlaceholder": "اكتب هنا - التلفزيون يتبع",
   "lblRemoteTextLiveHint": "قم بتركيز حقل نص على التلفزيون أولاً، ثم اكتب فقط - يظهر هناك بينما تذهب. ليس كل نموذج يقبل النص المكتوب.",
   "lblRemoteTextMirrored": "على التلفزيون: \"{0}\"",

@@ -179,6 +179,7 @@
   "lblRemoteTextPlaceholder": "Teks om te stuur...",
   "lblRemoteSend": "Stuur",
   "lblRemoteTextHint": "Fokus eers op 'n teksveld op die TV. Nie elke model aanvaar getikte teks nie.",
+  "lblRemoteKeyboardCleared": "Die veld op die TV is skoongemaak.",
   "lblRemoteTextLivePlaceholder": "Tik hier - die TV volg",
   "lblRemoteTextLiveHint": "Fokus eers op 'n teksveld op die TV en begin dan tik - dit verskyn daar soos jy tik. Nie elke model aanvaar getikte teks nie.",
   "lblRemoteTextMirrored": "Op die TV: \"{0}\"",
