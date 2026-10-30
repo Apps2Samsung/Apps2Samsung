@@ -1,3 +1,4 @@
+using Apps2Samsung.Mobile.Localization;
 using System;
 using System.Threading.Tasks;
 using Apps2Samsung.Interfaces;
@@ -40,7 +41,7 @@ public partial class DeviceInfoPage : ContentPage
 
 	private async Task LoadAsync()
 	{
-		SetBusy(true, "Reading TV information…");
+		SetBusy(true, L10n.Get("statusReadingTvInfo"));
 		try
 		{
 			var info = await TizenDeviceInfoService.GatherAsync(_sdb, _tvIp, _debugPortOpen, NetworkInfo.LocalIpFor(_tvIp));
@@ -50,7 +51,7 @@ public partial class DeviceInfoPage : ContentPage
 		catch (Exception ex)
 		{
 			RowsList.ItemsSource = null;
-			EmptyLabel.Text = $"Couldn't read TV information: {ex.Message}";
+			EmptyLabel.Text = string.Format(L10n.Get("statusReadTvInfoFailed"), ex.Message);
 			CountLabel.Text = _tvLabel;
 		}
 		finally

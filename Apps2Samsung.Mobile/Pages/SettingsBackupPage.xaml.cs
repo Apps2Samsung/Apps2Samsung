@@ -36,7 +36,7 @@ public partial class SettingsBackupPage : ContentPage
 		{
 			await Share.Default.RequestAsync(new ShareFileRequest
 			{
-				Title = "Apps2Samsung debug log",
+				Title = L10n.Get("lblDebugLog"),
 				File = new ShareFile(logPath),
 			});
 		}
@@ -96,7 +96,7 @@ public partial class SettingsBackupPage : ContentPage
 			using (var stream = File.Create(path))
 				BackupService.Export(stream, BuildSettingsJson(), CertStorePath);
 
-			await Share.Default.RequestAsync(new ShareFileRequest("Apps2Samsung backup", new ShareFile(path)));
+			await Share.Default.RequestAsync(new ShareFileRequest(L10n.Get("lblBackupFile"), new ShareFile(path)));
 		}
 		catch (Exception ex)
 		{
