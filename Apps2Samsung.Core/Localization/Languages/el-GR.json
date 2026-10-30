@@ -945,6 +945,7 @@
   "lblLogTime": "Ώρα",
   "lblLogLevel": "Επίπεδο",
   "lblLogMessage": "Μήνυμα",
+  "lblLogLevelInfo": "Πληροφορίες",
   "lblChooseLogSession": "Επιλέξτε καταγραφή",
   "statusLogSaveFailed": "Δεν ήταν δυνατή η αποθήκευση της καταγραφής: {0}",
   "lblAppNeedsDetails": "Το {0} χρειάζεται μερικές λεπτομέρειες",
