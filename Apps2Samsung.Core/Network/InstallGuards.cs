@@ -122,9 +122,11 @@ namespace Apps2Samsung.Services
                 : options.LocalIps.Append(options.ConfiguredLocalIp!).ToList();
             if (TizenEmulator.IsThisMachine(device.IpAddress, allLocalIps))
             {
+                // Never the TV's own address: with no local IP known that would print 127.0.0.1
+                // as "this device", which reads as a wrong configuration rather than an unknown.
                 var thisDevice = !string.IsNullOrEmpty(options.ConfiguredLocalIp) ? options.ConfiguredLocalIp!
                                : options.LocalIps.Count > 0 ? string.Join(", ", options.LocalIps)
-                               : device.IpAddress;
+                               : "unknown";
                 guards.Add(new InstallGuard(
                     InstallGuardKind.EmulatorTarget,
                     "guardEmulatorTitle", "guardEmulatorBody",

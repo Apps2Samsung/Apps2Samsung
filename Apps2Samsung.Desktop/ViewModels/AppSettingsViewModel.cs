@@ -256,6 +256,18 @@ namespace Apps2Samsung.ViewModels
             ManualDuids = AppSettings.Default.ManualDuids ?? string.Empty;
         }
 
+        // True while LoadNetworkInterfacesAsync restores the selection: a programmatic pick must
+        // not overwrite the card the user chose (see OnSelectedNetworkInterfaceChanged).
+        private bool _restoringNetworkInterfaces;
+
+        /// <summary>
+        /// Re-reads the network cards and this machine's local IP from them. Called before every
+        /// TV scan and when the OS reports an address change: after a sleep the Wi-Fi interface is
+        /// torn down and re-created, so the IP picked at startup can describe an interface that no
+        /// longer exists, and the TV then looks not ready until a relaunch re-reads it (#922).
+        /// </summary>
+        public System.Threading.Tasks.Task RefreshNetworkInterfacesAsync() => LoadNetworkInterfacesAsync();
+
         private async System.Threading.Tasks.Task LoadNetworkInterfacesAsync()
         {
             try
@@ -273,7 +285,7 @@ namespace Apps2Samsung.ViewModels
                     // fall back to IP match, then default to first interface
                     var savedName = AppSettings.Default.SavedNetworkInterfaceName;
                     var savedIp = AppSettings.Default.LocalIp;
-                    SelectedNetworkInterface =
+                    var restored =
                         (!string.IsNullOrEmpty(savedName)
                             ? NetworkInterfaces.FirstOrDefault(i => i.Name == savedName)
                             : null)
@@ -281,6 +293,30 @@ namespace Apps2Samsung.ViewModels
                             ? NetworkInterfaces.FirstOrDefault(i => i.IpAddress == savedIp)
                             : null)
                         ?? NetworkInterfaces.FirstOrDefault();
+
+                    _restoringNetworkInterfaces = true;
+                    try
+                    {
+                        SelectedNetworkInterface = restored;
+                        // Same card, new address (DHCP, or the card came back after a wake): the
+                        // setter above does not fire for an equal selection, so push the IP through.
+                        if (restored is not null && AppSettings.Default.LocalIp != restored.IpAddress)
+                        {
+                            LocalIP = restored.IpAddress;
+                            AppSettings.Default.LocalIp = restored.IpAddress;
+                        }
+                        // No card at all (offline): forget the stale address rather than keep
+                        // comparing the TV against an interface that is gone.
+                        if (restored is null)
+                        {
+                            LocalIP = string.Empty;
+                            AppSettings.Default.LocalIp = string.Empty;
+                        }
+                    }
+                    finally
+                    {
+                        _restoringNetworkInterfaces = false;
+                    }
                 });
             }
             catch (Exception ex)
@@ -490,7 +526,11 @@ namespace Apps2Samsung.ViewModels
 
             LocalIP = value.IpAddress;
             AppSettings.Default.LocalIp = value.IpAddress;
-            AppSettings.Default.SavedNetworkInterfaceName = value.Name;
+            // Remember the card only when the user picked it (or nothing was remembered yet). A
+            // restore that fell through to "first card" because the chosen one is momentarily down
+            // must not replace the choice: when the Wi-Fi comes back it has to win again.
+            if (!_restoringNetworkInterfaces || string.IsNullOrEmpty(AppSettings.Default.SavedNetworkInterfaceName))
+                AppSettings.Default.SavedNetworkInterfaceName = value.Name;
             AppSettings.Default.Save();
         }
 
