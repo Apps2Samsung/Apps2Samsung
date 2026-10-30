@@ -49,7 +49,6 @@
   "lblOpenLogsFolder": "Open Logs Folder",
   "lblTvAppSettings": "Kanaler",
   "lblTvAppHint": "Legg til kanalnavnet og m3u8-koblingen. Disse er skrevet til TVApp før installasjon.",
-  "lblChannelName": "Kanal navn",
   "lblChannelUrl": "m3u8 nettadresse",
   "lblAddChannel": "Legg til kanal",
   "lblNoChannels": "Ingen kanaler ennå. Klikk på \"Legg til kanal\" for å lage en.",

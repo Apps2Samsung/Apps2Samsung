@@ -218,7 +218,7 @@
   "lblOpenLogsFolder": "Otevřít složku protokolů",
   "lblTvAppSettings": "Kanály",
   "lblTvAppHint": "Zadejte název kanálu a odkaz m3u8. Tyto údaje se zapíší do TVApp před instalací.",
-  "lblChannelName": "Název kanálu",
+  "lblChannelName": "Název",
   "lblChannelUrl": "URL m3u8",
   "lblAddChannel": "Přidat kanál",
   "lblNoChannels": "Zatím žádné kanály. Kliknutím na „Přidat kanál“ kanál vytvoříte.",
