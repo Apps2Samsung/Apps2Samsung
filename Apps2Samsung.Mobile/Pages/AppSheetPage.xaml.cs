@@ -1,6 +1,7 @@
 using Apps2Samsung.Mobile.Controls;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
+using Apps2Samsung.Catalog;
 using Apps2Samsung.Models;
 
 namespace Apps2Samsung.Mobile.Pages;
@@ -29,6 +30,8 @@ public partial class AppSheetPage : ContentPage
 	private readonly Action<string>? _searchAuthor;
 	private readonly string _name;
 	private readonly bool _tvReady;
+	// The selected TV's Tizen version, when known: "Needs Tizen X" and no Install for a build it is too old for (TV-Store#47).
+	private readonly Version? _tvVersion;
 	private readonly string? _tvName;
 	// Opened for an app the TV runs another version of: the button says Update (#888).
 	private readonly bool _isUpdate;
@@ -47,9 +50,10 @@ public partial class AppSheetPage : ContentPage
 	public AppSheetPage(IReadOnlyList<GitHubRelease> versions, string? previewUrl, string subline, string? tvName, bool tvReady,
 		bool isFavorite = false, Action<string, bool>? setFavorite = null,
 		Func<bool, Task<IReadOnlyList<GitHubRelease>>>? showAllVersions = null, bool isUpdate = false,
-		Action<string>? searchAuthor = null)
+		Action<string>? searchAuthor = null, Version? tvVersion = null)
 	{
 		InitializeComponent();
+		_tvVersion = tvVersion;
 		var release = versions[0];
 		_name = release.Name;
 		_isFavorite = isFavorite;
@@ -145,18 +149,42 @@ public partial class AppSheetPage : ContentPage
 				var label = !several ? asset.LongDisplayText
 					: release.Assets.Count > 1 ? $"{release.TagName} · {asset.LongDisplayText}"
 					: release.TagName;
+				// The Tizen this build asks for, from the catalog (TV-Store#47).
+				if (asset.HasRequiredVersion)
+					label += " · " + asset.RequiredVersionText;
 				Versions.Add(VersionRow(release, asset, label));
 			}
 		}
 
 		var newest = versions[0];
-		var defaultAsset = newest.Assets.FirstOrDefault(a => a.IsDefault) ?? newest.Assets.FirstOrDefault();
+		// Land on a build this TV runs when the default is too new for it (TV-Store#47).
+		var defaultAsset = TizenRequirement.FirstFitting(newest.Assets, newest.Assets.FirstOrDefault(a => a.IsDefault) ?? newest.Assets.FirstOrDefault(), _tvVersion);
 		Select(defaultAsset is null ? null : new AppSheetChoice(newest, defaultAsset));
 
 		// An app the TV runs an older (or other) version of: the same install, called an update (#888).
 		InstallBtn.Text = string.IsNullOrEmpty(_tvName) ? L10n.Get("lblChooseTvFirst")
 			: string.Format(L10n.Get(_isUpdate ? "lblUpdateOn" : "lblInstallOn"), _tvName);
-		InstallBtn.IsEnabled = _tvReady && !string.IsNullOrEmpty(_tvName) && _selected is not null;
+		UpdateInstallButton();
+	}
+
+	// Install is on when the TV is ready and the selected build runs on it; the badge by the title
+	// and the hint above the button say what the build asks for (TV-Store#47).
+	private void UpdateInstallButton()
+	{
+		var asset = _selected?.Asset;
+		var needs = asset is not null && TizenRequirement.NeedsNewer(asset, _tvVersion);
+		InstallBtn.IsEnabled = _tvReady && !string.IsNullOrEmpty(_tvName) && _selected is not null && !needs;
+		TizenBadge.IsVisible = asset is { HasRequiredVersion: true };
+		if (asset is { HasRequiredVersion: true })
+		{
+			TizenBadgeLabel.Text = string.Format(L10n.Get(needs ? "lblNeedsTizenBadge" : "lblTizenOrNewer"), asset.RequiredVersion);
+			TizenBadge.Stroke = new SolidColorBrush(DesignThemeColor(needs ? "Warn" : "Hair"));
+			TizenBadge.BackgroundColor = DesignThemeColor(needs ? "WarnSoft" : "Fill");
+			TizenBadgeLabel.TextColor = DesignThemeColor(needs ? "Warn" : "Muted");
+		}
+		TizenHintFrame.IsVisible = needs;
+		if (needs && asset is not null)
+			TizenHint.Text = string.Format(L10n.Get("hintNeedsTizen"), _selected!.Release.Name, asset.RequiredVersion, _tvName, _tvVersion);
 	}
 
 	private View VersionRow(GitHubRelease release, Asset asset, string text)
@@ -186,6 +214,8 @@ public partial class AppSheetPage : ContentPage
 			radio.Stroke = new SolidColorBrush(DesignThemeColor(on ? "Accent" : "Hair"));
 			radio.BackgroundColor = on ? DesignThemeColor("Accent") : Colors.Transparent;
 		}
+		if (_ready)
+			UpdateInstallButton();
 	}
 
 	private async void OnShowAllToggled(object? sender, ToggledEventArgs e)
@@ -204,7 +234,7 @@ public partial class AppSheetPage : ContentPage
 		finally
 		{
 			ShowAllSwitch.IsEnabled = true;
-			InstallBtn.IsEnabled = _tvReady && !string.IsNullOrEmpty(_tvName) && _selected is not null;
+			UpdateInstallButton();
 			_loadingVersions = false;
 		}
 	}

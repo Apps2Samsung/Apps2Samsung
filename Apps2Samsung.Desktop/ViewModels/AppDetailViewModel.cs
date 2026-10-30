@@ -48,7 +48,23 @@ namespace Apps2Samsung.ViewModels
         public string Published { get; }
         public ObservableCollection<Asset> Assets { get; }
         public string InstallText { get; }
-        public bool CanInstall { get; }
+        /// <summary>The TV is ready and the selected build runs on it (TV-Store#47).</summary>
+        public bool CanInstall => _tvCanInstall && !SelectedNeedsNewer;
+        private readonly bool _tvCanInstall;
+        private readonly Version? _tvVersion;
+        private readonly string _tvLabel;
+        private bool SelectedNeedsNewer => SelectedAsset is { } a && TizenRequirement.NeedsNewer(a, _tvVersion);
+        /// <summary>"Tizen 6.0 or newer" by the title for the selected build, "Needs Tizen 6.0" when this TV is too old; empty when the catalog does not say.</summary>
+        public string TizenBadgeText => SelectedAsset is { } a && a.HasRequiredVersion
+            ? string.Format(_localize(SelectedNeedsNewer ? "lblNeedsTizenBadge" : "lblTizenOrNewer"), a.RequiredVersion)
+            : string.Empty;
+        public bool HasTizenBadgeWarn => SelectedNeedsNewer;
+        public bool HasTizenBadgeMute => !SelectedNeedsNewer && TizenBadgeText.Length > 0;
+        /// <summary>Why Install is off: the selected build asks for a newer Tizen than the selected TV runs.</summary>
+        public string TizenHint => SelectedNeedsNewer && SelectedAsset is { } a
+            ? string.Format(_localize("hintNeedsTizen"), Release.Name, a.RequiredVersion, _tvLabel, _tvVersion)
+            : string.Empty;
+        public bool HasTizenHint => TizenHint.Length > 0;
         public string PartnerNeededTitle { get; }
         public string PartnerNeededBody { get; }
 
@@ -119,8 +135,11 @@ namespace Apps2Samsung.ViewModels
 
         public AppDetailViewModel(GitHubRelease release, string? previewUrl, string subline,
             string? tvName, bool tvReady, HttpClient http, Func<string, string> localize,
-            bool isFavorite = false, Action<string, bool>? setFavorite = null, bool canShowAllVersions = false)
+            bool isFavorite = false, Action<string, bool>? setFavorite = null, bool canShowAllVersions = false,
+            Version? tvVersion = null)
         {
+            _tvVersion = tvVersion;
+            _tvLabel = tvName ?? string.Empty;
             CanShowAllVersions = canShowAllVersions;
             ShowAllVersions = Helpers.AppSettings.Default.ShowAllJellyfinVersions;
             ShowAllVersionsText = localize("lblShowAllJellyfinVersions");
@@ -138,8 +157,9 @@ namespace Apps2Samsung.ViewModels
             VersionsTitle = localize(release.HasVariants ? "lblVariant" : "lblVersion");
             Published = DateTime.TryParse(release.PublishedAt, out var date) ? date.ToShortDateString() : string.Empty;
             Assets = new ObservableCollection<Asset>(release.Assets);
-            SelectedAsset = Assets.FirstOrDefault(a => a.IsDefault) ?? Assets.FirstOrDefault();
-            CanInstall = tvReady && !string.IsNullOrEmpty(tvName);
+            // Land on a build this TV runs when the default is too new for it (TV-Store#47).
+            SelectedAsset = TizenRequirement.FirstFitting(Assets, Assets.FirstOrDefault(a => a.IsDefault) ?? Assets.FirstOrDefault(), tvVersion);
+            _tvCanInstall = tvReady && !string.IsNullOrEmpty(tvName);
             InstallText = string.IsNullOrEmpty(tvName) ? localize("lblChooseTvFirst") : string.Format(localize("lblInstallOn"), tvName);
             PartnerNeededTitle = localize("lblPartnerNeededTitle");
             NewPackageIdText = localize("lblNewPackageId");
@@ -152,6 +172,16 @@ namespace Apps2Samsung.ViewModels
         }
 
         partial void OnPreviewChanged(Bitmap? value) => OnPropertyChanged(nameof(HasPreview));
+
+        partial void OnSelectedAssetChanged(Asset? value)
+        {
+            OnPropertyChanged(nameof(CanInstall));
+            OnPropertyChanged(nameof(TizenBadgeText));
+            OnPropertyChanged(nameof(HasTizenBadgeWarn));
+            OnPropertyChanged(nameof(HasTizenBadgeMute));
+            OnPropertyChanged(nameof(TizenHint));
+            OnPropertyChanged(nameof(HasTizenHint));
+        }
 
         // One or the other: a fresh id and the package's own id exclude each other.
         partial void OnNewPackageIdChanged(bool value) { if (value) OwnPackageId = false; }

@@ -24,6 +24,11 @@
                             Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="7,2" VerticalOptions="Center">
                         <Label Text="{l:Localize lblRootBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}" />
                     </Border>
+                    <!-- the Tizen the selected build asks for (TV-Store#47); warning colours when this TV is too old for it -->
+                    <Border x:Name="TizenBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
+                            Stroke="{DynamicResource HairBrush}" BackgroundColor="{DynamicResource FillColor}" Padding="7,2" VerticalOptions="Center">
+                        <Label x:Name="TizenBadgeLabel" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource MutedColor}" />
+                    </Border>
                 </HorizontalStackLayout>
                 <!-- the star: a favorite leads the Install tab's list -->
                 <Button Grid.Column="2" x:Name="FavoriteBtn" Text="☆" FontSize="18" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
@@ -87,6 +92,11 @@
                 <VerticalStackLayout x:Name="Versions" />
             </Border>
 
+            <!-- why Install is off: this TV is too old for the selected build (TV-Store#47) -->
+            <Border x:Name="TizenHintFrame" IsVisible="False" StrokeThickness="0" StrokeShape="RoundRectangle 10"
+                    BackgroundColor="{DynamicResource WarnSoftColor}" Padding="12,8">
+                <Label x:Name="TizenHint" FontSize="13" LineBreakMode="WordWrap" TextColor="{DynamicResource WarnColor}" />
+            </Border>
             <Button x:Name="InstallBtn" Clicked="OnInstallClicked" CornerRadius="12" HeightRequest="50" Margin="0,6,0,0" />
         </VerticalStackLayout>
     </ScrollView>

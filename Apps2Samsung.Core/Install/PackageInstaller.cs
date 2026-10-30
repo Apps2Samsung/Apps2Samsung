@@ -70,6 +70,7 @@ namespace Apps2Samsung.Install
             var caps = TizenCapabilities.Parse(cap.Output);
             var sdkToolPath = caps.SdkToolPath;
             var version = caps.Version;
+            TizenVersionCache.Remember(tvIp, caps.PlatformVersion);
 
             // Another id for this TV, by request or as remembered (#839). Before anything reads the
             // ids: from here on the package is the renamed one.

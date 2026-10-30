@@ -6,6 +6,7 @@ using Apps2Samsung.Certificate;
 using Apps2Samsung.Design;
 using Apps2Samsung.Install;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Sdb;
 using Apps2Samsung.Models;
 using Apps2Samsung.Services;
 using Apps2Samsung.Mobile.Catalog;
@@ -329,7 +330,7 @@ public partial class InstallerPage : ContentPage
 			Spacing = 1, VerticalOptions = LayoutOptions.Center,
 			Children =
 			{
-				NameLine(release),
+				NameLine(release, SelectedTvVersion),
 				new Label { Text = subline, FontSize = 13, TextColor = DesignTheme.ColorOf("Muted"), LineBreakMode = LineBreakMode.TailTruncation },
 			},
 		};
@@ -354,31 +355,38 @@ public partial class InstallerPage : ContentPage
 	}
 
 	// The name, with the 18+ badge after it for an adult-only app (#850; such a row is only ever
-	// built once the user opted in under Settings > Installing) and the root badge for a package
-	// that gains root on the TV.
-	private static View NameLine(GitHubRelease release)
+	// built once the user opted in under Settings > Installing), the root badge for a package
+	// that gains root on the TV, and "Needs Tizen X" when the selected TV runs none of the app's
+	// builds (TV-Store#47).
+	private static View NameLine(GitHubRelease release, Version? tvVersion)
 	{
 		var name = new Label { Text = release.Name, FontAttributes = FontAttributes.Bold, LineBreakMode = LineBreakMode.TailTruncation };
-		if (!release.IsAdult && !release.IsRoot)
+		var needsTizen = TizenRequirement.NoneFits(release, tvVersion);
+		if (!release.IsAdult && !release.IsRoot && !needsTizen)
 			return name;
 		var line = new HorizontalStackLayout { Spacing = 6, Children = { name } };
 		if (release.IsAdult)
 			line.Children.Add(Badge("lblAdultBadge", fontSize: 11, padding: new Thickness(5, 0)));
 		if (release.IsRoot)
 			line.Children.Add(Badge("lblRootBadge", fontSize: 11, padding: new Thickness(5, 0)));
+		if (needsTizen)
+			line.Children.Add(BadgeText(string.Format(L10n.Get("lblNeedsTizenBadge"), TizenRequirement.Lowest(release.Assets)), fontSize: 11, padding: new Thickness(5, 0)));
 		return line;
 	}
 
 	/// <summary>A warning pill after an app's name ("18+" (#850), "root").</summary>
-	internal static Border Badge(string textKey, double fontSize, Thickness padding) => new()
+	internal static Border Badge(string textKey, double fontSize, Thickness padding) => BadgeText(L10n.Get(textKey), fontSize, padding);
+
+	/// <summary>The same pill with ready-made text ("Needs Tizen 6.0"), warning colours unless <paramref name="warn"/> is off.</summary>
+	internal static Border BadgeText(string text, double fontSize, Thickness padding, bool warn = true) => new()
 	{
-		StrokeThickness = 1, Stroke = new SolidColorBrush(DesignTheme.ColorOf("Warn")),
-		BackgroundColor = DesignTheme.ColorOf("WarnSoft"), Padding = padding, VerticalOptions = LayoutOptions.Center,
+		StrokeThickness = 1, Stroke = new SolidColorBrush(DesignTheme.ColorOf(warn ? "Warn" : "Hair")),
+		BackgroundColor = DesignTheme.ColorOf(warn ? "WarnSoft" : "Fill"), Padding = padding, VerticalOptions = LayoutOptions.Center,
 		StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 6 },
 		Content = new Label
 		{
-			Text = L10n.Get(textKey), FontSize = fontSize, FontAttributes = FontAttributes.Bold,
-			TextColor = DesignTheme.ColorOf("Warn"), VerticalOptions = LayoutOptions.Center,
+			Text = text, FontSize = fontSize, FontAttributes = FontAttributes.Bold,
+			TextColor = DesignTheme.ColorOf(warn ? "Warn" : "Muted"), VerticalOptions = LayoutOptions.Center,
 		},
 	};
 
@@ -419,7 +427,8 @@ public partial class InstallerPage : ContentPage
 		var sheet = new AppSheetPage(versions, CatalogPreviews.For(_manifest, release), subline, tvName, tvReady,
 			_favorites.Contains(release.Name), SetFavorite, showAll, isUpdate,
 			// The developer's name tapped: the search box takes it, and the list shows their apps (#888).
-			searchAuthor: author => SearchEntry.Text = author);
+			searchAuthor: author => SearchEntry.Text = author,
+			tvVersion: SelectedTvVersion);
 		await Navigation.PushModalAsync(sheet);
 		var choice = await sheet.Result;
 		if (choice is not null)
@@ -480,6 +489,20 @@ public partial class InstallerPage : ContentPage
 		if (!_busy && !string.IsNullOrEmpty(_tv.Status))
 			_status = _tv.Status;
 		UpdateTvCard();
+		if (_tv.HasTv && _tv.DebugPortOpen && _tv.Selected is { } tv && TizenVersionCache.TryGet(tv.Ip) is null)
+			_ = ProbeTizenVersionAsync(tv.Ip);
+	}
+
+	/// <summary>The selected TV's Tizen version, once a capability report or a probe said it; null until then.</summary>
+	private Version? SelectedTvVersion => _tv.Selected is { } tv ? TizenVersionCache.TryGet(tv.Ip) : null;
+
+	// One capability round-trip when a ready TV is selected (TV-Store#47): the catalog can then say
+	// which apps this set is too old for. The list is rebuilt when the answer comes in.
+	private async Task ProbeTizenVersionAsync(string ip)
+	{
+		await TizenVersionCache.ProbeAsync(_sdb, ip);
+		if (TizenVersionCache.TryGet(ip) is not null && _tv.Selected?.Ip == ip)
+			MainThread.BeginInvokeOnMainThread(RebuildCatalog);
 	}
 
 	// The TV pill in the top bar (only with more than one TV): the Switch TV sheet.
