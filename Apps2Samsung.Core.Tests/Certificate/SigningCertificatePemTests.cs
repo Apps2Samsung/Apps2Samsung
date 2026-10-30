@@ -43,6 +43,7 @@ public sealed class SigningCertificatePemTests : IDisposable
         using var distributor = SelfSigned("distributor");
         Profile("Jelly2Sams - Public", author, distributor);
         Profile("Jellyfin", author, distributor);
+        Profile(Path.Combine("Imported", "Own cert"), author, distributor);      // nested, as a user may add one
         var noDistributor = Profile("Half", author, distributor);
         File.Delete(Path.Combine(noDistributor, "distributor.p12"));
         Directory.CreateDirectory(Path.Combine(_store, "Empty"));
@@ -50,7 +51,7 @@ public sealed class SigningCertificatePemTests : IDisposable
         var names = SigningCertificatePem.ProfilesIn(_store, Path.Combine(_store, "does-not-exist"), null)
             .Select(p => Path.GetFileName(p.ProfileDir)).ToList();
 
-        Assert.Equal(new[] { "Jelly2Sams - Public", "Jellyfin" }, names);
+        Assert.Equal(new[] { "Own cert", "Jelly2Sams - Public", "Jellyfin" }, names);
     }
 
     [Fact]

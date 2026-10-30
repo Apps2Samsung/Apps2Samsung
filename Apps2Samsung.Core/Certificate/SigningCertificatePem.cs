@@ -45,9 +45,11 @@ namespace Apps2Samsung.Certificate
         }
 
         /// <summary>
-        /// Every signing profile under the given stores: each folder holding author.p12, distributor.p12
-        /// and password.txt with an author certificate that still opens. The level profiles, imported
-        /// ones and a head's bundled one, whatever the caller points at. Folder name order within a store.
+        /// Every signing profile under the given stores, at any depth, the way the desktop's own
+        /// certificate list finds them (<c>CertificateHelper.GetAvailableCertificates</c>): each folder
+        /// holding author.p12, distributor.p12 and password.txt with an author certificate that still
+        /// opens. The level profiles, imported ones and a head's bundled one, whatever the caller points
+        /// at. Path order within a store.
         /// </summary>
         public static IReadOnlyList<SigningProfile> ProfilesIn(params string?[] stores)
         {
@@ -56,9 +58,11 @@ namespace Apps2Samsung.Certificate
             {
                 if (string.IsNullOrWhiteSpace(store) || !Directory.Exists(store))
                     continue;
-                foreach (var dir in Directory.GetDirectories(store).OrderBy(d => d, StringComparer.OrdinalIgnoreCase))
+                var authors = Directory.GetFiles(store, Constants.Certificate.AuthorFileName, SearchOption.AllDirectories)
+                    .OrderBy(f => f, StringComparer.OrdinalIgnoreCase);
+                foreach (var author in authors)
                 {
-                    var author = Path.Combine(dir, Constants.Certificate.AuthorFileName);
+                    var dir = Path.GetDirectoryName(author)!;
                     var distributor = Path.Combine(dir, Constants.Certificate.DistributorFileName);
                     var passwordFile = Path.Combine(dir, Constants.Certificate.PasswordFileName);
                     if (!File.Exists(distributor) || !File.Exists(passwordFile) || !CertificateProvisioningService.HasUsableAuthorCert(dir))
