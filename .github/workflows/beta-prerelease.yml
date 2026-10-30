@@ -5,16 +5,25 @@ on:
     branches: [beta]
     paths-ignore:
       - 'README.md'
-      - 'docs/**'      # website (GitHub Pages) — deploys on its own, shouldn't trigger an app release
+      - 'docs/**'      # website (GitHub Pages): deploys on its own, shouldn't trigger an app release
       - '.github/**'   # workflow / repo-meta changes shouldn't trigger an app release
-      - 'fastlane/**'  # store-listing metadata (F-Droid/IzzyOnDroid) — not app code
-      - 'crowdin.yml'  # translation sync config — changing it ships nothing, but the build it fired
+      - 'fastlane/**'  # store-listing metadata (F-Droid/IzzyOnDroid): not app code
+      - 'crowdin.yml'  # translation sync config: changing it ships nothing, but the build it fired
                        # overwrote the curated release notes, which then had to be re-applied
   # Allow running the beta release manually (e.g. when a merge didn't fire the push trigger).
   workflow_dispatch:
 
 permissions:
   contents: write
+
+# One beta release at a time: two merges into beta close together started two runs that both
+# force-moved the same v<version>-beta tag and replaced the same assets at once (GitHub 5xx). A
+# newer push now waits for the running one; while it waits, a later push replaces it in the queue,
+# so the latest commit still ships last. Never cancelled: a run cut off mid-upload would leave the
+# release with half its assets.
+concurrency:
+  group: beta-prerelease
+  cancel-in-progress: false
 
 env:
   PRODUCT_NAME: Apps2Samsung
@@ -59,7 +68,7 @@ jobs:
 
       # ---------------- BETA MARKER (#578) ----------------
       # The branch keeps a clean version (the Stable Release workflow rejects a "-beta" one), so
-      # CI adds the marker here — in the build tree only, never committed — and a beta build
+      # CI adds the marker here: in the build tree only, never committed: and a beta build
       # reports itself as "v2.7.9-beta" instead of claiming to be the stable v2.7.9.
       - name: Stamp beta version
         shell: bash
@@ -75,7 +84,7 @@ jobs:
           LAST_TAG=$(git tag --sort=-creatordate | grep beta | grep -vx "$VERSION_TAG" | head -n 1)
 
           # The rolling beta tag is reused across pushes, but action-gh-release
-          # won't re-point an existing tag — so it stays pinned at the commit it
+          # won't re-point an existing tag: so it stays pinned at the commit it
           # was first created on, and generate-notes computes the PR range against
           # that stale point (notes lag behind merged PRs, see #399). Force-move the
           # tag to the current commit first so the notes reflect everything merged
@@ -113,7 +122,7 @@ jobs:
           mv CHANGELOG.clean.md CHANGELOG.md
 
           {
-            echo "## 📦 ${VERSION_TAG} — ${DATE}"
+            echo "## 📦 ${VERSION_TAG}: ${DATE}"
             echo ""
             cat CHANGELOG.md
             echo ""
@@ -155,7 +164,7 @@ jobs:
 
       # ---------------- LINUX PACKAGES (tar.gz + deb + rpm + AppImage, x64 + arm64) ----------------
       # One script for all of them, shared with the stable release and with the PR check that proves
-      # it still builds — see .github/scripts/package-linux.sh (#589).
+      # it still builds: see .github/scripts/package-linux.sh (#589).
       - name: Linux packaging tools
         run: |
           sudo apt-get update
@@ -195,7 +204,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Fresh checkout — stamp the beta marker again (see the beta-release job).
+      # Fresh checkout: stamp the beta marker again (see the beta-release job).
       - name: Stamp beta version
         shell: bash
         run: python3 .github/scripts/stamp-beta-version.py
@@ -244,7 +253,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Fresh checkout — stamp the beta marker again (see the beta-release job).
+      # Fresh checkout: stamp the beta marker again (see the beta-release job).
       - name: Stamp beta version
         shell: bash
         run: python3 .github/scripts/stamp-beta-version.py
@@ -391,7 +400,7 @@ jobs:
           files: dist/*
 
 # ======================================================
-# ANDROID (.apk — the mobile installer head)
+# ANDROID (.apk: the mobile installer head)
 # ======================================================
   android-apk:
     runs-on: ubuntu-latest
@@ -423,7 +432,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: .github/scripts/android-version-code.sh compute beta
 
-      # Fresh checkout — stamp the beta marker again (see the beta-release job). The APK's own
+      # Fresh checkout: stamp the beta marker again (see the beta-release job). The APK's own
       # versionName comes from the -p:ApplicationDisplayVersion below, not from this file.
       - name: Stamp beta version
         shell: bash
@@ -442,14 +451,14 @@ jobs:
         run: dotnet workload install maui-android
 
       # The persistent signing key is required. The old fallback minted a throwaway
-      # key, which produces an APK that installs but can never update in place —
-      # Android rejects a signing-key change — so it is the same "users are stuck"
+      # key, which produces an APK that installs but can never update in place :
+      # Android rejects a signing-key change: so it is the same "users are stuck"
       # failure as a versionCode downgrade, just with a different dialog.
       - name: Prepare Android signing key
         run: |
           set -euo pipefail
           if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
-            echo "::error::ANDROID_KEYSTORE_BASE64 is not set. An APK signed with a throwaway key cannot update existing installs — set ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS."
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not set. An APK signed with a throwaway key cannot update existing installs: set ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS."
             exit 1
           fi
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$PWD/a2s.keystore"
@@ -486,7 +495,7 @@ jobs:
         env:
           # SHA-256 of the release signing certificate (CN=Apps2Samsung, O=MadeByPatrick),
           # taken from the published APKs. Android refuses an update signed by a different
-          # key just as hard as a versionCode downgrade, so this must never change — if
+          # key just as hard as a versionCode downgrade, so this must never change: if
           # this step fails, the ANDROID_KEYSTORE_* secrets were swapped, and the fix is to
           # restore the original keystore, not to update this value.
           EXPECTED_SIGNER_SHA256: bd4dee21ebeee1b0b690c612318808d27f35c46fa53ba31d256379a7fed7e107
@@ -518,7 +527,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Fresh checkout — stamp the beta marker again (see the beta-release job). The IPA's shown
+      # Fresh checkout: stamp the beta marker again (see the beta-release job). The IPA's shown
       # version comes from the version input below, not from this file.
       - name: Stamp beta version
         shell: bash
