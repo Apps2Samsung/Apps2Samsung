@@ -35,13 +35,14 @@ public sealed class CertificateProvisioner
 	public sealed record Result(string AuthorP12, string DistributorP12, string Password, string ProfileDir, string Duid);
 
 	/// <param name="beforeLoginAsync">Awaited when a certificate has to be made, before the Samsung
-	/// sign-in: <see cref="CertificateFlow"/> shows the certificate sheet here.</param>
+	/// sign-in, with the level and the TV's DUID: <see cref="CertificateFlow"/> shows the certificate
+	/// sheet here (the DUID tells an imported certificate's coverage, #921).</param>
 	/// <param name="stage">The certificate sheet's step, as the certificate service moves on.</param>
 	public async Task<Result> ProvisionAsync(
 		string tvIp,
 		bool requirePartner = false,
 		Action<string>? progress = null,
-		Func<CertificatePrivilegeLevel, CancellationToken, Task>? beforeLoginAsync = null,
+		Func<CertificatePrivilegeLevel, string, CancellationToken, Task>? beforeLoginAsync = null,
 		Action<CertificateStage>? stage = null,
 		CancellationToken ct = default)
 	{
@@ -87,7 +88,7 @@ public sealed class CertificateProvisioner
 			forceLogin: _config.ForceSamsungLogin,
 			onLoginStarting: () => progress?.Invoke(L10n.Get("SamsungLogin")),
 			progress: cb,
-			beforeLoginAsync: beforeLoginAsync,
+			beforeLoginAsync: beforeLoginAsync is null ? null : (level, token) => beforeLoginAsync(level, duid, token),
 			ct: ct);
 
 		return new Result(profile.AuthorP12, profile.DistributorP12, profile.Password, profile.ProfileDir, duid);

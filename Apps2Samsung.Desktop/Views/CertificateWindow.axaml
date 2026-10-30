@@ -44,6 +44,10 @@
 		<StackPanel x:Name="SignInButtons" Spacing="8">
 			<Button Classes="primary" Content="{Binding SignInText}" Click="OnSignInClick"
 			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12"/>
+			<!-- Signed in on another device already: its exported certificate replaces the sign-in (#921). -->
+			<TextBlock Text="{Binding ImportHintText}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+			<Button x:Name="ImportButton" Classes="soft" Content="{Binding ImportText}" Click="OnImportClick"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" CornerRadius="12"/>
 			<Button Classes="link" Content="{Binding CancelText}" Click="OnCancelClick" Foreground="{DynamicResource BadBrush}"
 			        HorizontalAlignment="Center"/>
 		</StackPanel>

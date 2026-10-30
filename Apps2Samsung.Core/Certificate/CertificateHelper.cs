@@ -133,36 +133,46 @@ namespace Apps2Samsung.Helpers.Tizen.Certificate
         /// </summary>
         public HashSet<string> GetCertificateDuids(string distributorP12Path, string password)
         {
-            var duids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            const string marker = "URN:tizen:deviceid=";
-
             try
             {
                 if (!File.Exists(distributorP12Path))
-                    return duids;
+                    return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
                 using var dist = new X509Certificate2(distributorP12Path, password, PlatformService.SigningCertificateFlags);
-                foreach (var ext in dist.Extensions)
-                {
-                    if (ext.Oid?.Value != "2.5.29.17") // Subject Alternative Name
-                        continue;
-
-                    var formatted = new AsnEncodedData(ext.Oid, ext.RawData).Format(true);
-                    foreach (var line in formatted.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        var idx = line.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
-                        if (idx < 0)
-                            continue;
-
-                        var value = line.Substring(idx + marker.Length).Trim();
-                        if (!string.IsNullOrEmpty(value))
-                            duids.Add(value);
-                    }
-                }
+                return DuidsOf(dist);
             }
             catch (Exception ex)
             {
                 Trace.WriteLine($"Failed to read distributor DUIDs from '{distributorP12Path}': {ex}");
+                return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
+        /// <summary>The Tizen DUIDs in a loaded distributor certificate's Subject Alternative Name.</summary>
+        public static HashSet<string> DuidsOf(X509Certificate2 distributor)
+        {
+            var duids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            const string marker = "URN:tizen:deviceid=";
+
+            foreach (var ext in distributor.Extensions)
+            {
+                if (ext.Oid?.Value != "2.5.29.17") // Subject Alternative Name
+                    continue;
+
+                // Windows formats one entry per line; Linux and macOS put every entry on one line,
+                // comma separated ("URI:urn:tizen:deviceid=A, URI:urn:tizen:deviceid=B"), which read
+                // as a single garbled DUID before. A DUID never contains a comma, so split on both.
+                var formatted = new AsnEncodedData(ext.Oid, ext.RawData).Format(true);
+                foreach (var line in formatted.Split(new[] { '\r', '\n', ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var idx = line.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+                    if (idx < 0)
+                        continue;
+
+                    var value = line.Substring(idx + marker.Length).Trim();
+                    if (!string.IsNullOrEmpty(value))
+                        duids.Add(value);
+                }
             }
 
             return duids;

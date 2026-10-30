@@ -50,6 +50,10 @@ public sealed class CliOptions
     public bool NoBrowser { get; set; }
     public int LoginTimeoutSeconds { get; set; } = 300;
     public string ManualDuids { get; set; } = string.Empty;
+    /// <summary>cert --export: write the signing certificate to this file (#921).</summary>
+    public string? ExportPath { get; set; }
+    /// <summary>cert --import: read the signing certificate from this file (#921).</summary>
+    public string? ImportPath { get; set; }
 
     public bool Help { get; set; }
     public bool ShowVersion { get; set; }
@@ -124,6 +128,8 @@ public sealed class CliOptions
                     break;
                 }
                 case "--duids": o.ManualDuids = Next(arg) ?? string.Empty; break;
+                case "--export": o.ExportPath = Next(arg); if (o.ExportPath is null) return (o, "--export needs a file to write"); break;
+                case "--import": o.ImportPath = Next(arg); if (o.ImportPath is null) return (o, "--import needs a file to read"); break;
                 default: return (o, $"unknown option {arg}");
             }
         }

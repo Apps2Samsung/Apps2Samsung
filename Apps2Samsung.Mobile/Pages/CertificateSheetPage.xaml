@@ -42,6 +42,10 @@
             <VerticalStackLayout x:Name="SignInButtons" Spacing="8">
                 <Button Text="{l:Localize lblSignInWithSamsung}" Style="{StaticResource PrimaryButton}"
                         CornerRadius="12" HeightRequest="50" Clicked="OnSignInClicked" />
+                <!-- Signed in on another device already: its exported certificate replaces the sign-in (#921). -->
+                <Label Text="{l:Localize certSheetImportHint}" FontSize="12" TextColor="{DynamicResource MutedColor}" />
+                <Button x:Name="ImportBtn" Text="{l:Localize lblImportCertificate}" Style="{StaticResource SoftButton}"
+                        CornerRadius="12" HeightRequest="44" Clicked="OnImportClicked" />
                 <Button Text="{l:Localize lblCancel}" BackgroundColor="Transparent" TextColor="{DynamicResource BadColor}"
                         FontAttributes="Bold" HeightRequest="44" Clicked="OnCancelClicked" />
             </VerticalStackLayout>

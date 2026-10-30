@@ -1,6 +1,7 @@
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Mobile.Localization;
+using Apps2Samsung.Mobile.Services;
 
 namespace Apps2Samsung.Mobile.Pages;
 
@@ -13,10 +14,12 @@ public partial class CertificateSheetPage : ContentPage
 {
 	private readonly TaskCompletionSource<bool> _signIn = new(TaskCreationOptions.RunContinuationsAsynchronously);
 	private readonly Dictionary<CertificateStage, int> _index = new();
+	private readonly string? _tvDuid;
 
-	public CertificateSheetPage(string tvName, CertificatePrivilegeLevel level)
+	public CertificateSheetPage(string tvName, CertificatePrivilegeLevel level, string? tvDuid = null)
 	{
 		InitializeComponent();
+		_tvDuid = tvDuid;
 		SubLabel.Text = string.Format(L10n.Get("certSheetFor"), tvName);
 		LevelLabel.Text = L10n.Get(CertificateStages.LevelKey(level));
 
@@ -74,6 +77,38 @@ public partial class CertificateSheetPage : ContentPage
 	{
 		SignInButtons.IsVisible = false;
 		_signIn.TrySetResult(true);
+	}
+
+	// Import a certificate exported on another device instead of signing in (#921): pick the file,
+	// show what it holds and what it replaces, write it. Covering this TV, provisioning resumes as
+	// if Sign in had been chosen and finds the profile on disk; otherwise the author certificate is
+	// now here and Sign in only extends it to this TV.
+	private async void OnImportClicked(object? sender, EventArgs e)
+	{
+		try
+		{
+			var outcome = await CertificateArchiveFiles.PickAndImportAsync(this, _tvDuid);
+			if (outcome is null)
+				return;
+
+			if (outcome.CoversTv)
+			{
+				SignInButtons.IsVisible = false;
+				Steps.SetDetail(_index[CertificateStage.SignIn], string.Format(L10n.Get("statusCertificateImported"), outcome.FileCount));
+				_signIn.TrySetResult(true);
+			}
+			else
+			{
+				Steps.SetDetail(_index[CertificateStage.SignIn], L10n.Get("certArchiveImportedNotCovering"));
+				ImportBtn.IsVisible = false;
+			}
+		}
+		catch (Exception ex)
+		{
+			await DisplayAlert(L10n.Get("certArchiveImportTitle"),
+				string.Format(L10n.Get("statusCertificateImportFailed"), ErrorText.Describe(ex, "certificate/import")),
+				L10n.Get("lblOk"));
+		}
 	}
 
 	private async void OnCancelClicked(object? sender, EventArgs e)

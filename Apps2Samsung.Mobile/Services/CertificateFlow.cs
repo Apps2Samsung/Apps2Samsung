@@ -34,11 +34,11 @@ public sealed class CertificateFlow
 	{
 		CertificateSheetPage? sheet = null;
 
-		async Task BeforeLoginAsync(CertificatePrivilegeLevel level, CancellationToken ct)
+		async Task BeforeLoginAsync(CertificatePrivilegeLevel level, string duid, CancellationToken ct)
 		{
 			await MainThread.InvokeOnMainThreadAsync(async () =>
 			{
-				sheet = new CertificateSheetPage(tvName, level);
+				sheet = new CertificateSheetPage(tvName, level, duid);
 				await navigation.PushModalAsync(sheet);
 			});
 			if (!await sheet!.SignInChosen)

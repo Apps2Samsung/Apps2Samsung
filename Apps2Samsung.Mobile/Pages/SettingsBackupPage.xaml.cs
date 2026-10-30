@@ -141,6 +141,55 @@ public partial class SettingsBackupPage : ContentPage
 		}
 	}
 
+	// ---- The certificate on its own (#921) ----
+
+	private async void OnExportCertificateClicked(object? sender, EventArgs e)
+	{
+		try
+		{
+			var path = Path.Combine(FileSystem.CacheDirectory, CertificateArchive.SuggestedFileName);
+			using (var stream = File.Create(path))
+				CertificateArchive.Export(stream, CertStorePath);
+
+			await Share.Default.RequestAsync(new ShareFileRequest(L10n.Get("lblCertificateArchive"), new ShareFile(path)));
+		}
+		catch (CertificateArchiveException)
+		{
+			await DisplayAlert(L10n.Get("certArchiveExportTitle"), L10n.Get("certArchiveNothingToExport"), L10n.Get("lblOk"));
+		}
+		catch (Exception ex)
+		{
+			await DisplayAlert(
+				L10n.Get("certArchiveExportTitle"),
+				string.Format(L10n.Get("statusCertificateExportFailed"), ErrorText.Describe(ex, "certificate/export")),
+				L10n.Get("lblOk"));
+		}
+	}
+
+	private async void OnImportCertificateClicked(object? sender, EventArgs e)
+	{
+		try
+		{
+			// The selected TV's DUID is only read during an install, so the preview here says nothing
+			// about covering one; the certificate sheet during an install does.
+			var outcome = await CertificateArchiveFiles.PickAndImportAsync(this, tvDuid: null);
+			if (outcome is null)
+				return;
+
+			await DisplayAlert(
+				L10n.Get("certArchiveImportTitle"),
+				string.Format(L10n.Get("statusCertificateImported"), outcome.FileCount),
+				L10n.Get("lblOk"));
+		}
+		catch (Exception ex)
+		{
+			await DisplayAlert(
+				L10n.Get("certArchiveImportTitle"),
+				string.Format(L10n.Get("statusCertificateImportFailed"), ErrorText.Describe(ex, "certificate/import")),
+				L10n.Get("lblOk"));
+		}
+	}
+
 	// Map the shared AppSettings JSON keys back onto MobileSettings. Missing keys are left untouched.
 	private static async Task ApplySettingsJsonAsync(string json)
 	{
