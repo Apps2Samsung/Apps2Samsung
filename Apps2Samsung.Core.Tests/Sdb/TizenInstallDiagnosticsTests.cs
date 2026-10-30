@@ -41,6 +41,7 @@ public class TizenInstallDiagnosticsTests
     [Theory]
     [InlineData("install failed[118012]")]
     [InlineData("install failed[118, -12]")]
+    [InlineData("install failed[118, -12], reason: Check certificate error : :Package with the same id and different certificate has been already installed")]
     [InlineData("app_id[MoonfinApp.moonfin] install start app_id[MoonfinApp.moonfin] installing[8] install failed[118, -11], reason: Author certificate not match :")]
     [InlineData("install failed[118011]")]
     // The one validator reason that IS the installed-copy case (#534).
@@ -110,4 +111,12 @@ public class TizenInstallDiagnosticsTests
         Assert.True(TizenInstallDiagnostics.IsInsufficientSpace("DOWNLOAD FAILED[116]"));
         Assert.True(TizenInstallDiagnostics.IsTransportLost("Transport Connection lost"));
     }
+
+    [Theory]
+    [InlineData("app_id[AbCdEfGhIj.IPTVManager] install start app_id[AbCdEfGhIj.IPTVManager] install failed[118019]", true)]
+    [InlineData("install failed[118, -19], reason: Parsing error", true)]
+    [InlineData("install failed[118, -4], reason: Operation not allowed", false)]
+    [InlineData("installing[100] install completed", false)]
+    public void IsManifestParseError_ReadsTheTizen4AndNewerSpellings(string output, bool expected) =>
+        Assert.Equal(expected, TizenInstallDiagnostics.IsManifestParseError(output));
 }
