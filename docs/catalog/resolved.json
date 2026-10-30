@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-30T04:35:26.3354684+00:00",
+  "generatedAt": "2026-10-30T08:42:21.9692197+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -23,7 +23,8 @@
               "digest": "sha256:3967aa42dba6a9a405308700ddf8005ff7432e902ce777aadc8531044937e9ce",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-OblongIcon.wgt",
@@ -32,7 +33,8 @@
               "digest": "sha256:4443b15f7315cde7952ab701e8b3bd8cebbb1ea46ae031b9f531807b5aef044e",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-OSA.wgt",
@@ -41,7 +43,8 @@
               "digest": "sha256:cfdb099e5a8edf3a160c9cd1b184ac556504a687c2b677318c4895f76406edcd",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
@@ -50,7 +53,8 @@
               "digest": "sha256:560c8fc307de93c89282d9ba788116d6b904d516b5254176acbbb42b9c49c99a",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-secondary.wgt",
@@ -59,7 +63,8 @@
               "digest": "sha256:6d358450644a76e1604deaae80be6ebbe447100f60c7834ba8d6f66458ab8982",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-SmartHub.wgt",
@@ -68,7 +73,8 @@
               "digest": "sha256:aa934d8504f0a4d16e92a90be0f71f378db07c1c3706be4f2200ffd9e8779570",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-TrailerFix.wgt",
@@ -77,7 +83,8 @@
               "digest": "sha256:e4cfd98a141248c479abcbf6fe7bc98fa12fda5dd903e28be3eac2e22e20be2d",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z.wgt",
@@ -86,7 +93,8 @@
               "digest": "sha256:18eedea547c49b9632128d258c6fbdb10b4efbef21fec799e547bb17945797e3",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-GrayFix.wgt",
@@ -95,7 +103,8 @@
               "digest": "sha256:0989b0f13b47f1619ef9ef3df875b2bc9975b02842a82111e7f94036db1e151f",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-OblongIcon.wgt",
@@ -104,7 +113,8 @@
               "digest": "sha256:76a2626fe92cd19ed319ec079bb41a91148aa2b223e7e3dd913ad22996907bb7",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-OSA.wgt",
@@ -113,7 +123,8 @@
               "digest": "sha256:630d91d5a5205c0fcacbfb12d62b87457fb79e21d80e1b431b78d75da7f34076",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
@@ -122,7 +133,8 @@
               "digest": "sha256:c14e97261c0224cc901f0e5f53208f939fd4f980300416871fb648bfecae4efe",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-secondary.wgt",
@@ -131,7 +143,8 @@
               "digest": "sha256:b59bb8a1cd1d9b2a2831b838a2375aeba2a7a66424395d4ac55c51e13903e7db",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-SmartHub.wgt",
@@ -140,7 +153,8 @@
               "digest": "sha256:628cd4e7d1050c63e5dc3cf5dbe8340fbc42252955da3d1c433153ee5011ddc8",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-TrailerFix.wgt",
@@ -149,7 +163,8 @@
               "digest": "sha256:6dbe18d32f42b5c6f7709721a6b6c3016f803b4b037970e5a8a5d2b519cab118",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z.wgt",
@@ -158,7 +173,8 @@
               "digest": "sha256:bc55c6e1cfbf9f5a7e19d205ac39d22cb58aa168f9cc61083b433ad0f075a830",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-GrayFix.wgt",
@@ -167,7 +183,8 @@
               "digest": "sha256:cc0085364bb12a0270e2a34f261e0f3893e661517f8182209fa0e74597617e16",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-GrayFix.wgt",
@@ -176,7 +193,8 @@
               "digest": "sha256:2367bdec877fa6d1fd36dce5a694232b6011d015d59b6e52b4dc24db69ede7e1",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-OblongIcon.wgt",
@@ -185,7 +203,8 @@
               "digest": "sha256:e53f6ce2834226625fe000d8443e8e680f9d2a29fd6d03293e7f3700d49c0b86",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-OSA.wgt",
@@ -194,7 +213,8 @@
               "digest": "sha256:7bd5e04392bd55d88d5494ca114de32c83e65baab871cacfa2bcf11b9fe9ff22",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-secondary-TrailerFix.wgt",
@@ -203,7 +223,8 @@
               "digest": "sha256:440e88c36cb52a6420fa4eb36a7fd37564b2c8c22148d67c3fe9457d71e7c02d",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-secondary.wgt",
@@ -212,7 +233,8 @@
               "digest": "sha256:0b8c0c7b87790163ddb116e8508ac54b1aa53e38e08296e33ad04455a1fd90cf",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-SmartHub.wgt",
@@ -221,7 +243,8 @@
               "digest": "sha256:3ee8717adff388165228a2f765ecc3635721c263575d89181fdb07d77206a343",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-TrailerFix.wgt",
@@ -230,7 +253,8 @@
               "digest": "sha256:b6b80c077f73599e0fe9acb60703b067712326627ccbb2860496618f83016927",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master.wgt",
@@ -239,7 +263,8 @@
               "digest": "sha256:ba371683412585190b311a939f88df70b296310046885ebca9479e6ffda8fcfd",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-OblongIcon.wgt",
@@ -248,7 +273,8 @@
               "digest": "sha256:c5b3fd476dd8cf30ec72da15078f167ef11b7aa15b7bf738ad74faa316a1e0be",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-OSA.wgt",
@@ -257,7 +283,8 @@
               "digest": "sha256:e57f093747baf0b679c3572e9549cd41a47ff332d2a0f7b00c20e3a9a527e0fd",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-GrayFix.wgt",
@@ -266,7 +293,8 @@
               "digest": "sha256:003fc6ca19bc3b259a231f8aa38f19bd86f27e640602529769860328a76a5fe5",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-OblongIcon.wgt",
@@ -275,7 +303,8 @@
               "digest": "sha256:ba6fd88523498980355ad83af83d2ce0c6ea1ba5bb6508f2205a577faa647aa4",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-OSA.wgt",
@@ -284,7 +313,8 @@
               "digest": "sha256:229970ef526b4fa3bcd9494095a002235dc207ce10fbdacad64deb3aa11e3fca",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
@@ -293,7 +323,8 @@
               "digest": "sha256:acfe1cb3209d92ce104411792eb772983d0f310f67f76a63d0e0d41e2fe9eaa2",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-secondary.wgt",
@@ -302,7 +333,8 @@
               "digest": "sha256:faa9a8d43b0ea52f9afc51d7abcb0b1fb9aa535c0ee299d48279e931c857c388",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-SmartHub.wgt",
@@ -311,7 +343,8 @@
               "digest": "sha256:f244ad939682b68e8835f6b363487c86f039799a1d3176b790d85bf20610cb98",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-TrailerFix.wgt",
@@ -320,7 +353,8 @@
               "digest": "sha256:2536f93624fb8e2e02c2114c454311782482e8081c1a0db7e0f9bfe72d69315f",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease.wgt",
@@ -329,7 +363,8 @@
               "digest": "sha256:66d94349d907464686054a031c223e1048670b935ccc7d9d1205fd4be9acba5e",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-secondary-TrailerFix.wgt",
@@ -338,7 +373,8 @@
               "digest": "sha256:23c202dfa0aa739ea898802fa73fb9e96da9038a5b935a0f5c01d2bbc5109f40",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-secondary.wgt",
@@ -347,7 +383,8 @@
               "digest": "sha256:d70713360226054e860d2b8dc07022071d86b1794ce21ff78c1d950b9630eb0d",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-SmartHub.wgt",
@@ -356,7 +393,8 @@
               "digest": "sha256:9650bbbff74346709b57a9b68af80c177dac18fcb20affb1492235d0ba167735",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-TrailerFix.wgt",
@@ -365,7 +403,8 @@
               "digest": "sha256:abe0f6322e53f75ca386606ce0d4229354759e8a3e1765e2a9440f98ba5c5ba2",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin.wgt",
@@ -374,7 +413,8 @@
               "digest": "sha256:8adb64bdef06fb50be76f4e29f6a51ea43da8340374bd9a954e15523d0294813",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             }
           ]
         },
@@ -392,7 +432,8 @@
               "digest": "sha256:9343e9b6efeb390aedbc839eb6197b4e63235af8a70bc830c61e9df8d2c6864d",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-OblongIcon.wgt",
@@ -401,7 +442,8 @@
               "digest": "sha256:20323956976c0688a92647361cb9069c6bbeb4e39dabf396772407c91208cb0a",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-OSA.wgt",
@@ -410,7 +452,8 @@
               "digest": "sha256:0c1a1859c1fff7598d362fb85af38614edf0ee61452142c76aaeec977db551d8",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
@@ -419,7 +462,8 @@
               "digest": "sha256:b6ed342c10b85fc5a4d3c4756334be8bd5139b66b4c533b856cb431f86c1a5bc",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-secondary.wgt",
@@ -428,7 +472,8 @@
               "digest": "sha256:a486b799c0e83f00fb0441650feff8d49bfc0e2019f7e8ed5c5a78f43fdadaa8",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-SmartHub.wgt",
@@ -437,7 +482,8 @@
               "digest": "sha256:d2321c70658428b286f9b271b6d419351265f6c3972b0101de6003b1300d106c",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-TrailerFix.wgt",
@@ -446,7 +492,8 @@
               "digest": "sha256:6a454ad29c32d0d97dd5045b10277042ed6f4090ca438447f8079b7f6d9b2f1c",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z.wgt",
@@ -455,7 +502,8 @@
               "digest": "sha256:48c22ce986eb8a7ad888e8f1782fac463cc06a658c0d0af42a612d81438c2c01",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-GrayFix.wgt",
@@ -464,7 +512,8 @@
               "digest": "sha256:418cbbfa53e7c56ef5177827fbf5c66302744d802f427968220973730945bd50",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-OblongIcon.wgt",
@@ -473,7 +522,8 @@
               "digest": "sha256:7ad9652a83b0b7dc0e1e9d0378fc1bd2cc3d44eed288156c335cb16f706b04d3",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-OSA.wgt",
@@ -482,7 +532,8 @@
               "digest": "sha256:1523000758779112c6dbb820c904fa2fb58fe9e49370ad322156955791deea9b",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
@@ -491,7 +542,8 @@
               "digest": "sha256:0ddba4e4902e56cd8853840f734529361dc4d7d23eb9c8b855ec105197c13dd3",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-secondary.wgt",
@@ -500,7 +552,8 @@
               "digest": "sha256:a5a6b3b695d17e8bd093dacc8d23381c12e6181d6e156a2de8706716c3949cc4",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-SmartHub.wgt",
@@ -509,7 +562,8 @@
               "digest": "sha256:ba8cada3c676afff183c3aa8dfb97b3f47c376b92d4d79fc363bcdb9f1f0fa08",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-TrailerFix.wgt",
@@ -518,7 +572,8 @@
               "digest": "sha256:ea8c78e041f968c01cab60031d053ec4616598ae55fdf4097e75a2ab849b3b2b",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z.wgt",
@@ -527,7 +582,8 @@
               "digest": "sha256:eef3dfdd2fe97f2a77e76e0115c533f3d028881c8265b950751e97abf834a9fc",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-GrayFix.wgt",
@@ -536,7 +592,8 @@
               "digest": "sha256:b13e0d5dcf0818738be4acc945768987aaaa03a0a8823a65a497e77f495bb2ea",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-GrayFix.wgt",
@@ -545,7 +602,8 @@
               "digest": "sha256:885d991620c999eb487645357ec33e493755bfadd4dd44f49698bfe12e8e6084",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-OblongIcon.wgt",
@@ -554,7 +612,8 @@
               "digest": "sha256:4618092f35be066612c107216c35be15bf82365572b511eb5bb6552bc270263a",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-OSA.wgt",
@@ -563,7 +622,8 @@
               "digest": "sha256:08fc6895eef71f2563b7db85b26a95fe73f0d8f0e6a4fbd3f45297185b20db53",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-secondary-TrailerFix.wgt",
@@ -572,7 +632,8 @@
               "digest": "sha256:8fc8ff97238f6ac0a70ad55631d8334577850dec07eb4e15180d5c29ffe52070",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-secondary.wgt",
@@ -581,7 +642,8 @@
               "digest": "sha256:3b6103ba1838ddf42f24ea6b0865676142f2e08a68fa811d82ab7a894cdc1e63",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-SmartHub.wgt",
@@ -590,7 +652,8 @@
               "digest": "sha256:f2f5e2880a38971abf5c5e5bc1ef29c436ff7c70583ab448bfd7f538868f0c72",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-TrailerFix.wgt",
@@ -599,7 +662,8 @@
               "digest": "sha256:529d5801bad72a4922239e489ed766e934f2dbb7fb8b33f8f303cdda56d3ecb9",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master.wgt",
@@ -608,7 +672,8 @@
               "digest": "sha256:55027dff5df99136439aa33187014ae256ba079ca96dd12cdcf482a24bf2abf2",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-OblongIcon.wgt",
@@ -617,7 +682,8 @@
               "digest": "sha256:35875d10abb630ee85285ccaa7b90737105fb4c0c49f3d72c3a8e625bfdf6fcd",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-OSA.wgt",
@@ -626,7 +692,8 @@
               "digest": "sha256:27ea03ce3db4f0d04312b4ad72d968a095fc1b5ea8d68f2c4b5dade894b4fd52",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-GrayFix.wgt",
@@ -635,7 +702,8 @@
               "digest": "sha256:3b77439b21cb6234058f085ee92ff3423e789ec9c511c0fa33bad2912034b4d4",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-OblongIcon.wgt",
@@ -644,7 +712,8 @@
               "digest": "sha256:9bf077302577bf17994c8685bdbd9b7d15cf2a927849f02bd91d036d989bcbbd",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-OSA.wgt",
@@ -653,7 +722,8 @@
               "digest": "sha256:4be8671ef4739d0ea826453922a3dbf7c12323cd974893c12b13c42aaff31f71",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
@@ -662,7 +732,8 @@
               "digest": "sha256:54ebc28a4824c023d74bc194f2f71407d412e115c0d9b4be0b24f355275f7337",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-secondary.wgt",
@@ -671,7 +742,8 @@
               "digest": "sha256:9e6a4f5f09dd51182afa8e4cd65b82461c9dd60812764b994b688f622e1b504b",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-SmartHub.wgt",
@@ -680,7 +752,8 @@
               "digest": "sha256:b8b5807c86c8e9582f9fa7453620c0f0994cd4a5fcd509740e10b005436461ec",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-TrailerFix.wgt",
@@ -689,7 +762,8 @@
               "digest": "sha256:b86c5eb34b294ca30204b59c44c36339361413ace178128c60be0faf9595339c",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease.wgt",
@@ -698,7 +772,8 @@
               "digest": "sha256:c2cd169dda34188b515d40ebae72a5f9afdd5c64e247feeceb4d339ae940a2af",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-secondary-TrailerFix.wgt",
@@ -707,7 +782,8 @@
               "digest": "sha256:c2864638e99d4f322e348f1f14c6c9c728a1c37faa35cca1890c58805ae7be66",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-secondary.wgt",
@@ -716,7 +792,8 @@
               "digest": "sha256:6f9c55fe040c5bf117245de401392ec38dad1ea05a3ab5f86f004ea48c0b20c3",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-SmartHub.wgt",
@@ -725,7 +802,8 @@
               "digest": "sha256:9298bc99cabae4dc278d038a522e83572edb94bcc3a6d74fd5da316d6c3232da",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-TrailerFix.wgt",
@@ -734,7 +812,8 @@
               "digest": "sha256:208965dae4c5884808402ff5c56c808b4dbee5e5c9453e9a528279d02567bb73",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin.wgt",
@@ -743,7 +822,8 @@
               "digest": "sha256:b6e2824abdb518da9fb0a2a9d6267700d86cc5dbf894312fb202a24c8abe8587",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             }
           ]
         },
@@ -761,7 +841,8 @@
               "digest": "sha256:821085af808500a43da4e5de68ba7adb84ee8073d66410175f71028c65116d73",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-OblongIcon.wgt",
@@ -770,7 +851,8 @@
               "digest": "sha256:25be902bf192e1e0c8cb6419fc5703beaa97cd0ceae1ad792ef0ff9979194b66",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-OSA.wgt",
@@ -779,7 +861,8 @@
               "digest": "sha256:b295e3c7dd5e4748699e94884754df83475fe6ab4fc308bc97fdcdcd5890fbde",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
@@ -788,7 +871,8 @@
               "digest": "sha256:079aa72d3567f3b5ae21d2b6cf067c0c8ee8295ff29534d6e104649e4e2be338",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-secondary.wgt",
@@ -797,7 +881,8 @@
               "digest": "sha256:b4d409f8f4d9464fa9cc0e8f5f8b024cd2427aa2db5c81007757895bb0efe5d7",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-SmartHub.wgt",
@@ -806,7 +891,8 @@
               "digest": "sha256:fe9ebf870cf6b250293a6167eb99a1054d25048540a01dc654d646e4d324b05c",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-TrailerFix.wgt",
@@ -815,7 +901,8 @@
               "digest": "sha256:ea0f44602b115c7e0c6368a9b02d7cbde8a580103993091c38d3c2daa91670d2",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z.wgt",
@@ -824,7 +911,8 @@
               "digest": "sha256:84595cf6bb66142b1fb6cfa2987bdf0e0780f4399bc5e9a48c6a7d046dff973a",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-GrayFix.wgt",
@@ -833,7 +921,8 @@
               "digest": "sha256:f19fd75d4625cd9c7915393b34b443e7700ac33ddbef711221de7298e3ec2460",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-OblongIcon.wgt",
@@ -842,7 +931,8 @@
               "digest": "sha256:b3633c200be173fdf88977c8cf0b2c61cddeae73ecd1646f151e49669f5fac7d",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-OSA.wgt",
@@ -851,7 +941,8 @@
               "digest": "sha256:8a939b5ce0ecf9238e68635360367785c7ecf3884bf0fe80127f36000655e46d",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
@@ -860,7 +951,8 @@
               "digest": "sha256:0755bc50da337c801ff7a00b95b752947b7b8fa2576640e8e798d44e3403b965",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-secondary.wgt",
@@ -869,7 +961,8 @@
               "digest": "sha256:8ce583666b02f31aeb77edf971c0c51886d70adf5c2d4cac7d694b5603ca140e",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-SmartHub.wgt",
@@ -878,7 +971,8 @@
               "digest": "sha256:c6ab14d2a0d8307dfddc68dd05e6977815d64d3c0d59352a51c423b7f1613b02",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-TrailerFix.wgt",
@@ -887,7 +981,8 @@
               "digest": "sha256:ea4d616035dac6e1fbf8e374d3ed9e05d4f7d90cca6ba4c28325a151861e7b1e",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z.wgt",
@@ -896,7 +991,8 @@
               "digest": "sha256:fd4bbbd861e54de9dce8ba455a68f1ce08ccc9a937b6275e7727bcddee866557",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-GrayFix.wgt",
@@ -905,7 +1001,8 @@
               "digest": "sha256:a50c1ac4079b2e75f60d9fc72e668ff038b3ff70a18ae76d5dea56851605f22c",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-GrayFix.wgt",
@@ -914,7 +1011,8 @@
               "digest": "sha256:37d65bb06dadb975a1090628d35c61fc584733c771b7c7783ec6d09f17af131e",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-OblongIcon.wgt",
@@ -923,7 +1021,8 @@
               "digest": "sha256:1b6abe97b3582e2c36f89a778a5f700dd343ec5a4e7297e64e9efa46c366585f",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-OSA.wgt",
@@ -932,7 +1031,8 @@
               "digest": "sha256:355d023ebeadd68552434e6089e8b4f2f52bc0ae74da0ead93ae34ddebc2bbaa",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-secondary-TrailerFix.wgt",
@@ -941,7 +1041,8 @@
               "digest": "sha256:bd25986cd22ac04dbb24709cd572af2f7035e54be71a4e48bd5bda206854dad7",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-secondary.wgt",
@@ -950,7 +1051,8 @@
               "digest": "sha256:be5199aaf3b526c9b2b6717267b4aea08af4ffed5be5076b27bc1c46c7b3152d",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-SmartHub.wgt",
@@ -959,7 +1061,8 @@
               "digest": "sha256:501b599137cb90ffacfacebe539bc78f7acd9468ac0d46f192ce65d6d8e81b0d",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-TrailerFix.wgt",
@@ -968,7 +1071,8 @@
               "digest": "sha256:51a9f318b6a3e13fab15b6bef5cd0cd7a06e0c6110c4a95c9fc085c2dde38936",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master.wgt",
@@ -977,7 +1081,8 @@
               "digest": "sha256:b13e2bcfa42e1c240ad18450c8015b3bf5832a9a93c62afbee6f27c28158ea2a",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-OblongIcon.wgt",
@@ -986,7 +1091,8 @@
               "digest": "sha256:8a1a642ffbba0cbe4d88d7b04d2ed5afc4d0564e3e48a5e0415adaa807ecbf54",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-OSA.wgt",
@@ -995,7 +1101,8 @@
               "digest": "sha256:79e493a942c356434f2acd12ad87151323e8df39d8887a013601462fca18ac12",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-GrayFix.wgt",
@@ -1004,7 +1111,8 @@
               "digest": "sha256:1629a7388ce23d4413c0e7b7bef1806c85b1a5aef24136de8acdd6160b7fe5ab",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-OblongIcon.wgt",
@@ -1013,7 +1121,8 @@
               "digest": "sha256:305d54c993a45226d5d6d207e95d0e6d65a3ce9a6e7fd161ec726b3f2643029a",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-OSA.wgt",
@@ -1022,7 +1131,8 @@
               "digest": "sha256:7e0353a4292ed76ae234f997b7a5a8fb8947c6defff08f465ca039bd17cc29fd",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
@@ -1031,7 +1141,8 @@
               "digest": "sha256:08822f3750e2b5d22fb483498a811ddd5b0e1f66ba960a3bc5881fec669d5ca6",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-secondary.wgt",
@@ -1040,7 +1151,8 @@
               "digest": "sha256:f51b01e493306daad47063625acb59e74570e1eb952c4fadc7d5d62289d556fe",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-SmartHub.wgt",
@@ -1049,7 +1161,8 @@
               "digest": "sha256:75cb7aa6d289fed570e3100bebda160889e126d0296e73ceddc04b7501308288",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-TrailerFix.wgt",
@@ -1058,7 +1171,8 @@
               "digest": "sha256:d898b91f829ccaca10b93a2bc9430417de272f9136f257e5d7123f1c9facad4e",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease.wgt",
@@ -1067,7 +1181,8 @@
               "digest": "sha256:739ceeecac859c1c39424f1823a301afe0a6450b03bee7018eebadac3cbb3dab",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-secondary-TrailerFix.wgt",
@@ -1076,7 +1191,8 @@
               "digest": "sha256:1e58c61c4d973b6a9d79d4dc31caa0c3cc4a427d2fa05e6a432b52f30391e609",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-secondary.wgt",
@@ -1085,7 +1201,8 @@
               "digest": "sha256:69469a169f14a2bd32b8b4f3c19707871098ba591b21d6191a819f0e2f06ee5c",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-SmartHub.wgt",
@@ -1094,7 +1211,8 @@
               "digest": "sha256:47ed55a508c76f7fcf9e70048f801a04b42d25cf16c6f8521e2803c3f074600b",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-TrailerFix.wgt",
@@ -1103,7 +1221,8 @@
               "digest": "sha256:287f664f2b77aa3507e3925cc5fd55f16d1e1fc58394eb3a9bb02e7636315870",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin.wgt",
@@ -1112,7 +1231,8 @@
               "digest": "sha256:c98754164a2141fb31ffe4b7dac86f30ca550c64e9b6240998b9193be17dce8f",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             }
           ]
         },
@@ -1130,7 +1250,8 @@
               "digest": "sha256:7c60ee8e9a1677c4d8ccdba2c4d039b3757bc078d5f4b7c18a9289b1603ae4e6",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-OblongIcon.wgt",
@@ -1139,7 +1260,8 @@
               "digest": "sha256:7531d73ad6f0c463af56ef521199110a586056900a1dce721bd84c5ac532d40e",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-OSA.wgt",
@@ -1148,7 +1270,8 @@
               "digest": "sha256:d43506031ee94e640b0ebc5f150ef57a5d714d4ee5123fa864bf7d2e40969a9d",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
@@ -1157,7 +1280,8 @@
               "digest": "sha256:28672b138cc5d4fc04ec07a8fffff2ab55571cb22346d487dc598d01ac96c1d8",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-secondary.wgt",
@@ -1166,7 +1290,8 @@
               "digest": "sha256:61ca05146203245f4ff503f9269dc109e0312747463530a291b179911787b127",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-SmartHub.wgt",
@@ -1175,7 +1300,8 @@
               "digest": "sha256:82d92de736bdd08c77eeae033cdf9d9fec9007ce848f1463e8af154513659c9f",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-TrailerFix.wgt",
@@ -1184,7 +1310,8 @@
               "digest": "sha256:09e2185eeba6c71a87e3fc5dd8cce234b1f5f5c692e488d4b34e634130956ab8",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z.wgt",
@@ -1193,7 +1320,8 @@
               "digest": "sha256:1791ada5d9d02743f17df7420d14cb7db6a120e4851de99833aafb15c2b35624",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-GrayFix.wgt",
@@ -1202,7 +1330,8 @@
               "digest": "sha256:ceb090e96132d115bc6304abc20fbaf53f321628bf1ba94ffd9be54e6a6a362c",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-OblongIcon.wgt",
@@ -1211,7 +1340,8 @@
               "digest": "sha256:54b92506ac27bb61f4c633d0a6c9bbda0ed6988ac99cd95d9fb3a308c9d4a8d7",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-OSA.wgt",
@@ -1220,7 +1350,8 @@
               "digest": "sha256:e200428f616d8a5096de79d61066cf2f36c2a9f371d00fbe378995ac085b737c",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
@@ -1229,7 +1360,8 @@
               "digest": "sha256:3b045fd0ff4d48f4e831b0f7ca985aa6a264b147a31460d13e6d869a2620517e",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-secondary.wgt",
@@ -1238,7 +1370,8 @@
               "digest": "sha256:a56d3b56738ac5d881ae3d43d37df862ec6b40407bdc8a21727addc5e28c022f",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-SmartHub.wgt",
@@ -1247,7 +1380,8 @@
               "digest": "sha256:20e93ecdbdd4ca85369ce5fbc3c168cdd6e02086999ae6ec039dfd61ced3cff4",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-TrailerFix.wgt",
@@ -1256,7 +1390,8 @@
               "digest": "sha256:fd4f31cc5d01033e4e9560f2d6e181c5dae195d80e5e29b8926302b3d632b494",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z.wgt",
@@ -1265,7 +1400,8 @@
               "digest": "sha256:58653894c88ffe92d23ea745a1195ddcb6b174e32c7fefe715969d3c5c922a30",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-GrayFix.wgt",
@@ -1274,7 +1410,8 @@
               "digest": "sha256:6c84bab0405f465f4e1f69da390d14384a6bd96e88aa36bc80499e65300a4e95",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-GrayFix.wgt",
@@ -1283,7 +1420,8 @@
               "digest": "sha256:3f1ae36828320af6335d8afd12cd8571663749736c5f136c7eba1851eba2d4aa",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-OblongIcon.wgt",
@@ -1292,7 +1430,8 @@
               "digest": "sha256:7b11ff5208f84d0c52f663857ea450a9606ec09deea4ffa30288ff912294159f",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-OSA.wgt",
@@ -1301,7 +1440,8 @@
               "digest": "sha256:f4053481e8de1e396561562bf0de6604d2df0182d2fba3485750cedeacf1c126",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-secondary-TrailerFix.wgt",
@@ -1310,7 +1450,8 @@
               "digest": "sha256:a9054b0fe30c0d475ba56e370ce73681b3bb5a7c6f135c1b2213a2dbad74b9cd",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-secondary.wgt",
@@ -1319,7 +1460,8 @@
               "digest": "sha256:c6a9d99cbdd55c52162ff7fca6311b03573d59e08788954eccde7eb272233580",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-SmartHub.wgt",
@@ -1328,7 +1470,8 @@
               "digest": "sha256:61f61c42a5ad7bd60e99853f727308a839eb2517b9c40209bc59b18e6ddf8374",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-TrailerFix.wgt",
@@ -1337,7 +1480,8 @@
               "digest": "sha256:5cec9cfe49be47f533449d0c12a384df6535bb0dd342524d446d16894c49b064",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master.wgt",
@@ -1346,7 +1490,8 @@
               "digest": "sha256:52eb0cf60424623a5a19b4d1c72e6c6cd63abfe942d351590d829ab9a854f8ee",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-OblongIcon.wgt",
@@ -1355,7 +1500,8 @@
               "digest": "sha256:0b483ac6ad0ca42562ae8552b9dea079e9bd5bb6b1c936b9c7161ccee34bdae2",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-OSA.wgt",
@@ -1364,7 +1510,8 @@
               "digest": "sha256:7b26ab8235af6a922ffcc1fa705df271c03bf3d427a2bbc5378bc54e83ebabf2",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-GrayFix.wgt",
@@ -1373,7 +1520,8 @@
               "digest": "sha256:7a0a6361a7ae792e6f0ee544e9114e1ed589600cc17b53636e3967ff8a9ad98e",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-OblongIcon.wgt",
@@ -1382,7 +1530,8 @@
               "digest": "sha256:129f10189fb30d422a4e8e5b0faa05f2804d89a4c06f4f0974c0328556b4b769",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-OSA.wgt",
@@ -1391,7 +1540,8 @@
               "digest": "sha256:c1c5d5993d05de2c586ad27a75ca2845ab812be454c80897646d6dd9d43e9bd4",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
@@ -1400,7 +1550,8 @@
               "digest": "sha256:34bea21e837c4a46fde31d79d107e5e2e8e8a5679e28d75b888f995055e44ace",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-secondary.wgt",
@@ -1409,7 +1560,8 @@
               "digest": "sha256:5e2668c91c45e48dc0fe88d853c11a630f34224520f56443ac078904a12f1864",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-SmartHub.wgt",
@@ -1418,7 +1570,8 @@
               "digest": "sha256:6989543acbcff0c19cefcea70bb622cac023b4244b9fd7adedde3c2c127d4b2f",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-TrailerFix.wgt",
@@ -1427,7 +1580,8 @@
               "digest": "sha256:320bbe720c46169f798a285c4813efefd755f2eb78289971fc769253dcc0bc3a",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease.wgt",
@@ -1436,7 +1590,8 @@
               "digest": "sha256:8b2194f73231ecab0247c0ecbc4eb315548f4af3152b6e24d93f35cb2477efc3",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-secondary-TrailerFix.wgt",
@@ -1445,7 +1600,8 @@
               "digest": "sha256:9e3336f381788daf87030a8553ba104ce56a8e2b6df2f085161e78fc64c7cf86",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-secondary.wgt",
@@ -1454,7 +1610,8 @@
               "digest": "sha256:4873e262538a8d442b2959e6d55e66946114a573a5b75b3079f48f4609ce05f5",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-SmartHub.wgt",
@@ -1463,7 +1620,8 @@
               "digest": "sha256:62280a417518cf713a66c3bbeab2aeb574e461b117cd5d4d26422fafd28b51f1",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-TrailerFix.wgt",
@@ -1472,7 +1630,8 @@
               "digest": "sha256:aaeb27e41c8cb5eb82175c2c07497ab3d44033057b1448d23aa7d7219042bd67",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin.wgt",
@@ -1481,7 +1640,8 @@
               "digest": "sha256:51618b9c5b79792f52cc4d9c27f1b68454310da7b4c55e1f4c0a5a667b0c9308",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             }
           ]
         },
@@ -1499,7 +1659,8 @@
               "digest": "sha256:be34a39d367980ddb42f4ad037af310b5bbe43b3afec70dd2bf264621dae3f6e",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-OblongIcon.wgt",
@@ -1508,7 +1669,8 @@
               "digest": "sha256:4737688a8fc92f32ea93e469fecdf81ed1c1b6153597434bbc1e0cf705ad54b0",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-OSA.wgt",
@@ -1517,7 +1679,8 @@
               "digest": "sha256:d90c8144443dccfac859859a686437c729e54aa944c89aa66cde4ca7106b9b9f",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
@@ -1526,7 +1689,8 @@
               "digest": "sha256:f4271ed3ec397074d226ab8255dc4cbde7b361248aba7cdc09490d4701fb3280",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-secondary.wgt",
@@ -1535,7 +1699,8 @@
               "digest": "sha256:5a3a061ff045e55fa72aeddea8ed53aa7388c84ffbf8d71d614a7df734a16368",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-SmartHub.wgt",
@@ -1544,7 +1709,8 @@
               "digest": "sha256:18ddc8659b0130e6af95c185bf4b30b16d7b6dbba4b61c47e1b5629c71c51a59",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z-TrailerFix.wgt",
@@ -1553,7 +1719,8 @@
               "digest": "sha256:37d1207881ec1d7a4efd6c2c877e38e85949baa0d61e3c66ba91bc2526c5cd00",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.11.z.wgt",
@@ -1562,7 +1729,8 @@
               "digest": "sha256:9eeb23dd87e750e80038df10eda3994e85f1f8b3cd1c60a287c7976a6fe5d25a",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-GrayFix.wgt",
@@ -1571,7 +1739,8 @@
               "digest": "sha256:32762e805dfc7589384848b7a92c9467a5a4184321b66c41e391332c5082dd64",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-OblongIcon.wgt",
@@ -1580,7 +1749,8 @@
               "digest": "sha256:807b9ac94cbc325dbf70cafbaf011e4e6d3d837839c3e9373e2dc66686e9554f",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-OSA.wgt",
@@ -1589,7 +1759,8 @@
               "digest": "sha256:905cf5e20cf21fb227b910a916c7275fb9361e19e51bfec643389d6eb3322282",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
@@ -1598,7 +1769,8 @@
               "digest": "sha256:6ef9435f69d77b458c4bdb7c6b2d0595ea6e1602cca4f91d190e2643ca82f036",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-secondary.wgt",
@@ -1607,7 +1779,8 @@
               "digest": "sha256:352cbfa14317ec5055d099208ef44114a48d4eaa232691f883a6317aca561d76",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-SmartHub.wgt",
@@ -1616,7 +1789,8 @@
               "digest": "sha256:b0136cf03ddf16f67146ff3630c1e8cf2c9c69bcd94f0188e4de9d97be0d3dd6",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z-TrailerFix.wgt",
@@ -1625,7 +1799,8 @@
               "digest": "sha256:700f1a43f72b6a59588494cef55425eaa3d0741e61fe1839c148aa5dc3b33274",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-12.z.wgt",
@@ -1634,7 +1809,8 @@
               "digest": "sha256:8ca8d3fb5e2b030a7a218542a3c317c189ae3b03b1dab54d043fd91c8f52d65f",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-GrayFix.wgt",
@@ -1643,7 +1819,8 @@
               "digest": "sha256:923e4d59df6fc5c86efeaa063d23457b9a0bf84f59079b1967a074b45cc42101",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-GrayFix.wgt",
@@ -1652,7 +1829,8 @@
               "digest": "sha256:230dce49947fab0f347c497e7debd8b0dc7139671f0944b3703e7bd911d6236f",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-OblongIcon.wgt",
@@ -1661,7 +1839,8 @@
               "digest": "sha256:57e953b8a9b700e0e1c4be6a6a26124ad78e745c38111bbb79362b5cb867fe6c",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-OSA.wgt",
@@ -1670,7 +1849,8 @@
               "digest": "sha256:2c8b7b7d60c7dead2d043ad9bf9e38cdba5867885d598647809fb6f067761a73",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-secondary-TrailerFix.wgt",
@@ -1679,7 +1859,8 @@
               "digest": "sha256:37fd6570bf7ce500de82c48e57db46251fc784fdf1e785fed60ae4a5943760a8",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-secondary.wgt",
@@ -1688,7 +1869,8 @@
               "digest": "sha256:aa5aa5d90f23c49190914ed03f84740c1bdea807c17d083f1a9c024e1abefc70",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-SmartHub.wgt",
@@ -1697,7 +1879,8 @@
               "digest": "sha256:76f42f39ed610ae003c7e3e02f1eb12145610177bf96f09a52f3892265df4052",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-TrailerFix.wgt",
@@ -1706,7 +1889,8 @@
               "digest": "sha256:2aa28d397e3b6e6b8dd8cfc8ceb1189e85f3648c782c7a7d9cb9056bfe78fba5",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master.wgt",
@@ -1715,7 +1899,8 @@
               "digest": "sha256:aae725cccd6ffb071a724d63939d9c60c06520942e23d3b61286a8995b5edca6",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-OblongIcon.wgt",
@@ -1724,7 +1909,8 @@
               "digest": "sha256:ffee39552bac8072afa0a09a5391fdc7ae7a4bff9e1a019c152399e8e94db454",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-OSA.wgt",
@@ -1733,7 +1919,8 @@
               "digest": "sha256:332f77bae91beec2609b1be8d9ea8eb6f7ac12c81d79766a778fda02f950d3f0",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-GrayFix.wgt",
@@ -1742,7 +1929,8 @@
               "digest": "sha256:635b2d8ec8b2f09b44cd25dcdfc2cc1bafe6c6cd6da1b790c3eef190de2f64cb",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-OblongIcon.wgt",
@@ -1751,7 +1939,8 @@
               "digest": "sha256:6175ea95205f9bc6dc3a1e43f21817a67b63da842fd2d2b5e3a774a3350c4529",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-OSA.wgt",
@@ -1760,7 +1949,8 @@
               "digest": "sha256:e9400b4521647f1ec4ff7c47ecff0447335902c85643ae10e768d60912021ea9",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
@@ -1769,7 +1959,8 @@
               "digest": "sha256:739e5598df74d271de07303336238f9345550012acb14e97c8bffab76924d0db",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-secondary.wgt",
@@ -1778,7 +1969,8 @@
               "digest": "sha256:1e39f6075113006143bc9a02f989b7b276b3c66f77ce868658f10549938733df",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-SmartHub.wgt",
@@ -1787,7 +1979,8 @@
               "digest": "sha256:4fa1a0a0f2d829bb2c93afe245c277c06097dd0f434fac7aa08cbb05d6e0eeaf",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease-TrailerFix.wgt",
@@ -1796,7 +1989,8 @@
               "digest": "sha256:11b7483a2fddff8e678f906e267411168676c40ac98efc5da236e070bdc54ebe",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-prerelease.wgt",
@@ -1805,7 +1999,8 @@
               "digest": "sha256:d22e0fd9301fdaa3641977c7787c9769c2c17a4f1f524d09f0a749c40ebd0f19",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-secondary-TrailerFix.wgt",
@@ -1814,7 +2009,8 @@
               "digest": "sha256:48e359b05a827cf434c8e0c739fb70efe723973c9298a0be2ad787d10f2bf25b",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-secondary.wgt",
@@ -1823,7 +2019,8 @@
               "digest": "sha256:c2359e13bb260d15ad9fca4abcc2f2138cb24f84cedb9879566c61f59895de61",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-SmartHub.wgt",
@@ -1832,7 +2029,8 @@
               "digest": "sha256:b12e5d9ff86b0b0a53884b1f15afeb88be1610a669cf171351f6e1cb8f171cda",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-TrailerFix.wgt",
@@ -1841,7 +2039,8 @@
               "digest": "sha256:02ac20472cb4fa94663c72a616b7104474e8e9a9f3aaf260051cab2f3f883b64",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin.wgt",
@@ -1850,7 +2049,8 @@
               "digest": "sha256:c2e1829ccd3f64a57890f0155762be3c80d5d4868daacc32d6684bff6d89d4a2",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             }
           ]
         }
@@ -1876,7 +2076,8 @@
               "digest": "sha256:37121d0da6eef1dc789fe16d343279172b84c50342c56a2ff6d3bdcc100f992c",
               "package_version": "2.11.0",
               "app_id": "MoonfinApp.moonfin",
-              "package_id": "MoonfinApp"
+              "package_id": "MoonfinApp",
+              "required_version": "2.4"
             },
             {
               "name": "Moonfin_Tizen_Oblong_v2.11.0.wgt",
@@ -1885,7 +2086,8 @@
               "digest": "sha256:0244812077ba08ff03a87f896c01818aabb9b39e90d4877cd1b1a793bd994b04",
               "package_version": "2.11.0",
               "app_id": "MoonfinApp.moonfin",
-              "package_id": "MoonfinApp"
+              "package_id": "MoonfinApp",
+              "required_version": "2.4"
             },
             {
               "name": "Moonfin_Tizen_Regular_v2.11.0.wgt",
@@ -1894,7 +2096,8 @@
               "digest": "sha256:77990c6c97e871c4db4055e70c4c2a52cfc3d93a631664079df058514fa37968",
               "package_version": "2.11.0",
               "app_id": "MoonfinApp.moonfin",
-              "package_id": "MoonfinApp"
+              "package_id": "MoonfinApp",
+              "required_version": "2.4"
             }
           ]
         }
@@ -1920,7 +2123,8 @@
               "digest": "sha256:e359c6b41d9ad681268340605a230d5bf34427ab57097e719f54991257c97735",
               "package_version": "2.0.30",
               "app_id": "LitefinApp.Litefin",
-              "package_id": "LitefinApp"
+              "package_id": "LitefinApp",
+              "required_version": "2.3"
             },
             {
               "name": "Litefin-2.0.30-Tizen-Modern.wgt",
@@ -1929,7 +2133,8 @@
               "digest": "sha256:b5db40f87bfc91ce4e7f7cba94ff7e308ad1e501c0e39d7e85f1beaa1986faa8",
               "package_version": "2.0.30",
               "app_id": "LitefinApp.Litefin",
-              "package_id": "LitefinApp"
+              "package_id": "LitefinApp",
+              "required_version": "2.3"
             },
             {
               "name": "Litefin-2.0.30-Tizen-Normal-Oblong.wgt",
@@ -1938,7 +2143,8 @@
               "digest": "sha256:eecbe86a016fd89fbf6e8bf23932a7eebad2a3f97b7d5ba2c643d944e472aa93",
               "package_version": "2.0.30",
               "app_id": "LitefinApp.Litefin",
-              "package_id": "LitefinApp"
+              "package_id": "LitefinApp",
+              "required_version": "2.3"
             },
             {
               "name": "Litefin-2.0.30-Tizen-Normal.wgt",
@@ -1947,7 +2153,8 @@
               "digest": "sha256:988199382ee81339ae44de46292396c509a9f2947ac92c77cc7b6d7941085195",
               "package_version": "2.0.30",
               "app_id": "LitefinApp.Litefin",
-              "package_id": "LitefinApp"
+              "package_id": "LitefinApp",
+              "required_version": "2.3"
             },
             {
               "name": "Litefin-2.0.30-Tizen-Ultra-Legacy-NoService.wgt",
@@ -1956,7 +2163,8 @@
               "digest": "sha256:89a41699f6eaee7d5183258770640ae4c706b7eadc629cffc89ef91545304ebf",
               "package_version": "2.0.30",
               "app_id": "LitefinApp.litefin",
-              "package_id": "LitefinApp"
+              "package_id": "LitefinApp",
+              "required_version": "2.3"
             },
             {
               "name": "Litefin-2.0.30-Tizen-Ultra-Legacy.wgt",
@@ -1965,7 +2173,8 @@
               "digest": "sha256:60462ca280cfc93246bc7dc057da54cf306ea61604e14c69b5ad4833d9ae74bb",
               "package_version": "2.0.30",
               "app_id": "LitefinApp.Litefin",
-              "package_id": "LitefinApp"
+              "package_id": "LitefinApp",
+              "required_version": "2.3"
             }
           ]
         }
@@ -1991,7 +2200,8 @@
               "digest": "sha256:d5ebcf5b61e907912d5200b033f0d366717cb952c9f543a6332d36bef771b3b5",
               "package_version": "2.1.1",
               "app_id": "xvvl3S1TT1.TizenTubeStandalone",
-              "package_id": "xvvl3S1TT1"
+              "package_id": "xvvl3S1TT1",
+              "required_version": "3.0"
             },
             {
               "name": "TizenTubeCobaltTizenTubeProxyAddress.wgt",
@@ -2000,7 +2210,8 @@
               "digest": "sha256:481ebec9b0ad6fc15a83f3f269caba257f2516c84392696b661d29e0f05f204b",
               "package_version": "2.1.1",
               "app_id": "xvvl3S1TT1.TizenTubeStandalone",
-              "package_id": "xvvl3S1TT1"
+              "package_id": "xvvl3S1TT1",
+              "required_version": "3.0"
             },
             {
               "name": "TizenTubeOld.wgt",
@@ -2009,7 +2220,8 @@
               "digest": "sha256:97dd00e3229b47f9892586fcd35ae7f7c8812b18f4be749b19c57a75b9ed6344",
               "package_version": "2.1.1",
               "app_id": "xvvl3S1TT1.TizenTubeStandalone",
-              "package_id": "xvvl3S1TT1"
+              "package_id": "xvvl3S1TT1",
+              "required_version": "3.0"
             }
           ]
         }
@@ -2035,7 +2247,8 @@
               "digest": "sha256:b1275b54d9ac4ed58ba2c169acef20e552018424e55e6e105987b97c4e464090",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             }
           ]
         }
@@ -2061,7 +2274,8 @@
               "digest": "sha256:d1af266f43bd2d50f9a460aecdb324f112d4746708444c55c44d58d496ea8caa",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             }
           ]
         }
@@ -2087,7 +2301,8 @@
               "digest": "sha256:5da026e92d3001051c08b49a056318eeb202a594179aca43de2a870590e2c859",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.10.z-secondary-intros.wgt",
@@ -2096,7 +2311,8 @@
               "digest": "sha256:3827c3706fc0dbff86ecd0e3b6dd0e9244e1c15e2cd6cb378fc8e931cd2d7245",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.10.z-secondary.wgt",
@@ -2105,7 +2321,8 @@
               "digest": "sha256:2f3c4a5460fa1b73f3c875ceb1b9f13306f0ef7687e530685b6b42d506aba6b0",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.10.z-TrueHD.wgt",
@@ -2114,7 +2331,8 @@
               "digest": "sha256:941a5295cc6ca9236caf1d8318172792042ab316fba899b80fb09b30892ecf79",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.10.z.wgt",
@@ -2123,7 +2341,8 @@
               "digest": "sha256:da3393aa19ed8d1b00ede1ab7f581ce88ea5a92e7352a0f028ed6034a0950440",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.8.z-OblongIcon.wgt",
@@ -2132,7 +2351,8 @@
               "digest": "sha256:a23597db1c91e002074c558fb605651ea9da2a12219eae75f8d8aced8ed828a1",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.8.z-TrueHD.wgt",
@@ -2141,7 +2361,8 @@
               "digest": "sha256:b3fa8b7304f90c9b5d70376f4bd4627c585c1efbc4a8195ff720a4dac93d009d",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.8.z.wgt",
@@ -2150,7 +2371,8 @@
               "digest": "sha256:817655a4870bc29c21bbd4968ed40c8516d25c1c0a240c8dc5ca660ec9bc613f",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.9.z-intros.wgt",
@@ -2159,7 +2381,8 @@
               "digest": "sha256:645dc176e3bc513c92461322da171b3dfe31e47b449c27e2651cc8dc74ad5252",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.9.z-OblongIcon.wgt",
@@ -2168,7 +2391,8 @@
               "digest": "sha256:70ec8be4c8db6ce8de9b1fec927bce2cb62885fb996faaff55f46334ff84f871",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.9.z-secondary-intros.wgt",
@@ -2177,7 +2401,8 @@
               "digest": "sha256:cb3c28dd4846e95800cc46cd8c91b2389e7ede3269a3c45489da2fe65a8a977d",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.9.z-secondary.wgt",
@@ -2186,7 +2411,8 @@
               "digest": "sha256:5abea450e2d65a45f653e4f8372cf25437aa0f50cf6138af572401db29c54766",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.9.z-TrueHD.wgt",
@@ -2195,7 +2421,8 @@
               "digest": "sha256:ca521cd34fc6043a238aa6af6cdb800de47e734e67b081e71bb0dc29c65f4bda",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-10.9.z.wgt",
@@ -2204,7 +2431,8 @@
               "digest": "sha256:c2d61ecc6c9bbb5f175caec3b11042c0b75f5238f2c877443ffafe1054d3689f",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-intros-OblongIcon.wgt",
@@ -2213,7 +2441,8 @@
               "digest": "sha256:2b0092ae2a25a940790dce2931a99dac6a6bf505f3c2528b63985f8053542a26",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-intros-TrueHD.wgt",
@@ -2222,7 +2451,8 @@
               "digest": "sha256:3917835c24c748c07fbb7e8d52b5bfba86dd7c3d7ab7212825b6ba476f2f0c68",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-intros.wgt",
@@ -2231,7 +2461,8 @@
               "digest": "sha256:9231ce0706a8e9370bbe66d2ff6ccdc1f4b8cd6e947367e5641f4abe7e9c0ebf",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-OblongIcon.wgt",
@@ -2240,7 +2471,8 @@
               "digest": "sha256:ce4d0905616fc6379ea5b644865388942dcccdcc7e7a8169cf47341ed567e6bb",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master-TrueHD.wgt",
@@ -2249,7 +2481,8 @@
               "digest": "sha256:c6ff924ae37a3a781e3da7f3a704f96e3eba86c479355ac11c239da69e8a76c6",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-master.wgt",
@@ -2258,7 +2491,8 @@
               "digest": "sha256:c8a7580401cff7ce59ad9d6acfcd0a4b79586744be24033b762a2d8fe7bb208a",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-OblongIcon.wgt",
@@ -2267,7 +2501,8 @@
               "digest": "sha256:02309ed430002b73a53a83831234bc8e2bf6f6f7403fbb4edde3cf01c1d534e4",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-secondary-intros.wgt",
@@ -2276,7 +2511,8 @@
               "digest": "sha256:94f8c10ef8d6d70a35f6149d99530b0a662690c402f6f2392bcc5f383857354d",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-secondary.wgt",
@@ -2285,7 +2521,8 @@
               "digest": "sha256:0ee4942e723618bab7b14e0b5c4ae4ffad01a7c37ef7c3874dc69a2c1221c1e0",
               "package_version": "0.1.0",
               "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r"
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin-TrueHD.wgt",
@@ -2294,7 +2531,8 @@
               "digest": "sha256:5da6475c5a49e11d44c6a01b65c296fa8c96767da928be4b2efda59442fe1e58",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             },
             {
               "name": "Jellyfin.wgt",
@@ -2303,7 +2541,8 @@
               "digest": "sha256:3e5592abdc32029bf79953a1a851595641b7e05b68e8d9b5a63e7b3ded3cfca0",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r"
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3"
             }
           ]
         }
