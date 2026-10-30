@@ -41,6 +41,8 @@ public class TizenInstallDiagnosticsTests
     [Theory]
     [InlineData("install failed[118012]")]
     [InlineData("install failed[118, -12]")]
+    [InlineData("app_id[MoonfinApp.moonfin] install start app_id[MoonfinApp.moonfin] installing[8] install failed[118, -11], reason: Author certificate not match :")]
+    [InlineData("install failed[118011]")]
     // The one validator reason that IS the installed-copy case (#534).
     [InlineData("app_id[Pkg.App] install failed[118, -12], reason: Check certificate error : :Package with the same id and different certificate has been already installed")]
     public void CertificateMismatch(string output)

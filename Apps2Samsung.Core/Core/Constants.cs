@@ -25,6 +25,10 @@ namespace Apps2Samsung.Helpers.Core
             public const string DownloadFailed116 = "download failed[116]";
             public const string InstallFailed118012 = "install failed[118012]";
             public const string InstallFailed118Minus12 = "install failed[118, -12]";
+            // A 2022 Tizen 6.5 set words the same mismatch as "[118, -11], reason: Author certificate
+            // not match" (TV-Store#45, Moonfin installed from a PC); 118011 would be the six-digit form.
+            public const string InstallFailed118Minus11 = "install failed[118, -11]";
+            public const string InstallFailed118011 = "install failed[118011]";
             // [118, -12] comes with a reason from Tizen's signature validator, "Check certificate error
             // : :<text>:<code>". Only one of those texts is the "installed with another certificate"
             // case that removing the old copy fixes; the others are the TV rejecting the certificate
