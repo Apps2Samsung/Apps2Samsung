@@ -15,7 +15,7 @@ namespace Apps2Samsung.Sdb
     /// Gathers everything shown in the "TV information" view into a <see cref="TizenDeviceInfo"/>, so
     /// both heads report the same details. Reads the DUID and capabilities over SDB (works on any
     /// connected TV) and, best-effort, the Samsung REST API (port 8001) for the friendly name, model,
-    /// and Developer-Mode host/IP. Every lookup is defensive — a TV that doesn't answer one source just
+    /// and Developer-Mode host/IP. Every lookup is defensive: a TV that doesn't answer one source just
     /// leaves those fields blank rather than failing the whole view.
     /// </summary>
     public static class TizenDeviceInfoService
@@ -23,7 +23,7 @@ namespace Apps2Samsung.Sdb
         private const int SamsungTvApiPort = 8001;
 
         /// <param name="localIp">This computer's / phone's own LAN IP, shown alongside the TV's
-        /// Developer-host IP. Null or empty renders as "—".</param>
+        /// Developer-host IP. Null or empty renders as ":".</param>
         public static async Task<TizenDeviceInfo> GatherAsync(ISdbEngine sdb, string ip, bool debugPortOpen, string? localIp = null)
         {
             // ---- SDB: DUID + capabilities (Tizen version, SDK tool path) ----
@@ -65,7 +65,7 @@ namespace Apps2Samsung.Sdb
                     developerIp = device["developerIP"]?.GetValue<string>() ?? string.Empty;
                 }
             }
-            catch { /* REST unreachable — leave those fields blank */ }
+            catch { /* REST unreachable: leave those fields blank */ }
 
             return new TizenDeviceInfo(
                 IpAddress: ip,
