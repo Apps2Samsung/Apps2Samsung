@@ -315,7 +315,6 @@
   "lblRemoteTextPlaceholder": "Texto para enviar...",
   "lblRemoteSend": "Mandar",
   "lblRemoteTextHint": "Foque um campo de texto na TV primeiro. Nem todos os modelos aceitam texto digitado.",
-  "lblRemoteKeyboardCleared": "Limpou o campo na TV.",
   "lblRemoteTextLivePlaceholder": "Digite aqui - os seguintes programas de TV",
   "lblRemoteTextLiveHint": "Foque um campo de texto na TV primeiro, depois digite apenas - parece que está lá enquanto você vai. Nem todos os modelos aceitam texto digitado.",
   "lblRemoteTextMirrored": "Na TV: \"{0}\"",

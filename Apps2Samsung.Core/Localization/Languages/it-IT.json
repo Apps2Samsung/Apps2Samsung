@@ -177,7 +177,6 @@
   "lblRemoteTextPlaceholder": "Testo da inviare...",
   "lblRemoteSend": "Invia",
   "lblRemoteTextHint": "Focalizza prima un campo di testo sulla TV. Non tutti i modelli accettano il testo digitato.",
-  "lblRemoteKeyboardCleared": "Pulito il campo sulla TV.",
   "lblRemoteTextLivePlaceholder": "Digita qui - la TV segue",
   "lblRemoteTextLiveHint": "Focalizza un campo di testo sulla TV prima, poi digita semplicemente - appare lì mentre vai. Non tutti i modelli accettano il testo digitato.",
   "lblRemoteTextMirrored": "In TV: \"{0}\"",

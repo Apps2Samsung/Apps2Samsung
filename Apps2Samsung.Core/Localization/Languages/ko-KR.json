@@ -179,7 +179,6 @@
   "lblRemoteTextPlaceholder": "보낼 텍스트...",
   "lblRemoteSend": "보내기",
   "lblRemoteTextHint": "먼저 TV에서 텍스트 입력란을 선택하세요. 모든 모델이 입력을 받아들이지는 않습니다.",
-  "lblRemoteKeyboardCleared": "TV의 입력란을 지웠습니다.",
   "lblRemoteTextLivePlaceholder": "여기에 입력하세요 - TV가 따라갑니다",
   "lblRemoteTextLiveHint": "먼저 TV에서 텍스트 입력란을 선택한 다음 그대로 입력하세요. 입력하는 대로 TV에 나타납니다. 모든 모델이 입력을 받아들이지는 않습니다.",
   "lblRemoteTextMirrored": "TV에 표시: \"{0}\"",

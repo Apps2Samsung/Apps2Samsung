@@ -179,7 +179,6 @@
   "lblRemoteTextPlaceholder": "Tekst do wysłania...",
   "lblRemoteSend": "Wyślij",
   "lblRemoteTextHint": "Skoncentruj pole tekstowe na telewizorze. Nie każdy model akceptuje wpisany tekst.",
-  "lblRemoteKeyboardCleared": "Wyczyszczono pole w telewizorze.",
   "lblRemoteTextLivePlaceholder": "Wpisz tutaj - telewizor śledzi",
   "lblRemoteTextLiveHint": "Skoncentruj pole tekstowe na telewizorze, a następnie wpisz - pojawia się tam kiedy idesz. Nie każdy model akceptuje wpisany tekst.",
   "lblRemoteTextMirrored": "Na telewizorze: \"{0}\"",

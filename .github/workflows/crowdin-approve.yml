@@ -31,7 +31,7 @@ on:
       languages:
         description: >-
           Comma-separated languages to approve, by Crowdin id or locale (cs, nl-NL, pt-BR).
-          Empty = every target language.
+          Empty = the reviewed set below (what the weekly run uses); "all" = every target language.
         type: string
         default: ''
       apply:
@@ -59,6 +59,10 @@ jobs:
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
           # Through the environment rather than interpolated into the script: free text from
           # whoever dispatches the run.
+          # The languages a person actually reviews. Approving the rest would tick Crowdin's
+          # machine translations too, and the tick would stop meaning "a native speaker read
+          # this" (see the script's header). Extend this list when a language gets a reviewer.
+          REVIEWED_LANGUAGES: cs,ca,ru,nl
           LANGUAGES: ${{ inputs.languages }}
           # `inputs` is null on a scheduled run, so the weekly one applies and a dispatch only
           # does when it was asked to.
@@ -69,5 +73,9 @@ jobs:
             exit 1
           fi
           [ "$APPLY" = "true" ] && apply=--apply || apply=
-          [ -n "$LANGUAGES" ] && languages="--languages $LANGUAGES" || languages=
+          case "$LANGUAGES" in
+            all) languages= ;;
+            "")  languages="--languages $REVIEWED_LANGUAGES" ;;
+            *)   languages="--languages $LANGUAGES" ;;
+          esac
           python3 .github/scripts/crowdin_approve.py $apply $languages

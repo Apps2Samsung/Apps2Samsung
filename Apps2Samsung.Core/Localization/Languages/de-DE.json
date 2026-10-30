@@ -308,7 +308,6 @@
   "lblRemoteTextPlaceholder": "Text zum Senden...",
   "lblRemoteSend": "Senden",
   "lblRemoteTextHint": "Fokussiert zuerst ein Textfeld auf dem Fernseher. Nicht jedes Modell akzeptiert eingegebenen Text.",
-  "lblRemoteKeyboardCleared": "Das Feld wurde auf dem Fernseher geleert.",
   "lblRemoteTextLivePlaceholder": "Geben Sie hier ein - der TV folgt",
   "lblRemoteTextLiveHint": "Fokussieren Sie zuerst ein Textfeld auf dem Fernseher, dann geben Sie es einfach ein - es erscheint dort, wenn Sie gehen. Nicht jedes Modell akzeptiert eingegebenen Text.",
   "lblRemoteTextMirrored": "Im TV: \"{0}\"",

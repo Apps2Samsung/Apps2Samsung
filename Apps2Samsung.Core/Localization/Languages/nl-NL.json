@@ -306,7 +306,6 @@
   "lblRemoteTextPlaceholder": "Te verzenden tekst...",
   "lblRemoteSend": "Verzenden",
   "lblRemoteTextHint": "Focus eerst op de TV. Niet elk model accepteert getypte tekst.",
-  "lblRemoteKeyboardCleared": "Het veld is gewist op de tv.",
   "lblRemoteTextLivePlaceholder": "Type hier - de TV volgt",
   "lblRemoteTextLiveHint": "Focus eerst een tekstveld op de TV, typ dan gewoon - het verschijnt daar terwijl u bezig bent. Niet elk model accepteert getypte tekst.",
   "lblRemoteTextMirrored": "Op de TV: \"{0}\"",

@@ -179,7 +179,6 @@
   "lblRemoteTextPlaceholder": "Text de trimis...",
   "lblRemoteSend": "Trimite",
   "lblRemoteTextHint": "Focalizați mai întâi un câmp text pe televizor. Nu toate modelele acceptă textul tastat.",
-  "lblRemoteKeyboardCleared": "A şters câmpul de pe televizor.",
   "lblRemoteTextLivePlaceholder": "Scrie aici - televizorul urmează",
   "lblRemoteTextLiveHint": "Focalizează mai întâi un câmp text pe televizor, apoi doar tastează - apare acolo pe măsură ce începeți. Nu toate modelele acceptă text tastat.",
   "lblRemoteTextMirrored": "Pe televizor: \"{0}\"",

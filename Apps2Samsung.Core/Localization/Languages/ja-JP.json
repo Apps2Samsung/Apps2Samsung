@@ -178,7 +178,6 @@
   "lblRemoteTextPlaceholder": "送信するテキスト...",
   "lblRemoteSend": "送信",
   "lblRemoteTextHint": "最初にテレビのテキストフィールドにフォーカスします。すべてのモデルが入力されたテキストを受け入れるわけではありません。",
-  "lblRemoteKeyboardCleared": "テレビのフィールドをきれいにした。",
   "lblRemoteTextLivePlaceholder": "ここに入力してください - テレビは次のとおりです",
   "lblRemoteTextLiveHint": "最初にテレビのテキストフィールドにフォーカスし、次にちょうどタイプする - あなたが行くようにそこに表示されます。すべてのモデルが入力されたテキストを受け入れるわけではありません。",
   "lblRemoteTextMirrored": "テレビで: \"{0}\"",
