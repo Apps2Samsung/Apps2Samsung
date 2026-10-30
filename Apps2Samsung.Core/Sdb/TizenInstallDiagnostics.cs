@@ -77,7 +77,9 @@ namespace Apps2Samsung.Sdb
 
         private static bool IsCertificateFailure(string? output) =>
             Has(output, Constants.TizenErrorCodes.InstallFailed118012) ||
-            Has(output, Constants.TizenErrorCodes.InstallFailed118Minus12);
+            Has(output, Constants.TizenErrorCodes.InstallFailed118Minus12) ||
+            Has(output, Constants.TizenErrorCodes.InstallFailed118Minus11) ||
+            Has(output, Constants.TizenErrorCodes.InstallFailed118011);
 
         /// <summary>The TV refused the package with [118, -4] ("operation not allowed" / "load archive
         /// info fail"). Ambiguous: usually the package targets a newer Tizen than the TV, OR it needs
