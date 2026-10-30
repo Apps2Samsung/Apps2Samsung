@@ -20,6 +20,12 @@ on:
 permissions:
   contents: write
 
+# One stable release at a time, as for the beta: a second run must not move the tag or replace
+# assets while the first is still uploading. Never cancelled for the same reason.
+concurrency:
+  group: stable-release
+  cancel-in-progress: false
+
 env:
   PRODUCT_NAME: Apps2Samsung
   PROJECT_DIR: Apps2Samsung.Desktop
