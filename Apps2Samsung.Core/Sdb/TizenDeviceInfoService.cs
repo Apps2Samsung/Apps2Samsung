@@ -44,6 +44,7 @@ namespace Apps2Samsung.Sdb
                 var caps = TizenCapabilities.Parse(c.Output);
                 tizenVersion = caps.PlatformVersion ?? string.Empty;
                 sdkToolPath = caps.SdkToolPath ?? string.Empty;
+                TizenVersionCache.Remember(ip, tizenVersion);
             }
             catch { /* leave blank */ }
 

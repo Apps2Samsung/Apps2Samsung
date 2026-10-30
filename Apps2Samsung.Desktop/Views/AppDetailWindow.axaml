@@ -55,6 +55,15 @@
 					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblRootPackage}">
 						<TextBlock Text="{l:Localize lblRootBadge}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
 					</Border>
+					<!-- the Tizen the selected build asks for (TV-Store#47): a warning when this TV is too old for it -->
+					<Border IsVisible="{Binding HasTizenBadgeWarn}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
+					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center">
+						<TextBlock Text="{Binding TizenBadgeText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
+					</Border>
+					<Border IsVisible="{Binding HasTizenBadgeMute}" Background="{DynamicResource FillBrush}" BorderBrush="{DynamicResource HairBrush}"
+					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center">
+						<TextBlock Text="{Binding TizenBadgeText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
+					</Border>
 				</StackPanel>
 				<!-- the star: a favorite leads the Install screen's list -->
 				<Button Grid.Column="2" Classes="icon" Content="{Binding FavoriteGlyph}" FontSize="18" ToolTip.Tip="{Binding FavoriteText}"
@@ -121,16 +130,23 @@
 				         Background="Transparent" BorderThickness="0" MaxHeight="300">
 					<ListBox.ItemTemplate>
 						<DataTemplate x:DataType="models:Asset">
-							<Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Margin="16,11">
+							<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Margin="16,11">
 								<Border Classes="radio" VerticalAlignment="Center"/>
 								<TextBlock Grid.Column="1" Text="{Binding LongDisplayText}" TextWrapping="Wrap" VerticalAlignment="Center"
 								           Foreground="{DynamicResource InkBrush}"/>
+								<!-- the Tizen this build asks for, from the catalog (TV-Store#47) -->
+								<TextBlock Grid.Column="2" Text="{Binding RequiredVersionText}" IsVisible="{Binding HasRequiredVersion}" FontSize="12"
+								           VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
 							</Grid>
 						</DataTemplate>
 					</ListBox.ItemTemplate>
 				</ListBox>
 			</Border>
 
+			<!-- why Install is off: this TV is too old for the selected build (TV-Store#47) -->
+			<Border IsVisible="{Binding HasTizenHint}" Background="{DynamicResource WarnSoftBrush}" CornerRadius="10" Padding="12,8">
+				<TextBlock Text="{Binding TizenHint}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource WarnBrush}"/>
+			</Border>
 			<Button Classes="primary" Name="InstallButton" Content="{Binding InstallText}" IsEnabled="{Binding CanInstall}"
 			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12" Margin="0,6,0,0"
 			        Click="OnInstallClick"/>

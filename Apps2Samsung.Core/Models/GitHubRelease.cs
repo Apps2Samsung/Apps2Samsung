@@ -166,6 +166,12 @@ namespace Apps2Samsung.Models
         [JsonPropertyName("required_version")]
         public string? RequiredVersion { get; set; }
 
+        /// <summary>"Tizen 6.0+" for the version picker, empty when the catalog does not say.</summary>
+        [JsonIgnore]
+        public string RequiredVersionText => string.IsNullOrWhiteSpace(RequiredVersion) ? string.Empty : $"Tizen {RequiredVersion}+";
+        [JsonIgnore]
+        public bool HasRequiredVersion => !string.IsNullOrWhiteSpace(RequiredVersion);
+
         /// <summary>Label from the community catalog when this file is one variant of a grouped app.</summary>
         [JsonIgnore]
         public string? Variant { get; set; }

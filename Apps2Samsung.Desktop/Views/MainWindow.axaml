@@ -216,6 +216,11 @@
 																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblRootPackage}">
 																						<TextBlock Text="{l:Localize lblRootBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
 																					</Border>
+																					<!-- the selected TV runs none of the app's builds (TV-Store#47) -->
+																					<Border IsVisible="{Binding HasNeedsTizen}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
+																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center">
+																						<TextBlock Text="{Binding NeedsTizen}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
+																					</Border>
 																				</StackPanel>
 																				<TextBlock Text="{Binding Subline}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
 																			</StackPanel>

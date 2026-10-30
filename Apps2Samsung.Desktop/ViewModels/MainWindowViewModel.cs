@@ -4,6 +4,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Apps2Samsung.Catalog;
+using Apps2Samsung.Sdb;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
@@ -240,12 +241,14 @@ namespace Apps2Samsung.ViewModels
         }
 
         /// <summary>A list row: the release, its letter tile and the one-line subline.</summary>
-        public sealed record CatalogRow(GitHubRelease Release, string Letter, IBrush TileBrush, string Subline)
+        /// <param name="NeedsTizen">"Needs Tizen X" when the selected TV runs none of the app's builds (TV-Store#47); null otherwise.</param>
+        public sealed record CatalogRow(GitHubRelease Release, string Letter, IBrush TileBrush, string Subline, string? NeedsTizen = null)
         {
             public string Name => Release.Name;
             /// <summary>The 18+ badge next to the name (#850); only ever true with the setting on.</summary>
             public bool IsAdult => Release.IsAdult;
             public bool IsRoot => Release.IsRoot;
+            public bool HasNeedsTizen => NeedsTizen is not null;
         }
 
         /// <summary>"Show all" / "Show less" on a group.</summary>
@@ -267,8 +270,12 @@ namespace Apps2Samsung.ViewModels
                 : category;
             if (release.Downloads > 0)
                 subline += $" · {string.Format(L("lblDownloadsCount"), DownloadStatsService.Compact(release.Downloads))}";
+            // The selected TV runs none of the app's builds (TV-Store#47): badge it like TV-Store does.
+            var needsTizen = TizenRequirement.NoneFits(release, SelectedTvVersion)
+                ? string.Format(L("lblNeedsTizenBadge"), TizenRequirement.Lowest(release.Assets))
+                : null;
             return new CatalogRow(release, AppTiles.Letter(release.Name),
-                DesignTheme.Brush(AppTiles.ColorToken(release.Category, release.Name)), subline);
+                DesignTheme.Brush(AppTiles.ColorToken(release.Category, release.Name)), subline, needsTizen);
         }
 
         // The catalog as short groups per category (Core's CatalogGroups), or one flat result
@@ -334,7 +341,8 @@ namespace Apps2Samsung.ViewModels
                 L,
                 _favorites.Contains(row.Release.Name),
                 SetFavorite,
-                _multiVersionApps.Contains(row.Release.Name));
+                _multiVersionApps.Contains(row.Release.Name),
+                SelectedTvVersion);
             var showAllBefore = AppSettings.Default.ShowAllJellyfinVersions;
             var asset = await new Views.AppDetailWindow(sheet).ShowDialog<Asset?>(desktop.MainWindow);
             if (asset is not null)
@@ -584,12 +592,30 @@ namespace Apps2Samsung.ViewModels
             DownloadCommand?.NotifyCanExecuteChanged();
         }
 
+        /// <summary>The selected TV's Tizen version, once a capability report or a probe said it; null until then.</summary>
+        private Version? SelectedTvVersion =>
+            SelectedDevice is { } d && d.IpAddress != L("lblOther") ? TizenVersionCache.TryGet(d.IpAddress) : null;
+
+        // One capability round-trip when a ready TV is selected (TV-Store#47): the catalog can then
+        // say which apps this set is too old for. The rows are rebuilt when the answer comes in.
+        private async Task ProbeTizenVersionAsync(string ip)
+        {
+            if (TizenVersionCache.TryGet(ip) is not null)
+                return;
+            await TizenVersionCache.ProbeAsync(_sdbEngine, ip);
+            if (TizenVersionCache.TryGet(ip) is not null && SelectedDevice?.IpAddress == ip)
+                await Dispatcher.UIThread.InvokeAsync(RebuildCatalogRows);
+        }
+
         partial void OnSelectedDeviceChanged(NetworkDevice? value)
         {
             if (value?.IpAddress == L("lblOther"))
                 _ = PromptForManualIpAsync();
             else if (value != null && !value.DebugPortOpen && !string.IsNullOrWhiteSpace(value.IpAddress))
                 SetStatus(DeviceNotReadyStatusKey(value)); // detected TV, but not installable yet
+            else if (value != null && !string.IsNullOrWhiteSpace(value.IpAddress))
+                _ = ProbeTizenVersionAsync(value.IpAddress);
+            RebuildCatalogRows();
 
             // Read once per TV, not on every status line: the guide's Diagnose compares against them.
             _localIps = _packageHelper.LocalIps();
