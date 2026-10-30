@@ -31,7 +31,7 @@ on:
       languages:
         description: >-
           Comma-separated languages to approve, by Crowdin id or locale (cs, nl-NL, pt-BR).
-          Empty = the reviewed set below (what the weekly run uses); "all" = every target language.
+          Empty = every language except Czech (what the weekly run uses); "all" = every target language, Czech too.
         type: string
         default: ''
       apply:
@@ -59,10 +59,12 @@ jobs:
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
           # Through the environment rather than interpolated into the script: free text from
           # whoever dispatches the run.
-          # The languages a person actually reviews. Approving the rest would tick Crowdin's
-          # machine translations too, and the tick would stop meaning "a native speaker read
-          # this" (see the script's header). Extend this list when a language gets a reviewer.
-          REVIEWED_LANGUAGES: cs,ca,ru,nl
+          # Every language except Czech. Czech has an active reviewer who approves in Crowdin
+          # himself, so the weekly run leaves it alone and his approvals stay his. Everything else
+          # is approved here, machine translations included (see the script's header for what that
+          # costs: the tick no longer marks a native-speaker read). Add a language to this list
+          # when it is added to the project.
+          REVIEWED_LANGUAGES: af-ZA,ar-SA,ca-ES,da-DK,de-DE,el-GR,es-ES,fi-FI,fr-FR,he-IL,hu-HU,it-IT,ja-JP,ko-KR,nl-NL,no-NO,pl-PL,pt-BR,pt-PT,ro-RO,ru-RU,sr-SP,sv-SE,tr-TR,uk-UA,vi-VN,zh-CN,zh-TW
           LANGUAGES: ${{ inputs.languages }}
           # `inputs` is null on a scheduled run, so the weekly one applies and a dispatch only
           # does when it was asked to.
