@@ -180,6 +180,7 @@
   "lblRemoteTextPlaceholder": "要傳送的文字...",
   "lblRemoteSend": "傳送",
   "lblRemoteTextHint": "請先在電視上點選文字欄位。並非每個機型都接受輸入的文字。",
+  "lblRemoteKeyboardCleared": "已清除電視上的欄位。",
   "lblRemoteTextLivePlaceholder": "在此輸入 - 電視會同步顯示",
   "lblRemoteTextLiveHint": "請先在電視上點選文字欄位，然後直接輸入 - 打字時會即時顯示在電視上。並非每個機型都接受輸入的文字。",
   "lblRemoteTextMirrored": "電視上顯示：「{0}」",

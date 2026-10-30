@@ -301,6 +301,7 @@
   "lblRemoteTypeOnTv": "Skriv på tv'et",
   "lblRemoteTextPlaceholder": "Tekst at sende...",
   "lblRemoteTextHint": "Fokus på et tekstfelt på tv'et først. Ikke alle modeller accepterer indtastet tekst.",
+  "lblRemoteKeyboardCleared": "Afryddede feltet på TV.",
   "lblRemoteTextLivePlaceholder": "Skriv her - TV'et følger",
   "lblRemoteTextLiveHint": "Fokus et tekstfelt på tv'et først, så skriv bare - det vises der, mens du går. Ikke alle modeller accepterer indtastet tekst.",
   "lblRemoteTextMirrored": "På tv'et: \"{0}\"",

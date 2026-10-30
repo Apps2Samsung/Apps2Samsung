@@ -385,6 +385,7 @@
   "lblRemoteTextPlaceholder": "Text k odeslání…",
   "lblRemoteSend": "Odeslat",
   "lblRemoteTextHint": "Nejprve vyberte textové pole na televizoru. Ne každý model podporuje zadávání textu.",
+  "lblRemoteKeyboardCleared": "Pole na televizoru bylo vymazáno.",
   "lblRemoteTextLivePlaceholder": "Zadejte text sem – televizor ho zobrazí",
   "lblRemoteTextLiveHint": "Nejprve vyberte textové pole na televizoru a poté jednoduše zadejte text – ten se v něm bude zobrazovat průběžně. Ne každý model podporuje zadávání textu.",
   "lblRemoteTextMirrored": "V televizoru: „{0}“",

@@ -321,6 +321,7 @@
   "lblRemoteTextPlaceholder": "Texte à envoyer...",
   "lblRemoteSend": "Envoyer",
   "lblRemoteTextHint": "Focus sur un champ de texte sur le téléviseur en premier. Tous les modèles n'acceptent pas le texte tapé.",
+  "lblRemoteKeyboardCleared": "Le champ a été nettoyé sur la télévision.",
   "lblRemoteTextLivePlaceholder": "Tapez ici - le téléviseur suit",
   "lblRemoteTextLiveHint": "Concentrez d'abord un champ de texte sur le téléviseur, puis tapez simplement - il apparaît là comme vous allez. Tous les modèles n'acceptent pas le texte tapé.",
   "lblRemoteTextMirrored": "Sur la TV: \"{0}\"",

@@ -178,6 +178,7 @@
   "lblRemoteTextPlaceholder": "Lähetettävä teksti...",
   "lblRemoteSend": "Lähetä",
   "lblRemoteTextHint": "Keskity tekstikenttään televisiossa ensin. Jokainen malli ei hyväksy kirjoitettua tekstiä.",
+  "lblRemoteKeyboardCleared": "Televisiossa oleva kenttä poistettiin.",
   "lblRemoteTextLivePlaceholder": "Kirjoita tähän - TV seuraa",
   "lblRemoteTextLiveHint": "Focus a text field on the TV first , sitten vain kirjoita - se näkyy siellä kun menet. Ei jokainen malli hyväksyy kirjoitetaan tekstiä.",
   "lblRemoteTextMirrored": "TV: \"{0}\"",

@@ -181,6 +181,7 @@
   "lblRemoteTextPlaceholder": "טקסט לשליחה...",
   "lblRemoteSend": "שלח",
   "lblRemoteTextHint": "מקדו תחילה שדה טקסט בטלוויזיה. לא כל דגם מקבל טקסט מוקלד.",
+  "lblRemoteKeyboardCleared": "השדה בטלוויזיה נוקה.",
   "lblRemoteTextLivePlaceholder": "הקלידו כאן - הטלוויזיה עוקבת",
   "lblRemoteTextLiveHint": "מקדו תחילה שדה טקסט בטלוויזיה, ואז פשוט הקלידו - הטקסט מופיע שם תוך כדי. לא כל דגם מקבל טקסט מוקלד.",
   "lblRemoteTextMirrored": "בטלוויזיה: \"{0}\"",

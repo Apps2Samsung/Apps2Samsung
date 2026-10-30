@@ -178,6 +178,7 @@
   "lblRemoteTextPlaceholder": "Tekst som skal sendes...",
   "lblRemoteSend": "Sende",
   "lblRemoteTextHint": "Fokuser et tekstfelt på TV-en først. Ikke alle modeller godtar skrevet tekst.",
+  "lblRemoteKeyboardCleared": "Tømte feltet på TV-en.",
   "lblRemoteTextLivePlaceholder": "Skriv her - TV-følger",
   "lblRemoteTextLiveHint": "Fokuser på et tekstfelt på TV-en først, så bare skriv - det vises da du er ferdig. Ikke alle modeller aksepterer skrevet tekst.",
   "lblRemoteTextMirrored": "På TVen: \"{0}\"",
