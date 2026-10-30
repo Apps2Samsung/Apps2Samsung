@@ -1,4 +1,5 @@
 using Apps2Samsung.Extensions;
+using Avalonia.Threading;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Remote;
@@ -62,6 +63,155 @@ namespace Apps2Samsung.ViewModels
         /// <summary>The selected app's profile as editable JSON — built-in until the user saves their own.</summary>
         [ObservableProperty]
         private string keyboardProfileJson = string.Empty;
+
+        /// <summary>How live typing reaches the TV: pressed on the app's own keyboard, or sent as text.</summary>
+        public enum LiveKeyboardMode { Off, Dpad, Direct }
+
+        [ObservableProperty]
+        private LiveKeyboardMode liveMode = LiveKeyboardMode.Off;
+
+        /// <summary>True while the laptop keyboard is being forwarded to the TV in d-pad mode.</summary>
+        public bool IsLiveDpad
+        {
+            get => LiveMode == LiveKeyboardMode.Dpad;
+            set => LiveMode = value ? LiveKeyboardMode.Dpad : LiveKeyboardMode.Off;
+        }
+
+        /// <summary>True while the laptop keyboard is being forwarded to the TV as text.</summary>
+        public bool IsLiveDirect
+        {
+            get => LiveMode == LiveKeyboardMode.Direct;
+            set => LiveMode = value ? LiveKeyboardMode.Direct : LiveKeyboardMode.Off;
+        }
+
+        /// <summary>
+        /// What the TV's field is believed to hold. Direct mode has no way to read the field back, so the
+        /// string we sent is the state — `SendInputString` replaces the whole field each time.
+        /// </summary>
+        private string _liveBuffer = string.Empty;
+
+        /// <summary>Serialises live keystrokes so a fast typist cannot interleave two key runs.</summary>
+        private LiveTypingQueue? _liveQueue;
+
+        partial void OnLiveModeChanged(LiveKeyboardMode value)
+        {
+            _liveBuffer = string.Empty;
+            OnPropertyChanged(nameof(IsLiveDpad));
+            OnPropertyChanged(nameof(IsLiveDirect));
+
+            if (value == LiveKeyboardMode.Off)
+            {
+                StatusText = "lblRemoteLiveOff".Localized();
+                return;
+            }
+
+            Tone = StatusTone.Ok;
+            StatusText = value == LiveKeyboardMode.Dpad
+                ? "lblRemoteLiveOnDpad".Localized()
+                : "lblRemoteLiveOnDirect".Localized();
+        }
+
+        /// <summary>
+        /// One keystroke from the laptop keyboard, while live typing is on. D-pad mode **homes before every
+        /// character**: with human-speed gaps the app moves focus to its suggestion row after a letter, so a
+        /// plan that reuses the cursor lands the next ENTER on a suggestion (typing `hi` gave `helloi` on
+        /// the set). Homing costs a few presses and makes each character independent of what the app did in
+        /// between. Direct mode keeps a buffer and re-sends the whole field, because `SendInputString`
+        /// replaces it.
+        /// </summary>
+        internal Task SendLiveKeyAsync(string character)
+        {
+            if (_remote is null || LiveMode == LiveKeyboardMode.Off)
+                return Task.CompletedTask;
+
+            _liveQueue ??= new LiveTypingQueue(SendLiveKeyNowAsync);
+            _liveQueue.Enqueue(character);
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Status updates that may arrive on the queue's pump thread. The toolbar binds these, and every
+        /// other write in this class happens on the UI thread, so the pump posts rather than assigns.
+        /// </summary>
+        private void SetStatus(StatusTone tone, string text)
+        {
+            if (Dispatcher.UIThread.CheckAccess())
+            {
+                Tone = tone;
+                StatusText = text;
+                return;
+            }
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                Tone = tone;
+                StatusText = text;
+            });
+        }
+
+        /// <summary>The actual send for one keystroke — always called from the queue, never concurrently.</summary>
+        private async Task SendLiveKeyNowAsync(string character, CancellationToken cancellationToken)
+        {
+            var remote = _remote;
+            if (remote is null || LiveMode == LiveKeyboardMode.Off)
+                return;
+
+            if (LiveMode == LiveKeyboardMode.Direct)
+            {
+                if (character == "\b")
+                    _liveBuffer = _liveBuffer.Length > 0 ? _liveBuffer[..^1] : string.Empty;
+                else if (character == "\r")
+                {
+                    await remote.SendKeyAsync(SamsungRemoteKeys.Enter, cancellationToken);
+                    return;
+                }
+                else
+                    _liveBuffer += character;
+
+                if (await remote.SendTextAsync(_liveBuffer, cancellationToken))
+                {
+                    SetStatus(StatusTone.Ok, "lblRemoteKeyboardTyped".Localized());
+                }
+
+                return;
+            }
+
+            var profile = SamsungRemoteKeyboardProfiles.Resolve(KeyboardProfileAppId, AppSettings.Default.KeyboardProfiles);
+            if (profile is null)
+            {
+                SetStatus(StatusTone.Warn, string.Format(
+                    "lblRemoteKeyboardNoProfile".Localized(),
+                    SamsungRemoteKeyboardProfiles.LabelFor(KeyboardProfileAppId)));
+                return;
+            }
+
+            var keyboard = SamsungRemoteKeyboard.For(profile);
+            SamsungRemoteKeyboardPlan plan;
+
+            if (character == "\b")
+                plan = keyboard.PlanPress(SamsungRemoteKeyboard.DeleteCell);
+            else if (character == "\r")
+                plan = keyboard.PlanPress(SamsungRemoteKeyboard.SubmitCell);
+            else if (character == " ")
+                plan = keyboard.PlanFromAnywhere(" ");
+            else
+                plan = keyboard.PlanFromAnywhere(character);
+
+            if (plan.IsEmpty)
+            {
+                SetStatus(StatusTone.Warn, string.Format("lblRemoteKeyboardUnsupported".Localized(), character));
+                return;
+            }
+
+            if (await remote.SendKeysAsync(plan.Keys, gap: null, cancellationToken))
+            {
+                SetStatus(StatusTone.Ok, "lblRemoteKeyboardTyped".Localized());
+            }
+            else
+            {
+                SetStatus(StatusTone.Warn, "lblRemoteKeyFailed".Localized());
+            }
+        }
 
         /// <summary>Empty the field first (the app appends otherwise).</summary>
         [ObservableProperty]
@@ -459,6 +609,9 @@ namespace Apps2Samsung.ViewModels
 
         public async ValueTask DisposeAsync()
         {
+            if (_liveQueue is not null)
+                await _liveQueue.DisposeAsync();
+
             var remote = _remote;
             _remote = null;
             IsConnected = false;

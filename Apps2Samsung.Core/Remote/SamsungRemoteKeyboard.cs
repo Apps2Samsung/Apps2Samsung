@@ -173,24 +173,49 @@ namespace Apps2Samsung.Remote
         /// </summary>
         public SamsungRemoteKeyboardPlan PlanQuery(string text, bool clearFirst = true, bool submitAfter = true)
         {
-            var keys = new List<string>(Profile.HomeKeys);
-            var cursor = Profile.OpensOn;
+            var keys = new List<string>();
 
+            // Every step homes first, and so does every character. That is not belt-and-braces: the app
+            // moves focus to its suggestion row as soon as a character is typed, so a run that keeps the
+            // cursor between characters has its next ENTER land on a suggestion — typing "hi" produced the
+            // first suggestion with the rest appended. Homing costs a few presses per character and makes
+            // the result independent of what the app did in between. See LiveTypingFocusTests.
             if (clearFirst)
-                cursor = AppendPress(ClearCell, keys, cursor);
+                keys.AddRange(PlanPress(ClearCell).Keys);
 
-            var typed = Plan(text, cursor, includeHome: false);
-            keys.AddRange(typed.Keys);
-            cursor = (typed.Row, typed.Col);
+            var unsupported = new List<char>();
+            foreach (var character in text)
+            {
+                var one = PlanFromAnywhere(character.ToString());
+                if (one.IsEmpty)
+                {
+                    if (!unsupported.Contains(character))
+                        unsupported.Add(character);
+                    continue;
+                }
 
-            // Nothing typeable: report it without pressing search over an empty field.
-            if (typed.IsEmpty)
-                return new SamsungRemoteKeyboardPlan(Array.Empty<string>(), Profile.OpensOn.Row, Profile.OpensOn.Col, typed.Unsupported);
+                keys.AddRange(one.Keys);
+            }
+
+            if (keys.Count == (clearFirst ? PlanPress(ClearCell).Keys.Count : 0))
+            {
+                // Nothing typeable: send nothing at all rather than clearing the field and stopping.
+                return new SamsungRemoteKeyboardPlan(
+                    Array.Empty<string>(),
+                    Profile.OpensOn.Row,
+                    Profile.OpensOn.Col,
+                    unsupported.Count == 0 ? null : new string(unsupported.ToArray()));
+            }
 
             if (submitAfter)
-                cursor = AppendPress(SubmitCell, keys, cursor);
+                keys.AddRange(PlanPress(SubmitCell).Keys);
 
-            return new SamsungRemoteKeyboardPlan(keys, cursor.Row, cursor.Col, typed.Unsupported);
+            var last = PlanPress(SubmitCell);
+            return new SamsungRemoteKeyboardPlan(
+                keys,
+                submitAfter ? last.Row : Profile.OpensOn.Row,
+                submitAfter ? last.Col : Profile.OpensOn.Col,
+                unsupported.Count == 0 ? null : new string(unsupported.ToArray()));
         }
 
         /// <summary>Plan for pressing one named cell (e.g. CLEAR) from the app's opening position.</summary>
