@@ -49,12 +49,13 @@ public static class TvStoreCommand
         var profile = SigningCertificatePem.FindProfileCovering(CliPaths.CertificateStore, duid) ?? ensured;
         var profileName = Path.GetFileName(profile.ProfileDir);
         s.Out.Progress("Opening the certificate…");
-        var pem = SigningCertificatePem.FromProfile(profile);
+        // Every profile in the store goes along, the covering one first (#44).
+        var pems = SigningCertificatePem.OpenAll(profile, SigningCertificatePem.ProfilesIn(CliPaths.CertificateStore));
 
         var progress = new Progress<string>(key => s.Out.Progress(s.Strings.GetString(key)));
         await using var store = await TvStoreClient.AttachAsync(s.Sdb, ip, progress, ct);
         s.Out.Progress(s.Strings.GetString("lblToolboxTvStoreArming"));
-        await store.ArmAsync(pem, ct);
+        await store.ArmAsync(pems, ct);
         var status = await store.StatusAsync(ct);
 
         return s.Out.Result(

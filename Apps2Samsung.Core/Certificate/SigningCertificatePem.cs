@@ -25,11 +25,13 @@ namespace Apps2Samsung.Certificate
     /// </param>
     /// <param name="DistributorKeyPem">The distributor private key, PKCS#8.</param>
     /// <param name="DistributorCertPem">The distributor chain, as <paramref name="AuthorCertPem"/>.</param>
+    /// <param name="Name">The profile's folder name ("Jelly2Sams - Public", "Jellyfin"), what TV-Store shows and logs.</param>
     public sealed record SigningCertificatePem(
         string AuthorKeyPem,
         string AuthorCertPem,
         string DistributorKeyPem,
-        string DistributorCertPem)
+        string DistributorCertPem,
+        string? Name = null)
     {
         /// <summary>Opens both .p12 files of <paramref name="profile"/> and renders them as PEM.</summary>
         /// <exception cref="CryptographicException">A .p12 would not open with the profile's password, or a key is not exportable.</exception>
@@ -39,7 +41,82 @@ namespace Apps2Samsung.Certificate
             ArgumentNullException.ThrowIfNull(profile);
             var (authorKey, authorChain) = Open(profile.AuthorP12, profile.Password);
             var (distributorKey, distributorChain) = Open(profile.DistributorP12, profile.Password);
-            return new SigningCertificatePem(authorKey, authorChain, distributorKey, distributorChain);
+            return new SigningCertificatePem(authorKey, authorChain, distributorKey, distributorChain, ProfileNameOf(profile));
+        }
+
+        /// <summary>
+        /// Every signing profile under the given stores: each folder holding author.p12, distributor.p12
+        /// and password.txt with an author certificate that still opens. The level profiles, imported
+        /// ones and a head's bundled one, whatever the caller points at. Folder name order within a store.
+        /// </summary>
+        public static IReadOnlyList<SigningProfile> ProfilesIn(params string?[] stores)
+        {
+            var list = new List<SigningProfile>();
+            foreach (var store in stores)
+            {
+                if (string.IsNullOrWhiteSpace(store) || !Directory.Exists(store))
+                    continue;
+                foreach (var dir in Directory.GetDirectories(store).OrderBy(d => d, StringComparer.OrdinalIgnoreCase))
+                {
+                    var author = Path.Combine(dir, Constants.Certificate.AuthorFileName);
+                    var distributor = Path.Combine(dir, Constants.Certificate.DistributorFileName);
+                    var passwordFile = Path.Combine(dir, Constants.Certificate.PasswordFileName);
+                    if (!File.Exists(distributor) || !File.Exists(passwordFile) || !CertificateProvisioningService.HasUsableAuthorCert(dir))
+                        continue;
+                    list.Add(new SigningProfile(author, distributor, File.ReadAllText(passwordFile).Trim(), dir));
+                }
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// What Arm TV-Store hands over (#44): <paramref name="primary"/> first (the profile an install
+        /// on that TV would sign with), then every other profile in <paramref name="others"/>, so
+        /// TV-Store can update an app with whichever author certificate it was installed with.
+        /// Profiles whose .p12 will not open are skipped and traced; one that repeats the primary's
+        /// folder or author certificate is dropped. The primary itself must open.
+        /// </summary>
+        public static IReadOnlyList<SigningCertificatePem> OpenAll(SigningProfile primary, IEnumerable<SigningProfile> others)
+        {
+            ArgumentNullException.ThrowIfNull(primary);
+            ArgumentNullException.ThrowIfNull(others);
+            var first = FromProfile(primary);
+            var list = new List<SigningCertificatePem> { first };
+            var seenDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { Path.GetFullPath(primary.ProfileDir) };
+            var seenAuthors = new HashSet<string>(StringComparer.Ordinal) { AuthorLeaf(first.AuthorCertPem) };
+            foreach (var profile in others)
+            {
+                if (!seenDirs.Add(Path.GetFullPath(profile.ProfileDir)))
+                    continue;
+                SigningCertificatePem pem;
+                try
+                {
+                    pem = FromProfile(profile);
+                }
+                catch (Exception ex) when (ex is CryptographicException or InvalidOperationException or IOException)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[tvstore] skipping profile {ProfileNameOf(profile)}: {ex.Message}");
+                    continue;
+                }
+                if (seenAuthors.Add(AuthorLeaf(pem.AuthorCertPem)))
+                    list.Add(pem);
+            }
+            return list;
+        }
+
+        private static string ProfileNameOf(SigningProfile profile) =>
+            Path.GetFileName(profile.ProfileDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+        // The first CERTIFICATE block of a chain, whitespace stripped: the author leaf, what the TV matches on.
+        private static string AuthorLeaf(string chainPem)
+        {
+            const string begin = "-----BEGIN CERTIFICATE-----";
+            const string end = "-----END CERTIFICATE-----";
+            var start = chainPem.IndexOf(begin, StringComparison.Ordinal);
+            var stop = start < 0 ? -1 : chainPem.IndexOf(end, start, StringComparison.Ordinal);
+            if (start < 0 || stop < 0)
+                return chainPem;
+            return new string(chainPem.Substring(start + begin.Length, stop - start - begin.Length).Where(c => !char.IsWhiteSpace(c)).ToArray());
         }
 
         /// <summary>

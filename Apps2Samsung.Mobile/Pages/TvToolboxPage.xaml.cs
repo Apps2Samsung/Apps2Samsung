@@ -538,12 +538,14 @@ public partial class TvToolboxPage : ContentPage
 				SetTvStoreStatus(L10n.Get("lblToolboxTvStoreNoCertificate"));
 				return;
 			}
-			var pem = SigningCertificatePem.FromProfile(profile);
+			// Every profile on this phone goes along, the covering one first (#44), so TV-Store can
+			// update an app whichever of them installed it. The store is the profile's parent folder.
+			var pems = SigningCertificatePem.OpenAll(profile, SigningCertificatePem.ProfilesIn(Path.GetDirectoryName(profile.ProfileDir)));
 
 			var progress = new Progress<string>(key => SetTvStoreStatus(L10n.Get(key)));
 			await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress);
 			SetTvStoreStatus(L10n.Get("lblToolboxTvStoreArming"));
-			await store.ArmAsync(pem);
+			await store.ArmAsync(pems);
 			var status = await store.StatusAsync();
 			SetTvStoreStatus(string.Format(L10n.Get("lblToolboxTvStoreArmed"), store.Version, status.OwnIp ?? _tvIp));
 		}

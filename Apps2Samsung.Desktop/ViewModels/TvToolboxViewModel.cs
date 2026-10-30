@@ -587,12 +587,16 @@ namespace Apps2Samsung.ViewModels
                     TvStoreStatus = "lblToolboxTvStoreNoCertificate".Localized();
                     return;
                 }
-                var pem = SigningCertificatePem.FromProfile(profile);
+                // Every profile on this PC goes along, the covering one first (#44): the level
+                // profiles and imports under the certificate store, and the bundled one older sets
+                // get, so TV-Store can update an app whichever of them installed it.
+                var pems = SigningCertificatePem.OpenAll(profile,
+                    SigningCertificatePem.ProfilesIn(Apps2Samsung.Helpers.AppSettings.CertificatePath, Apps2Samsung.Helpers.AppSettings.BundledCertificatePath));
 
                 var progress = new Progress<string>(key => TvStoreStatus = key.Localized());
                 await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress);
                 TvStoreStatus = "lblToolboxTvStoreArming".Localized();
-                await store.ArmAsync(pem);
+                await store.ArmAsync(pems);
                 var status = await store.StatusAsync();
                 TvStoreStatus = string.Format("lblToolboxTvStoreArmed".Localized(), store.Version, status.OwnIp ?? _tvIp);
             }
