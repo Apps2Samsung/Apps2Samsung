@@ -15,6 +15,14 @@ namespace Apps2Samsung.Interfaces
         string GetLocalIPAddress();
         string InvertIPAddress(string ipAddress);
         bool IsDifferentSubnet(string ip1, string ip2);
+
+        /// <summary>
+        /// This device's own address on the network that <paramref name="remoteIp"/> is on: the
+        /// address a TV at that IP reaches us on, and so the one to show as "this device" next to
+        /// it and to put in the TV's Host PC IP field. Null when the TV is not on any local network
+        /// (behind a router) or the IP does not parse. Read fresh from the interfaces on every call.
+        /// </summary>
+        string? GetLocalIpOnSubnetOf(string? remoteIp);
         Task<IReadOnlyList<NetworkInterfaceOption>> GetNetworkInterfaceOptionsAsync();
         string? GetActiveVpnAdapterName();
 
