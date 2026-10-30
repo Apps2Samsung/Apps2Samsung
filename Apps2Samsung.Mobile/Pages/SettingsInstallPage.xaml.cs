@@ -14,9 +14,10 @@ public partial class SettingsInstallPage : ContentPage
 	public SettingsInstallPage()
 	{
 		InitializeComponent();
-		// Public and Partner are Samsung's names for the two certificate levels.
-		CertPublic.Text = MobileSettings.CertificatePreferencePublic;
-		CertPartner.Text = MobileSettings.CertificatePreferencePartner;
+		// Public and Partner are Samsung's names for the two certificate levels, shown through the
+		// same keys as the certificate sheet's level pill (not the stored preference values).
+		CertPublic.Text = L10n.Get("certLevelPublic");
+		CertPartner.Text = L10n.Get("certLevelPartner");
 	}
 
 	protected override void OnAppearing()

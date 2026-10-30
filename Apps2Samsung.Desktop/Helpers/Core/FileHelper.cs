@@ -1,3 +1,4 @@
+using Apps2Samsung.Extensions;
 ﻿using Avalonia.Platform.Storage;
 using Apps2Samsung.Models;
 using System.Collections.Generic;
@@ -26,8 +27,8 @@ namespace Apps2Samsung.Helpers.Core
         {
             var options = new FilePickerOpenOptions
             {
-                Title = "Select a PNG icon",
-                FileTypeFilter = new List<FilePickerFileType> { new("PNG images") { Patterns = imageItem } },
+                Title = "lblSelectPngIcon".Localized(),
+                FileTypeFilter = new List<FilePickerFileType> { new("lblPngImages".Localized()) { Patterns = imageItem } },
                 AllowMultiple = false
             };
 
@@ -58,7 +59,7 @@ public async Task<string?> BrowseWgtFilesAsync(IStorageProvider storageProvider)
 
     var options = new FilePickerOpenOptions
     {
-        Title = "Select WGT/TPK File",
+        Title = "SelectWGT".Localized(),
         FileTypeFilter = fileTypes,
         AllowMultiple = true
     };

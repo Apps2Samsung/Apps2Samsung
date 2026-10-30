@@ -80,8 +80,10 @@ namespace Apps2Samsung.ViewModels
         }
 
         // Public and Partner are Samsung's names for the two levels, not translated (as on the phone).
-        public string LblCertificatePublic => Apps2Samsung.Certificate.CertificatePreference.Public;
-        public string LblCertificatePartner => Apps2Samsung.Certificate.CertificatePreference.Partner;
+        // The two levels are shown through the same keys as the certificate sheet's level pill, not
+        // the stored preference values (which are the English words, whatever the language).
+        public string LblCertificatePublic => _localizationService.GetString("certLevelPublic");
+        public string LblCertificatePartner => _localizationService.GetString("certLevelPartner");
 
         [ObservableProperty]
         private bool includeBetaUpdates;
@@ -212,6 +214,8 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblMainSettings));
             OnPropertyChanged(nameof(LblLanguage));
             OnPropertyChanged(nameof(LblCertificate));
+            OnPropertyChanged(nameof(LblCertificatePublic));
+            OnPropertyChanged(nameof(LblCertificatePartner));
             OnPropertyChanged(nameof(LblLocalIP));
             OnPropertyChanged(nameof(LblTryOverwrite));
             OnPropertyChanged(nameof(LblLaunchOnInstall));
@@ -375,12 +379,12 @@ namespace Apps2Samsung.ViewModels
 
                 var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
                 {
-                    Title = "Export backup",
+                    Title = "lblExportBackup".Localized(),
                     SuggestedFileName = "apps2samsung-backup.zip",
                     DefaultExtension = "zip",
                     FileTypeChoices = new[]
                     {
-                        new FilePickerFileType("Apps2Samsung backup") { Patterns = new[] { "*.zip" } }
+                        new FilePickerFileType("lblBackupFile".Localized()) { Patterns = new[] { "*.zip" } }
                     }
                 });
                 if (file is null)
@@ -414,11 +418,11 @@ namespace Apps2Samsung.ViewModels
 
                 var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
                 {
-                    Title = "Import backup",
+                    Title = "lblImportBackup".Localized(),
                     AllowMultiple = false,
                     FileTypeFilter = new[]
                     {
-                        new FilePickerFileType("Apps2Samsung backup") { Patterns = new[] { "*.zip" } }
+                        new FilePickerFileType("lblBackupFile".Localized()) { Patterns = new[] { "*.zip" } }
                     }
                 });
                 var file = files.FirstOrDefault();

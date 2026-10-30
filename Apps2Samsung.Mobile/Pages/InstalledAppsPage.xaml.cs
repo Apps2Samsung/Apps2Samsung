@@ -222,7 +222,7 @@ public partial class InstalledAppsPage : ContentPage
 
 	private async Task LoadAsync()
 	{
-		SetBusy(true, "Reading installed apps…");
+		SetBusy(true, L10n.Get("statusReadingInstalledApps"));
 		try
 		{
 			var result = await _sdb.AppsAsync(_tvIp);
@@ -269,7 +269,7 @@ public partial class InstalledAppsPage : ContentPage
 		catch (Exception ex)
 		{
 			AppsList.ItemsSource = null;
-			EmptyLabel.Text = $"Couldn't read the app list: {ex.Message}";
+			EmptyLabel.Text = string.Format(L10n.Get("statusReadAppListFailed"), ex.Message);
 			SetSubtitle(string.Empty, TopBarStatus.None);
 		}
 		finally
