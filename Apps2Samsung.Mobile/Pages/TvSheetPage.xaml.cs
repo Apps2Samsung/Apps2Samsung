@@ -25,12 +25,12 @@ public partial class TvSheetPage : ContentPage
 	public TvSheetPage(IReadOnlyList<TvEntry> tvs, int selected)
 	{
 		InitializeComponent();
-		var localIp = NetworkInfo.GetLocalIPv4();
 		for (var i = 0; i < tvs.Count; i++)
 		{
 			if (i > 0)
 				Rows.Add(Hairline(37));
 			var tv = tvs[i];
+			var localIp = NetworkInfo.LocalIpFor(tv.Ip);
 			var state = TvCardStates.ForDevice(tv.Device ?? new NetworkDevice { IpAddress = tv.Ip }, localIp, L10n.Get);
 			var index = i;
 			Rows.Add(TvRow(state.Name, $"{state.Subline} · {state.Message}", i == selected, state.Led == TvLed.Ok,

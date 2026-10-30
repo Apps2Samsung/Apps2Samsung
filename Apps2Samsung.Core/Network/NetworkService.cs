@@ -23,6 +23,7 @@ namespace Apps2Samsung.Services
         private readonly ITvNameResolver? _tvNameResolver;
         private readonly IMacVendorLookup? _macVendorLookup;
         private readonly Func<string?>? _customIpProvider;
+        private readonly Func<IEnumerable<LocalNetwork>>? _localNetworksProvider;
         private readonly int? _maxConcurrentHosts;
 
         // Per-scan probe tally behind LastScanBlockedByOs; reset when a sweep starts.
@@ -38,19 +39,59 @@ namespace Apps2Samsung.Services
         /// <param name="maxConcurrentHosts">How many hosts the sweep probes at once (two sockets each).
         /// Null probes the whole range in one go, as the desktop always has; a phone sets a cap so a
         /// /24 sweep stays under the process's open-file limit (#824).</param>
+        /// <param name="localNetworksProvider">The LAN-side networks this device is on, from a head
+        /// that can enumerate them better than .NET does here (Android: the Java interface API, which
+        /// is the only one that sees the phone's own hotspot). Swept in addition to whatever the .NET
+        /// enumeration finds; read fresh on every scan. Optional.</param>
         public NetworkService(
             ITvNameResolver? tvNameResolver = null,
             IMacVendorLookup? macVendorLookup = null,
             Func<string?>? customIpProvider = null,
-            int? maxConcurrentHosts = null)
+            int? maxConcurrentHosts = null,
+            Func<IEnumerable<LocalNetwork>>? localNetworksProvider = null)
         {
             _tvNameResolver = tvNameResolver;
             _macVendorLookup = macVendorLookup;
             _customIpProvider = customIpProvider;
             _maxConcurrentHosts = maxConcurrentHosts;
+            _localNetworksProvider = localNetworksProvider;
         }
 
         private string? CustomIp => _customIpProvider?.Invoke();
+
+        // The head-supplied networks, held to the same bar as a .NET interface: IPv4, not loopback,
+        // not a range a TV never lives on, and a real mask. A provider that throws costs nothing.
+        private List<LocalNetwork> ProvidedNetworks()
+        {
+            if (_localNetworksProvider is null)
+                return new List<LocalNetwork>();
+
+            try
+            {
+                return _localNetworksProvider()
+                    .Where(n => n.Address.AddressFamily == AddressFamily.InterNetwork)
+                    .Where(n => !IPAddress.IsLoopback(n.Address) && !n.Address.Equals(IPAddress.Any))
+                    .Where(n => IsScannableAddress(n.Address))
+                    .Where(n => !n.Mask.Equals(IPAddress.Any))
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Network] Local network provider failed: {ex.Message}");
+                return new List<LocalNetwork>();
+            }
+        }
+
+        /// <inheritdoc/>
+        public string? GetLocalIpOnSubnetOf(string? remoteIp)
+        {
+            if (!IPAddress.TryParse(remoteIp, out var remote))
+                return null;
+
+            var networks = GetLocalNetworkInfos(includeCustomIp: false)
+                .Select(info => new LocalNetwork(info.Address, info.Mask));
+            return LocalNetwork.Containing(networks, remote)?.Address.ToString();
+        }
 
         private Task<string?> GetManufacturerFromIp(string ip) =>
             _macVendorLookup is null ? Task.FromResult<string?>(null) : _macVendorLookup.GetManufacturerFromIpAsync(ip);
@@ -209,6 +250,7 @@ namespace Apps2Samsung.Services
                 .Where(ip => ip.Address.AddressFamily == AddressFamily.InterNetwork)
                 .Where(ip => !IPAddress.IsLoopback(ip.Address))
                 .Select(ip => ip.Address.ToString())
+                .Concat(ProvidedNetworks().Select(n => n.Address.ToString()))
                 .ToList();
 
             var additionalIps = Enumerable.Empty<string>();
@@ -307,9 +349,12 @@ namespace Apps2Samsung.Services
             }
         }
 
-        // Returns all local interface IPs with their actual subnet masks.
-        // Falls back to /24 for the user-supplied custom IP since its mask can't be discovered.
-        private List<(IPAddress Address, IPAddress Mask)> GetLocalNetworkInfos(bool virtualScan = false)
+        // Returns all local interface IPs with their actual subnet masks: the .NET enumeration plus
+        // whatever the head's own provider adds (the same address from both sources counts once).
+        // Falls back to /24 for the user-supplied custom IP since its mask can't be discovered;
+        // includeCustomIp=false leaves that one out for callers that want this device's own
+        // networks only (the custom IP is a TV address on the desktop, not one of ours).
+        private List<(IPAddress Address, IPAddress Mask)> GetLocalNetworkInfos(bool virtualScan = false, bool includeCustomIp = true)
         {
             var infos = NetworkInterface.GetAllNetworkInterfaces()
                 .Where(ni => ni.OperationalStatus == OperationalStatus.Up)
@@ -325,7 +370,13 @@ namespace Apps2Samsung.Services
                 .Select(ua => (Address: ua.Address, Mask: ua.IPv4Mask))
                 .ToList();
 
-            var customIpStr = CustomIp;
+            foreach (var provided in ProvidedNetworks())
+            {
+                if (!infos.Any(i => i.Address.Equals(provided.Address)))
+                    infos.Add((provided.Address, provided.Mask));
+            }
+
+            var customIpStr = includeCustomIp ? CustomIp : null;
             if (!string.IsNullOrEmpty(customIpStr) &&
                 IPAddress.TryParse(customIpStr, out var customIp))
             {
@@ -543,8 +594,11 @@ namespace Apps2Samsung.Services
             if (!IPAddress.TryParse(ip1, out var a) || !IPAddress.TryParse(ip2, out var b))
                 return false;
 
-            // Use the actual mask from the local interface; fall back to /24 if not found
-            var mask = GetMaskForLocalIp(a) ?? IPAddress.Parse("255.255.255.0");
+            // Use the actual mask from the local interface (the head's own enumeration first: on
+            // Android it is the only one that has masks at all); fall back to /24 if not found.
+            var mask = ProvidedNetworks().FirstOrDefault(n => n.Address.Equals(a))?.Mask
+                ?? GetMaskForLocalIp(a)
+                ?? LocalNetwork.DefaultMask;
 
             var aBytes = a.GetAddressBytes();
             var bBytes = b.GetAddressBytes();

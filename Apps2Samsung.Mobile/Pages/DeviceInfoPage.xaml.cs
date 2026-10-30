@@ -43,7 +43,7 @@ public partial class DeviceInfoPage : ContentPage
 		SetBusy(true, "Reading TV information…");
 		try
 		{
-			var info = await TizenDeviceInfoService.GatherAsync(_sdb, _tvIp, _debugPortOpen, NetworkInfo.GetLocalIPv4());
+			var info = await TizenDeviceInfoService.GatherAsync(_sdb, _tvIp, _debugPortOpen, NetworkInfo.LocalIpFor(_tvIp));
 			RowsList.ItemsSource = info.Rows;
 			CountLabel.Text = _tvLabel;
 		}

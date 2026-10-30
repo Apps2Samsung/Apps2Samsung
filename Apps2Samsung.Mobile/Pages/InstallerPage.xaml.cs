@@ -682,7 +682,7 @@ public partial class InstallerPage : ContentPage
 			new InstallGuardOptions
 			{
 				LocalIps = LocalIps(),
-				ConfiguredLocalIp = NetworkInfo.GetLocalIPv4(),
+				ConfiguredLocalIp = NetworkInfo.LocalIpFor(tv.Ip),
 			},
 			_networkService);
 
@@ -905,10 +905,10 @@ public partial class InstallerPage : ContentPage
 			await MainThread.InvokeOnMainThreadAsync(sheet.CloseAsync);
 	}
 
-	// The IPs this phone answers on, what the guards compare the TV's Developer-Mode IP against.
-	// On Android interface enumeration classifies nothing, so this resolves to the socket-derived
-	// phone IP the scanner is configured with (empty when offline: the guards then skip the IP
-	// checks rather than guess).
+	// The IPs this phone answers on, what the guards compare the TV's Developer-Mode IP against:
+	// every LAN-side interface the scanner knows (Wi-Fi and the phone's own hotspot, #920), plus
+	// the socket-derived seed where that enumeration yields nothing. Empty when offline: the
+	// guards then skip the IP checks rather than guess.
 	private List<string> LocalIps()
 	{
 		try

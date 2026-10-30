@@ -37,8 +37,10 @@ public static class MauiProgram
 		// on the open debug/REST ports, so found TVs still come back (just without a friendly name).
 		// On Android, NetworkInterface doesn't reliably classify the Wi-Fi adapter as
 		// Ethernet/Wireless80211 and IPv4Mask is unavailable, so the Core scan's interface
-		// enumeration yields nothing. Feed the device's own IPv4 as the custom scan IP: the
-		// scanner then covers its /24 (the mask fallback), which finds TVs on the same LAN.
+		// enumeration yields nothing. LocalNetworks reads the interfaces through the Java API
+		// instead (real addresses and masks, the phone's own hotspot included, #920) and hands
+		// every LAN-side network to the scanner; the socket-derived seed stays as the fallback
+		// for a phone where that enumeration yields nothing (then: the phone's /24, as before).
 		// Shared settings contract, the mobile head's settings adapted to Core's IAppConfig, so the
 		// shared cert/install/patcher services read settings uniformly across both heads.
 		builder.Services.AddSingleton<IAppConfig, MobileAppConfig>();
@@ -47,7 +49,9 @@ public static class MauiProgram
 		// under the open-file limit an iOS process starts with, where the desktop's all-at-once sweep
 		// of 500 sockets would fail with "too many open files" (#824).
 		builder.Services.AddSingleton<INetworkService>(_ => new NetworkService(
-			customIpProvider: NetworkInfo.GetLocalIPv4, maxConcurrentHosts: 64));
+			customIpProvider: LocalNetworks.ScanSeed,
+			maxConcurrentHosts: 64,
+			localNetworksProvider: LocalNetworks.Enumerate));
 
 		// The SDB engine needs a writable directory to persist its RSA auth keypair (the desktop
 		// uses the profile dir; Android and iOS have no ambient writable path, so point it at the

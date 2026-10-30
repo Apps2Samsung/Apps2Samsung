@@ -72,12 +72,30 @@ public sealed class TvSelection
 	/// desktop head): scanning, no TV, or the TV with its readiness.</summary>
 	public TvCardState CardState()
 	{
-		var localIp = NetworkInfo.GetLocalIPv4();
 		if (IsScanning)
 			return TvCardStates.Scanning(L10n.Get);
 		if (Selected is not { } tv)
-			return TvCardStates.NoTv(L10n.Get, localIp);
+			return NoTvState();
+		// The phone's IP as this TV sees it: on a hotspot TV that is the hotspot address, not the
+		// cellular one the socket trick returns (#920).
+		var localIp = NetworkInfo.LocalIpFor(tv.Ip);
 		return TvCardStates.ForDevice(tv.Device ?? new NetworkDevice { IpAddress = tv.Ip }, localIp, L10n.Get);
+	}
+
+	// Nothing found. When the phone's only LAN is the hotspot it hosts, say so: the TV has to join
+	// that hotspot, and the address shown is the one for its Host PC IP field.
+	private TvCardState NoTvState()
+	{
+		if (LocalNetworks.HotspotOnly() is { } hotspot)
+		{
+			var ip = hotspot.Address.ToString();
+			return TvCardStates.NoTv(L10n.Get, ip) with
+			{
+				Subline = string.Format(L10n.Get("tvCardNoTvHintHotspot"), ip),
+			};
+		}
+
+		return TvCardStates.NoTv(L10n.Get, NetworkInfo.GetLocalIPv4());
 	}
 
 	/// <summary>Makes the TV at <paramref name="index"/> the one in use (−1 = none).</summary>
@@ -186,10 +204,11 @@ public sealed class TvSelection
 	/// </summary>
 	public string SelectedStatus()
 	{
-		var localIp = NetworkInfo.GetLocalIPv4();
-
 		if (Device is { DebugPortOpen: false } device)
+		{
+			var localIp = NetworkInfo.LocalIpFor(device.IpAddress);
 			return TizenDeviceReadiness.Describe(TizenDeviceReadiness.WhyNotReady(device, localIp), localIp, L10n.Get);
+		}
 
 		var notReady = _tvs.Count(t => t.Device is { DebugPortOpen: false });
 		return notReady > 0

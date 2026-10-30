@@ -82,7 +82,9 @@ public partial class DevModeGuidePage : ContentPage
 
 	private void Render()
 	{
-		var localIp = NetworkInfo.GetLocalIPv4();
+		// The address the TV can reach us on, which is what its Host PC IP field needs: for a TV
+		// on the phone's hotspot that is the hotspot address, not the cellular one (#920).
+		var localIp = NetworkInfo.LocalIpFor(_tv.Ip);
 		_problem = DevModeGuide.Diagnose(_tv.Device, _localIps());
 		var ready = _problem == DevModeProblem.None;
 

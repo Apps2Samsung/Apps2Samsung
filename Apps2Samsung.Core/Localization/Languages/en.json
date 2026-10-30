@@ -682,6 +682,7 @@
   "tvCardNoTv": "No TV selected",
   "tvCardNoTvHint": "Turn on your Samsung TV and connect this device to the same Wi-Fi.",
   "tvCardNoTvHintIp": "Turn on your Samsung TV and connect this device to the same Wi-Fi (this device: {0}).",
+  "tvCardNoTvHintHotspot": "Phone hotspot detected: connect the TV to this hotspot and use {0} as its Host PC IP.",
   "tvCardSearching": "Looking for your TV…",
   "tvCardSamsungTv": "Samsung TV",
   "tvCardReady": "Ready to install.",
