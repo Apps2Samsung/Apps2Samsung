@@ -25,6 +25,10 @@ namespace Apps2Samsung.Remote
 
         /// <summary>Queued **plus in flight** — what <see cref="DrainAsync"/> waits for.</summary>
         private int _outstanding;
+        private int _disposeState;
+
+        /// <summary>Guards the completed check and the enqueue+release, against Dispose's flag flip.</summary>
+        private readonly object _enqueueGate = new();
 
         /// <param name="send">What to do with one keystroke. Must be awaited to completion before the next.</param>
         public LiveTypingQueue(Func<string, CancellationToken, Task> send)
@@ -49,18 +53,20 @@ namespace Apps2Samsung.Remote
             if (string.IsNullOrEmpty(keystroke) || _completed)
                 return;
 
-            lock (_pending)
-                _pending.Enqueue(keystroke);
+            // The completed check and the release are one critical section, and Dispose flips the flag under
+            // the same lock *before* it disposes the semaphore. So the release can never meet a disposed
+            // semaphore — the race is removed rather than caught, which also keeps this throw-free for the
+            // key handler that calls it.
+            lock (_enqueueGate)
+            {
+                if (_completed)
+                    return;
 
-            Interlocked.Increment(ref _outstanding);
-            try
-            {
+                lock (_pending)
+                    _pending.Enqueue(keystroke);
+
+                Interlocked.Increment(ref _outstanding);
                 _signal.Release();
-            }
-            catch (ObjectDisposedException)
-            {
-                // Disposal won the race: the keystroke is dropped, which is what "live typing off" means.
-                Interlocked.Decrement(ref _outstanding);
             }
         }
 
@@ -86,7 +92,11 @@ namespace Apps2Samsung.Remote
                     lock (_pending)
                     {
                         if (_pending.Count == 0)
+                        {
+                            // A release can outlive its item; keep the counter honest so DrainAsync cannot spin.
+                            Interlocked.Decrement(ref _outstanding);
                             continue;
+                        }
                         keystroke = _pending.Dequeue();
                     }
 
@@ -118,6 +128,9 @@ namespace Apps2Samsung.Remote
 
         public async ValueTask DisposeAsync()
         {
+            // Concurrent callers race here; only the winner may Cancel and Dispose.
+            if (Interlocked.Exchange(ref _disposeState, 1) == 1)
+                return;
             _completed = true;
             _stopping.Cancel();
             try
@@ -128,6 +141,7 @@ namespace Apps2Samsung.Remote
             {
             }
 
+            // Safe now: the pump has ended and _completed is set, so nothing can release this.
             _signal.Dispose();
             _stopping.Dispose();
         }

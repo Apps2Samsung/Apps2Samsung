@@ -19,6 +19,12 @@ namespace Apps2Samsung.Remote
     {
         /// <summary>True when there is nothing worth sending — an empty plan is not a zero-press run.</summary>
         public bool IsEmpty => Keys.Count == 0;
+
+        /// <summary>
+        /// Steps the plan could not perform because the profile has no such cell (a grid without CLEAR, for
+        /// instance). Callers must report these — silently skipping a step looks like it happened.
+        /// </summary>
+        public IReadOnlyList<string> SkippedCells { get; init; } = Array.Empty<string>();
     }
 
     /// <summary>
@@ -174,16 +180,22 @@ namespace Apps2Samsung.Remote
         public SamsungRemoteKeyboardPlan PlanQuery(string text, bool clearFirst = true, bool submitAfter = true)
         {
             var keys = new List<string>();
-
-            // Every step homes first, and so does every character. That is not belt-and-braces: the app
-            // moves focus to its suggestion row as soon as a character is typed, so a run that keeps the
-            // cursor between characters has its next ENTER land on a suggestion — typing "hi" produced the
-            // first suggestion with the rest appended. Homing costs a few presses per character and makes
-            // the result independent of what the app did in between. See LiveTypingFocusTests.
-            if (clearFirst)
-                keys.AddRange(PlanPress(ClearCell).Keys);
-
             var unsupported = new List<char>();
+            var typedAny = false;
+
+            var skipped = new List<string>();
+
+            if (clearFirst)
+            {
+                var clear = PlanPress(ClearCell);
+                if (clear.IsEmpty)
+                    skipped.Add(ClearCell);
+                else
+                    keys.AddRange(clear.Keys);
+            }
+
+            var lastCursor = Profile.OpensOn;
+
             foreach (var character in text)
             {
                 var one = PlanFromAnywhere(character.ToString());
@@ -195,32 +207,46 @@ namespace Apps2Samsung.Remote
                 }
 
                 keys.AddRange(one.Keys);
+                typedAny = true;
+                lastCursor = (one.Row, one.Col);
             }
 
-            if (keys.Count == (clearFirst ? PlanPress(ClearCell).Keys.Count : 0))
-            {
-                // Nothing typeable: send nothing at all rather than clearing the field and stopping.
+            var missing = unsupported.Count == 0 ? null : new string(unsupported.ToArray());
+
+            // Nothing typeable: send nothing at all rather than clearing the field and stopping.
+            if (!typedAny)
                 return new SamsungRemoteKeyboardPlan(
-                    Array.Empty<string>(),
-                    Profile.OpensOn.Row,
-                    Profile.OpensOn.Col,
-                    unsupported.Count == 0 ? null : new string(unsupported.ToArray()));
-            }
+                    Array.Empty<string>(), Profile.OpensOn.Row, Profile.OpensOn.Col, missing);
 
             if (submitAfter)
-                keys.AddRange(PlanPress(SubmitCell).Keys);
+            {
+                var submit = PlanPress(SubmitCell);
+                if (submit.IsEmpty)
+                    skipped.Add(SubmitCell);
+                else
+                {
+                    keys.AddRange(submit.Keys);
+                    lastCursor = (submit.Row, submit.Col);
+                }
+            }
 
-            var last = PlanPress(SubmitCell);
-            return new SamsungRemoteKeyboardPlan(
-                keys,
-                submitAfter ? last.Row : Profile.OpensOn.Row,
-                submitAfter ? last.Col : Profile.OpensOn.Col,
-                unsupported.Count == 0 ? null : new string(unsupported.ToArray()));
+            // Row/Col is where the cursor really is left, per the plan's contract.
+            return new SamsungRemoteKeyboardPlan(keys, lastCursor.Row, lastCursor.Col, missing)
+            {
+                SkippedCells = skipped,
+            };
         }
 
         /// <summary>Plan for pressing one named cell (e.g. CLEAR) from the app's opening position.</summary>
         public SamsungRemoteKeyboardPlan PlanPress(string cellName)
         {
+            // A profile with no such cell yields an empty plan. Sending the home presses and then pressing
+            // nothing looked like success to callers: the clear button reported "cleared the field" while
+            // the cursor merely moved, and live Backspace/Enter pressed seven keys to do nothing.
+            if (!_cellIndex.ContainsKey(cellName))
+                return new SamsungRemoteKeyboardPlan(
+                    Array.Empty<string>(), Profile.OpensOn.Row, Profile.OpensOn.Col, cellName);
+
             var keys = new List<string>(Profile.HomeKeys);
             var cursor = AppendPress(cellName, keys, Profile.OpensOn);
             return new SamsungRemoteKeyboardPlan(keys, cursor.Row, cursor.Col, null);

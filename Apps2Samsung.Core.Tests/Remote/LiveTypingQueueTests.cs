@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,7 +32,7 @@ public class LiveTypingQueueTests
         foreach (var character in "hello")
             queue.Enqueue(character.ToString());
 
-        await queue.DrainAsync();
+        await queue.DrainAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
         Assert.Equal(new[] { "h", "e", "l", "l", "o" }, sent);
         Assert.Equal(1, maxConcurrent);       // never two runs at once
@@ -51,7 +52,7 @@ public class LiveTypingQueueTests
         foreach (var key in new[] { "a", "b", " ", "c", "\b", "\r" })
             queue.Enqueue(key);
 
-        await queue.DrainAsync();
+        await queue.DrainAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
         Assert.Equal(new[] { "a", "b", " ", "c", "\b", "\r" }, sent);
     }
@@ -82,9 +83,39 @@ public class LiveTypingQueueTests
         queue.Enqueue("b");
         queue.Enqueue("c");
 
-        await queue.DrainAsync();
+        await queue.DrainAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
         Assert.Equal(new[] { "b", "c" }, sent);
+    }
+
+    /// <summary>
+    /// Smoke test for enqueue-during-dispose. The guarantee itself is structural — Enqueue's completed check
+    /// and its release happen under the same lock Dispose flips the flag in, so a release can never meet a
+    /// disposed semaphore. The window is too narrow to hit reliably from the public API (Dispose sets the
+    /// flag before it awaits anything), so this documents intent rather than proving it.
+    /// </summary>
+    [Fact]
+    public async Task EnqueueWhileDisposingDoesNotThrow()
+    {
+        for (var attempt = 0; attempt < 200; attempt++)
+        {
+            var queue = new LiveTypingQueue((_, _) => Task.CompletedTask);
+            var go = new TaskCompletionSource();
+
+            var enqueuer = Task.Run(async () =>
+            {
+                await go.Task;
+                for (var i = 0; i < 20; i++)
+                    queue.Enqueue("x");
+            });
+
+            go.SetResult();
+            var disposed = queue.DisposeAsync().AsTask();
+            var threw = await Record.ExceptionAsync(() => Task.WhenAll(enqueuer, disposed));
+
+            Assert.Null(threw);
+            await queue.DisposeAsync();   // idempotent
+        }
     }
 
     [Fact]
@@ -99,7 +130,7 @@ public class LiveTypingQueueTests
 
         queue.Enqueue(string.Empty);
         queue.Enqueue("x");
-        await queue.DrainAsync();
+        await queue.DrainAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
         Assert.Equal(new[] { "x" }, sent);
     }

@@ -82,6 +82,24 @@ namespace Apps2Samsung.Remote
         /// </summary>
         public static bool TryParse(string? json, out SamsungRemoteKeyboardProfile? profile, out string? error)
         {
+            try
+            {
+                return TryParseCore(json, out profile, out error);
+            }
+            catch (Exception ex) when (ex is JsonException or InvalidOperationException
+                                          or FormatException or ArgumentException or NullReferenceException)
+            {
+                // GetValue<T>() throws when a field has the wrong JSON type ("rows": [5], "id": 7,
+                // "wrapHorizontal": "yes"). This text comes from a box a person pastes into, so a wrong
+                // type is reported like any other bad profile instead of escaping to the caller.
+                profile = null;
+                error = $"not a usable profile: {ex.Message}";
+                return false;
+            }
+        }
+
+        private static bool TryParseCore(string? json, out SamsungRemoteKeyboardProfile? profile, out string? error)
+        {
             profile = null;
             error = null;
 
@@ -138,6 +156,13 @@ namespace Apps2Samsung.Remote
                     if (row < 0 || row >= rows.Count || col < 0)
                     {
                         error = $"cell \"{entry.Key}\" points at row {row} column {col}, which is not on the grid";
+                        return false;
+                    }
+
+                    // A typo like [0, 1000000] would otherwise allocate a million cells.
+                    if (col > 64)
+                    {
+                        error = $"cell \"{entry.Key}\" column {col} is beyond any reasonable keyboard";
                         return false;
                     }
 
