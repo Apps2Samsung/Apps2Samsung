@@ -405,6 +405,83 @@ namespace Apps2Samsung.ViewModels
             }
         }
 
+        // The certificate on its own (#921): no settings in the file, so importing it on another head
+        // changes nothing there but the signing profile. Preview first; the import replaces a profile
+        // of the same name whole and refuses an expired author certificate (Core CertificateArchive).
+        [RelayCommand]
+        private async Task ExportCertificate()
+        {
+            try
+            {
+                var storage = GetActiveStorageProvider();
+                if (storage is null)
+                    return;
+
+                if (!Apps2Samsung.Certificate.CertificateProvisioningService.HasProfile(AppSettings.CertificatePath, CertificatePrivilegeLevel.Public)
+                    && !Apps2Samsung.Certificate.CertificateProvisioningService.HasProfile(AppSettings.CertificatePath, CertificatePrivilegeLevel.Partner))
+                {
+                    BackupStatus = "certArchiveNothingToExport".Localized();
+                    return;
+                }
+
+                var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
+                {
+                    Title = "certArchiveExportTitle".Localized(),
+                    SuggestedFileName = Apps2Samsung.Certificate.CertificateArchive.SuggestedFileName,
+                    DefaultExtension = Apps2Samsung.Certificate.CertificateArchive.FileExtension.TrimStart('.'),
+                    FileTypeChoices = Views.CertificateArchiveFiles.PickerTypes(key => key.Localized()),
+                });
+                if (file is null)
+                    return;
+
+                await using (var stream = await file.OpenWriteAsync())
+                    Apps2Samsung.Certificate.CertificateArchive.Export(stream, AppSettings.CertificatePath);
+
+                BackupStatus = "statusCertificateExported".Localized();
+            }
+            catch (Exception ex)
+            {
+                BackupStatus = string.Format("statusCertificateExportFailed".Localized(), ex.Message);
+                Trace.WriteLine($"[Backup] certificate export failed: {ex}");
+            }
+        }
+
+        [RelayCommand]
+        private async Task ImportCertificate()
+        {
+            try
+            {
+                var storage = GetActiveStorageProvider();
+                if (storage is null)
+                    return;
+
+                var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+                {
+                    Title = "certArchiveImportTitle".Localized(),
+                    AllowMultiple = false,
+                    FileTypeFilter = Views.CertificateArchiveFiles.PickerTypes(key => key.Localized()),
+                });
+                var file = files.FirstOrDefault();
+                if (file is null)
+                    return;
+
+                // No TV is selected here, so the preview says nothing about coverage of one.
+                var outcome = await Views.CertificateArchiveFiles.ImportWithPreviewAsync(file, tvDuid: null, key => key.Localized(),
+                    (title, text) => _dialogService.ShowConfirmationAsync(title, text, "lblImport".Localized(), "lblCancel".Localized()));
+                if (outcome is null)
+                    return;
+
+                CertificatePreference = AppSettings.Default.CertificatePreference;
+                _ = InitializeCertificatesAsync();
+                BackupStatus = string.Format("statusCertificateImported".Localized(), outcome.FileCount);
+            }
+            catch (Exception ex)
+            {
+                BackupStatus = string.Format("statusCertificateImportFailed".Localized(), ex.Message);
+                Trace.WriteLine($"[Backup] certificate import failed: {ex}");
+            }
+        }
+
         // Merge the imported settings.json into the current settings.json: imported keys win, and keys the
         // backup doesn't contain (e.g. desktop-only fields absent from a mobile export) keep their current
         // value, so importing never silently resets unrelated settings. Applied on next Load().

@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Apps2Samsung.Certificate;
+using Apps2Samsung.Helpers;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Samsung;
 using Apps2Samsung.Views.Controls;
@@ -22,6 +25,8 @@ namespace Apps2Samsung.Views
         private readonly TaskCompletionSource<bool> _signIn = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly Dictionary<CertificateStage, int> _index = new();
         private readonly Func<string, string> _localize = key => key;
+        private readonly IDialogService? _dialogs;
+        private readonly string? _tvDuid;
         private bool _signingIn;
         private bool _finished;
 
@@ -36,6 +41,11 @@ namespace Apps2Samsung.Views
         /// <summary>The sign-in link for another browser, when the default one is refused by Samsung's page.</summary>
         public string CopyLinkText { get; } = string.Empty;
         public string SignInHelpText { get; } = string.Empty;
+        public string ImportText { get; } = string.Empty;
+        public string ImportHintText { get; } = string.Empty;
+
+        /// <summary>True when the sign-in was replaced by a certificate imported on this sheet (#921).</summary>
+        public bool Imported { get; private set; }
 
         /// <summary>Cancel while the browser sign-in runs.</summary>
         public event EventHandler? CancelRequested;
@@ -45,9 +55,14 @@ namespace Apps2Samsung.Views
             InitializeComponent();
         }
 
-        public CertificateWindow(string tvName, CertificatePrivilegeLevel level, Func<string, string> localize) : this()
+        public CertificateWindow(string tvName, CertificatePrivilegeLevel level, Func<string, string> localize,
+            IDialogService? dialogs = null, string? tvDuid = null) : this()
         {
             _localize = localize;
+            _dialogs = dialogs;
+            _tvDuid = tvDuid;
+            ImportText = localize("lblImportCertificate");
+            ImportHintText = localize("certSheetImportHint");
             TitleText = localize("lblStepCertificate");
             SubText = string.Format(localize("certSheetFor"), tvName);
             LevelText = localize(CertificateStages.LevelKey(level));
@@ -131,6 +146,51 @@ namespace Apps2Samsung.Views
             CopyLinkButton.Content = _localize("lblCopied");
             await Task.Delay(1500);
             CopyLinkButton.Content = CopyLinkText;
+        }
+
+        // Import a certificate exported on another device instead of signing in (#921): pick the
+        // file, show what it holds and what it replaces, write it. When it covers this TV the
+        // provisioning run resumes as if Sign in had been chosen and finds the profile on disk; when
+        // it does not, the author certificate is now here and Sign in only extends it to this TV.
+        private async void OnImportClick(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+                {
+                    Title = _localize("certArchiveImportTitle"),
+                    AllowMultiple = false,
+                    FileTypeFilter = CertificateArchiveFiles.PickerTypes(_localize),
+                });
+                var file = files.FirstOrDefault();
+                if (file is null)
+                    return;
+
+                var outcome = await CertificateArchiveFiles.ImportWithPreviewAsync(file, _tvDuid, _localize,
+                    (title, text) => _dialogs is null
+                        ? Task.FromResult(true)
+                        : _dialogs.ShowConfirmationAsync(title, text, _localize("lblImport"), _localize("lblCancel"), this));
+                if (outcome is null)
+                    return;
+
+                Imported = true;
+                if (outcome.CoversTv)
+                {
+                    SignInButtons.IsVisible = false;
+                    Steps[_index[CertificateStage.SignIn]].Detail = string.Format(_localize("statusCertificateImported"), outcome.FileCount);
+                    _signIn.TrySetResult(true);
+                }
+                else
+                {
+                    Steps[_index[CertificateStage.SignIn]].Detail = _localize("certArchiveImportedNotCovering");
+                    ImportButton.IsVisible = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (_dialogs is not null)
+                    await _dialogs.ShowErrorAsync(string.Format(_localize("statusCertificateImportFailed"), ex.Message));
+            }
         }
 
         private void OnCancelClick(object? sender, RoutedEventArgs e) => Close();

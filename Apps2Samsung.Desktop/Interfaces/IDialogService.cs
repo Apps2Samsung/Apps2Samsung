@@ -33,7 +33,7 @@ namespace Apps2Samsung.Interfaces
         /// Opens the certificate sheet (not awaited: it stays open while the certificate is made)
         /// for <paramref name="tvName"/>. Null when there is no window to put it on.
         /// </summary>
-        Task<Apps2Samsung.Services.CertificateSheet?> OpenCertificateSheetAsync(string tvName, Apps2Samsung.Interfaces.CertificatePrivilegeLevel level);
+        Task<Apps2Samsung.Services.CertificateSheet?> OpenCertificateSheetAsync(string tvName, Apps2Samsung.Interfaces.CertificatePrivilegeLevel level, string? tvDuid = null);
 
         /// <summary>The Samsung account has no email address: what to do, and the account page.</summary>
         Task ShowAccountEmailMissingAsync();

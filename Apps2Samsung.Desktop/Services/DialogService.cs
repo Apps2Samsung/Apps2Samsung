@@ -336,13 +336,13 @@ namespace Apps2Samsung.Services
                 return await new CertificateWaitWindow(validFromLocal, Localize).ShowDialog<bool>(window);
             });
 
-        public Task<CertificateSheet?> OpenCertificateSheetAsync(string tvName, CertificatePrivilegeLevel level) =>
+        public Task<CertificateSheet?> OpenCertificateSheetAsync(string tvName, CertificatePrivilegeLevel level, string? tvDuid = null) =>
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var window = GetMainWindow();
                 if (window == null)
                     return (CertificateSheet?)null;
-                var sheet = new CertificateWindow(tvName, level, Localize);
+                var sheet = new CertificateWindow(tvName, level, Localize, this, tvDuid);
                 // Not awaited: the sheet stays up while the certificate is made and closes itself.
                 _ = sheet.ShowDialog(window);
                 return new CertificateSheet(sheet);

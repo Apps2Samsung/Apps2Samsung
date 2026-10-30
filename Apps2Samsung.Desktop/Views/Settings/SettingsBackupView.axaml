@@ -19,6 +19,15 @@
 						<Button Grid.Column="1" Classes="plain" Padding="10,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
 						        Content="{l:Localize lblImportBackup}" Command="{Binding ImportBackupCommand}"/>
 					</Grid>
+					<Border Classes="rowline"/>
+					<!-- The signing certificate on its own (#921): no settings inside, for moving to another head. -->
+					<TextBlock Classes="hint" Text="{l:Localize hintCertificateArchive}"/>
+					<Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+						<Button Grid.Column="0" Classes="plain" Padding="10,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+						        Content="{l:Localize lblExportCertificate}" Command="{Binding ExportCertificateCommand}"/>
+						<Button Grid.Column="1" Classes="plain" Padding="10,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+						        Content="{l:Localize lblImportCertificate}" Command="{Binding ImportCertificateCommand}"/>
+					</Grid>
 					<TextBlock Classes="hint" Text="{Binding BackupStatus}"
 					           IsVisible="{Binding BackupStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 				</StackPanel>

@@ -138,4 +138,29 @@ public sealed class DesktopSettingsTests : IDisposable
         Assert.True(File.Exists(LegacyRenamesPath));
         Assert.Equal("not json", File.ReadAllText(SettingsPath));
     }
+
+    [Fact]
+    public void CertificatePreference_IsSavedNextToTheDesktopsOtherKeys()
+    {
+        // cert --import sets the preference the desktop signs with (#921); nothing else moves.
+        WriteSettings(new JsonObject { ["LocalIp"] = "192.168.1.10", ["CertificatePreference"] = "Automatic" });
+
+        new DesktopSettings(_dir).CertificatePreference = "Partner";
+
+        var reread = new DesktopSettings(_dir);
+        Assert.Equal("Partner", reread.CertificatePreference);
+        Assert.Equal("192.168.1.10", reread.LocalIp);
+        Assert.Equal("Partner", JsonNode.Parse(File.ReadAllText(SettingsPath))!["CertificatePreference"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void CertificatePreference_UnknownValueIsStoredAsAutomatic_AndABrokenFileIsNeverWrittenOver()
+    {
+        new DesktopSettings(_dir).CertificatePreference = "whatever";
+        Assert.Equal("Automatic", new DesktopSettings(_dir).CertificatePreference);
+
+        File.WriteAllText(SettingsPath, "{ not json");
+        Assert.Throws<InvalidOperationException>(() => new DesktopSettings(_dir).CertificatePreference = "Public");
+        Assert.Equal("{ not json", File.ReadAllText(SettingsPath));
+    }
 }

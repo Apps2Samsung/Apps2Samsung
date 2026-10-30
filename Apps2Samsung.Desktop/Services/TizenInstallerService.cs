@@ -648,7 +648,7 @@ namespace Apps2Samsung.Services
             if (!isBundledJellyfin && autoMode)
             {
                 var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
-                using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken);
+                using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken, deviceInfo.Duid);
                 try
                 {
                     var profile = await _provisioning.EnsureAsync(
@@ -718,7 +718,7 @@ namespace Apps2Samsung.Services
 
             if (needsFullProfile || needsDistributorOnly)
             {
-                using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken);
+                using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken, deviceInfo.Duid);
                 try
                 {
                     await sheet.OpenAsync(requestedLevel, sheet.Token);
@@ -1548,7 +1548,7 @@ namespace Apps2Samsung.Services
             var level = Apps2Samsung.Certificate.CertificatePreference.ResolveLevel(
                 _appSettings.CertificatePreference, _appSettings.RequiresPartnerSigning);
             var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
-            using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken);
+            using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken, deviceInfo.Duid);
             try
             {
                 await _provisioning.EnsureAsync(
@@ -1609,13 +1609,15 @@ namespace Apps2Samsung.Services
         {
             private readonly IDialogService _dialogs;
             private readonly string _tvName;
+            private readonly string? _tvDuid;
             private readonly CancellationTokenSource _cancel;
             private CertificateSheet? _sheet;
 
-            public CertificateSheetRun(IDialogService dialogs, string tvName, CancellationToken outer)
+            public CertificateSheetRun(IDialogService dialogs, string tvName, CancellationToken outer, string? tvDuid = null)
             {
                 _dialogs = dialogs;
                 _tvName = tvName;
+                _tvDuid = tvDuid;
                 _cancel = CancellationTokenSource.CreateLinkedTokenSource(outer);
             }
 
@@ -1625,7 +1627,7 @@ namespace Apps2Samsung.Services
             /// <summary>Shows the sheet and waits for Sign in with Samsung; throws on Cancel.</summary>
             public async Task OpenAsync(CertificatePrivilegeLevel level, CancellationToken ct)
             {
-                _sheet = await _dialogs.OpenCertificateSheetAsync(_tvName, level);
+                _sheet = await _dialogs.OpenCertificateSheetAsync(_tvName, level, _tvDuid);
                 if (_sheet is null)
                     return;
                 _sheet.CancelRequested += (_, _) => _cancel.Cancel();

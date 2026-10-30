@@ -14,7 +14,8 @@ public static class Help
           install <app|file> --tv <ip> install a catalog app by name, or a local .wgt/.tpk file
           uninstall <appId> --tv <ip>  remove an app; the app id as `installed` prints it
           launch <appId> --tv <ip>
-          cert [--tv <ip>]             the signing certificates on this machine; --prepare makes one now
+          cert [--tv <ip>]             the signing certificates on this machine; --prepare makes one now,
+                                       --export / --import move one between devices
           tvstore --tv <ip>            arm the TV-Store app on the TV: hand it the signing certificate once
 
         options
@@ -87,6 +88,8 @@ public static class Help
 
     private const string Cert = """
         usage: apps2samsung-cli cert [--tv <ip>] [--partner] [--prepare] [--duids <DUID,...>] [--force-login] [--json]
+               apps2samsung-cli cert --export <file> [--partner]
+               apps2samsung-cli cert --import <file> [--tv <ip>] [--yes]
 
         Shows the Public and Partner signing certificates on this machine: whether one exists, until
         when it is valid and which TVs (DUIDs) it covers. With --tv, also whether that TV is covered.
@@ -97,6 +100,12 @@ public static class Help
         without reading them over SDB: for a TV whose Host PC IP points elsewhere (127.0.0.1 for a
         TV that roots itself, or another computer). The first DUID is the TV the profile is made for;
         every DUID listed is covered.
+        --export <file> writes the signing certificate on its own (no settings) to a file, every
+        usable level or the Partner one with --partner, for the desktop app, the phone or another
+        machine to import; installs there then need no second Samsung sign-in.
+        --import <file> shows what the file holds (level, account, validity, TVs covered; with --tv
+        whether that TV is among them) and what it would replace here, then imports it. Replacing a
+        certificate already on this machine needs --yes. An expired certificate is refused.
         """;
 
     private const string TvStore = """
