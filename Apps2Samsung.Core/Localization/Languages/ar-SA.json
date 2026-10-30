@@ -48,7 +48,6 @@
   "lblOpenLogsFolder": "Open Logs Folder",
   "lblTvAppSettings": "القنوات",
   "lblTvAppHint": "أضف اسم القناة و رابط m3u8. يتم الكتابة إلى TVApp قبل التثبيت.",
-  "lblChannelName": "اسم القناة",
   "lblChannelUrl": "رابط m3u8",
   "lblAddChannel": "إضافة قناة",
   "lblNoChannels": "لا توجد قنوات حتى الآن. انقر فوق \"إضافة قناة\" لإنشاء قناة.",

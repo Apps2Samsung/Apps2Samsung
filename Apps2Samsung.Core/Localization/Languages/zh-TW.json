@@ -49,7 +49,6 @@
   "lblOpenLogsFolder": "Open Logs Folder",
   "lblTvAppSettings": "頻道",
   "lblTvAppHint": "加入頻道名稱與 m3u8 連結。這些內容會在安裝前寫入 TVApp。",
-  "lblChannelName": "頻道名稱",
   "lblChannelUrl": "m3u8 網址",
   "lblAddChannel": "新增頻道",
   "lblNoChannels": "尚無頻道。請按「新增頻道」建立一個。",

@@ -48,7 +48,6 @@
   "lblOpenLogsFolder": "Open Logs Folder",
   "lblTvAppSettings": "Kênh",
   "lblTvAppHint": "Thêm tên kênh và liên kết m3u8 của bạn. Chúng được ghi vào TVApp trước khi cài đặt.",
-  "lblChannelName": "Tên kênh",
   "lblChannelUrl": "Địa chỉ m3u8",
   "lblAddChannel": "Thêm kênh",
   "lblNoChannels": "Chưa có kênh nào. Bấm \"Thêm kênh\" để tạo.",

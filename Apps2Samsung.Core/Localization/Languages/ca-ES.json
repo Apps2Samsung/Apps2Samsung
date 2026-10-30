@@ -222,7 +222,7 @@
   "lblOpenLogsFolder": "Obre la carpeta de registres",
   "lblTvAppSettings": "Canals",
   "lblTvAppHint": "Afegiu el nom del canal i l'enllaç m3u8. S'escriuen a TVApp abans de la instal·lació.",
-  "lblChannelName": "Nom del canal",
+  "lblChannelName": "Nom",
   "lblChannelUrl": "URL m3u8",
   "lblAddChannel": "Afegeix un canal",
   "lblNoChannels": "Encara no hi ha canals. Feu clic a «Afegeix un canal» per crear-ne un.",

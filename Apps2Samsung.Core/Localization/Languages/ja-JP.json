@@ -48,7 +48,6 @@
   "lblOpenLogsFolder": "Open Logs Folder",
   "lblTvAppSettings": "チャンネル",
   "lblTvAppHint": "チャンネル名とm3u8リンクを追加します。これらはインストール前にTVAppに書き込まれます。",
-  "lblChannelName": "チャンネル名",
   "lblChannelUrl": "m3u8 URL",
   "lblAddChannel": "チャンネルを追加",
   "lblNoChannels": "チャンネルはまだありません。「チャンネルを追加」をクリックして作成してください。",

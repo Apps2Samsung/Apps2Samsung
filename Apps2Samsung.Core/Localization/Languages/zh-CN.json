@@ -179,7 +179,6 @@
   "lblOpenLogsFolder": "打开日志文件夹",
   "lblTvAppSettings": "频道",
   "lblTvAppHint": "添加您的频道名称和 m3u8 链接。这些都是在安装前写入TVApp",
-  "lblChannelName": "频道名称",
   "lblChannelUrl": "m3u8 URL",
   "lblAddChannel": "添加频道",
   "lblNoChannels": "尚无频道。点击“添加频道”来创建一个频道。",

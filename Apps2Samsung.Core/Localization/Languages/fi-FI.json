@@ -48,7 +48,6 @@
   "lblOpenLogsFolder": "Open Logs Folder",
   "lblTvAppSettings": "Kanavat",
   "lblTvAppHint": "Lisää kanavan nimi ja m3u8 linkki. Nämä kirjoitetaan TVApp ennen asennusta.",
-  "lblChannelName": "Kanavan nimi",
   "lblChannelUrl": "m3u8 URL",
   "lblAddChannel": "Lisää kanava",
   "lblNoChannels": "Ei vielä kanavia. Luo kanava napsauttamalla \"Lisää kanava\".",

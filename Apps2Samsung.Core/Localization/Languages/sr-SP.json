@@ -48,7 +48,6 @@
   "lblOpenLogsFolder": "Open Logs Folder",
   "lblTvAppSettings": "Канали",
   "lblTvAppHint": "Додајте назив канала и m3u8 линк. Они се уписују у TVApp пре инсталације.",
-  "lblChannelName": "Назив канала",
   "lblChannelUrl": "m3u8 адреса",
   "lblAddChannel": "Додај канал",
   "lblNoChannels": "Још нема канала. Кликните на „Додај канал“ да направите један.",
