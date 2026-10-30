@@ -48,9 +48,9 @@ The phone app is the mobile installer head: run the whole install from your phon
 - **F-Droid**: add our repository in the F-Droid app (Settings → Repositories → Add): `https://apps2samsung.com/fdroid/repo`. It serves the latest **stable** and updates automatically. Works in F-Droid, Droid-ify and Neo Store.
 - **Direct**: grab the `-android.apk` from any [release](https://github.com/Apps2Samsung/Apps2Samsung/releases) and sideload it.
 
-### 🍏 Try the iPhone app (beta, testers wanted)
+### 🍏 Get the iPhone app
 
-Since v3 there is an iPhone app too, with the same screens as the Android one. It isn't on the App Store: you install it with [SideStore](https://sidestore.io), which signs it on the phone with your own Apple ID (a free one works). **It is new and hasn't been through a full install on a real iPhone yet**, so expect rough edges and please report what you find in [#753](https://github.com/Apps2Samsung/Apps2Samsung/issues/753).
+Since v3 there is an iPhone app too, with the same screens as the Android one. It isn't on the App Store: you install it with [SideStore](https://sidestore.io), which signs it on the phone with your own Apple ID (a free one works).
 
 1. Install SideStore once, following [their guide](https://docs.sidestore.io) (needs a computer and a cable once, plus Developer Mode on the iPhone and the VPN app SideStore asks for).
 2. In SideStore, go to **Sources → +** and add `https://apps2samsung.com/sidestore/beta/apps.json`, then install **Apps2Samsung** from it. Or download the `-ios-unsigned.ipa` from the latest [beta release](https://github.com/Apps2Samsung/Apps2Samsung/releases) and add it under **My Apps → +**.
@@ -61,16 +61,6 @@ Good to know:
 - A free Apple ID allows **3 sideloaded apps** at once, SideStore included.
 - Keep the app in front during an install: iOS pauses apps in the background.
 - Waking the TV from the remote may not work on iPhone (iOS blocks the network broadcast it needs for apps signed with a free Apple ID).
-
-### 🐧 Arch Linux (AUR)
-
-The official [`apps2samsung`](https://aur.archlinux.org/packages/apps2samsung) package is published by this repo's release workflow, so it follows every **stable** release:
-
-```sh
-yay -S apps2samsung      # or paru -S apps2samsung
-```
-
-It installs the same build as the `.deb`/`.rpm` (x86_64 and aarch64). Other Linux distros: take the `.AppImage`, `.deb`, `.rpm` or `.tar.gz` from the [releases](https://github.com/Apps2Samsung/Apps2Samsung/releases).
 
 **Packaging it yourself?** Build the desktop app with `-p:DisableSelfUpdate=true` to compile out the in-place self-update action (the app will still check for and announce new versions, but points to your package manager instead of replacing its own files). Useful for read-only or package-manager-owned installs such as Nix or Homebrew.
 
