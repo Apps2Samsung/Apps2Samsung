@@ -159,8 +159,11 @@ namespace Apps2Samsung.Helpers.Tizen.Certificate
                 if (ext.Oid?.Value != "2.5.29.17") // Subject Alternative Name
                     continue;
 
+                // Windows formats one entry per line; Linux and macOS put every entry on one line,
+                // comma separated ("URI:urn:tizen:deviceid=A, URI:urn:tizen:deviceid=B"), which read
+                // as a single garbled DUID before. A DUID never contains a comma, so split on both.
                 var formatted = new AsnEncodedData(ext.Oid, ext.RawData).Format(true);
-                foreach (var line in formatted.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+                foreach (var line in formatted.Split(new[] { '\r', '\n', ',' }, StringSplitOptions.RemoveEmptyEntries))
                 {
                     var idx = line.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
                     if (idx < 0)
