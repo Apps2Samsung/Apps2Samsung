@@ -45,7 +45,7 @@ panel and save, and it is stored per app id in settings (a user profile beats th
 | Field | Meaning |
 |---|---|
 | `rows` | The cells, top row first, as the characters they type. An action cell is named in `cells` instead; its column is padded automatically. |
-| `cells` | Named action cells: `SPACE`, `DELETE`, `CLEAR`, `SUBMIT` (aliases: `BACKSPACE`, `SEARCH`) → `[row, col]`. |
+| `cells` | Named action cells: `SPACE`, `DELETE`, `CLEAR`, `SUBMIT` (aliases: `BACKSPACE`, `SEARCH`) → `[row, col]`. A column past 64 is rejected rather than padded — no keyboard is that wide and a typo would otherwise blow the row up. |
 | `opensOn` | Where the app leaves the cursor when its keyboard opens. Plans start here, so nothing has to hunt for a corner. |
 | `homeKeys` | Presses that put the cursor back on `opensOn` from anywhere. **Measured, never derived** — "one Left per column" is wrong on a wrapping row. |
 | `wrapHorizontal` | Whether Left/Right loop within a row. Leave `false` unless you have seen it wrap. |

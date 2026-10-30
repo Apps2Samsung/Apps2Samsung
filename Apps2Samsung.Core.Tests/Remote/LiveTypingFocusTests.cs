@@ -38,6 +38,16 @@ internal sealed class FakeSearchScreen
     /// <summary>The app's first suggestion is built from what has been typed (as YouTube does).</summary>
     public string FirstSuggestion => Text.Length == 0 ? "hello" : Text + "ello";
 
+    /// <summary>Where the grid cursor is, for tests that start from a specific cell.</summary>
+    public (int Row, int Col) Cursor => _cell;
+
+    /// <summary>Puts the cursor on a grid cell, as if the user had moved it there.</summary>
+    public void PlaceCursorAt(int row, int col)
+    {
+        Focus = "grid";
+        _cell = (row, col);
+    }
+
     public void Run(IEnumerable<string> keys)
     {
         foreach (var key in keys)
@@ -105,6 +115,15 @@ internal sealed class FakeSearchScreen
     {
         var row = System.Math.Clamp(_cell.Row + rows, 0, _profile.Rows.Count - 1);
         var columnsInRow = _profile.Rows[row].Count;
+
+        if (rows > 0 && _profile.ColumnResetRows.Contains(row))
+        {
+            // Measured: the wide button row is entered at column 0 whatever column you came from.
+            // Modelling it is what makes a column-keeping Move fail a test instead of passing everywhere.
+            _cell = (row, 0);
+            return;
+        }
+
         _cell = rows != 0
             ? (row, System.Math.Min(_cell.Col, columnsInRow - 1))
             : (row, System.Math.Clamp(_cell.Col + columns, 0, columnsInRow - 1));
@@ -159,6 +178,51 @@ public class LiveTypingFocusTests
     /// The bug as reported: one continuous run that reuses the cursor between characters. `h` types,
     /// focus jumps to the suggestion, then the next character's ENTER activates it — `hello`, with the
     /// rest appended. This is what the set did, and what the old live mode did.
+    /// </summary>
+    /// <summary>
+    /// The device model must agree with the planner about the wide row: entering it from a non-zero column
+    /// lands on column 0, so a space typed from `c` reaches SPACE and not CLEAR.
+    /// </summary>
+    [Fact]
+    public void SpaceFromANonZeroColumnLandsOnSpace()
+    {
+        var screen = new FakeSearchScreen();
+        var keyboard = SamsungRemoteKeyboard.YouTube();
+
+        foreach (var character in "c")
+            screen.Run(keyboard.PlanFromAnywhere(character.ToString()).Keys);
+
+        screen.Run(keyboard.PlanFromAnywhere(" ").Keys);
+
+        Assert.Equal("c ", screen.Text);
+    }
+
+    /// <summary>
+    /// The home presses must land on the cell the profile says the keyboard opens on. Nothing pinned this
+    /// before, so a wrong `homeKeys`/`opensOn` pair would have gone unnoticed.
+    /// </summary>
+    [Fact]
+    public void HomePressesLandOnTheOpeningCell()
+    {
+        var profile = SamsungRemoteKeyboard.YouTube().Profile;
+
+        for (var row = 0; row < profile.Rows.Count; row++)
+        {
+            for (var col = 0; col < profile.Rows[row].Count; col++)
+            {
+                var screen = new FakeSearchScreen();
+                screen.PlaceCursorAt(row, col);
+
+                screen.Run(profile.HomeKeys);
+
+                Assert.Equal(profile.OpensOn, screen.Cursor);
+            }
+        }
+    }
+
+    /// <summary>
+    /// The bug as reported from the set: one continuous run that reuses the cursor between characters. `h`
+    /// types, focus jumps to the suggestion row, and the next character's ENTER activates the suggestion.
     /// </summary>
     [Fact]
     public void ReusingTheCursorBetweenCharactersCorruptsTheQuery()

@@ -93,9 +93,27 @@ namespace Apps2Samsung.ViewModels
         /// <summary>Serialises live keystrokes so a fast typist cannot interleave two key runs.</summary>
         private LiveTypingQueue? _liveQueue;
 
+        /// <summary>
+        /// The profile live typing should use, resolved once when the mode or the app changes. Resolving it
+        /// per keystroke read <see cref="AppSettings.Default"/>'s dictionary from the pump thread while the
+        /// UI thread can be writing it, and re-parsed the profile JSON every character.
+        /// </summary>
+        private volatile SamsungRemoteKeyboardProfile? _liveProfile;
+
+        /// <summary>
+        /// The direct-mode buffer, touched by the UI thread when the mode changes and by the pump thread
+        /// while sending.
+        /// </summary>
+        private readonly object _liveBufferGate = new();
+
         partial void OnLiveModeChanged(LiveKeyboardMode value)
         {
-            _liveBuffer = string.Empty;
+            lock (_liveBufferGate)
+                _liveBuffer = string.Empty;
+
+            _liveProfile = value == LiveKeyboardMode.Off
+                ? null
+                : SamsungRemoteKeyboardProfiles.Resolve(KeyboardProfileAppId, AppSettings.Default.KeyboardProfiles);
             OnPropertyChanged(nameof(IsLiveDpad));
             OnPropertyChanged(nameof(IsLiveDirect));
 
@@ -133,6 +151,15 @@ namespace Apps2Samsung.ViewModels
         /// Status updates that may arrive on the queue's pump thread. The toolbar binds these, and every
         /// other write in this class happens on the UI thread, so the pump posts rather than assigns.
         /// </summary>
+        /// <summary>How a keystroke or cell name reads in a status message.</summary>
+        private static string Describe(string key) => key switch
+        {
+            "\b" => "Backspace",
+            "\r" => "Enter",
+            " " => "Space",
+            _ => key,
+        };
+
         private void SetStatus(StatusTone tone, string text)
         {
             if (Dispatcher.UIThread.CheckAccess())
@@ -158,17 +185,23 @@ namespace Apps2Samsung.ViewModels
 
             if (LiveMode == LiveKeyboardMode.Direct)
             {
-                if (character == "\b")
-                    _liveBuffer = _liveBuffer.Length > 0 ? _liveBuffer[..^1] : string.Empty;
-                else if (character == "\r")
+                string buffer;
+                lock (_liveBufferGate)
+                {
+                    if (character == "\b")
+                        _liveBuffer = _liveBuffer.Length > 0 ? _liveBuffer[..^1] : string.Empty;
+                    else if (character != "\r")
+                        _liveBuffer += character;
+
+                    buffer = _liveBuffer;
+                }
+
+                if (character == "\r")
                 {
                     await remote.SendKeyAsync(SamsungRemoteKeys.Enter, cancellationToken);
                     return;
                 }
-                else
-                    _liveBuffer += character;
-
-                if (await remote.SendTextAsync(_liveBuffer, cancellationToken))
+                if (await remote.SendTextAsync(buffer, cancellationToken))
                 {
                     SetStatus(StatusTone.Ok, "lblRemoteKeyboardTyped".Localized());
                 }
@@ -176,7 +209,9 @@ namespace Apps2Samsung.ViewModels
                 return;
             }
 
-            var profile = SamsungRemoteKeyboardProfiles.Resolve(KeyboardProfileAppId, AppSettings.Default.KeyboardProfiles);
+            // Cached by LoadProfileJson/OnLiveModeChanged, negatives included: resolving here would read the
+            // settings dictionary off the pump thread and re-parse the JSON on every keystroke.
+            var profile = _liveProfile;
             if (profile is null)
             {
                 SetStatus(StatusTone.Warn, string.Format(
@@ -192,20 +227,24 @@ namespace Apps2Samsung.ViewModels
                 plan = keyboard.PlanPress(SamsungRemoteKeyboard.DeleteCell);
             else if (character == "\r")
                 plan = keyboard.PlanPress(SamsungRemoteKeyboard.SubmitCell);
-            else if (character == " ")
-                plan = keyboard.PlanFromAnywhere(" ");
             else
                 plan = keyboard.PlanFromAnywhere(character);
 
             if (plan.IsEmpty)
             {
-                SetStatus(StatusTone.Warn, string.Format("lblRemoteKeyboardUnsupported".Localized(), character));
+                SetStatus(StatusTone.Warn, string.Format("lblRemoteKeyboardUnsupported".Localized(), Describe(character)));
                 return;
             }
 
             if (await remote.SendKeysAsync(plan.Keys, gap: null, cancellationToken))
             {
-                SetStatus(StatusTone.Ok, "lblRemoteKeyboardTyped".Localized());
+                SetStatus(
+                    plan.SkippedCells.Count == 0 ? StatusTone.Ok : StatusTone.Warn,
+                    plan.SkippedCells.Count == 0
+                        ? "lblRemoteKeyboardTyped".Localized()
+                        : string.Format(
+                            "lblRemoteKeyboardSkipped".Localized(),
+                            string.Join(", ", plan.SkippedCells.Select(Describe))));
             }
             else
             {
@@ -317,12 +356,17 @@ namespace Apps2Samsung.ViewModels
             var settings = AppSettings.Default;
             settings.KeyboardProfiles[KeyboardProfileAppId] = KeyboardProfileJson;
             settings.Save();
+
+            // Refresh the cache: otherwise live typing keeps walking the previous grid until the mode or the
+            // app changes — the "types the wrong letters silently" failure this whole feature avoids.
+            LoadProfileJson();
             Tone = StatusTone.Ok;
             StatusText = "lblRemoteKeyboardProfileSaved".Localized();
         }
 
         private void LoadProfileJson()
         {
+            _liveProfile = SamsungRemoteKeyboardProfiles.Resolve(KeyboardProfileAppId, AppSettings.Default.KeyboardProfiles);
             var settings = AppSettings.Default;
             KeyboardProfileJson = settings.KeyboardProfiles.TryGetValue(KeyboardProfileAppId, out var saved) && !string.IsNullOrWhiteSpace(saved)
                 ? saved
@@ -567,6 +611,13 @@ namespace Apps2Samsung.ViewModels
             }
 
             var plan = SamsungRemoteKeyboard.For(profile).PlanPress(SamsungRemoteKeyboard.ClearCell);
+            if (plan.IsEmpty)
+            {
+                // No CLEAR cell in this profile: say so instead of reporting a clear that pressed nothing.
+                SetStatus(StatusTone.Warn, string.Format("lblRemoteKeyboardUnsupported".Localized(), "CLEAR"));
+                return;
+            }
+
             IsBusy = true;
             try
             {
