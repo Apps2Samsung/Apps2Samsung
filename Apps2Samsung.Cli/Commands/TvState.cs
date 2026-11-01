@@ -40,7 +40,9 @@ public sealed record TvState(
     {
         var who = string.Join(" ", new[] { Model, Name }.Where(s => !string.IsNullOrWhiteSpace(s)));
         var status = Ready ? "ready" : "not ready";
-        var dev = DeveloperMode ? $"developer mode on, host {DeveloperIp ?? "?"}" : "developer mode off";
+        var dev = DeveloperMode
+            ? $"developer mode on, host {DeveloperIp ?? "?"}" + (Apps2Samsung.Sdb.SdbEndpoint.IsLoopback(DeveloperIp) ? " (via TV-Store relay)" : "")
+            : "developer mode off";
         return $"{Ip,-15} {status,-9} {dev}{(who.Length > 0 ? $"  [{who}]" : "")}";
     }
 }

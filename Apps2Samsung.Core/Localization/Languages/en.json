@@ -89,6 +89,8 @@
   "guardIpReversedTitle": "IP Reversed",
   "guardIpMismatchTitle": "IP Mismatch",
   "guardEmulatorTitle": "Tizen emulator",
+  "guardRelayTitle": "TV-Store relay is off",
+  "guardRelayBody": "This TV's Developer Mode points at 127.0.0.1, so Apps2Samsung connects through TV-Store's relay on the TV, and that port is not answering. On the TV, open TV-Store, go to Settings and turn on \"Connect from Apps2Samsung\" (TV-Store 0.3.14 or newer). Or set Developer Mode's Host PC IP to this device's address and restart the TV. Continue anyway?",
   "guardEmulatorBody": "This TV is the Tizen Studio TV emulator running on this computer. It checks the Samsung certificate exactly like a retail TV, so the distributor certificate must list the emulator's DUID. A certificate generated for a real TV fails here with a certificate error ([118, -12]).\n\nGenerate a new certificate with the emulator selected as the TV first, or continue if the current certificate already lists it.",
   "lblRTL": "Reverse IP (for Arabic/Hebrew)",
   "ServerIP": "Server IP",

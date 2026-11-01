@@ -19,6 +19,11 @@
         // fully active yet); those are shown with a warning marker but are not installable.
         public bool DebugPortOpen { get; set; } = true;
 
+        // Whether TV-Store's sdb relay port (26201 by default) answered. Only probed when the TV's
+        // Developer Mode points at 127.0.0.1, where the relay is the one way in (TV-Store#52);
+        // null otherwise, or when nobody probed yet.
+        public bool? RelayPortOpen { get; set; }
+
         public string DisplayText
         {
             get

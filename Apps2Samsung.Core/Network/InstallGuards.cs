@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Sdb;
 
 namespace Apps2Samsung.Services
 {
@@ -23,6 +24,9 @@ namespace Apps2Samsung.Services
         /// <summary>The "TV" is the Tizen Studio emulator on this machine, whose DUID the
         /// certificate must list.</summary>
         EmulatorTarget,
+        /// <summary>The TV's Developer-Mode IP is 127.0.0.1, so the install goes through TV-Store's
+        /// relay on the TV, and that port did not answer: the relay is off or TV-Store too old.</summary>
+        RelayNotAnswering,
     }
 
     /// <summary>
@@ -93,6 +97,11 @@ namespace Apps2Samsung.Services
             "in reversed order. (ex: 192.168.1.2 → 2.1.168.192)";
         private const string DeveloperIpMismatchDefault =
             "Samsung Developer mode IP doesn't match this devices local IP, do you wish to continue?";
+        private const string RelayNotAnsweringDefault =
+            "This TV's Developer Mode points at 127.0.0.1, so Apps2Samsung connects through TV-Store's " +
+            "relay on the TV, and that port is not answering. On the TV, open TV-Store, go to Settings " +
+            "and turn on \"Connect from Apps2Samsung\" (TV-Store 0.3.14 or newer). Or set Developer " +
+            "Mode's Host PC IP to this device's address and restart the TV. Continue anyway?";
         private const string EmulatorTargetDefault =
             "This TV is the Tizen Studio TV emulator running on this computer. It checks the Samsung " +
             "certificate exactly like a retail TV, so the distributor certificate must list the " +
@@ -146,8 +155,22 @@ namespace Apps2Samsung.Services
                     RestartTitleDefault, TizenDeviceReadiness.RestartInstructions));
             }
 
+            // 1b. Host PC IP 127.0.0.1: the TV takes only loopback, so the install goes through
+            // TV-Store's relay (TV-Store#52). That is a deliberate setting, not a mismatch with this
+            // device, so the IP guards below do not apply; what can be wrong is the relay being off.
+            bool viaRelay = SdbEndpoint.IsLoopback(device.DeveloperIP);
+            if (viaRelay && device.RelayPortOpen == false)
+            {
+                guards.Add(new InstallGuard(
+                    InstallGuardKind.RelayNotAnswering,
+                    "guardRelayTitle", "guardRelayBody",
+                    "TV-Store relay is off", RelayNotAnsweringDefault,
+                    $"TV-Store relay: {device.IpAddress}:{SdbEndpoint.RelayPort(device.IpAddress)}"));
+            }
+
             // 2. TV on another subnet than the local IP the user selected.
-            if (!string.IsNullOrEmpty(options.ConfiguredLocalIp) &&
+            if (!viaRelay &&
+                !string.IsNullOrEmpty(options.ConfiguredLocalIp) &&
                 !string.IsNullOrEmpty(device.DeveloperIP) &&
                 network.IsDifferentSubnet(options.ConfiguredLocalIp!, device.DeveloperIP!))
             {
@@ -170,7 +193,7 @@ namespace Apps2Samsung.Services
             // 4/5. Developer Mode points at a host that isn't us. Without a local IP to compare
             // against (offline phone, no usable interface) we can't tell, so we don't guess.
             var localIps = options.LocalIps;
-            if (localIps.Count == 0 || string.IsNullOrEmpty(device.DeveloperIP))
+            if (viaRelay || localIps.Count == 0 || string.IsNullOrEmpty(device.DeveloperIP))
                 return new InstallGuardResult(guards, correctedTvIp);
 
             bool ipMismatch = !localIps.Contains(device.DeveloperIP);

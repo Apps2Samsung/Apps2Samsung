@@ -70,7 +70,9 @@ public static class Help
           --allow-remove        allow removing the installed copy when only a remove-and-reinstall gets
                                 the new one on (erases the app's data on the TV)
           --allow-root          install an app the catalog marks (root): it gains root on the TV, and
-                                afterwards Host PC IP has to be 127.0.0.1, which locks this machine out
+                                afterwards Host PC IP has to be 127.0.0.1; this machine then reaches
+                                the TV only through TV-Store's relay (TV-Store 0.3.14+, turned on in
+                                its Settings), which the CLI dials by itself on port 26201
           --no-browser          print the Samsung sign-in address instead of opening a browser
           --login-timeout <s>   how long to wait for the Samsung sign-in (default 300)
           --force-login         make a new certificate even when a usable one exists
@@ -118,8 +120,9 @@ public static class Help
         TV yet, at the level the desktop app's certificate setting picks (--partner: Partner). As in the
         desktop app, the TV gets whichever certificate on this machine covers it, Public first.
 
-        On the TV, Developer Mode's Host PC IP must be set to the TV's own address, or its sdbd
-        refuses the connection TV-Store makes to it.
+        On the TV, Developer Mode's Host PC IP must be the TV's own address or 127.0.0.1 (TV-Store
+        0.3.14 or newer), or its sdbd refuses the connection TV-Store makes to it. With 127.0.0.1 this
+        machine reaches the TV through TV-Store's relay (port 26201), once it is turned on there.
         """;
 
     public static string For(string command) => command switch
