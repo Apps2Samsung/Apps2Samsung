@@ -21,8 +21,10 @@
     <!-- 1.1.8 loads the signing certificates in-memory on iOS/Mac Catalyst without the Exportable
          flag those platforms refuse (tizen-sdb#15, #856/#857); the iOS head resolves the plain
          net10.0 asset, whose platform branches are runtime checks. It also depends on
-         System.Security.Cryptography.Xml 10.0.13 itself, so the NU1903 pin that used to sit here is gone. -->
-    <PackageReference Include="TizenSdb.Core" Version="1.1.8" />
+         System.Security.Cryptography.Xml 10.0.13 itself, so the NU1903 pin that used to sit here is gone.
+         1.1.9 is the same library; the tag ships the tizen-sdb CLI's --port flag for TV-Store's relay
+         (tizen-sdb#17), and every head tracks the engine release by number. -->
+    <PackageReference Include="TizenSdb.Core" Version="1.1.9" />
   </ItemGroup>
   <ItemGroup>
     <!-- The translated strings, embedded so both heads read one copy through
