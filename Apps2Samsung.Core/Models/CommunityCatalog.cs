@@ -81,6 +81,21 @@ namespace Apps2Samsung.Models
         public List<string>? Flags { get; set; }
 
         /// <summary>
+        /// The certificate level the app needs to work (<c>cert_level</c> in the manifest, TV-Store
+        /// #50): "partner" for an app that uses partner-level rights or hooks into a Samsung native
+        /// package, which installs fine signed Public and then fails to run. Null for the usual
+        /// package; written only when present, so the snapshot round-trips it as-is and TV-Store
+        /// reads it from resolved.json.
+        /// </summary>
+        [JsonPropertyName("cert_level")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? CertLevel { get; set; }
+
+        /// <summary>The app only works when signed with a Partner certificate (<c>cert_level: "partner"</c>).</summary>
+        [JsonIgnore]
+        public bool RequiresPartner => string.Equals(CertLevel, "partner", System.StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
         /// The package gains root on the TV and runs a service from boot (<c>flags: ["root"]</c>).
         /// After install the user points Developer Mode's Host PC IP at 127.0.0.1, which locks every
         /// PC out of SDB until it is set back, so the heads confirm first.
