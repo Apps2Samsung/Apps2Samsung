@@ -51,6 +51,9 @@ namespace Apps2Samsung.Models
             new("Local IP", Dash(LocalIp)),
             new("Emulator", EmulatorDisplay),
             new("Debug port (26101)", DebugPortOpen ? "Open" : "Closed"),
+            new("Connects via", Sdb.SdbEndpoint.IsLoopback(DeveloperIp)
+                ? $"TV-Store relay, port {Sdb.SdbEndpoint.RelayPort(IpAddress)} (Developer Mode points at 127.0.0.1)"
+                : "sdbd directly, port 26101"),
             new("SDK tool path", Dash(SdkToolPath)),
         };
 

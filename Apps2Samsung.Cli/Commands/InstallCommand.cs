@@ -73,7 +73,7 @@ public static class InstallCommand
             if (release.IsRoot && !s.Options.AllowRoot)
                 return s.Out.Fail(
                     $"{release.Name} gains root on the TV and runs a background service from boot. After the install, set Developer Mode's Host PC IP to 127.0.0.1 and restart the TV; " +
-                    "until it is set back to this machine, nothing can reach the TV over SDB (updates and other installs included). Rerun with --allow-root to install it.",
+                    "from then on this machine reaches the TV only through TV-Store's relay (TV-Store 0.3.14 or newer, turned on in its Settings), which the CLI dials by itself. Rerun with --allow-root to install it.",
                     Output.Stopped);
 
             // Values the package needs before it installs (#791).
@@ -199,7 +199,7 @@ public static class InstallCommand
                     ? new[]
                     {
                         $"Installed {appName} on {tvIp}{(renamed ? $" under package id {installedPackageId} (remembered for this TV)" : "")}{(launched ? " and launched it" : "")}.",
-                        "Now set Developer Mode's Host PC IP to 127.0.0.1 and restart the TV. Until it is set back to this machine, nothing can reach the TV over SDB.",
+                        "Now set Developer Mode's Host PC IP to 127.0.0.1 and restart the TV. From then on this machine reaches the TV through TV-Store's relay: turn it on under TV-Store's Settings (TV-Store 0.3.14 or newer).",
                     }
                     : new[] { $"Installed {appName} on {tvIp}{(renamed ? $" under package id {installedPackageId} (remembered for this TV)" : "")}{(launched ? " and launched it" : "")}." });
         }

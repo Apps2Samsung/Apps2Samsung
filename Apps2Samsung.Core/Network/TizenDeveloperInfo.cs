@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Sdb;
 
 namespace Apps2Samsung.Services
 {
@@ -75,6 +76,7 @@ namespace Apps2Samsung.Services
                     samsungDevice.Manufacturer = device.Manufacturer;
                 if (string.IsNullOrEmpty(samsungDevice.MacAddress))
                     samsungDevice.MacAddress = device.MacAddress;
+                await NoteEndpointAsync(network, samsungDevice, cancellationToken);
                 return samsungDevice;
             }));
 
@@ -124,6 +126,7 @@ namespace Apps2Samsung.Services
                 }
                 device.DeveloperMode = fresh.DeveloperMode;
                 device.DeveloperIP = fresh.DeveloperIP;
+                await NoteEndpointAsync(network, device, cancellationToken);
                 if (string.IsNullOrEmpty(device.DeviceName))
                     device.DeviceName = fresh.DeviceName;
                 if (string.IsNullOrEmpty(device.ModelName))
@@ -144,6 +147,19 @@ namespace Apps2Samsung.Services
 
         // One port probe with the scan's per-probe budget, so a TV that has gone to standby since the
         // scan can't stall the Install button for the full TCP connect timeout.
+        /// <summary>
+        /// Tells <see cref="SdbEndpoint"/> what the TV reported as its Host PC IP, so a connection
+        /// goes through TV-Store's relay when that is 127.0.0.1 (TV-Store#52), and probes the relay
+        /// port then, so <see cref="InstallGuards"/> can say up front when the relay is off.
+        /// </summary>
+        private static async Task NoteEndpointAsync(INetworkService network, NetworkDevice device, CancellationToken cancellationToken)
+        {
+            SdbEndpoint.Remember(device.IpAddress, device.DeveloperIP);
+            device.RelayPortOpen = SdbEndpoint.IsLoopback(device.DeveloperIP)
+                ? await IsPortOpenAsync(network, device.IpAddress, SdbEndpoint.RelayPort(device.IpAddress), cancellationToken)
+                : null;
+        }
+
         private static async Task<bool> IsPortOpenAsync(INetworkService network, string ip, int port, CancellationToken cancellationToken)
         {
             using var timeout = new CancellationTokenSource(Constants.Defaults.NetworkScanTimeoutMs);

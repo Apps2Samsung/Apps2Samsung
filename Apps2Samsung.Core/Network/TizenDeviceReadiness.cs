@@ -53,8 +53,11 @@ namespace Apps2Samsung.Services
             if (!string.Equals(device.DeveloperMode, "1", StringComparison.Ordinal))
                 return NotReadyReason.DeveloperModeOff;
 
+            // 127.0.0.1 is never a mismatch: it means "through TV-Store's relay" (TV-Store#52), and
+            // a closed debug port is then the TV's own sdbd not being up, whatever the Host PC IP.
             if (!string.IsNullOrEmpty(device.DeveloperIP) &&
                 !string.IsNullOrEmpty(localIp) &&
+                !Sdb.SdbEndpoint.IsLoopback(device.DeveloperIP) &&
                 !string.Equals(device.DeveloperIP, localIp, StringComparison.Ordinal))
                 return NotReadyReason.DeveloperIpMismatch;
 
