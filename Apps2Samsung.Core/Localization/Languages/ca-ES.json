@@ -448,6 +448,7 @@
   "lblRemoteKeyboardProfileSave": "Desa el perfil",
   "lblRemoteKeyboardProfileSaved": "S'ha desat el perfil de teclat d'aquesta aplicació.",
   "lblRemoteKeyboardProfileInvalid": "No s'ha pogut utilitzar aquest perfil: {0}",
+  "lblRemoteKeyboardSkipped": "S'ha escrit, però el teclat d'aquesta aplicació no té cap tecla {0}, per això s'ha omès aquest pas.",
   "lblRemoteKeyboardNoProfile": "Encara no hi ha cap perfil de teclat per a {0}: afegiu-ne un al quadre del teclat.",
   "lblRemoteKeyboardUnsupported": "No és al teclat de l'aplicació, per això no s'ha escrit: \"{0}\"",
   "lblRemoteTextLivePlaceholder": "Escriviu aquí - el televisor us segueix",
