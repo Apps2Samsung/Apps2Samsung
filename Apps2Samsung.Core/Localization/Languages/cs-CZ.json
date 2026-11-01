@@ -448,6 +448,7 @@
   "lblRemoteKeyboardProfileSave": "Uložit profil",
   "lblRemoteKeyboardProfileSaved": "Profil klávesnice pro tuto aplikaci byl uložen.",
   "lblRemoteKeyboardProfileInvalid": "Tento profil nelze použít: {0}",
+  "lblRemoteKeyboardSkipped": "Zadáno, ale klávesnice této aplikace nemá buňku {0}, takže byl tento krok přeskočen.",
   "lblRemoteKeyboardNoProfile": "Pro {0} zatím neexistuje profil klávesnice – přidejte jej v panelu klávesnice.",
   "lblRemoteKeyboardUnsupported": "Nenachází se na klávesnici, proto nelze zadat: „{0}“",
   "lblRemoteTextLivePlaceholder": "Zadejte text sem – televizor ho zobrazí",
