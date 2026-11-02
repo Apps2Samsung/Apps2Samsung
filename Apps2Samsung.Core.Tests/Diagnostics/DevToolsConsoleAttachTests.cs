@@ -26,6 +26,7 @@ public class DevToolsConsoleAttachTests
 
         Assert.Contains("Runtime.enable", methods);
         Assert.Contains("Log.enable", methods);
+        Assert.Contains("Log=no", console.Capabilities);
     }
 
     // What an inspector answers for a promise it does not await, and for one it does.

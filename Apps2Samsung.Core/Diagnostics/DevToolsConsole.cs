@@ -66,6 +66,16 @@ namespace Apps2Samsung.Diagnostics
         private bool _ignoresAwaitPromise;
         private int _nextSlot;
 
+        // Set on connect: whether the inspector has the Log domain (a 2017 set's does not).
+        private bool _hasLogDomain = true;
+
+        /// <summary>
+        /// What this inspector turned out to support, in one line, for the session log: every gap in
+        /// an older set's inspector so far arrived as its own failed report, and this names them all.
+        /// </summary>
+        public string Capabilities =>
+            $"Log={(_hasLogDomain ? "yes" : "no")}, awaitPromise={(_ignoresAwaitPromise ? "ignored (polled)" : _awaitsOnlyPromises ? "promises only" : "yes")}";
+
         private readonly DevToolsNetworkTracker _network = new();
 
         /// <summary>Raised for every console line, off the UI thread — marshal before touching the UI.</summary>
@@ -110,11 +120,13 @@ namespace Apps2Samsung.Diagnostics
                 // The Log domain is newer than the Chromium on a 2017 (Tizen 3) set, whose inspector
                 // answers "'Log.enable' wasn't found" (#954). Runtime still carries console.* and
                 // exceptions there, so attach without the browser's own entries instead of failing.
+                _hasLogDomain = false;
                 Trace.WriteLine($"[devtools] Log domain unavailable, attaching without it: {ex.Message}");
             }
 
             _awaitsOnlyPromises = await RejectsAwaitOnPlainValueAsync(ct);
             _ignoresAwaitPromise = !_awaitsOnlyPromises && await IgnoresAwaitPromiseAsync(ct);
+            Trace.WriteLine($"[devtools] inspector capabilities: {Capabilities}");
         }
 
         /// <summary>
