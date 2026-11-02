@@ -1002,5 +1002,7 @@
   "errContributeOneLine": "1 行で、| を含めない",
   "errContributeRepo": "owner/repo の形式で入力してください。例: yourname/your-app",
   "errContributeOutputName": ".wgt または .tpk で終わる必要があります",
-  "errContributeUrl": "http:// または https:// で始まる必要があります"
+  "errContributeUrl": "http:// または https:// で始まる必要があります",
+  "lblUserSourceCategory": "カテゴリ",
+  "tvCardActionCheckAgain": "再確認"
 }

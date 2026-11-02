@@ -1003,5 +1003,7 @@
   "errContributeOneLine": "Egy sor, | nélkül",
   "errContributeRepo": "Használja az owner/repo formát, például yourname/your-app",
   "errContributeOutputName": ".wgt vagy .tpk végződés kell",
-  "errContributeUrl": "http:// vagy https:// előtaggal kell kezdődnie"
+  "errContributeUrl": "http:// vagy https:// előtaggal kell kezdődnie",
+  "lblUserSourceCategory": "Kategória",
+  "tvCardActionCheckAgain": "Ellenőrzés újra"
 }

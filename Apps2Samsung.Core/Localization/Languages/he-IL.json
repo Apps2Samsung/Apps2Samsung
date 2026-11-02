@@ -1002,5 +1002,7 @@
   "errContributeOneLine": "שורה אחת, בלי |",
   "errContributeRepo": "השתמשו ב-owner/repo, למשל yourname/your-app",
   "errContributeOutputName": "חייב להסתיים ב-.wgt או .tpk",
-  "errContributeUrl": "חייב להתחיל ב-http:// או https://"
+  "errContributeUrl": "חייב להתחיל ב-http:// או https://",
+  "lblUserSourceCategory": "קטגוריה",
+  "tvCardActionCheckAgain": "בדוק שוב"
 }
