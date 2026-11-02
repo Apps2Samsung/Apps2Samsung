@@ -51,7 +51,10 @@ public sealed class CatalogService
 	public async Task<CatalogResult> LoadReleasesAsync()
 	{
 		var manifest = await GetManifestAsync();
-		var providers = manifest.Providers.Where(p => !string.IsNullOrWhiteSpace(p.Url)).ToList();
+		// The manifest's providers, then the sources the user added themselves (UserSources): a
+		// developer's own repository, nightly or feed, listed without waiting for the community packages.
+		var providers = (await UserSources.ResolveAsync(_http, manifest.Providers, UserSources.Parse(MobileSettings.UserSourcesJson)))
+			.Where(p => !string.IsNullOrWhiteSpace(p.Url)).ToList();
 		// Fetched alongside the providers; never fails, at worst there are no counts.
 		var stats = _downloadStats.GetAsync();
 
@@ -86,6 +89,7 @@ public sealed class CatalogService
 				{
 					r.RequiresPartner = requiresPartner;
 					r.Category = category;
+					r.IsUserSource = provider.IsUserSource;
 					SourceRepo.StampFromApiUrl(r, provider.Url);
 					r.Description = provider.BuildInfo?.Description?.Trim() ?? string.Empty;
 				}

@@ -10,6 +10,7 @@ using Apps2Samsung.Helpers.Tizen.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -111,6 +112,19 @@ namespace Apps2Samsung.ViewModels
         private bool showRootApps;
         public event Action? ShowRootAppsChanged;
 
+        /// <summary>
+        /// Settings > Installing > Your sources, and the catalog ⋯ > Add a source: the repositories,
+        /// releases and file links the user added (<see cref="Apps2Samsung.Catalog.UserSources"/>),
+        /// as rows with a Remove button. Fires <see cref="UserSourcesChanged"/> for the main window to
+        /// reload the catalog.
+        /// </summary>
+        public ObservableCollection<UserSourceRow> OwnSources { get; } = new();
+        public bool HasOwnSources => OwnSources.Count > 0;
+        public event Action? UserSourcesChanged;
+
+        /// <summary>One source as the list shows it: the name, then what it points at.</summary>
+        public sealed record UserSourceRow(Apps2Samsung.Catalog.UserSource Source, string Name, string Detail);
+
         [ObservableProperty]
         private bool darkMode;
 
@@ -152,6 +166,9 @@ namespace Apps2Samsung.ViewModels
         public string LblIncludeBetaUpdates => _localizationService.GetString("lblIncludeBetaUpdates");
         public string LblShowAdultApps => _localizationService.GetString("lblShowAdultApps");
         public string LblShowRootApps => _localizationService.GetString("lblShowRootApps");
+        public string LblUserSources => _localizationService.GetString("lblUserSources");
+        public string LblAddSource => _localizationService.GetString("lblAddSource");
+        public string LblUserSourcesEmpty => _localizationService.GetString("lblUserSourcesEmpty");
         public string LblRTL => _localizationService.GetString("lblRTL");
         public string LblKeepWGTFile => _localizationService.GetString("lblKeepWGTFile");
         public string LblSettingsHeader => _localizationService.GetString("lblSettings");
@@ -193,7 +210,7 @@ namespace Apps2Samsung.ViewModels
             _ = InitializeCertificatesAsync();
         }
 
-        // The installer switched the certificate to Partner for a package that requires it — mirror it
+        // The installer switched the certificate to Partner for a package that requires it, mirror it
         // onto the switch so this (singleton) view model doesn't keep showing the pre-install value.
         private void OnPartnerSigningAutoEnabled() =>
             Dispatcher.UIThread.Post(() => CertificatePreference = AppSettings.Default.CertificatePreference);
@@ -225,6 +242,10 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblIncludeBetaUpdates));
             OnPropertyChanged(nameof(LblShowAdultApps));
             OnPropertyChanged(nameof(LblShowRootApps));
+            OnPropertyChanged(nameof(LblUserSources));
+            OnPropertyChanged(nameof(LblAddSource));
+            OnPropertyChanged(nameof(LblUserSourcesEmpty));
+            LoadOwnSources();
             OnPropertyChanged(nameof(LblRTL));
             OnPropertyChanged(nameof(LblKeepWGTFile));
             OnPropertyChanged(nameof(LblSettingsHeader));
@@ -255,6 +276,7 @@ namespace Apps2Samsung.ViewModels
             KeepWGTFile = AppSettings.Default.KeepWGTFile;
             ShowAdultApps = AppSettings.Default.ShowAdultApps;
             ShowRootApps = AppSettings.Default.ShowRootApps;
+            LoadOwnSources();
             DarkMode = AppSettings.Default.DarkMode;
             GitHubToken = AppSettings.Default.GitHubToken ?? string.Empty;
             ManualDuids = AppSettings.Default.ManualDuids ?? string.Empty;
@@ -697,6 +719,61 @@ namespace Apps2Samsung.ViewModels
             AppSettings.Default.ShowRootApps = value;
             AppSettings.Default.Save();
             ShowRootAppsChanged?.Invoke();
+        }
+
+        // Your sources: the stored list as rows. Re-run on a language change, as the category name
+        // in the detail line is localized.
+        private void LoadOwnSources()
+        {
+            OwnSources.Clear();
+            foreach (var source in Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson))
+            {
+                var detail = Apps2Samsung.Catalog.UserSources.IsFeed(source.Url)
+                    ? $"{source.Url.Trim()} · {_localizationService.GetString("lblUserSourceFeed")}"
+                    : $"{source.Url.Trim()} · {Apps2Samsung.Catalog.AppCategories.DisplayName(source.Category, _localizationService.GetString)}";
+                if (source.Partner)
+                    detail += $" · {_localizationService.GetString("certLevelPartner")}";
+                OwnSources.Add(new UserSourceRow(source, Apps2Samsung.Catalog.UserSources.DisplayName(source), detail));
+            }
+            OnPropertyChanged(nameof(HasOwnSources));
+        }
+
+        private void SaveOwnSources(List<Apps2Samsung.Catalog.UserSource> sources)
+        {
+            AppSettings.Default.UserSourcesJson = Apps2Samsung.Catalog.UserSources.Serialize(sources);
+            AppSettings.Default.Save();
+            LoadOwnSources();
+            UserSourcesChanged?.Invoke();
+        }
+
+        /// <summary>The Add a source form; a source it returns is stored and the catalog reloads.</summary>
+        [RelayCommand]
+        private async Task AddUserSourceAsync()
+        {
+            var sources = Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson);
+            var added = await _dialogService.ShowAddUserSourceAsync(sources);
+            if (added is null)
+                return;
+            sources.Add(added);
+            SaveOwnSources(sources);
+        }
+
+        [RelayCommand]
+        private async Task RemoveUserSourceAsync(UserSourceRow? row)
+        {
+            if (row is null)
+                return;
+            var ok = await _dialogService.ShowConfirmationAsync(
+                _localizationService.GetString("lblRemoveSourceTitle"),
+                string.Format(_localizationService.GetString("lblRemoveSourceBody"), row.Name),
+                _localizationService.GetString("lblRemove"),
+                _localizationService.GetString("lblCancel"));
+            if (!ok)
+                return;
+            var sources = Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson);
+            var api = Apps2Samsung.Catalog.UserSources.ApiUrl(row.Source.Url);
+            sources.RemoveAll(s => string.Equals(Apps2Samsung.Catalog.UserSources.ApiUrl(s.Url), api, StringComparison.OrdinalIgnoreCase));
+            SaveOwnSources(sources);
         }
 
         // The one-time "I am 18 or older" before adult entries get listed (#850).

@@ -17,6 +17,8 @@ public static class Help
           cert [--tv <ip>]             the signing certificates on this machine; --prepare makes one now,
                                        --export / --import move one between devices
           tvstore --tv <ip>            arm the TV-Store app on the TV: hand it the signing certificate once
+          sources [add|remove ...]     your own sources: a GitHub repository, a release, a .wgt/.tpk link or a
+                                       .json feed, listed by `catalog` next to the community apps
 
         options
           --json                       one JSON document on stdout instead of text (progress stays on stderr)
@@ -27,6 +29,8 @@ public static class Help
                                        network setting, else the default route; set it on a VPN)
           --data-dir <path>            where certificates and caches live (default: the desktop app's folder)
           --github-token <token>       GitHub token for the catalog's API calls (or GITHUB_TOKEN)
+          --source <link>              a source for this run only (repeatable): a GitHub repository, a release,
+                                       a .wgt/.tpk link or a .json feed, listed as if added with `sources add`
           -h, --help                   this text, or `<command> --help` for one command
           --version                    the CLI version
 
@@ -34,7 +38,7 @@ public static class Help
         """;
 
     private const string Catalog = """
-        usage: apps2samsung-cli catalog [words...] [--category <id>] [--all-versions] [--adult] [--popular] [--json]
+        usage: apps2samsung-cli catalog [words...] [--category <id>] [--all-versions] [--adult] [--popular] [--source <link>] [--json]
 
         Lists the apps Apps2Samsung can install: name, category, description, the files or variants to
         choose from (with the version each would install) and where the source lives. Words narrow the
@@ -46,7 +50,8 @@ public static class Help
         when apps2samsung.com has the counts; --popular lists the most downloaded first.
 
         An app that needs values from you before it installs (an API key, a server address) lists them
-        under "settings"; pass them to `install` with --set key=value.
+        under "settings"; pass them to `install` with --set key=value. Apps from your own sources
+        (`sources`, or --source <link> for this run) are listed with (own source).
         """;
 
     private const string Install = """
@@ -125,9 +130,37 @@ public static class Help
         machine reaches the TV through TV-Store's relay (port 26201), once it is turned on there.
         """;
 
+    private const string Sources = """
+        usage: apps2samsung-cli sources [--json]
+               apps2samsung-cli sources add <link> [--name <name>] [--category <id>] [--partner]
+               apps2samsung-cli sources remove <link|name>
+
+        Your own sources, the same list the desktop app keeps under Settings > Installing > Your
+        sources (shared through its settings.json). `catalog` lists their apps next to the community
+        ones, marked (own source), and reads them again on every run, so a developer's new release
+        shows up without waiting for tizen-community-packages.
+
+        A link is one of:
+          github.com/owner/repo  (or owner/repo)      the newest release with a .wgt or .tpk
+          a release page (…/releases/tag/<tag>)       that one release
+          https://host/path/App.wgt  (or .tpk)        the file itself, dated by its Last-Modified header
+          https://host/path/apps.json                 a feed: every provider in it, so one link publishes a
+                                                      set of apps; the file has the shape of the installer's
+                                                      own third-party-apps.json ({ "providers": [ { "id",
+                                                      "url" (a GitHub releases API URL), "displayName",
+                                                      "category", "certLevel", "buildInfo": { "description" } } ] }),
+                                                      or is a bare array of such providers
+
+        --name is what the catalog lists it under (default: the repository or file name); --category is
+        one of media, iptv, streaming, games, casting, tools, other; --partner marks an app that needs the
+        Partner certificate. `remove` takes the link as typed, the link in another spelling, or the name.
+        For a single run without storing anything, pass --source <link> to `catalog` or `install`.
+        """;
+
     public static string For(string command) => command switch
     {
         "catalog" or "search" or "apps" => Catalog,
+        "sources" or "source" => Sources,
         "install" => Install,
         "cert" or "certificate" => Cert,
         "tvstore" or "tv-store" => TvStore,

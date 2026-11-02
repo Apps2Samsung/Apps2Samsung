@@ -26,6 +26,10 @@ public sealed class CliOptions
     /// <summary>Most downloaded first, as the apps' "Most downloaded" group, instead of A-Z.</summary>
     public bool Popular { get; set; }
     public string GitHubToken { get; set; } = Environment.GetEnvironmentVariable("GITHUB_TOKEN") ?? string.Empty;
+    /// <summary>Sources for this run only (a repository, release or .wgt/.tpk link), on top of the stored ones.</summary>
+    public List<string> Sources { get; } = new();
+    /// <summary>sources add: the name the source lists under (default: the repository or file name).</summary>
+    public string? Name { get; set; }
 
     // Install
     public string? File { get; set; }
@@ -97,6 +101,15 @@ public sealed class CliOptions
                 case "--adult": o.Adult = true; break;
                 case "--popular": o.Popular = true; break;
                 case "--github-token": o.GitHubToken = Next(arg) ?? string.Empty; break;
+                case "--source":
+                {
+                    var link = Next(arg);
+                    if (string.IsNullOrWhiteSpace(link))
+                        return (o, "--source needs a repository, release or .wgt/.tpk link");
+                    o.Sources.Add(link);
+                    break;
+                }
+                case "--name": o.Name = Next(arg); if (o.Name is null) return (o, "--name needs the name to list the source under"); break;
                 case "--file": o.File = Next(arg); if (o.File is null) return (o, "--file needs a file or variant name"); break;
                 case "--version": o.Version = Next(arg); if (o.Version is null) return (o, "--version needs a release tag"); break;
                 case "--set":

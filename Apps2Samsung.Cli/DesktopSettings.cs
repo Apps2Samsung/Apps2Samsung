@@ -13,6 +13,7 @@ namespace Apps2Samsung.Cli;
 public sealed class DesktopSettings
 {
     private const string RenamesKey = "PackageIdRenamesJson";
+    private const string UserSourcesKey = "UserSourcesJson";
 
     private readonly string _path;
     private JsonObject? _root;
@@ -51,6 +52,14 @@ public sealed class DesktopSettings
     {
         get => Get(RenamesKey);
         set => Set(RenamesKey, value ?? string.Empty, "the package-id rename");
+    }
+
+    /// <summary>The sources the user added themselves (Core <c>UserSources</c>), the desktop's list: a
+    /// source added here is listed there and the other way round.</summary>
+    public string UserSourcesJson
+    {
+        get => Get(UserSourcesKey);
+        set => Set(UserSourcesKey, value ?? string.Empty, "the source");
     }
 
     // One key, written atomically; a file that did not parse is never written over.

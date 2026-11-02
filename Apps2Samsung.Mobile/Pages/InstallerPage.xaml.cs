@@ -101,6 +101,13 @@ public partial class InstallerPage : ContentPage
 		UpdateTvCard();
 		if (_initialized)
 		{
+			// A source of the user's own added or removed under Settings > Installing while this tab
+			// was hidden: the catalog is read again with it.
+			if (_loadedSources != MobileSettings.UserSourcesJson)
+			{
+				_ = LoadCatalogAsync();
+				return;
+			}
 			// Show adult (18+) apps / Show root apps changed from another tab's ⋯ while this one was hidden (#850).
 			if (_listedAdult != MobileSettings.ShowAdultApps || _listedRoot != MobileSettings.ShowRootApps)
 				RebuildCatalog();
@@ -145,6 +152,7 @@ public partial class InstallerPage : ContentPage
 	{
 		SetStatus(L10n.Get("lblLoadingAppList"));
 		_catalogLoading = true;
+		_loadedSources = MobileSettings.UserSourcesJson;
 		RebuildCatalog();
 		CatalogService.CatalogResult? result = null;
 		try
@@ -191,6 +199,8 @@ public partial class InstallerPage : ContentPage
 	private bool _listedAdult;
 	// The same for the root entries ("Show root apps").
 	private bool _listedRoot;
+	// The user's own sources (UserSources) the catalog was last read with; a change reloads it.
+	private string _loadedSources = string.Empty;
 
 	// The catalog as listed: an app with several releases once, as its newest; without the
 	// adult-only entries until the user opted in (#850).
@@ -362,13 +372,16 @@ public partial class InstallerPage : ContentPage
 	{
 		var name = new Label { Text = release.Name, FontAttributes = FontAttributes.Bold, LineBreakMode = LineBreakMode.TailTruncation };
 		var needsTizen = TizenRequirement.NoneFits(release, tvVersion);
-		if (!release.IsAdult && !release.IsRoot && !needsTizen)
+		if (!release.IsAdult && !release.IsRoot && !release.IsUserSource && !needsTizen)
 			return name;
 		var line = new HorizontalStackLayout { Spacing = 6, Children = { name } };
 		if (release.IsAdult)
 			line.Children.Add(Badge("lblAdultBadge", fontSize: 11, padding: new Thickness(5, 0)));
 		if (release.IsRoot)
 			line.Children.Add(Badge("lblRootBadge", fontSize: 11, padding: new Thickness(5, 0)));
+		// from a source the user added themselves (Settings > Installing > Your sources): quiet colours
+		if (release.IsUserSource)
+			line.Children.Add(BadgeText(L10n.Get("lblUserSourceBadge"), fontSize: 11, padding: new Thickness(5, 0), warn: false));
 		if (needsTizen)
 			line.Children.Add(BadgeText(string.Format(L10n.Get("lblNeedsTizenBadge"), TizenRequirement.Lowest(release.Assets)), fontSize: 11, padding: new Thickness(5, 0)));
 		return line;
@@ -530,6 +543,8 @@ public partial class InstallerPage : ContentPage
 		}
 		entries.Add((new(L10n.Get("lblShowAdultApps"), MoreMenu.IconShow, Checked: MobileSettings.ShowAdultApps), ToggleAdultAppsAsync));
 		entries.Add((new(L10n.Get("lblShowRootApps"), MoreMenu.IconShow, Checked: MobileSettings.ShowRootApps), ToggleRootAppsAsync));
+		// A source of the user's own (a repository, release or file link), listed from the next refresh.
+		entries.Add((new(L10n.Get("lblAddSource"), MoreMenu.IconAdd), AddSourceAsync));
 
 		var chosen = await MoreMenu.ShowAsync(this, entries.Select(entry => entry.Item).ToArray());
 		if (chosen >= 0)
@@ -553,6 +568,20 @@ public partial class InstallerPage : ContentPage
 		MobileSettings.ShowRootApps = !MobileSettings.ShowRootApps;
 		RebuildCatalog();
 		return Task.CompletedTask;
+	}
+
+	// Add a source: the form, then the catalog is read again with the new source in it. The same
+	// list lives under Settings > Installing > Your sources, where a source is removed.
+	private async Task AddSourceAsync()
+	{
+		var sources = UserSources.Parse(MobileSettings.UserSourcesJson);
+		var added = await UserSourceSheetPage.AskAsync(Navigation, sources);
+		if (added is null)
+			return;
+		sources.Add(added);
+		MobileSettings.UserSourcesJson = UserSources.Serialize(sources);
+		if (!_catalogLoading)
+			await LoadCatalogAsync();
 	}
 
 	private async Task RescanAsync()

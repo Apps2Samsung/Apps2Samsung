@@ -55,6 +55,11 @@
 					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblRootPackage}">
 						<TextBlock Text="{l:Localize lblRootBadge}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
 					</Border>
+					<!-- from a source the user added themselves (Settings > Installing > Your sources) -->
+					<Border IsVisible="{Binding IsUserSource}" Background="{DynamicResource FillBrush}" BorderBrush="{DynamicResource HairBrush}"
+					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblUserSourcePackage}">
+						<TextBlock Text="{l:Localize lblUserSourceBadge}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
+					</Border>
 					<!-- the Tizen the selected build asks for (TV-Store#47): a warning when this TV is too old for it -->
 					<Border IsVisible="{Binding HasTizenBadgeWarn}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
 					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center">

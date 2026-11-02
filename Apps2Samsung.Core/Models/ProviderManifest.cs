@@ -29,7 +29,7 @@ namespace Apps2Samsung.Models
         public bool ExpandAssets { get; set; }
         /// <summary>
         /// Optional required signing level for this app: "partner" for apps that use restricted
-        /// privileges (e.g. vpnservice — Tailscale). Empty/"public" (default) uses Public signing.
+        /// privileges (e.g. vpnservice, Tailscale). Empty/"public" (default) uses Public signing.
         /// The installer auto-requests this level for the package.
         /// </summary>
         public string CertLevel { get; set; } = "";
@@ -41,6 +41,12 @@ namespace Apps2Samsung.Models
         /// </summary>
         public string Category { get; set; } = "";
         public ProviderBuildInfo? BuildInfo { get; set; }
+        /// <summary>
+        /// True for a provider made from a source the user added (<c>UserSources.ToProvider</c>), never
+        /// for one read from the manifest. The heads badge its entries as the user's own.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        public bool IsUserSource { get; set; }
     }
 
     public sealed class ProviderBuildInfo

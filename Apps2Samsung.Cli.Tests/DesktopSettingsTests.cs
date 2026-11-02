@@ -154,6 +154,27 @@ public sealed class DesktopSettingsTests : IDisposable
     }
 
     [Fact]
+    public void UserSources_AreSharedWithTheDesktopsSettingsFile()
+    {
+        // `sources add` writes the same key the desktop reads (Settings > Installing > Your sources).
+        WriteSettings(new JsonObject { ["LocalIp"] = "192.168.1.10" });
+        Assert.Equal(string.Empty, new DesktopSettings(_dir).UserSourcesJson);
+
+        var json = Apps2Samsung.Catalog.UserSources.Serialize(new[]
+        {
+            new Apps2Samsung.Catalog.UserSource { Url = "owner/repo", Name = "Mine", Category = "tools" },
+        });
+        new DesktopSettings(_dir).UserSourcesJson = json;
+
+        var reread = new DesktopSettings(_dir);
+        Assert.Equal(json, reread.UserSourcesJson);
+        Assert.Equal("192.168.1.10", reread.LocalIp);
+        var stored = Apps2Samsung.Catalog.UserSources.Parse(JsonNode.Parse(File.ReadAllText(SettingsPath))!["UserSourcesJson"]!.GetValue<string>());
+        Assert.Single(stored);
+        Assert.Equal("Mine", stored[0].Name);
+    }
+
+    [Fact]
     public void CertificatePreference_UnknownValueIsStoredAsAutomatic_AndABrokenFileIsNeverWrittenOver()
     {
         new DesktopSettings(_dir).CertificatePreference = "whatever";

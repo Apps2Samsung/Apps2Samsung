@@ -302,7 +302,7 @@ namespace Apps2Samsung.Services
         }
 
         // The defaults have to be compile-time constants, so they are empty here and filled in
-        // from the catalog below — otherwise an unlocalized "Yes"/"No" would ship.
+        // from the catalog below, otherwise an unlocalized "Yes"/"No" would ship.
         public async Task<bool> ShowConfirmationAsync(string title, string message, string? yesText = null, string? noText = null, Window? owner = null)
         {
             yesText ??= "keyYes".Localized();
@@ -362,6 +362,15 @@ namespace Apps2Samsung.Services
                 var window = GetMainWindow();
                 if (window != null)
                     await new ContributeAppWindow(Localize).ShowDialog(window);
+            });
+
+        public Task<Apps2Samsung.Catalog.UserSource?> ShowAddUserSourceAsync(System.Collections.Generic.IReadOnlyList<Apps2Samsung.Catalog.UserSource> existing) =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var window = GetMainWindow();
+                if (window == null)
+                    return null;
+                return await new UserSourceWindow(Localize, existing).ShowDialog<Apps2Samsung.Catalog.UserSource?>(window);
             });
 
         public Task<bool> ShowDevModeGuideAsync(
@@ -433,7 +442,7 @@ namespace Apps2Samsung.Services
                 tcs: tcs,
                 yesText: linkText,
                 noText: closeText ?? "btn_Close".Localized(),
-                // The link label is a sentence, not a "Yes" — let the button grow to fit it.
+                // The link label is a sentence, not a "Yes", let the button grow to fit it.
                 onButtonsCreated: (yes, no) =>
                 {
                     yes.Width = double.NaN;

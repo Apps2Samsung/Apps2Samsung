@@ -41,6 +41,9 @@ namespace Apps2Samsung.Interfaces
         /// <summary>Settings > Contribute > Add an app: the package fields, then a pull request or the issue form.</summary>
         Task ShowContributeAppAsync();
 
+        /// <summary>Add a source of your own (a repository, release or file link); null when cancelled.</summary>
+        Task<Apps2Samsung.Catalog.UserSource?> ShowAddUserSourceAsync(System.Collections.Generic.IReadOnlyList<Apps2Samsung.Catalog.UserSource> existing);
+
         /// <summary>
         /// The Developer Mode guide for <paramref name="device"/>, re-read through
         /// <paramref name="refresh"/> while it is open. From Install (<paramref name="fromInstall"/>)

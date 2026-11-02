@@ -42,6 +42,8 @@ namespace Apps2Samsung.ViewModels
         public bool RequiresPartner => Release.RequiresPartner;
         /// <summary>The 18+ badge by the title (#850); the sheet only opens for such an app once the user opted in.</summary>
         public bool IsAdult => Release.IsAdult;
+        /// <summary>The "own source" badge by the title: the entry comes from a source the user added (UserSources).</summary>
+        public bool IsUserSource => Release.IsUserSource;
         /// <summary>The root badge by the title: the package gains root on the TV, and the install asks first.</summary>
         public bool IsRoot => Release.IsRoot;
         public string VersionsTitle { get; }

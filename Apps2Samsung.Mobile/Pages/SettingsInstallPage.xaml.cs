@@ -1,3 +1,4 @@
+using Apps2Samsung.Catalog;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Resources.Styles;
@@ -33,6 +34,66 @@ public partial class SettingsInstallPage : ContentPage
 		OpenAfterSwitch.IsToggled = MobileSettings.OpenAfterInstall;
 		KeepWgtSwitch.IsToggled = MobileSettings.KeepWgtFile;
 		_loaded = true;
+		ShowSources();
+	}
+
+	// Your sources: one row per stored source, the name over what it points at, with Remove.
+	private void ShowSources()
+	{
+		SourceRows.Clear();
+		var sources = UserSources.Parse(MobileSettings.UserSourcesJson);
+		NoSourcesLabel.IsVisible = sources.Count == 0;
+		foreach (var source in sources)
+		{
+			var detail = UserSources.IsFeed(source.Url)
+				? $"{source.Url.Trim()} · {L10n.Get("lblUserSourceFeed")}"
+				: $"{source.Url.Trim()} · {AppCategories.DisplayName(source.Category, L10n.Get)}";
+			if (source.Partner)
+				detail += $" · {L10n.Get("certLevelPartner")}";
+			var remove = new Button
+			{
+				Text = L10n.Get("lblRemove"), Style = (Style)Application.Current!.Resources["SoftButton"], CornerRadius = 10,
+				VerticalOptions = LayoutOptions.Center,
+			};
+			var captured = source;
+			remove.Clicked += async (_, _) => await RemoveSourceAsync(captured);
+			var row = new Grid { Style = (Style)Application.Current!.Resources["SettingRow"] };
+			row.Add(new VerticalStackLayout
+			{
+				Spacing = 2, VerticalOptions = LayoutOptions.Center,
+				Children =
+				{
+					new Label { Text = UserSources.DisplayName(source), FontSize = 16, LineBreakMode = LineBreakMode.TailTruncation },
+					new Label { Text = detail, Style = (Style)Application.Current!.Resources["RowHint"], LineBreakMode = LineBreakMode.TailTruncation },
+				},
+			}, 0);
+			row.Add(remove, 1);
+			SourceRows.Add(row);
+			SourceRows.Add(new BoxView { Style = (Style)Application.Current!.Resources["RowDivider"] });
+		}
+	}
+
+	private async void OnAddSourceClicked(object? sender, EventArgs e)
+	{
+		var sources = UserSources.Parse(MobileSettings.UserSourcesJson);
+		var added = await UserSourceSheetPage.AskAsync(Navigation, sources);
+		if (added is null)
+			return;
+		sources.Add(added);
+		MobileSettings.UserSourcesJson = UserSources.Serialize(sources);
+		ShowSources();
+	}
+
+	private async Task RemoveSourceAsync(UserSource source)
+	{
+		var name = UserSources.DisplayName(source);
+		if (!await DisplayAlert(L10n.Get("lblRemoveSourceTitle"), string.Format(L10n.Get("lblRemoveSourceBody"), name), L10n.Get("lblRemove"), L10n.Get("lblCancel")))
+			return;
+		var sources = UserSources.Parse(MobileSettings.UserSourcesJson);
+		var api = UserSources.ApiUrl(source.Url);
+		sources.RemoveAll(s => string.Equals(UserSources.ApiUrl(s.Url), api, StringComparison.OrdinalIgnoreCase));
+		MobileSettings.UserSourcesJson = UserSources.Serialize(sources);
+		ShowSources();
 	}
 
 	// Automatic / Public / Partner, the one in force on the surface colour.

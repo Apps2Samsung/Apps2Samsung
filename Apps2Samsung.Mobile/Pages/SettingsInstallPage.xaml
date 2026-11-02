@@ -105,6 +105,24 @@
                 </Border>
                 <Label Style="{StaticResource Footnote}" Text="{l:Localize hintEveryInstall}" FontSize="12" />
 
+                <!-- Your sources: repositories, releases and file links the user added (UserSources). Listed
+                     in the catalog next to the manifest's providers; read again on every refresh. -->
+                <Label Text="{l:Localize lblUserSources}" Style="{StaticResource GroupTitle}" Margin="4,16,4,0" />
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout>
+                        <VerticalStackLayout Padding="16,12" Spacing="10">
+                            <Label Style="{StaticResource RowHint}" Text="{l:Localize hintUserSources}" />
+                        </VerticalStackLayout>
+                        <BoxView Style="{StaticResource RowDivider}" />
+                        <Label x:Name="NoSourcesLabel" Style="{StaticResource RowHint}" Padding="16,12" Text="{l:Localize lblUserSourcesEmpty}" />
+                        <VerticalStackLayout x:Name="SourceRows" />
+                        <VerticalStackLayout Padding="16,12" Spacing="10">
+                            <Button Text="{l:Localize lblAddSource}" Style="{StaticResource SoftButton}"
+                                    CornerRadius="12" HorizontalOptions="Start" Clicked="OnAddSourceClicked" />
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
             </VerticalStackLayout>
         </ScrollView>
     </Grid>
