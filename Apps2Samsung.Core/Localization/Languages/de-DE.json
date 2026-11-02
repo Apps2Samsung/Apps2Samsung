@@ -714,6 +714,7 @@
   "tvCardNoTvHintIp": "Schalte deinen Samsung TV ein und verbinde dieses Gerät mit demselben WLAN (dieses Gerät: {0}).",
   "tvCardNoTvHintHotspot": "Handy-Hotspot erkannt: Verbinde den TV mit diesem Hotspot und verwende {0} als Host-PC-IP.",
   "tvCardSearching": "Suche nach deinem TV…",
+  "tvCardSamsungTv": "",
   "tvCardReady": "Bereit zur Installation.",
   "tvCardFindMyTv": "Meinen TV finden",
   "lblSearchApps": "Apps suchen",
