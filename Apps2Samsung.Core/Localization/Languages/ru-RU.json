@@ -1018,5 +1018,6 @@
   "errContributeOneLine": "Одна строка, без |",
   "errContributeRepo": "Используйте имя_владельца_репозитория/название_репозитория, например ваше ваше_имя/моё_приложение",
   "errContributeOutputName": "Должен заканчиваться на .wgt или .tpk",
-  "errContributeUrl": "Должен начинаться с http:// или https://"
+  "errContributeUrl": "Должен начинаться с http:// или https://",
+  "lblUserSourceCategory": "Категории"
 }

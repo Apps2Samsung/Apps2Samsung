@@ -1000,5 +1000,6 @@
   "errContributeOneLine": "Yksi rivi, ilman merkkiä |",
   "errContributeRepo": "Käytä muotoa omistaja/repo, esimerkiksi nimesi/sovelluksesi",
   "errContributeOutputName": "Päätteen on oltava .wgt tai .tpk",
-  "errContributeUrl": "Alun on oltava http:// tai https://"
+  "errContributeUrl": "Alun on oltava http:// tai https://",
+  "lblUserSourceCategory": "Luokka"
 }

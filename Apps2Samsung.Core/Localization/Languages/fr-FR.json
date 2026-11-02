@@ -995,5 +995,6 @@
   "errContributeOneLine": "Une ligne, sans |",
   "errContributeRepo": "Utilisez propriétaire/dépôt, par exemple votrenom/votre-app",
   "errContributeOutputName": "Doit se terminer par .wgt ou .tpk",
-  "errContributeUrl": "Doit commencer par http:// ou https://"
+  "errContributeUrl": "Doit commencer par http:// ou https://",
+  "lblUserSourceCategory": "Catégorie"
 }

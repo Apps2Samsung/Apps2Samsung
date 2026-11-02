@@ -1016,5 +1016,6 @@
   "errContributeOneLine": "Jeden řádek bez znaku |",
   "errContributeRepo": "Použijte formát owner/repo, například yourname/your-app",
   "errContributeOutputName": "Musí končit příponou .wgt nebo .tpk",
-  "errContributeUrl": "Musí začínat http:// nebo https://"
+  "errContributeUrl": "Musí začínat http:// nebo https://",
+  "lblUserSourceCategory": "Kategorie"
 }

@@ -983,5 +983,6 @@
   "errContributeOneLine": "Én linje, uden |",
   "errContributeRepo": "Brug owner/repo, for eksempel dittnavn/din-app",
   "errContributeOutputName": "Skal ende på .wgt eller .tpk",
-  "errContributeUrl": "Skal starte med http:// eller https://"
+  "errContributeUrl": "Skal starte med http:// eller https://",
+  "lblUserSourceCategory": "Kategori"
 }

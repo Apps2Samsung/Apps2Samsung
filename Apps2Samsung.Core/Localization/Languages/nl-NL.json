@@ -998,5 +998,6 @@
   "errContributeOneLine": "Een regel, zonder |",
   "errContributeRepo": "Gebruik owner/repo, bijvoorbeeld jouwnaam/jouw-app",
   "errContributeOutputName": "Moet eindigen op .wgt of .tpk",
-  "errContributeUrl": "Moet beginnen met http:// of https://"
+  "errContributeUrl": "Moet beginnen met http:// of https://",
+  "lblUserSourceCategory": "Categorie"
 }

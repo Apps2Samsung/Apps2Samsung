@@ -1002,5 +1002,6 @@
   "errContributeOneLine": "한 줄로, |는 사용하지 마세요",
   "errContributeRepo": "owner/repo 형식을 사용하세요. 예: yourname/your-app",
   "errContributeOutputName": ".wgt 또는 .tpk로 끝나야 합니다",
-  "errContributeUrl": "http:// 또는 https://로 시작해야 합니다"
+  "errContributeUrl": "http:// 또는 https://로 시작해야 합니다",
+  "lblUserSourceCategory": "카테고리"
 }

@@ -1004,5 +1004,6 @@
   "errContributeOneLine": "僅限一行，且不可包含 |",
   "errContributeRepo": "請使用 owner/repo，例如 yourname/your-app",
   "errContributeOutputName": "必須以 .wgt 或 .tpk 結尾",
-  "errContributeUrl": "必須以 http:// 或 https:// 開頭"
+  "errContributeUrl": "必須以 http:// 或 https:// 開頭",
+  "lblUserSourceCategory": "分類"
 }

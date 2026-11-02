@@ -1005,5 +1005,6 @@
   "errContributeOneLine": "سطر واحد، بدون |",
   "errContributeRepo": "استخدم owner/repo، مثل yourname/your-app",
   "errContributeOutputName": "يجب أن ينتهي بـ .wgt أو .tpk",
-  "errContributeUrl": "يجب أن يبدأ بـ http:// أو https://"
+  "errContributeUrl": "يجب أن يبدأ بـ http:// أو https://",
+  "lblUserSourceCategory": "الفئة"
 }

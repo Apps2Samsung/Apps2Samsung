@@ -1008,5 +1008,6 @@
   "errContributeOneLine": "一行,不含 |",
   "errContributeRepo": "请使用 owner/repo,例如 yourname/your-app",
   "errContributeOutputName": "必须以 .wgt 或 .tpk 结尾",
-  "errContributeUrl": "必须以 http:// 或 https:// 开头"
+  "errContributeUrl": "必须以 http:// 或 https:// 开头",
+  "lblUserSourceCategory": "分类"
 }

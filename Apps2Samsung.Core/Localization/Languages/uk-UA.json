@@ -1005,5 +1005,6 @@
   "errContributeOneLine": "Один рядок, без |",
   "errContributeRepo": "Використовуйте owner/repo, наприклад yourname/your-app",
   "errContributeOutputName": "Має закінчуватися на .wgt або .tpk",
-  "errContributeUrl": "Має починатися з http:// або https://"
+  "errContributeUrl": "Має починатися з http:// або https://",
+  "lblUserSourceCategory": "Категорія"
 }
