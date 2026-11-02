@@ -8,6 +8,7 @@ using Apps2Samsung.Certificate;
 using Apps2Samsung.Configuration;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Localization;
 using Apps2Samsung.Models;
 using Apps2Samsung.Packaging;
 using Apps2Samsung.Helpers.Core;
@@ -57,6 +58,7 @@ namespace Apps2Samsung.Install
         /// erases that app's settings, sign-in and local data on the TV (#825). False stops the install
         /// with <see cref="RemovalDeclinedException"/>; null (no UI) keeps the remove-and-retry as it was.</param>
         /// <returns>The TV's install output.</returns>
+        /// <remarks>Progress lines are en.json keys (<see cref="ProgressText"/>); a head localizes them through its catalog.</remarks>
         /// <param name="packageId">Which id to install under (#839): a new one on request, or the one
         /// remembered for this TV. Null installs under the package's own id.</param>
         public async Task<string> InstallAsync(string tvIp, string wgtPath, SigningProfile cert, Action<string>? progress = null,
@@ -68,9 +70,9 @@ namespace Apps2Samsung.Install
             // (TV-Store#52); say so up front, the same line the engine writes to the log.
             var port = await SdbEndpoint.ResolvePortAsync(tvIp);
             progress?.Invoke(port == SdbEndpoint.DirectPort
-                ? "Connecting to the TV…"
-                : $"Connecting through TV-Store's relay (port {port})…");
-            progress?.Invoke("Reading TV capabilities…");
+                ? "statusConnectingToTv"
+                : ProgressText.Key("statusConnectingThroughRelay", port));
+            progress?.Invoke("statusReadingTvCapabilities");
             var cap = await _sdb.CapabilityAsync(tvIp);
             ct.ThrowIfCancellationRequested();
             var caps = TizenCapabilities.Parse(cap.Output);
@@ -113,7 +115,7 @@ namespace Apps2Samsung.Install
             // carry the authorization in the re-signed package itself.
             if (TizenPermitInstall.IsRequired(version))
             {
-                progress?.Invoke("Authorizing device…");
+                progress?.Invoke("statusAuthorizingDevice");
                 var profileXml = Path.Combine(cert.ProfileDir, "device-profile.xml");
                 await TizenPermitInstall.EnsureAsync(_sdb, tvIp, version, sdkToolPath, profileXml);
                 ct.ThrowIfCancellationRequested();
@@ -129,7 +131,7 @@ namespace Apps2Samsung.Install
 
             if (channels.Count > 0 || patchers.Count > 0)
             {
-                progress?.Invoke(channels.Count > 0 ? "Applying TVApp channels…" : "Applying customizations…");
+                progress?.Invoke(channels.Count > 0 ? "statusApplyingTvAppChannels" : "statusApplyingCustomizations");
 
                 using var workspace = PackageWorkspace.Extract(wgtPath, tvIp);
 
@@ -154,7 +156,7 @@ namespace Apps2Samsung.Install
             if (validity.IsNotYetValid)
                 throw new CertificateNotYetValidException(validity);
 
-            progress?.Invoke("Re-signing package…");
+            progress?.Invoke("statusResigningPackage");
             var resign = await _sdb.ResignAsync(wgtPath, cert.AuthorP12, cert.DistributorP12, cert.Password);
             if (resign.ExitCode != 0 || resign.Output.Contains("Re-sign failed", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException($"Re-sign failed: {Detail(resign.Error, resign.Output)}");
@@ -165,11 +167,11 @@ namespace Apps2Samsung.Install
 
             if (_config.DeletePreviousInstall && !string.IsNullOrWhiteSpace(packageIdInFile))
             {
-                progress?.Invoke("Removing old version…");
+                progress?.Invoke("statusRemovingOldVersion");
                 try { await _sdb.UninstallAsync(tvIp, packageIdInFile!); } catch { /* nothing to remove */ }
             }
 
-            progress?.Invoke("Installing on TV…");
+            progress?.Invoke("statusInstallingOnTv");
             var install = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath, InstallPercentFor(progress, stage));
             // The Tizen install helper returns a zero exit code (cmd_ret:0) even when the app install
             // itself failed (e.g. "app_id[...] install failed[118]"), so classify the OUTPUT as well
@@ -180,7 +182,7 @@ namespace Apps2Samsung.Install
             if (_config.OpenAfterInstall && !string.IsNullOrWhiteSpace(appId))
             {
                 stage?.Invoke(InstallStage.Open, null);
-                progress?.Invoke("Launching on TV…");
+                progress?.Invoke("statusLaunchingOnTv");
                 try { await _sdb.LaunchAsync(tvIp, appId!); } catch { /* launch is best-effort */ }
             }
 
@@ -193,7 +195,7 @@ namespace Apps2Samsung.Install
             progress is null && stage is null ? null : new SyncProgress<int>(percent =>
             {
                 stage?.Invoke(InstallStage.Install, percent);
-                progress?.Invoke($"Installing on TV… {percent}%");
+                progress?.Invoke(ProgressText.Key("statusInstallingOnTvPercent", percent));
             });
 
         // [118, -22] from the TV's security manager. Worded the same as the desktop head's
@@ -285,7 +287,7 @@ namespace Apps2Samsung.Install
                 if (!_config.DeletePreviousInstall && confirmRemove is not null && !await confirmRemove())
                     throw new RemovalDeclinedException();
 
-                progress?.Invoke("Install failed, removing the old copy and retrying…");
+                progress?.Invoke("statusInstallRetryRemoveOld");
                 try { await _sdb.UninstallAsync(tvIp, packageId!); } catch { /* best-effort */ }
 
                 var retry = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath, InstallPercentFor(progress, null));

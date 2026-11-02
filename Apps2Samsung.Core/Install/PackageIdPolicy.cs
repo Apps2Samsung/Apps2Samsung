@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Apps2Samsung.Configuration;
 using Apps2Samsung.Packaging;
-
+using Apps2Samsung.Localization;
 namespace Apps2Samsung.Install
 {
     /// <summary>
@@ -48,7 +48,7 @@ namespace Apps2Samsung.Install
             {
                 config.PackageIdRenamesJson = PackageIdRenameStore.Remove(config.PackageIdRenamesJson, policy.TvDuid, originalPackageId);
                 Trace.WriteLine($"[PackageId] Forgot the rename {forgotten.OriginalPackageId} -> {forgotten.NewPackageId} for this TV; installing under {originalPackageId}.");
-                progress?.Invoke($"Package id {originalPackageId} on this TV again (the rename to {forgotten.NewPackageId} was forgotten)");
+                progress?.Invoke(ProgressText.Key("statusPackageIdForgotten", originalPackageId, forgotten.NewPackageId));
             }
 
             var remembered = PackageIdRenameStore.Find(config.PackageIdRenamesJson, policy.TvDuid, originalPackageId);
@@ -71,7 +71,7 @@ namespace Apps2Samsung.Install
                 return null;
 
             var (newAppId, _) = await WgtManifest.ReadIdsAsync(wgtPath);
-            progress?.Invoke($"Package id {rename.OldId} → {rename.NewId} on this TV");
+            progress?.Invoke(ProgressText.Key("statusPackageIdRenamed", rename.OldId, rename.NewId));
             if (remembered is null || !string.Equals(remembered.NewPackageId, rename.NewId, StringComparison.Ordinal) || string.IsNullOrEmpty(remembered.NewAppId))
             {
                 config.PackageIdRenamesJson = PackageIdRenameStore.Set(config.PackageIdRenamesJson, new PackageIdRenameRecord
