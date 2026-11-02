@@ -201,6 +201,9 @@ public partial class InstallerPage : ContentPage
 	private bool _listedRoot;
 	// The user's own sources (UserSources) the catalog was last read with; a change reloads it.
 	private string _loadedSources = string.Empty;
+	// The last install on the selected TV failed: the card stays amber until the TV changes or the next install starts.
+	private bool _installFailed;
+	private string? _failedTvIp;
 
 	// The catalog as listed: an app with several releases once, as its newest; without the
 	// adult-only entries until the user opted in (#850).
@@ -501,6 +504,8 @@ public partial class InstallerPage : ContentPage
 	{
 		if (!_busy && !string.IsNullOrEmpty(_tv.Status))
 			_status = _tv.Status;
+		if (_tv.Ip != _failedTvIp)
+			_installFailed = false;
 		UpdateTvCard();
 		if (_tv.HasTv && _tv.DebugPortOpen && _tv.Selected is { } tv && TizenVersionCache.TryGet(tv.Ip) is null)
 			_ = ProbeTizenVersionAsync(tv.Ip);
@@ -764,6 +769,7 @@ public partial class InstallerPage : ContentPage
 		var requirePartner = !custom && release!.RequiresPartner;
 
 		_busy = true;
+		_installFailed = false;
 		_tv.IsLocked = true;
 		UpdateTvCard();
 		// Not disposed: it has no timer, and Cancel on a disposed source would throw from the sheet.
@@ -871,6 +877,12 @@ public partial class InstallerPage : ContentPage
 		{
 			System.Diagnostics.Trace.WriteLine($"[installer] Install failed: {ex}");
 			FailProgress(string.Format(L10n.Get("statusInstallFailed"), ex.Message));
+			// Re-read the TV so the card says what is wrong now (a relay just switched off, a Host PC
+			// IP changed since the scan), then keep it amber with the failure as its line.
+			_installFailed = true;
+			_failedTvIp = _tv.Ip;
+			try { await _tv.RefreshSelectedAsync(); } catch (Exception refresh) { System.Diagnostics.Trace.WriteLine($"[installer] Re-read after the failure failed: {refresh.Message}"); }
+			MainThread.BeginInvokeOnMainThread(UpdateTvCard);
 		}
 		finally
 		{
@@ -991,10 +1003,61 @@ public partial class InstallerPage : ContentPage
 		if (_busy)
 			TopBar.Status = TopBarStatus.Busy;
 
+		// The last install on this TV failed (a refused connection, most often): amber with the
+		// failure as the line, until the TV changes or the next install starts.
+		var failed = !_busy && _installFailed && state.IsDevice;
 		TvCard.State = state with
 		{
-			Led = _busy ? TvLed.Busy : state.Led,
+			Led = _busy ? TvLed.Busy : failed && state.Led == TvLed.Ok ? TvLed.Warn : state.Led,
 			Message = string.IsNullOrWhiteSpace(_status) ? state.Message : _status,
+			Actions = _busy ? Array.Empty<TvCardAction>() : state.Actions,
 		};
+		TvCard.RouteText = TvCardStates.RouteText(TvCard.State, L10n.Get);
+		SyncTvCardActions(TvCard.State.Actions);
+	}
+
+	// The chips under the status line (TvCardStates.ActionsFor): rebuilt only when the set changes.
+	private IReadOnlyList<TvCardAction> _shownActions = Array.Empty<TvCardAction>();
+
+	private void SyncTvCardActions(IReadOnlyList<TvCardAction> actions)
+	{
+		if (_shownActions.SequenceEqual(actions) && (TvCard.Actions is not null) == (actions.Count > 0))
+			return;
+		_shownActions = actions;
+		if (actions.Count == 0)
+		{
+			TvCard.Actions = null;
+			return;
+		}
+		var row = new HorizontalStackLayout { Spacing = 0 };
+		foreach (var action in actions)
+		{
+			var button = new Button { Text = L10n.Get(TvCardStates.ActionLabelKey(action)), Style = (Style)Application.Current!.Resources["ChipButton"] };
+			var captured = action;
+			button.Clicked += async (_, _) => await RunTvCardActionAsync(captured);
+			row.Add(button);
+		}
+		TvCard.Actions = row;
+	}
+
+	// A chip on the card: the guide for a Developer Mode problem or the relay, a re-read of the TV
+	// for "Check again" and "I restarted it" (the debug port is probed again only when the scan saw
+	// it closed, which is the restart case).
+	private async Task RunTvCardActionAsync(TvCardAction action)
+	{
+		if (_busy || !_tv.HasTv)
+			return;
+		switch (action)
+		{
+			case TvCardAction.FixDeveloperMode:
+			case TvCardAction.TurnOnRelay:
+				OnTvCardTapped(this, EventArgs.Empty);
+				break;
+			case TvCardAction.CheckAgain:
+			case TvCardAction.Restarted:
+				_installFailed = false;
+				await _tv.RecheckSelectedAsync();
+				break;
+		}
 	}
 }

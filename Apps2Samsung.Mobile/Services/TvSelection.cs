@@ -79,7 +79,21 @@ public sealed class TvSelection
 		// The phone's IP as this TV sees it: on a hotspot TV that is the hotspot address, not the
 		// cellular one the socket trick returns (#920).
 		var localIp = NetworkInfo.LocalIpFor(tv.Ip);
-		return TvCardStates.ForDevice(tv.Device ?? new NetworkDevice { IpAddress = tv.Ip }, localIp, L10n.Get);
+		return TvCardStates.ForDevice(tv.Device ?? new NetworkDevice { IpAddress = tv.Ip }, LocalIps(), localIp, L10n.Get);
+	}
+
+	/// <summary>Every address this phone answers on: what a TV's Host PC IP is compared against (the guide's Diagnose).</summary>
+	public IReadOnlyCollection<string> LocalIps()
+	{
+		try
+		{
+			return _network.GetRelevantLocalIPs().Select(ip => ip.ToString()).ToList();
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[tv] Couldn't enumerate local IPs: {ex.Message}");
+			return Array.Empty<string>();
+		}
 	}
 
 	// Nothing found. When the phone's only LAN is the hotspot it hosts, say so: the TV has to join
@@ -205,16 +219,24 @@ public sealed class TvSelection
 	/// </summary>
 	public string SelectedStatus()
 	{
-		if (Device is { DebugPortOpen: false } device)
-		{
-			var localIp = NetworkInfo.LocalIpFor(device.IpAddress);
-			return TizenDeviceReadiness.Describe(TizenDeviceReadiness.WhyNotReady(device, localIp), localIp, L10n.Get);
-		}
+		// The card's own verdict (the guide's Diagnose): amber with the reason, so a Host PC IP that
+		// points elsewhere is said here too, not only once the TV is tapped.
+		if (Selected is not null && CardState() is { Led: TvLed.Warn } card)
+			return card.Message;
 
-		var notReady = _tvs.Count(t => t.Device is { DebugPortOpen: false });
+		var localIps = LocalIps();
+		var notReady = _tvs.Count(t => t.Device is { } d && DevModeGuide.Diagnose(d, localIps) != DevModeProblem.None);
 		return notReady > 0
 			? string.Format(L10n.Get("statusTvsFoundNotReady"), _tvs.Count, notReady)
 			: L10n.Get("Ready");
+	}
+
+	/// <summary>Re-reads the selected TV (the card's Check again / I restarted it) and tells every tab.</summary>
+	public async Task RecheckSelectedAsync()
+	{
+		await RefreshSelectedAsync();
+		Status = SelectedStatus();
+		Raise();
 	}
 
 	// One line per scan with everything the readiness verdict was computed from, the same line the

@@ -1053,5 +1053,19 @@
   "errUserSourceDuplicate": "This source is already in the list",
   "statusUserSourceAdded": "{0} was added. The catalog is being refreshed.",
   "lblRemoveSourceTitle": "Remove this source?",
-  "lblRemoveSourceBody": "{0} disappears from the catalog. Apps already installed from it stay on the TV."
+  "lblRemoveSourceBody": "{0} disappears from the catalog. Apps already installed from it stay on the TV.",
+  "tvCardReadyRelay": "Ready to install through TV-Store's relay.",
+  "tvCardRelayDown": "TV-Store's relay is not answering. Turn on \"Connect from Apps2Samsung\" in TV-Store's Settings.",
+  "tvCardViaRelay": "via TV-Store relay",
+  "tvCardViaRelayHint": "Developer Mode's Host PC IP is 127.0.0.1, so installs go through TV-Store's relay on the TV.",
+  "tvCardRelayOff": "relay off",
+  "tvCardActionFixDevMode": "Fix Developer Mode",
+  "tvCardActionShowHow": "Show me how",
+  "tvCardActionCheckAgain": "Check again",
+  "tvCardActionRestarted": "I restarted it",
+  "tvRowViaRelay": "via relay",
+  "tvRowRelayOff": "relay off",
+  "tvRowPointsAt": "points at {0}",
+  "tvRowRestart": "needs a restart",
+  "tvRowDevModeOff": "Developer Mode off"
 }

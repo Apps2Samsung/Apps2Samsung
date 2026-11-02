@@ -33,6 +33,10 @@ namespace Apps2Samsung.Views.Controls
         public static readonly StyledProperty<ICommand?> CommandProperty =
             AvaloniaProperty.Register<TvCard, ICommand?>(nameof(Command));
 
+        /// <summary>The route pill's text ("via TV-Store relay", "relay off"); empty hides the pill. Localized by the page.</summary>
+        public static readonly StyledProperty<string?> RouteLabelProperty =
+            AvaloniaProperty.Register<TvCard, string?>(nameof(RouteLabel));
+
         private string? _shownDeviceName;
 
         public TvCard()
@@ -61,10 +65,16 @@ namespace Apps2Samsung.Views.Controls
             set => SetValue(ActionsProperty, value);
         }
 
+        public string? RouteLabel
+        {
+            get => GetValue(RouteLabelProperty);
+            set => SetValue(RouteLabelProperty, value);
+        }
+
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
-            if (change.Property == StateProperty)
+            if (change.Property == StateProperty || change.Property == RouteLabelProperty)
                 Render();
             else if (change.Property == CommandProperty)
             {
@@ -99,6 +109,12 @@ namespace Apps2Samsung.Views.Controls
             NameText.Text = state?.Name ?? string.Empty;
             SubText.Text = state?.Subline ?? string.Empty;
             SubText.IsVisible = !string.IsNullOrEmpty(SubText.Text);
+            // The route pill: only for a TV reached through TV-Store's relay; amber while it is down.
+            var route = state is { ViaRelay: true } ? RouteLabel : null;
+            RouteText.Text = route ?? string.Empty;
+            RoutePill.IsVisible = !string.IsNullOrEmpty(route);
+            RoutePill.Classes.Set("warn", state?.RelayDown == true);
+            SubRow.IsVisible = SubText.IsVisible || RoutePill.IsVisible;
             MessageText.Text = state?.Message ?? string.Empty;
             StateRow.IsVisible = !string.IsNullOrEmpty(MessageText.Text);
 

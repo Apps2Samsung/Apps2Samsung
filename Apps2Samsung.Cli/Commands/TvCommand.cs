@@ -18,7 +18,7 @@ public static class TvCommand
 
         var localIp = LocalIp.Of(s);
         device = await TizenDeveloperInfo.ReadAsync(device, ct);
-        var state = TvState.From(device, localIp);
+        var state = TvState.From(device, localIp, LocalIp.All(s));
 
         string? duid = null, tizen = null;
         if (device.DebugPortOpen)
