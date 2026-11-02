@@ -1002,5 +1002,8 @@
   "errContributeOneLine": "Jedna linia, bez |",
   "errContributeRepo": "Użyj owner/repo, na przykład twojanazwa/twoja-aplikacja",
   "errContributeOutputName": "Musi kończyć się na .wgt lub .tpk",
-  "errContributeUrl": "Musi zaczynać się od http:// lub https://"
+  "errContributeUrl": "Musi zaczynać się od http:// lub https://",
+  "lblUserSourceCategory": "Kategoria",
+  "tvCardActionCheckAgain": "Sprawdź ponownie",
+  "infoPortOpen": "Otwórz"
 }

@@ -1005,5 +1005,8 @@
   "errContributeOneLine": "Tek satır, | olmadan",
   "errContributeRepo": "owner/repo kullanın, örneğin adiniz/uygulamaniz",
   "errContributeOutputName": ".wgt veya .tpk ile bitmeli",
-  "errContributeUrl": "http:// veya https:// ile başlamalı"
+  "errContributeUrl": "http:// veya https:// ile başlamalı",
+  "lblUserSourceCategory": "Kategori",
+  "tvCardActionCheckAgain": "Yeniden denetle",
+  "infoPortOpen": "Aç"
 }

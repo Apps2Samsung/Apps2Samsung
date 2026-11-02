@@ -1018,5 +1018,8 @@
   "errContributeOneLine": "Una sola línia, sense |",
   "errContributeRepo": "Feu servir propietari/repositori, per exemple yourname/your-app",
   "errContributeOutputName": "Ha d'acabar en .wgt o .tpk",
-  "errContributeUrl": "Ha de començar per http:// o https://"
+  "errContributeUrl": "Ha de començar per http:// o https://",
+  "lblUserSourceCategory": "Categoria",
+  "tvCardActionCheckAgain": "Torna a comprovar",
+  "infoPortOpen": "Obre"
 }

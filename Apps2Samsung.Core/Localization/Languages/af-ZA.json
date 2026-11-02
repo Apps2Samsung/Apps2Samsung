@@ -994,5 +994,8 @@
   "errContributeOneLine": "Een reël, sonder |",
   "errContributeRepo": "Gebruik owner/repo, byvoorbeeld jounaam/jou-program",
   "errContributeOutputName": "Moet met .wgt of .tpk eindig",
-  "errContributeUrl": "Moet met http:// of https:// begin"
+  "errContributeUrl": "Moet met http:// of https:// begin",
+  "lblUserSourceCategory": "Kategorie",
+  "tvCardActionCheckAgain": "Kontroleer weer",
+  "infoPortOpen": "Maak oop"
 }

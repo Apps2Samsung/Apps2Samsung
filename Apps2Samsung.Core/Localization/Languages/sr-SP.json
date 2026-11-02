@@ -1003,5 +1003,8 @@
   "errContributeOneLine": "Један ред, без |",
   "errContributeRepo": "Користите owner/repo, на пример вашеиме/ваша-апликација",
   "errContributeOutputName": "Мора да се завршава на .wgt или .tpk",
-  "errContributeUrl": "Мора да почиње са http:// или https://"
+  "errContributeUrl": "Мора да почиње са http:// или https://",
+  "lblUserSourceCategory": "Категорија",
+  "tvCardActionCheckAgain": "Провери поново",
+  "infoPortOpen": "Отвори"
 }
