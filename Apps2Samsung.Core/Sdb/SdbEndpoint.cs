@@ -157,6 +157,32 @@ namespace Apps2Samsung.Sdb
             }
         };
 
+        /// <summary>
+        /// The bind error from a <c>/relay</c> body that says the relay is switched on but not
+        /// listening (<c>enabled: true, listening: false, error</c>); null in every other case.
+        /// </summary>
+        public static string? ParseRelayBindError(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return null;
+            try
+            {
+                var relay = JsonNode.Parse(json)?["relay"];
+                if (relay?["enabled"]?.GetValue<bool>() != true || relay["listening"]?.GetValue<bool>() != false)
+                    return null;
+                var error = relay["error"]?.GetValue<string>();
+                return string.IsNullOrWhiteSpace(error) ? null : error;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>The relay's bind error for this TV, read from <c>/relay</c>; null when there is none or TV-Store cannot say.</summary>
+        public static async Task<string?> RelayBindErrorAsync(string tvIp, CancellationToken cancellationToken = default) =>
+            ParseRelayBindError(await ReadRelayReport(tvIp, cancellationToken).ConfigureAwait(false));
+
         /// <summary>The relay's last failure from a <c>/relay</c> body; null when there is none or the body is not that JSON.</summary>
         public static RelayFailure? ParseRelayFailure(string? json)
         {

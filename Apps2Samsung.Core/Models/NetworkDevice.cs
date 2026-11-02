@@ -24,6 +24,10 @@
         // null otherwise, or when nobody probed yet.
         public bool? RelayPortOpen { get; set; }
 
+        // Why the relay is not listening, when TV-Store (0.3.15+) says: the bind error behind a switch
+        // that is on but a port that does not answer. Null when it did not say, or there is no problem.
+        public string? RelayError { get; set; }
+
         public string DisplayText
         {
             get

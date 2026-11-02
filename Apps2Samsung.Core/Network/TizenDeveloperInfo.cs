@@ -158,6 +158,12 @@ namespace Apps2Samsung.Services
             device.RelayPortOpen = SdbEndpoint.IsLoopback(device.DeveloperIP)
                 ? await IsPortOpenAsync(network, device.IpAddress, SdbEndpoint.RelayPort(device.IpAddress), cancellationToken)
                 : null;
+
+            // A switch that is on with a port that does not answer: TV-Store 0.3.15+ says why (the bind
+            // error). An older one answers 404 and the guard keeps its generic wording.
+            device.RelayError = device.RelayPortOpen == false
+                ? await SdbEndpoint.RelayBindErrorAsync(device.IpAddress, cancellationToken)
+                : null;
         }
 
         private static async Task<bool> IsPortOpenAsync(INetworkService network, string ip, int port, CancellationToken cancellationToken)

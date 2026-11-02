@@ -47,6 +47,30 @@ public class InstallGuardsRelayTests
     }
 
     [Fact]
+    public void ARelayThatSaysWhyItIsNotListeningPutsThatInTheGuardDetail()
+    {
+        var tv = Tv("127.0.0.1", relayPortOpen: false);
+        tv.RelayError = "port 26201 is already in use";
+
+        var guard = Assert.Single(InstallGuards.Evaluate(tv, ThisPc, new SubnetsDiffer()).Guards);
+
+        Assert.Equal(InstallGuardKind.RelayNotAnswering, guard.Kind);
+        Assert.Contains("port 26201 is already in use", guard.Detail);
+    }
+
+    [Theory]
+    [InlineData("{\"ok\":true,\"relay\":{\"enabled\":true,\"listening\":false,\"error\":\"EADDRINUSE 26201\"}}", "EADDRINUSE 26201")]
+    [InlineData("{\"relay\":{\"enabled\":false,\"listening\":false,\"error\":\"EADDRINUSE 26201\"}}", null)]
+    [InlineData("{\"relay\":{\"enabled\":true,\"listening\":true,\"error\":null}}", null)]
+    [InlineData("{\"relay\":{\"enabled\":true,\"listening\":false,\"error\":null}}", null)]
+    [InlineData("not json", null)]
+    [InlineData(null, null)]
+    public void OnlyASwitchOnRelayThatIsNotListeningHasABindError(string? body, string? expected)
+    {
+        Assert.Equal(expected, Apps2Samsung.Sdb.SdbEndpoint.ParseRelayBindError(body));
+    }
+
+    [Fact]
     public void LoopbackWithTheRelayDownIsOneActionableGuard()
     {
         var result = InstallGuards.Evaluate(Tv("127.0.0.1", relayPortOpen: false), ThisPc, new SubnetsDiffer());
