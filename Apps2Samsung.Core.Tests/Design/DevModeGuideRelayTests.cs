@@ -35,6 +35,15 @@ public class DevModeGuideRelayTests
     }
 
     [Fact]
+    public void LoopbackWithTheDebugPortClosedStillNeedsTheRestart()
+    {
+        var device = Tv("127.0.0.1", relayPortOpen: true);
+        device.DebugPortOpen = false;
+
+        Assert.Equal(DevModeProblem.RestartRequired, DevModeGuide.Diagnose(device, ThisPc));
+    }
+
+    [Fact]
     public void AnotherMachineIsStillAMismatch()
     {
         Assert.Equal(DevModeProblem.IpMismatch, DevModeGuide.Diagnose(Tv("192.168.1.99"), ThisPc));

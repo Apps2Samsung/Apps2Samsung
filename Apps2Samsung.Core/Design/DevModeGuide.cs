@@ -58,11 +58,13 @@ namespace Apps2Samsung.Design
                 return DevModeProblem.DeveloperModeOff;
 
             // 127.0.0.1 is the relay's setting, not another machine (TV-Store#52): it is never an IP
-            // mismatch, and what can be wrong is the relay on the TV being off.
-            if (SdbEndpoint.IsLoopback(device.DeveloperIP))
-                return device.RelayPortOpen == false ? DevModeProblem.RelayDown : DevModeProblem.None;
+            // mismatch, and what can be wrong is the relay on the TV being off, or sdbd itself not up
+            // yet (the same restart as for any other Host PC IP).
+            var viaRelay = SdbEndpoint.IsLoopback(device.DeveloperIP);
+            if (viaRelay && device.RelayPortOpen == false)
+                return DevModeProblem.RelayDown;
 
-            if (!string.IsNullOrEmpty(device.DeveloperIP) && localIps.Count > 0 && !localIps.Contains(device.DeveloperIP))
+            if (!viaRelay && !string.IsNullOrEmpty(device.DeveloperIP) && localIps.Count > 0 && !localIps.Contains(device.DeveloperIP))
             {
                 return localIps.Any(ip => Reverse(ip) == device.DeveloperIP)
                     ? DevModeProblem.IpReversed

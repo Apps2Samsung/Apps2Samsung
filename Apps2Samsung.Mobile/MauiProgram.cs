@@ -57,6 +57,10 @@ public static class MauiProgram
 		// uses the profile dir; Android and iOS have no ambient writable path, so point it at the
 		// app's private data dir before any connection). Set once, process-wide.
 		SdbTcpDevice.KeyDirectory = FileSystem.AppDataDirectory;
+		// The relay's failure report names the device that failed; .NET's own interface list is empty
+		// on Android, so tell Core where this phone's addresses are.
+		Apps2Samsung.Sdb.SdbEndpoint.LocalAddresses = () =>
+			LocalNetworks.Enumerate().Select(network => network.Address.ToString()).ToList();
 		builder.Services.AddSingleton<ISdbEngine, Apps2Samsung.Sdb.InProcessSdbEngine>();
 
 		// Samsung account OAuth (WebView + in-app loopback listener), provides the token bundle

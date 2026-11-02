@@ -28,6 +28,88 @@ public class DevToolsConsoleAttachTests
         Assert.Contains("Log.enable", methods);
     }
 
+    // What an inspector answers for a promise it does not await, and for one it does.
+    private static JsonObject ByValue(JsonNode? value) => new() { ["result"] = new JsonObject { ["type"] = "object", ["value"] = value } };
+
+    [Fact(Timeout = 20000)]
+    public async Task AnInspectorThatIgnoresAwaitPromiseIsPolledForTheResult()
+    {
+        var expressions = new List<string>();
+        var polls = 0;
+        var (url, _) = await StartInspectorAsync(new List<string>(), (method, parameters) =>
+        {
+            if (method != "Runtime.evaluate")
+                return (new JsonObject(), null);
+
+            var expression = parameters?["expression"]?.GetValue<string>() ?? "";
+            lock (expressions)
+                expressions.Add(expression);
+
+            // The probe: this inspector hands the promise back as an empty object.
+            if (expression == "Promise.resolve(1)")
+                return (ByValue(new JsonObject()), null);
+            // The polls: not settled on the first, settled on the second.
+            if (expression.StartsWith("window[", StringComparison.Ordinal))
+                return (ByValue(++polls < 2
+                    ? new JsonObject { ["done"] = false }
+                    : new JsonObject { ["done"] = true, ["ok"] = true, ["t"] = "{\"ok\":true,\"certReady\":false}" }), null);
+            return (new JsonObject(), null);
+        });
+
+        await using var console = new DevToolsConsole();
+        await console.ConnectAsync(url);
+        var value = await console.EvaluateValueAsync("A2SStore.status()");
+
+        Assert.True(value?["ok"]?.GetValue<bool>());
+        Assert.Equal(2, polls);
+        // The expression ran once, inside the wrapper, never on its own.
+        Assert.Single(expressions, e => e.Contains("A2SStore.status()", StringComparison.Ordinal));
+        Assert.DoesNotContain("A2SStore.status()", expressions);
+    }
+
+    [Fact(Timeout = 20000)]
+    public async Task APollingEvaluationThatFailsInThePageThrowsItsMessage()
+    {
+        var (url, _) = await StartInspectorAsync(new List<string>(), (method, parameters) =>
+        {
+            var expression = parameters?["expression"]?.GetValue<string>() ?? "";
+            if (method == "Runtime.evaluate" && expression == "Promise.resolve(1)")
+                return (ByValue(new JsonObject()), null);
+            if (method == "Runtime.evaluate" && expression.StartsWith("window[", StringComparison.Ordinal))
+                return (ByValue(new JsonObject { ["done"] = true, ["ok"] = false, ["e"] = "A2SStore is not defined" }), null);
+            return (new JsonObject(), null);
+        });
+
+        await using var console = new DevToolsConsole();
+        await console.ConnectAsync(url);
+
+        var failure = await Assert.ThrowsAsync<DevToolsEvaluationException>(() => console.EvaluateValueAsync("A2SStore.status()"));
+        Assert.Contains("A2SStore is not defined", failure.Message);
+    }
+
+    [Fact(Timeout = 20000)]
+    public async Task AnInspectorThatAwaitsIsEvaluatedInOneCall()
+    {
+        var expressions = new List<string>();
+        var (url, _) = await StartInspectorAsync(new List<string>(), (method, parameters) =>
+        {
+            var expression = parameters?["expression"]?.GetValue<string>() ?? "";
+            if (method != "Runtime.evaluate")
+                return (new JsonObject(), null);
+            lock (expressions)
+                expressions.Add(expression);
+            // Awaits: the probe comes back as 1, and the real call as its settled value.
+            return (expression == "Promise.resolve(1)" ? ByValue(1) : ByValue(new JsonObject { ["ok"] = true }), null);
+        });
+
+        await using var console = new DevToolsConsole();
+        await console.ConnectAsync(url);
+        var value = await console.EvaluateValueAsync("A2SStore.status()");
+
+        Assert.True(value?["ok"]?.GetValue<bool>());
+        Assert.DoesNotContain(expressions, e => e.Contains("__a2s_eval_", StringComparison.Ordinal));
+    }
+
     [Fact]
     public async Task StillFailsWhenRuntimeIsMissing()
     {
@@ -37,9 +119,15 @@ public class DevToolsConsoleAttachTests
         await Assert.ThrowsAsync<InvalidOperationException>(() => console.ConnectAsync(url));
     }
 
-    // A tiny inspector: answers every command with an empty result except the one it lacks. Plain
+    private static Task<(Uri Url, Task Server)> StartInspectorAsync(List<string> methods, string missing) =>
+        StartInspectorAsync(methods, (method, _) => method == missing
+            ? (null, $"'{method}' wasn't found")
+            : (new JsonObject(), null));
+
+    // A tiny inspector: the handler answers each command with a result or an error message. Plain
     // TCP with the WebSocket handshake done by hand, so the test needs no HTTP server.
-    private static Task<(Uri Url, Task Server)> StartInspectorAsync(List<string> methods, string missing)
+    private static Task<(Uri Url, Task Server)> StartInspectorAsync(
+        List<string> methods, Func<string, JsonObject?, (JsonNode? Result, string? Error)> handler)
     {
         var listener = new TcpListener(IPAddress.Loopback, 0);
         listener.Start();
@@ -80,10 +168,11 @@ public class DevToolsConsoleAttachTests
                         methods.Add(method);
 
                     var reply = new JsonObject { ["id"] = request["id"]!.GetValue<int>() };
-                    if (method == missing)
-                        reply["error"] = new JsonObject { ["code"] = -32601, ["message"] = $"'{method}' wasn't found" };
+                    var (result, error) = handler(method, request["params"]?.AsObject());
+                    if (error is not null)
+                        reply["error"] = new JsonObject { ["code"] = -32601, ["message"] = error };
                     else
-                        reply["result"] = new JsonObject();
+                        reply["result"] = result ?? new JsonObject();
                     await socket.SendAsync(Encoding.UTF8.GetBytes(reply.ToJsonString()), WebSocketMessageType.Text, true, CancellationToken.None);
                 }
             }
