@@ -45,7 +45,9 @@ public partial class SettingsInstallPage : ContentPage
 		NoSourcesLabel.IsVisible = sources.Count == 0;
 		foreach (var source in sources)
 		{
-			var detail = $"{source.Url.Trim()} · {AppCategories.DisplayName(source.Category, L10n.Get)}";
+			var detail = UserSources.IsFeed(source.Url)
+				? $"{source.Url.Trim()} · {L10n.Get("lblUserSourceFeed")}"
+				: $"{source.Url.Trim()} · {AppCategories.DisplayName(source.Category, L10n.Get)}";
 			if (source.Partner)
 				detail += $" · {L10n.Get("certLevelPartner")}";
 			var remove = new Button

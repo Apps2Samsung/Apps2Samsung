@@ -1526,9 +1526,9 @@ namespace Apps2Samsung.ViewModels
                 var manifest = await _providerManifestService.GetAsync();
                 _manifest = manifest;
                 // The manifest's providers, then the sources the user added themselves (UserSources):
-                // a developer's own repository or nightly, listed without waiting for the community packages.
-                var providers = Apps2Samsung.Catalog.UserSources.Merge(
-                    manifest.Providers, Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson));
+                // a developer's own repository, nightly or feed, listed without waiting for the community packages.
+                var providers = await Apps2Samsung.Catalog.UserSources.ResolveAsync(
+                    _httpClient, manifest.Providers, Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson), cancellationToken);
                 foreach (var provider in providers)
                 {
                     cancellationToken.ThrowIfCancellationRequested();

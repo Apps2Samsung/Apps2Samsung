@@ -728,7 +728,9 @@ namespace Apps2Samsung.ViewModels
             OwnSources.Clear();
             foreach (var source in Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson))
             {
-                var detail = $"{source.Url.Trim()} · {Apps2Samsung.Catalog.AppCategories.DisplayName(source.Category, _localizationService.GetString)}";
+                var detail = Apps2Samsung.Catalog.UserSources.IsFeed(source.Url)
+                    ? $"{source.Url.Trim()} · {_localizationService.GetString("lblUserSourceFeed")}"
+                    : $"{source.Url.Trim()} · {Apps2Samsung.Catalog.AppCategories.DisplayName(source.Category, _localizationService.GetString)}";
                 if (source.Partner)
                     detail += $" · {_localizationService.GetString("certLevelPartner")}";
                 OwnSources.Add(new UserSourceRow(source, Apps2Samsung.Catalog.UserSources.DisplayName(source), detail));

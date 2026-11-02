@@ -30,7 +30,7 @@ public static class SourcesCommand
         var entries = sources.Select(ToEntry).ToList();
         var text = new List<string>();
         if (entries.Count == 0)
-            text.Add("No sources added. `sources add <link>` adds a GitHub repository, a release page or a .wgt/.tpk link.");
+            text.Add("No sources added. `sources add <link>` adds a GitHub repository, a release page, a .wgt/.tpk link or a .json feed.");
         foreach (var e in entries)
         {
             text.Add($"{e.Name}  [{e.Category}]{(e.Partner ? " (partner certificate)" : "")}");
@@ -57,7 +57,7 @@ public static class SourcesCommand
         if (errors.TryGetValue(UserSources.FieldUrl, out var problem))
             return s.Out.Fail(problem == "errUserSourceDuplicate"
                 ? "this source is already in the list"
-                : "not a source the installer can read: use a GitHub repository or release link, or a direct link to a .wgt or .tpk file", Output.Usage);
+                : "not a source the installer can read: use a GitHub repository or release link, a direct link to a .wgt or .tpk file, or a link to a .json feed", Output.Usage);
         sources.Add(source);
         s.Desktop.UserSourcesJson = UserSources.Serialize(sources);
         var entry = ToEntry(source);
@@ -96,6 +96,7 @@ public static class SourcesCommand
             UserSourceKind.GitHubReleases => "github repository",
             UserSourceKind.GitHubReleaseTag => "github release",
             UserSourceKind.DirectFile => "file link",
+            UserSourceKind.Feed => "feed",
             _ => "unreadable",
         },
         AppCategories.Normalize(source.Category),

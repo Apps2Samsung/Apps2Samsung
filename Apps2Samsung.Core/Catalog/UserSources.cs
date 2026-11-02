@@ -2,11 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Models;
 
 namespace Apps2Samsung.Catalog
@@ -14,10 +18,11 @@ namespace Apps2Samsung.Catalog
     /// <summary>
     /// A source the user added themselves (Settings > Installing > Your sources, the catalog's ⋯ >
     /// Add a source, <c>apps2samsung-cli sources add</c>): a GitHub repository or one of its releases,
-    /// whose .wgt/.tpk assets are listed like any provider's, or a direct link to one such file. For a
-    /// developer that is the way to install a build before, or without, it being in
-    /// tizen-community-packages. Stored as JSON in the head's settings, read on every catalog load,
-    /// so Refresh and a restart pick up a new release.
+    /// whose .wgt/.tpk assets are listed like any provider's, a direct link to one such file, or a
+    /// feed: a .json in the installer's own <c>third-party-apps.json</c> shape listing several
+    /// providers at once. For a developer that is the way to install a build before, or without, it
+    /// being in tizen-community-packages. Stored as JSON in the head's settings, read on every catalog
+    /// load, so Refresh and a restart pick up a new release.
     /// </summary>
     public sealed class UserSource
     {
@@ -48,6 +53,11 @@ namespace Apps2Samsung.Catalog
         GitHubReleaseTag,
         /// <summary>A link straight to a .wgt or .tpk.</summary>
         DirectFile,
+        /// <summary>
+        /// A .json in the <see cref="ProviderManifest"/> shape (or a bare array of its providers): every
+        /// provider in it is listed, so one link can publish a whole set of apps.
+        /// </summary>
+        Feed,
     }
 
     public static class UserSources
@@ -95,6 +105,8 @@ namespace Apps2Samsung.Catalog
 
         public static bool IsDirectFile(string? url) => Classify(url) == UserSourceKind.DirectFile;
 
+        public static bool IsFeed(string? url) => Classify(url) == UserSourceKind.Feed;
+
         /// <summary>
         /// The URL a provider fetches: the GitHub API releases URL for a repository or release page,
         /// the file URL itself for a direct link; null for anything the installer can't read.
@@ -110,13 +122,14 @@ namespace Apps2Samsung.Catalog
             return IsPackageName(name) ? name : string.Empty;
         }
 
-        /// <summary>The name a source lists under when the user gave none: the repository or the file.</summary>
+        /// <summary>The name a source lists under when the user gave none: the repository, the file, or the feed's host.</summary>
         public static string DefaultName(string? url)
         {
             var (kind, api, slug) = Normalize(url);
             return kind switch
             {
                 UserSourceKind.DirectFile => Path.GetFileNameWithoutExtension(FileName(url)),
+                UserSourceKind.Feed => Uri.TryCreate(api, UriKind.Absolute, out var feed) ? feed.Host : api ?? string.Empty,
                 UserSourceKind.None => url?.Trim() ?? string.Empty,
                 _ => slug?.Split('/').Last() ?? api ?? string.Empty,
             };
@@ -158,12 +171,13 @@ namespace Apps2Samsung.Catalog
 
         /// <summary>
         /// <paramref name="source"/> as a manifest provider, so the heads list it through the same
-        /// loop as the built-in ones. Null when its URL is not something the installer can read.
+        /// loop as the built-in ones. Null when its URL is not something the installer can read, and
+        /// null for a feed, which is several providers (<see cref="FeedProvidersAsync"/>).
         /// </summary>
         public static ProviderEntry? ToProvider(UserSource source)
         {
             var api = ApiUrl(source.Url);
-            if (api is null)
+            if (api is null || IsFeed(source.Url))
                 return null;
             return new ProviderEntry
             {
@@ -180,28 +194,122 @@ namespace Apps2Samsung.Catalog
         /// <summary>
         /// The manifest's providers followed by the user's, skipping a user source that fetches a URL
         /// the manifest already lists (the app would appear twice) and a second copy of the same
-        /// user source.
+        /// user source. Feeds are left out here: <see cref="ResolveAsync"/> reads them.
         /// </summary>
         public static List<ProviderEntry> Merge(IEnumerable<ProviderEntry> manifestProviders, IEnumerable<UserSource> sources)
         {
             var result = manifestProviders.ToList();
             var urls = new HashSet<string>(result.Select(p => p.Url ?? string.Empty), StringComparer.OrdinalIgnoreCase);
             foreach (var source in sources)
+                AddProvider(result, urls, ToProvider(source));
+            return result;
+        }
+
+        /// <summary>
+        /// <see cref="Merge"/>, then every feed among <paramref name="sources"/> read and its providers
+        /// appended (<see cref="FeedProvidersAsync"/>). A feed that cannot be read or parsed is
+        /// skipped and traced; the rest of the catalog is unaffected. This is what the heads call on
+        /// every catalog load.
+        /// </summary>
+        public static async Task<List<ProviderEntry>> ResolveAsync(
+            HttpClient http, IEnumerable<ProviderEntry> manifestProviders, IEnumerable<UserSource> sources, CancellationToken cancellationToken = default)
+        {
+            var list = sources.ToList();
+            var result = Merge(manifestProviders, list);
+            var urls = new HashSet<string>(result.Select(p => p.Url ?? string.Empty), StringComparer.OrdinalIgnoreCase);
+            foreach (var source in list.Where(s => IsFeed(s.Url)))
             {
-                var provider = ToProvider(source);
-                if (provider is not null && urls.Add(provider.Url))
-                    result.Add(provider);
+                foreach (var provider in await FeedProvidersAsync(http, source, cancellationToken).ConfigureAwait(false))
+                    AddProvider(result, urls, provider);
             }
             return result;
+        }
+
+        /// <summary>
+        /// The providers a feed publishes: its .json read as a <see cref="ProviderManifest"/> (or a
+        /// bare array of <see cref="ProviderEntry"/>), each marked the user's own and given an id
+        /// under this source's (<c>user-&lt;feed&gt;-&lt;id&gt;</c>), so the snapshot and the download
+        /// counts never match one. A provider without a URL is dropped; the feed's own category,
+        /// cert level and build info are kept. Empty when the feed cannot be read or parsed.
+        /// </summary>
+        public static async Task<List<ProviderEntry>> FeedProvidersAsync(HttpClient http, UserSource source, CancellationToken cancellationToken = default)
+        {
+            var url = ApiUrl(source.Url);
+            if (url is null || !IsFeed(source.Url))
+                return new List<ProviderEntry>();
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.UserAgent.ParseAdd("Apps2Samsung");
+                using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                return FeedProviders(source, json);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                System.Diagnostics.Trace.WriteLine($"[UserSources] Feed {url} could not be read: {ex.Message}");
+                return new List<ProviderEntry>();
+            }
+        }
+
+        /// <summary>The providers in a feed's JSON, as <see cref="FeedProvidersAsync"/> shapes them; empty when it does not parse.</summary>
+        public static List<ProviderEntry> FeedProviders(UserSource source, string json)
+        {
+            List<ProviderEntry>? providers = null;
+            try
+            {
+                var trimmed = json.TrimStart();
+                if (trimmed.StartsWith('['))
+                    providers = JsonSerializer.Deserialize<List<ProviderEntry>>(json, JsonSerializerOptionsProvider.Default);
+                else
+                    providers = JsonSerializer.Deserialize<ProviderManifest>(json, JsonSerializerOptionsProvider.Default)?.Providers;
+            }
+            catch (JsonException ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[UserSources] Feed {source.Url} does not parse: {ex.Message}");
+            }
+            if (providers is null)
+                return new List<ProviderEntry>();
+
+            var feedId = Id(source);
+            var result = new List<ProviderEntry>();
+            var index = 0;
+            foreach (var provider in providers)
+            {
+                index++;
+                if (provider is null || string.IsNullOrWhiteSpace(provider.Url))
+                    continue;
+                provider.Url = provider.Url.Trim();
+                provider.Id = $"{feedId}-{(string.IsNullOrWhiteSpace(provider.Id) ? index.ToString() : provider.Id.Trim())}";
+                provider.Category = AppCategories.Normalize(provider.Category);
+                if (provider.Take < 1)
+                    provider.Take = 1;
+                // A feed provider says Partner for itself; the feed's own flag covers the ones that don't.
+                if (source.Partner && string.IsNullOrWhiteSpace(provider.CertLevel))
+                    provider.CertLevel = "partner";
+                provider.IsUserSource = true;
+                result.Add(provider);
+            }
+            return result;
+        }
+
+        private static void AddProvider(List<ProviderEntry> result, HashSet<string> urls, ProviderEntry? provider)
+        {
+            if (provider is not null && urls.Add(provider.Url))
+                result.Add(provider);
         }
 
         private static bool IsPackageName(string name)
             => name.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase);
 
+        private static bool IsFeedName(string name) => name.EndsWith(".json", StringComparison.OrdinalIgnoreCase);
+
         // The one place that reads a typed URL. Accepted shapes:
         //   owner/repo                                   github.com/owner/repo[.git][/releases[/latest]]
         //   github.com/owner/repo/releases/tag/<tag>     api.github.com/repos/owner/repo[/releases[/tags/<tag>]]
         //   https://host/path/App.wgt  (any host; a GitHub release asset link is one of these)
+        //   https://host/path/feed.json  (any host, raw.githubusercontent.com included): a provider manifest
         private static (UserSourceKind Kind, string? ApiUrl, string? Slug) Normalize(string? input)
         {
             var text = input?.Trim() ?? string.Empty;
@@ -222,6 +330,10 @@ namespace Apps2Samsung.Catalog
             // A link to the file itself, wherever it lives, GitHub's release asset links included.
             if (parts.Length > 0 && IsPackageName(Uri.UnescapeDataString(parts[^1])))
                 return (UserSourceKind.DirectFile, uri.AbsoluteUri, null);
+
+            // A feed: a .json wherever it lives (a raw.githubusercontent.com link to a repo's file too).
+            if (parts.Length > 0 && IsFeedName(Uri.UnescapeDataString(parts[^1])))
+                return (UserSourceKind.Feed, uri.AbsoluteUri, null);
 
             if (host is "github.com" or "www.github.com")
             {

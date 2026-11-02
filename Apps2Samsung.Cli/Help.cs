@@ -17,8 +17,8 @@ public static class Help
           cert [--tv <ip>]             the signing certificates on this machine; --prepare makes one now,
                                        --export / --import move one between devices
           tvstore --tv <ip>            arm the TV-Store app on the TV: hand it the signing certificate once
-          sources [add|remove ...]     your own sources: a GitHub repository, a release or a .wgt/.tpk link,
-                                       listed by `catalog` next to the community apps
+          sources [add|remove ...]     your own sources: a GitHub repository, a release, a .wgt/.tpk link or a
+                                       .json feed, listed by `catalog` next to the community apps
 
         options
           --json                       one JSON document on stdout instead of text (progress stays on stderr)
@@ -29,8 +29,8 @@ public static class Help
                                        network setting, else the default route; set it on a VPN)
           --data-dir <path>            where certificates and caches live (default: the desktop app's folder)
           --github-token <token>       GitHub token for the catalog's API calls (or GITHUB_TOKEN)
-          --source <link>              a source for this run only (repeatable): a GitHub repository, a release
-                                       or a .wgt/.tpk link, listed as if added with `sources add`
+          --source <link>              a source for this run only (repeatable): a GitHub repository, a release,
+                                       a .wgt/.tpk link or a .json feed, listed as if added with `sources add`
           -h, --help                   this text, or `<command> --help` for one command
           --version                    the CLI version
 
@@ -144,6 +144,12 @@ public static class Help
           github.com/owner/repo  (or owner/repo)      the newest release with a .wgt or .tpk
           a release page (…/releases/tag/<tag>)       that one release
           https://host/path/App.wgt  (or .tpk)        the file itself, dated by its Last-Modified header
+          https://host/path/apps.json                 a feed: every provider in it, so one link publishes a
+                                                      set of apps; the file has the shape of the installer's
+                                                      own third-party-apps.json ({ "providers": [ { "id",
+                                                      "url" (a GitHub releases API URL), "displayName",
+                                                      "category", "certLevel", "buildInfo": { "description" } } ] }),
+                                                      or is a bare array of such providers
 
         --name is what the catalog lists it under (default: the repository or file name); --category is
         one of media, iptv, streaming, games, casting, tools, other; --partner marks an app that needs the

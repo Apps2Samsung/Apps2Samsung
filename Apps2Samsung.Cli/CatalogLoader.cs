@@ -39,8 +39,9 @@ public sealed class CatalogLoader
     public async Task<Catalog> LoadAsync(bool allVersions, CancellationToken ct = default)
     {
         var manifest = await GetManifestAsync(ct);
-        // The manifest's providers, then the sources the user added themselves (UserSources), as the apps do.
-        var providers = UserSources.Merge(manifest.Providers, _userSources())
+        // The manifest's providers, then the sources the user added themselves (UserSources), feeds
+        // read and unfolded, as the apps do.
+        var providers = (await UserSources.ResolveAsync(_http, manifest.Providers, _userSources(), ct))
             .Where(p => !string.IsNullOrWhiteSpace(p.Url)).ToList();
         var multiVersion = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         // Fetched alongside the providers; never fails, at worst there are no counts.

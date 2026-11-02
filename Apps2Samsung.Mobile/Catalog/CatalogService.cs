@@ -52,8 +52,8 @@ public sealed class CatalogService
 	{
 		var manifest = await GetManifestAsync();
 		// The manifest's providers, then the sources the user added themselves (UserSources): a
-		// developer's own repository or nightly, listed without waiting for the community packages.
-		var providers = UserSources.Merge(manifest.Providers, UserSources.Parse(MobileSettings.UserSourcesJson))
+		// developer's own repository, nightly or feed, listed without waiting for the community packages.
+		var providers = (await UserSources.ResolveAsync(_http, manifest.Providers, UserSources.Parse(MobileSettings.UserSourcesJson)))
 			.Where(p => !string.IsNullOrWhiteSpace(p.Url)).ToList();
 		// Fetched alongside the providers; never fails, at worst there are no counts.
 		var stats = _downloadStats.GetAsync();

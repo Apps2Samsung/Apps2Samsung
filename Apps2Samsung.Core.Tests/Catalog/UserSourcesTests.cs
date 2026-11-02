@@ -148,3 +148,109 @@ public class UserSourcesTests
         Assert.Empty(UserSources.Parse("[{\"name\":\"no url\"}]"));
     }
 }
+
+public class UserSourceFeedTests
+{
+    private const string Feed = """
+        {
+          "schemaVersion": 2,
+          "providers": [
+            { "id": "mine", "url": "https://api.github.com/repos/dev/app/releases", "displayName": "My App", "category": "games",
+              "buildInfo": { "name": "My App", "description": "A game." } },
+            { "id": "nightly", "url": "https://dev.example/nightly/Build.wgt", "displayName": "Nightly" },
+            { "id": "partner-one", "url": "https://api.github.com/repos/dev/vpn/releases", "displayName": "VPN", "certLevel": "partner" },
+            { "id": "already", "url": "https://api.github.com/repos/reisxd/TizenTube/releases", "displayName": "Dup" },
+            { "id": "broken", "url": "" }
+          ]
+        }
+        """;
+
+    private sealed class Handler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            => Task.FromResult(respond(request));
+    }
+
+    [Theory]
+    [InlineData("https://dev.example/apps.json")]
+    [InlineData("https://raw.githubusercontent.com/dev/app/main/third-party-apps.json")]
+    [InlineData("dev.example/feeds/Apps.JSON?v=2")]
+    public void JsonLinksAreFeeds(string typed)
+    {
+        Assert.Equal(UserSourceKind.Feed, UserSources.Classify(typed));
+        Assert.True(UserSources.IsFeed(typed));
+        Assert.Null(UserSources.ToProvider(new UserSource { Url = typed }));
+        Assert.Empty(UserSources.Validate(new UserSource { Url = typed }));
+        Assert.Equal(typed.Contains("raw.githubusercontent") ? "raw.githubusercontent.com" : "dev.example", UserSources.DefaultName(typed));
+    }
+
+    [Fact]
+    public void FeedProvidersAreTheUsersOwnWithIdsUnderTheFeed()
+    {
+        var source = new UserSource { Url = "https://dev.example/apps.json" };
+        var providers = UserSources.FeedProviders(source, Feed);
+        Assert.Equal(4, providers.Count); // the one without a URL is dropped
+        Assert.All(providers, p => Assert.True(p.IsUserSource));
+        Assert.All(providers, p => Assert.StartsWith(UserSources.Id(source) + "-", p.Id));
+        Assert.Equal(UserSources.Id(source) + "-mine", providers[0].Id);
+        Assert.Equal("My App", providers[0].DisplayName);
+        Assert.Equal("games", providers[0].Category);
+        Assert.Equal("A game.", providers[0].BuildInfo?.Description);
+        Assert.Equal("other", providers[1].Category);
+        Assert.Equal("partner", providers[2].CertLevel);
+        Assert.Equal(string.Empty, providers[0].CertLevel);
+    }
+
+    [Fact]
+    public void FeedPartnerFlagCoversProvidersThatDoNotSay()
+    {
+        var providers = UserSources.FeedProviders(new UserSource { Url = "https://dev.example/apps.json", Partner = true }, Feed);
+        Assert.All(providers, p => Assert.Equal("partner", p.CertLevel));
+    }
+
+    [Fact]
+    public void BareArrayAndGarbage()
+    {
+        var source = new UserSource { Url = "https://dev.example/apps.json" };
+        var bare = UserSources.FeedProviders(source, """[ { "url": "https://api.github.com/repos/a/b/releases" }, { "url": "https://api.github.com/repos/c/d/releases" } ]""");
+        Assert.Equal(2, bare.Count);
+        Assert.Equal(UserSources.Id(source) + "-1", bare[0].Id);
+        Assert.Equal(UserSources.Id(source) + "-2", bare[1].Id);
+        Assert.Empty(UserSources.FeedProviders(source, "{ not json"));
+        Assert.Empty(UserSources.FeedProviders(source, "{ \"providers\": [] }"));
+    }
+
+    [Fact]
+    public async Task ResolveReadsFeedsAndSkipsWhatIsAlreadyListed()
+    {
+        var http = new HttpClient(new Handler(request => request.RequestUri!.AbsoluteUri switch
+        {
+            "https://dev.example/apps.json" => new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new StringContent(Feed) },
+            _ => new HttpResponseMessage(System.Net.HttpStatusCode.NotFound),
+        }));
+        var manifest = new[] { new ProviderEntry { Id = "tizentube", Url = "https://api.github.com/repos/reisxd/TizenTube/releases" } };
+        var sources = new[]
+        {
+            new UserSource { Url = "owner/repo" },
+            new UserSource { Url = "https://dev.example/apps.json" },
+            new UserSource { Url = "https://gone.example/apps.json" }, // 404: skipped, nothing else lost
+            new UserSource { Url = "https://dev.example/nightly/Build.wgt" }, // the feed lists this one too: once
+        };
+
+        var providers = await UserSources.ResolveAsync(http, manifest, sources);
+
+        Assert.Equal(new[]
+        {
+            "https://api.github.com/repos/reisxd/TizenTube/releases",
+            "https://api.github.com/repos/owner/repo/releases",
+            "https://dev.example/nightly/Build.wgt",
+            "https://api.github.com/repos/dev/app/releases",
+            "https://api.github.com/repos/dev/vpn/releases",
+        }, providers.Select(p => p.Url));
+        Assert.False(providers[0].IsUserSource);
+        Assert.All(providers.Skip(1), p => Assert.True(p.IsUserSource));
+        // The direct link typed by the user won, the feed's copy of it was skipped.
+        Assert.StartsWith(UserSources.IdPrefix, providers[2].Id);
+        Assert.DoesNotContain("-", providers[2].Id.Substring(UserSources.IdPrefix.Length));
+    }
+}
