@@ -89,6 +89,8 @@
   "guardIpReversedTitle": "IP invertida",
   "guardIpMismatchTitle": "IP diferent",
   "guardEmulatorTitle": "Emulador de Tizen",
+  "guardRelayTitle": "El retransmissor de TV-Store està desactivat",
+  "guardRelayBody": "El mode de desenvolupador d'aquest televisor apunta a 127.0.0.1, de manera que Apps2Samsung s'hi connecta a través del retransmissor de TV-Store al televisor, i aquest port no respon. Al televisor, obriu TV-Store, aneu a Settings i activeu \"Connect from Apps2Samsung\" (TV-Store 0.3.14 o posterior). O bé poseu l'adreça d'aquest dispositiu com a Host PC IP del mode de desenvolupador i reinicieu el televisor. Voleu continuar igualment?",
   "guardEmulatorBody": "Aquest televisor és l'emulador de televisor de Tizen Studio que s'executa en aquest ordinador. Comprova el certificat de Samsung exactament com un televisor comercial, de manera que el certificat de distribuïdor ha d'incloure el DUID de l'emulador. Un certificat generat per a un televisor real hi falla amb un error de certificat ([118, -12]).\n\nPrimer genereu un certificat nou amb l'emulador seleccionat com a televisor, o continueu si el certificat actual ja l'inclou.",
   "lblRTL": "Inverteix la IP (per a àrab/hebreu)",
   "ServerIP": "IP del servidor",
