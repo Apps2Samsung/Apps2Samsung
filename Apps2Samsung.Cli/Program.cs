@@ -41,6 +41,7 @@ try
         "launch" or "open" => await LaunchCommand.RunAsync(services, cancel.Token),
         "cert" or "certificate" => await CertCommand.RunAsync(services, cancel.Token),
         "tvstore" or "tv-store" => await TvStoreCommand.RunAsync(services, cancel.Token),
+        "sources" or "source" => await SourcesCommand.RunAsync(services, cancel.Token),
         _ => services.Out.Fail($"unknown command '{options.Command}'\n{Help.Usage}", Output.Usage),
     };
 }

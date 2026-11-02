@@ -108,6 +108,15 @@ namespace Apps2Samsung.Models
         [JsonIgnore]
         public long Downloads { get; set; }
 
+        /// <summary>
+        /// True when this entry comes from a source the user added themselves (<c>UserSources</c>):
+        /// a repository or file link of their own, not the manifest or the community bundle. Shown
+        /// with an "own source" badge so it is clear who vouches for it. Stamped by the heads from
+        /// <see cref="ProviderEntry.IsUserSource"/>, never serialized.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsUserSource { get; set; }
+
         public GitHubRelease()
         {
         }

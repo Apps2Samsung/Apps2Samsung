@@ -20,11 +20,14 @@ public sealed class CatalogLoader
     private readonly AddLatestRelease _releases;
     private readonly DownloadStatsService _downloadStats;
     private readonly string _token;
+    private readonly Func<IReadOnlyList<UserSource>> _userSources;
 
-    public CatalogLoader(HttpClient http, string token)
+    /// <param name="userSources">The sources the user added (stored plus --source), read on every load.</param>
+    public CatalogLoader(HttpClient http, string token, Func<IReadOnlyList<UserSource>>? userSources = null)
     {
         _http = http;
         _token = token;
+        _userSources = userSources ?? (() => Array.Empty<UserSource>());
         var snapshot = new ResolvedCatalogService(http, Path.Combine(CliPaths.CliDir, ResolvedCatalogService.CacheFileName));
         _releases = new AddLatestRelease(http, () => token, snapshot);
         _downloadStats = new DownloadStatsService(http, Path.Combine(CliPaths.CliDir, DownloadStatsService.CacheFileName));
@@ -36,7 +39,9 @@ public sealed class CatalogLoader
     public async Task<Catalog> LoadAsync(bool allVersions, CancellationToken ct = default)
     {
         var manifest = await GetManifestAsync(ct);
-        var providers = manifest.Providers.Where(p => !string.IsNullOrWhiteSpace(p.Url)).ToList();
+        // The manifest's providers, then the sources the user added themselves (UserSources), as the apps do.
+        var providers = UserSources.Merge(manifest.Providers, _userSources())
+            .Where(p => !string.IsNullOrWhiteSpace(p.Url)).ToList();
         var multiVersion = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         // Fetched alongside the providers; never fails, at worst there are no counts.
         var stats = _downloadStats.GetAsync(ct);
@@ -62,6 +67,7 @@ public sealed class CatalogLoader
                 {
                     r.RequiresPartner = requiresPartner;
                     r.Category = category;
+                    r.IsUserSource = provider.IsUserSource;
                     SourceRepo.StampFromApiUrl(r, provider.Url);
                     r.Description = provider.BuildInfo?.Description?.Trim() ?? string.Empty;
                     if (provider.Take > 1)

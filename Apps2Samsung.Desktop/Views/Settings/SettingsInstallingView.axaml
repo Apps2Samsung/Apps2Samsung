@@ -101,5 +101,41 @@
 				</StackPanel>
 			</Border>
 		</StackPanel>
+
+		<!-- Your sources: repositories, releases and file links the user added (UserSources). Listed
+		     in the catalog next to the manifest's providers; read again on every refresh. -->
+		<StackPanel Spacing="6">
+			<TextBlock Classes="grouptitle" Text="{Binding LblUserSources}"/>
+			<Border Classes="group">
+				<StackPanel>
+					<StackPanel Margin="14,12" Spacing="10">
+						<TextBlock Classes="hint" Text="{l:Localize hintUserSources}"/>
+					</StackPanel>
+					<Border Classes="rowline"/>
+					<TextBlock Classes="hint" Margin="14,12" Text="{Binding LblUserSourcesEmpty}" IsVisible="{Binding !HasOwnSources}"/>
+					<ItemsControl ItemsSource="{Binding OwnSources}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate x:DataType="viewModels:AppSettingsViewModel+UserSourceRow">
+								<StackPanel>
+									<Grid Classes="setting" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+										<StackPanel Spacing="2" VerticalAlignment="Center">
+											<TextBlock Classes="settinglabel" Text="{Binding Name}"/>
+											<TextBlock Classes="hint" Text="{Binding Detail}" TextTrimming="CharacterEllipsis"/>
+										</StackPanel>
+										<Button Grid.Column="1" Classes="soft" VerticalAlignment="Center" Content="{l:Localize lblRemove}"
+										        Command="{Binding $parent[ItemsControl].((viewModels:AppSettingsViewModel)DataContext).RemoveUserSourceCommand}"
+										        CommandParameter="{Binding}"/>
+									</Grid>
+									<Border Classes="rowline"/>
+								</StackPanel>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+					<StackPanel Margin="14,12" Spacing="10">
+						<Button Classes="soft" HorizontalAlignment="Left" Content="{Binding LblAddSource}" Command="{Binding AddUserSourceCommand}"/>
+					</StackPanel>
+				</StackPanel>
+			</Border>
+		</StackPanel>
 	</StackPanel>
 </UserControl>

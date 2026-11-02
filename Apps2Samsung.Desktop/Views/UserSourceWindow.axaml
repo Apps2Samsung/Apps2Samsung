@@ -1,0 +1,96 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:Apps2Samsung.Views"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        x:Class="Apps2Samsung.Views.UserSourceWindow"
+        x:DataType="views:UserSourceWindow"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        Title="{Binding TitleText}"
+        Width="480" Height="560" MinHeight="400"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource BgBrush}">
+	<!-- Settings > Installing > Your sources > Add a source (also the catalog's ⋯): a GitHub repository
+	     or release, or a direct .wgt/.tpk link, listed in the catalog from the next refresh. See UserSources. -->
+	<Window.Styles>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Catalog.axaml"/>
+		<Style Selector="TextBox.field">
+			<Setter Property="MinHeight" Value="40"/>
+			<Setter Property="CornerRadius" Value="10"/>
+			<Setter Property="FontSize" Value="14"/>
+		</Style>
+		<Style Selector="ComboBox.field">
+			<Setter Property="MinHeight" Value="40"/>
+			<Setter Property="CornerRadius" Value="10"/>
+			<Setter Property="HorizontalAlignment" Value="Stretch"/>
+		</Style>
+		<Style Selector="TextBlock.fieldlabel">
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="TextWrapping" Value="Wrap"/>
+			<Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.fieldhint">
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="TextWrapping" Value="Wrap"/>
+			<Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+		</Style>
+		<Style Selector="TextBlock.fielderror">
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="TextWrapping" Value="Wrap"/>
+			<Setter Property="Foreground" Value="{DynamicResource BadBrush}"/>
+			<Setter Property="IsVisible" Value="False"/>
+		</Style>
+	</Window.Styles>
+
+	<DockPanel>
+		<StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="16,8,16,16">
+			<Button Classes="primary" Content="{Binding AddText}" Click="OnAddClick"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12"/>
+			<Button Classes="link" Content="{Binding CancelText}" Click="OnCancelClick" HorizontalAlignment="Center"/>
+		</StackPanel>
+
+		<ScrollViewer>
+			<StackPanel Margin="16,8,16,8" Spacing="14">
+				<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
+
+				<Grid ColumnDefinitions="44,*" ColumnSpacing="12">
+					<Border Width="44" Height="44" CornerRadius="11" Background="{DynamicResource AccentSoftBrush}">
+						<!-- a link -->
+						<Path Width="22" Height="22" Stretch="Uniform" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.2"
+						      StrokeLineCap="Round" StrokeJoin="Round"
+						      Data="M10,14 L14,10 M8,16 L6,18 A3,3 0 0 1 2,14 L6,10 A3,3 0 0 1 10,10 M16,8 L18,6 A3,3 0 0 1 22,10 L18,14 A3,3 0 0 1 14,14"/>
+					</Border>
+					<TextBlock Grid.Column="1" Text="{Binding TitleText}" FontSize="17" FontWeight="Bold" VerticalAlignment="Center"
+					           TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+				</Grid>
+
+				<TextBlock Text="{Binding HintText}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+
+				<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}" Padding="16,14">
+					<StackPanel Spacing="12">
+						<StackPanel Spacing="5">
+							<TextBlock Classes="fieldlabel" Text="{Binding UrlLabel}"/>
+							<TextBox x:Name="UrlBox" Classes="field"/>
+							<TextBlock Classes="fieldhint" Text="{Binding UrlHint}"/>
+							<TextBlock x:Name="UrlError" Classes="fielderror"/>
+						</StackPanel>
+						<StackPanel Spacing="5">
+							<TextBlock Classes="fieldlabel" Text="{Binding NameLabel}"/>
+							<TextBox x:Name="NameBox" Classes="field"/>
+							<TextBlock x:Name="NameError" Classes="fielderror"/>
+						</StackPanel>
+						<StackPanel Spacing="5">
+							<TextBlock Classes="fieldlabel" Text="{Binding CategoryLabel}"/>
+							<ComboBox x:Name="CategoryBox" Classes="field" DisplayMemberBinding="{Binding Name, x:DataType=views:UserSourceWindow+Choice}"/>
+						</StackPanel>
+						<StackPanel Spacing="5">
+							<CheckBox x:Name="PartnerBox" Content="{Binding PartnerLabel}"/>
+							<TextBlock Classes="fieldhint" Text="{Binding PartnerHint}"/>
+						</StackPanel>
+					</StackPanel>
+				</Border>
+			</StackPanel>
+		</ScrollViewer>
+	</DockPanel>
+</Window>

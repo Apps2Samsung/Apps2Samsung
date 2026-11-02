@@ -63,6 +63,8 @@ namespace Apps2Samsung.ViewModels
         // Apps from a provider with a version history (Jellyfin): their sheet offers "Show all versions".
         private readonly HashSet<string> _multiVersionApps = new(StringComparer.OrdinalIgnoreCase);
         private GitHubRelease? _customEntry;
+        // Set when the user's sources changed during a catalog load: one more load follows it.
+        private bool _reloadReleasesWhenDone;
 
         [ObservableProperty]
         private ObservableCollection<CategoryOption> categories = new ObservableCollection<CategoryOption>();
@@ -249,6 +251,8 @@ namespace Apps2Samsung.ViewModels
             /// <summary>The 18+ badge next to the name (#850); only ever true with the setting on.</summary>
             public bool IsAdult => Release.IsAdult;
             public bool IsRoot => Release.IsRoot;
+            /// <summary>The "own source" badge: the entry comes from a source the user added (UserSources).</summary>
+            public bool IsUserSource => Release.IsUserSource;
             public bool HasNeedsTizen => NeedsTizen is not null;
         }
 
@@ -483,6 +487,15 @@ namespace Apps2Samsung.ViewModels
             {
                 RebuildCategories();
                 ApplyCategoryFilter();
+            };
+            // A source of the user's own added or removed: the catalog is read again with it (after
+            // the load in progress, when there is one).
+            _settingsViewModel.Application.UserSourcesChanged += () =>
+            {
+                if (IsLoading)
+                    _reloadReleasesWhenDone = true;
+                else
+                    _ = LoadReleasesAsync();
             };
             _httpClient = httpClient;
 
@@ -1512,7 +1525,11 @@ namespace Apps2Samsung.ViewModels
                 var stats = _downloadStats.GetAsync(cancellationToken);
                 var manifest = await _providerManifestService.GetAsync();
                 _manifest = manifest;
-                foreach (var provider in manifest.Providers)
+                // The manifest's providers, then the sources the user added themselves (UserSources):
+                // a developer's own repository or nightly, listed without waiting for the community packages.
+                var providers = Apps2Samsung.Catalog.UserSources.Merge(
+                    manifest.Providers, Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson));
+                foreach (var provider in providers)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     if (string.IsNullOrWhiteSpace(provider.Url))
@@ -1550,6 +1567,7 @@ namespace Apps2Samsung.ViewModels
                         {
                             r.RequiresPartner = requiresPartner;
                             r.Category = category;
+                            r.IsUserSource = provider.IsUserSource;
                             SourceRepo.StampFromApiUrl(r, provider.Url);
                             r.Description = provider.BuildInfo?.Description?.Trim() ?? string.Empty;
                             if (provider.Take > 1)
@@ -1581,6 +1599,11 @@ namespace Apps2Samsung.ViewModels
                 if (!Releases.Contains(CustomEntry))
                     Releases.Add(CustomEntry);
                 IsLoading = false;
+            }
+            if (_reloadReleasesWhenDone)
+            {
+                _reloadReleasesWhenDone = false;
+                await LoadReleasesAsync(cancellationToken);
             }
         }
 

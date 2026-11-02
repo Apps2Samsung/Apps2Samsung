@@ -40,7 +40,7 @@ namespace Apps2Samsung.Helpers
 
         // Downloaded-package (.wgt) cache. Not inside the install directory on macOS or Linux: writing
         // into the ad-hoc-signed .app bundle breaks signature validation (#498), and a Linux package
-        // can be installed read-only — root-owned under /opt, or a squashfs mount in an AppImage, where
+        // can be installed read-only, root-owned under /opt, or a squashfs mount in an AppImage, where
         // the download itself would fail (#589). Windows keeps it next to the binary (unchanged).
         public static readonly string DownloadPath =
             Apps2Samsung.Portability.UserPaths.Cache(FolderPath, "Downloads");
@@ -122,8 +122,11 @@ namespace Apps2Samsung.Helpers
         public bool ShowAdultApps { get; set; } = false;
         // Catalog entries flagged root (they gain root on the TV) are listed unless this is turned off.
         public bool ShowRootApps { get; set; } = true;
+        // Sources the user added themselves (UserSources): JSON array of { name, url, category, partner },
+        // listed in the catalog next to the manifest's providers on every load.
+        public string UserSourcesJson { get; set; } = "";
         // When on, the in-app update check offers beta (pre-release) versions too, and downloads that
-        // beta — not the older stable. Off by default on desktop (stable channel).
+        // beta, not the older stable. Off by default on desktop (stable channel).
         public bool IncludeBetaUpdates { get; set; } = false;
         public bool RTLReading { get; set; } = false;
         public string JellyfinIP { get; set; } = "";
@@ -208,7 +211,7 @@ namespace Apps2Samsung.Helpers
         // ----- Application-scoped settings (readonly at runtime) -----
         // [JsonIgnore] so these always reflect the shipped code defaults. If they were
         // serialized, a preserved settings.json would freeze them at the value first
-        // written — e.g. an upgraded user would keep seeing their old AppVersion and
+        // written, e.g. an upgraded user would keep seeing their old AppVersion and
         // stale endpoint URLs after an update.
         [JsonIgnore]
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
@@ -378,7 +381,7 @@ namespace Apps2Samsung.Helpers
         /// One-time move of the user's generated signing cert from the old in-bundle location
         /// (<see cref="BundledCertificatePath"/>/Jelly2Sams) to the per-user data dir, so it isn't
         /// lost on the next app/bundle update. The shipped default cert stays in the bundle.
-        /// On bundle-replacing updates the old copy may already be gone — then this is a no-op and
+        /// On bundle-replacing updates the old copy may already be gone, then this is a no-op and
         /// a fresh cert is generated once on the next install.
         /// </summary>
         private static void MigrateCertificatesIfNeeded()

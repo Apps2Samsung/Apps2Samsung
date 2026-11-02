@@ -24,6 +24,11 @@
                             Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="7,2" VerticalOptions="Center">
                         <Label Text="{l:Localize lblRootBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}" />
                     </Border>
+                    <!-- from a source the user added themselves (Settings > Installing > Your sources) -->
+                    <Border x:Name="SourceBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
+                            Stroke="{DynamicResource HairBrush}" BackgroundColor="{DynamicResource FillColor}" Padding="7,2" VerticalOptions="Center">
+                        <Label Text="{l:Localize lblUserSourceBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource MutedColor}" />
+                    </Border>
                     <!-- the Tizen the selected build asks for (TV-Store#47); warning colours when this TV is too old for it -->
                     <Border x:Name="TizenBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
                             Stroke="{DynamicResource HairBrush}" BackgroundColor="{DynamicResource FillColor}" Padding="7,2" VerticalOptions="Center">

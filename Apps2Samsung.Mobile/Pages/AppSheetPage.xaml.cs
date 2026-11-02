@@ -73,6 +73,7 @@ public partial class AppSheetPage : ContentPage
 		PartnerNotice.IsVisible = release.RequiresPartner;
 		AdultBadge.IsVisible = release.IsAdult;
 		RootBadge.IsVisible = release.IsRoot;
+		SourceBadge.IsVisible = release.IsUserSource;
 		VersionsTitle.Text = L10n.Get(release.HasVariants ? "lblVariant" : "lblVersion");
 		// The way back to the package's own id (#839), only for an app renamed on some TV before.
 		OwnIdRow.IsVisible = versions.Any(v => v.Assets.Any(a =>
