@@ -996,5 +996,8 @@
   "errContributeOneLine": "En rad, utan |",
   "errContributeRepo": "Använd owner/repo, till exempel dittnamn/din-app",
   "errContributeOutputName": "Måste sluta på .wgt eller .tpk",
-  "errContributeUrl": "Måste börja med http:// eller https://"
+  "errContributeUrl": "Måste börja med http:// eller https://",
+  "lblUserSourceCategory": "Kategori",
+  "tvCardActionCheckAgain": "Kontrollera igen",
+  "infoPortOpen": "Öppna"
 }

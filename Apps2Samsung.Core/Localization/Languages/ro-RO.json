@@ -994,5 +994,8 @@
   "errContributeOneLine": "O singură linie, fără |",
   "errContributeRepo": "Folosiți owner/repo, de exemplu numele-dvs/aplicatia-dvs",
   "errContributeOutputName": "Trebuie să se termine în .wgt sau .tpk",
-  "errContributeUrl": "Trebuie să înceapă cu http:// sau https://"
+  "errContributeUrl": "Trebuie să înceapă cu http:// sau https://",
+  "lblUserSourceCategory": "Categorie",
+  "tvCardActionCheckAgain": "Verifică din nou",
+  "infoPortOpen": "Deschide"
 }

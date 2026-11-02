@@ -999,5 +999,8 @@
   "errContributeOneLine": "Một dòng, không có |",
   "errContributeRepo": "Dùng owner/repo, ví dụ tenban/ung-dung-cua-ban",
   "errContributeOutputName": "Phải kết thúc bằng .wgt hoặc .tpk",
-  "errContributeUrl": "Phải bắt đầu bằng http:// hoặc https://"
+  "errContributeUrl": "Phải bắt đầu bằng http:// hoặc https://",
+  "lblUserSourceCategory": "Danh mục",
+  "tvCardActionCheckAgain": "Kiểm tra lại",
+  "infoPortOpen": "Mở"
 }
