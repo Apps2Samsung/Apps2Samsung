@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,6 +61,21 @@ namespace Apps2Samsung.Diagnostics
         // a promise"; later inspectors pass a plain value through. See EvaluateRawAsync.
         private bool _awaitsOnlyPromises;
 
+        // Set on connect. An older inspector (a 2017 set's Chromium) does not know awaitPromise at all:
+        // it ignores the parameter and hands a promise back as an empty object. See EvaluateValueAsync.
+        private bool _ignoresAwaitPromise;
+        private int _nextSlot;
+
+        // Set on connect: whether the inspector has the Log domain (a 2017 set's does not).
+        private bool _hasLogDomain = true;
+
+        /// <summary>
+        /// What this inspector turned out to support, in one line, for the session log: every gap in
+        /// an older set's inspector so far arrived as its own failed report, and this names them all.
+        /// </summary>
+        public string Capabilities =>
+            $"Log={(_hasLogDomain ? "yes" : "no")}, awaitPromise={(_ignoresAwaitPromise ? "ignored (polled)" : _awaitsOnlyPromises ? "promises only" : "yes")}";
+
         private readonly DevToolsNetworkTracker _network = new();
 
         /// <summary>Raised for every console line, off the UI thread — marshal before touching the UI.</summary>
@@ -104,10 +120,13 @@ namespace Apps2Samsung.Diagnostics
                 // The Log domain is newer than the Chromium on a 2017 (Tizen 3) set, whose inspector
                 // answers "'Log.enable' wasn't found" (#954). Runtime still carries console.* and
                 // exceptions there, so attach without the browser's own entries instead of failing.
+                _hasLogDomain = false;
                 Trace.WriteLine($"[devtools] Log domain unavailable, attaching without it: {ex.Message}");
             }
 
             _awaitsOnlyPromises = await RejectsAwaitOnPlainValueAsync(ct);
+            _ignoresAwaitPromise = !_awaitsOnlyPromises && await IgnoresAwaitPromiseAsync(ct);
+            Trace.WriteLine($"[devtools] inspector capabilities: {Capabilities}");
         }
 
         /// <summary>
@@ -153,6 +172,9 @@ namespace Apps2Samsung.Diagnostics
         /// </summary>
         public async Task<JsonNode?> EvaluateValueAsync(string expression, CancellationToken ct = default)
         {
+            if (_ignoresAwaitPromise)
+                return await EvaluateValuePollingAsync(expression, ct);
+
             var response = await EvaluateRawAsync(expression, includeCommandLineApi: false, ct);
 
             if (response?["exceptionDetails"] is JsonNode failure)
@@ -203,6 +225,72 @@ namespace Apps2Samsung.Diagnostics
             {
                 // Held by the inspector until released or the page reloads; nothing waits on this.
                 _ = SendCommandAsync("Runtime.releaseObject", new JsonObject { ["objectId"] = objectId }, CancellationToken.None)
+                    .ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+            }
+        }
+
+        // An inspector that awaits a promise answers Promise.resolve(1) with 1; one that ignores
+        // awaitPromise answers with the promise itself, which by value is an empty object.
+        private async Task<bool> IgnoresAwaitPromiseAsync(CancellationToken ct)
+        {
+            try
+            {
+                var response = await SendCommandAsync("Runtime.evaluate", new JsonObject
+                {
+                    ["expression"] = "Promise.resolve(1)",
+                    ["awaitPromise"] = true,
+                    ["returnByValue"] = true,
+                }, ct);
+                var ignores = response?["exceptionDetails"] is null &&
+                              !(response?["result"]?["value"] is JsonValue value && value.TryGetValue<int>(out var one) && one == 1);
+                if (ignores)
+                    Trace.WriteLine("[devtools] inspector ignores awaitPromise; promise results are polled");
+                return ignores;
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// <see cref="EvaluateValueAsync"/> for an inspector that cannot await: the expression runs once,
+        /// inside a wrapper that parks its settled value (as JSON) in a page global, and that global is
+        /// polled until it is there. The expression goes through an indirect eval, so it may be a
+        /// statement as well as an expression, and nothing newer than ES5 is sent.
+        /// </summary>
+        private async Task<JsonNode?> EvaluateValuePollingAsync(string expression, CancellationToken ct)
+        {
+            var slot = $"__a2s_eval_{Interlocked.Increment(ref _nextSlot)}";
+            var slotLiteral = JsonSerializer.Serialize(slot);
+            var start =
+                $"(function(){{var s={slotLiteral};window[s]={{done:false}};" +
+                "function ok(v){var t;try{t=JSON.stringify(v)}catch(x){t=null}window[s]={done:true,ok:true,t:t===undefined?null:t}}" +
+                "function bad(e){window[s]={done:true,ok:false,e:String(e&&e.message||e)}}" +
+                $"try{{Promise.resolve((0,eval)({JsonSerializer.Serialize(expression)})).then(ok,bad)}}catch(e){{bad(e)}}}})()";
+
+            try
+            {
+                var started = await SendCommandAsync("Runtime.evaluate", new JsonObject { ["expression"] = start, ["returnByValue"] = true }, ct);
+                if (started?["exceptionDetails"] is JsonNode failure)
+                    throw new DevToolsEvaluationException(RenderException(failure));
+
+                while (true)
+                {
+                    var poll = await SendCommandAsync("Runtime.evaluate", new JsonObject { ["expression"] = $"window[{slotLiteral}]", ["returnByValue"] = true }, ct);
+                    if (poll?["result"]?["value"] is JsonObject state && state["done"]?.GetValue<bool>() == true)
+                    {
+                        if (state["ok"]?.GetValue<bool>() != true)
+                            throw new DevToolsEvaluationException(Str(state["e"]) ?? "The expression failed.");
+                        return state["t"] is JsonValue json && json.TryGetValue<string>(out var text) ? JsonNode.Parse(text) : null;
+                    }
+
+                    await Task.Delay(100, ct);
+                }
+            }
+            finally
+            {
+                _ = SendCommandAsync("Runtime.evaluate", new JsonObject { ["expression"] = $"delete window[{slotLiteral}]" }, CancellationToken.None)
                     .ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
             }
         }

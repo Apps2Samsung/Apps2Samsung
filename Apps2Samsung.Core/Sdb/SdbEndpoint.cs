@@ -231,7 +231,14 @@ namespace Apps2Samsung.Sdb
             return failure is null ? null : DescribeRelayFailure(failure, tvIp, DateTimeOffset.UtcNow, LocalAddresses());
         }
 
-        private static IReadOnlyCollection<string> LocalAddresses()
+        /// <summary>
+        /// This device's own addresses, for telling the relay's failure for this device from another's.
+        /// The .NET enumeration reports nothing useful on Android, so the mobile head replaces this with
+        /// its Java-API one; an empty answer means the client is not compared.
+        /// </summary>
+        public static Func<IReadOnlyCollection<string>> LocalAddresses { get; set; } = DefaultLocalAddresses;
+
+        private static IReadOnlyCollection<string> DefaultLocalAddresses()
         {
             try
             {
