@@ -64,6 +64,12 @@ namespace Apps2Samsung.Install
             PackageIdPolicy? packageId = null)
         {
             stage?.Invoke(InstallStage.Sign, null);
+            // Which way in: a TV whose Host PC IP is 127.0.0.1 is reached through TV-Store's relay
+            // (TV-Store#52); say so up front, the same line the engine writes to the log.
+            var port = await SdbEndpoint.ResolvePortAsync(tvIp);
+            progress?.Invoke(port == SdbEndpoint.DirectPort
+                ? "Connecting to the TV…"
+                : $"Connecting through TV-Store's relay (port {port})…");
             progress?.Invoke("Reading TV capabilities…");
             var cap = await _sdb.CapabilityAsync(tvIp);
             ct.ThrowIfCancellationRequested();

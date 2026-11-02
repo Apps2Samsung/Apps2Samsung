@@ -66,13 +66,15 @@ namespace Apps2Samsung.Helpers.Core
                 return false;
             }
 
+            ClearInstallFailure();
+
             // The device list is a scan snapshot; re-read the TV's Developer-Mode fields now so a
             // Developer-Mode IP corrected on the TV since the scan isn't still flagged as a mismatch.
             await TizenDeveloperInfo.RefreshAsync(_networkService, selectedDevice, cancellationToken);
 
             // Shared pre-install guards: Developer Mode off, a Developer-Mode IP pointing at another
             // machine (or typed back to front), a TV on another subnet, and a TV whose install service
-            // isn't up yet. Same checks and wording as the mobile head — see Core InstallGuards.
+            // isn't up yet. Same checks and wording as the mobile head, see Core InstallGuards.
             var localIps = LocalIps();
             var guardResult = InstallGuards.Evaluate(
                 selectedDevice,
@@ -152,6 +154,7 @@ namespace Apps2Samsung.Helpers.Core
                 else
                 {
                     progress?.Invoke("InstallationFailed".Localized());
+                    await NoteInstallFailureAsync(selectedDevice, result.ErrorMessage ?? "InstallationFailed".Localized());
                     await _dialogService.ShowErrorAsync($"{"InstallationFailed".Localized()}: {result.ErrorMessage}");
                     return false;
                 }
@@ -159,10 +162,43 @@ namespace Apps2Samsung.Helpers.Core
             catch (Exception ex)
             {
                 progress?.Invoke("InstallationFailed".Localized());
+                await NoteInstallFailureAsync(selectedDevice, ex.Message);
                 await _dialogService.ShowErrorAsync($"{"InstallationFailed".Localized()}: {ex}");
                 return false;
             }
         }
+
+        /// <summary>
+        /// What the last install on the selected TV failed with; null after a success, a cancel, or
+        /// once the TV or the list changed. The TV card turns amber on it even when the TV reads as
+        /// ready, so a refused connection does not leave a green card behind a closed dialog.
+        /// </summary>
+        public string? LastInstallFailure { get; private set; }
+
+        /// <summary>Raised on any thread when <see cref="LastInstallFailure"/> changes.</summary>
+        public event Action? InstallFailureChanged;
+
+        public void ClearInstallFailure()
+        {
+            if (LastInstallFailure is null)
+                return;
+            LastInstallFailure = null;
+            InstallFailureChanged?.Invoke();
+        }
+
+        // Re-read the TV first: a Host PC IP changed since the scan, or a relay just switched off,
+        // is then what the card says, instead of the stale scan verdict.
+        private async Task NoteInstallFailureAsync(NetworkDevice device, string message)
+        {
+            try { await TizenDeveloperInfo.RefreshAsync(_networkService, device); }
+            catch (Exception ex) { Trace.WriteLine($"[install] Could not re-read the TV after the failure: {ex.Message}"); }
+            LastInstallFailure = message;
+            InstallFailureChanged?.Invoke();
+        }
+
+        /// <summary>Re-reads the TV's Developer-Mode fields, debug port and relay port (the card's Check again).</summary>
+        public Task RefreshDeviceAsync(NetworkDevice device, CancellationToken cancellationToken = default)
+            => TizenDeveloperInfo.RefreshAsync(_networkService, device, cancellationToken);
         /// <summary>
         /// The Developer Mode guide for <paramref name="device"/>. From Install it returns whether to
         /// go on; from the TV card it is just a guide.

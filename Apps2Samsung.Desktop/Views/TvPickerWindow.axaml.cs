@@ -13,7 +13,11 @@ namespace Apps2Samsung.Views
     /// <summary>The TV sheet. Closes with a <see cref="TvPickerResult"/>.</summary>
     public partial class TvPickerWindow : Window
     {
-        public sealed record Row(NetworkDevice Device, string Name, string Subline, bool IsReady, bool IsSelected);
+        /// <param name="Detail">A few words on where the TV stands ("via relay", "points at 192.168.1.20"); empty for a ready direct TV.</param>
+        public sealed record Row(NetworkDevice Device, string Name, string Subline, bool IsReady, bool IsSelected, string Detail)
+        {
+            public bool HasDetail => !string.IsNullOrEmpty(Detail);
+        }
 
         public IReadOnlyList<Row> Rows { get; } = Array.Empty<Row>();
         public string TitleText { get; } = string.Empty;
@@ -26,14 +30,21 @@ namespace Apps2Samsung.Views
             InitializeComponent();
         }
 
-        public TvPickerWindow(IEnumerable<NetworkDevice> devices, NetworkDevice? selected, Func<string, string> localize) : this()
+        /// <param name="localIps">This machine's addresses, for the readiness verdict per row (the card's own, <see cref="Apps2Samsung.Design.TvCardStates.RowStatus"/>).</param>
+        public TvPickerWindow(IEnumerable<NetworkDevice> devices, NetworkDevice? selected, Func<string, string> localize,
+            IReadOnlyCollection<string>? localIps = null, string? localIp = null) : this()
         {
-            Rows = devices.Select(d => new Row(
-                d,
-                string.IsNullOrWhiteSpace(d.DeviceName) ? localize("tvCardSamsungTv") : d.DeviceName!,
-                string.IsNullOrWhiteSpace(d.ModelName) ? d.IpAddress : $"{d.ModelName} · {d.IpAddress}",
-                d.DebugPortOpen,
-                selected is not null && selected.IpAddress == d.IpAddress)).ToList();
+            Rows = devices.Select(d =>
+            {
+                var (led, detail) = Apps2Samsung.Design.TvCardStates.RowStatus(d, localIps ?? Array.Empty<string>(), localIp, localize);
+                return new Row(
+                    d,
+                    string.IsNullOrWhiteSpace(d.DeviceName) ? localize("tvCardSamsungTv") : d.DeviceName!,
+                    string.IsNullOrWhiteSpace(d.ModelName) ? d.IpAddress : $"{d.ModelName} · {d.IpAddress}",
+                    led == Apps2Samsung.Design.TvLed.Ok,
+                    selected is not null && selected.IpAddress == d.IpAddress,
+                    detail);
+            }).ToList();
             TitleText = localize("lblChooseTv");
             ManualText = localize("lblEnterIpManually");
             ManualHint = localize("lblEnterIpHint");

@@ -316,7 +316,7 @@ namespace Apps2Samsung.ViewModels
             if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
                 return;
             var found = AvailableDevices.Where(d => !string.IsNullOrWhiteSpace(d.IpAddress) && d.IpAddress != L("lblOther")).ToList();
-            var result = await new Views.TvPickerWindow(found, SelectedDevice, L).ShowDialog<Views.TvPickerResult?>(desktop.MainWindow);
+            var result = await new Views.TvPickerWindow(found, SelectedDevice, L, _localIps, PreferredLocalIp).ShowDialog<Views.TvPickerResult?>(desktop.MainWindow);
             if (result is null)
                 return;
             if (result.Rescan)
@@ -465,6 +465,8 @@ namespace Apps2Samsung.ViewModels
             _dialogService = dialogService;
             _networkService = networkService;
             _packageHelper = packageHelper;
+            // A failed install turns the card amber (TvCardStates): re-rendered when the helper records or clears one.
+            _packageHelper.InstallFailureChanged += () => Dispatcher.UIThread.Post(UpdateTvCard);
             _localizationService = localizationService;
             _themeService = themeService;
             _updaterService = updaterService;
@@ -624,6 +626,7 @@ namespace Apps2Samsung.ViewModels
 
         partial void OnSelectedDeviceChanged(NetworkDevice? value)
         {
+            _packageHelper.ClearInstallFailure();
             if (value?.IpAddress == L("lblOther"))
                 _ = PromptForManualIpAsync();
             else if (value != null && !value.DebugPortOpen && !string.IsNullOrWhiteSpace(value.IpAddress))
@@ -654,11 +657,7 @@ namespace Apps2Samsung.ViewModels
         /// </summary>
         private void UpdateTvCard()
         {
-            // The card the user picked in Settings, else the first interface we have: an empty
-            // address only means "say nothing about the IP", never 127.0.0.1.
-            var localIp = string.IsNullOrEmpty(AppSettings.Default.LocalIp)
-                ? _localIps.FirstOrDefault()
-                : AppSettings.Default.LocalIp;
+            var localIp = PreferredLocalIp;
             var device = SelectedDevice;
             TvCardState state;
             if (IsLoadingDevices)
@@ -666,16 +665,87 @@ namespace Apps2Samsung.ViewModels
             else if (device is null || string.IsNullOrWhiteSpace(device.IpAddress) || device.IpAddress == L("lblOther"))
                 state = TvCardStates.NoTv(L, localIp);
             else
-                state = TvCardStates.ForDevice(device, localIp, L);
+                state = TvCardStates.ForDevice(device, _localIps, localIp, L);
 
             var busy = IsLoadingDevices || IsLoading || IsInstallProgressVisible || IsSamsungLoginActive;
+            // The status bar is the card's line while something runs or just happened. At rest, a TV
+            // the guide calls not ready keeps its own verdict: "Ready for use..." from the scan would
+            // otherwise sit on an amber LED.
+            var idle = _currentStatusKey is "Ready" || _currentStatusKey.StartsWith("DevNotReady", StringComparison.Ordinal);
+            var message = string.IsNullOrWhiteSpace(StatusBar) || (!busy && idle && state.Led == TvLed.Warn)
+                ? state.Message
+                : StatusBar;
+            // The last install on this TV failed (a refused connection, most often): amber, with the
+            // failure as the line, until the TV or the list changes or the next install starts.
+            var failed = !busy && _packageHelper.LastInstallFailure is not null && state.IsDevice;
             TvCard = state with
             {
-                Led = busy ? TvLed.Busy : state.Led,
-                Message = string.IsNullOrWhiteSpace(StatusBar) ? state.Message : StatusBar,
+                Led = busy ? TvLed.Busy : failed && state.Led == TvLed.Ok ? TvLed.Warn : state.Led,
+                Message = message,
                 Progress = IsInstallProgressVisible ? InstallProgress : null,
+                Actions = busy ? Array.Empty<TvCardAction>() : state.Actions,
             };
+            TvCardRouteText = TvCardStates.RouteText(TvCard, L);
+            SyncTvCardActions(TvCard.Actions);
             OpenTvGuideCommand.NotifyCanExecuteChanged();
+        }
+
+        // The address to name in a message: the card the user picked in Settings, else the first
+        // interface we have. Empty only means "say nothing about the IP", never 127.0.0.1.
+        private string? PreferredLocalIp => string.IsNullOrEmpty(AppSettings.Default.LocalIp)
+            ? _localIps.FirstOrDefault()
+            : AppSettings.Default.LocalIp;
+
+        /// <summary>The route pill on the card: "via TV-Store relay" / "relay off"; empty for a direct TV.</summary>
+        [ObservableProperty]
+        private string tvCardRouteText = string.Empty;
+
+        /// <summary>One chip on the TV card's screen (<see cref="TvCardAction"/>, labelled through the catalog).</summary>
+        public sealed record TvCardActionItem(TvCardAction Action, string Label);
+
+        /// <summary>The chips under the card's status line while the TV isn't ready; empty when it is, or while something runs.</summary>
+        public ObservableCollection<TvCardActionItem> TvCardActions { get; } = new();
+        public bool HasTvCardActions => TvCardActions.Count > 0;
+
+        // Rebuilt only when the set changes, so a status-line tick doesn't re-create the buttons.
+        private void SyncTvCardActions(IReadOnlyList<TvCardAction> actions)
+        {
+            if (TvCardActions.Select(a => a.Action).SequenceEqual(actions)
+                && TvCardActions.All(a => a.Label == L(TvCardStates.ActionLabelKey(a.Action))))
+                return;
+            TvCardActions.Clear();
+            foreach (var action in actions)
+                TvCardActions.Add(new TvCardActionItem(action, L(TvCardStates.ActionLabelKey(action))));
+            OnPropertyChanged(nameof(HasTvCardActions));
+        }
+
+        /// <summary>
+        /// A chip on the card: the guide for a Developer Mode problem or the relay, a re-read of the
+        /// TV for "Check again" and "I restarted it" (the debug port is probed again only when the
+        /// scan saw it closed, which is the restart case).
+        /// </summary>
+        [RelayCommand]
+        private async Task RunTvCardActionAsync(TvCardActionItem? item)
+        {
+            if (item is null || SelectedDevice is not { } device)
+                return;
+            switch (item.Action)
+            {
+                case TvCardAction.FixDeveloperMode:
+                case TvCardAction.TurnOnRelay:
+                    if (OpenTvGuideCommand.CanExecute(null))
+                        await OpenTvGuideAsync();
+                    break;
+                case TvCardAction.CheckAgain:
+                case TvCardAction.Restarted:
+                    _localIps = _packageHelper.LocalIps();
+                    await _packageHelper.RefreshDeviceAsync(device);
+                    _packageHelper.ClearInstallFailure();
+                    SetStatus(IsSelectedDeviceReady ? "Ready" : DeviceNotReadyStatusKey(device));
+                    RefreshCanExecuteChanged();
+                    UpdateTvCard();
+                    break;
+            }
         }
 
         private IReadOnlyCollection<string> _localIps = Array.Empty<string>();
@@ -1652,6 +1722,7 @@ namespace Apps2Samsung.ViewModels
 
         private async Task LoadDevicesAsync(CancellationToken cancellationToken = default, bool virtualScan = false, bool quiet = false)
         {
+            _packageHelper.ClearInstallFailure();
             IsLoadingDevices = true;
             var knownIps = AvailableDevices
                 .Select(d => d.IpAddress)

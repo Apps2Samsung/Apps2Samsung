@@ -152,7 +152,25 @@
 						<!-- The TV: name, model + IP, an LED with the status line and the install bar (#755).
 						     Its actions live in the toolbar's ⋯ and the sidebar's TV picker. A TV that isn't
 						     ready yet: clicking the card opens the Developer Mode guide. -->
-						<controls:TvCard State="{Binding TvCard}" Command="{Binding OpenTvGuideCommand}"/>
+						<controls:TvCard State="{Binding TvCard}" Command="{Binding OpenTvGuideCommand}" RouteLabel="{Binding TvCardRouteText}">
+							<controls:TvCard.Actions>
+								<!-- the chips while the TV isn't ready: the way to the fix (TvCardStates.ActionsFor) -->
+								<ItemsControl ItemsSource="{Binding TvCardActions}" IsVisible="{Binding HasTvCardActions}">
+									<ItemsControl.ItemsPanel>
+										<ItemsPanelTemplate>
+											<WrapPanel Orientation="Horizontal"/>
+										</ItemsPanelTemplate>
+									</ItemsControl.ItemsPanel>
+									<ItemsControl.ItemTemplate>
+										<DataTemplate x:DataType="viewModels:MainWindowViewModel+TvCardActionItem">
+											<Button Classes="chip" Content="{Binding Label}" Margin="0,0,8,8"
+											        Command="{Binding $parent[ItemsControl].((viewModels:MainWindowViewModel)DataContext).RunTvCardActionCommand}"
+											        CommandParameter="{Binding}"/>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+							</controls:TvCard.Actions>
+						</controls:TvCard>
 
 						<!-- Cancel a running Samsung sign-in -->
 						<Button Classes="icon" HorizontalAlignment="Center"

@@ -15,7 +15,8 @@ public static class ScanCommand
             s.Out.Progress("Nothing found; scanning again with VPN and virtual adapters included…");
             found = await TizenDeveloperInfo.ScanAsync(s.Network, ct, virtualScan: true);
         }
-        var tvs = found.Select(d => TvState.From(d, localIp)).OrderBy(t => t.Ip, StringComparer.Ordinal).ToList();
+        var localIps = LocalIp.All(s);
+        var tvs = found.Select(d => TvState.From(d, localIp, localIps)).OrderBy(t => t.Ip, StringComparer.Ordinal).ToList();
 
         var text = new List<string>();
         if (tvs.Count == 0)
