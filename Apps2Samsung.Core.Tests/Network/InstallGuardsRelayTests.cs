@@ -106,11 +106,12 @@ public class InstallGuardsRelayTests
     [Fact]
     public void TheInformationViewSaysWhichWayTheConnectionGoes()
     {
+        var english = new Apps2Samsung.Localization.LocalizationCatalog();
         var viaRelay = new TizenDeviceInfo("192.168.1.50", "", "", "", "", "", "", "1", "127.0.0.1", true);
-        Assert.Contains(viaRelay.Rows, r => r.Label == "Connects via" && r.Value.StartsWith("TV-Store relay, port 26201", StringComparison.Ordinal));
+        Assert.Contains(viaRelay.RowsFor(english.GetString), r => r.Label == "Connects via" && r.Value.StartsWith("TV-Store relay, port 26201", StringComparison.Ordinal));
 
         var direct = new TizenDeviceInfo("192.168.1.50", "", "", "", "", "", "", "1", "192.168.1.20", true);
-        Assert.Contains(direct.Rows, r => r.Label == "Connects via" && r.Value == "sdbd directly, port 26101");
+        Assert.Contains(direct.RowsFor(english.GetString), r => r.Label == "Connects via" && r.Value == "sdbd directly, port 26101");
     }
 
     /// <summary>A network where every pair of addresses is on a different subnet: the subnet guard

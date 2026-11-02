@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Apps2Samsung.Models
@@ -8,7 +9,7 @@ namespace Apps2Samsung.Models
     /// <summary>
     /// Everything we can report about a connected TV, gathered by
     /// <see cref="Apps2Samsung.Sdb.TizenDeviceInfoService"/> and shown by both heads' "TV information"
-    /// view. Values are best-effort — anything the TV didn't report shows as "—".
+    /// view. Values are best-effort; anything the TV didn't report shows as "not available" in the head's language.
     /// <paramref name="LocalIp"/> is this computer's / this phone's own LAN address, listed next to the
     /// TV's Developer-host IP so a mismatch is visible at a glance. <paramref name="IsEmulator"/> is
     /// whether the "TV" is the Tizen Studio emulator on this very machine (see
@@ -28,40 +29,45 @@ namespace Apps2Samsung.Models
         string? LocalIp = null,
         bool? IsEmulator = null)
     {
-        private static string Dash(string? s) => string.IsNullOrWhiteSpace(s) ? "—" : s.Trim();
-
-        private string DeveloperModeDisplay => DeveloperMode?.Trim() switch
+        /// <summary>
+        /// The info as ordered label/value rows for a simple key/value list, worded through the
+        /// head's catalog (<paramref name="localize"/> takes an en.json key). A blank value shows as
+        /// "not available" in that language.
+        /// </summary>
+        public IReadOnlyList<DeviceInfoRow> RowsFor(Func<string, string> localize)
         {
-            "1" => "On",
-            "0" => "Off",
-            _ => "—",
-        };
-
-        /// <summary>The info as ordered label/value rows, ready to render in a simple key/value list.</summary>
-        public IReadOnlyList<DeviceInfoRow> Rows => new List<DeviceInfoRow>
-        {
-            new("TV IP", Dash(IpAddress)),
-            new("Device name", Dash(DeviceName)),
-            new("Model", Dash(ModelName)),
-            new("Manufacturer", Dash(Manufacturer)),
-            new("Tizen OS version", Dash(TizenVersion)),
-            new("DUID", Dash(Duid)),
-            new("Developer mode", DeveloperModeDisplay),
-            new("Developer host IP", Dash(DeveloperIp)),
-            new("Local IP", Dash(LocalIp)),
-            new("Emulator", EmulatorDisplay),
-            new("Debug port (26101)", DebugPortOpen ? "Open" : "Closed"),
-            new("Connects via", Sdb.SdbEndpoint.IsLoopback(DeveloperIp)
-                ? $"TV-Store relay, port {Sdb.SdbEndpoint.RelayPort(IpAddress)} (Developer Mode points at 127.0.0.1)"
-                : "sdbd directly, port 26101"),
-            new("SDK tool path", Dash(SdkToolPath)),
-        };
-
-        private string EmulatorDisplay => IsEmulator switch
-        {
-            true => "Yes, runs on this computer (certificate must list its DUID)",
-            false => "No",
-            null => "—",
-        };
+            string Or(string? s) => string.IsNullOrWhiteSpace(s) ? localize("infoNone") : s.Trim();
+            var developerMode = DeveloperMode?.Trim() switch
+            {
+                "1" => localize("infoOn"),
+                "0" => localize("infoOff"),
+                _ => localize("infoNone"),
+            };
+            var emulator = IsEmulator switch
+            {
+                true => localize("infoEmulatorYes"),
+                false => localize("keyNo"),
+                null => localize("infoNone"),
+            };
+            var connectsVia = Sdb.SdbEndpoint.IsLoopback(DeveloperIp)
+                ? string.Format(localize("infoConnectsRelay"), Sdb.SdbEndpoint.RelayPort(IpAddress))
+                : localize("infoConnectsDirect");
+            return new List<DeviceInfoRow>
+            {
+                new(localize("infoTvIp"), Or(IpAddress)),
+                new(localize("infoDeviceName"), Or(DeviceName)),
+                new(localize("infoModel"), Or(ModelName)),
+                new(localize("infoManufacturer"), Or(Manufacturer)),
+                new(localize("infoTizenVersion"), Or(TizenVersion)),
+                new(localize("infoDuid"), Or(Duid)),
+                new(localize("infoDeveloperMode"), developerMode),
+                new(localize("infoDeveloperHostIp"), Or(DeveloperIp)),
+                new(localize("infoLocalIp"), Or(LocalIp)),
+                new(localize("infoEmulator"), emulator),
+                new(localize("infoDebugPort"), localize(DebugPortOpen ? "infoPortOpen" : "infoPortClosed")),
+                new(localize("infoConnectsVia"), connectsVia),
+                new(localize("infoSdkToolPath"), Or(SdkToolPath)),
+            };
+        }
     }
 }

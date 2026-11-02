@@ -1,3 +1,5 @@
+using Apps2Samsung.Mobile.Localization;
+using Apps2Samsung.Localization;
 using System.Net.Http.Headers;
 using Apps2Samsung.Configuration;
 using Apps2Samsung.Install;
@@ -83,8 +85,11 @@ public sealed class WgtInstaller
 			InstallStage.Open => InstallStep.Open,
 			_ => InstallStep.Sign,
 		}, percent);
+		// Core reports progress as en.json keys (ProgressText); this is where they become sentences
+		// in the phone's language, for every caller of this wrapper.
+		Action<string>? localized = progress is null ? null : message => progress(ProgressText.Localize(message, L10n.Get));
 		return _installer.InstallAsync(tvIp, wgtPath,
 			new SigningProfile(cert.AuthorP12, cert.DistributorP12, cert.Password, cert.ProfileDir),
-			progress, stage, ct, confirmRemove, packageId);
+			localized, stage, ct, confirmRemove, packageId);
 	}
 }

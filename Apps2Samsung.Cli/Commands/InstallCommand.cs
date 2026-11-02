@@ -1,3 +1,4 @@
+using Apps2Samsung.Localization;
 using System.IO.Compression;
 using System.Net.Http.Headers;
 using Apps2Samsung.Catalog;
@@ -153,13 +154,15 @@ public static class InstallCommand
                 progress: line =>
                 {
                     // One line per percentage step would flood a log; every tenth is enough.
-                    if (line.StartsWith("Installing on TV… ", StringComparison.Ordinal) && line.EndsWith('%'))
+                    const string percentKey = "statusInstallingOnTvPercent|";
+                    if (line.StartsWith(percentKey, StringComparison.Ordinal))
                     {
-                        if (!int.TryParse(line[18..^1], out var pct) || (pct / 10 == lastPercent / 10 && pct != 100))
+                        if (!int.TryParse(line[percentKey.Length..], out var pct) || (pct / 10 == lastPercent / 10 && pct != 100))
                             return;
                         lastPercent = pct;
                     }
-                    s.Out.Progress(line);
+                    // Core reports progress as en.json keys (ProgressText); the CLI's catalog is English.
+                    s.Out.Progress(ProgressText.Localize(line, s.Strings.GetString));
                 },
                 stage: null,
                 ct: ct,
