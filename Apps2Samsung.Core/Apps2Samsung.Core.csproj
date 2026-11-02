@@ -12,6 +12,9 @@
     <AssemblyName>Apps2Samsung.Core</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Apps2Samsung.Core.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
     <!-- The Tizen SDB protocol engine, in-process: backs Sdb/InProcessSdbEngine, which both heads
          run on (#549). Declared once, here, so the two heads can't drift apart on the version.

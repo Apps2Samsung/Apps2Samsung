@@ -124,5 +124,18 @@ namespace Apps2Samsung.Sdb
             $"This TV's Developer Mode points at 127.0.0.1, so Apps2Samsung connects through TV-Store's relay on port {port}, and nothing answered there. " +
             "On the TV, open TV-Store, go to Settings and turn on \"Connect from Apps2Samsung\" (TV-Store 0.3.14 or newer); " +
             $"or set Developer Mode's Host PC IP to this device's address and restart the TV. (TV {tvIp})";
+
+        /// <summary>Wording both relay hints share, so a failure that already carries one is not given a second.</summary>
+        public const string RelayHintMarker = "TV-Store's relay";
+
+        /// <summary>
+        /// What to tell the user when the relay accepted the connection and then dropped it: the
+        /// relay is up but could not pass the request on to the TV's own sdbd, or TV-Store was closed
+        /// or restarted mid-install. Unlike <see cref="RelayDownHint"/>, the relay being off is not it.
+        /// </summary>
+        public static string RelayDroppedHint(string tvIp, int port) =>
+            $"This TV is reached through {RelayHintMarker} on port {port}, which answered but then closed the connection. " +
+            "On the TV, open TV-Store, go to Settings and turn \"Connect from Apps2Samsung\" off and on again, " +
+            $"keep TV-Store open (0.3.14 or newer), then try again. (TV {tvIp})";
     }
 }

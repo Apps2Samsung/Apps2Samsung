@@ -4,6 +4,7 @@ using Apps2Samsung.Certificate;
 using Apps2Samsung.Install;
 using Apps2Samsung.TvStore;
 using Apps2Samsung.Models;
+using Apps2Samsung.Services;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
@@ -600,7 +601,10 @@ namespace Apps2Samsung.ViewModels
                 TvStoreStatus = "lblToolboxTvStoreArming".Localized();
                 await store.ArmAsync(pems);
                 var status = await store.StatusAsync();
-                TvStoreStatus = string.Format("lblToolboxTvStoreArmed".Localized(), store.Version, status.OwnIp ?? _tvIp);
+                // What is left to do depends on the Host PC IP the TV has right now (#960).
+                var tv = await TizenDeveloperInfo.ReadAsync(new NetworkDevice { IpAddress = _tvIp });
+                var next = TvStoreNextSteps.For(tv.DeveloperIP, status.OwnIp);
+                TvStoreStatus = string.Format(TvStoreNextSteps.MessageKey(next).Localized(), store.Version, status.OwnIp ?? _tvIp);
             }
             catch (TvStoreUnreachableException ex)
             {

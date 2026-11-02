@@ -325,11 +325,14 @@ namespace Apps2Samsung.Sdb
                 catch (Exception ex)
                 {
                     await slot.DropAsync();
-                    return Fail(ex);
+                    return WithRelayHint(ip, Fail(ex));
                 }
 
                 if (result.ExitCode != 0)
+                {
                     await slot.DropAsync();
+                    result = WithRelayHint(ip, result);
+                }
 
                 return result;
             }
@@ -337,6 +340,23 @@ namespace Apps2Samsung.Sdb
             {
                 slot.Gate.Release();
             }
+        }
+
+        // The connect to the relay worked (else ConnectWithRetryAsync already said it is down) but the
+        // relay then dropped the link: say that, not just the bare socket error.
+        internal static ProcessResult WithRelayHint(string ip, ProcessResult result)
+        {
+            if (!SdbEndpoint.UsesRelay(ip) || !SdbTransportErrors.IsTransient(result) ||
+                $"{result.Error} {result.Output}".Contains(SdbEndpoint.RelayHintMarker, StringComparison.Ordinal))
+                return result;
+
+            var hint = SdbEndpoint.RelayDroppedHint(ip, SdbEndpoint.RelayPort(ip));
+            return new ProcessResult
+            {
+                ExitCode = result.ExitCode,
+                Output = $"{result.Output} {hint}".Trim(),
+                Error = $"{result.Error} {hint}".Trim(),
+            };
         }
 
         // Success → ExitCode 0 with the body's text.

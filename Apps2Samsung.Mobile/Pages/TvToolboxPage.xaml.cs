@@ -5,6 +5,7 @@ using Apps2Samsung.Install;
 using Apps2Samsung.TvStore;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Services;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Remote;
@@ -549,7 +550,10 @@ public partial class TvToolboxPage : ContentPage
 			SetTvStoreStatus(L10n.Get("lblToolboxTvStoreArming"));
 			await store.ArmAsync(pems);
 			var status = await store.StatusAsync();
-			SetTvStoreStatus(string.Format(L10n.Get("lblToolboxTvStoreArmed"), store.Version, status.OwnIp ?? _tvIp));
+			// What is left to do depends on the Host PC IP the TV has right now (#960).
+			var tv = await TizenDeveloperInfo.ReadAsync(new NetworkDevice { IpAddress = _tvIp });
+			var next = TvStoreNextSteps.For(tv.DeveloperIP, status.OwnIp);
+			SetTvStoreStatus(string.Format(L10n.Get(TvStoreNextSteps.MessageKey(next)), store.Version, status.OwnIp ?? _tvIp));
 		}
 		catch (OperationCanceledException)
 		{

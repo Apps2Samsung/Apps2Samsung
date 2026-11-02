@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Apps2Samsung.Models;
+using Apps2Samsung.Sdb;
 
 namespace Apps2Samsung.Design
 {
@@ -17,6 +18,8 @@ namespace Apps2Samsung.Design
         IpReversed,
         /// <summary>Developer Mode looks right, but the TV hasn't been restarted since.</summary>
         RestartRequired,
+        /// <summary>Developer Mode points at 127.0.0.1 (TV-Store's relay), but the relay port does not answer.</summary>
+        RelayDown,
     }
 
     /// <summary>One numbered step of the guide. <see cref="Needed"/> false = greyed, already done.</summary>
@@ -54,6 +57,11 @@ namespace Apps2Samsung.Design
             if (off)
                 return DevModeProblem.DeveloperModeOff;
 
+            // 127.0.0.1 is the relay's setting, not another machine (TV-Store#52): it is never an IP
+            // mismatch, and what can be wrong is the relay on the TV being off.
+            if (SdbEndpoint.IsLoopback(device.DeveloperIP))
+                return device.RelayPortOpen == false ? DevModeProblem.RelayDown : DevModeProblem.None;
+
             if (!string.IsNullOrEmpty(device.DeveloperIP) && localIps.Count > 0 && !localIps.Contains(device.DeveloperIP))
             {
                 return localIps.Any(ip => Reverse(ip) == device.DeveloperIP)
@@ -64,9 +72,22 @@ namespace Apps2Samsung.Design
             return device.DebugPortOpen ? DevModeProblem.None : DevModeProblem.RestartRequired;
         }
 
+        private static readonly (string Title, string Hint)[] RelayStepKeys =
+        {
+            ("devGuideRelayStepOpen", "devGuideRelayStepOpenHint"),
+            ("devGuideRelayStepSettings", "devGuideRelayStepSettingsHint"),
+            ("devGuideRelayStepToggle", "devGuideRelayStepToggleHint"),
+        };
+
         /// <summary>The five steps, with the ones <paramref name="problem"/> still needs marked.</summary>
         public static IReadOnlyList<DevModeGuideStep> Steps(DevModeProblem problem)
         {
+            // Developer Mode is fine here; what is missing is on TV-Store's side, so the steps are its.
+            if (problem == DevModeProblem.RelayDown)
+                return RelayStepKeys
+                    .Select((k, i) => new DevModeGuideStep(i + 1, k.Title, k.Hint, Needed: true, ShowsLocalIp: false))
+                    .ToList();
+
             int[] needed = problem switch
             {
                 DevModeProblem.DeveloperModeOff => new[] { 1, 2, 3, 4, 5 },
@@ -84,6 +105,7 @@ namespace Apps2Samsung.Design
             DevModeProblem.DeveloperModeOff => "devGuideTitleOff",
             DevModeProblem.IpMismatch or DevModeProblem.IpReversed => "devGuideTitleIp",
             DevModeProblem.RestartRequired => "devGuideTitleRestart",
+            DevModeProblem.RelayDown => "devGuideTitleRelay",
             _ => "devGuideTitleReady",
         };
 
@@ -96,6 +118,8 @@ namespace Apps2Samsung.Design
                 : string.Format(localize("devGuideStatusIpMismatch"), device?.DeveloperIP, localIp),
             DevModeProblem.IpReversed => string.Format(localize("devGuideStatusIpReversed"), device?.DeveloperIP, localIp),
             DevModeProblem.RestartRequired => localize("devGuideStatusRestart"),
+            DevModeProblem.RelayDown => localize("devGuideStatusRelayDown"),
+            _ when SdbEndpoint.IsLoopback(device?.DeveloperIP) => localize("devGuideStatusReadyRelay"),
             _ => localize("devGuideStatusReady"),
         };
 
