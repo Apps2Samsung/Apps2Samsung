@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Apps2Samsung.Models;
 using Apps2Samsung.Sdb;
 
 namespace Apps2Samsung.Tests.Sdb;
@@ -78,5 +79,54 @@ public class SdbEndpointTests
         Assert.Contains("Connect from Apps2Samsung", hint);
         Assert.Contains("0.3.14", hint);
         Assert.Contains("192.168.1.50", hint);
+    }
+
+    [Fact]
+    public void ADroppedRelayHintIsNotTheRelayDownHint()
+    {
+        var dropped = SdbEndpoint.RelayDroppedHint("203.0.113.10", 26201);
+        Assert.Contains(SdbEndpoint.RelayHintMarker, dropped);
+        Assert.Contains(SdbEndpoint.RelayHintMarker, SdbEndpoint.RelayDownHint("203.0.113.10", 26201));
+        Assert.DoesNotContain("nothing answered", dropped);
+    }
+}
+
+/// <summary>A failed command through the relay says what the relay did (#961).</summary>
+public class RelayDroppedHintTests
+{
+    private const string Tv = "203.0.113.20";
+
+    private static ProcessResult Failed(string error) => new() { ExitCode = 1, Output = error, Error = error };
+
+    [Fact]
+    public void AResetThroughTheRelayGetsTheDroppedHint()
+    {
+        SdbEndpoint.Remember(Tv, "127.0.0.1");
+        var result = InProcessSdbEngine.WithRelayHint(Tv, Failed("Unable to read data from the transport connection: Connection reset by peer."));
+
+        Assert.Contains("Connection reset by peer", result.Error);
+        Assert.Contains(SdbEndpoint.RelayDroppedHint(Tv, SdbEndpoint.RelayPort(Tv)), result.Error);
+        Assert.Contains("Connect from Apps2Samsung", result.Output);
+    }
+
+    [Fact]
+    public void AFailureThatAlreadyCarriesARelayHintIsLeftAlone()
+    {
+        SdbEndpoint.Remember(Tv, "127.0.0.1");
+        var down = Failed("Connection reset by peer. " + SdbEndpoint.RelayDownHint(Tv, 26201));
+
+        Assert.Same(down, InProcessSdbEngine.WithRelayHint(Tv, down));
+    }
+
+    [Fact]
+    public void ADirectTvOrANonTransportFailureIsLeftAlone()
+    {
+        SdbEndpoint.Remember(Tv, "192.168.1.20");
+        var reset = Failed("Connection reset by peer");
+        Assert.Same(reset, InProcessSdbEngine.WithRelayHint(Tv, reset));
+
+        SdbEndpoint.Remember(Tv, "127.0.0.1");
+        var refused = Failed("install failed[118, -22]");
+        Assert.Same(refused, InProcessSdbEngine.WithRelayHint(Tv, refused));
     }
 }

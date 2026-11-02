@@ -95,7 +95,17 @@ namespace Apps2Samsung.Diagnostics
             // itself reports (failed requests, CSP violations, deprecations) — the entries that explain
             // a blank screen when the app's own logging says nothing.
             await SendCommandAsync("Runtime.enable", null, ct);
-            await SendCommandAsync("Log.enable", null, ct);
+            try
+            {
+                await SendCommandAsync("Log.enable", null, ct);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // The Log domain is newer than the Chromium on a 2017 (Tizen 3) set, whose inspector
+                // answers "'Log.enable' wasn't found" (#954). Runtime still carries console.* and
+                // exceptions there, so attach without the browser's own entries instead of failing.
+                Trace.WriteLine($"[devtools] Log domain unavailable, attaching without it: {ex.Message}");
+            }
 
             _awaitsOnlyPromises = await RejectsAwaitOnPlainValueAsync(ct);
         }
