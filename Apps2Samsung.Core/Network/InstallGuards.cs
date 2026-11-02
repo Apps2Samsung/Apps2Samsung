@@ -165,7 +165,8 @@ namespace Apps2Samsung.Services
                     InstallGuardKind.RelayNotAnswering,
                     "guardRelayTitle", "guardRelayBody",
                     "TV-Store relay is off", RelayNotAnsweringDefault,
-                    $"TV-Store relay: {device.IpAddress}:{SdbEndpoint.RelayPort(device.IpAddress)}"));
+                    $"TV-Store relay: {device.IpAddress}:{SdbEndpoint.RelayPort(device.IpAddress)}" +
+                    (string.IsNullOrWhiteSpace(device.RelayError) ? "" : $" • TV-Store says: {device.RelayError}")));
             }
 
             // 2. TV on another subnet than the local IP the user selected.

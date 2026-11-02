@@ -1,5 +1,7 @@
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
+using Apps2Samsung.Services;
 using Apps2Samsung.TvStore;
 
 namespace Apps2Samsung.Cli.Commands;
@@ -59,12 +61,18 @@ public static class TvStoreCommand
         await store.ArmAsync(pems, ct);
         var status = await store.StatusAsync(ct);
 
+        // What is left to do depends on the Host PC IP the TV has right now, as in both apps (#960).
+        var tv = await TizenDeveloperInfo.ReadAsync(new NetworkDevice { IpAddress = ip }, ct);
+        var nextStep = string.Format(
+            s.Strings.GetString(TvStoreNextSteps.MessageKey(TvStoreNextSteps.For(tv.DeveloperIP, status.OwnIp))),
+            store.Version, status.OwnIp ?? ip);
+
         return s.Out.Result(
             new { ok = true, tv = ip, duid, profile = profileName, tvStoreVersion = store.Version, tvStoreAppId = store.AppId, armed = status.Armed, ownIp = status.OwnIp },
             new[]
             {
                 $"TV-Store v{store.Version} on {ip} is armed with {profileName} (DUID {duid}).",
-                $"It signs and installs on its own from now on. On the TV, now set Developer Mode's Host PC IP to the TV's own network address ({status.OwnIp ?? ip}, not 127.0.0.1) and restart the TV.",
+                nextStep,
             });
     }
 }

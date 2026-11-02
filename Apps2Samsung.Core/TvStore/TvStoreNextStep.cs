@@ -6,9 +6,9 @@ namespace Apps2Samsung.TvStore
     /// <summary>What is left to do on the TV once TV-Store is armed (#960).</summary>
     public enum TvStoreNextStep
     {
-        /// <summary>Host PC IP still has to be changed to the TV's own address, then the TV restarted.</summary>
+        /// <summary>Host PC IP still names this device: TV-Store needs the TV's own address or 127.0.0.1, then a restart.</summary>
         ChangeHostIp,
-        /// <summary>Host PC IP is 127.0.0.1: this app goes through TV-Store's relay.</summary>
+        /// <summary>Host PC IP is 127.0.0.1: TV-Store installs over loopback and this app goes through its relay.</summary>
         UsingRelay,
         /// <summary>Host PC IP already is the address TV-Store connects on; nothing to change.</summary>
         Done,

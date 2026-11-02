@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Net.Http;
+using System.Net.NetworkInformation;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -124,6 +126,125 @@ namespace Apps2Samsung.Sdb
             $"This TV's Developer Mode points at 127.0.0.1, so Apps2Samsung connects through TV-Store's relay on port {port}, and nothing answered there. " +
             "On the TV, open TV-Store, go to Settings and turn on \"Connect from Apps2Samsung\" (TV-Store 0.3.14 or newer); " +
             $"or set Developer Mode's Host PC IP to this device's address and restart the TV. (TV {tvIp})";
+
+        /// <summary>The port TV-Store's own service listens on; <c>GET /relay</c> there tells what the relay last did (TV-Store 0.3.15+).</summary>
+        public const int StoreServicePort = 8077;
+
+        /// <summary>How far from now a failure the relay reports may be and still count as this one. Absolute, the TV's clock is not trusted.</summary>
+        public static readonly TimeSpan MaxFailureAge = TimeSpan.FromSeconds(60);
+
+        /// <summary>The relay's last failed connection: a code, the reason in words, when, and from which device.</summary>
+        public sealed record RelayFailure(string Code, string Reason, DateTimeOffset? At, string? Client);
+
+        /// <summary>
+        /// Reads <c>GET /relay</c> from TV-Store on this TV; the body, or null on a 404 (TV-Store before
+        /// 0.3.15), a timeout, or anything else. Replaceable so tests do not need a TV.
+        /// </summary>
+        internal static Func<string, CancellationToken, Task<string?>> ReadRelayReport { get; set; } = async (tvIp, ct) =>
+        {
+            try
+            {
+                using var response = await Http.GetAsync($"http://{tvIp}:{StoreServicePort}/relay", ct).ConfigureAwait(false);
+                return response.IsSuccessStatusCode ? await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false) : null;
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch
+            {
+                return null;
+            }
+        };
+
+        /// <summary>
+        /// The bind error from a <c>/relay</c> body that says the relay is switched on but not
+        /// listening (<c>enabled: true, listening: false, error</c>); null in every other case.
+        /// </summary>
+        public static string? ParseRelayBindError(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return null;
+            try
+            {
+                var relay = JsonNode.Parse(json)?["relay"];
+                if (relay?["enabled"]?.GetValue<bool>() != true || relay["listening"]?.GetValue<bool>() != false)
+                    return null;
+                var error = relay["error"]?.GetValue<string>();
+                return string.IsNullOrWhiteSpace(error) ? null : error;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>The relay's bind error for this TV, read from <c>/relay</c>; null when there is none or TV-Store cannot say.</summary>
+        public static async Task<string?> RelayBindErrorAsync(string tvIp, CancellationToken cancellationToken = default) =>
+            ParseRelayBindError(await ReadRelayReport(tvIp, cancellationToken).ConfigureAwait(false));
+
+        /// <summary>The relay's last failure from a <c>/relay</c> body; null when there is none or the body is not that JSON.</summary>
+        public static RelayFailure? ParseRelayFailure(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return null;
+            try
+            {
+                var last = JsonNode.Parse(json)?["relay"]?["lastFailure"];
+                var code = last?["code"]?.GetValue<string>();
+                var reason = last?["reason"]?.GetValue<string>();
+                if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(reason))
+                    return null;
+
+                DateTimeOffset? at = DateTimeOffset.TryParse(last?["at"]?.GetValue<string>(), out var parsed) ? parsed : null;
+                return new RelayFailure(code, reason, at, last?["client"]?.GetValue<string>());
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// What to tell the user for a failure the relay reported, or null when it is not this one: too
+        /// old, or from another device. <paramref name="localIps"/> empty means this device could not
+        /// tell its own addresses, so the client is not compared.
+        /// </summary>
+        public static string? DescribeRelayFailure(RelayFailure failure, string tvIp, DateTimeOffset now, IReadOnlyCollection<string> localIps)
+        {
+            if (failure.At is { } at && (now - at).Duration() > MaxFailureAge)
+                return null;
+            if (!string.IsNullOrEmpty(failure.Client) && localIps.Count > 0 && !localIps.Contains(failure.Client))
+                return null;
+
+            // The allow list is edited on the TV's side only (POST /settings), so say that.
+            if (string.Equals(failure.Code, "NOT_ALLOWED", StringComparison.Ordinal))
+                return $"{RelayHintMarker} refused this device: it is not on the relay's allow list. Add this device to the allow list on the TV (TV-Store's screen cannot do that yet). (TV {tvIp})";
+
+            return $"{RelayHintMarker} reports: {failure.Reason} (TV {tvIp})";
+        }
+
+        /// <summary>The relay's own reason for the failure just seen, or null when it has none (an older TV-Store, no answer, an unrelated failure).</summary>
+        public static async Task<string?> RelayReasonAsync(string tvIp, CancellationToken cancellationToken = default)
+        {
+            var failure = ParseRelayFailure(await ReadRelayReport(tvIp, cancellationToken).ConfigureAwait(false));
+            return failure is null ? null : DescribeRelayFailure(failure, tvIp, DateTimeOffset.UtcNow, LocalAddresses());
+        }
+
+        private static IReadOnlyCollection<string> LocalAddresses()
+        {
+            try
+            {
+                return NetworkInterface.GetAllNetworkInterfaces()
+                    .SelectMany(n => n.GetIPProperties().UnicastAddresses)
+                    .Select(a => a.Address.ToString())
+                    .ToList();
+            }
+            catch
+            {
+                return Array.Empty<string>();
+            }
+        }
 
         /// <summary>Wording both relay hints share, so a failure that already carries one is not given a second.</summary>
         public const string RelayHintMarker = "TV-Store's relay";
