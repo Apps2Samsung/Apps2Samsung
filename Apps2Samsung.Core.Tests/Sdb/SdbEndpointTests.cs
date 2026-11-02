@@ -1,4 +1,6 @@
 using System;
+using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using Apps2Samsung.Models;
 using Apps2Samsung.Sdb;
@@ -91,18 +93,39 @@ public class SdbEndpointTests
     }
 }
 
-/// <summary>A failed command through the relay says what the relay did (#961).</summary>
-public class RelayDroppedHintTests
+/// <summary>A failed command through the relay says what the relay did (#961, #966).</summary>
+public class RelayDroppedHintTests : IDisposable
 {
     private const string Tv = "203.0.113.20";
+    private const string Reset = "Unable to read data from the transport connection: Connection reset by peer.";
+
+    private readonly Func<string, CancellationToken, Task<string?>> _original = SdbEndpoint.ReadRelayReport;
+
+    public RelayDroppedHintTests()
+    {
+        SdbEndpoint.Remember(Tv, "127.0.0.1");
+        SdbEndpoint.ReadRelayReport = (_, _) => Task.FromResult<string?>(null);
+    }
+
+    public void Dispose() => SdbEndpoint.ReadRelayReport = _original;
 
     private static ProcessResult Failed(string error) => new() { ExitCode = 1, Output = error, Error = error };
 
+    private static string Report(string code, string reason, DateTimeOffset at, string? client = null) =>
+        new JsonObject
+        {
+            ["ok"] = true,
+            ["relay"] = new JsonObject
+            {
+                ["enabled"] = true,
+                ["lastFailure"] = new JsonObject { ["at"] = at.ToString("o"), ["client"] = client, ["code"] = code, ["reason"] = reason },
+            },
+        }.ToJsonString();
+
     [Fact]
-    public void AResetThroughTheRelayGetsTheDroppedHint()
+    public async Task AResetThroughTheRelayGetsTheGenericHintWhenTheRelayHasNoReason()
     {
-        SdbEndpoint.Remember(Tv, "127.0.0.1");
-        var result = InProcessSdbEngine.WithRelayHint(Tv, Failed("Unable to read data from the transport connection: Connection reset by peer."));
+        var result = await InProcessSdbEngine.WithRelayHintAsync(Tv, Failed(Reset));
 
         Assert.Contains("Connection reset by peer", result.Error);
         Assert.Contains(SdbEndpoint.RelayDroppedHint(Tv, SdbEndpoint.RelayPort(Tv)), result.Error);
@@ -110,23 +133,79 @@ public class RelayDroppedHintTests
     }
 
     [Fact]
-    public void AFailureThatAlreadyCarriesARelayHintIsLeftAlone()
+    public async Task TheRelaysOwnReasonReplacesTheGuess()
     {
-        SdbEndpoint.Remember(Tv, "127.0.0.1");
-        var down = Failed("Connection reset by peer. " + SdbEndpoint.RelayDownHint(Tv, 26201));
+        const string reason = "the TV's sdbd took the connection and closed it without answering: Developer Mode's Host PC IP is not 127.0.0.1";
+        SdbEndpoint.ReadRelayReport = (_, _) => Task.FromResult<string?>(Report("SDBD_DROPPED", reason, DateTimeOffset.UtcNow));
 
-        Assert.Same(down, InProcessSdbEngine.WithRelayHint(Tv, down));
+        var result = await InProcessSdbEngine.WithRelayHintAsync(Tv, Failed(Reset));
+
+        Assert.Contains($"TV-Store's relay reports: {reason}", result.Error);
+        Assert.DoesNotContain("turn \"Connect from Apps2Samsung\" off and on", result.Error);
     }
 
     [Fact]
-    public void ADirectTvOrANonTransportFailureIsLeftAlone()
+    public async Task ADeviceNotOnTheAllowListIsToldSo()
+    {
+        SdbEndpoint.ReadRelayReport = (_, _) => Task.FromResult<string?>(Report("NOT_ALLOWED", "this device is not allowed", DateTimeOffset.UtcNow));
+
+        var result = await InProcessSdbEngine.WithRelayHintAsync(Tv, Failed(Reset));
+
+        Assert.Contains("allow list", result.Error);
+        Assert.Contains(SdbEndpoint.RelayHintMarker, result.Error);
+    }
+
+    [Fact]
+    public async Task AnOldFailureOrAnotherDevicesFailureFallsBackToTheGenericHint()
+    {
+        SdbEndpoint.ReadRelayReport = (_, _) => Task.FromResult<string?>(Report("SDBD_DROPPED", "old news", DateTimeOffset.UtcNow.AddMinutes(-10)));
+        var old = await InProcessSdbEngine.WithRelayHintAsync(Tv, Failed(Reset));
+        Assert.DoesNotContain("old news", old.Error);
+        Assert.Contains("closed the connection", old.Error);
+
+        var failure = new SdbEndpoint.RelayFailure("SDBD_DROPPED", "someone else's", DateTimeOffset.UtcNow, "192.168.9.9");
+        Assert.Null(SdbEndpoint.DescribeRelayFailure(failure, Tv, DateTimeOffset.UtcNow, new[] { "192.168.1.20" }));
+        Assert.NotNull(SdbEndpoint.DescribeRelayFailure(failure with { Client = "192.168.1.20" }, Tv, DateTimeOffset.UtcNow, new[] { "192.168.1.20" }));
+        Assert.NotNull(SdbEndpoint.DescribeRelayFailure(failure, Tv, DateTimeOffset.UtcNow, Array.Empty<string>()));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("<html>404</html>")]
+    [InlineData("{\"ok\":true,\"relay\":{\"enabled\":true,\"lastFailure\":null}}")]
+    public void ABodyWithoutAFailureParsesToNothing(string? body)
+    {
+        Assert.Null(SdbEndpoint.ParseRelayFailure(body));
+    }
+
+    [Fact]
+    public async Task AReaderThatThrowsStillGivesTheGenericHint()
+    {
+        SdbEndpoint.ReadRelayReport = (_, _) => throw new InvalidOperationException("boom");
+
+        var result = await InProcessSdbEngine.WithRelayHintAsync(Tv, Failed(Reset));
+
+        Assert.Contains(SdbEndpoint.RelayDroppedHint(Tv, SdbEndpoint.RelayPort(Tv)), result.Error);
+    }
+
+    [Fact]
+    public async Task AFailureThatAlreadyCarriesARelayHintIsLeftAlone()
+    {
+        var down = Failed("Connection reset by peer. " + SdbEndpoint.RelayDownHint(Tv, 26201));
+
+        Assert.Same(down, await InProcessSdbEngine.WithRelayHintAsync(Tv, down));
+    }
+
+    [Fact]
+    public async Task ADirectTvOrANonTransportFailureIsLeftAlone()
     {
         SdbEndpoint.Remember(Tv, "192.168.1.20");
         var reset = Failed("Connection reset by peer");
-        Assert.Same(reset, InProcessSdbEngine.WithRelayHint(Tv, reset));
+        Assert.Same(reset, await InProcessSdbEngine.WithRelayHintAsync(Tv, reset));
 
         SdbEndpoint.Remember(Tv, "127.0.0.1");
         var refused = Failed("install failed[118, -22]");
-        Assert.Same(refused, InProcessSdbEngine.WithRelayHint(Tv, refused));
+        Assert.Same(refused, await InProcessSdbEngine.WithRelayHintAsync(Tv, refused));
     }
 }

@@ -325,13 +325,13 @@ namespace Apps2Samsung.Sdb
                 catch (Exception ex)
                 {
                     await slot.DropAsync();
-                    return WithRelayHint(ip, Fail(ex));
+                    return await WithRelayHintAsync(ip, Fail(ex));
                 }
 
                 if (result.ExitCode != 0)
                 {
                     await slot.DropAsync();
-                    result = WithRelayHint(ip, result);
+                    result = await WithRelayHintAsync(ip, result);
                 }
 
                 return result;
@@ -343,14 +343,26 @@ namespace Apps2Samsung.Sdb
         }
 
         // The connect to the relay worked (else ConnectWithRetryAsync already said it is down) but the
-        // relay then dropped the link: say that, not just the bare socket error.
-        internal static ProcessResult WithRelayHint(string ip, ProcessResult result)
+        // relay then dropped the link. TV-Store 0.3.15+ says why at GET /relay, which is better than
+        // any guess; an older one (404), no answer, or a failure that is not this one falls back to
+        // the generic hint.
+        internal static async Task<ProcessResult> WithRelayHintAsync(string ip, ProcessResult result)
         {
             if (!SdbEndpoint.UsesRelay(ip) || !SdbTransportErrors.IsTransient(result) ||
                 $"{result.Error} {result.Output}".Contains(SdbEndpoint.RelayHintMarker, StringComparison.Ordinal))
                 return result;
 
-            var hint = SdbEndpoint.RelayDroppedHint(ip, SdbEndpoint.RelayPort(ip));
+            string? reason = null;
+            try
+            {
+                reason = await SdbEndpoint.RelayReasonAsync(ip).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[sdb] {ip}: could not read the relay's reason: {ex.Message}");
+            }
+
+            var hint = reason ?? SdbEndpoint.RelayDroppedHint(ip, SdbEndpoint.RelayPort(ip));
             return new ProcessResult
             {
                 ExitCode = result.ExitCode,
