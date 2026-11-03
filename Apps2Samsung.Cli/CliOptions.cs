@@ -58,6 +58,8 @@ public sealed class CliOptions
     public string? ExportPath { get; set; }
     /// <summary>cert --import: read the signing certificate from this file (#921).</summary>
     public string? ImportPath { get; set; }
+    /// <summary><c>install --via tvstore</c>: send the package to TV-Store's upload page instead of SDB.</summary>
+    public bool ViaTvStore { get; set; }
 
     public bool Help { get; set; }
     public bool ShowVersion { get; set; }
@@ -143,6 +145,13 @@ public sealed class CliOptions
                 case "--duids": o.ManualDuids = Next(arg) ?? string.Empty; break;
                 case "--export": o.ExportPath = Next(arg); if (o.ExportPath is null) return (o, "--export needs a file to write"); break;
                 case "--import": o.ImportPath = Next(arg); if (o.ImportPath is null) return (o, "--import needs a file to read"); break;
+                case "--via":
+                {
+                    var v = Next(arg)?.ToLowerInvariant();
+                    if (v is "tvstore" or "tv-store") o.ViaTvStore = true;
+                    else if (v is not "sdb") return (o, "--via needs sdb or tvstore");
+                    break;
+                }
                 default: return (o, $"unknown option {arg}");
             }
         }

@@ -7,7 +7,9 @@ using Apps2Samsung.Interfaces;
 using Apps2Samsung.Install;
 using Apps2Samsung.Models;
 using Apps2Samsung.Packaging;
+using Apps2Samsung.Remote;
 using Apps2Samsung.Services;
+using Apps2Samsung.TvStore;
 
 namespace Apps2Samsung.Cli.Commands;
 
@@ -108,12 +110,33 @@ public static class InstallCommand
             LocalIps = SafeLocalIps(s),
             ConfiguredLocalIp = localIp,
         }, s.Network);
-        foreach (var g in guards.Guards)
-            s.Out.Warn($"{g.DefaultTitle}: {g.DefaultMessageWithDetail.Replace("\n\n", " ")}");
-        if (guards.Guards.Count > 0 && !s.Options.Yes)
-            return s.Out.Fail($"Stopped before installing: {guards.Guards.Count} check(s) above would most likely make it fail. Fix them, or rerun with --yes to try anyway.",
-                Output.Stopped, new { checks = guards.Guards.Select(g => new { kind = g.Kind.ToString(), g.DefaultTitle, message = g.DefaultMessageWithDetail }) });
+        var viaTvStore = s.Options.ViaTvStore;
+        if (!viaTvStore)
+        {
+            foreach (var g in guards.Guards)
+                s.Out.Warn($"{g.DefaultTitle}: {g.DefaultMessageWithDetail.Replace("\n\n", " ")}");
+        }
         var tvIp = guards.CorrectedTvIp ?? ip;
+        if (!viaTvStore && guards.Guards.Count > 0 && !s.Options.Yes)
+        {
+            // The checks are about SDB; TV-Store's upload page does not need any of it.
+            if (await TvStoreReadyAsync(s, tvIp, ct))
+            {
+                s.Out.Warn("TV-Store is running on the TV: sending the package to it instead of installing over SDB.");
+                viaTvStore = true;
+            }
+            else
+            {
+                return s.Out.Fail($"Stopped before installing: {guards.Guards.Count} check(s) above would most likely make it fail. Fix them, or rerun with --yes to try anyway.",
+                    Output.Stopped, new { checks = guards.Guards.Select(g => new { kind = g.Kind.ToString(), g.DefaultTitle, message = g.DefaultMessageWithDetail }) });
+            }
+        }
+        else if (!viaTvStore && !await SdbAnswersAsync(s, tvIp) && await TvStoreReadyAsync(s, tvIp, ct))
+        {
+            // No SDB (Host PC IP 127.0.0.1 without TV-Store's relay, say), but TV-Store is there.
+            s.Out.Warn("The TV does not answer over SDB, but TV-Store is running on it: sending the package to TV-Store instead.");
+            viaTvStore = true;
+        }
 
         // ---- Download, or a working copy of the local file ----
         // The install renames, patches and re-signs the package in place, so it never runs on the
@@ -137,6 +160,9 @@ public static class InstallCommand
 
         try
         {
+            if (viaTvStore)
+                return await SendToTvStoreAsync(s, tvIp, packagePath, appName, asset?.PackageVersion, ct);
+
             // ---- Certificate ----
             // The desktop's Automatic / Public / Partner setting, unless --partner; a package that
             // needs Partner gets it either way.
@@ -235,6 +261,95 @@ public static class InstallCommand
                 s.Out.Progress($"Kept {packagePath}");
             }
         }
+    }
+
+    /// <summary>
+    /// TV-Store's upload page answers: right away when TV-Store is running, else after opening it with
+    /// the TV's own app launch (no SDB needed) and waiting for its service. False when it is not on the TV.
+    /// </summary>
+    private static async Task<bool> TvStoreReadyAsync(CliServices s, string tvIp, CancellationToken ct)
+    {
+        if (await TvStoreUpload.IsAvailableAsync(tvIp, ct))
+            return true;
+        s.Out.Progress("Opening TV-Store on the TV…");
+        try
+        {
+            var launch = await SamsungRemoteApps.LaunchAsync(null, tvIp, TvStorePackage.AppId, cancellationToken: ct);
+            if (!launch.Succeeded || launch.NotInstalled)
+                return false;
+        }
+        catch
+        {
+            return false;
+        }
+        for (var i = 0; i < 10; i++)
+        {
+            await Task.Delay(2000, ct);
+            if (await TvStoreUpload.IsAvailableAsync(tvIp, ct))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>Does the TV answer over SDB at all (direct, or through TV-Store's relay)?</summary>
+    private static async Task<bool> SdbAnswersAsync(CliServices s, string tvIp)
+    {
+        try
+        {
+            var cap = await s.Sdb.CapabilityAsync(tvIp);
+            return cap.ExitCode == 0 && !string.IsNullOrWhiteSpace(cap.Output);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// The way in without SDB: the package, customized as for an install (the values asked before
+    /// install included) but not signed, goes to TV-Store's upload page; TV-Store is brought to the
+    /// front, and the person at the TV presses Install there (TV-Store signs it with its own
+    /// certificate). Nothing is installed from here, so the result is the file waiting on the TV.
+    /// </summary>
+    private static async Task<int> SendToTvStoreAsync(CliServices s, string tvIp, string packagePath, string appName, string? version, CancellationToken ct)
+    {
+        if (s.Options.Launch || s.Options.RemoveFirst || s.Options.NewId || s.Options.OwnId)
+            s.Out.Warn("--launch, --remove-first, --new-id and --own-id do not apply when TV-Store installs the package: ignored.");
+
+        await s.Installer.CustomizeAsync(tvIp, packagePath, line => s.Out.Progress(ProgressText.Localize(line, s.Strings.GetString)));
+
+        s.Out.Progress($"Sending {Path.GetFileName(packagePath)} to TV-Store on {tvIp}…");
+        TvStoreUploadResult upload;
+        try { upload = await TvStoreUpload.SendAsync(tvIp, packagePath, ct); }
+        catch (TvStoreUploadException ex) { return s.Out.Fail(ex.Message); }
+
+        // TV-Store asks on its own screen; bring it to the front so the question is there.
+        var opened = false;
+        try { opened = (await SamsungRemoteApps.LaunchAsync(null, tvIp, TvStorePackage.AppId, cancellationToken: ct)).Succeeded; }
+        catch { /* the file waits anyway */ }
+
+        return s.Out.Result(
+            new
+            {
+                ok = true,
+                tv = tvIp,
+                app = appName,
+                via = "tvstore",
+                state = "waiting",
+                file = upload.Name,
+                version,
+                appId = upload.AppId,
+                packageId = upload.PackageId,
+                sha256 = upload.Sha256,
+                tvStoreOpened = opened,
+            },
+            new[]
+            {
+                $"Sent {appName} to TV-Store on {tvIp}: it waits there for OK.",
+                opened
+                    ? "On the TV, TV-Store shows the file: press Install on this TV (TV-Store signs it with its certificate)."
+                    : "Open TV-Store on the TV: it shows the file, press Install on this TV (TV-Store signs it with its certificate).",
+            });
     }
 
     private static IReadOnlyCollection<string> SafeLocalIps(CliServices s)

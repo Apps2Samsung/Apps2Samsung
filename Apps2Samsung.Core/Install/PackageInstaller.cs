@@ -50,6 +50,39 @@ namespace Apps2Samsung.Install
             _patchers = patchers;
         }
 
+        /// <summary>
+        /// Per-app modifications before signing: the user's TVApp channels into a TVApp package, then
+        /// the registered patchers (the values asked before install, among others). All of it edits one
+        /// workspace, so the package is unpacked once and rezipped once however much applies to it.
+        /// Part of <see cref="InstallAsync"/>; on its own for a package that is signed and installed
+        /// elsewhere (TV-Store's upload page signs it on the TV).
+        /// </summary>
+        public async Task CustomizeAsync(string tvIp, string wgtPath, Action<string>? progress = null)
+        {
+            var channels = TvAppChannelInjector.AppliesTo(wgtPath)
+                ? TvAppChannelInjector.ParseChannelsJson(_config.TvAppChannelsJson)
+                : Array.Empty<TvChannel>();
+            var patchers = _patchers.Where(p => p.CanHandle(wgtPath)).ToList();
+            if (channels.Count == 0 && patchers.Count == 0)
+                return;
+
+            progress?.Invoke(channels.Count > 0 ? "statusApplyingTvAppChannels" : "statusApplyingCustomizations");
+
+            using var workspace = PackageWorkspace.Extract(wgtPath, tvIp);
+
+            if (channels.Count > 0)
+                await TvAppChannelInjector.InjectChannelsAsync(workspace, channels);
+
+            // A patcher that cannot continue throws (UserSettingsPatchException); a soft failure
+            // is logged by the patcher and the install goes on, as it always has on both heads.
+            foreach (var patcher in patchers)
+                await patcher.ApplyAsync(workspace);
+
+            // A patcher that matched on the file name but found nothing to do leaves the package
+            // exactly as downloaded rather than as a recompressed copy of itself.
+            workspace.RepackIfChanged();
+        }
+
         /// <param name="progress">Human-readable status lines, in order.</param>
         /// <param name="stage">The stage reached, with the TV's install percentage while it reports one.</param>
         /// <param name="ct">Honoured up to the moment the TV is touched for real (old copy removed, package
@@ -121,32 +154,7 @@ namespace Apps2Samsung.Install
                 ct.ThrowIfCancellationRequested();
             }
 
-            // Per-app modifications before signing: the user's TVApp channels into a TVApp package,
-            // then the registered patchers. All of it edits one workspace, so the package is unpacked
-            // once and rezipped once however much applies to it.
-            var channels = TvAppChannelInjector.AppliesTo(wgtPath)
-                ? TvAppChannelInjector.ParseChannelsJson(_config.TvAppChannelsJson)
-                : Array.Empty<TvChannel>();
-            var patchers = _patchers.Where(p => p.CanHandle(wgtPath)).ToList();
-
-            if (channels.Count > 0 || patchers.Count > 0)
-            {
-                progress?.Invoke(channels.Count > 0 ? "statusApplyingTvAppChannels" : "statusApplyingCustomizations");
-
-                using var workspace = PackageWorkspace.Extract(wgtPath, tvIp);
-
-                if (channels.Count > 0)
-                    await TvAppChannelInjector.InjectChannelsAsync(workspace, channels);
-
-                // A patcher that cannot continue throws (UserSettingsPatchException); a soft failure
-                // is logged by the patcher and the install goes on, as it always has on both heads.
-                foreach (var patcher in patchers)
-                    await patcher.ApplyAsync(workspace);
-
-                // A patcher that matched on the file name but found nothing to do leaves the package
-                // exactly as downloaded rather than as a recompressed copy of itself.
-                workspace.RepackIfChanged();
-            }
+            await CustomizeAsync(tvIp, wgtPath, progress);
 
             // The certificate must already be inside its validity window: Tizen checks the signature
             // against the TV's clock and refuses one whose start date is still in the future

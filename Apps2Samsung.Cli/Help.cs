@@ -71,6 +71,9 @@ public static class Help
           --launch              open the app on the TV afterwards
           --remove-first        uninstall the installed copy before installing (erases its data on the TV)
           --keep                keep the downloaded package in the cache folder
+          --via tvstore         send the package to TV-Store's upload page instead of installing over SDB:
+                                TV-Store comes to the front and asks on the TV, and signs it itself
+                                (done by itself when SDB does not answer and TV-Store is running)
           -y, --yes             continue past pre-install warnings
           --allow-remove        allow removing the installed copy when only a remove-and-reinstall gets
                                 the new one on (erases the app's data on the TV)
@@ -91,6 +94,11 @@ public static class Help
         Pre-install checks (Developer Mode off, the TV's Developer IP pointing elsewhere, another subnet)
         stop the install with exit code 3 unless --yes is given; they are warnings, a TV can misreport.
         A local file is copied first: your own .wgt/.tpk is never renamed, patched or re-signed.
+
+        A TV that SDB cannot reach (Host PC IP 127.0.0.1 without TV-Store's relay, or the checks above)
+        but that runs TV-Store gets the package through TV-Store's upload page instead: customized as
+        for an install (--set values included), not signed here; nothing is installed until Install is
+        pressed on the TV, so the result is the file waiting there (exit 0, "via": "tvstore").
         """;
 
     private const string Cert = """
