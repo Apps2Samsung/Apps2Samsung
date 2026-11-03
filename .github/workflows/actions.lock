@@ -45,6 +45,9 @@ workflows:
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
         - 'actions/upload-artifact@v7.0.2'
+    '.github/workflows/plumber.yml':
+        - 'actions/checkout@v5.0.1'
+        - 'getplumber/plumber@v0.7.18'
     '.github/workflows/pr-build.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
@@ -76,6 +79,11 @@ workflows:
     '.github/workflows/verify-lockfile.yml':
         - 'actions/checkout@v7.0.1'
 dependencies:
+    'actions/checkout@v5.0.1':
+        ref: 'v5.0.1'
+        commit: 'sha1-93cb6efe18208431cddfb8368fd83d5badbf9bfd'
+        owner_id: 44036562
+        repo_id: 197814629
     'actions/checkout@v7.0.1':
         ref: 'v7.0.1'
         commit: 'sha1-3d3c42e5aac5ba805825da76410c181273ba90b1'
@@ -106,6 +114,11 @@ dependencies:
         commit: 'sha1-4391f3da665fdf50b6810c1a66712fb9ba21aa93'
         owner_id: 44036562
         repo_id: 200437066
+    'actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9':
+        ref: 'v7.0.2'
+        commit: 'sha1-cf430e030ddbb5b0abf93d22962f4752f3646cd9'
+        owner_id: 44036562
+        repo_id: 192625955
     'actions/upload-artifact@v7.0.2':
         ref: 'v7.0.2'
         commit: 'sha1-cf430e030ddbb5b0abf93d22962f4752f3646cd9'
@@ -121,6 +134,19 @@ dependencies:
         commit: 'sha1-5b9790df740c85af5412a3a3a91b24988d5d324f'
         owner_id: 861398
         repo_id: 258521306
+    'getplumber/plumber@v0.7.18':
+        ref: 'v0.7.18'
+        commit: 'sha1-ebc213aa45dccd233ce5c2630f0aafa8e8d650c5'
+        owner_id: 255179076
+        repo_id: 1137327132
+        uses:
+            - 'actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9'
+            - 'github/codeql-action@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee'
+    'github/codeql-action@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee':
+        ref: 'v4.39.0'
+        commit: 'sha1-6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee'
+        owner_id: 9919
+        repo_id: 259445878
     'ksxgithub/github-actions-deploy-aur@v4.2.0':
         ref: 'v4.2.0'
         commit: 'sha1-084b0d9b15415bf9cdb65d44dad1efe37a354050'

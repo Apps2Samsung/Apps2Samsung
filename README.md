@@ -13,6 +13,9 @@
   <a href="https://discord.gg/7mga3zh8Cv">
     <img src="https://img.shields.io/badge/Discord-Community-7289DA?style=for-the-badge&logo=discord&logoColor=white" />
   </a>
+  <a href="https://score.getplumber.io/github.com/Apps2Samsung/Apps2Samsung">
+    <img src="https://score.getplumber.io/github.com/Apps2Samsung/Apps2Samsung.svg" alt="Plumber Score" />
+  </a>
 </p>
 
 <p align="center">
