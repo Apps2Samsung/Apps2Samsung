@@ -30,6 +30,8 @@ jobs:
     steps:
       # Checks out the base branch, not the pull request - the script that runs is this repo's.
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v7
         with:
           python-version: '3.x'

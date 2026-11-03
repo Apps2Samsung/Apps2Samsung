@@ -51,6 +51,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          persist-credentials: false
           fetch-depth: 0
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
 
@@ -269,6 +270,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          persist-credentials: false
           fetch-depth: 0
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
 
@@ -319,6 +321,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          persist-credentials: false
           fetch-depth: 0
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
 
@@ -474,6 +477,7 @@ jobs:
       # while every other job built the requested ref.
       - uses: actions/checkout@v7
         with:
+          persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
 
       # ---------------- ANDROID versionCode ----------------
@@ -581,6 +585,7 @@ jobs:
       # The explicit ref, for the same reason as in android-apk.
       - uses: actions/checkout@v7
         with:
+          persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
 
       - name: Build IPA
@@ -620,6 +625,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
 
       # The exact files the PKGBUILD points users at, fetched from where they will fetch them - not

@@ -204,6 +204,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       # Fresh checkout: stamp the beta marker again (see the beta-release job).
       - name: Stamp beta version
@@ -255,6 +257,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       # Fresh checkout: stamp the beta marker again (see the beta-release job).
       - name: Stamp beta version
@@ -419,6 +423,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       # ---------------- ANDROID versionCode ----------------
       # One past the highest versionCode published on either channel, so both
@@ -529,6 +535,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       # Fresh checkout: stamp the beta marker again (see the beta-release job). The IPA's shown
       # version comes from the version input below, not from this file.

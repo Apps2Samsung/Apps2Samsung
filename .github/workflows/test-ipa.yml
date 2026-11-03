@@ -30,6 +30,8 @@ jobs:
     runs-on: xcode-27
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Extract version
         shell: bash
