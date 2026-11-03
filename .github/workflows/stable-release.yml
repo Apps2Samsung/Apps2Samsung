@@ -166,6 +166,7 @@ jobs:
             echo "| 🍎 macOS (.app + dmg) | ✅ Stable | ARM64 + Intel |"
             echo "| 🍎 macOS (CLI) | ✅ Stable | Per-arch tar.gz |"
             echo "| 🐧 Linux | ✅ Stable | x64 + ARM64 (tar.gz / .deb) |"
+            echo "| 🤖 Android Termux (CLI) | ✅ Stable | linux-bionic-arm64 tar.gz, needs \`pkg install openssl\` |"
             echo "| 🪟 Windows | ✅ Stable | CI-built |"
             echo "| 🤖 Android (.apk) | ✅ Stable | Sideload; phone as installer head |"
             if [ "${{ vars.IOS_PUBLISH }}" = "true" ]; then
@@ -285,7 +286,9 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist
-          for RID in win-x64 win-arm64 linux-x64 linux-arm64 osx-x64 osx-arm64; do
+          # linux-bionic-arm64 is the Android libc build: it runs in Termux on a phone without a Linux
+          # distribution underneath (#975). Needs Termux's openssl package for TLS and certificates.
+          for RID in win-x64 win-arm64 linux-x64 linux-arm64 linux-bionic-arm64 osx-x64 osx-arm64; do
             dotnet publish Apps2Samsung.Cli/Apps2Samsung.Cli.csproj \
               -c Release -r "$RID" -p:SelfContained=true -p:PublishSingleFile=true \
               -p:DebugType=none -p:Version="$VERSION" -o "publish/cli/$RID"
