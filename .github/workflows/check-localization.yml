@@ -16,6 +16,9 @@ on:
       # Every language file, not just en.json: check D compares the translations against it.
       - 'Apps2Samsung.Core/Localization/Languages/*.json'
 
+permissions:
+  contents: read
+
 jobs:
   check-localization:
     runs-on: ubuntu-latest

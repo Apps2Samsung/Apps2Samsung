@@ -41,6 +41,9 @@ concurrency:
   group: crowdin-sync
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   fix:
     runs-on: ubuntu-latest

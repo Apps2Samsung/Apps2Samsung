@@ -29,6 +29,9 @@ on:
       - '.github/workflows/plugin-es2015-check.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   upstream:
     name: Upstream plugins transpile to ES2015
