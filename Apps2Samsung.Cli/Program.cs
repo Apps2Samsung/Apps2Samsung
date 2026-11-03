@@ -37,6 +37,7 @@ try
         "catalog" or "search" or "apps" => await CatalogCommand.RunAsync(services, cancel.Token),
         "installed" => await InstalledCommand.RunAsync(services, cancel.Token),
         "install" => await InstallCommand.RunAsync(services, cancel.Token),
+        "sign" => await SignCommand.RunAsync(services, cancel.Token),
         "uninstall" or "remove" => await UninstallCommand.RunAsync(services, cancel.Token),
         "launch" or "open" => await LaunchCommand.RunAsync(services, cancel.Token),
         "cert" or "certificate" => await CertCommand.RunAsync(services, cancel.Token),
