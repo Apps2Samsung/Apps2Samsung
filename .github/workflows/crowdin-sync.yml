@@ -62,7 +62,7 @@ jobs:
             echo "configured=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         if: steps.creds.outputs.configured == 'true'
 
       # The action reuses l10n_beta when it exists and stacks commits on it, while every translations
@@ -78,7 +78,7 @@ jobs:
 
       - name: Upload sources and open a translations PR
         if: steps.creds.outputs.configured == 'true'
-        uses: crowdin/github-action@v3
+        uses: crowdin/github-action@v3.5.1
         with:
           # The strings live under Crowdin's own "beta" branch (its file is /beta/...en.json), while
           # crowdin.yml addresses the repo root. Without naming the branch the CLI compares the two

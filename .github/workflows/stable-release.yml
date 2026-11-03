@@ -49,7 +49,7 @@ jobs:
       VERSION_TAG: ${{ steps.version.outputs.VERSION_TAG }}
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -180,7 +180,7 @@ jobs:
             echo "Antivirus warnings may occur and are likely **false positives**."
           } > RELEASE_NOTES.md
 
-      - uses: actions/setup-dotnet@v6
+      - uses: actions/setup-dotnet@v6.1.0
         with:
           dotnet-version: 10.0.x
 
@@ -224,7 +224,7 @@ jobs:
 
       # ---------------- CREATE/UPDATE STABLE RELEASE ----------------
       - name: Create/Update GitHub Release (stable)
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v3.0.3
         with:
           tag_name: ${{ env.VERSION_TAG }}
           target_commitish: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.event.pull_request.merge_commit_sha }}
@@ -268,13 +268,13 @@ jobs:
     if: needs.stable-release.result == 'success'
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
 
-      - uses: actions/setup-dotnet@v6
+      - uses: actions/setup-dotnet@v6.1.0
         with:
           dotnet-version: 10.0.x
 
@@ -302,7 +302,7 @@ jobs:
           done
           ls -l dist
 
-      - uses: softprops/action-gh-release@v3
+      - uses: softprops/action-gh-release@v3.0.3
         with:
           tag_name: ${{ needs.stable-release.outputs.VERSION_TAG }}
           name: ${{ needs.stable-release.outputs.VERSION_TAG }}
@@ -319,13 +319,13 @@ jobs:
     if: needs.stable-release.result == 'success'
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
 
-      - uses: actions/setup-dotnet@v6
+      - uses: actions/setup-dotnet@v6.1.0
         with:
           dotnet-version: 10.0.x
 
@@ -449,7 +449,7 @@ jobs:
 
       # ---------------- UPLOAD MACOS ASSETS TO SAME STABLE RELEASE ----------------
       - name: Upload macOS assets to GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v3.0.3
         with:
           tag_name: ${{ needs.stable-release.outputs.VERSION_TAG }}
           name: ${{ needs.stable-release.outputs.VERSION_TAG }}
@@ -475,7 +475,7 @@ jobs:
     steps:
       # The explicit ref matters: without it a dispatched release built master's APK
       # while every other job built the requested ref.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
@@ -495,11 +495,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: .github/scripts/android-version-code.sh compute stable
 
-      - uses: actions/setup-dotnet@v6
+      - uses: actions/setup-dotnet@v6.1.0
         with:
           dotnet-version: 10.0.x
 
-      - uses: actions/setup-java@v6
+      - uses: actions/setup-java@v6.1.0
         with:
           distribution: temurin
           java-version: '17'
@@ -560,7 +560,7 @@ jobs:
           .github/scripts/android-version-code.sh verify \
             "dist/${PRODUCT_NAME}-${{ needs.stable-release.outputs.VERSION_TAG }}-android.apk"
 
-      - uses: softprops/action-gh-release@v3
+      - uses: softprops/action-gh-release@v3.0.3
         with:
           tag_name: ${{ needs.stable-release.outputs.VERSION_TAG }}
           name: ${{ needs.stable-release.outputs.VERSION_TAG }}
@@ -583,19 +583,19 @@ jobs:
 
     steps:
       # The explicit ref, for the same reason as in android-apk.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
 
       - name: Build IPA
-        uses: ./.github/actions/ios-ipa
+        uses: $/.github/actions/ios-ipa
         with:
           version: ${{ needs.stable-release.outputs.VERSION }}
           build-number: ${{ needs.android-apk.outputs.VERSION_CODE }}
           output: dist/${{ env.PRODUCT_NAME }}-${{ needs.stable-release.outputs.VERSION_TAG }}-ios-unsigned.ipa
 
-      - uses: softprops/action-gh-release@v3
+      - uses: softprops/action-gh-release@v3.0.3
         with:
           tag_name: ${{ needs.stable-release.outputs.VERSION_TAG }}
           name: ${{ needs.stable-release.outputs.VERSION_TAG }}
@@ -623,7 +623,7 @@ jobs:
       VERSION_TAG: ${{ needs.stable-release.outputs.VERSION_TAG }}
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}

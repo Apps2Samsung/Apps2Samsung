@@ -18,7 +18,7 @@ jobs:
   check-logs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/github-script@v9
+      - uses: actions/github-script@v9.0.0
         with:
           script: |
             const LABEL = 'Missing Log Files';
