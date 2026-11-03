@@ -1,0 +1,36 @@
+name: Verify workflow lockfile
+
+# .github/workflows/actions.lock (#977) records the commit every action in these workflows runs at.
+# A workflow listed there is refused at startup when it uses an action the lockfile does not cover,
+# so a hand-edited `uses:` version without a matching `gh actions-lock` run only fails on the first
+# run after the merge. This check fails the pull request instead: `--verify` confirms every `uses:`
+# has an entry and that each locked commit is still what its recorded tag resolves to upstream.
+# Dependabot regenerates the entry in its own bump PRs, so those pass without an extra step.
+#
+# No `paths:` filter on purpose, like pr-build.yml: a check that never runs is never reported, and a
+# required check that is never reported blocks the PR forever. The job takes well under a minute.
+#
+# When it fails: `gh extension install github/gh-actions-lock`, then `gh actions-lock` in the
+# checkout, and commit the updated lockfile.
+
+on:
+  pull_request:
+  push:
+    branches: [beta]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-lockfile:
+    name: Lockfile in sync
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - run: gh extension install github/gh-actions-lock --pin v0.4.1
+      - run: gh actions-lock --verify
