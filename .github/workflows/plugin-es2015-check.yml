@@ -29,12 +29,17 @@ on:
       - '.github/workflows/plugin-es2015-check.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   upstream:
     name: Upstream plugins transpile to ES2015
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install acorn
         working-directory: tools/plugin-es2015-check
@@ -51,9 +56,11 @@ jobs:
     name: Plugin patch rig
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-dotnet@v6
+      - uses: actions/setup-dotnet@v6.1.0
         with:
           dotnet-version: 10.0.x
 
@@ -74,7 +81,7 @@ jobs:
       # Per case: plugin_cache, the injected tags, the patcher's log and every request it made.
       - name: Upload the rig output
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: plugin-patch-rig
           path: ${{ runner.temp }}/rig-out

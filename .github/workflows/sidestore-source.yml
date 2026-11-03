@@ -46,7 +46,7 @@ jobs:
           fi
 
       # Checked out with the PAT so the push at the end uses it too (see fdroid-repo.yml).
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           ref: beta
           fetch-depth: 0
