@@ -38,18 +38,30 @@ public sealed class CertificateProvisioner
 	/// sign-in, with the level and the TV's DUID: <see cref="CertificateFlow"/> shows the certificate
 	/// sheet here (the DUID tells an imported certificate's coverage, #921).</param>
 	/// <param name="stage">The certificate sheet's step, as the certificate service moves on.</param>
+	/// <param name="knownDuid">The TV's DUID when the caller has it already; null reads it over SDB.</param>
 	public async Task<Result> ProvisionAsync(
 		string tvIp,
 		bool requirePartner = false,
 		Action<string>? progress = null,
 		Func<CertificatePrivilegeLevel, string, CancellationToken, Task>? beforeLoginAsync = null,
 		Action<CertificateStage>? stage = null,
-		CancellationToken ct = default)
+		CancellationToken ct = default,
+		string? knownDuid = null)
 	{
-		progress?.Invoke(L10n.Get("statusReadingTvDuid"));
-		// Retry the read: old/slow TVs often hand back an empty reply or drop the connection mid-command
-		// on the first try, then answer on a retry. A validated DUID is returned; anything else throws.
-		var duid = await TizenDuidReader.ReadAsync(_sdb, tvIp, progress: progress);
+		string duid;
+		if (knownDuid is not null)
+		{
+			// The caller names the TV (a manual DUID from Settings, #979): nothing is read over SDB,
+			// so this works while the TV's Host PC IP points elsewhere.
+			duid = knownDuid;
+		}
+		else
+		{
+			progress?.Invoke(L10n.Get("statusReadingTvDuid"));
+			// Retry the read: old/slow TVs often hand back an empty reply or drop the connection mid-command
+			// on the first try, then answer on a retry. A validated DUID is returned; anything else throws.
+			duid = await TizenDuidReader.ReadAsync(_sdb, tvIp, progress: progress);
+		}
 
 		var caPath = await MaterializeCaAsync();
 

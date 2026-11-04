@@ -14,6 +14,8 @@ using Apps2Samsung.Mobile.Controls;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Packaging;
+using Apps2Samsung.TvStore;
+using Apps2Samsung.Localization;
 using Apps2Samsung.Update;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Storage;
@@ -641,14 +643,38 @@ public partial class InstallerPage : ContentPage
 		};
 
 		// Arm TV-Store (#844) hands over the profile an install would sign with: the same
-		// certificate flow, sheet included, when none covers this TV yet.
-		Func<Action<string>, Task<Apps2Samsung.Install.SigningProfile?>> signingProfile = async report =>
+		// certificate flow, sheet included, when none covers this TV yet. Sign a package (#979) asks
+		// the same, Partner when the package needs it, and falls back to the first manual DUID from
+		// Settings when the TV cannot be read over SDB (a Host PC IP that points elsewhere), as the
+		// CLI's --duids does.
+		Func<bool, Action<string>, Task<Apps2Samsung.Install.SigningProfile?>> signingProfile = async (requirePartner, report) =>
 		{
-			var (cert, _) = await _certFlow.RunAsync(Navigation, tvIp, label, false, report, new CancellationTokenSource());
+			string? duid = null;
+			try
+			{
+				report(L10n.Get("statusReadingTvDuid"));
+				duid = await TizenDuidReader.ReadAsync(_sdb, tvIp, progress: report);
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Trace.WriteLine($"[toolbox] DUID over SDB failed, trying the manual DUIDs: {ex.Message}");
+				duid = MobileSettings.ParseDuids().FirstOrDefault();
+				if (duid is null)
+				{
+					report(L10n.Get("lblToolboxPackageNoDuid"));
+					return null;
+				}
+			}
+			var (cert, _) = await _certFlow.RunAsync(Navigation, tvIp, label, requirePartner, report, new CancellationTokenSource(), duid);
 			return new Apps2Samsung.Install.SigningProfile(cert.AuthorP12, cert.DistributorP12, cert.Password, cert.ProfileDir);
 		};
 
-		await Navigation.PushAsync(new TvToolboxPage(_sdb, tvIp, label, installWgt, signingProfile));
+		// The Package file section (#979): the same picker as "Your own package" (a cache copy, never
+		// the user's file) and the install's customization step.
+		Func<Task<string?>> pickPackage = PickCustomWgtAsync;
+		Func<string, string, Action<string>?, Task> customize = (ip, path, report) => _installer.CustomizeAsync(ip, path, report);
+
+		await Navigation.PushAsync(new TvToolboxPage(_sdb, tvIp, label, installWgt, signingProfile, pickPackage, customize));
 	}
 
 	// Downloads (or takes the picked file), provisions the certificate, installs on the selected
@@ -719,6 +745,25 @@ public partial class InstallerPage : ContentPage
 				ConfiguredLocalIp = NetworkInfo.LocalIpFor(tv.Ip),
 			},
 			_networkService);
+
+		// The checks are about the developer connection; TV-Store's upload page needs none of it
+		// (#979). A TV the checks would stop that runs TV-Store gets the offer to take the package
+		// that way instead: TV-Store asks on the screen and signs it itself. Only when TV-Store is
+		// already up: nothing is started on the TV uninvited (the toolbox's button does that).
+		var offerTvIp = guardResult.CorrectedTvIp ?? tvIp;
+		if (guardResult.Guards.Count > 0 && await TvStoreUpload.IsAvailableAsync(offerTvIp))
+		{
+			var detail = string.Join("\n", guardResult.Guards.Select(g => L10n.Get(g.TitleKey)));
+			if (await DisplayAlert(
+					L10n.Get("tvStoreOfferTitle"),
+					$"{L10n.Get("tvStoreOfferBody")}\n\n{detail}",
+					L10n.Get("keySendToTvStore"),
+					L10n.Get("keyUseDeveloperConnection")))
+			{
+				await SendToTvStoreAsync(release, asset, customPath, offerTvIp);
+				return;
+			}
+		}
 
 		// The Developer-Mode guards share one answer: the guide, which re-checks the TV while it is
 		// open and turns into Continue once it is fixed. The rest stay a Continue/Stop question.
@@ -897,6 +942,97 @@ public partial class InstallerPage : ContentPage
 			_busy = false;
 			_tv.IsLocked = false;
 			// A failed install leaves the sheet up with the reason and Close; it stops listening here.
+			_progress = null;
+			UpdateTvCard();
+		}
+	}
+
+	/// <summary>
+	/// The way in without the developer connection (#979): the package, customized as an install
+	/// would (the values asked before install included) but not signed, goes to TV-Store's upload
+	/// page on the TV. TV-Store comes to the front and asks there; the install happens when Install
+	/// is pressed on the TV, so the sheet closes on "waiting on the TV", not on "installed".
+	/// </summary>
+	private async Task SendToTvStoreAsync(GitHubRelease? release, Asset? asset, string? customPath, string tvIp)
+	{
+		var custom = customPath is not null;
+
+		// A package that gains root: what that means for this TV, before anything else.
+		if (!custom && release!.IsRoot && !await DisplayAlert(
+				string.Format(L10n.Get("lblRootConfirmTitle"), release.Name),
+				string.Format(L10n.Get("lblRootConfirmBody"), release.Name),
+				L10n.Get("lblRootConfirmYes"), L10n.Get("lblCancel")))
+		{
+			SetStatus(L10n.Get("statusInstallCancelled"));
+			return;
+		}
+
+		// A community package that needs the user's own values (#791): the sheet first.
+		if (!custom && !await CollectUserSettingsAsync(release!, asset!))
+			return;
+
+		var appName = custom ? Path.GetFileNameWithoutExtension(customPath!) : release!.Name;
+
+		_busy = true;
+		_installFailed = false;
+		_tv.IsLocked = true;
+		UpdateTvCard();
+		var cancel = new CancellationTokenSource();
+		_progress = new InstallProgressPage(appName, custom ? null : release!.Category, _tv.DisplayName, false);
+		_progress.CancelRequested += (_, _) => cancel.Cancel();
+		await Navigation.PushModalAsync(_progress);
+		DeviceDisplay.Current.KeepScreenOn = true;
+		string? wgtPath = null;
+		bool downloading = false;
+		try
+		{
+			SetStep(InstallStep.Download);
+			downloading = !custom;
+			wgtPath = custom ? customPath! : await _installer.DownloadAsync(asset!.DownloadUrl, SetStatus, cancel.Token);
+			downloading = false;
+			cancel.Token.ThrowIfCancellationRequested();
+
+			// Core reports en.json keys; sentences here.
+			Action<string> report = line => SetStatus(ProgressText.Localize(line, L10n.Get));
+			await _installer.CustomizeAsync(tvIp, wgtPath, report);
+			SetStep(InstallStep.Install);
+			var sent = await TvStoreHandoff.SendAsync(tvIp, wgtPath, report, cancel.Token);
+			var body = string.Format(L10n.Get(sent.TvStoreOpened ? "tvStoreSentBody" : "tvStoreSentBodyClosed"), sent.Upload.Name);
+			SetStatus("✓ " + body);
+			await CloseProgressAsync();
+			await DisplayAlert(L10n.Get("tvStoreSentTitle"), body, L10n.Get("lblOk"));
+		}
+		catch (OperationCanceledException) when (cancel.IsCancellationRequested)
+		{
+			SetStatus(L10n.Get("statusInstallCancelled"));
+			await CloseProgressAsync();
+		}
+		catch (Exception ex) when (downloading && NetworkFailure.LocalizationKey(ex) is { } networkKey)
+		{
+			System.Diagnostics.Trace.WriteLine($"[installer] Download failed: {ex}");
+			FailProgress($"{L10n.Get("DownloadFailed")} {L10n.Get(networkKey)}");
+		}
+		catch (UserSettingsPatchException ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[UserSettings] {ex.Message}");
+			FailProgress(ex.Find is null
+				? string.Format(L10n.Get("statusUserSettingsFileMissing"), ex.PackageFile, ex.File)
+				: string.Format(L10n.Get("statusUserSettingsFindMissing"), ex.PackageFile, ex.Find, ex.File));
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[installer] Hand-off to TV-Store failed: {ex}");
+			FailProgress(string.Format(L10n.Get("lblToolboxTvStoreFailed"), ex.Message));
+		}
+		finally
+		{
+			DeviceDisplay.Current.KeepScreenOn = false;
+			if (wgtPath is not null && !MobileSettings.KeepWgtFile)
+			{
+				try { File.Delete(wgtPath); } catch { /* best-effort */ }
+			}
+			_busy = false;
+			_tv.IsLocked = false;
 			_progress = null;
 			UpdateTvCard();
 		}

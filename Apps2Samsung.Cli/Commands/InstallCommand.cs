@@ -263,33 +263,9 @@ public static class InstallCommand
         }
     }
 
-    /// <summary>
-    /// TV-Store's upload page answers: right away when TV-Store is running, else after opening it with
-    /// the TV's own app launch (no SDB needed) and waiting for its service. False when it is not on the TV.
-    /// </summary>
-    private static async Task<bool> TvStoreReadyAsync(CliServices s, string tvIp, CancellationToken ct)
-    {
-        if (await TvStoreUpload.IsAvailableAsync(tvIp, ct))
-            return true;
-        s.Out.Progress("Opening TV-Store on the TV…");
-        try
-        {
-            var launch = await SamsungRemoteApps.LaunchAsync(null, tvIp, TvStorePackage.AppId, cancellationToken: ct);
-            if (!launch.Succeeded || launch.NotInstalled)
-                return false;
-        }
-        catch
-        {
-            return false;
-        }
-        for (var i = 0; i < 10; i++)
-        {
-            await Task.Delay(2000, ct);
-            if (await TvStoreUpload.IsAvailableAsync(tvIp, ct))
-                return true;
-        }
-        return false;
-    }
+    /// <summary>TV-Store's upload page answers, opening TV-Store on the TV first when it has to (Core).</summary>
+    private static Task<bool> TvStoreReadyAsync(CliServices s, string tvIp, CancellationToken ct) =>
+        TvStoreHandoff.EnsureRunningAsync(tvIp, line => s.Out.Progress(ProgressText.Localize(line, s.Strings.GetString)), ct);
 
     /// <summary>Does the TV answer over SDB at all (direct, or through TV-Store's relay)?</summary>
     private static async Task<bool> SdbAnswersAsync(CliServices s, string tvIp)
@@ -318,15 +294,11 @@ public static class InstallCommand
 
         await s.Installer.CustomizeAsync(tvIp, packagePath, line => s.Out.Progress(ProgressText.Localize(line, s.Strings.GetString)));
 
-        s.Out.Progress($"Sending {Path.GetFileName(packagePath)} to TV-Store on {tvIp}…");
-        TvStoreUploadResult upload;
-        try { upload = await TvStoreUpload.SendAsync(tvIp, packagePath, ct); }
+        TvStoreHandoffResult sent;
+        try { sent = await TvStoreHandoff.SendAsync(tvIp, packagePath, line => s.Out.Progress(ProgressText.Localize(line, s.Strings.GetString)), ct); }
         catch (TvStoreUploadException ex) { return s.Out.Fail(ex.Message); }
-
-        // TV-Store asks on its own screen; bring it to the front so the question is there.
-        var opened = false;
-        try { opened = (await SamsungRemoteApps.LaunchAsync(null, tvIp, TvStorePackage.AppId, cancellationToken: ct)).Succeeded; }
-        catch { /* the file waits anyway */ }
+        var upload = sent.Upload;
+        var opened = sent.TvStoreOpened;
 
         return s.Out.Result(
             new

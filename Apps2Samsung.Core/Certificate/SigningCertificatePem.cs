@@ -125,15 +125,19 @@ namespace Apps2Samsung.Certificate
 
         /// <summary>
         /// The signing profile under <paramref name="certificateStore"/> whose distributor certificate
-        /// covers <paramref name="duid"/>: Public first, then Partner. Null when neither does, which
-        /// means nothing has been installed on that TV from this machine yet (an install makes one).
+        /// covers <paramref name="duid"/>: Public first, then Partner, unless <paramref name="preferred"/>
+        /// names the level to look at first (a package that needs Partner, #979). Null when neither
+        /// does, which means nothing has been installed on that TV from this machine yet (an install makes one).
         /// </summary>
-        public static SigningProfile? FindProfileCovering(string certificateStore, string duid)
+        public static SigningProfile? FindProfileCovering(string certificateStore, string duid, CertificatePrivilegeLevel? preferred = null)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(certificateStore);
             ArgumentException.ThrowIfNullOrWhiteSpace(duid);
 
-            foreach (var level in new[] { CertificatePrivilegeLevel.Public, CertificatePrivilegeLevel.Partner })
+            var order = preferred == CertificatePrivilegeLevel.Partner
+                ? new[] { CertificatePrivilegeLevel.Partner, CertificatePrivilegeLevel.Public }
+                : new[] { CertificatePrivilegeLevel.Public, CertificatePrivilegeLevel.Partner };
+            foreach (var level in order)
             {
                 var dir = Path.Combine(certificateStore, CertificateProvisioningService.ProfileName(level));
                 if (!CertificateProvisioningService.HasUsableAuthorCert(dir))

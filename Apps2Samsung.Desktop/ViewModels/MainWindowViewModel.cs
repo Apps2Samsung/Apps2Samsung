@@ -1462,15 +1462,61 @@ namespace Apps2Samsung.ViewModels
                 // Arm TV-Store (#844) hands over the profile an install would sign with: made or
                 // extended here first (the certificate sheet when a sign-in is needed), then read back
                 // from the store for the TV's DUID.
-                Func<Action<string>, Task<Apps2Samsung.Install.SigningProfile?>> signingProfile = async report =>
+                // Sign a package… (#979) asks the same, Partner when the package needs it, and falls
+                // back to the first manual DUID from Settings when the TV cannot be read over SDB (a
+                // Host PC IP that points elsewhere), as the CLI's --duids does.
+                Func<bool, Action<string>, Task<Apps2Samsung.Install.SigningProfile?>> signingProfile = async (requirePartner, report) =>
                 {
-                    using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-                    if (await _tizenInstaller.PrepareCertificateAsync(tvIp, timeout.Token) == CertificatePreparation.Failed)
-                        return null;
+                    var preferred = requirePartner ? Apps2Samsung.Interfaces.CertificatePrivilegeLevel.Partner : (Apps2Samsung.Interfaces.CertificatePrivilegeLevel?)null;
                     report(L("lblToolboxTvStoreReadingDuid"));
-                    var duid = await Apps2Samsung.Sdb.TizenDuidReader.ReadAsync(_sdbEngine, tvIp, progress: report);
-                    return Apps2Samsung.Certificate.SigningCertificatePem.FindProfileCovering(AppSettings.CertificatePath, duid);
+                    string duid;
+                    try
+                    {
+                        duid = await Apps2Samsung.Sdb.TizenDuidReader.ReadAsync(_sdbEngine, tvIp, progress: report);
+                    }
+                    catch (Exception ex)
+                    {
+                        // No developer connection: a profile that already lists the manual DUID (made
+                        // from Settings, where the manual DUIDs go into the certificate) is what there is.
+                        Trace.WriteLine($"[toolbox] DUID over SDB failed, trying the manual DUIDs: {ex.Message}");
+                        var manual = AppSettings.Default.ManualDuids
+                            .Split(new[] { ',', ';', ' ', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                            .FirstOrDefault();
+                        if (manual is null)
+                        {
+                            report(L("lblToolboxPackageNoDuid"));
+                            return null;
+                        }
+                        return Apps2Samsung.Certificate.SigningCertificatePem.FindProfileCovering(AppSettings.CertificatePath, manual, preferred);
+                    }
+                    using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                    if (await _tizenInstaller.PrepareCertificateAsync(tvIp, timeout.Token, requirePartner) == CertificatePreparation.Failed)
+                        return null;
+                    return Apps2Samsung.Certificate.SigningCertificatePem.FindProfileCovering(AppSettings.CertificatePath, duid, preferred);
                 };
+
+                // The Package file section's pickers (this window's storage provider) and the
+                // install's customization step (#979).
+                var storage = desktop.MainWindow?.StorageProvider;
+                var packageHooks = storage is null ? null : new TvToolboxPackageHooks(
+                    PickPackage: async () =>
+                    {
+                        var picked = await _fileHelper.BrowseWgtFilesAsync(storage);
+                        return picked?.Split(';', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+                    },
+                    PickSavePath: async suggested =>
+                    {
+                        var ext = Path.GetExtension(suggested).TrimStart('.');
+                        var target = await storage.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
+                        {
+                            Title = L("lblSignedPackage"),
+                            SuggestedFileName = suggested,
+                            DefaultExtension = ext,
+                            FileTypeChoices = new[] { new Avalonia.Platform.Storage.FilePickerFileType(ext.ToUpperInvariant()) { Patterns = new[] { "*." + ext } } },
+                        });
+                        return target?.Path.LocalPath;
+                    },
+                    Customize: (ip, path) => _tizenInstaller.CustomizeAsync(ip, path));
 
                 // No (or an old) TV-Store on the set: the toolbox closes itself and TV-Store's sheet
                 // opens here, where installs run (#888). Only offered while the catalog lists it.
@@ -1478,7 +1524,7 @@ namespace Apps2Samsung.ViewModels
                 var tvStoreEntry = TvStore.TvStorePackage.FindInCatalog(_allReleases);
                 Action? showTvStoreInCatalog = tvStoreEntry is null ? null : () => tvStoreToShow = tvStoreEntry;
 
-                var vm = new TvToolboxViewModel(tvIp, label, _sdbEngine, installWgt, signingProfile, showTvStoreInCatalog);
+                var vm = new TvToolboxViewModel(tvIp, label, _sdbEngine, installWgt, signingProfile, showTvStoreInCatalog, packageHooks);
                 var window = new Views.TvToolboxWindow(vm);
                 await window.ShowDialog(desktop.MainWindow);
                 if (tvStoreToShow is not null)

@@ -22,7 +22,8 @@ public sealed class CertificateFlow
 	/// <summary>
 	/// Provisions for <paramref name="tvIp"/>. Cancel on the sheet cancels <paramref name="cancel"/>
 	/// and throws <see cref="OperationCanceledException"/>. <c>Created</c> is true when a certificate
-	/// was made (the sheet was shown), false when an existing one was reused.
+	/// was made (the sheet was shown), false when an existing one was reused. <paramref name="duid"/>
+	/// names the TV when the caller has its DUID already (#979); null reads it over SDB.
 	/// </summary>
 	public async Task<(CertificateProvisioner.Result Result, bool Created)> RunAsync(
 		INavigation navigation,
@@ -30,7 +31,8 @@ public sealed class CertificateFlow
 		string tvName,
 		bool requirePartner,
 		Action<string>? report,
-		CancellationTokenSource cancel)
+		CancellationTokenSource cancel,
+		string? duid = null)
 	{
 		CertificateSheetPage? sheet = null;
 
@@ -58,7 +60,8 @@ public sealed class CertificateFlow
 				},
 				BeforeLoginAsync,
 				stage => MainThread.BeginInvokeOnMainThread(() => sheet?.SetStage(stage)),
-				cancel.Token);
+				cancel.Token,
+				duid);
 
 			if (sheet is { } done)
 			{
