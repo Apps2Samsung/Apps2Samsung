@@ -58,6 +58,8 @@ public sealed class CliOptions
     public string? ExportPath { get; set; }
     /// <summary>cert --import: read the signing certificate from this file (#921).</summary>
     public string? ImportPath { get; set; }
+    /// <summary><c>sign -o</c>: where the signed copy goes.</summary>
+    public string? OutputPath { get; set; }
 
     public bool Help { get; set; }
     public bool ShowVersion { get; set; }
@@ -143,6 +145,7 @@ public sealed class CliOptions
                 case "--duids": o.ManualDuids = Next(arg) ?? string.Empty; break;
                 case "--export": o.ExportPath = Next(arg); if (o.ExportPath is null) return (o, "--export needs a file to write"); break;
                 case "--import": o.ImportPath = Next(arg); if (o.ImportPath is null) return (o, "--import needs a file to read"); break;
+                case "-o" or "--output": o.OutputPath = Next(arg); if (o.OutputPath is null) return (o, "-o needs the file to write"); break;
                 default: return (o, $"unknown option {arg}");
             }
         }
