@@ -114,6 +114,18 @@ public static class Help
         The input file is never changed.
         """;
 
+    private const string Sign = """
+        usage: apps2samsung-cli sign <file> -o <signed file> (--tv <ip> | --duids <DUID>) [--partner] [--json]
+
+        Signs a local .wgt or .tpk with the certificate that covers the TV and writes the signed copy to
+        -o, without installing it: for tools that install another way (a root service on the TV,
+        TV-Store's upload page). The certificate is chosen and made as for `install` (the desktop app's
+        certificate setting, Partner with --partner or when the package needs it; a Samsung sign-in in
+        the browser when none covers the TV yet). --duids names the TV by its DUID instead of reading it
+        over SDB, for a TV whose Host PC IP points elsewhere (127.0.0.1); the first DUID is the TV.
+        The input file is never changed.
+        """;
+
     private const string Cert = """
         usage: apps2samsung-cli cert [--tv <ip>] [--partner] [--prepare] [--duids <DUID,...>] [--force-login] [--json]
                apps2samsung-cli cert --export <file> [--partner]

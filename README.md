@@ -82,7 +82,7 @@ apps2samsung-cli sign app.wgt -o signed.wgt --tv 192.168.1.50   # sign only, for
 - Apps that ask for values before installing (an API key, a server address) take them as `--set key=value`; `catalog` lists the keys.
 - Apps marked `(root)` in `catalog` gain root on the TV and only install with `--allow-root`. `cert --prepare --duids <DUID>` makes a certificate for a TV you can't reach over SDB, such as one whose Host PC IP is `127.0.0.1`.
 - macOS blocks a downloaded binary until `xattr -d com.apple.quarantine apps2samsung-cli` has run once.
-- On an Android phone the `linux-bionic-arm64` build runs directly in [Termux](https://termux.dev), no PRoot or Linux distribution needed. Run `pkg install openssl` first; the Samsung sign-in opens in the phone's browser through `termux-open`.
+- On an Android phone the `linux-bionic-arm64` build runs directly in [Termux](https://termux.dev), no PRoot or Linux distribution needed. Run `pkg install openssl` first. That tarball unpacks to an `apps2samsung-cli/` folder with the runtime beside the binary (the Android runtime has no single-file host), so run it as `./apps2samsung-cli/apps2samsung-cli`; the Samsung sign-in opens in the phone's browser through `termux-open`.
 
 ---
 
