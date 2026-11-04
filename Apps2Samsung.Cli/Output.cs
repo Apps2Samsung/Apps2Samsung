@@ -47,6 +47,10 @@ public sealed class Output : IDisposable
     public int Width => _stdout?.Profile.Width ?? 80;
     /// <summary>Whether the terminal draws box characters and the status glyphs; otherwise the renderers fall back to ASCII.</summary>
     public bool Unicode => _stdout?.Profile.Capabilities.Unicode ?? false;
+    /// <summary>The terminal's height in rows (24 when not a terminal), for the menu's page size.</summary>
+    public int Height => _stdout?.Profile.Height ?? 24;
+    /// <summary>The stdout terminal, for the menu's prompts; null when not <see cref="Rich"/>.</summary>
+    public IAnsiConsole? Terminal => _stdout;
 
     private readonly IAnsiConsole? _stdout;
     private readonly IAnsiConsole? _stderr;
@@ -208,6 +212,27 @@ public sealed class Output : IDisposable
             _stderr!.MarkupLine($"{Views.GlyphMarkup(glyph, Unicode)} {Markup.Escape(message)}");
         }
         return exitCode;
+    }
+
+    /// <summary>Something to look at between the steps (the menu's screens), on a terminal only; closes the open step first.</summary>
+    public void Show(IRenderable renderable)
+    {
+        if (!Rich)
+            return;
+        lock (_gate)
+        {
+            CloseStep(Glyph.Done);
+            _stdout!.Write(renderable is Markup ? new Rows(renderable) : renderable);
+        }
+    }
+
+    /// <summary>Closes the open step line, before a prompt takes the terminal; <paramref name="glyph"/> says how it ended.</summary>
+    public void Idle(Glyph glyph = Glyph.Done)
+    {
+        if (!Rich)
+            return;
+        lock (_gate)
+            CloseStep(glyph);
     }
 
     /// <summary>The help text: coloured on a terminal, as typed otherwise.</summary>

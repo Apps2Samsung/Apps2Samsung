@@ -15,6 +15,23 @@ public static class InstalledCommand
         if (string.IsNullOrWhiteSpace(ip))
             return s.Out.Fail("usage: apps2samsung-cli installed --tv <ip>", Output.Usage);
 
+        var rows = await ReadAsync(s, ip, ct);
+        var text = new List<string>();
+        if (rows.Count == 0)
+            text.Add("The TV lists no apps.");
+        foreach (var r in rows)
+        {
+            var version = r.Version is null ? "" : $" v{r.Version}";
+            var cat = r.CatalogApp is null ? "" : $"  catalog: {r.CatalogApp}{(r.CatalogVersion is null ? "" : $" v{r.CatalogVersion}")} ({r.State})";
+            text.Add($"{r.Title}{version}  [{r.AppId}]{cat}");
+        }
+        return s.Out.Result(new { ok = true, tv = ip, count = rows.Count, apps = rows }, text,
+            rich: Views.InstalledApps(rows, ip, s.Out.Width, s.Out.Unicode));
+    }
+
+    /// <summary>The apps on the TV with the catalog comparison, for the listing and for the menu.</summary>
+    public static async Task<List<Row>> ReadAsync(CliServices s, string ip, CancellationToken ct)
+    {
         s.Out.Progress($"Reading the apps on {ip}…");
         var result = await s.Sdb.AppsAsync(ip);
         var apps = TizenInstalledApps.ParseOrThrow(result);
@@ -31,7 +48,7 @@ public static class InstalledCommand
             s.Out.Warn($"catalog not available, versions not compared: {ex.Message}");
         }
 
-        var rows = apps.Select(a =>
+        return apps.Select(a =>
         {
             var match = catalog.Count == 0 ? null : InstalledAppUpdates.Find(a, catalog, s.Config.PackageIdRenamesJson);
             return new Row(a.DisplayName, a.TizenId, string.IsNullOrWhiteSpace(a.Version) ? null : a.Version, a.InstallDate, a.IsRemovable,
@@ -44,17 +61,5 @@ public static class InstalledCommand
                     _ => "unknown",
                 });
         }).ToList();
-
-        var text = new List<string>();
-        if (rows.Count == 0)
-            text.Add("The TV lists no apps.");
-        foreach (var r in rows)
-        {
-            var version = r.Version is null ? "" : $" v{r.Version}";
-            var cat = r.CatalogApp is null ? "" : $"  catalog: {r.CatalogApp}{(r.CatalogVersion is null ? "" : $" v{r.CatalogVersion}")} ({r.State})";
-            text.Add($"{r.Title}{version}  [{r.AppId}]{cat}");
-        }
-        return s.Out.Result(new { ok = true, tv = ip, count = rows.Count, apps = rows }, text,
-            rich: Views.InstalledApps(rows, ip, s.Out.Width, s.Out.Unicode));
     }
 }
