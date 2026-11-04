@@ -894,6 +894,8 @@
   "hintPrepareCertificateNow": "Létrehozza a tanúsítványt a kiválasztott TV-hez anélkül, hogy bármit telepítene, így az első telepítés nem áll meg egy bejelentkezésnél.",
   "statusCertificateAlreadyReady": "A(z) {0} számára már van tanúsítvány: nincs mit előkészíteni.",
   "statusCertificatePrepared": "A(z) {0} tanúsítványa kész.",
+  "lblCertificateLevel": "Szint",
+  "lblCreateCertificate": "A tanúsítvány létrehozása",
   "certNotYetValidBody": "A Samsung az új tanúsítványt kicsit előbbre keltezte, mint ennek az eszköznek az órája, és a TV addig elutasítja. Ha a várakozás túl hosszúnak tűnik, az eszköz órája téves: szakítsa meg, javítsa ki a dátumot, az időt és az időzónát, majd telepítsen újra.",
   "certValidIn": "Érvényes ennyi idő múlva:",
   "certContinuesByItself": "A telepítés magától folytatódik.",

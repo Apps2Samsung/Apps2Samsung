@@ -892,6 +892,8 @@
   "hintPrepareCertificateNow": "Luo varmenteen valitulle TV:lle asentamatta mitään, jotta ensimmäinen asennus ei pysähdy kirjautumiseen.",
   "statusCertificateAlreadyReady": "Kohteella {0} on jo varmenne: ei valmisteltavaa.",
   "statusCertificatePrepared": "Kohteen {0} varmenne on valmis.",
+  "lblCertificateLevel": "Taso",
+  "lblCreateCertificate": "Luo varmenne",
   "certNotYetValidBody": "Samsung päivitti uuden varmenteen hieman tämän laitteen kellon edelle, ja TV hylkää sen siihen asti. Jos odotus näyttää aivan liian pitkältä, tämän laitteen kello on pielessä: peruuta, korjaa päivämäärä, kellonaika ja aikavyöhyke ja asenna uudelleen.",
   "certValidIn": "Voimassa",
   "certContinuesByItself": "Asennus jatkuu itsestään.",

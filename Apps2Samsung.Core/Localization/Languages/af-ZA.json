@@ -885,6 +885,8 @@
   "hintPrepareCertificateNow": "Skep die sertifikaat vir die gekose TV sonder om iets te installeer, sodat die eerste installasie nie vir 'n aanmelding stop nie.",
   "statusCertificateAlreadyReady": "{0} het reeds 'n sertifikaat: niks om voor te berei nie.",
   "statusCertificatePrepared": "Die sertifikaat vir {0} is gereed.",
+  "lblCertificateLevel": "Vlak",
+  "lblCreateCertificate": "Skep die sertifikaat",
   "certNotYetValidBody": "Samsung het die nuwe sertifikaat 'n bietjie voor hierdie toestel se horlosie gedateer, en die TV weier dit tot dan. As die wag veels te lank lyk, is hierdie toestel se horlosie af: kanselleer, regstel die datum, tyd en tydsone, en installeer weer.",
   "certValidIn": "Geldig oor",
   "certContinuesByItself": "Die installasie gaan self voort.",

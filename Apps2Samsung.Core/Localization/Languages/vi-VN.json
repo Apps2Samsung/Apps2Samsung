@@ -891,6 +891,8 @@
   "hintPrepareCertificateNow": "Tạo chứng chỉ cho TV đã chọn mà không cài gì, để lần cài đặt đầu tiên không bị dừng để đăng nhập.",
   "statusCertificateAlreadyReady": "{0} đã có chứng chỉ: không cần chuẩn bị.",
   "statusCertificatePrepared": "Chứng chỉ cho {0} đã sẵn sàng.",
+  "lblCertificateLevel": "Mức",
+  "lblCreateCertificate": "Tạo chứng chỉ",
   "certNotYetValidBody": "Samsung đề ngày chứng chỉ mới sớm hơn đồng hồ của thiết bị này một chút, và TV từ chối nó cho tới thời điểm đó. Nếu thời gian chờ có vẻ quá dài, đồng hồ của thiết bị này đang lệch: hãy huỷ, chỉnh lại ngày, giờ và múi giờ, rồi cài đặt lại.",
   "certValidIn": "Có hiệu lực sau",
   "certContinuesByItself": "Việc cài đặt sẽ tự tiếp tục.",

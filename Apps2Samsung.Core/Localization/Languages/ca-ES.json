@@ -913,6 +913,8 @@
   "hintPrepareCertificateNow": "Crea el certificat per al televisor seleccionat sense instal·lar res, perquè la primera instal·lació no s'aturi per demanar l'inici de sessió.",
   "statusCertificateAlreadyReady": "{0} ja té un certificat: no cal preparar res.",
   "statusCertificatePrepared": "El certificat per a {0} ja és a punt.",
+  "lblCertificateLevel": "Nivell",
+  "lblCreateCertificate": "Crear el certificat",
   "certNotYetValidBody": "Samsung ha datat el certificat nou una mica per davant del rellotge d'aquest dispositiu, i el televisor el rebutja fins aleshores. Si l'espera sembla massa llarga, el rellotge d'aquest dispositiu no va bé: cancel·leu, corregiu la data, l'hora i el fus horari, i torneu a instal·lar.",
   "certValidIn": "Vàlid d'aquí a",
   "certContinuesByItself": "La instal·lació continuarà sola.",

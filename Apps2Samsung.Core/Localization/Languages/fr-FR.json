@@ -888,6 +888,8 @@
   "hintPrepareCertificateNow": "Crée le certificat pour le téléviseur sélectionné sans rien installer, afin que la première installation ne s'arrête pas pour une connexion.",
   "statusCertificateAlreadyReady": "{0} a déjà un certificat : rien à préparer.",
   "statusCertificatePrepared": "Le certificat pour {0} est prêt.",
+  "lblCertificateLevel": "Niveau",
+  "lblCreateCertificate": "Créer le certificat",
   "certNotYetValidBody": "Samsung a daté le nouveau certificat un peu en avance sur l'horloge de cet appareil, et le téléviseur le refuse jusque-là. Si l'attente semble beaucoup trop longue, l'horloge de cet appareil est déréglée : annulez, corrigez la date, l'heure et le fuseau horaire, puis réinstallez.",
   "certValidIn": "Valide dans",
   "certContinuesByItself": "L'installation continue d'elle-même.",

@@ -887,6 +887,8 @@
   "hintPrepareCertificateNow": "Creează certificatul pentru televizorul selectat fără a instala nimic, astfel încât prima instalare să nu se oprească pentru autentificare.",
   "statusCertificateAlreadyReady": "{0} are deja un certificat: nu e nimic de pregătit.",
   "statusCertificatePrepared": "Certificatul pentru {0} este gata.",
+  "lblCertificateLevel": "Nivel",
+  "lblCreateCertificate": "Creează certificatul",
   "certNotYetValidBody": "Samsung a datat noul certificat puțin înaintea ceasului acestui dispozitiv, iar televizorul îl refuză până atunci. Dacă așteptarea pare mult prea lungă, ceasul acestui dispozitiv este decalat: anulați, corectați data, ora și fusul orar, apoi instalați din nou.",
   "certValidIn": "Valid peste",
   "certContinuesByItself": "Instalarea continuă singură.",
