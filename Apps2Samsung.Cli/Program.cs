@@ -20,7 +20,8 @@ if (options.ShowVersion)
 }
 if (options.Help || options.Command.Length == 0)
 {
-    Console.Out.WriteLine(Help.For(options.Command));
+    using var help = new Output(options);
+    help.Help(Help.For(options.Command));
     return options.Command.Length == 0 && !options.Help ? Output.Usage : Output.Ok;
 }
 

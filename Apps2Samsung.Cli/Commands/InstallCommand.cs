@@ -104,6 +104,7 @@ public static class InstallCommand
         if (device is null)
             return s.Out.Fail($"No Samsung TV answers at {ip}. `apps2samsung-cli scan` lists the TVs on this network.");
         device = await TizenDeveloperInfo.ReadAsync(device, ct);
+        s.Out.Heading($"[bold]{Views.Esc(appName)}[/]{(asset?.PackageVersion is { } ver ? $" v{Views.Esc(ver)}" : "")} [{Views.MutedHex}]{(s.Out.Unicode ? "→" : "->")}[/] [bold]{Views.Esc(ip)}[/] {Views.Esc(device.DeviceName)}");
         var localIp = LocalIp.Of(s);
         var guards = InstallGuards.Evaluate(device, new InstallGuardOptions
         {
@@ -183,7 +184,8 @@ public static class InstallCommand
                     const string percentKey = "statusInstallingOnTvPercent|";
                     if (line.StartsWith(percentKey, StringComparison.Ordinal))
                     {
-                        if (!int.TryParse(line[percentKey.Length..], out var pct) || (pct / 10 == lastPercent / 10 && pct != 100))
+                        // On a terminal the bar takes every step; a log gets every tenth.
+                        if (!int.TryParse(line[percentKey.Length..], out var pct) || (!s.Out.Rich && pct / 10 == lastPercent / 10 && pct != 100))
                             return;
                         lastPercent = pct;
                     }
@@ -209,6 +211,13 @@ public static class InstallCommand
                 if (!launched)
                     s.Out.Warn($"installed, but the TV did not open it: {(string.IsNullOrWhiteSpace(launch.Error) ? launch.Output.Trim() : launch.Error)}");
             }
+            var lines = release?.IsRoot == true
+                ? new[]
+                {
+                    $"Installed {appName} on {tvIp}{(renamed ? $" under package id {installedPackageId} (remembered for this TV)" : "")}{(launched ? " and launched it" : "")}.",
+                    "Now set Developer Mode's Host PC IP to 127.0.0.1 and restart the TV. From then on this machine reaches the TV through TV-Store's relay: turn it on under TV-Store's Settings (TV-Store 0.3.14 or newer).",
+                }
+                : new[] { $"Installed {appName} on {tvIp}{(renamed ? $" under package id {installedPackageId} (remembered for this TV)" : "")}{(launched ? " and launched it" : "")}." };
             return s.Out.Result(
                 new
                 {
@@ -224,13 +233,10 @@ public static class InstallCommand
                     duid,
                     launched,
                 },
-                release?.IsRoot == true
-                    ? new[]
-                    {
-                        $"Installed {appName} on {tvIp}{(renamed ? $" under package id {installedPackageId} (remembered for this TV)" : "")}{(launched ? " and launched it" : "")}.",
-                        "Now set Developer Mode's Host PC IP to 127.0.0.1 and restart the TV. From then on this machine reaches the TV through TV-Store's relay: turn it on under TV-Store's Settings (TV-Store 0.3.14 or newer).",
-                    }
-                    : new[] { $"Installed {appName} on {tvIp}{(renamed ? $" under package id {installedPackageId} (remembered for this TV)" : "")}{(launched ? " and launched it" : "")}." });
+                lines,
+                rich: Views.Done(lines, s.Out.Unicode,
+                    ("app id", installedAppId), ("package id", installedPackageId), ("certificate", level.ToString()),
+                    ("remove with", $"apps2samsung-cli uninstall {installedAppId} --tv {tvIp}")));
         }
         catch (RemovalDeclinedException)
         {

@@ -9,6 +9,8 @@ public sealed class CliOptions
     // Output
     public bool Json { get; set; }
     public bool Quiet { get; set; }
+    /// <summary>Plain text on a terminal too: no colours, cards or live progress (#975).</summary>
+    public bool Plain { get; set; }
 
     // Where
     public string? Tv { get; set; }
@@ -93,6 +95,7 @@ public sealed class CliOptions
                 case "-V" or "--version" when o.Command.Length == 0: o.ShowVersion = true; break;
                 case "--json": o.Json = true; break;
                 case "-q" or "--quiet": o.Quiet = true; break;
+                case "--plain": o.Plain = true; break;
                 case "-y" or "--yes": o.Yes = true; break;
                 case "--tv": o.Tv = Next(arg); if (o.Tv is null) return (o, "--tv needs the TV's IP address"); break;
                 case "--local-ip": o.LocalIp = Next(arg); if (o.LocalIp is null) return (o, "--local-ip needs this machine's IP address"); break;

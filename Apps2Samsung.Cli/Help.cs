@@ -11,7 +11,7 @@ public static class Help
           tv <ip>                      check one TV: Developer Mode, debug port, Tizen version, DUID
           catalog [words...]           list installable apps; words narrow the list by name or description
           installed --tv <ip>          apps on the TV, with the catalog version next to the installed one
-          install <app|file> --tv <ip> install a catalog app by name, or a local .wgt/.tpk file
+          install <app|file> --tv <ip>  install a catalog app by name, or a local .wgt/.tpk file
           sign <file> -o <out> --tv <ip>  sign a local .wgt/.tpk for a TV without installing it
           uninstall <appId> --tv <ip>  remove an app; the app id as `installed` prints it
           launch <appId> --tv <ip>
@@ -24,6 +24,7 @@ public static class Help
         options
           --json                       one JSON document on stdout instead of text (progress stays on stderr)
           -q, --quiet                  no progress lines
+          --plain                      text only: no colours, cards or live progress (as when piped, or with NO_COLOR)
           -y, --yes                    continue past pre-install warnings
           --tv <ip>                    the TV's IP address (from `scan`)
           --local-ip <ip>              this machine's address on the TV's network (default: the desktop app's

@@ -32,6 +32,7 @@ public static class ScanCommand
             if (tv.NotReadyReason is not null)
                 text.Add($"                {tv.NotReadyReason}");
         }
-        return s.Out.Result(new { ok = true, localIp, tvs, blockedByOs = s.Network.LastScanBlockedByOs }, text);
+        return s.Out.Result(new { ok = true, localIp, tvs, blockedByOs = s.Network.LastScanBlockedByOs }, text,
+            rich: Views.Tvs(tvs, localIp, text, s.Out.Unicode));
     }
 }
