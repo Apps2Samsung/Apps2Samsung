@@ -70,7 +70,7 @@ public static class CatalogCommand
         }
         if (list.Count > 0)
             text.Add($"{list.Count} app(s). Install one with: apps2samsung-cli install \"<name>\" --tv <ip>");
-        return s.Out.Result(new { ok = true, count = list.Count, apps = list }, text);
+        return s.Out.Result(new { ok = true, count = list.Count, apps = list }, text, rich: Views.Catalog(list, s.Out.Width, s.Out.Unicode));
     }
 
     public static Entry ToEntry(GitHubRelease r)

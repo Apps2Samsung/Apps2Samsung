@@ -54,6 +54,7 @@ public static class InstalledCommand
             var cat = r.CatalogApp is null ? "" : $"  catalog: {r.CatalogApp}{(r.CatalogVersion is null ? "" : $" v{r.CatalogVersion}")} ({r.State})";
             text.Add($"{r.Title}{version}  [{r.AppId}]{cat}");
         }
-        return s.Out.Result(new { ok = true, tv = ip, count = rows.Count, apps = rows }, text);
+        return s.Out.Result(new { ok = true, tv = ip, count = rows.Count, apps = rows }, text,
+            rich: Views.InstalledApps(rows, ip, s.Out.Width, s.Out.Unicode));
     }
 }

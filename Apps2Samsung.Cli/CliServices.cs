@@ -30,7 +30,7 @@ public sealed class CliServices : IAsyncDisposable
     public CliServices(CliOptions options)
     {
         Options = options;
-        Out = new Output(options.Json, options.Quiet);
+        Out = new Output(options);
         CliPaths.Use(options.DataDir);
         Directory.CreateDirectory(CliPaths.CliDir);
 
@@ -77,5 +77,6 @@ public sealed class CliServices : IAsyncDisposable
     {
         await Sdb.DisposeAsync();
         Http.Dispose();
+        Out.Dispose();
     }
 }

@@ -38,7 +38,7 @@ public static class SourcesCommand
             if (!string.Equals(e.Url, e.Fetches, StringComparison.OrdinalIgnoreCase))
                 text.Add($"    reads {e.Fetches}");
         }
-        return s.Out.Result(new { sources = entries }, text);
+        return s.Out.Result(new { sources = entries }, text, rich: Views.Sources(text, s.Out.Unicode));
     }
 
     private static int Add(CliServices s)

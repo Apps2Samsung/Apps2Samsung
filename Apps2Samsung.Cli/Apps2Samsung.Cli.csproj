@@ -17,6 +17,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Apps2Samsung.Core\Apps2Samsung.Core.csproj" />
+    <!-- The terminal look (#975): cards, tables and the live step line. Pure managed, single-file publish takes it as is. -->
+    <PackageReference Include="Spectre.Console" Version="0.57.2" />
   </ItemGroup>
   <ItemGroup>
     <!-- Samsung's CA chain for the generated certificates: the desktop's copy, embedded rather than

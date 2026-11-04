@@ -40,6 +40,7 @@ public static class TvCommand
         if (tizen is not null) text.Add($"Tizen {tizen}");
         if (duid is not null) text.Add($"DUID {duid}");
         if (state.NotReadyReason is not null) text.Add(state.NotReadyReason);
-        return s.Out.Result(new { ok = true, localIp, tv = state, tizenVersion = tizen, duid }, text);
+        return s.Out.Result(new { ok = true, localIp, tv = state, tizenVersion = tizen, duid }, text,
+            rich: Views.Tvs(new[] { state }, localIp, text, s.Out.Unicode, tizen, duid));
     }
 }

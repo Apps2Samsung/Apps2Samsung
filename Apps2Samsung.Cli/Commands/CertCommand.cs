@@ -58,7 +58,8 @@ public static class CertCommand
                 ? $"{ip} (DUID {tvDuid}) is covered by: {string.Join(", ", coveredBy)}. Installs need no sign-in."
                 : $"{ip} (DUID {tvDuid}) is not covered yet. The first install signs in to Samsung, or run: cert --tv {ip} --prepare");
         }
-        return s.Out.Result(new { ok = true, store = CliPaths.CertificateStore, tv = ip, tvDuid, profiles }, text);
+        return s.Out.Result(new { ok = true, store = CliPaths.CertificateStore, tv = ip, tvDuid, profiles }, text,
+            rich: Views.Certificates(profiles, tvDuid, ip, CliPaths.CertificateStore, s.Out.Unicode));
     }
 
     // cert --export <file> [--partner]: the signing certificate on its own, for another head or
