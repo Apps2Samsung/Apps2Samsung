@@ -74,6 +74,7 @@ apps2samsung-cli catalog jellyfin                       # what can be installed 
 apps2samsung-cli install "Moonfin" --tv 192.168.1.50    # download, sign, install, launch
 apps2samsung-cli installed --tv 192.168.1.50            # what is on the TV, with catalog versions
 apps2samsung-cli cert --tv 192.168.1.50                 # which certificate covers this TV
+apps2samsung-cli sign app.wgt -o signed.wgt --tv 192.168.1.50   # sign only, for installing another way
 ```
 
 - `--json` on any command prints one JSON document on stdout (progress stays on stderr); exit codes are 0 done, 1 failed, 2 usage, 3 stopped at a pre-install check that `--yes` continues past.
