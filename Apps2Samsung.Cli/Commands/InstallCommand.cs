@@ -8,6 +8,7 @@ using Apps2Samsung.Install;
 using Apps2Samsung.Models;
 using Apps2Samsung.Packaging;
 using Apps2Samsung.Remote;
+using Apps2Samsung.Sdb;
 using Apps2Samsung.Services;
 using Apps2Samsung.TvStore;
 
@@ -168,11 +169,26 @@ public static class InstallCommand
             // The desktop's Automatic / Public / Partner setting, unless --partner; a package that
             // needs Partner gets it either way.
             var needsPartner = (release?.RequiresPartner ?? false) || WgtPrivileges.RequiresPartner(packagePath);
-            var preference = Certificates.Preference(s);
-            var level = CertificatePreference.ResolveLevel(preference, needsPartner);
-            if (needsPartner && CertificatePreference.ResolveLevel(preference, false) != CertificatePrivilegeLevel.Partner)
-                s.Out.Progress("This package needs a Partner-level certificate; signing as Partner.");
-            var (profile, duid, _) = await Certificates.EnsureAsync(s, tvIp, level, ct);
+            SigningProfile profile;
+            string duid, certificate;
+            if (s.Options.TizenCert)
+            {
+                // A Tizen certificate (#988): the SDK's, no Samsung account and no DUID in it. The TV
+                // decides whether it takes the signature; the error below says so when it does not.
+                var tizenLevel = Certificates.TizenLevel(s, needsPartner);
+                (profile, var tizen) = await Certificates.EnsureTizenAsync(s, tizenLevel);
+                certificate = tizen.ProfileName;
+                duid = await Certificates.TryReadDuidAsync(s, tvIp);
+            }
+            else
+            {
+                var preference = Certificates.Preference(s);
+                var level = CertificatePreference.ResolveLevel(preference, needsPartner);
+                if (needsPartner && CertificatePreference.ResolveLevel(preference, false) != CertificatePrivilegeLevel.Partner)
+                    s.Out.Progress("This package needs a Partner-level certificate; signing as Partner.");
+                (profile, duid, _) = await Certificates.EnsureAsync(s, tvIp, level, ct);
+                certificate = level.ToString();
+            }
 
             // ---- Install ----
             var (appId, packageId) = await WgtManifest.ReadIdsAsync(packagePath);
@@ -229,13 +245,13 @@ public static class InstallCommand
                     appId = installedAppId,
                     packageId = installedPackageId,
                     originalPackageId = renamed ? packageId : null,
-                    certificate = level.ToString(),
+                    certificate,
                     duid,
                     launched,
                 },
                 lines,
                 rich: Views.Done(lines, s.Out.Unicode,
-                    ("app id", installedAppId), ("package id", installedPackageId), ("certificate", level.ToString()),
+                    ("app id", installedAppId), ("package id", installedPackageId), ("certificate", certificate),
                     ("remove with", $"apps2samsung-cli uninstall {installedAppId} --tv {tvIp}")));
         }
         catch (RemovalDeclinedException)
@@ -245,6 +261,13 @@ public static class InstallCommand
         catch (CertificateNotYetValidException ex)
         {
             return s.Out.Fail(ex.Message, details: new { validFrom = ex.Result.ValidFromLocal });
+        }
+        catch (InvalidOperationException ex) when (s.Options.TizenCert && ex.Message.Contains("[118, -12]", StringComparison.Ordinal))
+        {
+            // The TV refused the Tizen certificate's chain: it wants a Samsung one (#988). The
+            // installer's own advice (internet, clock, a new certificate) is about Samsung ones.
+            return s.Out.Fail("The TV rejected the Tizen certificate ([118, -12], invalid certificate chain): this TV does not accept a Tizen certificate. Run the install again without --tizen-cert to sign with a Samsung certificate.",
+                details: new { tizenCertificate = true, reason = TizenInstallDiagnostics.CertificateRejectionReason(ex.Message) ?? ex.Message });
         }
         catch (UserSettingsPatchException ex)
         {

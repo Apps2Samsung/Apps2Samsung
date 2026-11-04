@@ -56,6 +56,16 @@ public sealed class CliOptions
     public bool NoBrowser { get; set; }
     public int LoginTimeoutSeconds { get; set; } = 300;
     public string ManualDuids { get; set; } = string.Empty;
+    /// <summary>
+    /// <c>--tizen-cert</c> (#988): sign with a Tizen certificate (the SDK's, made here, no Samsung
+    /// account and no DUID) instead of the Samsung one. <see cref="TizenLevel"/> is the SDK
+    /// distributor to use: the value after the flag (public, partner or platform), else Partner
+    /// with --partner, else Public.
+    /// </summary>
+    public bool TizenCert { get; set; }
+    public string? TizenLevel { get; set; }
+    /// <summary><c>--tizen-chain legacy|new</c>: which SDK signer generation (default: legacy where it exists).</summary>
+    public string? TizenChain { get; set; }
     /// <summary>cert --export: write the signing certificate to this file (#921).</summary>
     public string? ExportPath { get; set; }
     /// <summary>cert --import: read the signing certificate from this file (#921).</summary>
@@ -129,6 +139,25 @@ public sealed class CliOptions
                     break;
                 }
                 case "--partner": o.Partner = true; break;
+                case "--tizen-cert":
+                {
+                    o.TizenCert = true;
+                    // An optional level right after the flag; anything else is the next argument.
+                    var next = i + 1 < args.Length ? args[i + 1].ToLowerInvariant() : null;
+                    if (next is "public" or "partner" or "platform")
+                    {
+                        o.TizenLevel = next;
+                        i++;
+                    }
+                    break;
+                }
+                case "--tizen-chain":
+                {
+                    var v = Next(arg)?.ToLowerInvariant();
+                    if (v is not ("legacy" or "new")) return (o, "--tizen-chain needs legacy or new");
+                    o.TizenChain = v;
+                    break;
+                }
                 case "--new-id": o.NewId = true; break;
                 case "--own-id": o.OwnId = true; break;
                 case "--launch": o.Launch = true; break;

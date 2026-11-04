@@ -56,4 +56,11 @@
     <EmbeddedResource Include="Agent\Wgt\*"
                       LogicalName="Apps2Samsung.Core.DebugAgent.%(Filename)%(Extension)" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- The Tizen SDK's certificate-generator files a Tizen certificate is made from (#988,
+         Certificate/TizenSdkAssets): the Tizen Developers CA with its key, and the three SDK
+         distributor signers. Embedded so every head has them; listed in NOTICE.md. -->
+    <EmbeddedResource Include="Certificate\TizenSdk\*"
+                      LogicalName="Apps2Samsung.Core.TizenSdk.%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>

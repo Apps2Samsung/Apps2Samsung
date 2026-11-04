@@ -1,0 +1,72 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 1 (0x1)
+    Signature Algorithm: sha1WithRSAEncryption
+        Issuer: O=Tizen Association, OU=Tizen Association, CN=Tizen Developers Root
+        Validity
+            Not Before: Jan  1 00:00:00 2012 GMT
+            Not After : Jan  1 00:00:00 2027 GMT
+        Subject: O=Tizen Association, OU=Tizen Association, CN=Tizen Developers CA
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:d5:46:85:11:a6:30:85:32:04:0e:e8:3c:2c:fc:
+                    4b:1b:ad:eb:3e:87:36:41:78:a0:32:2e:ce:e2:9a:
+                    33:34:58:3d:e5:a8:77:07:bd:3b:48:26:a8:09:13:
+                    a1:01:df:c2:0d:a0:89:18:44:e4:6a:0f:95:dd:1f:
+                    ab:e3:98:30:cc:12:6a:c0:ae:83:c7:70:38:3c:75:
+                    78:37:92:61:5b:8e:2d:64:71:a4:09:9b:4d:73:ac:
+                    48:58:ba:56:85:9e:c9:a3:c4:9b:5f:09:04:7b:d9:
+                    06:c5:39:61:0b:60:67:a2:a9:ec:ca:b3:bd:08:37:
+                    a5:73:b1:b5:a8:e3:bf:21:f1:89:ab:49:97:ec:57:
+                    ac:78:1c:5c:2d:70:83:21:b7:6e:eb:72:ee:ef:c5:
+                    8b:69:af:29:72:74:3d:12:5c:0a:38:ca:f3:57:6a:
+                    7b:f5:6b:db:4b:11:50:2a:db:93:4d:b3:6e:6e:60:
+                    80:5b:7f:8c:81:21:57:cc:1b:15:14:29:96:2a:1b:
+                    73:b2:78:75:24:ca:84:57:eb:a8:63:3c:ad:d7:79:
+                    e0:b6:21:0f:b8:12:23:50:85:49:ed:7a:a5:45:df:
+                    71:54:7b:16:12:73:b5:16:a2:18:b9:c2:af:00:44:
+                    77:24:d9:db:8f:3e:0f:82:ff:a9:1f:c3:d1:ac:5b:
+                    de:37
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:TRUE
+    Signature Algorithm: sha1WithRSAEncryption
+         9c:e5:d7:43:fd:4e:fd:04:c3:1f:2a:e6:40:3b:45:ce:2a:8f:
+         63:7c:56:94:90:6a:26:d1:2a:5e:24:fb:63:e2:e3:a5:ee:ba:
+         7b:e1:1e:fc:e8:d0:32:56:5e:f2:0b:b6:d7:ff:1c:2a:49:47:
+         f7:94:71:8e:8a:4c:58:25:5e:75:70:d4:6d:67:6f:4b:6f:82:
+         77:2b:d5:5b:fa:ae:4f:61:34:b6:3a:88:cd:70:de:91:44:d8:
+         c3:08:65:3d:69:46:c6:f7:e3:dd:5b:31:a9:21:6a:de:9f:01:
+         ae:5d:38:d4:6c:79:44:a0:06:c8:a5:6c:31:f4:cb:85:b6:f0:
+         49:6c:00:a6:e0:54:c5:87:dc:36:92:b0:2d:61:8f:5e:4c:ac:
+         bb:e1:dc:b5:8d:37:38:ab:f8:ff:12:81:9d:55:a2:37:c7:b1:
+         fd:28:1e:b2:2d:0c:f8:e0:40:38:c7:59:30:f2:b7:da:e2:41:
+         4d:e2:85:c7:5c:59:81:32:c8:86:4e:39:57:48:4f:3a:89:8f:
+         8d:99:68:8a:fd:0b:49:2d:75:7b:27:78:e7:5b:9f:8d:6d:22:
+         1d:11:3b:5a:5a:51:e8:4b:c8:5b:a4:c5:c9:98:0c:a5:0a:be:
+         92:0e:21:5a:5d:92:05:37:f7:b3:65:48:f1:88:33:ee:08:fc:
+         4c:c9:42:96
+-----BEGIN CERTIFICATE-----
+MIIDOTCCAiGgAwIBAgIBATANBgkqhkiG9w0BAQUFADBYMRowGAYDVQQKDBFUaXpl
+biBBc3NvY2lhdGlvbjEaMBgGA1UECwwRVGl6ZW4gQXNzb2NpYXRpb24xHjAcBgNV
+BAMMFVRpemVuIERldmVsb3BlcnMgUm9vdDAeFw0xMjAxMDEwMDAwMDBaFw0yNzAx
+MDEwMDAwMDBaMFYxGjAYBgNVBAoMEVRpemVuIEFzc29jaWF0aW9uMRowGAYDVQQL
+DBFUaXplbiBBc3NvY2lhdGlvbjEcMBoGA1UEAwwTVGl6ZW4gRGV2ZWxvcGVycyBD
+QTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANVGhRGmMIUyBA7oPCz8
+Sxut6z6HNkF4oDIuzuKaMzRYPeWodwe9O0gmqAkToQHfwg2giRhE5GoPld0fq+OY
+MMwSasCug8dwODx1eDeSYVuOLWRxpAmbTXOsSFi6VoWeyaPEm18JBHvZBsU5YQtg
+Z6Kp7MqzvQg3pXOxtajjvyHxiatJl+xXrHgcXC1wgyG3buty7u/Fi2mvKXJ0PRJc
+CjjK81dqe/Vr20sRUCrbk02zbm5ggFt/jIEhV8wbFRQpliobc7J4dSTKhFfrqGM8
+rdd54LYhD7gSI1CFSe16pUXfcVR7FhJztRaiGLnCrwBEdyTZ248+D4L/qR/D0axb
+3jcCAwEAAaMQMA4wDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQUFAAOCAQEAnOXX
+Q/1O/QTDHyrmQDtFziqPY3xWlJBqJtEqXiT7Y+Ljpe66e+Ee/OjQMlZe8gu21/8c
+KklH95RxjopMWCVedXDUbWdvS2+CdyvVW/quT2E0tjqIzXDekUTYwwhlPWlGxvfj
+3VsxqSFq3p8Brl041Gx5RKAGyKVsMfTLhbbwSWwApuBUxYfcNpKwLWGPXkysu+Hc
+tY03OKv4/xKBnVWiN8ex/Sgesi0M+OBAOMdZMPK32uJBTeKFx1xZgTLIhk45V0hP
+OomPjZloiv0LSS11eyd451ufjW0iHRE7WlpR6EvIW6TFyZgMpQq+kg4hWl2SBTf3
+s2VI8Ygz7gj8TMlClg==
+-----END CERTIFICATE-----
