@@ -35,6 +35,18 @@ namespace Apps2Samsung.Interfaces
         /// </summary>
         Task<Apps2Samsung.Services.CertificateSheet?> OpenCertificateSheetAsync(string tvName, Apps2Samsung.Interfaces.CertificatePrivilegeLevel level, string? tvDuid = null);
 
+        /// <summary>
+        /// The Tizen certificate sheet (#988), not awaited either: two steps and no sign-in. Null
+        /// <paramref name="tvName"/> for one made from Settings with no TV in mind.
+        /// </summary>
+        Task<Apps2Samsung.Services.CertificateSheet?> OpenTizenCertificateSheetAsync(string? tvName, Apps2Samsung.Certificate.TizenDistributorLevel level);
+
+        /// <summary>
+        /// The TV refused the Tizen certificate (#988): the sheet with the TV's words and Sign in with
+        /// Samsung instead. True to switch to a Samsung certificate, false to keep the setting.
+        /// </summary>
+        Task<bool> ShowTizenCertificateRefusedAsync(string tvName, Apps2Samsung.Certificate.TizenDistributorLevel level, string profileName, string? reason, DateTime? validUntil);
+
         /// <summary>The Samsung account has no email address: what to do, and the account page.</summary>
         Task ShowAccountEmailMissingAsync();
 

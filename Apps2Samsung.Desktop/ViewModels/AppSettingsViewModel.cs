@@ -86,6 +86,72 @@ namespace Apps2Samsung.ViewModels
         public string LblCertificatePublic => _localizationService.GetString("certLevelPublic");
         public string LblCertificatePartner => _localizationService.GetString("certLevelPartner");
 
+        // Samsung / Tizen (#988): the two rows above the level switch, the same choice as the phone
+        // (Core CertificateKind). The status line under them says what is in the store for the choice.
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CertificateSamsung), nameof(CertificateTizen))]
+        private string certificateKind = Apps2Samsung.Certificate.CertificateKind.Samsung;
+
+        public bool CertificateSamsung => !Apps2Samsung.Certificate.CertificateKind.IsTizen(CertificateKind);
+        public bool CertificateTizen => Apps2Samsung.Certificate.CertificateKind.IsTizen(CertificateKind);
+
+        [RelayCommand]
+        private void SelectCertificateKind(string kind) =>
+            CertificateKind = Apps2Samsung.Certificate.CertificateKind.Normalize(kind);
+
+        [ObservableProperty]
+        private string certificateStatusText = string.Empty;
+
+        public string LblCertificateSamsung => _localizationService.GetString("lblCertificateSamsung");
+        public string HintCertificateSamsung => _localizationService.GetString("hintCertificateSamsung");
+        public string LblCertificateTizen => _localizationService.GetString("lblCertificateTizen");
+        public string HintCertificateTizen => _localizationService.GetString("hintCertificateTizen");
+        public string LblCertificateLevel => _localizationService.GetString("lblCertificateLevel");
+
+        /// <summary>
+        /// What the store holds for the chosen certificate and level: the Samsung profile's expiry
+        /// and the TVs it covers, or the Tizen profile's expiry; "none yet" otherwise. Read again
+        /// after every change of the choice and after Prepare the certificate now.
+        /// </summary>
+        public void RefreshCertificateStatus()
+        {
+            try
+            {
+                var store = AppSettings.CertificatePath;
+                var requirePartner = AppSettings.Default.RequiresPartnerSigning;
+                string text;
+                if (CertificateTizen)
+                {
+                    var level = Apps2Samsung.Certificate.CertificateKind.TizenLevel(CertificatePreference, requirePartner);
+                    var dir = Apps2Samsung.Certificate.TizenProfileStore.ProfileDir(store, level);
+                    var until = Apps2Samsung.Certificate.TizenProfileStore.HasProfile(store, level)
+                        ? Apps2Samsung.Certificate.CertificateProvisioningService.AuthorValidUntil(dir)
+                        : null;
+                    text = until is { } u
+                        ? string.Format(_localizationService.GetString("certStatusTizen"), level, u.ToString("d"))
+                        : string.Format(_localizationService.GetString("certStatusTizenNone"), level);
+                }
+                else
+                {
+                    var level = Apps2Samsung.Certificate.CertificatePreference.ResolveLevel(CertificatePreference, requirePartner);
+                    var dir = Path.Combine(store, Apps2Samsung.Certificate.CertificateProvisioningService.ProfileName(level));
+                    var until = Apps2Samsung.Certificate.CertificateProvisioningService.HasProfile(store, level)
+                        ? Apps2Samsung.Certificate.CertificateProvisioningService.AuthorValidUntil(dir)
+                        : null;
+                    text = until is { } u
+                        ? string.Format(_localizationService.GetString("certStatusSamsung"), level, u.ToString("d"),
+                            Apps2Samsung.Certificate.CertificateProvisioningService.GetCoveredDuids(dir).Count)
+                        : string.Format(_localizationService.GetString("certStatusSamsungNone"), level);
+                }
+                CertificateStatusText = text;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Settings] Certificate status: {ex.Message}");
+                CertificateStatusText = string.Empty;
+            }
+        }
+
         [ObservableProperty]
         private bool includeBetaUpdates;
 
@@ -194,6 +260,7 @@ namespace Apps2Samsung.ViewModels
             _localizationService.LanguageChanged += OnLanguageChanged;
             _themeService.ThemeChanged += OnThemeChanged;
             AppSettings.PartnerSigningAutoEnabled += OnPartnerSigningAutoEnabled;
+            AppSettings.CertificateKindChanged += OnCertificateKindAutoChanged;
 
             AvailableLanguages = new ObservableCollection<LanguageOption>(
                 _localizationService.AvailableLanguages
@@ -215,6 +282,10 @@ namespace Apps2Samsung.ViewModels
         private void OnPartnerSigningAutoEnabled() =>
             Dispatcher.UIThread.Post(() => CertificatePreference = AppSettings.Default.CertificatePreference);
 
+        // The installer switched from Tizen to Samsung after a TV refused the Tizen certificate (#988).
+        private void OnCertificateKindAutoChanged() =>
+            Dispatcher.UIThread.Post(() => CertificateKind = AppSettings.Default.CertificateKind);
+
         private void OnLanguageChanged(object? sender, EventArgs e)
         {
             RefreshLocalizedProperties();
@@ -233,6 +304,12 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblCertificate));
             OnPropertyChanged(nameof(LblCertificatePublic));
             OnPropertyChanged(nameof(LblCertificatePartner));
+            OnPropertyChanged(nameof(LblCertificateSamsung));
+            OnPropertyChanged(nameof(HintCertificateSamsung));
+            OnPropertyChanged(nameof(LblCertificateTizen));
+            OnPropertyChanged(nameof(HintCertificateTizen));
+            OnPropertyChanged(nameof(LblCertificateLevel));
+            RefreshCertificateStatus();
             OnPropertyChanged(nameof(LblLocalIP));
             OnPropertyChanged(nameof(LblTryOverwrite));
             OnPropertyChanged(nameof(LblLaunchOnInstall));
@@ -268,6 +345,8 @@ namespace Apps2Samsung.ViewModels
             DeletePreviousInstall = AppSettings.Default.DeletePreviousInstall;
             ForceSamsungLogin = AppSettings.Default.ForceSamsungLogin;
             CertificatePreference = AppSettings.Default.CertificatePreference;
+            CertificateKind = AppSettings.Default.CertificateKind;
+            RefreshCertificateStatus();
             IncludeBetaUpdates = AppSettings.Default.IncludeBetaUpdates;
             RtlReading = AppSettings.Default.RTLReading;
             LocalIP = AppSettings.Default.LocalIp ?? string.Empty;
@@ -690,6 +769,14 @@ namespace Apps2Samsung.ViewModels
         {
             AppSettings.Default.CertificatePreference = Apps2Samsung.Certificate.CertificatePreference.Normalize(value);
             AppSettings.Default.Save();
+            RefreshCertificateStatus();
+        }
+
+        partial void OnCertificateKindChanged(string value)
+        {
+            AppSettings.Default.CertificateKind = Apps2Samsung.Certificate.CertificateKind.Normalize(value);
+            AppSettings.Default.Save();
+            RefreshCertificateStatus();
         }
 
         partial void OnIncludeBetaUpdatesChanged(bool value)

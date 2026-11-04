@@ -27,6 +27,7 @@ public partial class SettingsInstallPage : ContentPage
 
 		// Load current values without firing the change handlers.
 		_loaded = false;
+		ShowCertificateKind();
 		ShowCertificate(MobileSettings.CertificatePreference);
 		ForceLoginSwitch.IsToggled = MobileSettings.ForceSamsungLogin;
 		RemoveOldSwitch.IsToggled = MobileSettings.DeletePreviousInstall;
@@ -96,12 +97,77 @@ public partial class SettingsInstallPage : ContentPage
 		ShowSources();
 	}
 
+	// Samsung / Tizen (#988): the chosen row on the soft accent, its radio filled and ticked.
+	private void ShowCertificateKind()
+	{
+		var tizen = MobileSettings.UsesTizenCertificate;
+		ShowPick(SamsungRow, SamsungRadio, SamsungCheck, SamsungLabel, !tizen);
+		ShowPick(TizenRow, TizenRadio, TizenCheck, TizenLabel, tizen);
+		ShowCertificateStatus();
+	}
+
+	private static void ShowPick(Border row, Border radio, Microsoft.Maui.Controls.Shapes.Path check, Label label, bool on)
+	{
+		row.BackgroundColor = on ? DesignTheme.ColorOf("AccentSoft") : Colors.Transparent;
+		radio.BackgroundColor = on ? DesignTheme.ColorOf("Accent") : Colors.Transparent;
+		radio.Stroke = on ? new SolidColorBrush(DesignTheme.ColorOf("Accent")) : new SolidColorBrush(DesignTheme.ColorOf("Hair"));
+		check.IsVisible = on;
+		label.FontFamily = on ? "OpenSansSemibold" : "OpenSansRegular";
+	}
+
+	private void OnSamsungTapped(object? sender, TappedEventArgs e) => SelectKind(MobileSettings.CertificateKindSamsung);
+
+	private void OnTizenTapped(object? sender, TappedEventArgs e) => SelectKind(MobileSettings.CertificateKindTizen);
+
+	private void SelectKind(string kind)
+	{
+		MobileSettings.CertificateKind = kind;
+		ShowCertificateKind();
+	}
+
+	// What the store holds for the chosen certificate and level: the Samsung profile's expiry and
+	// the TVs it covers, or the Tizen profile's expiry; "none yet" otherwise.
+	private void ShowCertificateStatus()
+	{
+		try
+		{
+			var store = new MobileAppConfig().CertificateStorePath;
+			var preference = MobileSettings.CertificatePreference;
+			if (MobileSettings.UsesTizenCertificate)
+			{
+				var level = Apps2Samsung.Certificate.CertificateKind.TizenLevel(preference, false);
+				var dir = TizenProfileStore.ProfileDir(store, level);
+				var until = TizenProfileStore.HasProfile(store, level) ? CertificateProvisioningService.AuthorValidUntil(dir) : null;
+				CertificateStatus.Text = until is { } u
+					? string.Format(L10n.Get("certStatusTizen"), level, u.ToString("d"))
+					: string.Format(L10n.Get("certStatusTizenNone"), level);
+			}
+			else
+			{
+				var level = Apps2Samsung.Certificate.CertificatePreference.ResolveLevel(preference, false);
+				var dir = Path.Combine(store, CertificateProvisioningService.ProfileName(level));
+				var until = CertificateProvisioningService.HasProfile(store, level) ? CertificateProvisioningService.AuthorValidUntil(dir) : null;
+				CertificateStatus.Text = until is { } u
+					? string.Format(L10n.Get("certStatusSamsung"), level, u.ToString("d"), CertificateProvisioningService.GetCoveredDuids(dir).Count)
+					: string.Format(L10n.Get("certStatusSamsungNone"), level);
+			}
+			CertificateStatus.IsVisible = true;
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[settings] Certificate status: {ex.Message}");
+			CertificateStatus.IsVisible = false;
+		}
+	}
+
 	// Automatic / Public / Partner, the one in force on the surface colour.
 	private void ShowCertificate(string preference)
 	{
 		CertAuto.BackgroundColor = Segment(preference == MobileSettings.CertificatePreferenceAuto);
 		CertPublic.BackgroundColor = Segment(preference == MobileSettings.CertificatePreferencePublic);
 		CertPartner.BackgroundColor = Segment(preference == MobileSettings.CertificatePreferencePartner);
+		if (_loaded)
+			ShowCertificateStatus();
 	}
 
 	private static Color Segment(bool on) => on ? DesignTheme.ColorOf("Surface") : Colors.Transparent;
@@ -133,6 +199,41 @@ public partial class SettingsInstallPage : ContentPage
 	{
 		var services = IPlatformApplication.Current!.Services;
 		var tv = services.GetRequiredService<TvSelection>();
+		var flow = services.GetRequiredService<CertificateFlow>();
+
+		// A Tizen certificate (#988) names no TV: made right here, whether or not one is selected.
+		// Choosing a Samsung certificate on its sheet switches the setting and goes on below.
+		if (MobileSettings.UsesTizenCertificate)
+		{
+			PrepareBtn.IsEnabled = false;
+			try
+			{
+				var tizen = await flow.RunTizenAsync(Navigation, tv.HasTv ? tv.DisplayName : null, false, null, new CancellationTokenSource());
+				if (tizen is { } made)
+				{
+					await DisplayAlert(L10n.Get("lblStepCertificate"),
+						L10n.Get(made.Created ? "statusTizenCertificatePrepared" : "statusTizenCertificateAlreadyReady"), L10n.Get("btn_Close"));
+					return;
+				}
+				ShowCertificateKind();
+			}
+			catch (OperationCanceledException)
+			{
+				return;
+			}
+			catch (Exception ex)
+			{
+				if (!Navigation.ModalStack.OfType<CertificateSheetPage>().Any())
+					await DisplayAlert(L10n.Get("lblStepCertificate"), ErrorText.Describe(ex, "certificate"), L10n.Get("btn_Close"));
+				return;
+			}
+			finally
+			{
+				PrepareBtn.IsEnabled = true;
+				ShowCertificateStatus();
+			}
+		}
+
 		if (!tv.HasTv)
 		{
 			await DisplayAlert(L10n.Get("lblStepCertificate"), L10n.Get("statusSelectTvFirst"), L10n.Get("btn_Close"));
@@ -143,8 +244,7 @@ public partial class SettingsInstallPage : ContentPage
 		PrepareBtn.Text = L10n.Get("statusReadingTvDuid");
 		try
 		{
-			var (_, created) = await services.GetRequiredService<CertificateFlow>()
-				.RunAsync(Navigation, tv.Ip!, tv.DisplayName, false, null, new CancellationTokenSource());
+			var (_, created) = await flow.RunAsync(Navigation, tv.Ip!, tv.DisplayName, false, null, new CancellationTokenSource());
 			await DisplayAlert(
 				L10n.Get("lblStepCertificate"),
 				string.Format(L10n.Get(created ? "statusCertificatePrepared" : "statusCertificateAlreadyReady"), tv.DisplayName),
@@ -168,6 +268,7 @@ public partial class SettingsInstallPage : ContentPage
 		{
 			PrepareBtn.IsEnabled = true;
 			PrepareBtn.Text = L10n.Get("lblPrepareCertificateNow");
+			ShowCertificateStatus();
 		}
 	}
 }

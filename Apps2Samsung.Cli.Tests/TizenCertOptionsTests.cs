@@ -28,6 +28,16 @@ public sealed class TizenCertOptionsTests
     }
 
     [Fact]
+    public void Samsung_cert_is_a_flag()
+    {
+        var (o, error) = CliOptions.Parse(new[] { "install", "app.wgt", "--tv", "192.168.1.50", "--samsung-cert" });
+        Assert.Null(error);
+        Assert.True(o.SamsungCert);
+        Assert.False(o.TizenCert);
+        Assert.Equal(new[] { "app.wgt" }, o.Arguments);
+    }
+
+    [Fact]
     public void A_file_after_the_flag_is_not_a_level()
     {
         var (o, error) = CliOptions.Parse(new[] { "install", "--tizen-cert", "app.wgt", "--tv", "192.168.1.50" });

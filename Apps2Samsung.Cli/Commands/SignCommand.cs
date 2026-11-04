@@ -19,7 +19,7 @@ public static class SignCommand
         var output = s.Options.OutputPath;
         var manual = s.Options.ManualDuids.Split(new[] { ',', ';', ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         // A Tizen certificate names no TV (#988), so neither --tv nor --duids is needed with it.
-        var needsTv = !s.Options.TizenCert && string.IsNullOrWhiteSpace(s.Options.Tv) && manual.Length == 0;
+        var needsTv = !Certificates.UseTizen(s) && string.IsNullOrWhiteSpace(s.Options.Tv) && manual.Length == 0;
         if (string.IsNullOrWhiteSpace(input) || string.IsNullOrWhiteSpace(output) || needsTv)
             return s.Out.Fail("usage: apps2samsung-cli sign <file> -o <signed file> (--tv <ip> | --duids <DUID> | --tizen-cert)   (`sign --help` for the options)", Output.Usage);
         if (!File.Exists(input))
@@ -38,7 +38,7 @@ public static class SignCommand
             SigningProfile profile;
             string? duid;
             string certificate;
-            if (s.Options.TizenCert)
+            if (Certificates.UseTizen(s))
             {
                 var tizenLevel = Certificates.TizenLevel(s, needsPartner);
                 (profile, var tizen) = await Certificates.EnsureTizenAsync(s, tizenLevel);

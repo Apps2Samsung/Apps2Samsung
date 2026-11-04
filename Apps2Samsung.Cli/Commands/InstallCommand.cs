@@ -171,7 +171,7 @@ public static class InstallCommand
             var needsPartner = (release?.RequiresPartner ?? false) || WgtPrivileges.RequiresPartner(packagePath);
             SigningProfile profile;
             string duid, certificate;
-            if (s.Options.TizenCert)
+            if (Certificates.UseTizen(s))
             {
                 // A Tizen certificate (#988): the SDK's, no Samsung account and no DUID in it. The TV
                 // decides whether it takes the signature; the error below says so when it does not.
@@ -262,12 +262,15 @@ public static class InstallCommand
         {
             return s.Out.Fail(ex.Message, details: new { validFrom = ex.Result.ValidFromLocal });
         }
-        catch (InvalidOperationException ex) when (s.Options.TizenCert && ex.Message.Contains("[118, -12]", StringComparison.Ordinal))
+        catch (CertificateChainRejectedException ex) when (Certificates.UseTizen(s))
         {
             // The TV refused the Tizen certificate's chain: it wants a Samsung one (#988). The
             // installer's own advice (internet, clock, a new certificate) is about Samsung ones.
-            return s.Out.Fail("The TV rejected the Tizen certificate ([118, -12], invalid certificate chain): this TV does not accept a Tizen certificate. Run the install again without --tizen-cert to sign with a Samsung certificate.",
-                details: new { tizenCertificate = true, reason = TizenInstallDiagnostics.CertificateRejectionReason(ex.Message) ?? ex.Message });
+            return s.Out.Fail("The TV rejected the Tizen certificate ([118, -12], invalid certificate chain): this TV does not accept a Tizen certificate. "
+                + (s.Options.TizenCert
+                    ? "Run the install again without --tizen-cert to sign with a Samsung certificate."
+                    : "Run the install again with --samsung-cert, or choose the Samsung certificate in the desktop app's Settings > Installing."),
+                details: new { tizenCertificate = true, reason = ex.Reason ?? ex.Message });
         }
         catch (UserSettingsPatchException ex)
         {

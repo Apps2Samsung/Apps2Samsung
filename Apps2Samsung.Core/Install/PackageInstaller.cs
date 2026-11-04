@@ -273,7 +273,12 @@ namespace Apps2Samsung.Install
             if (rejection != CertificateRejection.None)
             {
                 await ClearPartialIfFresh();
-                throw new InvalidOperationException(CertificateRejectionMessage(rejection, output));
+                var message = CertificateRejectionMessage(rejection, output);
+                // The chain itself: with a Tizen certificate (#988) the heads turn this into the offer
+                // of a Samsung one, so it is its own type.
+                if (rejection == CertificateRejection.InvalidChain)
+                    throw new CertificateChainRejectedException(message, TizenInstallDiagnostics.CertificateRejectionReason(output));
+                throw new InvalidOperationException(message);
             }
 
             bool certMismatch = TizenInstallDiagnostics.IsCertificateMismatch(output);

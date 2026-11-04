@@ -1467,6 +1467,20 @@ namespace Apps2Samsung.ViewModels
                 // Host PC IP that points elsewhere), as the CLI's --duids does.
                 Func<bool, Action<string>, Task<Apps2Samsung.Install.SigningProfile?>> signingProfile = async (requirePartner, report) =>
                 {
+                    // A Tizen certificate (#988) names no TV: no DUID to read, the profile is the
+                    // one on disk (made now when missing). Unless its sheet switched to Samsung.
+                    if (Apps2Samsung.Certificate.CertificateKind.IsTizen(AppSettings.Default.CertificateKind))
+                    {
+                        using var tizenTimeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                        if (await _tizenInstaller.PrepareCertificateAsync(tvIp, tizenTimeout.Token, requirePartner) == CertificatePreparation.Failed)
+                            return null;
+                        if (Apps2Samsung.Certificate.CertificateKind.IsTizen(AppSettings.Default.CertificateKind))
+                        {
+                            var tizen = await Apps2Samsung.Certificate.TizenProfileStore.EnsureAsync(AppSettings.CertificatePath,
+                                Apps2Samsung.Certificate.CertificateKind.TizenLevel(AppSettings.Default.CertificatePreference, AppSettings.Default.RequiresPartnerSigning || requirePartner));
+                            return new Apps2Samsung.Install.SigningProfile(tizen.AuthorP12, tizen.DistributorP12, tizen.Password, tizen.ProfileDir);
+                        }
+                    }
                     var preferred = requirePartner ? Apps2Samsung.Interfaces.CertificatePrivilegeLevel.Partner : (Apps2Samsung.Interfaces.CertificatePrivilegeLevel?)null;
                     report(L("lblToolboxTvStoreReadingDuid"));
                     string duid;

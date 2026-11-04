@@ -72,7 +72,9 @@ public static class Help
                                 the Tizen SDK's own CA, no Samsung account, no DUID (level: public,
                                 partner or platform; default public, partner with --partner). A TV
                                 that does not trust it says so; a Tizen 5.0 set takes public and
-                                refuses partner and platform (issue #988)
+                                refuses partner and platform (issue #988). Without the flag the
+                                desktop app's Settings > Installing choice (Samsung or Tizen) decides
+          --samsung-cert        sign with a Samsung certificate for this run, when that setting says Tizen
           --tizen-chain <gen>   which SDK distributor signer generation the Tizen certificate uses:
                                 legacy (2012, default where it exists, the one a TV took) or new
                                 (2022; platform only has this one)
@@ -116,6 +118,7 @@ public static class Help
     private const string Sign = """
         usage: apps2samsung-cli sign <file> -o <signed file> (--tv <ip> | --duids <DUID>) [--partner] [--json]
                apps2samsung-cli sign <file> -o <signed file> --tizen-cert [public|partner|platform] [--tizen-chain legacy|new] [--json]
+               apps2samsung-cli sign <file> -o <signed file> --tv <ip> --samsung-cert [--json]
 
         Signs a local .wgt or .tpk with the certificate that covers the TV and writes the signed copy to
         -o, without installing it: for tools that install another way (a root service on the TV,
@@ -126,7 +129,8 @@ public static class Help
         --tizen-cert signs with a Tizen certificate instead (the Tizen SDK's own CA, made here, no
         Samsung account): it names no TV, so neither --tv nor --duids is needed. A Tizen 5.0 TV takes
         the public one (legacy signer generation) and refuses the others; see `install --help` and
-        issue #988.
+        issue #988. Without the flag the desktop app's Samsung-or-Tizen setting decides;
+        --samsung-cert overrides it for this run.
         The input file is never changed.
         """;
 
@@ -148,7 +152,8 @@ public static class Help
         --prepare --tizen-cert makes a Tizen certificate instead (the Tizen SDK's own CA, no Samsung
         account, no TV named in it): "Tizen - Public/Partner/Platform" next to the Samsung profiles,
         reused while valid, remade with --force-login; --tizen-chain new makes the "... New" profile
-        with the 2022 SDK signer instead. The listing shows the Tizen profiles too.
+        with the 2022 SDK signer instead. The listing shows the Tizen profiles too. Without the flag
+        the desktop app's Samsung-or-Tizen setting decides; --samsung-cert overrides it for this run.
         --export <file> writes the signing certificate on its own (no settings) to a file, every
         usable level or the Partner one with --partner, for the desktop app, the phone or another
         machine to import; installs there then need no second Samsung sign-in.

@@ -37,9 +37,13 @@ public partial class SettingsPage : ContentPage
 		_loaded = true;
 	}
 
-	/// <summary>The certificate choice as the Installing page's switch names it.</summary>
-	internal static string CertificateName(string preference) =>
-		preference == MobileSettings.CertificatePreferenceAuto ? L10n.Get("lblCertificateAutomatic") : preference;
+	/// <summary>The certificate choice as the Installing page's switch names it, with "Tizen" in
+	/// front when the Tizen certificate is chosen (#988).</summary>
+	internal static string CertificateName(string preference)
+	{
+		var level = preference == MobileSettings.CertificatePreferenceAuto ? L10n.Get("lblCertificateAutomatic") : preference;
+		return MobileSettings.UsesTizenCertificate ? $"{L10n.Get("lblCertificateTizen")} \u00b7 {level}" : level;
+	}
 
 	// Where the app stands, from the last update check that got an answer (the quiet one at startup
 	// or a manual one): up to date, a newer version, or not checked yet.

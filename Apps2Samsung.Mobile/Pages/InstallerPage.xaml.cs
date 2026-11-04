@@ -637,8 +637,21 @@ public partial class InstallerPage : ContentPage
 		Func<string, Action<string>, Task<bool>> installWgt = async (wgtPath, report) =>
 		{
 			var (cert, _) = await _certFlow.RunAsync(Navigation, tvIp, label, false, report, new CancellationTokenSource());
-			await _installer.InstallAsync(tvIp, wgtPath, cert, report,
-				confirmRemove: () => ConfirmRemoveAsync(Path.GetFileNameWithoutExtension(wgtPath)));
+			try
+			{
+				await _installer.InstallAsync(tvIp, wgtPath, cert, report,
+					confirmRemove: () => ConfirmRemoveAsync(Path.GetFileNameWithoutExtension(wgtPath)));
+			}
+			catch (CertificateChainRejectedException refused) when (cert.Tizen is { } tizen)
+			{
+				// The TV only takes a Samsung certificate (#988): offer it, then sign and push again.
+				report(string.Format(L10n.Get("statusTizenCertificateRefused"), label));
+				if (!await _certFlow.ShowTizenRefusedAsync(Navigation, label, tizen, refused.Reason))
+					return false;
+				(cert, _) = await _certFlow.RunAsync(Navigation, tvIp, label, false, report, new CancellationTokenSource());
+				await _installer.InstallAsync(tvIp, wgtPath, cert, report,
+					confirmRemove: () => ConfirmRemoveAsync(Path.GetFileNameWithoutExtension(wgtPath)));
+			}
 			return true;
 		};
 
@@ -649,6 +662,13 @@ public partial class InstallerPage : ContentPage
 		// CLI's --duids does.
 		Func<bool, Action<string>, Task<Apps2Samsung.Install.SigningProfile?>> signingProfile = async (requirePartner, report) =>
 		{
+			// A Tizen certificate (#988) names no TV: no DUID needed, the flow reads it only for the
+			// rename memory and goes on without it. Unless its sheet switches to Samsung.
+			if (MobileSettings.UsesTizenCertificate)
+			{
+				var (tizenCert, _) = await _certFlow.RunAsync(Navigation, tvIp, label, requirePartner, report, new CancellationTokenSource());
+				return new Apps2Samsung.Install.SigningProfile(tizenCert.AuthorP12, tizenCert.DistributorP12, tizenCert.Password, tizenCert.ProfileDir);
+			}
 			string? duid = null;
 			try
 			{
@@ -868,6 +888,21 @@ public partial class InstallerPage : ContentPage
 						FailProgress(L10n.Get("certificateWaitCancelled"));
 						return;
 					}
+				}
+				catch (CertificateChainRejectedException refused) when (cert.Tizen is { } tizen)
+				{
+					// The TV refused the Tizen certificate's chain (#988): it only takes a Samsung one.
+					// The sheet says so and offers the switch; a yes signs this package again, Samsung.
+					var message = string.Format(L10n.Get("statusTizenCertificateRefused"), _tv.DisplayName);
+					SetStatus(message);
+					if (!await _certFlow.ShowTizenRefusedAsync(Navigation, _tv.DisplayName, tizen, refused.Reason))
+					{
+						FailProgress(message);
+						return;
+					}
+					SetStep(InstallStep.Certificate);
+					(cert, _) = await _certFlow.RunAsync(Navigation, tvIp, _tv.DisplayName, needsPartner, SetStatus, cancel);
+					cancel.Token.ThrowIfCancellationRequested();
 				}
 			}
 

@@ -75,6 +75,14 @@ public static class Certificates
         _ => s.Options.Partner || requirePartner ? TizenDistributorLevel.Partner : TizenDistributorLevel.Public,
     };
 
+    /// <summary>
+    /// Whether this run signs with a Tizen certificate (#988): --tizen-cert says so, --samsung-cert
+    /// says no, and without either the desktop's shared Settings > Installing choice decides, so a
+    /// user who picked Tizen there gets it here too.
+    /// </summary>
+    public static bool UseTizen(CliServices s) =>
+        s.Options.TizenCert || (!s.Options.SamsungCert && Apps2Samsung.Certificate.CertificateKind.IsTizen(s.Desktop.CertificateKind));
+
     /// <summary>--tizen-chain's signer generation, or null for the level's default (legacy where the SDK has one).</summary>
     public static TizenDistributorChain? TizenChain(CliServices s) => s.Options.TizenChain switch
     {

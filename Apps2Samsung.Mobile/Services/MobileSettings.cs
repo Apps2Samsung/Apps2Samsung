@@ -143,6 +143,20 @@ public static class MobileSettings
 		set => CertificatePreference = value ? CertificatePreferencePartner : CertificatePreferenceAuto;
 	}
 
+	public const string CertificateKindSamsung = Apps2Samsung.Certificate.CertificateKind.Samsung;
+	public const string CertificateKindTizen = Apps2Samsung.Certificate.CertificateKind.Tizen;
+	private const string KeyCertKind = "certificate_kind";
+
+	/// <summary>Samsung or Tizen (#988), the same choice as the desktop's (Core CertificateKind): a
+	/// Tizen certificate is the SDK's, made on the phone with no account and no DUID; some TVs refuse it.</summary>
+	public static string CertificateKind
+	{
+		get => Apps2Samsung.Certificate.CertificateKind.Normalize(Preferences.Get(KeyCertKind, CertificateKindSamsung));
+		set => Preferences.Set(KeyCertKind, Apps2Samsung.Certificate.CertificateKind.Normalize(value));
+	}
+
+	public static bool UsesTizenCertificate => Apps2Samsung.Certificate.CertificateKind.IsTizen(CertificateKind);
+
 	public const string CertificatePreferenceAuto = Apps2Samsung.Certificate.CertificatePreference.Automatic;
 	public const string CertificatePreferencePublic = Apps2Samsung.Certificate.CertificatePreference.Public;
 	public const string CertificatePreferencePartner = Apps2Samsung.Certificate.CertificatePreference.Partner;

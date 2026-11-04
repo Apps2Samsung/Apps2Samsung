@@ -348,6 +348,29 @@ namespace Apps2Samsung.Services
                 return new CertificateSheet(sheet);
             }).GetTask();
 
+        public Task<CertificateSheet?> OpenTizenCertificateSheetAsync(string? tvName, TizenDistributorLevel level) =>
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var window = GetMainWindow();
+                if (window == null)
+                    return (CertificateSheet?)null;
+                var sheet = new CertificateWindow(tvName, level, Localize, this);
+                _ = sheet.ShowDialog(window);
+                return new CertificateSheet(sheet);
+            }).GetTask();
+
+        public Task<bool> ShowTizenCertificateRefusedAsync(string tvName, TizenDistributorLevel level, string profileName, string? reason, DateTime? validUntil) =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var window = GetMainWindow();
+                if (window == null)
+                    return false;
+                var sheet = new CertificateWindow(tvName, level, Localize, this);
+                sheet.ShowRefused(profileName, reason, validUntil);
+                await sheet.ShowDialog(window);
+                return sheet.SamsungInstead;
+            });
+
         public Task ShowAccountEmailMissingAsync() =>
             Dispatcher.UIThread.InvokeAsync(async () =>
             {

@@ -103,6 +103,9 @@ namespace Apps2Samsung.Helpers
         // Partner is only for apps with restricted privileges (e.g. vpnservice); some TVs may reject
         // partner-signed installs, and svdca may not issue Partner certs for individual accounts.
         public string CertificatePreference { get; set; } = Apps2Samsung.Certificate.CertificatePreference.Automatic;
+        // Samsung / Tizen (#988), the same choice as the phone (Core CertificateKind): a Tizen
+        // certificate is the SDK's, made here with no account and no DUID; some TVs refuse it.
+        public string CertificateKind { get; set; } = Apps2Samsung.Certificate.CertificateKind.Samsung;
         // The old on/off toggle, still in settings.json: an older build reads it, and a settings file
         // from before CertificatePreference turns it into Partner here. Only a real change moves the
         // preference, so reading it after CertificatePreference can't turn "Public" into "Automatic".
@@ -267,6 +270,23 @@ namespace Apps2Samsung.Helpers
             PartnerSigningAutoEnabled?.Invoke();
         }
 
+        /// <summary>
+        /// Raised when the app itself switches the certificate from Tizen to Samsung, after a TV
+        /// refused the Tizen one (#988), so an open Settings view shows the new choice.
+        /// </summary>
+        public static event Action? CertificateKindChanged;
+
+        /// <summary>Switches the certificate to Samsung and persists it, then notifies the UI (#988).</summary>
+        public void UseSamsungCertificate()
+        {
+            if (!Apps2Samsung.Certificate.CertificateKind.IsTizen(CertificateKind))
+                return;
+
+            CertificateKind = Apps2Samsung.Certificate.CertificateKind.Samsung;
+            Save();
+            CertificateKindChanged?.Invoke();
+        }
+
         public void Save()
         {
             try
@@ -333,6 +353,7 @@ namespace Apps2Samsung.Helpers
         private static void MigrateCertificatePick(AppSettings s)
         {
             s.CertificatePreference = Apps2Samsung.Certificate.CertificatePreference.Normalize(s.CertificatePreference);
+            s.CertificateKind = Apps2Samsung.Certificate.CertificateKind.Normalize(s.CertificateKind);
             bool generatedPick = string.IsNullOrEmpty(s.Certificate) ||
                                  s.Certificate.StartsWith(Constants.AppIdentifiers.Jelly2Sams, StringComparison.OrdinalIgnoreCase);
             if (!generatedPick || s.Certificate == Constants.AppIdentifiers.Jelly2SamsDefault)

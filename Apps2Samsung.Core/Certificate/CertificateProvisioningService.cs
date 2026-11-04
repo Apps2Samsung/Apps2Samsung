@@ -198,6 +198,31 @@ namespace Apps2Samsung.Certificate
             }
         }
 
+        /// <summary>
+        /// When the author certificate in <paramref name="certDir"/> expires (local date), or null
+        /// when there is none that loads: Settings' line on what is there (#988).
+        /// </summary>
+        public static DateTime? AuthorValidUntil(string certDir)
+        {
+            try
+            {
+                var authorP12 = Path.Combine(certDir, AuthorFileName);
+                var passwordFile = Path.Combine(certDir, PasswordFileName);
+                if (!File.Exists(authorP12) || !File.Exists(passwordFile))
+                    return null;
+                var password = File.ReadAllText(passwordFile).Trim();
+#pragma warning disable SYSLIB0057
+                using var cert = new X509Certificate2(authorP12, password, PlatformService.SigningCertificateFlags);
+#pragma warning restore SYSLIB0057
+                return cert.NotAfter.ToLocalTime();
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Cert] Author cert validity read failed for '{certDir}': {ex.Message}");
+                return null;
+            }
+        }
+
         /// <summary>DUIDs already covered by the distributor cert in <paramref name="certDir"/>.</summary>
         public static HashSet<string> GetCoveredDuids(string certDir)
         {
