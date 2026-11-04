@@ -16,7 +16,7 @@ public static class CertCommand
         if (s.Options.ImportPath is { } importPath)
             return await ImportAsync(s, importPath, ip, ct);
 
-        if (s.Options.Prepare && s.Options.TizenCert)
+        if (s.Options.Prepare && Certificates.UseTizen(s))
         {
             // A Tizen certificate (#988): made from the SDK files, no TV and no sign-in involved.
             var tizenLevel = Certificates.TizenLevel(s);

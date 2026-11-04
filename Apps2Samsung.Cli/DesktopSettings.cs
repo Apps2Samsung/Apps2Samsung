@@ -48,6 +48,11 @@ public sealed class DesktopSettings
         set => Set("CertificatePreference", Apps2Samsung.Certificate.CertificatePreference.Normalize(value), "the certificate preference");
     }
 
+    /// <summary>Samsung / Tizen (#988), the desktop's Settings > Installing choice (Core
+    /// <c>CertificateKind</c>): the CLI signs the same way unless a run says otherwise with
+    /// --tizen-cert or --samsung-cert.</summary>
+    public string CertificateKind => Apps2Samsung.Certificate.CertificateKind.Normalize(Get("CertificateKind"));
+
     public string PackageIdRenamesJson
     {
         get => Get(RenamesKey);

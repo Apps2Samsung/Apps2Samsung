@@ -63,6 +63,9 @@ public sealed class CliOptions
     /// with --partner, else Public.
     /// </summary>
     public bool TizenCert { get; set; }
+    /// <summary><c>--samsung-cert</c>: a Samsung certificate for this run, when the desktop's shared
+    /// setting says Tizen (<see cref="Commands.Certificates.UseTizen"/>).</summary>
+    public bool SamsungCert { get; set; }
     public string? TizenLevel { get; set; }
     /// <summary><c>--tizen-chain legacy|new</c>: which SDK signer generation (default: legacy where it exists).</summary>
     public string? TizenChain { get; set; }
@@ -142,6 +145,7 @@ public sealed class CliOptions
                     break;
                 }
                 case "--partner": o.Partner = true; break;
+                case "--samsung-cert": o.SamsungCert = true; break;
                 case "--tizen-cert":
                 {
                     o.TizenCert = true;

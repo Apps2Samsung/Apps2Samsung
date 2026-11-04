@@ -637,8 +637,21 @@ public partial class InstallerPage : ContentPage
 		Func<string, Action<string>, Task<bool>> installWgt = async (wgtPath, report) =>
 		{
 			var (cert, _) = await _certFlow.RunAsync(Navigation, tvIp, label, false, report, new CancellationTokenSource());
-			await _installer.InstallAsync(tvIp, wgtPath, cert, report,
-				confirmRemove: () => ConfirmRemoveAsync(Path.GetFileNameWithoutExtension(wgtPath)));
+			try
+			{
+				await _installer.InstallAsync(tvIp, wgtPath, cert, report,
+					confirmRemove: () => ConfirmRemoveAsync(Path.GetFileNameWithoutExtension(wgtPath)));
+			}
+			catch (CertificateChainRejectedException refused) when (cert.Tizen is { } tizen)
+			{
+				// The TV only takes a Samsung certificate (#988): offer it, then sign and push again.
+				report(string.Format(L10n.Get("statusTizenCertificateRefused"), label));
+				if (!await _certFlow.ShowTizenRefusedAsync(Navigation, label, tizen, refused.Reason))
+					return false;
+				(cert, _) = await _certFlow.RunAsync(Navigation, tvIp, label, false, report, new CancellationTokenSource());
+				await _installer.InstallAsync(tvIp, wgtPath, cert, report,
+					confirmRemove: () => ConfirmRemoveAsync(Path.GetFileNameWithoutExtension(wgtPath)));
+			}
 			return true;
 		};
 
