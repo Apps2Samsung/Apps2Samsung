@@ -167,7 +167,7 @@ jobs:
             echo "| 🍎 macOS (.app + dmg) | ✅ Stable | ARM64 + Intel |"
             echo "| 🍎 macOS (CLI) | ✅ Stable | Per-arch tar.gz |"
             echo "| 🐧 Linux | ✅ Stable | x64 + ARM64 (tar.gz / .deb) |"
-            echo "| 🤖 Android Termux (CLI) | ✅ Stable | linux-bionic-arm64 tar.gz (unpacks to apps2samsung-cli/), needs \`pkg install openssl\` |"
+            echo "| 🤖 Android Termux (CLI) | ✅ Stable | linux-bionic-arm64 tar.gz (unpacks to apps2samsung-cli/), needs \`pkg install dotnet-runtime-10.0\` |"
             echo "| 🪟 Windows | ✅ Stable | CI-built |"
             echo "| 🤖 Android (.apk) | ✅ Stable | Sideload; phone as installer head |"
             if [ "${{ vars.IOS_PUBLISH }}" = "true" ]; then
@@ -281,12 +281,12 @@ jobs:
       # Single-file, self-contained: nothing to install next to it, no runtime needed. Windows gets a
       # zip, everything else a tar.gz (which keeps the executable bit). The version is the release's,
       # so `apps2samsung-cli --version` names the release it came from.
-      # linux-bionic-arm64 is the Android libc build: it runs in Termux on a phone without a Linux
-      # distribution underneath (#975) and needs Termux's openssl package for TLS and certificates.
-      # Its runtime pack has no singlefilehost, so a single-file publish silently drops every native
-      # runtime library (libhostfxr, libhostpolicy, libcoreclr, ...) and the binary dies on start with
-      # "libhostpolicy.so ... was not found". That RID ships the self-contained folder instead, under
-      # an apps2samsung-cli/ directory so extracting it in $HOME stays tidy.
+      # linux-bionic-arm64 is the Android libc build for Termux on a phone (#975). Microsoft's bionic
+      # runtime pack cannot be shipped: on .NET 9 and later its host segfaults on start
+      # (dotnet/runtime#111071, still open), and a single-file publish does not even get that far
+      # because the pack has no singlefilehost. Termux's dotnet-runtime-10.0 package carries the fix,
+      # so that RID ships framework-dependent: the managed assemblies plus a launcher script that runs
+      # them on Termux's dotnet, under an apps2samsung-cli/ directory so extracting it in $HOME stays tidy.
       - name: Publish
         env:
           VERSION: ${{ needs.stable-release.outputs.VERSION }}
@@ -296,16 +296,19 @@ jobs:
           mkdir -p dist
           for RID in win-x64 win-arm64 linux-x64 linux-arm64 linux-bionic-arm64 osx-x64 osx-arm64; do
             if [ "$RID" = linux-bionic-arm64 ]; then
-              SINGLE_FILE=false; OUT="publish/cli/$RID/apps2samsung-cli"
+              # Portable (no RID): the CLI has no RID-specific assets, and a RID-stamped assembly
+              # cannot be smoke-tested on the x64 runner.
+              OUT="publish/cli/$RID/apps2samsung-cli"
+              dotnet publish Apps2Samsung.Cli/Apps2Samsung.Cli.csproj \
+                -c Release --self-contained false -p:UseAppHost=false \
+                -p:DebugType=none -p:Version="$VERSION" -o "$OUT"
+              install -m 755 Apps2Samsung.Cli/Termux/apps2samsung-cli "$OUT/apps2samsung-cli"
             else
-              SINGLE_FILE=true; OUT="publish/cli/$RID"
+              OUT="publish/cli/$RID"
+              dotnet publish Apps2Samsung.Cli/Apps2Samsung.Cli.csproj \
+                -c Release -r "$RID" -p:SelfContained=true -p:PublishSingleFile=true \
+                -p:DebugType=none -p:Version="$VERSION" -o "$OUT"
             fi
-            dotnet publish Apps2Samsung.Cli/Apps2Samsung.Cli.csproj \
-              -c Release -r "$RID" -p:SelfContained=true -p:PublishSingleFile=$SINGLE_FILE \
-              -p:DebugType=none -p:Version="$VERSION" -o "$OUT"
-            # The bionic runtime pack also copies Mono's static archives into a folder publish; nothing
-            # loads them at run time and they are a third of the download.
-            rm -f "$OUT"/*.a
             NAME="${PRODUCT_NAME}-cli-${VERSION_TAG}-${RID}"
             case "$RID" in
               win-*) (cd "publish/cli/$RID" && zip -q -r "../../../dist/${NAME}.zip" .) ;;
