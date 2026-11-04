@@ -46,6 +46,7 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       # ---------------- VERSION ----------------
       - name: Extract version
@@ -90,7 +91,7 @@ jobs:
           # tag to the current commit first so the notes reflect everything merged
           # since the previous beta tag.
           git tag -f "$VERSION_TAG" "$GITHUB_SHA"
-          git push -f origin "refs/tags/$VERSION_TAG"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}" "refs/tags/$VERSION_TAG"
 
           ARGS=(-f tag_name="$VERSION_TAG" -f target_commitish="$GITHUB_SHA")
           if [ -n "$LAST_TAG" ]; then

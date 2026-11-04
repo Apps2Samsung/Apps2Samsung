@@ -66,8 +66,8 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           ref: beta
-          # Same pattern as fdroid-repo.yml: checking out with the PAT makes the push use it too.
-          token: ${{ secrets.CI_PUSH_TOKEN }}
+          # The push at the end hands the PAT to git itself, so the clone keeps no credentials.
+          persist-credentials: false
 
       - uses: actions/setup-dotnet@v6.1.0
         with:
@@ -137,4 +137,4 @@ jobs:
           git add "$SNAPSHOT"
           if [ -f "$SIGNED" ]; then git add "$SIGNED"; fi
           git commit -m "chore(catalog): refresh resolved catalog [skip ci]"
-          git push origin beta
+          git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}" beta
