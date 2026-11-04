@@ -16,6 +16,16 @@ public static class CertCommand
         if (s.Options.ImportPath is { } importPath)
             return await ImportAsync(s, importPath, ip, ct);
 
+        if (s.Options.Prepare && s.Options.TizenCert)
+        {
+            // A Tizen certificate (#988): made from the SDK files, no TV and no sign-in involved.
+            var tizenLevel = Certificates.TizenLevel(s);
+            var (_, tizen) = await Certificates.EnsureTizenAsync(s, tizenLevel);
+            return s.Out.Result(
+                new { ok = true, tizen = true, level = tizenLevel.ToString(), chain = tizen.Chain.ToString(), profile = Certificates.DescribeTizen(tizenLevel, tizen.Chain) },
+                new[] { $"{tizen.ProfileName} is ready (no TV named in it: installs with --tizen-cert use it on any TV that accepts a Tizen certificate)." });
+        }
+
         if (s.Options.Prepare)
         {
             var manual = s.Options.ManualDuids.Split(new[] { ',', ';', ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -38,6 +48,8 @@ public static class CertCommand
         }
 
         var profiles = new[] { Certificates.Describe(CertificatePrivilegeLevel.Public), Certificates.Describe(CertificatePrivilegeLevel.Partner) };
+        // The Tizen profiles (#988) only when they exist: most machines have none.
+        var tizenProfiles = Certificates.TizenProfiles().Select(p => Certificates.DescribeTizen(p.Level, p.Chain)).Where(p => p.Exists).ToList();
         var text = new List<string> { $"Certificate store: {CliPaths.CertificateStore}" };
         foreach (var p in profiles)
         {
@@ -51,6 +63,11 @@ public static class CertCommand
             foreach (var d in p.Duids)
                 text.Add($"    {d}{(tvDuid is not null && string.Equals(d, tvDuid, StringComparison.OrdinalIgnoreCase) ? $"  <- {ip}" : "")}");
         }
+        foreach (var p in tizenProfiles)
+        {
+            var window = p.ValidFrom is null ? "unreadable" : $"valid {p.ValidFrom} to {p.ValidUntil}{(p.Usable ? "" : " (expired or unreadable)")}";
+            text.Add($"{p.Level}: {window}, no TV named in it (Tizen certificate, --tizen-cert)");
+        }
         if (tvDuid is not null)
         {
             var coveredBy = profiles.Where(p => p.Usable && p.Duids.Contains(tvDuid, StringComparer.OrdinalIgnoreCase)).Select(p => p.Level).ToList();
@@ -58,7 +75,7 @@ public static class CertCommand
                 ? $"{ip} (DUID {tvDuid}) is covered by: {string.Join(", ", coveredBy)}. Installs need no sign-in."
                 : $"{ip} (DUID {tvDuid}) is not covered yet. The first install signs in to Samsung, or run: cert --tv {ip} --prepare");
         }
-        return s.Out.Result(new { ok = true, store = CliPaths.CertificateStore, tv = ip, tvDuid, profiles }, text,
+        return s.Out.Result(new { ok = true, store = CliPaths.CertificateStore, tv = ip, tvDuid, profiles, tizenProfiles }, text,
             rich: Views.Certificates(profiles, tvDuid, ip, CliPaths.CertificateStore, s.Out.Unicode));
     }
 

@@ -27,6 +27,7 @@
   "PostAuthorCSR": "Posting to Samsung author endpoint...",
   "PostDistributorCSR": "Posting to Samsung distributor...",
   "ExportPfxCertificates": "Exporting PFX certificates...",
+  "SignTizenAuthor": "Signing the author certificate with the Tizen Developers CA...",
   "SelectWGT": "Select WGT and/or TPK file(s)",
   "lblRelease": "Release",
   "lblVersion": "Version",

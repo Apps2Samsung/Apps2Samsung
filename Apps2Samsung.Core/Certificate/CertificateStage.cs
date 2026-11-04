@@ -35,7 +35,7 @@ namespace Apps2Samsung.Certificate
         public static CertificateStage? FromProgressKey(string key) => key switch
         {
             "GenPassword" or "GenKeyPair" or "CreateAuthorCsr" or "CreateDistributorCSR"
-                or "PostAuthorCSR" or "PostDistributorCSR" => CertificateStage.Create,
+                or "PostAuthorCSR" or "PostDistributorCSR" or "SignTizenAuthor" => CertificateStage.Create,
             "ExportPfxCertificates" => CertificateStage.Save,
             _ => null,
         };

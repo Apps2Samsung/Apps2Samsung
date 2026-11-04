@@ -18,8 +18,10 @@ public static class SignCommand
         var input = s.Options.Arguments.FirstOrDefault();
         var output = s.Options.OutputPath;
         var manual = s.Options.ManualDuids.Split(new[] { ',', ';', ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (string.IsNullOrWhiteSpace(input) || string.IsNullOrWhiteSpace(output) || (string.IsNullOrWhiteSpace(s.Options.Tv) && manual.Length == 0))
-            return s.Out.Fail("usage: apps2samsung-cli sign <file> -o <signed file> (--tv <ip> | --duids <DUID>)   (`sign --help` for the options)", Output.Usage);
+        // A Tizen certificate names no TV (#988), so neither --tv nor --duids is needed with it.
+        var needsTv = !s.Options.TizenCert && string.IsNullOrWhiteSpace(s.Options.Tv) && manual.Length == 0;
+        if (string.IsNullOrWhiteSpace(input) || string.IsNullOrWhiteSpace(output) || needsTv)
+            return s.Out.Fail("usage: apps2samsung-cli sign <file> -o <signed file> (--tv <ip> | --duids <DUID> | --tizen-cert)   (`sign --help` for the options)", Output.Usage);
         if (!File.Exists(input))
             return s.Out.Fail($"No such file: {input}", Output.Usage);
         var ext = Path.GetExtension(input).ToLowerInvariant();
@@ -31,23 +33,39 @@ public static class SignCommand
         // The desktop's Automatic / Public / Partner setting, unless --partner; a package that needs
         // Partner gets it either way, as in install.
         var needsPartner = WgtPrivileges.RequiresPartner(input);
-        var preference = Certificates.Preference(s);
-        var level = CertificatePreference.ResolveLevel(preference, needsPartner);
-        if (needsPartner && CertificatePreference.ResolveLevel(preference, false) != CertificatePrivilegeLevel.Partner)
-            s.Out.Progress("This package needs a Partner-level certificate; signing as Partner.");
         try
         {
-            // --duids names the TV without reading it over SDB (its Host PC IP may point elsewhere).
-            var (profile, duid, _) = manual.Length > 0
-                ? await Certificates.EnsureForDuidAsync(s, manual[0], level, ct)
-                : await Certificates.EnsureAsync(s, s.Options.Tv!, level, ct);
+            SigningProfile profile;
+            string? duid;
+            string certificate;
+            if (s.Options.TizenCert)
+            {
+                var tizenLevel = Certificates.TizenLevel(s, needsPartner);
+                (profile, var tizen) = await Certificates.EnsureTizenAsync(s, tizenLevel);
+                certificate = tizen.ProfileName;
+                duid = manual.Length > 0 ? manual[0] : null;
+            }
+            else
+            {
+                var preference = Certificates.Preference(s);
+                var level = CertificatePreference.ResolveLevel(preference, needsPartner);
+                if (needsPartner && CertificatePreference.ResolveLevel(preference, false) != CertificatePrivilegeLevel.Partner)
+                    s.Out.Progress("This package needs a Partner-level certificate; signing as Partner.");
+                // --duids names the TV without reading it over SDB (its Host PC IP may point elsewhere).
+                (profile, duid, _) = manual.Length > 0
+                    ? await Certificates.EnsureForDuidAsync(s, manual[0], level, ct)
+                    : await Certificates.EnsureAsync(s, s.Options.Tv!, level, ct);
+                certificate = level.ToString();
+            }
 
             // The shared signer (Core): the same file the desktop and the phone write.
             var signed = await PackageSigner.SignCopyAsync(s.Sdb, input, output, profile,
                 line => s.Out.Progress(ProgressText.Localize(line, s.Strings.GetString)), ct);
             return s.Out.Result(
-                new { ok = true, file = signed.Path, appId = signed.AppId, packageId = signed.PackageId, certificate = level.ToString(), duid },
-                new[] { $"Signed {Path.GetFileName(input)} for {duid} ({level}): {signed.Path}" });
+                new { ok = true, file = signed.Path, appId = signed.AppId, packageId = signed.PackageId, certificate, duid },
+                new[] { duid is null
+                    ? $"Signed {Path.GetFileName(input)} with the {certificate} certificate: {signed.Path}"
+                    : $"Signed {Path.GetFileName(input)} for {duid} ({certificate}): {signed.Path}" });
         }
         catch (PackageSignException ex)
         {
