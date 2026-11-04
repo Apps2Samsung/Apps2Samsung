@@ -313,6 +313,7 @@ namespace Apps2Samsung.Services
                 // land on that tile, unless the sheet asked for the package's own id back. Not on
                 // the retry that keeps a [118]-renamed working copy, which already carries its new id.
                 run.TvDuid = deviceInfo.Duid;
+                run.TvName = deviceInfo.Name;
                 if (!run.KeepWorkingPackage)
                 {
                     var (_, ownPackageId) = await WgtManifest.ReadIdsAsync(packagePath);
@@ -524,11 +525,15 @@ namespace Apps2Samsung.Services
 
             string tvDuid = await GetTvDuidAsync(tvIpAddress);
             // Reject a malformed DUID (e.g. an SDB transport-error string) so it never ends up baked
-            // into the certificate's device-id SAN.
+            // into the certificate's device-id SAN. A Tizen certificate (#988) names no TV, so a TV
+            // that will not hand its DUID out only loses the package-id rename memory (#839), not
+            // the install.
             if (!TizenDuid.IsValid(tvDuid))
             {
                 Trace.WriteLine($"[Cert] Invalid TV DUID read from {tvIpAddress}: '{tvDuid}'");
-                return null;
+                if (!Apps2Samsung.Certificate.CertificateKind.IsTizen(_appSettings.CertificateKind))
+                    return null;
+                tvDuid = string.Empty;
             }
 
             var (tizenOs, sdkToolPath) = await FetchCapabilitiesAsync(tvIpAddress);
@@ -604,6 +609,16 @@ namespace Apps2Samsung.Services
             // restricted API or launch mode must declare it, so we don't track cert levels per package.
             var partnerPrivilege = Apps2Samsung.Packaging.WgtPrivileges.FindPartnerPrivilege(packagePath);
             bool requirePartner = _appSettings.RequiresPartnerSigning || partnerPrivilege is not null;
+
+            // A Tizen certificate (#988): the SDK's, made here, no account and no DUID. Its sheet's
+            // way out is a Samsung certificate: the setting is switched and the Samsung path below
+            // runs as if that had been the choice all along.
+            if (Apps2Samsung.Certificate.CertificateKind.IsTizen(_appSettings.CertificateKind))
+            {
+                var tizen = await HandleTizenCertificateAsync(tvIpAddress, deviceInfo, requirePartner, progress, cancellationToken, run);
+                if (tizen is not null)
+                    return tizen;
+            }
 
             // The package can only be installed Partner-signed, and there's no Partner certificate yet:
             // switch the Settings choice to Partner so one is actually created (and so the UI matches
@@ -819,6 +834,71 @@ namespace Apps2Samsung.Services
             };
         }
 
+        /// <summary>
+        /// The Tizen certificate for this install (#988): the profile on disk for the level the
+        /// Settings switch means, or a new one made on the spot behind the two-step sheet. Null when
+        /// the user chose a Samsung certificate on that sheet: the setting is switched by then and
+        /// the caller goes on with the Samsung path.
+        /// </summary>
+        private async Task<CertificateResult?> HandleTizenCertificateAsync(
+            string tvIpAddress,
+            DeviceInfo deviceInfo,
+            bool requirePartner,
+            ProgressCallback? progress,
+            CancellationToken cancellationToken,
+            InstallRun run)
+        {
+            var level = Apps2Samsung.Certificate.CertificateKind.TizenLevel(_appSettings.CertificatePreference, requirePartner);
+            var store = AppSettings.CertificatePath;
+            bool needsNew = run.ForceLogin || !TizenProfileStore.HasProfile(store, level);
+
+            using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken, deviceInfo.Duid);
+            try
+            {
+                if (needsNew)
+                {
+                    if (!await sheet.OpenTizenAsync(level))
+                    {
+                        Trace.WriteLine("[Cert] Samsung certificate chosen on the Tizen sheet; switching the setting.");
+                        _appSettings.UseSamsungCertificate();
+                        return null;
+                    }
+                    progress?.Invoke(Constants.LocalizationKeys.CreatingCertificateProfile.Localized());
+                }
+
+                var profile = await TizenProfileStore.EnsureAsync(store, level, force: run.ForceLogin, progress: sheet.Progress(progress));
+                await sheet.FinishAsync();
+
+                PackageCertificate = profile.ProfileName;
+                run.TizenProfile = profile;
+
+                // A Tizen profile has no device-profile.xml, so this is a no-op; kept for the day it has.
+                await Apps2Samsung.Sdb.TizenPermitInstall.EnsureAsync(
+                    _sdb, tvIpAddress, deviceInfo.TizenVersion, deviceInfo.SdkToolPath,
+                    Path.Combine(profile.ProfileDir, Constants.Certificate.DeviceProfileFileName));
+
+                return new CertificateResult
+                {
+                    Success = true,
+                    RequiresResign = true,
+                    AuthorP12 = profile.AuthorP12,
+                    DistributorP12 = profile.DistributorP12,
+                    P12Password = profile.Password
+                };
+            }
+            catch (OperationCanceledException ex)
+            {
+                // Cancel on the sheet: no sign-in was involved, so say the install was cancelled.
+                await sheet.EndAsync(ex);
+                Trace.WriteLine("[Cert] Tizen certificate sheet cancelled.");
+                return new CertificateResult { Success = false, InstallResult = InstallResult.CancelledResult("statusInstallCancelled".Localized()) };
+            }
+            catch (Exception ex)
+            {
+                return await EndCertificateRunAsync(sheet, ex);
+            }
+        }
+
         // True when a generated author cert exists and is still valid, i.e. we can keep that
         // author identity and only regenerate the distributor cert for a new TV.
         private static bool HasUsableAuthorCert(string certDir)
@@ -972,6 +1052,28 @@ namespace Apps2Samsung.Services
             // installed-copy one, #907): removing a copy can't help, and there usually is none, so no
             // prompt and no retry. The TV's clock or a new certificate are the fixes.
             var rejection = Apps2Samsung.Sdb.TizenInstallDiagnostics.GetCertificateRejection(installResults.Output);
+
+            // The TV refused the Tizen certificate's chain (#988): it only takes a Samsung one. The
+            // sheet says so and offers the switch; a yes runs this install again, Samsung-signed.
+            if (rejection == Apps2Samsung.Sdb.CertificateRejection.InvalidChain && run.TizenProfile is { } tizenProfile)
+            {
+                progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
+                Trace.WriteLine($"[Install] Tizen certificate refused by {tvIpAddress}: {installResults.Output}");
+                var reason = Apps2Samsung.Sdb.TizenInstallDiagnostics.CertificateRejectionReason(installResults.Output);
+                var switchToSamsung = await _dialogService.ShowTizenCertificateRefusedAsync(
+                    run.TvName ?? tvIpAddress, tizenProfile.Level, tizenProfile.ProfileName, reason,
+                    CertificateProvisioningService.AuthorValidUntil(tizenProfile.ProfileDir));
+                if (switchToSamsung)
+                {
+                    _appSettings.UseSamsungCertificate();
+                    run.TizenProfile = null;
+                    return await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
+                }
+                var refused = string.Format("statusTizenCertificateRefused".Localized(), run.TvName ?? tvIpAddress);
+                progress?.Invoke(refused);
+                return InstallResult.ShownFailureResult(refused);
+            }
+
             if (rejection != Apps2Samsung.Sdb.CertificateRejection.None)
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
@@ -1515,6 +1617,13 @@ namespace Apps2Samsung.Services
             /// <summary>The TV's DUID once Step 2 read it; the key of a package-id rename record (#839).</summary>
             public string? TvDuid { get; set; }
 
+            /// <summary>The TV's name once Step 2 read it, for the sheets.</summary>
+            public string? TvName { get; set; }
+
+            /// <summary>Set when this attempt signed with a Tizen certificate (#988), with its profile: a
+            /// [118, -12] chain refusal then means the TV only takes a Samsung one.</summary>
+            public TizenCertificateProfile? TizenProfile { get; set; }
+
             /// <summary>
             /// Returns the file this attempt may rewrite: a fresh copy of <see cref="SourcePackage"/>,
             /// or the previous attempt's copy when <see cref="KeepWorkingPackage"/> says its edits
@@ -1559,6 +1668,35 @@ namespace Apps2Samsung.Services
             {
                 await _dialogService.ShowErrorAsync(Constants.LocalizationKeys.TvNameNotFound.Localized());
                 return CertificatePreparation.Failed;
+            }
+
+            // A Tizen certificate (#988): made here with no sign-in, or already there. Choosing a
+            // Samsung certificate on its sheet switches the setting and goes on below.
+            if (Apps2Samsung.Certificate.CertificateKind.IsTizen(_appSettings.CertificateKind))
+            {
+                var tizenLevel = Apps2Samsung.Certificate.CertificateKind.TizenLevel(
+                    _appSettings.CertificatePreference, _appSettings.RequiresPartnerSigning || requirePartner);
+                var store = AppSettings.CertificatePath;
+                bool needsNew = _appSettings.ForceSamsungLogin || !TizenProfileStore.HasProfile(store, tizenLevel);
+                using var tizenSheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken, deviceInfo.Duid);
+                try
+                {
+                    if (needsNew && !await tizenSheet.OpenTizenAsync(tizenLevel))
+                    {
+                        _appSettings.UseSamsungCertificate();
+                    }
+                    else
+                    {
+                        await TizenProfileStore.EnsureAsync(store, tizenLevel, force: _appSettings.ForceSamsungLogin, progress: tizenSheet.Progress(null));
+                        await tizenSheet.FinishAsync();
+                        return needsNew ? CertificatePreparation.Created : CertificatePreparation.Reused;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await EndCertificateRunAsync(tizenSheet, ex);
+                    return CertificatePreparation.Failed;
+                }
             }
 
             // The level an install would sign with today (a package that needs Partner switches the
@@ -1653,6 +1791,25 @@ namespace Apps2Samsung.Services
                 if (!await _sheet.SignInChosen)
                     _cancel.Cancel();
                 _cancel.Token.ThrowIfCancellationRequested();
+            }
+
+            /// <summary>
+            /// The Tizen sheet (#988): waits for Create the certificate (true) or Use a Samsung
+            /// certificate instead (false, the sheet is closed); throws on Cancel.
+            /// </summary>
+            public async Task<bool> OpenTizenAsync(TizenDistributorLevel level)
+            {
+                _sheet = await _dialogs.OpenTizenCertificateSheetAsync(_tvName, level);
+                if (_sheet is null)
+                    return true;
+                _sheet.CancelRequested += (_, _) => _cancel.Cancel();
+                if (!await _sheet.SignInChosen)
+                    _cancel.Cancel();
+                _cancel.Token.ThrowIfCancellationRequested();
+                if (!_sheet.SamsungInstead)
+                    return true;
+                _sheet = null;
+                return false;
             }
 
             /// <summary>The certificate service's progress keys: localized for the status line, and

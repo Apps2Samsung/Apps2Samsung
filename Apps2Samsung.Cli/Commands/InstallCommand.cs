@@ -262,12 +262,12 @@ public static class InstallCommand
         {
             return s.Out.Fail(ex.Message, details: new { validFrom = ex.Result.ValidFromLocal });
         }
-        catch (InvalidOperationException ex) when (s.Options.TizenCert && ex.Message.Contains("[118, -12]", StringComparison.Ordinal))
+        catch (CertificateChainRejectedException ex) when (s.Options.TizenCert)
         {
             // The TV refused the Tizen certificate's chain: it wants a Samsung one (#988). The
             // installer's own advice (internet, clock, a new certificate) is about Samsung ones.
             return s.Out.Fail("The TV rejected the Tizen certificate ([118, -12], invalid certificate chain): this TV does not accept a Tizen certificate. Run the install again without --tizen-cert to sign with a Samsung certificate.",
-                details: new { tizenCertificate = true, reason = TizenInstallDiagnostics.CertificateRejectionReason(ex.Message) ?? ex.Message });
+                details: new { tizenCertificate = true, reason = ex.Reason ?? ex.Message });
         }
         catch (UserSettingsPatchException ex)
         {

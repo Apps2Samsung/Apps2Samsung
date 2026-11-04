@@ -212,6 +212,7 @@ namespace Apps2Samsung.ViewModels
             finally
             {
                 IsPreparingCertificate = false;
+                Application.RefreshCertificateStatus();
             }
         }
 

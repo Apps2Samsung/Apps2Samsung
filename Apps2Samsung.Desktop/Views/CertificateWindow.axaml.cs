@@ -43,9 +43,21 @@ namespace Apps2Samsung.Views
         public string SignInHelpText { get; } = string.Empty;
         public string ImportText { get; } = string.Empty;
         public string ImportHintText { get; } = string.Empty;
+        public string RefusedTitleText { get; } = string.Empty;
+        public string SamsungInsteadText { get; } = string.Empty;
+        public string RefusedSwitchHintText { get; } = string.Empty;
 
         /// <summary>True when the sign-in was replaced by a certificate imported on this sheet (#921).</summary>
         public bool Imported { get; private set; }
+
+        /// <summary>The Tizen sheet (#988): no sign-in, the certificate is made right here.</summary>
+        public bool IsTizen { get; }
+
+        /// <summary>
+        /// True when the user chose a Samsung certificate on the Tizen sheet (#988): instead of making
+        /// the Tizen one, or after the TV refused it. <see cref="SignInChosen"/> is true as well then.
+        /// </summary>
+        public bool SamsungInstead { get; private set; }
 
         /// <summary>Cancel while the browser sign-in runs.</summary>
         public event EventHandler? CancelRequested;
@@ -83,6 +95,60 @@ namespace Apps2Samsung.Views
             StepList.SetCurrent(Steps, _index[CertificateStage.SignIn]);
             DataContext = this;
             Closed += OnClosed;
+        }
+
+        /// <summary>
+        /// The Tizen certificate sheet (#988): two steps, Create the certificate instead of a sign-in,
+        /// and Use a Samsung certificate instead as the way out. <paramref name="tvName"/> null means
+        /// Settings made it with no TV in mind.
+        /// </summary>
+        public CertificateWindow(string? tvName, TizenDistributorLevel level, Func<string, string> localize,
+            IDialogService? dialogs = null) : this()
+        {
+            _localize = localize;
+            _dialogs = dialogs;
+            IsTizen = true;
+            TitleText = localize("lblStepCertificate");
+            SubText = tvName is null ? localize("certSheetForAnyTv") : string.Format(localize("certSheetFor"), tvName);
+            LevelText = localize(CertificateStages.TizenLevelKey(level));
+            IntroText = localize("certSheetIntroTizen");
+            SignInText = localize("lblCreateCertificate");
+            ImportHintText = localize("certSheetSamsungInsteadHint");
+            ImportText = localize("lblUseSamsungInstead");
+            CancelText = localize("lblCancel");
+            CloseText = localize("btn_Close");
+            SamsungInsteadText = localize("lblSignInSamsungInstead");
+            RefusedSwitchHintText = localize("certTizenRefusedSwitchHint");
+            RefusedTitleText = localize("certTizenRefusedTitle");
+
+            foreach (var item in StepList.Build(CertificateStages.TizenSteps.Select(s => localize(s.TitleKey)), keepDoneDetails: true))
+                Steps.Add(item);
+            for (var i = 0; i < CertificateStages.TizenSteps.Length; i++)
+                _index[CertificateStages.TizenSteps[i].Stage] = i;
+            Steps[_index[CertificateStage.Create]].Detail = localize("certStageCreateHintTizen");
+            Steps[_index[CertificateStage.Save]].Detail = localize("certStageSaveHintTizen");
+            StepList.SetCurrent(Steps, _index[CertificateStage.Create]);
+            DataContext = this;
+            Closed += OnClosed;
+        }
+
+        /// <summary>
+        /// The TV refused the Tizen certificate (#988): both steps ticked (it was made and kept), the
+        /// TV's words in the warning, and Sign in with Samsung instead as the primary button.
+        /// <see cref="SignInChosen"/> then says whether to switch.
+        /// </summary>
+        public void ShowRefused(string profileName, string? reason, DateTime? validUntil)
+        {
+            Steps[_index[CertificateStage.Create]].Detail = validUntil is { } until
+                ? $"{profileName}, {until:D}"
+                : profileName;
+            Steps[_index[CertificateStage.Save]].Detail = _localize("certStageSaveDoneTizen");
+            StepList.SetCurrent(Steps, Steps.Count);
+            RefusedBody.Text = string.Format(_localize("certTizenRefusedBody"), reason ?? "[118, -12]");
+            IntroBlock.IsVisible = false;
+            RefusedPanel.IsVisible = true;
+            SignInButtons.IsVisible = false;
+            RefusedButtons.IsVisible = true;
         }
 
         /// <summary>True once the user chose Sign in with Samsung; false on Cancel or close.</summary>
@@ -127,11 +193,27 @@ namespace Apps2Samsung.Views
 
         private void OnSignInClick(object? sender, RoutedEventArgs e)
         {
+            if (IsTizen)
+            {
+                // Create the certificate: made right here, nothing to wait on but the disk.
+                SignInButtons.IsVisible = false;
+                _signIn.TrySetResult(true);
+                return;
+            }
             _signingIn = true;
             SignInButtons.IsVisible = false;
             WaitPanel.IsVisible = true;
             Steps[_index[CertificateStage.SignIn]].Detail = _localize("certStageSignInWaiting");
             _signIn.TrySetResult(true);
+        }
+
+        // Use a Samsung certificate instead / Sign in with Samsung instead (#988): the caller switches
+        // the setting and runs the Samsung flow, with its own sheet.
+        private void OnSamsungInsteadClick(object? sender, RoutedEventArgs e)
+        {
+            SamsungInstead = true;
+            _signIn.TrySetResult(true);
+            Close();
         }
 
         // The same URL the browser was sent to (fixed state, loopback callback), so pasting it into
@@ -154,6 +236,11 @@ namespace Apps2Samsung.Views
         // it does not, the author certificate is now here and Sign in only extends it to this TV.
         private async void OnImportClick(object? sender, RoutedEventArgs e)
         {
+            if (IsTizen)
+            {
+                OnSamsungInsteadClick(sender, e);
+                return;
+            }
             try
             {
                 var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions

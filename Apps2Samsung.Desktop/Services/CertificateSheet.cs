@@ -19,8 +19,12 @@ namespace Apps2Samsung.Services
             _window = window;
         }
 
-        /// <summary>True once the user chose Sign in with Samsung; false on Cancel or close.</summary>
+        /// <summary>True once the user chose Sign in with Samsung (or, on the Tizen sheet, Create the
+        /// certificate or a Samsung certificate instead); false on Cancel or close.</summary>
         public Task<bool> SignInChosen => _window.SignInChosen;
+
+        /// <summary>The Tizen sheet's way out (#988): the user wants a Samsung certificate instead.</summary>
+        public bool SamsungInstead => _window.SamsungInstead;
 
         /// <summary>Cancel (or close) while the browser sign-in runs.</summary>
         public event EventHandler? CancelRequested
