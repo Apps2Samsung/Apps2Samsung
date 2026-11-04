@@ -1,6 +1,7 @@
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Install;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Localization;
 using Apps2Samsung.Packaging;
 
 namespace Apps2Samsung.Cli.Commands;
@@ -27,49 +28,34 @@ public static class SignCommand
         if (Path.GetFullPath(input) == Path.GetFullPath(output))
             return s.Out.Fail("-o must be another file: the input is never changed.", Output.Usage);
 
-        // A working copy: the signer re-signs in place.
-        var staging = Path.Combine(CliPaths.Downloads, "sign");
-        Directory.CreateDirectory(staging);
-        var work = Path.Combine(staging, Path.GetFileName(input));
-        File.Copy(input, work, overwrite: true);
+        // The desktop's Automatic / Public / Partner setting, unless --partner; a package that needs
+        // Partner gets it either way, as in install.
+        var needsPartner = WgtPrivileges.RequiresPartner(input);
+        var preference = Certificates.Preference(s);
+        var level = CertificatePreference.ResolveLevel(preference, needsPartner);
+        if (needsPartner && CertificatePreference.ResolveLevel(preference, false) != CertificatePrivilegeLevel.Partner)
+            s.Out.Progress("This package needs a Partner-level certificate; signing as Partner.");
         try
         {
-            // The desktop's Automatic / Public / Partner setting, unless --partner; a package that needs
-            // Partner gets it either way, as in install.
-            var needsPartner = WgtPrivileges.RequiresPartner(work);
-            var preference = Certificates.Preference(s);
-            var level = CertificatePreference.ResolveLevel(preference, needsPartner);
-            if (needsPartner && CertificatePreference.ResolveLevel(preference, false) != CertificatePrivilegeLevel.Partner)
-                s.Out.Progress("This package needs a Partner-level certificate; signing as Partner.");
             // --duids names the TV without reading it over SDB (its Host PC IP may point elsewhere).
             var (profile, duid, _) = manual.Length > 0
                 ? await Certificates.EnsureForDuidAsync(s, manual[0], level, ct)
                 : await Certificates.EnsureAsync(s, s.Options.Tv!, level, ct);
 
-            var validity = CertificateValidity.CheckSigningProfile(profile.AuthorP12, profile.DistributorP12, profile.Password);
-            if (validity.IsNotYetValid)
-                throw new CertificateNotYetValidException(validity);
-
-            s.Out.Progress($"Signing {Path.GetFileName(input)}…");
-            var resign = await s.Sdb.ResignAsync(work, profile.AuthorP12, profile.DistributorP12, profile.Password);
-            if (resign.ExitCode != 0)
-                return s.Out.Fail($"Signing failed: {(string.IsNullOrWhiteSpace(resign.Error) ? resign.Output.Trim() : resign.Error)}");
-
-            var dir = Path.GetDirectoryName(Path.GetFullPath(output));
-            if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
-            File.Copy(work, output, overwrite: true);
-            var (appId, packageId) = await WgtManifest.ReadIdsAsync(output);
+            // The shared signer (Core): the same file the desktop and the phone write.
+            var signed = await PackageSigner.SignCopyAsync(s.Sdb, input, output, profile,
+                line => s.Out.Progress(ProgressText.Localize(line, s.Strings.GetString)), ct);
             return s.Out.Result(
-                new { ok = true, file = Path.GetFullPath(output), appId, packageId, certificate = level.ToString(), duid },
-                new[] { $"Signed {Path.GetFileName(input)} for {duid} ({level}): {Path.GetFullPath(output)}" });
+                new { ok = true, file = signed.Path, appId = signed.AppId, packageId = signed.PackageId, certificate = level.ToString(), duid },
+                new[] { $"Signed {Path.GetFileName(input)} for {duid} ({level}): {signed.Path}" });
+        }
+        catch (PackageSignException ex)
+        {
+            return s.Out.Fail($"Signing failed: {ex.Message}");
         }
         catch (CertificateNotYetValidException ex)
         {
             return s.Out.Fail(ex.Message, details: new { validFrom = ex.Result.ValidFromLocal });
-        }
-        finally
-        {
-            try { File.Delete(work); } catch { /* the cache folder is cleaned on its own */ }
         }
     }
 }

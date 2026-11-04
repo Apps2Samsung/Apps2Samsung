@@ -2,6 +2,8 @@ using Apps2Samsung.Catalog;
 using Apps2Samsung.Agent;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Install;
+using Apps2Samsung.Packaging;
+using Apps2Samsung.Localization;
 using Apps2Samsung.TvStore;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
@@ -9,6 +11,8 @@ using Apps2Samsung.Services;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Remote;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
+using Microsoft.Maui.Storage;
 
 namespace Apps2Samsung.Mobile.Pages;
 
@@ -51,7 +55,12 @@ public partial class TvToolboxPage : ContentPage
 	// The head's certificate flow for this TV (#844): the signing profile an install would use, made
 	// (with the Samsung sign-in sheet) when none covers the set yet; null when that was cancelled.
 	// What Arm TV-Store hands over. Null where the caller has no certificate flow.
-	private readonly Func<Action<string>, Task<SigningProfile?>>? _signingProfile;
+	private readonly Func<bool, Action<string>, Task<SigningProfile?>>? _signingProfile;
+
+	// The Package file section (#979): a .wgt/.tpk from the phone (a cache copy, never the user's
+	// file), and the install's customization step for a package that goes to TV-Store.
+	private readonly Func<Task<string?>>? _pickPackage;
+	private readonly Func<string, string, Action<string>?, Task>? _customize;
 
 	// The full list behind the filtered one shown.
 	private IReadOnlyList<SamsungRemoteLaunchTarget> _targets = Array.Empty<SamsungRemoteLaunchTarget>();
@@ -64,7 +73,8 @@ public partial class TvToolboxPage : ContentPage
 	private bool _busy;
 
 	public TvToolboxPage(ISdbEngine? sdb, string tvIp, string tvLabel, Func<string, Action<string>, Task<bool>>? installWgt = null,
-		Func<Action<string>, Task<SigningProfile?>>? signingProfile = null)
+		Func<bool, Action<string>, Task<SigningProfile?>>? signingProfile = null,
+		Func<Task<string?>>? pickPackage = null, Func<string, string, Action<string>?, Task>? customize = null)
 	{
 		InitializeComponent();
 		_tvIp = tvIp;
@@ -72,6 +82,10 @@ public partial class TvToolboxPage : ContentPage
 		_sdb = sdb;
 		_installWgt = installWgt;
 		_signingProfile = signingProfile;
+		_pickPackage = pickPackage;
+		_customize = customize;
+		SignPackageBtn.IsEnabled = sdb is not null && pickPackage is not null && signingProfile is not null;
+		SendToTvStoreBtn.IsEnabled = pickPackage is not null;
 		AgentCard.IsEnabled = sdb is not null;
 		AgentNeedsSdbHint.IsVisible = sdb is null;
 		ArmTvStoreBtn.IsEnabled = sdb is not null;
@@ -535,7 +549,7 @@ public partial class TvToolboxPage : ContentPage
 			SetTvStoreStatus(L10n.Get("lblToolboxTvStoreCertificate"));
 			var profile = _signingProfile is null
 				? null
-				: await _signingProfile(message => MainThread.BeginInvokeOnMainThread(() => SetTvStoreStatus(message)));
+				: await _signingProfile(false, message => MainThread.BeginInvokeOnMainThread(() => SetTvStoreStatus(message)));
 			if (profile is null)
 			{
 				SetTvStoreStatus(L10n.Get("lblToolboxTvStoreNoCertificate"));
@@ -579,6 +593,131 @@ public partial class TvToolboxPage : ContentPage
 	}
 
 	private void SetTvStoreStatus(string message) => TvStoreStatusLabel.Text = message;
+
+	private void SetPackageStatus(string message) => PackageStatusLabel.Text = message;
+
+	private void SetPackageBusy(bool busy)
+	{
+		_busy = busy;
+		SignPackageBtn.IsEnabled = !busy && _sdb is not null && _pickPackage is not null && _signingProfile is not null;
+		SendToTvStoreBtn.IsEnabled = !busy && _pickPackage is not null;
+	}
+
+	/// <summary>
+	/// Sign a package (#979): a .wgt/.tpk from the phone, signed with the certificate that covers this
+	/// TV (made first when none does, the same sheet as an install) and handed to the share sheet,
+	/// without installing it. For tools that install another way. The picked file is a cache copy,
+	/// so the user's own file is never changed.
+	/// </summary>
+	private async void OnSignPackageClicked(object? sender, EventArgs e)
+	{
+		if (_busy || _pickPackage is null || _signingProfile is null)
+			return;
+		if (_sdb is null)
+		{
+			SetPackageStatus(L10n.Get("lblToolboxAgentNeedsSdb"));
+			return;
+		}
+
+		var input = await _pickPackage();
+		if (input is null)
+			return;
+		if (!PackageSigner.IsPackage(input))
+		{
+			SetPackageStatus(L10n.Get("statusChooseWgt"));
+			return;
+		}
+
+		SetPackageBusy(true);
+		try
+		{
+			// Partner when the package needs it, as an install would.
+			var needsPartner = WgtPrivileges.RequiresPartner(input);
+			SetPackageStatus(L10n.Get("lblToolboxTvStoreCertificate"));
+			var profile = await _signingProfile(needsPartner, message => MainThread.BeginInvokeOnMainThread(() => SetPackageStatus(message)));
+			if (profile is null)
+			{
+				SetPackageStatus(L10n.Get("lblToolboxTvStoreNoCertificate"));
+				return;
+			}
+
+			var output = Path.Combine(FileSystem.CacheDirectory, "signed", PackageSigner.SuggestedOutputName(input));
+			SetPackageStatus(string.Format(L10n.Get("lblToolboxPackageSigning"), Path.GetFileName(input)));
+			var signed = await PackageSigner.SignCopyAsync(_sdb, input, output, profile,
+				line => MainThread.BeginInvokeOnMainThread(() => SetPackageStatus(ProgressText.Localize(line, L10n.Get))));
+			SetPackageStatus(string.Format(L10n.Get("lblToolboxPackageSigned"), Path.GetFileName(input), _tvLabel, Path.GetFileName(signed.Path)));
+
+			// The phone has no Save as: the share sheet puts the signed copy where it is wanted
+			// (Files, a PC, another app).
+			await Share.Default.RequestAsync(new ShareFileRequest(L10n.Get("lblSignedPackage"), new ShareFile(signed.Path)));
+		}
+		catch (OperationCanceledException)
+		{
+			// The certificate sheet was cancelled.
+			SetPackageStatus(L10n.Get("lblToolboxTvStoreNoCertificate"));
+		}
+		catch (CertificateNotYetValidException ex)
+		{
+			SetPackageStatus(ex.Message);
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[toolbox] sign package failed: {ex}");
+			SetPackageStatus(string.Format(L10n.Get("lblToolboxPackageSignFailed"), ex.Message));
+		}
+		finally
+		{
+			try { File.Delete(input); } catch { /* the cache copy; best-effort */ }
+			SetPackageBusy(false);
+		}
+	}
+
+	/// <summary>
+	/// Send to TV-Store (#979): a .wgt/.tpk from the phone goes to TV-Store's upload page on the TV,
+	/// customized as an install would (the values asked before install) but not signed; TV-Store is
+	/// opened on the TV when it is not running, asks on the screen and signs it itself. No developer
+	/// connection from this phone is involved, so it works while Host PC IP is 127.0.0.1.
+	/// </summary>
+	private async void OnSendToTvStoreClicked(object? sender, EventArgs e)
+	{
+		if (_busy || _pickPackage is null)
+			return;
+
+		var input = await _pickPackage();
+		if (input is null)
+			return;
+		if (!PackageSigner.IsPackage(input))
+		{
+			SetPackageStatus(L10n.Get("statusChooseWgt"));
+			return;
+		}
+
+		SetPackageBusy(true);
+		try
+		{
+			Action<string> report = line => MainThread.BeginInvokeOnMainThread(() => SetPackageStatus(ProgressText.Localize(line, L10n.Get)));
+			if (!await TvStoreHandoff.EnsureRunningAsync(_tvIp, report))
+			{
+				SetPackageStatus(L10n.Get("tvStoreNotRunning"));
+				return;
+			}
+			// The picked file is the cache copy, so the customization may edit it in place.
+			if (_customize is not null)
+				await _customize(_tvIp, input, report);
+			var sent = await TvStoreHandoff.SendAsync(_tvIp, input, report);
+			SetPackageStatus(string.Format(L10n.Get(sent.TvStoreOpened ? "tvStoreSentBody" : "tvStoreSentBodyClosed"), sent.Upload.Name));
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[toolbox] send to TV-Store failed: {ex}");
+			SetPackageStatus(string.Format(L10n.Get("lblToolboxTvStoreFailed"), ex.Message));
+		}
+		finally
+		{
+			try { File.Delete(input); } catch { /* the cache copy; best-effort */ }
+			SetPackageBusy(false);
+		}
+	}
 
 	// TV-Store's catalog entry and whether the TV runs an old one, from the last Arm attempt (#888).
 	private GitHubRelease? _tvStoreEntry;

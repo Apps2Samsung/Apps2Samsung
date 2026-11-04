@@ -73,6 +73,13 @@ public sealed class WgtInstaller
 	/// with <see cref="RemovalDeclinedException"/>; null (no UI) keeps the remove-and-retry as it was.</param>
 	/// <param name="packageId">Which id to install under (#839); null keeps the package's own id unless
 	/// this TV already has it renamed.</param>
+	/// <summary>
+	/// The per-app modifications an install makes before signing, on the file in place, for a
+	/// package that is signed and installed elsewhere: TV-Store's upload page (#979).
+	/// </summary>
+	public Task CustomizeAsync(string tvIp, string wgtPath, Action<string>? progress = null) =>
+		_installer.CustomizeAsync(tvIp, wgtPath, progress is null ? null : message => progress(ProgressText.Localize(message, L10n.Get)));
+
 	public Task<string> InstallAsync(string tvIp, string wgtPath, CertificateProvisioner.Result cert, Action<string>? progress = null,
 		Action<InstallStep, int?>? step = null, CancellationToken ct = default, Func<Task<bool>>? confirmRemove = null,
 		PackageIdPolicy? packageId = null)

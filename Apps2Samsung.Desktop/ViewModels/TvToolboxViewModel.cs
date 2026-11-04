@@ -58,7 +58,10 @@ namespace Apps2Samsung.ViewModels
         // The head's certificate flow for this TV (#844): the signing profile an install would use,
         // made (with the Samsung sign-in) when none covers the set yet; null when that was cancelled.
         // What Arm TV-Store hands over. Null where the head has no certificate flow.
-        private readonly Func<Action<string>, Task<SigningProfile?>>? _signingProfile;
+        private readonly Func<bool, Action<string>, Task<SigningProfile?>>? _signingProfile;
+
+        // The Package file section's pickers and customization step, from the main window (#979).
+        private readonly TvToolboxPackageHooks? _packageHooks;
 
         // The full list behind the filtered one shown.
         private IReadOnlyList<SamsungRemoteLaunchTarget> _targets = Array.Empty<SamsungRemoteLaunchTarget>();
@@ -169,13 +172,15 @@ namespace Apps2Samsung.ViewModels
 
         public TvToolboxViewModel(
             string tvIp, string tvLabel, ISdbEngine? sdb = null, Func<string, Action<string>, Task<bool>>? installWgt = null,
-            Func<Action<string>, Task<SigningProfile?>>? signingProfile = null, Action? showTvStoreInCatalog = null)
+            Func<bool, Action<string>, Task<SigningProfile?>>? signingProfile = null, Action? showTvStoreInCatalog = null,
+            TvToolboxPackageHooks? packageHooks = null)
         {
             _tvIp = tvIp;
             TvLabel = tvLabel;
             _sdb = sdb;
             _installWgt = installWgt;
             _signingProfile = signingProfile;
+            _packageHooks = packageHooks;
             _showTvStoreInCatalog = showTvStoreInCatalog;
             Sequences = SamsungRemoteSequences.Sendable.Select(s => new ToolboxSequence(s)).ToList();
             StandbySequences = SamsungRemoteSequences.StandbyOnly.Select(s => new ToolboxSequence(s)).ToList();
@@ -584,7 +589,7 @@ namespace Apps2Samsung.ViewModels
                 }
 
                 TvStoreStatus = "lblToolboxTvStoreCertificate".Localized();
-                var profile = _signingProfile is null ? null : await _signingProfile(message => TvStoreStatus = message);
+                var profile = _signingProfile is null ? null : await _signingProfile(false, message => TvStoreStatus = message);
                 if (profile is null)
                 {
                     TvStoreStatus = "lblToolboxTvStoreNoCertificate".Localized();
@@ -616,6 +621,118 @@ namespace Apps2Samsung.ViewModels
             {
                 System.Diagnostics.Trace.WriteLine($"[toolbox] arm TV-Store failed: {ex}");
                 TvStoreStatus = string.Format("lblToolboxTvStoreFailed".Localized(), ex.Message);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [ObservableProperty]
+        private string packageStatus = string.Empty;
+
+        /// <summary>
+        /// Sign a package… (#979): a .wgt/.tpk from disk, signed with the certificate that covers this
+        /// TV (made first when none does, the same sheet as an install) and saved where the user
+        /// says, without installing it. For tools that install another way. The input is never changed.
+        /// </summary>
+        [RelayCommand]
+        private async Task SignPackage()
+        {
+            if (_packageHooks is null || _signingProfile is null || IsBusy)
+                return;
+            if (_sdb is null)
+            {
+                PackageStatus = "lblToolboxAgentNeedsSdb".Localized();
+                return;
+            }
+
+            var input = await _packageHooks.PickPackage();
+            if (string.IsNullOrWhiteSpace(input))
+                return;
+            if (!PackageSigner.IsPackage(input))
+            {
+                PackageStatus = "statusChooseWgt".Localized();
+                return;
+            }
+            var output = await _packageHooks.PickSavePath(PackageSigner.SuggestedOutputName(input));
+            if (string.IsNullOrWhiteSpace(output))
+                return;
+
+            IsBusy = true;
+            try
+            {
+                // Partner when the package needs it, as an install would; the status says so.
+                var needsPartner = Apps2Samsung.Packaging.WgtPrivileges.RequiresPartner(input);
+                PackageStatus = "lblToolboxTvStoreCertificate".Localized();
+                var profile = await _signingProfile(needsPartner, message => PackageStatus = message);
+                if (profile is null)
+                {
+                    PackageStatus = "lblToolboxTvStoreNoCertificate".Localized();
+                    return;
+                }
+
+                PackageStatus = string.Format("lblToolboxPackageSigning".Localized(), System.IO.Path.GetFileName(input));
+                var signed = await PackageSigner.SignCopyAsync(_sdb, input, output, profile,
+                    line => PackageStatus = Apps2Samsung.Localization.ProgressText.Localize(line, k => k.Localized()));
+                PackageStatus = string.Format("lblToolboxPackageSigned".Localized(), System.IO.Path.GetFileName(input), TvLabel, signed.Path);
+            }
+            catch (CertificateNotYetValidException ex)
+            {
+                PackageStatus = ex.Message;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[toolbox] sign package failed: {ex}");
+                PackageStatus = string.Format("lblToolboxPackageSignFailed".Localized(), ex.Message);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        /// <summary>
+        /// Send to TV-Store… (#979): a .wgt/.tpk from disk goes to TV-Store's upload page on the TV,
+        /// customized as an install would (the values asked before install) but not signed; TV-Store
+        /// is opened on the TV when it is not running, asks on the screen and signs it itself. No
+        /// developer connection from this PC is involved, so it works while Host PC IP is 127.0.0.1.
+        /// </summary>
+        [RelayCommand]
+        private async Task SendToTvStore()
+        {
+            if (_packageHooks is null || IsBusy)
+                return;
+
+            var input = await _packageHooks.PickPackage();
+            if (string.IsNullOrWhiteSpace(input))
+                return;
+            if (!PackageSigner.IsPackage(input))
+            {
+                PackageStatus = "statusChooseWgt".Localized();
+                return;
+            }
+
+            IsBusy = true;
+            try
+            {
+                Action<string> report = line => PackageStatus = Apps2Samsung.Localization.ProgressText.Localize(line, k => k.Localized());
+                if (!await TvStoreHandoff.EnsureRunningAsync(_tvIp, report))
+                {
+                    PackageStatus = "tvStoreNotRunning".Localized();
+                    return;
+                }
+
+                // A copy: the customization edits the file in place, and the user's file stays as it was.
+                using var staged = Apps2Samsung.Helpers.Core.StagedPackage.Create(input);
+                await _packageHooks.Customize(_tvIp, staged.FilePath);
+                var sent = await TvStoreHandoff.SendAsync(_tvIp, staged.FilePath, report);
+                PackageStatus = string.Format((sent.TvStoreOpened ? "tvStoreSentBody" : "tvStoreSentBodyClosed").Localized(), sent.Upload.Name);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[toolbox] send to TV-Store failed: {ex}");
+                PackageStatus = string.Format("lblToolboxTvStoreFailed".Localized(), ex.Message);
             }
             finally
             {

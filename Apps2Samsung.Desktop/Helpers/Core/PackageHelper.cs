@@ -1,3 +1,7 @@
+using Apps2Samsung.Helpers.Core;
+using Apps2Samsung.TvStore;
+using Apps2Samsung.Packaging;
+using Apps2Samsung.Localization;
 ﻿using Avalonia.Controls.ApplicationLifetimes;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Interfaces;
@@ -86,6 +90,24 @@ namespace Apps2Samsung.Helpers.Core
                 },
                 _networkService);
 
+            // The checks are about the developer connection; TV-Store's upload page needs none of it
+            // (#979). A TV the checks would stop that runs TV-Store gets the offer to take the package
+            // that way instead: TV-Store asks on the screen and signs it itself. Only when TV-Store is
+            // already up: nothing is started on the TV uninvited (the toolbox's button does that).
+            var offerTvIp = guardResult.CorrectedTvIp ?? selectedDevice.IpAddress;
+            if (guardResult.Guards.Count > 0 && await TvStoreUpload.IsAvailableAsync(offerTvIp, cancellationToken))
+            {
+                var detail = string.Join("\n", guardResult.Guards.Select(g => g.TitleKey.Localized()));
+                if (await _dialogService.ShowConfirmationAsync(
+                        "tvStoreOfferTitle".Localized(),
+                        $"{"tvStoreOfferBody".Localized()}\n\n{detail}",
+                        "keySendToTvStore".Localized(),
+                        "keyUseDeveloperConnection".Localized()))
+                {
+                    return await SendToTvStoreAsync(packagePath, offerTvIp, progress, cancellationToken);
+                }
+            }
+
             // The Developer-Mode guards share one answer: the guide, which re-checks the TV while it
             // is open and turns into Continue once it is fixed. The rest stay a Continue/Stop question.
             var developerModeGuards = guardResult.Guards.Where(g => g.Kind is InstallGuardKind.RestartRequired
@@ -164,6 +186,43 @@ namespace Apps2Samsung.Helpers.Core
                 progress?.Invoke("InstallationFailed".Localized());
                 await NoteInstallFailureAsync(selectedDevice, ex.Message);
                 await _dialogService.ShowErrorAsync($"{"InstallationFailed".Localized()}: {ex}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// The way in without the developer connection (#979): the package, customized as an install
+        /// would (the values asked before install included) but not signed, goes to TV-Store's upload
+        /// page on the TV. TV-Store comes to the front and asks there; the install happens when
+        /// Install is pressed on the TV, so true here means the file waits on the TV.
+        /// </summary>
+        private async Task<bool> SendToTvStoreAsync(string packagePath, string tvIp, ProgressCallback? progress, CancellationToken cancellationToken)
+        {
+            Action<string> report = line =>
+            {
+                var text = ProgressText.Localize(line, k => k.Localized());
+                progress?.Invoke(text);
+            };
+            try
+            {
+                // A copy: the customization edits the file in place, never the download or the user's file.
+                using var staged = StagedPackage.Create(packagePath);
+                await _tizenInstaller.CustomizeAsync(tvIp, staged.FilePath);
+                var sent = await TvStoreHandoff.SendAsync(tvIp, staged.FilePath, report, cancellationToken);
+                var body = string.Format((sent.TvStoreOpened ? "tvStoreSentBody" : "tvStoreSentBodyClosed").Localized(), sent.Upload.Name);
+                progress?.Invoke(body);
+                await _dialogService.ShowMessageAsync("tvStoreSentTitle".Localized(), body);
+                return true;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[TvStore] hand-off failed: {ex}");
+                progress?.Invoke("InstallationFailed".Localized());
+                await _dialogService.ShowErrorAsync($"{"InstallationFailed".Localized()}: {ex.Message}");
                 return false;
             }
         }

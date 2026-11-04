@@ -273,6 +273,24 @@
                             Content="{l:Localize lblToolboxTvStoreShowInCatalog}"
                             Command="{Binding ShowTvStoreInCatalogCommand}"/>
 
+                    <!-- ============ Package file ============ -->
+                    <!-- A package of the user's own, without installing it from here (#979): signed with
+                         the certificate that covers this TV and saved, or sent to TV-Store's upload page
+                         on the TV (no Developer Mode needed on this side; TV-Store asks on the screen). -->
+                    <TextBlock Classes="section" Text="{l:Localize lblToolboxPackage}" Margin="0,12,0,0"/>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxPackageHint}"/>
+                    <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
+                        <Button Grid.Column="0" Classes="action" Width="140"
+                                Content="{l:Localize lblToolboxSignPackage}"
+                                Command="{Binding SignPackageCommand}"
+                                IsEnabled="{Binding HasSdb}"/>
+                        <Button Grid.Column="1" Width="140"
+                                Content="{l:Localize lblToolboxSendToTvStore}"
+                                Command="{Binding SendToTvStoreCommand}"/>
+                        <TextBlock Grid.Column="2" Text="{Binding PackageStatus}" FontSize="12" Opacity="0.8"
+                                   TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </Grid>
+
                     <!-- ============ Install leftovers ============ -->
                     <!-- sdbd pushes every package to /home/owner/share/tmp/sdk_tools and leaves it there;
                          its own "0 rmfile" verb is accepted but deletes nothing on retail firmware. The

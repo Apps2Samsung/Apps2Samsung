@@ -259,6 +259,23 @@
                     </VerticalStackLayout>
                 </controls:ExpanderSection>
 
+                <!-- ============ Package file ============ -->
+                <!-- A package of the user's own, without installing it from here (#979): signed with the
+                     certificate that covers this TV and shared, or sent to TV-Store's upload page on the
+                     TV (no Developer Mode needed on this side; TV-Store asks on the screen). -->
+                <controls:ExpanderSection x:Name="PackageCard" Title="{l:Localize lblToolboxPackage}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxPackageHint}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" x:Name="SignPackageBtn" HeightRequest="44" MinimumHeightRequest="44"
+                                    Text="{l:Localize lblToolboxSignPackage}" Clicked="OnSignPackageClicked" />
+                            <Button Grid.Column="1" x:Name="SendToTvStoreBtn" Style="{StaticResource SoftButton}" HeightRequest="44" MinimumHeightRequest="44"
+                                    Text="{l:Localize lblToolboxSendToTvStore}" Clicked="OnSendToTvStoreClicked" />
+                        </Grid>
+                        <Label x:Name="PackageStatusLabel" Style="{StaticResource Report}" />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
+
                 <!-- ============ Install leftovers ============ -->
                 <!-- sdbd pushes every package to /home/owner/share/tmp/sdk_tools and leaves it there; its own
                      "0 rmfile" verb is accepted but deletes nothing on retail firmware. The agent runs as that

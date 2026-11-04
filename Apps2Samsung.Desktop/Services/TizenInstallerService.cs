@@ -1534,7 +1534,25 @@ namespace Apps2Samsung.Services
             public void Dispose() => Working?.Dispose();
         }
 
-        public async Task<CertificatePreparation> PrepareCertificateAsync(string tvIpAddress, CancellationToken cancellationToken = default)
+        public async Task CustomizeAsync(string tvIpAddress, string packagePath)
+        {
+            // The same patchers an install runs (step 5 of RunInstallAsync), sharing one workspace so
+            // the package is unpacked and rezipped once. No TV is asked: the Tizen version is unknown
+            // here, and the patchers that need it read it from the workspace as absent.
+            var patchers = _packagePatchers.Where(p => p.CanHandle(packagePath)).ToList();
+            if (patchers.Count == 0)
+                return;
+
+            using var workspace = PackageWorkspace.Extract(packagePath, tvIpAddress);
+            foreach (var patcher in patchers)
+            {
+                Trace.WriteLine($"Applying configuration via {patcher.GetType().Name}");
+                await patcher.ApplyAsync(workspace);
+            }
+            workspace.RepackIfChanged();
+        }
+
+        public async Task<CertificatePreparation> PrepareCertificateAsync(string tvIpAddress, CancellationToken cancellationToken = default, bool requirePartner = false)
         {
             var deviceInfo = await GetDeviceInfoAsync(tvIpAddress);
             if (deviceInfo == null)
@@ -1544,9 +1562,10 @@ namespace Apps2Samsung.Services
             }
 
             // The level an install would sign with today (a package that needs Partner switches the
-            // choice by itself at install time, so Automatic means Public until then).
+            // choice by itself at install time, so Automatic means Public until then), or Partner
+            // when the caller has a package in hand that needs it (sign only, #979).
             var level = Apps2Samsung.Certificate.CertificatePreference.ResolveLevel(
-                _appSettings.CertificatePreference, _appSettings.RequiresPartnerSigning);
+                _appSettings.CertificatePreference, _appSettings.RequiresPartnerSigning || requirePartner);
             var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
             using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken, deviceInfo.Duid);
             try
