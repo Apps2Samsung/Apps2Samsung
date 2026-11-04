@@ -5,8 +5,10 @@ public static class Help
 {
     public const string Usage = """
         usage: apps2samsung-cli <command> [arguments] [options]
+               apps2samsung-cli              on a terminal: the menu (TV, app, install)
 
         commands
+          menu [--tv <ip>]             the menu: every step is one of the commands below, shown before it runs
           scan [--virtual]             find Samsung TVs on this network and whether each can be installed to
           tv <ip>                      check one TV: Developer Mode, debug port, Tizen version, DUID
           catalog [words...]           list installable apps; words narrow the list by name or description

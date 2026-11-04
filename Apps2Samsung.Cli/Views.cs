@@ -50,7 +50,7 @@ internal static class Views
     private static string Arrow(bool unicode) => unicode ? "→" : "->";
     private static string Dot(bool unicode) => unicode ? "·" : "-";
 
-    private static Panel Card(IRenderable content, string header, string borderHex, bool unicode) => new Panel(content)
+    public static Panel Card(IRenderable content, string header, string borderHex, bool unicode) => new Panel(content)
     {
         // Spectre trims the header's whitespace, so the breathing room is a piece of border on each side: "╭── ● 192.168.1.8 ───".
         Header = new PanelHeader($"[{borderHex}]{(unicode ? "─" : "-")}[/] {header.Trim()} [{borderHex}]{(unicode ? "─" : "-")}[/]"),

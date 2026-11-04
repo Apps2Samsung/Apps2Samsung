@@ -67,6 +67,8 @@ public sealed class CliOptions
 
     public bool Help { get; set; }
     public bool ShowVersion { get; set; }
+    /// <summary>Every option as typed, except --tv, --help and --version: the menu (#975) appends them to the command lines it runs, so `menu --data-dir x --adult` carries through.</summary>
+    public List<string> Passthrough { get; } = new();
 
     /// <summary>Parses <paramref name="args"/>; a message on a flag it does not know, null when fine.</summary>
     public static (CliOptions Options, string? Error) Parse(string[] args)
@@ -89,6 +91,7 @@ public sealed class CliOptions
                 return args[++i];
             }
 
+            var start = i;
             switch (arg)
             {
                 case "-h" or "--help": o.Help = true; break;
@@ -160,6 +163,8 @@ public sealed class CliOptions
                 }
                 default: return (o, $"unknown option {arg}");
             }
+            if (arg is not ("-h" or "--help" or "-V" or "--version" or "--tv"))
+                o.Passthrough.AddRange(args[start..(i + 1)]);
         }
         return (o, null);
     }
