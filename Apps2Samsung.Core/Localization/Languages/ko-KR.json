@@ -893,6 +893,8 @@
   "hintPrepareCertificateNow": "아무것도 설치하지 않고 선택한 TV용 인증서를 만들어, 첫 설치가 로그인 때문에 멈추지 않게 합니다.",
   "statusCertificateAlreadyReady": "{0}에는 이미 인증서가 있습니다. 준비할 것이 없습니다.",
   "statusCertificatePrepared": "{0}의 인증서가 준비되었습니다.",
+  "lblCertificateLevel": "수준",
+  "lblCreateCertificate": "인증서 만들기",
   "certNotYetValidBody": "Samsung이 새 인증서의 날짜를 이 기기의 시계보다 조금 앞서게 설정했으며, TV는 그때까지 인증서를 거부합니다. 대기 시간이 지나치게 길어 보이면 이 기기의 시계가 틀린 것입니다. 취소하고 날짜, 시간, 시간대를 바로잡은 뒤 다시 설치하세요.",
   "certValidIn": "유효해지기까지",
   "certContinuesByItself": "설치가 자동으로 계속됩니다.",

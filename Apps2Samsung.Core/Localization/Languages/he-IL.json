@@ -893,6 +893,8 @@
   "hintPrepareCertificateNow": "יוצר את התעודה לטלוויזיה שנבחרה בלי להתקין דבר, כך שההתקנה הראשונה לא תיעצר להתחברות.",
   "statusCertificateAlreadyReady": "ל-{0} כבר יש תעודה: אין מה להכין.",
   "statusCertificatePrepared": "התעודה של {0} מוכנה.",
+  "lblCertificateLevel": "רמה",
+  "lblCreateCertificate": "יצירת התעודה",
   "certNotYetValidBody": "Samsung תיארכה את התעודה החדשה מעט קדימה ביחס לשעון של ההתקן הזה, והטלוויזיה דוחה אותה עד אז. אם ההמתנה נראית ארוכה מדי, השעון של ההתקן הזה אינו מדויק: בטלו, תקנו את התאריך, השעה ואזור הזמן, והתקינו שוב.",
   "certValidIn": "תקפה בעוד",
   "certContinuesByItself": "ההתקנה תימשך מעצמה.",

@@ -894,6 +894,8 @@
   "hintPrepareCertificateNow": "何もインストールせずに、選択したテレビ用の証明書を作成します。最初のインストールがサインインで止まることがなくなります。",
   "statusCertificateAlreadyReady": "{0} にはすでに証明書があります。準備するものはありません。",
   "statusCertificatePrepared": "{0} 用の証明書の準備ができました。",
+  "lblCertificateLevel": "レベル",
+  "lblCreateCertificate": "証明書を作成",
   "certNotYetValidBody": "Samsung が新しい証明書の日付をこのデバイスの時計より少し先にしており、その時刻までテレビはそれを拒否します。待ち時間が長すぎる場合は、このデバイスの時計がずれています。キャンセルして、日付、時刻、タイムゾーンを修正してから、もう一度インストールしてください。",
   "certValidIn": "有効になるまで",
   "certContinuesByItself": "インストールは自動的に続行されます。",

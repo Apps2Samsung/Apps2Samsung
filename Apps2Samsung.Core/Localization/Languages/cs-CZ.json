@@ -907,6 +907,8 @@
   "hintPrepareCertificateNow": "Vytvoří certifikát pro vybraný televizor bez instalace čehokoli, takže první instalace nebude přerušena kvůli přihlášení.",
   "statusCertificateAlreadyReady": "{0} již má certifikát: není třeba nic připravovat.",
   "statusCertificatePrepared": "Certifikát pro {0} je připraven.",
+  "lblCertificateLevel": "Úroveň",
+  "lblCreateCertificate": "Vytvořit certifikát",
   "certNotYetValidBody": "Samsung nastavil platnost nového certifikátu na dobu o něco pozdější, než ukazují hodiny tohoto zařízení, a televizor jej do té doby odmítá. Pokud se čekání zdá příliš dlouhé, je čas na zařízení nastaven nesprávně: zrušte instalaci, opravte datum, čas a časové pásmo a instalaci opakujte.",
   "certValidIn": "Platné za",
   "certContinuesByItself": "Instalace pokračuje sama.",

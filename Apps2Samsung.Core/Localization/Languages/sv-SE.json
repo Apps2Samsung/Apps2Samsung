@@ -888,6 +888,8 @@
   "hintPrepareCertificateNow": "Skapar certifikatet för den valda TV:n utan att installera något, så att den första installationen inte stannar upp för en inloggning.",
   "statusCertificateAlreadyReady": "{0} har redan ett certifikat: inget att förbereda.",
   "statusCertificatePrepared": "Certifikatet för {0} är klart.",
+  "lblCertificateLevel": "Nivå",
+  "lblCreateCertificate": "Skapa certifikatet",
   "certNotYetValidBody": "Samsung daterade det nya certifikatet något före den här enhetens klocka, och TV:n avvisar det tills dess. Om väntetiden ser alldeles för lång ut går den här enhetens klocka fel: avbryt, rätta datum, tid och tidszon och installera igen.",
   "certValidIn": "Giltigt om",
   "certContinuesByItself": "Installationen fortsätter av sig själv.",

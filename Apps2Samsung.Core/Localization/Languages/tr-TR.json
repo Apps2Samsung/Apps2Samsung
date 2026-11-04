@@ -896,6 +896,8 @@
   "hintPrepareCertificateNow": "Hiçbir şey kurmadan seçili TV için sertifikayı oluşturur, böylece ilk kurulum oturum açmak için durmaz.",
   "statusCertificateAlreadyReady": "{0} için zaten bir sertifika var: hazırlanacak bir şey yok.",
   "statusCertificatePrepared": "{0} için sertifika hazır.",
+  "lblCertificateLevel": "Düzey",
+  "lblCreateCertificate": "Sertifikayı oluştur",
   "certNotYetValidBody": "Samsung yeni sertifikayı bu cihazın saatinden biraz ileri bir tarihle düzenledi ve TV o zamana kadar onu reddeder. Bekleme süresi çok uzun görünüyorsa bu cihazın saati yanlıştır: iptal edin, tarihi, saati ve saat dilimini düzeltin ve yeniden kurun.",
   "certValidIn": "Geçerli olmasına",
   "certContinuesByItself": "Kurulum kendiliğinden devam eder.",

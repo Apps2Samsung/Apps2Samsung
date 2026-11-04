@@ -899,6 +899,8 @@
   "hintPrepareCertificateNow": "为所选电视创建证书而不安装任何内容,这样首次安装就不会因登录而中断。",
   "statusCertificateAlreadyReady": "{0} 已有证书:无需准备。",
   "statusCertificatePrepared": "{0} 的证书已就绪。",
+  "lblCertificateLevel": "级别",
+  "lblCreateCertificate": "创建证书",
   "certNotYetValidBody": "Samsung 将新证书的生效时间设定得比此设备的时钟稍晚,在此之前电视会拒绝它。如果等待时间看起来太长,说明此设备的时钟有误:请取消,修正日期、时间和时区,然后重新安装。",
   "certValidIn": "生效倒计时",
   "certContinuesByItself": "安装将自动继续。",

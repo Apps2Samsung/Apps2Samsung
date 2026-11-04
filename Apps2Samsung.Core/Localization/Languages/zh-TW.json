@@ -896,6 +896,8 @@
   "hintPrepareCertificateNow": "為所選電視建立憑證而不安裝任何東西，這樣第一次安裝就不會因登入而中斷。",
   "statusCertificateAlreadyReady": "{0} 已有憑證：不需要準備。",
   "statusCertificatePrepared": "{0} 的憑證已準備好。",
+  "lblCertificateLevel": "等級",
+  "lblCreateCertificate": "建立憑證",
   "certNotYetValidBody": "Samsung 將新憑證的生效時間訂得比這個裝置的時鐘稍晚，在那之前電視會拒絕它。若等待時間看起來過長，表示這個裝置的時鐘有誤：請取消，修正日期、時間與時區，然後再安裝一次。",
   "certValidIn": "生效倒數",
   "certContinuesByItself": "安裝會自動繼續。",
