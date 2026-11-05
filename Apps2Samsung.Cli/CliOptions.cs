@@ -77,6 +77,10 @@ public sealed class CliOptions
     public string? OutputPath { get; set; }
     /// <summary><c>install --via tvstore</c>: send the package to TV-Store's upload page instead of SDB.</summary>
     public bool ViaTvStore { get; set; }
+    /// <summary>leftovers: delete every package in the TV's staging folder.</summary>
+    public bool Clear { get; set; }
+    /// <summary>leftovers: delete this one file (by name) from the TV's staging folder.</summary>
+    public string? DeleteFile { get; set; }
 
     public bool Help { get; set; }
     public bool ShowVersion { get; set; }
@@ -187,6 +191,8 @@ public sealed class CliOptions
                 case "--export": o.ExportPath = Next(arg); if (o.ExportPath is null) return (o, "--export needs a file to write"); break;
                 case "--import": o.ImportPath = Next(arg); if (o.ImportPath is null) return (o, "--import needs a file to read"); break;
                 case "-o" or "--output": o.OutputPath = Next(arg); if (o.OutputPath is null) return (o, "-o needs the file to write"); break;
+                case "--clear": o.Clear = true; break;
+                case "--delete": o.DeleteFile = Next(arg); if (o.DeleteFile is null) return (o, "--delete needs the file's name as `leftovers` lists it"); break;
                 case "--via":
                 {
                     var v = Next(arg)?.ToLowerInvariant();

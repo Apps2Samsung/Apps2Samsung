@@ -17,6 +17,7 @@ public static class Dispatch
         "tvstore" or "tv-store" => TvStoreCommand.RunAsync(s, ct),
         "sources" or "source" => SourcesCommand.RunAsync(s, ct),
         "menu" => MenuCommand.RunAsync(s, ct),
+        "leftovers" or "staging" => LeftoversCommand.RunAsync(s, ct),
         _ => Task.FromResult(s.Out.Fail($"unknown command '{s.Options.Command}'\n{Help.Usage}", Output.Usage)),
     };
 

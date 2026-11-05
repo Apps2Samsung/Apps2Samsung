@@ -21,6 +21,8 @@ public static class Help
           cert [--tv <ip>]             the signing certificates on this machine; --prepare makes one now,
                                        --export / --import move one between devices
           tvstore --tv <ip>            arm the TV-Store app on the TV: hand it the signing certificate once
+          leftovers --tv <ip>          the packages left in the TV's install staging folder; --clear deletes
+                                       them, --delete <file> one file (the toolbox's Install leftovers)
           sources [add|remove ...]     your own sources: a GitHub repository, a release, a .wgt/.tpk link or a
                                        .json feed, listed by `catalog` next to the community apps
 
@@ -182,6 +184,24 @@ public static class Help
         machine reaches the TV through TV-Store's relay (port 26201), once it is turned on there.
         """;
 
+    private const string Leftovers = """
+        usage: apps2samsung-cli leftovers --tv <ip> [--json]
+               apps2samsung-cli leftovers --tv <ip> --clear [--json]
+               apps2samsung-cli leftovers --tv <ip> --delete <file> [--json]
+
+        Every package that gets installed is first copied to a staging folder on the TV and left
+        there afterwards; the TV's own clean-up does nothing on retail firmware. This lists that
+        folder: name, size, date, and whether a file is a package. --clear deletes every package and
+        keeps any other file; --delete takes one file by name, package or not. Installed apps are
+        never touched. The same card as the desktop and phone apps' TV toolbox, "Install leftovers".
+
+        The folder is read by the Apps2Samsung Debug agent, a small app on the TV (needs Developer
+        Mode and a developer connection from this machine, as an install does). The agent is
+        installed like any package when the TV lacks it, or replaced when it is older than the one
+        this build carries: the first time, that takes the signing certificate, so a Samsung sign-in
+        in the browser when none covers the TV yet. It is stopped again when the command ends.
+        """;
+
     private const string Sources = """
         usage: apps2samsung-cli sources [--json]
                apps2samsung-cli sources add <link> [--name <name>] [--category <id>] [--partner]
@@ -217,6 +237,7 @@ public static class Help
         "sign" => Sign,
         "cert" or "certificate" => Cert,
         "tvstore" or "tv-store" => TvStore,
+        "leftovers" or "staging" => Leftovers,
         _ => Usage,
     };
 }
