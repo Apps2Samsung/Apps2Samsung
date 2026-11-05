@@ -63,9 +63,14 @@ public class DevToolsConsoleAttachTests
 
         Assert.True(value?["ok"]?.GetValue<bool>());
         Assert.Equal(2, polls);
+        // A copy under the lock: the fake inspector may still log a late poll from its own thread
+        // while the asserts enumerate.
+        List<string> seen;
+        lock (expressions)
+            seen = expressions.ToList();
         // The expression ran once, inside the wrapper, never on its own.
-        Assert.Single(expressions, e => e.Contains("A2SStore.status()", StringComparison.Ordinal));
-        Assert.DoesNotContain("A2SStore.status()", expressions);
+        Assert.Single(seen, e => e.Contains("A2SStore.status()", StringComparison.Ordinal));
+        Assert.DoesNotContain("A2SStore.status()", seen);
     }
 
     [Fact(Timeout = 20000)]
@@ -108,7 +113,10 @@ public class DevToolsConsoleAttachTests
         var value = await console.EvaluateValueAsync("A2SStore.status()");
 
         Assert.True(value?["ok"]?.GetValue<bool>());
-        Assert.DoesNotContain(expressions, e => e.Contains("__a2s_eval_", StringComparison.Ordinal));
+        List<string> seen;
+        lock (expressions)
+            seen = expressions.ToList();
+        Assert.DoesNotContain(seen, e => e.Contains("__a2s_eval_", StringComparison.Ordinal));
     }
 
     [Fact]
