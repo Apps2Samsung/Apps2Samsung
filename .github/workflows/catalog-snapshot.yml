@@ -22,6 +22,11 @@ name: Catalog snapshot
 # The TVs cannot validate HTTPS (their CA store is too old), so TV-Store trusts the catalog only
 # through this signature, and a package only through the SHA-256 the catalog carries for it.
 # The matching public key is built into TV-Store (tizen-app/service/catalog-key.js).
+#
+# Each package's icon goes to docs/catalog/icons/<sha256>.<ext> with its URL and hash on the asset
+# (#1000, TV-Store#66); the signature over resolved.json covers those hashes, and TV-Store shows an
+# icon only when the bytes it fetches hash to that. The generator deletes the files no asset refers
+# to any more, so the folder is committed as a whole.
 on:
   schedule:
     - cron: '*/30 * * * *'
@@ -52,6 +57,7 @@ jobs:
       PUSH_TOKEN: ${{ secrets.CI_PUSH_TOKEN }}
       SNAPSHOT: docs/catalog/resolved.json
       SIGNED: docs/catalog/resolved.json.signed
+      ICONS: docs/catalog/icons
     steps:
       - name: Check the push token is configured
         run: |
@@ -128,6 +134,10 @@ jobs:
             if [ "$AGE" -lt 43200 ]; then
               echo "Catalog unchanged (published $PUBLISHED); nothing to publish."
               git checkout -- "$SNAPSHOT" "$SIGNED"
+              # An unchanged catalog names the same icon files; whatever the generator wrote on top
+              # is a byte-identical copy, but keep the tree clean all the same.
+              git checkout -- "$ICONS" 2>/dev/null || true
+              git clean -fdq -- "$ICONS" 2>/dev/null || true
               exit 0
             fi
             echo "Catalog unchanged but published $PUBLISHED ($((AGE / 3600)) h ago); refreshing it."
@@ -136,5 +146,8 @@ jobs:
           git config user.email "patrick@madebypatrick.nl"
           git add "$SNAPSHOT"
           if [ -f "$SIGNED" ]; then git add "$SIGNED"; fi
+          # New icons and the ones pruned as unreferenced, in the same commit as the catalog that
+          # names them.
+          if [ -d "$ICONS" ]; then git add -A -- "$ICONS"; fi
           git commit -m "chore(catalog): refresh resolved catalog [skip ci]"
           git push origin beta

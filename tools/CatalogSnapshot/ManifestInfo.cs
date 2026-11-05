@@ -1,7 +1,9 @@
-// Fills each release asset's manifest version, ids and the Tizen version it asks for
-// (Asset.PackageVersion / AppId / PackageId / RequiredVersion) for the providers whose packages are plain GitHub release assets: the Jellyfin family, TizenTube
-// and the like. The community bundle is skipped here; its catalog.json already carries the same
-// three fields per file (tizen-community-packages#133), and CommunityAppList stamps them.
+// Fills each release asset's manifest version, ids, the Tizen version it asks for and its icon
+// (Asset.PackageVersion / AppId / PackageId / RequiredVersion / Icon + IconDigest) for every provider
+// whose packages are GitHub release assets: the Jellyfin family, TizenTube and the like, and the
+// community bundle. For the bundle its catalog.json already carries the manifest fields and
+// CommunityAppList stamps them on top; it is read here all the same since the icon only comes out
+// of the package itself (#1000).
 //
 // The TV's app list reports the version from a package's own manifest, so recording that same
 // manifest version in the snapshot is what lets the heads compare installed against catalog for
@@ -12,6 +14,10 @@
 // The same download also fills Asset.Digest (sha256:<hex>) when GitHub's API has none for the
 // asset (releases from before GitHub started recording digests): TV-Store only installs a package
 // whose hash is in the signed catalog (#881).
+//
+// And it takes the icon out of the package (WgtManifest.ReadIconAsync) and publishes it through
+// IconStore, named by its SHA-256, with the URL and hash on the asset: TV-Store shows an icon only
+// when its bytes hash to icon_digest (TV-Store#66), so the two always come from one file in one run.
 
 using System.Diagnostics;
 using Apps2Samsung.Models;
@@ -19,16 +25,26 @@ using Apps2Samsung.Packaging;
 
 internal static class ManifestInfo
 {
-    public static async Task FillAsync(HttpClient downloads, string providerId, List<GitHubRelease> releases, ResolvedProvider? previous)
+    // TV-Store shows no icon above this (its icons.js MAX_BYTES), so none is published either.
+    private const int MaxIconBytes = 1024 * 1024;
+
+    public static async Task FillAsync(HttpClient downloads, string providerId, List<GitHubRelease> releases, ResolvedProvider? previous, IconStore icons)
     {
         var known = (previous?.Releases ?? new List<GitHubRelease>())
             .SelectMany(r => r.Assets)
             .Where(a => !string.IsNullOrWhiteSpace(a.DownloadUrl) &&
-                        (a.PackageVersion is not null || a.AppId is not null || a.PackageId is not null || a.RequiredVersion is not null))
+                        (a.PackageVersion is not null || a.AppId is not null || a.PackageId is not null || a.RequiredVersion is not null || a.Icon is not null))
             .GroupBy(a => a.DownloadUrl, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
-        int downloaded = 0, reused = 0, failed = 0, skipped = 0;
+        // The first run after icons were added (#1000) has to read every asset once more. An asset
+        // without an icon in the previous snapshot is read again until this provider has one icon
+        // in there: from then on an asset without one has been looked at and simply ships none.
+        // (Per provider rather than for the whole snapshot, so a provider that was carried over as
+        // ok:false during that first run still gets its icons when it is back.)
+        var iconPassDone = known.Values.Any(a => a.Icon is not null);
+
+        int downloaded = 0, reused = 0, failed = 0, skipped = 0, withIcon = 0;
         var sw = Stopwatch.StartNew();
         foreach (var release in releases)
         {
@@ -42,17 +58,22 @@ internal static class ManifestInfo
                     continue;
                 }
 
-                // A snapshot from before required_version was recorded (TV-Store#47) reads the asset
-                // once more, so every entry gets the field without waiting for a new release.
+                // An icon whose file is gone from the folder is read again too, so the published
+                // URL is never a dead link.
                 if (known.TryGetValue(asset.DownloadUrl, out var old) && old.Size == asset.Size &&
-                    (asset.Digest is not null || old.Digest is not null) && old.RequiredVersion is not null)
+                    (asset.Digest is not null || old.Digest is not null) &&
+                    (old.Icon is not null ? icons.Has(old.Icon) : iconPassDone))
                 {
                     asset.PackageVersion = old.PackageVersion;
                     asset.AppId = old.AppId;
                     asset.PackageId = old.PackageId;
                     asset.RequiredVersion = old.RequiredVersion;
+                    asset.Icon = old.Icon;
+                    asset.IconDigest = old.IconDigest;
                     asset.Digest ??= old.Digest;
                     reused++;
+                    if (asset.Icon is not null)
+                        withIcon++;
                     continue;
                 }
 
@@ -80,6 +101,17 @@ internal static class ManifestInfo
                     downloaded++;
                     if (info.Version is null && info.ApplicationId is null)
                         Console.WriteLine($"::warning::{providerId}: {name} has no readable manifest; no version recorded");
+
+                    var icon = await WgtManifest.ReadIconAsync(tmp);
+                    if (icon is null)
+                        Console.WriteLine($"{providerId}: {name} has no readable PNG/JPEG/GIF/WebP icon; none published");
+                    else if (icon.Bytes.Length > MaxIconBytes)
+                        Console.WriteLine($"::warning::{providerId}: {name}'s icon is {icon.Bytes.Length:N0} bytes, more than TV-Store shows ({MaxIconBytes:N0}); none published");
+                    else
+                    {
+                        (asset.Icon, asset.IconDigest) = icons.Store(icon);
+                        withIcon++;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -93,6 +125,6 @@ internal static class ManifestInfo
             }
         }
 
-        Console.WriteLine($"{providerId,-28} manifests: {downloaded} downloaded, {reused} carried over, {failed} failed, {skipped} skipped ({sw.Elapsed.TotalSeconds:0}s)");
+        Console.WriteLine($"{providerId,-28} manifests: {downloaded} downloaded, {reused} carried over, {failed} failed, {skipped} skipped, {withIcon} with an icon ({sw.Elapsed.TotalSeconds:0}s)");
     }
 }
