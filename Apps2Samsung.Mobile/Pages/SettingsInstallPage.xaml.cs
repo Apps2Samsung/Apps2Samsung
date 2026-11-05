@@ -103,6 +103,9 @@ public partial class SettingsInstallPage : ContentPage
 		var tizen = MobileSettings.UsesTizenCertificate;
 		ShowPick(SamsungRow, SamsungRadio, SamsungCheck, SamsungLabel, !tizen);
 		ShowPick(TizenRow, TizenRadio, TizenCheck, TizenLabel, tizen);
+		// The level hint for the chosen kind: Samsung's mentions the account, Tizen's does not.
+		LevelHintSamsung.IsVisible = !tizen;
+		LevelHintTizen.IsVisible = tizen;
 		ShowCertificateStatus();
 	}
 
