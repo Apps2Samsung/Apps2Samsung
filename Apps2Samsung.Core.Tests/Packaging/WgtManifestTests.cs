@@ -160,6 +160,20 @@ public sealed class WgtManifestTests : IDisposable
     }
 
     [Fact]
+    public async Task ReadIcon_HybridWidget_FindsTheIconUnderResWgt()
+    {
+        // A web app with a native service: config.xml at the root names icon.png, the web app and
+        // its icon live under res/wgt/ (TorrStream, TizenDebugApp, FCastReceiver, #1000).
+        var path = PackageWith("hybrid.wgt", "config.xml", WidgetConfig("<icon src=\"./icon.png\"/>"),
+            ("res/wgt/icon.png", Png), ("shared/res/Service.png", Jpeg));
+
+        var icon = await WgtManifest.ReadIconAsync(path);
+
+        Assert.NotNull(icon);
+        Assert.Equal(Png, icon.Bytes);
+    }
+
+    [Fact]
     public async Task ReadIcon_Widget_PathSpellingDoesNotMatter()
     {
         // "./images/Icon.PNG" in the manifest, images/icon.png in the zip: the same file.

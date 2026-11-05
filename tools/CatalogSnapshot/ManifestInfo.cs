@@ -30,7 +30,9 @@ internal static class ManifestInfo
     // Package downloads in flight at once; GitHub's release CDN takes this without complaint.
     private const int Parallelism = 8;
 
-    public static async Task FillAsync(HttpClient downloads, string providerId, List<GitHubRelease> releases, ResolvedProvider? previous, IconStore icons)
+    /// <param name="rereadMissingIcons">Read every asset without an icon again, as the first icon
+    /// pass did: for a run after the icon reader learned a new place to look (#1000).</param>
+    public static async Task FillAsync(HttpClient downloads, string providerId, List<GitHubRelease> releases, ResolvedProvider? previous, IconStore icons, bool rereadMissingIcons = false)
     {
         var known = (previous?.Releases ?? new List<GitHubRelease>())
             .SelectMany(r => r.Assets)
@@ -44,7 +46,7 @@ internal static class ManifestInfo
         // in there: from then on an asset without one has been looked at and simply ships none.
         // (Per provider rather than for the whole snapshot, so a provider that was carried over as
         // ok:false during that first run still gets its icons when it is back.)
-        var iconPassDone = known.Values.Any(a => a.Icon is not null);
+        var iconPassDone = !rereadMissingIcons && known.Values.Any(a => a.Icon is not null);
 
         int downloaded = 0, reused = 0, failed = 0, skipped = 0, withIcon = 0;
         var sw = Stopwatch.StartNew();

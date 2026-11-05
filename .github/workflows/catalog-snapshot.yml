@@ -40,6 +40,11 @@ on:
       - 'Apps2Samsung.Core/Models/**'
       - '.github/workflows/catalog-snapshot.yml'
   workflow_dispatch:
+    inputs:
+      reread_icons:
+        description: 'Read every asset without an icon once more (after a change to the icon reader, #1000)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -94,6 +99,7 @@ jobs:
       - name: Resolve the catalog
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          A2S_REREAD_MISSING_ICONS: ${{ inputs.reread_icons && '1' || '' }}
         run: |
           set -euo pipefail
           dotnet run --project tools/CatalogSnapshot -c Release -- "$RUNNER_TEMP/third-party-apps.json" "$SNAPSHOT"

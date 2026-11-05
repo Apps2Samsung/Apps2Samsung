@@ -169,7 +169,8 @@ namespace Apps2Samsung.Packaging
         /// <summary>
         /// The icon a package ships, for the catalog (#1000, TV-Store#66). A web package names it in
         /// <c>config.xml</c> (<c>&lt;icon src="..."&gt;</c>, the first when there are several, a path
-        /// relative to the package root); a native one in <c>tizen-manifest.xml</c> (<c>&lt;icon&gt;</c>
+        /// relative to the package root, or to <c>res/wgt/</c> in a hybrid package); a native one in
+        /// <c>tizen-manifest.xml</c> (<c>&lt;icon&gt;</c>
         /// under the application element), with the file under <c>shared/res/</c>, next to the
         /// manifest, or under <c>res/</c>. Only PNG, JPEG, GIF and WebP count, decided by the bytes
         /// and not the name: an SVG can carry scripts, and TV-Store shows nothing else. Null when the
@@ -191,7 +192,13 @@ namespace Apps2Samsung.Packaging
                 {
                     var src = ParseWidgetIcon(config);
                     if (src is not null)
+                    {
                         candidates.Add(src);
+                        // A hybrid package (a web app with a native service) keeps the web app under
+                        // res/wgt/, and config.xml's paths are relative to that: seven community
+                        // packages ship icon.png there and nowhere else (#1000).
+                        candidates.Add("res/wgt/" + src.Replace('\\', '/').TrimStart('.', '/'));
+                    }
                 }
                 else
                 {
