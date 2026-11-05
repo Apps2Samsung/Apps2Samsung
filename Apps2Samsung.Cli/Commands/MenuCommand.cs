@@ -1,4 +1,5 @@
 using System.Reflection;
+using Apps2Samsung.Agent;
 using Apps2Samsung.Catalog;
 using Apps2Samsung.Design;
 using Apps2Samsung.Models;
@@ -223,6 +224,7 @@ internal sealed class Menu
                 Act("Installed apps", "with updates from the catalog", "installed"),
                 Act("Certificate", E(certNote), "cert"),
                 Act("TV-Store", "arm TV-Store on the TV with the certificate", "tvstore"),
+                Act("Install leftovers", "packages left in the TV's staging folder", "leftovers"),
                 Act("Developer Mode", tv.State.Ready ? "ready; the guide for this TV" : "the guide for this TV", "devmode"),
                 new(M($"{(_unicode ? "←" : "<-")} Back to the TVs"), "back"),
             };
@@ -239,8 +241,94 @@ internal sealed class Menu
                 case "devmode":
                     tv = await DeveloperModeAsync(tv);
                     break;
+                case "leftovers": await LeftoversAsync(tv); break;
                 default: return;
             }
+        }
+    }
+
+    // ---- leftovers ----
+
+    /// <summary>
+    /// The toolbox's Install leftovers card (#681): the TV's staging folder as the debug agent lists
+    /// it, then Clear or one file. Each choice is its own `leftovers` run, which attaches the agent
+    /// again; the listing here is read directly so the file names can be offered.
+    /// </summary>
+    private async Task LeftoversAsync(Tv tv)
+    {
+        var ip = tv.State.Ip;
+        Screen();
+        Show(Views.TvCard(tv.State, _unicode));
+        List<LeftoversCommand.Row> rows;
+        string summary;
+        try
+        {
+            await using var agent = await LeftoversCommand.AttachAsync(_s, ip, _ct);
+            if (!agent.SupportsStaging)
+            {
+                _s.Out.Warn($"the debug agent on the TV is v{agent.AgentVersion}; reading the staging folder needs v{DebugAgentClient.StagingSince} or later");
+                _s.Out.Idle(Glyph.Failed);
+                await PauseAsync();
+                return;
+            }
+            var listing = await LeftoversCommand.ListAsync(_s, agent, _ct);
+            rows = listing.Files.Select(LeftoversCommand.ToRow).ToList();
+            summary = LeftoversCommand.Summary(_s, listing);
+            foreach (var e in listing.Errors)
+                _s.Out.Warn(e);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _s.Out.Warn(ex switch
+            {
+                DebugAgentInstallException install => _s.Strings.GetString(install.Key),
+                LeftoversCommand.TvUnreachableException => $"{E(ip)} did not list its apps ({E(ex.Message)}): Developer Mode on, Host PC IP this {(OperatingSystem.IsAndroid() ? "phone" : "machine")}'s address, then restart the TV",
+                _ => $"the staging folder could not be read: {E(ex.Message)}",
+            });
+            _s.Out.Idle(Glyph.Failed);
+            await PauseAsync();
+            return;
+        }
+        _s.Out.Idle();
+        Show(Views.Leftovers(rows, summary, ip, _s.Out.Width, _unicode));
+        ShowLine(new[] { "leftovers", "--tv", ip });
+        if (rows.Count == 0)
+        {
+            await PauseAsync();
+            return;
+        }
+
+        var packages = rows.Count(r => r.IsPackage);
+        var items = new List<Item>();
+        if (packages > 0)
+            items.Add(Act("Clear", $"delete the {packages} package{(packages == 1 ? "" : "s")}, keep the rest", "clear"));
+        items.Add(Act($"Delete one file{Ellipsis}", "package or not", "delete"));
+        items.Add(new Item(M($"{(_unicode ? "←" : "<-")} Back"), "back"));
+        var pick = await SelectAsync(M($"Leftovers on {E(ip)}"), items);
+        switch (pick.Tag)
+        {
+            case "clear":
+            {
+                var args = new[] { "leftovers", "--tv", ip, "--clear" };
+                ShowLine(args);
+                if (await ConfirmAsync($"Delete the {packages} package{(packages == 1 ? "" : "s")} from the staging folder on {E(ip)}? Installed apps are not touched."))
+                    await RunAsync(args);
+                return;
+            }
+            case "delete":
+            {
+                var choices = rows.Select(r => new Item($"{E(r.Name)}  {M(E(InstalledApp.FormatSize(r.Size)))}", r)).ToList();
+                choices.Add(new Item(M($"{(_unicode ? "←" : "<-")} Back"), "back"));
+                if ((await SelectAsync(M("Which file"), choices)).Tag is not LeftoversCommand.Row file)
+                    return;
+                var args = new[] { "leftovers", "--tv", ip, "--delete", file.Name };
+                ShowLine(args);
+                if (await ConfirmAsync($"Delete {E(file.Name)} from the TV?", defaultValue: false))
+                    await RunAsync(args);
+                return;
+            }
+            default:
+                return;
         }
     }
 
@@ -560,7 +648,7 @@ internal sealed class Menu
     {
         _s.Out.Idle();
         var line = args.Concat(_s.Options.Passthrough).ToList();
-        if (args[0] != "install" && args[0] != "uninstall")
+        if (args[0] is not ("install" or "uninstall" or "leftovers"))
             ShowLine(args);
         _con.WriteLine();
         await Dispatch.RunLineAsync(line, _ct);

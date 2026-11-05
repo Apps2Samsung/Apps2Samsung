@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Apps2Samsung.Cli.Commands;
 using Apps2Samsung.Design;
+using Apps2Samsung.Models;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 
@@ -395,6 +396,50 @@ internal static class Views
             "different" => $"{catalog}  {Muted("different build")}",
             _ => $"{catalog}  {Muted("version unknown")}",
         };
+    }
+
+    // ---- leftovers ----
+
+    public static IRenderable Leftovers(IReadOnlyList<LeftoversCommand.Row> rows, string summary, string tv, int width, bool unicode)
+    {
+        var footer = new Markup(Muted($"{Esc(summary)}  {Dot(unicode)}  staging folder on {Esc(tv)}"));
+        if (rows.Count == 0)
+            return footer;
+
+        if (width < NarrowWidth)
+        {
+            var list = new List<IRenderable>();
+            foreach (var r in rows)
+            {
+                list.Add(new Markup(string.Join("\n", new[]
+                {
+                    $"[bold]{Esc(r.Name)}[/]",
+                    "  " + Muted($"{Esc(InstalledApp.FormatSize(r.Size))}{(r.Modified is null ? "" : $" {Dot(unicode)} {Esc(r.Modified)}")}{(r.IsPackage ? "" : $" {Dot(unicode)} not a package, --clear keeps it")}"),
+                })));
+            }
+            list.Add(footer);
+            return new Rows(list);
+        }
+
+        var table = new Table
+        {
+            Border = TableBorder.Simple,
+            BorderStyle = new Style(ColorOf(DimHex)),
+            Expand = true,
+        };
+        table.AddColumn(new TableColumn(Muted("File")));
+        table.AddColumn(new TableColumn(Muted("Size")).NoWrap().RightAligned());
+        table.AddColumn(new TableColumn(Muted("Changed")).NoWrap());
+        table.AddColumn(new TableColumn(Muted("")));
+        foreach (var r in rows)
+        {
+            table.AddRow(
+                new Markup($"[bold]{Esc(r.Name)}[/]"),
+                new Markup(Esc(InstalledApp.FormatSize(r.Size))),
+                new Markup(Muted(Esc(r.Modified ?? "?"))),
+                new Markup(r.IsPackage ? Muted("package") : Muted("not a package, --clear keeps it")));
+        }
+        return new Rows(table, footer);
     }
 
     // ---- cert ----
