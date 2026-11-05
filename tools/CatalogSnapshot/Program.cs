@@ -49,6 +49,11 @@ if (File.Exists(outputPath))
 }
 
 var token = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+// A one-off after a change to the icon reader (#1000): the assets that had no icon are read again
+// instead of carried over. The workflow's "reread_icons" input sets it.
+var rereadMissingIcons = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("A2S_REREAD_MISSING_ICONS"));
+if (rereadMissingIcons)
+    Console.WriteLine("Icons: reading every asset without an icon again (A2S_REREAD_MISSING_ICONS).");
 Console.WriteLine(string.IsNullOrWhiteSpace(token)
     ? "No GITHUB_TOKEN: resolving unauthenticated (60 req/h)."
     : "Resolving with GITHUB_TOKEN.");
@@ -118,7 +123,7 @@ foreach (var provider in manifest.Providers)
     // or TizenTube against the catalog the same way as a community app (#820), and the icon for
     // TV-Store (#1000). Unchanged assets keep last snapshot's values; only new releases are
     // downloaded.
-    await ManifestInfo.FillAsync(downloads, entry.Id, list, old, icons);
+    await ManifestInfo.FillAsync(downloads, entry.Id, list, old, icons, rereadMissingIcons);
 
     okCount++;
     var assets = list.Sum(r => r.Assets.Count);
