@@ -16,6 +16,7 @@ internal sealed class IconStore
 
     private readonly string _directory;
     private readonly string _urlBase;
+    private readonly object _writes = new();
 
     public IconStore(string directory, string urlBase)
     {
@@ -34,10 +35,14 @@ internal sealed class IconStore
         var hex = Convert.ToHexStringLower(SHA256.HashData(icon.Bytes));
         var fileName = $"{hex}.{icon.Extension}";
         var path = Path.Combine(_directory, fileName);
-        if (!File.Exists(path))
+        // Assets are read in parallel and the Jellyfin builds share one icon: one writer at a time.
+        lock (_writes)
         {
-            System.IO.Directory.CreateDirectory(_directory);
-            File.WriteAllBytes(path, icon.Bytes);
+            if (!File.Exists(path))
+            {
+                System.IO.Directory.CreateDirectory(_directory);
+                File.WriteAllBytes(path, icon.Bytes);
+            }
         }
         return (_urlBase + fileName, "sha256:" + hex);
     }

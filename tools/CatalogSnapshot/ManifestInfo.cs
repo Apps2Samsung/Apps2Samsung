@@ -27,6 +27,8 @@ internal static class ManifestInfo
 {
     // TV-Store shows no icon above this (its icons.js MAX_BYTES), so none is published either.
     private const int MaxIconBytes = 1024 * 1024;
+    // Package downloads in flight at once; GitHub's release CDN takes this without complaint.
+    private const int Parallelism = 8;
 
     public static async Task FillAsync(HttpClient downloads, string providerId, List<GitHubRelease> releases, ResolvedProvider? previous, IconStore icons)
     {
@@ -46,6 +48,7 @@ internal static class ManifestInfo
 
         int downloaded = 0, reused = 0, failed = 0, skipped = 0, withIcon = 0;
         var sw = Stopwatch.StartNew();
+        var toRead = new List<(GitHubRelease Release, Asset Asset)>();
         foreach (var release in releases)
         {
             foreach (var asset in release.Assets)
@@ -77,53 +80,64 @@ internal static class ManifestInfo
                     continue;
                 }
 
-                var tmp = Path.Combine(Path.GetTempPath(), $"a2s-snapshot-{Guid.NewGuid():N}{Path.GetExtension(name)}");
-                try
-                {
-                    using (var response = await downloads.GetAsync(asset.DownloadUrl, HttpCompletionOption.ResponseHeadersRead))
-                    {
-                        response.EnsureSuccessStatusCode();
-                        await using var file = File.Create(tmp);
-                        await response.Content.CopyToAsync(file);
-                    }
-
-                    if (asset.Digest is null)
-                    {
-                        await using var read = File.OpenRead(tmp);
-                        asset.Digest = "sha256:" + Convert.ToHexStringLower(await System.Security.Cryptography.SHA256.HashDataAsync(read));
-                    }
-
-                    var info = await WgtManifest.ReadPackageInfoAsync(tmp);
-                    asset.PackageVersion = info.Version;
-                    asset.AppId = info.ApplicationId;
-                    asset.PackageId = info.PackageId;
-                    asset.RequiredVersion = info.RequiredVersion;
-                    downloaded++;
-                    if (info.Version is null && info.ApplicationId is null)
-                        Console.WriteLine($"::warning::{providerId}: {name} has no readable manifest; no version recorded");
-
-                    var icon = await WgtManifest.ReadIconAsync(tmp);
-                    if (icon is null)
-                        Console.WriteLine($"{providerId}: {name} has no readable PNG/JPEG/GIF/WebP icon; none published");
-                    else if (icon.Bytes.Length > MaxIconBytes)
-                        Console.WriteLine($"::warning::{providerId}: {name}'s icon is {icon.Bytes.Length:N0} bytes, more than TV-Store shows ({MaxIconBytes:N0}); none published");
-                    else
-                    {
-                        (asset.Icon, asset.IconDigest) = icons.Store(icon);
-                        withIcon++;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    failed++;
-                    Console.WriteLine($"::warning::{providerId}: could not read {name} ({ex.GetType().Name}: {ex.Message}); no version recorded");
-                }
-                finally
-                {
-                    try { File.Delete(tmp); } catch { /* best effort */ }
-                }
+                toRead.Add((release, asset));
             }
         }
+
+        // A package takes a second or two to fetch, and the first pass after a new field (icons,
+        // #1000) reads some 400 of them: one after another that is longer than the job's budget,
+        // eight at a time it is a few minutes. Each asset is touched by one task only; the counters
+        // are shared.
+        await Parallel.ForEachAsync(toRead, new ParallelOptions { MaxDegreeOfParallelism = Parallelism }, async (item, _) =>
+        {
+            var asset = item.Asset;
+            var name = asset.FileName ?? string.Empty;
+            var tmp = Path.Combine(Path.GetTempPath(), $"a2s-snapshot-{Guid.NewGuid():N}{Path.GetExtension(name)}");
+            try
+            {
+                using (var response = await downloads.GetAsync(asset.DownloadUrl, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    response.EnsureSuccessStatusCode();
+                    await using var file = File.Create(tmp);
+                    await response.Content.CopyToAsync(file);
+                }
+
+                if (asset.Digest is null)
+                {
+                    await using var read = File.OpenRead(tmp);
+                    asset.Digest = "sha256:" + Convert.ToHexStringLower(await System.Security.Cryptography.SHA256.HashDataAsync(read));
+                }
+
+                var info = await WgtManifest.ReadPackageInfoAsync(tmp);
+                asset.PackageVersion = info.Version;
+                asset.AppId = info.ApplicationId;
+                asset.PackageId = info.PackageId;
+                asset.RequiredVersion = info.RequiredVersion;
+                Interlocked.Increment(ref downloaded);
+                if (info.Version is null && info.ApplicationId is null)
+                    Console.WriteLine($"::warning::{providerId}: {name} has no readable manifest; no version recorded");
+
+                var icon = await WgtManifest.ReadIconAsync(tmp);
+                if (icon is null)
+                    Console.WriteLine($"{providerId}: {name} has no readable PNG/JPEG/GIF/WebP icon; none published");
+                else if (icon.Bytes.Length > MaxIconBytes)
+                    Console.WriteLine($"::warning::{providerId}: {name}'s icon is {icon.Bytes.Length:N0} bytes, more than TV-Store shows ({MaxIconBytes:N0}); none published");
+                else
+                {
+                    (asset.Icon, asset.IconDigest) = icons.Store(icon);
+                    Interlocked.Increment(ref withIcon);
+                }
+            }
+            catch (Exception ex)
+            {
+                Interlocked.Increment(ref failed);
+                Console.WriteLine($"::warning::{providerId}: could not read {name} ({ex.GetType().Name}: {ex.Message}); no version recorded");
+            }
+            finally
+            {
+                try { File.Delete(tmp); } catch { /* best effort */ }
+            }
+        });
 
         Console.WriteLine($"{providerId,-28} manifests: {downloaded} downloaded, {reused} carried over, {failed} failed, {skipped} skipped, {withIcon} with an icon ({sw.Elapsed.TotalSeconds:0}s)");
     }

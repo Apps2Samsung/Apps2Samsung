@@ -52,7 +52,9 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # A quiet tick is a minute. The first pass after a new per-asset field reads every package
+    # once more (some 400, eight at a time): the budget is for that, not for the usual run.
+    timeout-minutes: 45
     env:
       PUSH_TOKEN: ${{ secrets.CI_PUSH_TOKEN }}
       SNAPSHOT: docs/catalog/resolved.json
