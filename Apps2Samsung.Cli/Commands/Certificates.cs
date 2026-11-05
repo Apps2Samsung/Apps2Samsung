@@ -101,6 +101,10 @@ public static class Certificates
         var chain = TizenChain(s);
         if (chain is { } asked && !TizenSdkAssets.HasDistributorSigner(level, asked))
             throw new InvalidOperationException($"The Tizen SDK has no {asked.ToString().ToLowerInvariant()} distributor signer for {level}; Platform only exists as new.");
+        // The 2022 signers (Platform's only generation, or --tizen-chain new) are refused by a retail
+        // Tizen 5.0 set; say so up front instead of letting the install fail on the TV.
+        if ((chain ?? TizenSdkAssets.DefaultChain(level)) == TizenDistributorChain.New)
+            s.Out.Warn($"Tizen {level.ToString().ToLowerInvariant()}: this signs with the Tizen SDK's 2022 certificate chain, which retail TVs (Tizen 5.0 tested) refuse. Use public or partner if the install fails.");
         var name = TizenProfileStore.ProfileName(level, chain);
         var existed = TizenProfileStore.HasProfile(CliPaths.CertificateStore, level, chain);
         s.Out.Progress(existed && !s.Options.ForceLogin
