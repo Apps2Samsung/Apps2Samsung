@@ -7,6 +7,10 @@
 // GITHUB_TOKEN in the environment authenticates the API calls (the workflow's token: ~1000 req/h
 // instead of 60). Without it the tool still works, for a local dry run.
 //
+// Each package's icon is published next to the output as <out dir>/icons/<sha256>.<ext> and
+// referenced from the asset by its https://apps2samsung.com/catalog/icons/ URL (#1000); files no
+// asset refers to any more are deleted after a successful run.
+//
 // A provider the API fails on is written with ok:false and the releases carried over from the
 // previous file at <out>, so one flaky upstream never removes an app from everyone's list; the
 // heads skip ok:false entries and fetch those providers live themselves. Exit code 1 when nothing
@@ -55,6 +59,11 @@ http.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
 using var downloads = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
 var releases = new AddLatestRelease(http, () => token);
 var buildInfo = new BuildInfoService(http, () => token);
+// The icons live next to resolved.json and are served from the same place, so their URL base is
+// the catalog's own with the file name swapped for icons/: the two cannot drift apart.
+var icons = new IconStore(
+    Path.Combine(Path.GetDirectoryName(Path.GetFullPath(outputPath))!, "icons"),
+    ResolvedCatalogService.ResolvedCatalogUrl[..(ResolvedCatalogService.ResolvedCatalogUrl.LastIndexOf('/') + 1)] + "icons/");
 
 var snapshot = new ResolvedCatalog
 {
@@ -105,11 +114,11 @@ foreach (var provider in manifest.Providers)
     // limited), but inlining it saves the heads that request as well.
     if (provider.ExpandAssets && list.Count > 0)
         entry.Catalog = await releases.GetCommunityCatalogAsync(list[0].CatalogUrl);
-    // Everyone else: the version and ids from inside each asset, so the heads can compare an
-    // installed Jellyfin or TizenTube against the catalog the same way as a community app (#820).
-    // Unchanged assets keep last snapshot's values; only new releases are downloaded.
-    else
-        await ManifestInfo.FillAsync(downloads, entry.Id, list, old);
+    // The version and ids from inside each asset, so the heads can compare an installed Jellyfin
+    // or TizenTube against the catalog the same way as a community app (#820), and the icon for
+    // TV-Store (#1000). Unchanged assets keep last snapshot's values; only new releases are
+    // downloaded.
+    await ManifestInfo.FillAsync(downloads, entry.Id, list, old, icons);
 
     okCount++;
     var assets = list.Sum(r => r.Assets.Count);
@@ -126,4 +135,10 @@ Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputPath))!);
 var json = JsonSerializer.Serialize(snapshot, JsonSerializerOptionsProvider.Indented);
 await File.WriteAllTextAsync(outputPath, json + "\n");
 Console.WriteLine($"Wrote {outputPath}: {okCount}/{snapshot.Providers.Count} providers ok, {json.Length:N0} bytes.");
+
+// Only after the snapshot is on disk: the icons of a provider carried over as ok:false are still
+// referenced, so they stay; what nothing refers to any more goes.
+var iconUrls = snapshot.Providers.SelectMany(p => p.Releases).SelectMany(r => r.Assets).Select(a => a.Icon).ToList();
+var pruned = icons.Prune(iconUrls);
+Console.WriteLine($"Icons: {iconUrls.Count(u => u is not null)} asset(s) with an icon, {iconUrls.Where(u => u is not null).Distinct().Count()} file(s) in {icons.Directory}, {pruned} unreferenced file(s) deleted.");
 return 0;

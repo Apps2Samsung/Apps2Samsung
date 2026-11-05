@@ -175,6 +175,18 @@ namespace Apps2Samsung.Models
         [JsonPropertyName("required_version")]
         public string? RequiredVersion { get; set; }
 
+        /// <summary>
+        /// The icon the package ships, published by the snapshot tool next to resolved.json for
+        /// TV-Store (#1000, TV-Store#66): <see cref="Icon"/> is its URL, <see cref="IconDigest"/> the
+        /// SHA-256 of the exact bytes served there as <c>sha256:&lt;hex&gt;</c>, and the file is named by
+        /// that hash so identical icons share one file. TV-Store shows an icon only when its bytes
+        /// hash to this. Both null when the package has no readable raster icon; never empty.
+        /// </summary>
+        [JsonPropertyName("icon")]
+        public string? Icon { get; set; }
+        [JsonPropertyName("icon_digest")]
+        public string? IconDigest { get; set; }
+
         /// <summary>"Tizen 6.0+" for the version picker, empty when the catalog does not say.</summary>
         [JsonIgnore]
         public string RequiredVersionText => string.IsNullOrWhiteSpace(RequiredVersion) ? string.Empty : $"Tizen {RequiredVersion}+";
