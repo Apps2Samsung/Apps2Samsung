@@ -51,12 +51,14 @@ public partial class AppSheetPage : ContentPage
 	public AppSheetPage(IReadOnlyList<GitHubRelease> versions, string? previewUrl, string subline, string? tvName, bool tvReady,
 		bool isFavorite = false, Action<string, bool>? setFavorite = null,
 		Func<bool, Task<IReadOnlyList<GitHubRelease>>>? showAllVersions = null, bool isUpdate = false,
-		Action<string>? searchAuthor = null, Version? tvVersion = null, Asset? openOn = null)
+		Action<string>? searchAuthor = null, Version? tvVersion = null, Asset? openOn = null, CatalogIcons? icons = null)
 	{
 		InitializeComponent();
 		_tvVersion = tvVersion;
 		_openOn = openOn;
 		var release = versions[0];
+		// The same tile as the list row: the letter, or the app's icon from the catalog (#1000).
+		TileSlot.Content = InstallerPage.AppTile(release, icons);
 		_name = release.Name;
 		_isFavorite = isFavorite;
 		_setFavorite = setFavorite;

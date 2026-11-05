@@ -34,6 +34,8 @@ public partial class InstallerPage : ContentPage
 	private readonly ISdbEngine _sdb;
 	// The TVs and the one in use, shared with the other tabs (the ▾ in every top bar picks from it).
 	private readonly TvSelection _tv;
+	// The catalog's app icons (#1000), for the list tiles and the app sheet.
+	private readonly CatalogIcons _icons;
 	// Every catalog entry; the list shows the slice in the chosen category that matches the search.
 	private IReadOnlyList<GitHubRelease> _allReleases = new List<GitHubRelease>();
 	private string _query = string.Empty;
@@ -65,10 +67,11 @@ public partial class InstallerPage : ContentPage
 
 	public InstallerPage(INetworkService networkService, ISamsungLoginService loginService,
 		CertificateFlow certFlow, WgtInstaller installer, CatalogService catalog,
-		UpdateFlow updates, SessionState session, ISdbEngine sdb, TvSelection tv)
+		UpdateFlow updates, SessionState session, ISdbEngine sdb, TvSelection tv, CatalogIcons icons)
 	{
 		InitializeComponent();
 		_tv = tv;
+		_icons = icons;
 		_networkService = networkService;
 		_loginService = loginService;
 		_certFlow = certFlow;
@@ -326,20 +329,11 @@ public partial class InstallerPage : ContentPage
 
 	private static BoxView Hairline() => new() { HeightRequest = 1, Margin = new Thickness(16, 0, 0, 0), Color = DesignTheme.ColorOf("Hair") };
 
-	// One list row: the letter tile, name and subline, a chevron; tapping opens the app sheet.
+	// One list row: the letter tile (the app's icon once it is loaded, #1000), name and subline, a
+	// chevron; tapping opens the app sheet.
 	private View CatalogRow(GitHubRelease release, string subline)
 	{
-		var tile = new Border
-		{
-			WidthRequest = 44, HeightRequest = 44, StrokeThickness = 0,
-			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 11 },
-			BackgroundColor = DesignTheme.ColorOf(AppTiles.ColorToken(release.Category, release.Name)),
-			Content = new Label
-			{
-				Text = AppTiles.Letter(release.Name), FontSize = 20, FontAttributes = FontAttributes.Bold,
-				TextColor = DesignTheme.ColorOf("OnAccent"), HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center,
-			},
-		};
+		var tile = AppTile(release, _icons);
 		var text = new VerticalStackLayout
 		{
 			Spacing = 1, VerticalOptions = LayoutOptions.Center,
@@ -367,6 +361,43 @@ public partial class InstallerPage : ContentPage
 		tap.Tapped += async (_, _) => await OpenAppAsync(release, subline);
 		grid.GestureRecognizers.Add(tap);
 		return grid;
+	}
+
+	/// <summary>
+	/// The 44 px tile before an app's name: its letter on the category colour, replaced by the icon
+	/// from the catalog once that is on disk (#1000). A cached icon shows at once; none keeps the letter.
+	/// </summary>
+	internal static Border AppTile(GitHubRelease release, CatalogIcons? icons)
+	{
+		var letter = new Label
+		{
+			Text = AppTiles.Letter(release.Name), FontSize = 20, FontAttributes = FontAttributes.Bold,
+			TextColor = DesignTheme.ColorOf("OnAccent"), HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center,
+		};
+		var image = new Image { Aspect = Aspect.AspectFill, IsVisible = false };
+		var tile = new Border
+		{
+			WidthRequest = 44, HeightRequest = 44, StrokeThickness = 0,
+			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 11 },
+			BackgroundColor = DesignTheme.ColorOf(AppTiles.ColorToken(release.Category, release.Name)),
+			Content = new Grid { Children = { letter, image } },
+		};
+		if (icons is not null && CatalogIcons.IconAssetOf(release) is { } asset)
+			_ = ShowIconAsync(icons, asset, image, letter);
+		return tile;
+	}
+
+	private static async Task ShowIconAsync(CatalogIcons icons, Asset asset, Image image, Label letter)
+	{
+		var path = await icons.PathForAsync(asset);
+		if (path is null)
+			return;
+		await MainThread.InvokeOnMainThreadAsync(() =>
+		{
+			image.Source = ImageSource.FromFile(path);
+			image.IsVisible = true;
+			letter.IsVisible = false;
+		});
 	}
 
 	// The name, with the 18+ badge after it for an adult-only app (#850; such a row is only ever
@@ -448,7 +479,8 @@ public partial class InstallerPage : ContentPage
 			searchAuthor: author => SearchEntry.Text = author,
 			tvVersion: SelectedTvVersion,
 			// The variant the TV got (#975), when the sheet came from On the TV.
-			openOn: openOn);
+			openOn: openOn,
+			icons: _icons);
 		await Navigation.PushModalAsync(sheet);
 		var choice = await sheet.Result;
 		if (choice is not null)

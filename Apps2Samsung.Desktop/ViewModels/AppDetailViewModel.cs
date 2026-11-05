@@ -21,6 +21,15 @@ namespace Apps2Samsung.ViewModels
     {
         private readonly HttpClient _http;
         private readonly string? _previewUrl;
+        private readonly CatalogIcons? _icons;
+
+        /// <summary>The tile before the name: the letter on the category colour, or the app's icon from the catalog (#1000).</summary>
+        public string Letter { get; }
+        public Avalonia.Media.IBrush TileBrush { get; }
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasIcon))]
+        private Bitmap? icon;
+        public bool HasIcon => Icon is not null;
 
         public GitHubRelease Release { get; }
         public string Name => Release.Name;
@@ -138,9 +147,15 @@ namespace Apps2Samsung.ViewModels
         public AppDetailViewModel(GitHubRelease release, string? previewUrl, string subline,
             string? tvName, bool tvReady, HttpClient http, Func<string, string> localize,
             bool isFavorite = false, Action<string, bool>? setFavorite = null, bool canShowAllVersions = false,
-            Version? tvVersion = null)
+            Version? tvVersion = null, Avalonia.Media.IBrush? tileBrush = null, CatalogIcons? icons = null)
         {
             _tvVersion = tvVersion;
+            _icons = icons;
+            Letter = Apps2Samsung.Design.AppTiles.Letter(release.Name);
+            TileBrush = tileBrush ?? Avalonia.Media.Brushes.Transparent;
+            // An icon already on disk shows at once; a new one lands with the preview (LoadPreviewAsync).
+            var cachedIcon = icons?.PathForAsync(release);
+            Icon = cachedIcon is { IsCompletedSuccessfully: true } ? Helpers.CatalogIconBitmaps.For(cachedIcon.Result) : null;
             _tvLabel = tvName ?? string.Empty;
             CanShowAllVersions = canShowAllVersions;
             ShowAllVersions = Helpers.AppSettings.Default.ShowAllJellyfinVersions;
@@ -189,9 +204,11 @@ namespace Apps2Samsung.ViewModels
         partial void OnNewPackageIdChanged(bool value) { if (value) OwnPackageId = false; }
         partial void OnOwnPackageIdChanged(bool value) { if (value) NewPackageId = false; }
 
-        /// <summary>Loads the preview after the window is up, so the sheet opens at once.</summary>
+        /// <summary>Loads the icon and the preview after the window is up, so the sheet opens at once.</summary>
         public async Task LoadPreviewAsync()
         {
+            if (_icons is not null && Icon is null)
+                Icon = Helpers.CatalogIconBitmaps.For(await _icons.PathForAsync(Release));
             if (string.IsNullOrWhiteSpace(_previewUrl))
                 return;
             try

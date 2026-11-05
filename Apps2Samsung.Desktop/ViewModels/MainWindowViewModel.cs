@@ -12,6 +12,7 @@ using Apps2Samsung.Packaging;
 using Apps2Samsung.Design;
 using Apps2Samsung.Update;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Apps2Samsung.Styles;
 using Apps2Samsung.Models;
 using Apps2Samsung.Services;
@@ -196,6 +197,8 @@ namespace Apps2Samsung.ViewModels
         // install. Releases / SelectedRelease / SelectedAsset stay the install pipeline's inputs;
         // the list is a view over them.
         private readonly HttpClient _httpClient;
+        // The catalog's app icons (#1000), cached next to the manifest cache.
+        private readonly CatalogIcons _catalogIcons;
         private ProviderManifest? _manifest;
         [ObservableProperty]
         private string searchText = string.Empty;
@@ -243,10 +246,13 @@ namespace Apps2Samsung.ViewModels
             public bool IsEmpty => Rows.Count == 0;
         }
 
-        /// <summary>A list row: the release, its letter tile and the one-line subline.</summary>
+        /// <summary>A list row: the release, its letter tile (or the app's icon once it is loaded, #1000) and the one-line subline.</summary>
         /// <param name="NeedsTizen">"Needs Tizen X" when the selected TV runs none of the app's builds (TV-Store#47); null otherwise.</param>
         public sealed record CatalogRow(GitHubRelease Release, string Letter, IBrush TileBrush, string Subline, string? NeedsTizen = null)
+            : System.ComponentModel.INotifyPropertyChanged
         {
+            private Bitmap? _icon;
+
             public string Name => Release.Name;
             /// <summary>The 18+ badge next to the name (#850); only ever true with the setting on.</summary>
             public bool IsAdult => Release.IsAdult;
@@ -254,6 +260,23 @@ namespace Apps2Samsung.ViewModels
             /// <summary>The "own source" badge: the entry comes from a source the user added (UserSources).</summary>
             public bool IsUserSource => Release.IsUserSource;
             public bool HasNeedsTizen => NeedsTizen is not null;
+
+            /// <summary>The app's icon from the catalog, set once it is on disk; the letter tile shows until then and when there is none.</summary>
+            public Bitmap? Icon
+            {
+                get => _icon;
+                set
+                {
+                    if (ReferenceEquals(_icon, value))
+                        return;
+                    _icon = value;
+                    PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(Icon)));
+                    PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(HasIcon)));
+                }
+            }
+            public bool HasIcon => _icon is not null;
+
+            public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
         }
 
         /// <summary>"Show all" / "Show less" on a group.</summary>
@@ -279,8 +302,22 @@ namespace Apps2Samsung.ViewModels
             var needsTizen = TizenRequirement.NoneFits(release, SelectedTvVersion)
                 ? string.Format(L("lblNeedsTizenBadge"), TizenRequirement.Lowest(release.Assets))
                 : null;
-            return new CatalogRow(release, AppTiles.Letter(release.Name),
+            var row = new CatalogRow(release, AppTiles.Letter(release.Name),
                 DesignTheme.Brush(AppTiles.ColorToken(release.Category, release.Name)), subline, needsTizen);
+            // The icon arrives when it is on disk (a cached one at once); the letter tile holds the place.
+            _ = LoadRowIconAsync(row);
+            return row;
+        }
+
+        private async Task LoadRowIconAsync(CatalogRow row)
+        {
+            var asset = CatalogIcons.IconAssetOf(row.Release);
+            if (asset is null)
+                return;
+            var path = await _catalogIcons.PathForAsync(asset);
+            var bitmap = CatalogIconBitmaps.For(path);
+            if (bitmap is not null)
+                await Dispatcher.UIThread.InvokeAsync(() => row.Icon = bitmap);
         }
 
         // The catalog as short groups per category (Core's CatalogGroups), or one flat result
@@ -347,7 +384,9 @@ namespace Apps2Samsung.ViewModels
                 _favorites.Contains(row.Release.Name),
                 SetFavorite,
                 _multiVersionApps.Contains(row.Release.Name),
-                SelectedTvVersion);
+                SelectedTvVersion,
+                row.TileBrush,
+                _catalogIcons);
             var showAllBefore = AppSettings.Default.ShowAllJellyfinVersions;
             var asset = await new Views.AppDetailWindow(sheet).ShowDialog<Asset?>(desktop.MainWindow);
             if (asset is not null)
@@ -500,6 +539,7 @@ namespace Apps2Samsung.ViewModels
                     _ = LoadReleasesAsync();
             };
             _httpClient = httpClient;
+            _catalogIcons = new CatalogIcons(httpClient, Path.Combine(ProviderManifestService.CacheDirectory, "catalog-icons"));
 
             // Snapshot-first: the pre-resolved catalog serves the manifest's providers; the GitHub
             // API is only asked for what it lacks.
