@@ -348,7 +348,7 @@ internal static class Views
         var updates = rows.Where(r => r.State == "update-available").ToList();
         var footer = new Markup(Muted(updates.Count == 0
             ? $"{rows.Count} app{(rows.Count == 1 ? "" : "s")} on {tv}"
-            : $"{rows.Count} apps on {tv} {Dot(unicode)} {updates.Count} update{(updates.Count == 1 ? "" : "s")}: apps2samsung-cli install \"{updates[0].CatalogApp}\" --tv {tv}"));
+            : $"{rows.Count} apps on {tv} {Dot(unicode)} {updates.Count} update{(updates.Count == 1 ? "" : "s")}: apps2samsung-cli {Shell.Join(InstalledCommand.InstallArgs(updates[0], tv))}"));
 
         if (width < NarrowWidth)
         {
@@ -385,7 +385,9 @@ internal static class Views
 
     private static string State(InstalledCommand.Row r, bool unicode)
     {
-        var catalog = $"{Esc(r.CatalogApp)}{(r.CatalogVersion is null ? "" : $" v{Esc(r.CatalogVersion)}")}";
+        // An app with several files: which one the comparison is with, and whether that is what this TV got (#975).
+        var variant = r.CatalogVariant is null ? "" : $" {Muted(Esc(r.CatalogVariant) + (r.VariantRemembered ? "" : "?"))}";
+        var catalog = $"{Esc(r.CatalogApp)}{variant}{(r.CatalogVersion is null ? "" : $" v{Esc(r.CatalogVersion)}")}";
         return r.State switch
         {
             "up-to-date" => $"{catalog}  [{OkHex}]up to date[/]",

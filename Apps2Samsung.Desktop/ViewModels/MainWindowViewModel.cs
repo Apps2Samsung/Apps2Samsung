@@ -1293,6 +1293,10 @@ namespace Apps2Samsung.ViewModels
                         if (!AppSettings.Default.KeepWGTFile)
                             _packageHelper.CleanupDownloadedPackage(downloadPath);
 
+                        // Which file this TV got (#975): On the TV compares with it, and its Update installs it again.
+                        if (installed && SelectedAsset is not null)
+                            RememberInstalledVariant(SelectedDevice.IpAddress, SelectedRelease, SelectedAsset);
+
                         // The step only the user can take, now that the package is on the TV.
                         if (installed && rootRelease is not null)
                             await _dialogService.ShowMessageAsync(
@@ -1344,6 +1348,29 @@ namespace Apps2Samsung.ViewModels
                 await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblInstalledApps"), ex));
             }
         }
+        /// <summary>
+        /// Writes down which of an app's files a TV got (#975, Core <c>InstalledVariantStore</c>): an
+        /// app with several variants ships them under one id and version, so the TV's own list cannot
+        /// tell them apart. Keyed by the catalog's app id, the id the On the TV section matches on.
+        /// </summary>
+        private static void RememberInstalledVariant(string tvIp, GitHubRelease release, Asset asset)
+        {
+            if (string.IsNullOrWhiteSpace(asset.AppId))
+                return;
+            AppSettings.Default.InstalledVariantsJson = Apps2Samsung.Packaging.InstalledVariantStore.Set(
+                AppSettings.Default.InstalledVariantsJson,
+                new Apps2Samsung.Packaging.InstalledVariantRecord
+                {
+                    TvIp = tvIp,
+                    AppId = asset.AppId,
+                    CatalogApp = release.Name,
+                    Variant = asset.Variant,
+                    PackageFile = asset.FileName,
+                    InstalledAtUtc = DateTimeOffset.UtcNow,
+                });
+            AppSettings.Default.Save();
+        }
+
         // "Update" on an installed app (#820): the catalog entry it came from, installed the same
         // way the app sheet does it. SelectedRelease first: changing it resets the asset.
         private async Task UpdateFromCatalogAsync(GitHubRelease release, Asset asset)

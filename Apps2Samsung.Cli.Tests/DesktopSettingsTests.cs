@@ -100,6 +100,23 @@ public sealed class DesktopSettingsTests : IDisposable
     }
 
     [Fact]
+    public void InstalledVariants_RoundTrip_InTheDesktopsFile()
+    {
+        WriteSettings(new JsonObject { ["LocalIp"] = "10.0.0.2" });
+
+        new DesktopSettings(_dir).InstalledVariantsJson = InstalledVariantStore.Set(null, new InstalledVariantRecord
+        {
+            TvIp = "192.168.1.8", AppId = "Pkg.Litefin", CatalogApp = "Litefin", Variant = "Legacy", PackageFile = "Litefin-2.0.30-Tizen-Legacy.wgt",
+        });
+
+        var saved = JsonNode.Parse(File.ReadAllText(SettingsPath))!.AsObject();
+        Assert.Equal("10.0.0.2", (string?)saved["LocalIp"]);
+        Assert.Equal("Legacy", InstalledVariantStore.Find((string?)saved["InstalledVariantsJson"], "192.168.1.8", "Pkg.Litefin")!.Variant);
+        Assert.Equal("Legacy", InstalledVariantStore.Find(new DesktopSettings(_dir).InstalledVariantsJson, "192.168.1.8", "Pkg.Litefin")!.Variant);
+        Assert.Equal(string.Empty, new DesktopSettings(Directory.CreateTempSubdirectory("a2s-cli-empty-").FullName).InstalledVariantsJson);
+    }
+
+    [Fact]
     public void UnreadableSettingsFile_IsNeverWrittenOver()
     {
         const string broken = "{ \"LocalIp\": \"10.0.0.2\", ";

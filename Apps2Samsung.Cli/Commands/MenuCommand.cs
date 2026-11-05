@@ -407,7 +407,7 @@ internal sealed class Menu
         {
             var items = new List<Item>();
             foreach (var r in rows.Where(r => r.State == "update-available"))
-                items.Add(new Item($"{A("Update")} {E(r.Title)} {M($"v{E(r.Version ?? "?")} {(_unicode ? "→" : "->")} v{E(r.CatalogVersion ?? "?")}")}", ("update", r)));
+                items.Add(new Item($"{A("Update")} {E(r.Title)}{(r.CatalogVariant is null ? "" : $" {M(E(r.CatalogVariant))}")} {M($"v{E(r.Version ?? "?")} {(_unicode ? "→" : "->")} v{E(r.CatalogVersion ?? "?")}")}", ("update", r)));
             items.Add(new Item($"{A("Open an app on the TV")}{Ellipsis}", "launch"));
             items.Add(new Item($"{A("Remove an app")}{Ellipsis}", "remove"));
             items.Add(new Item(M($"{(_unicode ? "←" : "<-")} Back"), "back"));
@@ -416,9 +416,10 @@ internal sealed class Menu
             {
                 case ("update", InstalledCommand.Row r):
                 {
-                    var args = new[] { "install", r.CatalogApp!, "--tv", ip };
+                    // The same file this TV got last time, when the app has several (#975).
+                    var args = InstalledCommand.InstallArgs(r, ip).ToArray();
                     ShowLine(args);
-                    if (await ConfirmAsync($"Update {E(r.Title)} to v{E(r.CatalogVersion ?? "?")}?"))
+                    if (await ConfirmAsync($"Update {E(r.Title)}{(r.CatalogVariant is null ? "" : $" ({E(r.CatalogVariant)})")} to v{E(r.CatalogVersion ?? "?")}?"))
                         await RunAsync(args);
                     return;
                 }

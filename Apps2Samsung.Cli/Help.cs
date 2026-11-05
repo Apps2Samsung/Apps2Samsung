@@ -13,6 +13,7 @@ public static class Help
           tv <ip>                      check one TV: Developer Mode, debug port, Tizen version, DUID
           catalog [words...]           list installable apps; words narrow the list by name or description
           installed --tv <ip>          apps on the TV, with the catalog version next to the installed one
+                                       (an app with several files is compared with the one this TV got)
           install <app|file> --tv <ip>  install a catalog app by name, or a local .wgt/.tpk file
           sign <file> -o <out> --tv <ip>  sign a local .wgt/.tpk for a TV without installing it
           uninstall <appId> --tv <ip>  remove an app; the app id as `installed` prints it
@@ -100,6 +101,10 @@ public static class Help
           --force-login         make a new certificate even when a usable one exists
           --duids <list>        extra TV DUIDs to put in the certificate (comma-separated; default: the
                                 desktop app's setting)
+
+        Which file of an app with several (variants, or builds per Tizen version) a TV got is remembered
+        on this machine, shared with the desktop app: `installed` then compares with that file, and the
+        menu's Update installs it again. --file picks another and becomes the remembered one.
 
         The first install for a TV creates a signing certificate, which needs a Samsung account sign-in
         in a browser on this machine. A certificate made by the Apps2Samsung desktop app on the same

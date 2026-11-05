@@ -14,6 +14,7 @@ public sealed class DesktopSettings
 {
     private const string RenamesKey = "PackageIdRenamesJson";
     private const string UserSourcesKey = "UserSourcesJson";
+    private const string InstalledVariantsKey = "InstalledVariantsJson";
 
     private readonly string _path;
     private JsonObject? _root;
@@ -57,6 +58,14 @@ public sealed class DesktopSettings
     {
         get => Get(RenamesKey);
         set => Set(RenamesKey, value ?? string.Empty, "the package-id rename");
+    }
+
+    /// <summary>Which file of an app with variants each TV got (Core <c>InstalledVariantStore</c>, #975):
+    /// the desktop's list, so an update from either side takes the variant that is on the TV.</summary>
+    public string InstalledVariantsJson
+    {
+        get => Get(InstalledVariantsKey);
+        set => Set(InstalledVariantsKey, value ?? string.Empty, "the installed variant");
     }
 
     /// <summary>The sources the user added themselves (Core <c>UserSources</c>), the desktop's list: a

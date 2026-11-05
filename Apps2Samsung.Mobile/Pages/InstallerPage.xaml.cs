@@ -119,7 +119,7 @@ public partial class InstallerPage : ContentPage
 		CatalogStore.Refresh = async () => { await LoadCatalogAsync(); };
 		// "Update" and "View in catalog" on the On the TV tab (#820, #888): that app's sheet, here
 		// where installs run.
-		CatalogStore.Open = request => OpenAppAsync(request.Release, SublineFor(request.Release), request.InstalledVersion, request.IsUpdate);
+		CatalogStore.Open = request => OpenAppAsync(request.Release, SublineFor(request.Release), request.InstalledVersion, request.IsUpdate, request.Asset);
 
 		await MobileSettings.InitAsync();
 		var catalog = await LoadCatalogAsync();
@@ -416,7 +416,7 @@ public partial class InstallerPage : ContentPage
 
 	// The app sheet: preview, description, the version or variant to install, Install for the
 	// selected TV. Hands back the release and file, or null when closed.
-	private async Task OpenAppAsync(GitHubRelease release, string subline, string? installedVersion = null, bool isUpdate = false)
+	private async Task OpenAppAsync(GitHubRelease release, string subline, string? installedVersion = null, bool isUpdate = false, Asset? openOn = null)
 	{
 		if (_busy)
 			return;
@@ -446,7 +446,9 @@ public partial class InstallerPage : ContentPage
 			_favorites.Contains(release.Name), SetFavorite, showAll, isUpdate,
 			// The developer's name tapped: the search box takes it, and the list shows their apps (#888).
 			searchAuthor: author => SearchEntry.Text = author,
-			tvVersion: SelectedTvVersion);
+			tvVersion: SelectedTvVersion,
+			// The variant the TV got (#975), when the sheet came from On the TV.
+			openOn: openOn);
 		await Navigation.PushModalAsync(sheet);
 		var choice = await sheet.Result;
 		if (choice is not null)
@@ -734,6 +736,29 @@ public partial class InstallerPage : ContentPage
 	/// earlier for this TV applies either way.</param>
 	/// <param name="ownPackageId">The sheet's "Back to its own package id" (#839): forget the rename
 	/// remembered for this TV and install under the package's own id.</param>
+	/// <summary>
+	/// Writes down which of an app's files a TV got (#975, Core <c>InstalledVariantStore</c>): an app
+	/// with several variants ships them under one id and version, so the TV's own list cannot tell
+	/// them apart. Keyed by the catalog's app id, the id On the TV matches on.
+	/// </summary>
+	private static void RememberInstalledVariant(string tvIp, string? tvDuid, GitHubRelease release, Asset asset)
+	{
+		if (string.IsNullOrWhiteSpace(asset.AppId))
+			return;
+		MobileSettings.InstalledVariantsJson = Apps2Samsung.Packaging.InstalledVariantStore.Set(
+			MobileSettings.InstalledVariantsJson,
+			new Apps2Samsung.Packaging.InstalledVariantRecord
+			{
+				TvIp = tvIp,
+				TvDuid = string.IsNullOrWhiteSpace(tvDuid) ? null : tvDuid,
+				AppId = asset.AppId,
+				CatalogApp = release.Name,
+				Variant = asset.Variant,
+				PackageFile = asset.FileName,
+				InstalledAtUtc = DateTimeOffset.UtcNow,
+			});
+	}
+
 	private async Task InstallAsync(GitHubRelease? release, Asset? asset, string? customPath, bool newPackageId = false, bool ownPackageId = false)
 	{
 		if (_tv.Selected is not { } tv)
@@ -905,6 +930,10 @@ public partial class InstallerPage : ContentPage
 					cancel.Token.ThrowIfCancellationRequested();
 				}
 			}
+
+			// Which file this TV got (#975): On the TV compares with it and its Update opens the sheet on it.
+			if (!custom)
+				RememberInstalledVariant(tvIp, cert.Duid, release!, asset!);
 
 			SetStatus("✓ " + string.Format(L10n.Get("statusInstalledOpenApps"), appName));
 			await CloseProgressAsync();

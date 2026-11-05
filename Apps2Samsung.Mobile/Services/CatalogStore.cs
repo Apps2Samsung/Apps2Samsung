@@ -36,5 +36,6 @@ public static class CatalogStore
 /// <summary>
 /// An app sheet asked for from another tab (#820, #888). <see cref="InstalledVersion"/> is what the
 /// TV runs, when it runs this app, and <see cref="IsUpdate"/> makes the sheet's button an Update.
+/// <see cref="Asset"/> is the file the sheet opens on: the variant the TV got (#975), when known.
 /// </summary>
-public sealed record CatalogOpenRequest(GitHubRelease Release, string? InstalledVersion = null, bool IsUpdate = false);
+public sealed record CatalogOpenRequest(GitHubRelease Release, string? InstalledVersion = null, bool IsUpdate = false, Asset? Asset = null);
