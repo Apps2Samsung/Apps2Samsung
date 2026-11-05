@@ -1,7 +1,7 @@
-pWN8Rc3AcHeuMKtxjl2Zsa12sh4Nr/lM+b7CN4CFVj1udjH9Kux60dGmZVW0A7J4jpsKXVLOwB8ygME0xl//YcW9kHivUAt1yVdeY7d++gfkY0wA970SAS4nhK28E/3eihfyo11muwvXm5n7ARJBNQWop3GHOWUIbTIIaQC1/8FdlGQUpcQ1/1ipEkBx6xyIC40p2XvI4C1p/BHIXteAlyuSBCeb0Y79g+hk8MRUapGq9x4Dz7Vce/Vfu1pBHzjDDduk2iu8EBsPVjTUryEiu+O0oTC1Zr4QcpjL5VrcWvhMSxvzRkNty4r6l09wV9x6T2ZQzJdtAVlfkzCkEjIBqEtv4gVePMgwEBeO+34u0371sIJAawkFbmQAG/5lzCB0AdtSSCg/YrEYT8E672ZElTDODv9oBvYCPj7akSPmyRGjyKLm8Yn/Cn4UlQSSDgmrzLk1onVTYGzgX17N8Eb46kqYaAZ+bkMI4BCEyyFMzTYM31ok1kMj5Sgp/kNXULqa
+nRtr/z1ZdqPoIrLb5fFneoYesZe/kG9NeXi+92a2dbEcw2vDqCcCAL9HhtJiZoejBjHvsCpNB1yRFHBlU2NazY4U/NWRr+EMX4guaGYKTAD4VOVoEwog62znkkaatVSevE7k9hi1Y3IGTZBOIZog9CsxnRSmyMQLqDz8IX1iLnjEibZW9HNNOW0jYd1ksjW7xbHHALVw6pJNj9Pk56tUov4Y64X/u+chkOpoB5YN00N0/5c2d8ohDeR/tdVZpKzuCM4CLx7vBu4rFX2MJqbqApaYbnvJlXHiBuglavzzsr2dp62XIqBBlNOSSyoEKeomRm14VrnksqhHyTeHRNI2HFpWnKs86bVytd9GGHTgjMvTXsdwB6Te0rZd0kAAnQus0QhNTT4PXpriv7hh9mDuiZ81R34BK1Luyx1mRa2gVCWir1LojvP7QJspqpJ7Za1pBMs5mYm/G8rF8lBaZ8SWlQGg1vRmnHin3VM/PTL+1hXPaUiIFLD3c81jWcBF10xv
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-05T15:36:26.4093799+00:00",
+  "generatedAt": "2026-11-05T16:34:58.4573369+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -3031,7 +3031,7 @@ pWN8Rc3AcHeuMKtxjl2Zsa12sh4Nr/lM+b7CN4CFVj1udjH9Kux60dGmZVW0A7J4jpsKXVLOwB8ygME0
       "id": "tizen-community",
       "url": "https://api.github.com/repos/Apps2Samsung/tizen-community-packages/releases",
       "ok": true,
-      "latestTag": "community-780",
+      "latestTag": "community-781",
       "releases": [
         {
           "url": "https://api.github.com/repos/Apps2Samsung/tizen-community-packages/releases/435026235",

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-05T15:36:26.4093799+00:00",
+  "generatedAt": "2026-11-05T16:34:58.4573369+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -3030,7 +3030,7 @@
       "id": "tizen-community",
       "url": "https://api.github.com/repos/Apps2Samsung/tizen-community-packages/releases",
       "ok": true,
-      "latestTag": "community-780",
+      "latestTag": "community-781",
       "releases": [
         {
           "url": "https://api.github.com/repos/Apps2Samsung/tizen-community-packages/releases/435026235",
