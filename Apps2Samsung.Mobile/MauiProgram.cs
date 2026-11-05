@@ -103,6 +103,10 @@ public static class MauiProgram
 		builder.Services.AddSingleton(sp => new Apps2Samsung.Catalog.ResolvedCatalogService(
 			sp.GetRequiredService<HttpClient>(),
 			Path.Combine(FileSystem.AppDataDirectory, Apps2Samsung.Catalog.ResolvedCatalogService.CacheFileName)));
+		// The catalog's app icons (#1000): downloaded once, checked against icon_digest, kept on disk.
+		builder.Services.AddSingleton(sp => new Apps2Samsung.Catalog.CatalogIcons(
+			sp.GetRequiredService<HttpClient>(),
+			Path.Combine(FileSystem.AppDataDirectory, "catalog-icons")));
 		// All-time download counts (the "Most downloaded" group), one download per hour.
 		builder.Services.AddSingleton(sp => new Apps2Samsung.Catalog.DownloadStatsService(
 			sp.GetRequiredService<HttpClient>(),

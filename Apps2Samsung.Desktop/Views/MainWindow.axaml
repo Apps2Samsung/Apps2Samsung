@@ -222,9 +222,15 @@
 																	        Command="{Binding $parent[ItemsControl;1].((viewModels:MainWindowViewModel)DataContext).OpenAppCommand}"
 																	        CommandParameter="{Binding}">
 																		<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-																			<Border Classes="tile" Background="{Binding TileBrush}">
-																				<TextBlock Text="{Binding Letter}" Foreground="{DynamicResource OnAccentBrush}"/>
-																			</Border>
+																			<!-- the letter tile, replaced by the app's icon from the catalog once it is loaded (#1000) -->
+																			<Panel VerticalAlignment="Center">
+																				<Border Classes="tile" Background="{Binding TileBrush}" IsVisible="{Binding !HasIcon}">
+																					<TextBlock Text="{Binding Letter}" Foreground="{DynamicResource OnAccentBrush}"/>
+																				</Border>
+																				<Border Classes="tile" ClipToBounds="True" IsVisible="{Binding HasIcon}">
+																					<Image Source="{Binding Icon}" Stretch="UniformToFill"/>
+																				</Border>
+																			</Panel>
 																			<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
 																				<StackPanel Orientation="Horizontal" Spacing="6">
 																					<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
