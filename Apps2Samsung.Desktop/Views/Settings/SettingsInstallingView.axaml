@@ -76,7 +76,9 @@
 								<RadioButton Classes="segment" GroupName="certificate" Content="{Binding LblCertificatePartner}" IsChecked="{Binding CertificatePartner}"/>
 							</UniformGrid>
 						</Border>
-						<TextBlock Classes="hint" Text="{l:Localize hintCertificateType}"/>
+						<!-- The level hint for the chosen certificate kind: Samsung's mentions the account, Tizen's does not. -->
+						<TextBlock Classes="hint" Text="{l:Localize hintCertificateType}" IsVisible="{Binding CertificateSamsung}"/>
+						<TextBlock Classes="hint" Text="{l:Localize hintCertificateTypeTizen}" IsVisible="{Binding CertificateTizen}"/>
 					</StackPanel>
 					<Border Classes="rowline"/>
 					<!-- A certificate the user added to the certificate folder themselves; only when there is one. -->

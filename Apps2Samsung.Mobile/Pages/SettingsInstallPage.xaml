@@ -122,7 +122,8 @@
                                     <Button x:Name="CertPartner" Grid.Column="2" Style="{StaticResource Segment}" Clicked="OnCertificateClicked" />
                                 </Grid>
                             </Border>
-                            <Label Style="{StaticResource RowHint}" Text="{l:Localize hintCertificateType}" />
+                            <Label x:Name="LevelHintSamsung" Style="{StaticResource RowHint}" Text="{l:Localize hintCertificateType}" />
+                            <Label x:Name="LevelHintTizen" Style="{StaticResource RowHint}" Text="{l:Localize hintCertificateTypeTizen}" IsVisible="False" />
                         </VerticalStackLayout>
                         <BoxView Style="{StaticResource RowDivider}" />
                         <Grid Style="{StaticResource SettingRow}">

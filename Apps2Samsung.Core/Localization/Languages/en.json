@@ -370,6 +370,7 @@
   "hintLaunchOnInstall": "Starts the app on the TV once it is installed.",
   "hintKeepWGTFile": "Keeps the downloaded package on this device after installing.",
   "hintCertificateType": "Automatic uses Public, switching to Partner only when an app requires a restricted privilege (e.g. VPN); choose Public or Partner to force it. Certificates are created and reused automatically from your Samsung account (one per TV), so you're not asked to sign in every time. After importing a backup, this defaults to the imported certificate.",
+  "hintCertificateTypeTizen": "Automatic uses Public, switching to Partner only when an app requires a restricted privilege (e.g. VPN); choose Public or Partner to force it. The Tizen certificate is made once on this device and reused, with no Samsung account and no sign-in. After importing a backup, this defaults to the imported certificate.",
   "hintShareDebugLog": "Export this session's debug log to send when reporting a problem.",
   "hintServerUrl": "Full address including http:// or https:// and the port. Include a base path too if you use a reverse proxy (e.g. https://media.example.com/jellyfin).",
   "hintManageAppIcons": "Give an app a custom launcher icon, applied when you install it.",
