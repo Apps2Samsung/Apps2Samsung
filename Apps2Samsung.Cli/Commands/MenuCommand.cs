@@ -15,6 +15,12 @@ namespace Apps2Samsung.Cli.Commands;
 /// of the verbs: the menu builds the command line, prints it ("The same as: …") so it can go into
 /// a script, and runs it through <see cref="Dispatch.RunLineAsync"/>. Nothing happens here that
 /// the verbs cannot do, and nothing runs without being shown first.
+/// <para>
+/// Every screen starts clean (<see cref="Screen"/>): the terminal is cleared and the header
+/// redrawn, so a phone shows one thing at a time instead of the whole session. What a command
+/// printed stays until a key is pressed (<see cref="PauseAsync"/>), and so does a warning, so a
+/// redraw never takes away something that was not read yet.
+/// </para>
 /// </summary>
 public static class MenuCommand
 {
@@ -57,37 +63,51 @@ internal sealed class Menu
 
     public async Task<int> RunAsync()
     {
-        var version = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
-        version = version.Split('+')[0];
-        Show(new Markup($"[bold]Apps2Samsung[/] {M($"{E(version)} {Dot} this {(OperatingSystem.IsAndroid() ? "phone" : "machine")} is {E(_localIp ?? "not on a network")}")}"));
-        Show(new Markup(M($"{(_unicode ? "↑↓" : "up/down")} move {Dot} enter choose {Dot} ctrl+c quit")));
-        _con.WriteLine();
+        // Whether the TV list is already on screen: after a scan it is, after a TV's menu it is not.
+        var listed = false;
 
         // --tv on the command line: straight into that TV's menu, no scan.
         if (!string.IsNullOrWhiteSpace(_s.Options.Tv))
         {
+            Screen();
             var given = await AddAddressAsync(_s.Options.Tv);
             if (given is not null)
                 await TvMenuAsync(given);
+            else
+                await PauseAsync();
         }
         else
         {
             await ScanAsync();
+            listed = true;
         }
 
         while (true)
         {
-            var tv = await PickTvAsync();
+            var tv = await PickTvAsync(listed);
+            listed = false;
             if (tv is null)
                 return Output.Ok;
             await TvMenuAsync(tv);
         }
     }
 
+    /// <summary>A clean screen: the terminal cleared, the header redrawn. Every screen of the menu starts here.</summary>
+    private void Screen()
+    {
+        _s.Out.Clear();
+        var version = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
+        version = version.Split('+')[0];
+        Show(new Markup($"[bold]Apps2Samsung[/] {M($"{E(version)} {Dot} this {(OperatingSystem.IsAndroid() ? "phone" : "machine")} is {E(_localIp ?? "not on a network")}")}"));
+        Show(new Markup(M($"{(_unicode ? "↑↓" : "up/down")} move {Dot} enter choose {Dot} ctrl+c quit")));
+        _con.WriteLine();
+    }
+
     // ---- the TVs ----
 
     private async Task ScanAsync()
     {
+        Screen();
         _s.Out.Progress("Scanning the network for Samsung TVs…");
         var found = await TizenDeveloperInfo.ScanAsync(_s.Network, _ct, _s.Options.Virtual);
         if (found.Count == 0 && !_s.Options.Virtual)
@@ -117,7 +137,7 @@ internal sealed class Menu
         _tvs.RemoveAll(t => t.State.Ip == tv.State.Ip);
         _tvs.Add(tv);
         _tvs.Sort((a, b) => string.CompareOrdinal(a.State.Ip, b.State.Ip));
-        ShowTvs();
+        _s.Out.Idle();
         return tv;
     }
 
@@ -131,8 +151,14 @@ internal sealed class Menu
         Show(Views.Tvs(_tvs.Select(t => t.State).ToList(), _localIp, none, _unicode));
     }
 
-    private async Task<Tv?> PickTvAsync()
+    /// <summary>The TV list and its choices; <paramref name="listed"/> when the cards are on screen already (a scan just drew them).</summary>
+    private async Task<Tv?> PickTvAsync(bool listed = false)
     {
+        if (!listed)
+        {
+            Screen();
+            ShowTvs();
+        }
         var items = new List<Item>();
         foreach (var tv in _tvs)
             items.Add(new Item(TvLabel(tv), tv));
@@ -159,7 +185,7 @@ internal sealed class Menu
                 }
                 case "scan":
                     await ScanAsync();
-                    return await PickTvAsync();
+                    return await PickTvAsync(listed: true);
                 default:
                     return null;
             }
@@ -184,6 +210,8 @@ internal sealed class Menu
     {
         while (true)
         {
+            Screen();
+            Show(Views.TvCard(tv.State, _unicode));
             var ip = tv.State.Ip;
             var cert = Certificates.Describe(Certificates.Level(_s));
             var certNote = cert.Exists && cert.Usable ? $"{cert.Level} {Dot} valid to {cert.ValidUntil} {Dot} covers {cert.Duids.Count} TV{(cert.Duids.Count == 1 ? "" : "s")}" : "none yet; the first install signs in to Samsung";
@@ -196,7 +224,7 @@ internal sealed class Menu
                 Act("Developer Mode", tv.State.Ready ? "ready; the guide for this TV" : "the guide for this TV", "devmode"),
                 new(M($"{(_unicode ? "←" : "<-")} Back to the TVs"), "back"),
             };
-            var pick = await SelectAsync($"{TvLabel(tv)}", items);
+            var pick = await SelectAsync(M("This TV"), items);
             switch (pick.Tag)
             {
                 case "install": await InstallAsync(tv); break;
@@ -219,6 +247,7 @@ internal sealed class Menu
     private async Task InstallAsync(Tv tv)
     {
         var ip = tv.State.Ip;
+        Screen();
         _s.Out.Progress("Loading the app catalog…");
         CatalogLoader.Catalog catalog;
         try { catalog = await _s.Catalog.LoadAsync(false, _ct); }
@@ -226,6 +255,7 @@ internal sealed class Menu
         {
             _s.Out.Warn($"the catalog could not be loaded: {ex.Message}");
             _s.Out.Idle(Glyph.Failed);
+            await PauseAsync();
             return;
         }
         if (catalog.FailedProviders > 0)
@@ -278,6 +308,7 @@ internal sealed class Menu
             if (!File.Exists(path) || !(path.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase)))
             {
                 _s.Out.Warn($"{path} is not a .wgt or .tpk file that exists.");
+                await PauseAsync();
                 return;
             }
             args.Add(Path.GetFullPath(path));
@@ -345,19 +376,24 @@ internal sealed class Menu
     private async Task InstalledAsync(Tv tv)
     {
         var ip = tv.State.Ip;
+        Screen();
         List<InstalledCommand.Row> rows;
         try { rows = await InstalledCommand.ReadAsync(_s, ip, _ct); }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _s.Out.Warn($"the TV did not list its apps: {ex.Message}");
             _s.Out.Idle(Glyph.Failed);
+            await PauseAsync();
             return;
         }
         _s.Out.Idle();
         Show(Views.InstalledApps(rows, ip, _s.Out.Width, _unicode));
         ShowLine(new[] { "installed", "--tv", ip });
         if (rows.Count == 0)
+        {
+            await PauseAsync();
             return;
+        }
 
         while (true)
         {
@@ -382,7 +418,8 @@ internal sealed class Menu
                 {
                     var app = await PickAppAsync(rows, "Which app");
                     if (app is null) break;
-                    await RunAsync("launch", app.AppId, "--tv", ip);
+                    // One line of result; the list stays and the choices come back under it.
+                    await RunInlineAsync("launch", app.AppId, "--tv", ip);
                     break;
                 }
                 case "remove":
@@ -419,7 +456,8 @@ internal sealed class Menu
     private async Task CertificateAsync(Tv tv)
     {
         var ip = tv.State.Ip;
-        await RunAsync("cert", "--tv", ip);
+        Screen();
+        await RunInlineAsync("cert", "--tv", ip);
         var items = new List<Item>
         {
             Act("Prepare it now", "the Samsung sign-in, before the first install", "prepare"),
@@ -448,6 +486,7 @@ internal sealed class Menu
     {
         while (true)
         {
+            Screen();
             var problem = Enum.TryParse<DevModeProblem>(tv.State.Problem, out var p) ? p : DevModeProblem.None;
             Show(Guide(tv, problem));
             var items = new List<Item>
@@ -459,7 +498,9 @@ internal sealed class Menu
             if (pick.Tag is not "again")
                 return tv;
             var fresh = await AddAddressAsync(tv.State.Ip);
-            if (fresh is not null)
+            if (fresh is null)
+                await PauseAsync();
+            else
                 tv = fresh;
         }
     }
@@ -498,7 +539,15 @@ internal sealed class Menu
         _con.MarkupLine($"{M("The same as:")} {A("apps2samsung-cli " + E(Shell.Join(args.Concat(_s.Options.Passthrough).ToList())))}");
     }
 
+    /// <summary>Runs a command and leaves what it printed on screen until a key is pressed; the next screen clears it.</summary>
     private async Task RunAsync(params string[] args)
+    {
+        await RunInlineAsync(args);
+        await PauseAsync();
+    }
+
+    /// <summary>Runs a command whose output is the top of the screen that follows (the certificate, an app opened), so the choices come right under it.</summary>
+    private async Task RunInlineAsync(params string[] args)
     {
         _s.Out.Idle();
         var line = args.Concat(_s.Options.Passthrough).ToList();
@@ -506,6 +555,16 @@ internal sealed class Menu
             ShowLine(args);
         _con.WriteLine();
         await Dispatch.RunLineAsync(line, _ct);
+        _con.WriteLine();
+    }
+
+    /// <summary>Waits for a key, so a result or a warning is read before the next screen clears it. Ctrl+C quits here as everywhere.</summary>
+    private async Task PauseAsync()
+    {
+        _s.Out.Idle();
+        _con.Markup(M("any key to go back "));
+        await _con.Input.ReadKeyAsync(true, _ct);
+        _ct.ThrowIfCancellationRequested();
         _con.WriteLine();
     }
 
