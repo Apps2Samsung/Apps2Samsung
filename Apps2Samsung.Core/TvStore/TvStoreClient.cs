@@ -34,6 +34,8 @@ namespace Apps2Samsung.TvStore
         // The certificate post carries a few kilobytes and the service writes a file: still quick,
         // but the service may first have to start, which the page does on load.
         private static readonly TimeSpan ArmTimeout = TimeSpan.FromSeconds(20);
+        // How long a relay that says it is switched on but not listening yet is given before the connect.
+        private static readonly TimeSpan RelayWait = TimeSpan.FromSeconds(15);
 
         private readonly TizenDebugSession _session;
         private readonly DevToolsConsole _console;
@@ -70,6 +72,16 @@ namespace Apps2Samsung.TvStore
         {
             ArgumentNullException.ThrowIfNull(sdb);
             ArgumentException.ThrowIfNullOrWhiteSpace(tvIp);
+
+            // Through TV-Store's relay (Host PC IP 127.0.0.1), the relay has to be listening before
+            // anything dials it: right after an update of TV-Store itself it is still coming back
+            // (#1005). An older TV-Store that cannot say is not waited for.
+            if (await SdbEndpoint.ResolvePortAsync(tvIp, ct).ConfigureAwait(false) != SdbEndpoint.DirectPort)
+            {
+                progress?.Report("lblToolboxTvStoreWaitingRelay");
+                if (!await SdbEndpoint.WaitForRelayAsync(tvIp, RelayWait, untilReachable: false, ct).ConfigureAwait(false))
+                    Trace.WriteLine($"[tvstore] {tvIp}: the relay is not listening; trying anyway");
+            }
 
             var found = await TvStorePackage.FindAsync(sdb, tvIp, packageIdRenamesJson).ConfigureAwait(false);
             if (!found.IsInstalled || found.AppId is null)

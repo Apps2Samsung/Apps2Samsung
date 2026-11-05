@@ -179,6 +179,73 @@ namespace Apps2Samsung.Sdb
             }
         }
 
+        /// <summary>
+        /// Whether the relay is listening, from a <c>/relay</c> body: true or false as it says; null
+        /// when there is no body (TV-Store not running, or older than 0.3.15), or no such field.
+        /// </summary>
+        public static bool? ParseRelayListening(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return null;
+            try
+            {
+                return JsonNode.Parse(json)?["relay"]?["listening"]?.GetValue<bool>();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>How often <see cref="WaitForRelayAsync"/> asks TV-Store again.</summary>
+        public static readonly TimeSpan RelayPoll = TimeSpan.FromSeconds(2);
+
+        /// <summary>
+        /// Waits for TV-Store's relay on this TV to report <c>listening: true</c>, asking
+        /// <c>GET /relay</c> every <see cref="RelayPoll"/> for up to <paramref name="timeout"/>. True
+        /// when it does; false when the time ran out. A relay that answers <c>enabled: false</c> is not
+        /// coming, so that is false at once. No answer at all (TV-Store not running, or older than
+        /// 0.3.15) is waited through only when <paramref name="untilReachable"/> is set: that is the
+        /// wait right after TV-Store was replaced and launched again (#1005); otherwise it ends the
+        /// wait as "cannot tell", also true, so a connect to an older TV-Store is not held up.
+        /// </summary>
+        public static async Task<bool> WaitForRelayAsync(string tvIp, TimeSpan timeout, bool untilReachable, CancellationToken cancellationToken = default)
+        {
+            var deadline = Clock() + timeout;
+            while (true)
+            {
+                var report = await ReadRelayReport(tvIp, cancellationToken).ConfigureAwait(false);
+                var listening = ParseRelayListening(report);
+                if (listening == true)
+                    return true;
+                if (listening is null && !untilReachable)
+                    return true;
+                if (listening == false && ParseRelayEnabled(report) == false)
+                    return false;
+                if (Clock() >= deadline)
+                    return false;
+                await Delay(RelayPoll, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private static bool? ParseRelayEnabled(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return null;
+            try
+            {
+                return JsonNode.Parse(json)?["relay"]?["enabled"]?.GetValue<bool>();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>The wait between two polls, and the clock the deadline is read from; tests replace both so a wait does not take real seconds.</summary>
+        internal static Func<TimeSpan, CancellationToken, Task> Delay { get; set; } = Task.Delay;
+        internal static Func<DateTime> Clock { get; set; } = () => DateTime.UtcNow;
+
         /// <summary>The relay's bind error for this TV, read from <c>/relay</c>; null when there is none or TV-Store cannot say.</summary>
         public static async Task<string?> RelayBindErrorAsync(string tvIp, CancellationToken cancellationToken = default) =>
             ParseRelayBindError(await ReadRelayReport(tvIp, cancellationToken).ConfigureAwait(false));

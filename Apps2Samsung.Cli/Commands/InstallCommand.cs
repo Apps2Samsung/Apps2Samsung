@@ -192,6 +192,10 @@ public static class InstallCommand
 
             // ---- Install ----
             var (appId, packageId) = await WgtManifest.ReadIdsAsync(packagePath);
+            // Updating TV-Store through TV-Store's own relay (#1005): the TV drops this connection
+            // while it restarts TV-Store; say so once up front, the install reads its end another way.
+            if (await TvStoreSelfUpdate.AppliesAsync(tvIp, packagePath, s.Config.PackageIdRenamesJson, ct))
+                s.Out.Warn(s.Strings.GetString(TvStoreSelfUpdate.NoticeKey));
             var lastPercent = -1;
             var output = await s.Installer.InstallAsync(tvIp, packagePath, profile,
                 progress: line =>

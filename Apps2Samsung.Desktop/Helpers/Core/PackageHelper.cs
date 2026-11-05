@@ -138,6 +138,15 @@ namespace Apps2Samsung.Helpers.Core
             if (guardResult.CorrectedTvIp is not null)
                 selectedDevice.IpAddress = guardResult.CorrectedTvIp;
 
+            // Updating TV-Store through TV-Store's own relay (#1005): say once, before the install,
+            // that the TV will drop this connection while it restarts TV-Store and that the update
+            // still goes through, so the drop is not read as a failed install.
+            if (await TvStoreSelfUpdate.AppliesAsync(selectedDevice.IpAddress, packagePath, AppSettings.Default.PackageIdRenamesJson, cancellationToken))
+            {
+                progress?.Invoke(TvStoreSelfUpdate.NoticeKey.Localized());
+                await _dialogService.ShowMessageAsync(TvStoreSelfUpdate.NoticeTitleKey.Localized(), TvStoreSelfUpdate.NoticeKey.Localized());
+            }
+
             try
             {
                 var result = await _tizenInstaller.InstallPackageAsync(

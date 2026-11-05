@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,6 +14,7 @@ using Apps2Samsung.Models;
 using Apps2Samsung.Packaging;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Sdb;
+using Apps2Samsung.TvStore;
 
 namespace Apps2Samsung.Install
 {
@@ -113,6 +115,14 @@ namespace Apps2Samsung.Install
             var version = caps.Version;
             TizenVersionCache.Remember(tvIp, caps.PlatformVersion);
 
+            // Updating TV-Store through TV-Store's own relay (#1005): the TV drops this connection
+            // while it replaces TV-Store, so the end of the install is read another way below.
+            // Decided on the package's own ids, before a rename changes them.
+            var (ownAppId, ownPackageId) = await WgtManifest.ReadIdsAsync(wgtPath);
+            bool selfUpdate = port != SdbEndpoint.DirectPort && TvStoreSelfUpdate.IsTvStore(ownPackageId, ownAppId, _config.PackageIdRenamesJson);
+            if (selfUpdate)
+                Trace.WriteLine($"[install] {tvIp}: updating TV-Store through its own relay; the connection is expected to drop while it restarts");
+
             // Another id for this TV, by request or as remembered (#839). Before anything reads the
             // ids: from here on the package is the renamed one.
             await PackageIds.ApplyAsync(wgtPath, packageId, _config, progress);
@@ -173,7 +183,9 @@ namespace Apps2Samsung.Install
             ct.ThrowIfCancellationRequested();
             stage?.Invoke(InstallStage.Install, null);
 
-            if (_config.DeletePreviousInstall && !string.IsNullOrWhiteSpace(packageIdInFile))
+            // Not for TV-Store through its own relay: removing it first takes the relay down before
+            // the package can be pushed, and the install replaces the copy anyway (#1005).
+            if (_config.DeletePreviousInstall && !string.IsNullOrWhiteSpace(packageIdInFile) && !selfUpdate)
             {
                 progress?.Invoke("statusRemovingOldVersion");
                 try { await _sdb.UninstallAsync(tvIp, packageIdInFile!); } catch { /* nothing to remove */ }
@@ -181,6 +193,19 @@ namespace Apps2Samsung.Install
 
             progress?.Invoke("statusInstallingOnTv");
             var install = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath, InstallPercentFor(progress, stage));
+
+            // The relay closed when the TV stopped TV-Store to replace it: expected, not a failure
+            // (#1005). The new version is read over the TV's REST API, TV-Store is opened again
+            // the same way (which brings the relay back), and that is the install's result.
+            if (selfUpdate && TvStoreSelfUpdate.IsExpectedDrop(install) && !string.IsNullOrWhiteSpace(appId))
+            {
+                var expected = (await WgtManifest.ReadPackageInfoAsync(wgtPath)).Version;
+                var restart = await TvStoreSelfUpdate.AwaitRestartAsync(tvIp, appId!, expected, _sdb, progress);
+                if (!restart.CameBack)
+                    throw new InvalidOperationException(TvStoreSelfUpdate.NotBackMessage(restart));
+                progress?.Invoke(ProgressText.Key("statusTvStoreRestarted", restart.Version));
+                return TvStoreSelfUpdate.CompletedOutput(restart);
+            }
             // The Tizen install helper returns a zero exit code (cmd_ret:0) even when the app install
             // itself failed (e.g. "app_id[...] install failed[118]"), so classify the OUTPUT as well
             // and route real failures into recovery.

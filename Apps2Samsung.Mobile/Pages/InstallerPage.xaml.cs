@@ -883,6 +883,20 @@ public partial class InstallerPage : ContentPage
 		if (!custom && !await CollectUserSettingsAsync(release!, asset!))
 			return;
 
+		// Updating TV-Store through TV-Store's own relay (#1005): say once, before the install, that
+		// the TV will drop this connection while it restarts TV-Store and that the update still goes
+		// through, so the drop is not read as a failed install. The catalog names the package id;
+		// a picked file is read for it.
+		if (await SdbEndpoint.ResolvePortAsync(tvIp) != SdbEndpoint.DirectPort)
+		{
+			var renames = MobileSettings.PackageIdRenamesJson;
+			var selfUpdate = custom
+				? await TvStoreSelfUpdate.AppliesAsync(tvIp, customPath!, renames)
+				: TvStoreSelfUpdate.IsTvStore(asset!.PackageId, null, renames);
+			if (selfUpdate)
+				await DisplayAlert(L10n.Get(TvStoreSelfUpdate.NoticeTitleKey), L10n.Get(TvStoreSelfUpdate.NoticeKey), L10n.Get("lblOk"));
+		}
+
 		var appName = custom ? Path.GetFileNameWithoutExtension(customPath!) : release!.Name;
 		var appTitle = custom || string.IsNullOrWhiteSpace(release!.TagName) || !HasSeveralReleases(release.Name)
 			? appName

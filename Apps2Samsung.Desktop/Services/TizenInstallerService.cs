@@ -8,6 +8,7 @@ using Apps2Samsung.Helpers.Tizen.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Packaging;
+using Apps2Samsung.Localization;
 using Apps2Samsung.Sdb;
 using Avalonia.Threading;
 using System;
@@ -283,6 +284,13 @@ namespace Apps2Samsung.Services
 
             try
             {
+                // Updating TV-Store through TV-Store's own relay (#1005): the TV drops this
+                // connection while it replaces TV-Store, so the old copy is not removed first (that
+                // would take the relay down before the push) and the end of the install is read
+                // another way. Decided once per run, on the source package's own ids.
+                run.TvStoreSelfUpdate ??= await Apps2Samsung.TvStore.TvStoreSelfUpdate.AppliesAsync(
+                    tvIpAddress, run.SourcePackage, _appSettings.PackageIdRenamesJson, cancellationToken);
+
                 // Step 1: Prepare device and check for existing installations
                 var prepareResult = await PrepareDeviceAsync(tvIpAddress, packagePath, progress, run);
                 if (!prepareResult.Success)
@@ -470,6 +478,11 @@ namespace Apps2Samsung.Services
             // While the overwrite retry is still available we push straight away and let the TV's
             // answer decide; only once that has been spent do we diagnose / remove the old copy.
             if (run.RetryAvailable)
+                return InstallResult.SuccessResult();
+
+            // TV-Store through its own relay (#1005): removing it first takes the relay down before
+            // the package can be pushed, and the install replaces the copy anyway.
+            if (run.TvStoreSelfUpdate == true)
                 return InstallResult.SuccessResult();
 
             progress?.Invoke(Constants.LocalizationKeys.DiagnoseTv.Localized());
@@ -1024,6 +1037,32 @@ namespace Apps2Samsung.Services
             }
 
             var installResults = await InstallPackageOnDeviceAsync(tvIpAddress, packagePath, sdkToolPath, run.InstallProgress);
+
+            // TV-Store updated through its own relay (#1005): the relay closed when the TV stopped
+            // TV-Store to replace it. Expected, not a failure: the new version is read over the TV's
+            // REST API, TV-Store is opened again the same way (which brings the relay back), and
+            // that is the install's result. Not retried: the push went through.
+            if (run.TvStoreSelfUpdate == true && Apps2Samsung.TvStore.TvStoreSelfUpdate.IsExpectedDrop(installResults))
+            {
+                Trace.WriteLine($"[Install] TV-Store self-update on {tvIpAddress}: the connection dropped as expected: {installResults.Output}");
+                var (installedAppId, _) = await WgtManifest.ReadIdsAsync(packagePath);
+                var expected = (await WgtManifest.ReadPackageInfoAsync(packagePath)).Version;
+                var restart = await Apps2Samsung.TvStore.TvStoreSelfUpdate.AwaitRestartAsync(
+                    tvIpAddress, installedAppId ?? Apps2Samsung.TvStore.TvStorePackage.AppId, expected, _sdb,
+                    line => progress?.Invoke(ProgressText.Localize(line, k => k.Localized())));
+                if (restart.CameBack)
+                {
+                    progress?.Invoke(string.Format("statusTvStoreRestarted".Localized(), restart.Version));
+                    progress?.Invoke(Constants.LocalizationKeys.InstallationSuccessful.Localized());
+                    return InstallResult.SuccessResult();
+                }
+
+                progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
+                var notBack = string.Format("statusTvStoreNotBack".Localized(),
+                    restart.Version is null ? "" : string.Format("statusTvStoreNotBackVersion".Localized(), restart.Version));
+                progress?.Invoke(notBack);
+                return InstallResult.FailureResult(notBack);
+            }
 
             // Transport / connection failure (e.g. "Unable to read data from the transport
             // connection: Connection reset by peer"). Environmental, a VPN/proxy/firewall on
@@ -1619,6 +1658,12 @@ namespace Apps2Samsung.Services
 
             /// <summary>The TV's name once Step 2 read it, for the sheets.</summary>
             public string? TvName { get; set; }
+
+            /// <summary>
+            /// Whether this run updates TV-Store through TV-Store's own relay (#1005), decided once
+            /// on the first attempt: the connection is then expected to drop while TV-Store restarts.
+            /// </summary>
+            public bool? TvStoreSelfUpdate { get; set; }
 
             /// <summary>Set when this attempt signed with a Tizen certificate (#988), with its profile: a
             /// [118, -12] chain refusal then means the TV only takes a Samsung one.</summary>
