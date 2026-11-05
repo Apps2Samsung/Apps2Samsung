@@ -502,6 +502,41 @@ namespace Apps2Samsung.Remote
         }
 
         /// <summary>
+        /// The version the TV's app manager lists for <paramref name="appId"/> (<c>GET
+        /// /api/v2/applications/{id}</c>, its <c>version</c>), running or not. Null when the set has
+        /// no such app, doesn't serve the endpoint, hangs on it, or reports no version. The one
+        /// way to see an app's version without the developer connection, which is what an update
+        /// of TV-Store through its own relay leaves a head without (#1005).
+        /// </summary>
+        public static async Task<string?> GetVersionAsync(string tvIpAddress, string appId, CancellationToken cancellationToken = default)
+        {
+            if (StatusEndpointHangs.ContainsKey(tvIpAddress))
+                return null;
+
+            try
+            {
+                using var response = await Http
+                    .GetAsync($"http://{tvIpAddress}:{RestPort}/api/v2/applications/{Uri.EscapeDataString(appId)}", cancellationToken)
+                    .ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                var version = JsonNode.Parse(json)?["version"]?.ToString();
+                return string.IsNullOrWhiteSpace(version) ? null : version.Trim();
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[remote] version of {appId} on {tvIpAddress} is unknown: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Asks the TV to close <paramref name="appId"/>. False when the set doesn't serve the
         /// endpoint, which several do not — a relaunch is then still worth attempting.
         /// </summary>
