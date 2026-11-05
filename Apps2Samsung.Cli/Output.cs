@@ -93,7 +93,7 @@ public sealed class Output : IDisposable
 
     private static IAnsiConsole Create(TextWriter writer) => AnsiConsole.Create(new AnsiConsoleSettings
     {
-        Out = new AnsiConsoleOutput(writer),
+        Out = new TerminalOutput(writer),
         Ansi = AnsiSupport.Detect,
         ColorSystem = ColorSystemSupport.Detect,
         Interactive = InteractionSupport.Yes,

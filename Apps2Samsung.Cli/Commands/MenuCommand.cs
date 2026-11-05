@@ -58,6 +58,8 @@ internal sealed class Menu
     /// <summary>A menu entry: the action in the accent colour with what it does beside it; the action alone on a phone, where the line has no room.</summary>
     private Item Act(string action, string description, object tag) => new(Narrow ? A(action) : $"{A(action.PadRight(22))}{M(description)}", tag);
     private string M(string text) => $"[{Views.MutedHex}]{text}[/]";
+    /// <summary>A choice cut to the terminal's width (#975): the prompt's "> " and the column's padding take the rest.</summary>
+    private string Fit(string label) => Views.Fit(label, _s.Out.Width - 4, _unicode);
     private string Dot => _unicode ? "·" : "-";
     private static string E(string? text) => Views.Esc(text);
 
@@ -286,7 +288,7 @@ internal sealed class Menu
 
         var prompt = new SelectionPrompt<Item>()
             .Title($"{M("Install on")} [bold]{E(ip)}[/] {E(tv.State.Name)}")
-            .UseConverter(i => i.Label)
+            .UseConverter(i => Fit(i.Label))
             .PageSize(Math.Clamp(_s.Out.Height - 8, 5, 16))
             .MoreChoicesText(M("(more below)"))
             .HighlightStyle(new Style(decoration: Decoration.Bold))
@@ -326,12 +328,18 @@ internal sealed class Menu
             var chosen = entry.Files.FirstOrDefault(f => f.Default) ?? entry.Files.FirstOrDefault();
             if (entry.Files.Count > 1)
             {
-                var files = entry.Files.Select(f =>
+                // The file names go when a row would not fit the terminal: the variant says which file,
+                // and the Tizen version at the end is what the choice turns on.
+                List<Item> FileRows(bool withFile) => entry.Files.Select(f =>
                 {
                     var label = f.Variant ?? Path.GetFileNameWithoutExtension(f.File);
-                    var text = $"{E(label)}{(f.Variant is not null ? $"  {M(E(f.File))}" : "")}{(f.Version is not null ? $"  v{E(f.Version)}" : "")}{(f.Tizen is not null ? $"  {M($"Tizen {E(f.Tizen)}+")}" : "")}{(f.Default ? $"  {M("(default)")}" : "")}";
-                    return new Item(text, f);
+                    var file = withFile && f.Variant is not null ? $"  {M(E(f.File))}" : "";
+                    var rest = $"{(f.Version is not null ? $"  v{E(f.Version)}" : "")}{(f.Tizen is not null ? $"  {M($"Tizen {E(f.Tizen)}+")}" : "")}{(f.Default ? $"  {M("(default)")}" : "")}";
+                    return new Item($"{E(label)}{file}{rest}", f);
                 }).ToList();
+                var files = FileRows(withFile: true);
+                if (files.Any(i => Views.Cells(Markup.Remove(i.Label)) > _s.Out.Width - 4))
+                    files = FileRows(withFile: false);
                 var picked = await SelectAsync(M("Which file"), files);
                 chosen = (CatalogCommand.FileInfo)picked.Tag!;
                 if (!chosen.Default)
@@ -573,7 +581,7 @@ internal sealed class Menu
         _s.Out.Idle();
         var prompt = new SelectionPrompt<Item>()
             .Title(title)
-            .UseConverter(i => i.Label)
+            .UseConverter(i => Fit(i.Label))
             .PageSize(Math.Clamp(_s.Out.Height - 6, 4, 14))
             .MoreChoicesText(M("(more below)"))
             .HighlightStyle(new Style(decoration: Decoration.Bold))
