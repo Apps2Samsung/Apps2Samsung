@@ -117,7 +117,8 @@ internal static class Views
         return new Rows(rows);
     }
 
-    private static Panel TvCard(TvState tv, bool unicode, string? tizen, string? duid)
+    /// <summary>One TV as a card: LED and address in the border, name and model, the Developer Mode state and why it is not ready.</summary>
+    public static Panel TvCard(TvState tv, bool unicode, string? tizen = null, string? duid = null)
     {
         var led = tv.Ready ? OkHex : WarnHex;
         var lines = new List<string>();

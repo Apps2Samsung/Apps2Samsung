@@ -226,6 +226,22 @@ public sealed class Output : IDisposable
         }
     }
 
+    /// <summary>
+    /// A fresh screen for the menu, on a terminal only: closes the open step and clears the
+    /// terminal with the cursor at the top. ED 2 and CUP, what <c>clear</c> sends; the terminal
+    /// keeps its scrollback where it has one, so a line can still be scrolled back to.
+    /// </summary>
+    public void Clear()
+    {
+        if (!Rich)
+            return;
+        lock (_gate)
+        {
+            CloseStep(Glyph.Done);
+            _stdout!.Write(new ControlCode("\u001b[2J\u001b[H"));
+        }
+    }
+
     /// <summary>Closes the open step line, before a prompt takes the terminal; <paramref name="glyph"/> says how it ended.</summary>
     public void Idle(Glyph glyph = Glyph.Done)
     {
