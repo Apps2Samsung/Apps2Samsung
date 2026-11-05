@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 using Apps2Samsung.Cli.Commands;
 using Apps2Samsung.Design;
@@ -37,6 +38,94 @@ internal static class Views
         byte.Parse(hex.AsSpan(5, 2), NumberStyles.HexNumber));
 
     public static string Esc(string? text) => Markup.Escape(text ?? string.Empty);
+
+    /// <summary>
+    /// A choice of a selection prompt cut to <paramref name="width"/> cells, with an ellipsis, every
+    /// style tag still balanced. Spectre draws the choices in a column that does not wrap, so a choice
+    /// wider than the terminal wraps on the terminal itself, and the prompt then moves the cursor up
+    /// one line too few on every key: the list piles up copies of itself (#975, Termux on a phone).
+    /// Tags cost nothing, <c>[[</c> and <c>]]</c> are one cell, a wide character (CJK) is two.
+    /// </summary>
+    public static string Fit(string markup, int width, bool unicode)
+    {
+        if (width < 1)
+            return string.Empty;
+        if (Cells(Markup.Remove(markup)) <= width)
+            return markup;
+
+        var ellipsis = unicode ? "\u2026" : "...";
+        var limit = width - ellipsis.Length;
+        var sb = new StringBuilder(markup.Length);
+        var open = 0;
+        var cells = 0;
+        var i = 0;
+        while (i < markup.Length)
+        {
+            string token;
+            int cost;
+            if (markup[i] == '[' && i + 1 < markup.Length && markup[i + 1] == '[')
+            {
+                token = "[[";
+                cost = 1;
+            }
+            else if (markup[i] == '[')
+            {
+                var end = markup.IndexOf(']', i);
+                if (end < 0)
+                    break;
+                var tag = markup.Substring(i, end - i + 1);
+                sb.Append(tag);
+                if (tag == "[/]")
+                    open = Math.Max(0, open - 1);
+                else
+                    open++;
+                i = end + 1;
+                continue;
+            }
+            else if (markup[i] == ']' && i + 1 < markup.Length && markup[i + 1] == ']')
+            {
+                token = "]]";
+                cost = 1;
+            }
+            else
+            {
+                token = char.IsHighSurrogate(markup[i]) && i + 1 < markup.Length ? markup.Substring(i, 2) : markup[i].ToString();
+                cost = Cells(token);
+            }
+            if (cells + cost > limit)
+                break;
+            sb.Append(token);
+            cells += cost;
+            i += token.Length;
+        }
+        while (sb.Length > 0 && sb[^1] == ' ')
+            sb.Length--;
+        for (; open > 0; open--)
+            sb.Append("[/]");
+        sb.Append(Muted(ellipsis));
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// The terminal cells a plain string takes: East Asian wide and full-width characters two,
+    /// combining marks and joiners none, the rest one. Spectre's own measure is not public; this
+    /// one errs on the wide side, which only ever cuts a choice a cell early.
+    /// </summary>
+    public static int Cells(string text)
+    {
+        var cells = 0;
+        foreach (var rune in text.EnumerateRunes())
+        {
+            var v = rune.Value;
+            if (v is 0x200B or 0x200C or 0x200D or 0xFEFF || v is >= 0x0300 and <= 0x036F || v is >= 0xFE00 and <= 0xFE0F)
+                continue;
+            cells += v is (>= 0x1100 and <= 0x115F) or (>= 0x2E80 and <= 0xA4CF) or (>= 0xAC00 and <= 0xD7A3)
+                or (>= 0xF900 and <= 0xFAFF) or (>= 0xFE30 and <= 0xFE4F) or (>= 0xFF00 and <= 0xFF60)
+                or (>= 0xFFE0 and <= 0xFFE6) or (>= 0x1F300 and <= 0x1FAFF) or (>= 0x20000 and <= 0x3FFFD)
+                ? 2 : 1;
+        }
+        return cells;
+    }
 
     public static string GlyphMarkup(Glyph glyph, bool unicode) => glyph switch
     {
