@@ -1,7 +1,7 @@
-HZ7Iu/83A8L1uNyIE911tdpedS4WabezsHPN0yx+9B5+BlJ5SHXbIdwNFDd/9nNLMBK8wlkbK/+B2eyST8FniWeOww4eJh4KQ9GwqGNe7q7qfd4RwI3uayj31CBAjDXJrJU+3zuS3CYeZvuNIhG/qTKwG63W5Oe5k4Rq9nZa6yu22u8QhFOb+f+vTxDxiDNG329vshF3WD8U+Pll0BDPJz0O9x7GzciCyh9+UzpTkbww8eEqo2RmFqU+F4hB9b5z6AGRoTXgnf+eYLNWzwNaJWYru3IKT5koyBboEgwNrYJ8SkVz4fYDgv1Xb0tgP4qOeEHXN35dsmouUUi3ODmecaLak3UWRI12aIeW5FtLl2qgMP50/DJm0fQRGj2iQNhCeeNcmPo7D/WoBR0IHJA+fBNkhRvGfybQLGslxbLJQscWqTWxHBlixpgWLNbem1qHNwxc+WB6wIvvLuZ9vAV9iIxDrc9uBYai53253kMlo55+ggRy0R30r3FPQOxWNH2J
+TNV8Qzh6oqGt+IgjhUixUSBP57x9/m2eV8KfyPM266hU5h8/BOeMiNRfwcwsJJG6AYl6TZucLIUjjcQ7C3AsJqylne9Cz6p3V4KN8B++MCKAbe6eTE5+6j8OKnA2pmygbpG1NHRWeqsmzbx68LpE8ZqAaK3DjA3ejSUsKPvOmwRG7woDc+yRZ5VJTWkyn5UPyXHCl6ADLJV2Qj2q23e8pFfjK5XAgjzcwL5kp7eMM1cyU2B+ejQj3/pop1mDoaEYVekWac/z3LEuUuMCUqiBcEfyr0odKjPOsUmm+PKDg5DHYJVRbvoFtOULuHCp1t7ITUrYEPOZEeNtBV2n2N5fUgPPVsPE5zfxzZez9MZ4D/W3u35c9PW4XWIPXcPbPFWBbiQlABU4XOJsQ+Irqe+LCWrjne/E+nvZCAWFx4KkafaF+Ssy8pQEifDmfhtJ3HHDbWM9u+xGfwcdY3ogX0h4o0b+B00YkR2F9GjDzRZtmH+/rvy2BQSkW3Fp4vJ4oSmQ
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-05T17:23:02.7253948+00:00",
+  "generatedAt": "2026-11-05T17:29:28.318751+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -3404,7 +3404,9 @@ HZ7Iu/83A8L1uNyIE911tdpedS4WabezsHPN0yx+9B5+BlJ5SHXbIdwNFDd/9nNLMBK8wlkbK/+B2eyS
               "package_version": "1.0.0",
               "app_id": "qL5oFoTHoJ.FCastReceiver",
               "package_id": "qL5oFoTHoJ",
-              "required_version": "5.0"
+              "required_version": "5.0",
+              "icon": "https://apps2samsung.com/catalog/icons/052b7ae138efde46f3342647543e2e9c7ff4da48677f5bddde1ea46c852b71a0.png",
+              "icon_digest": "sha256:052b7ae138efde46f3342647543e2e9c7ff4da48677f5bddde1ea46c852b71a0"
             },
             {
               "name": "Film-Merkezi.wgt",
@@ -3738,7 +3740,9 @@ HZ7Iu/83A8L1uNyIE911tdpedS4WabezsHPN0yx+9B5+BlJ5SHXbIdwNFDd/9nNLMBK8wlkbK/+B2eyS
               "package_version": "1.0.35",
               "app_id": "TorrServr1.TorrServer",
               "package_id": "TorrServr1",
-              "required_version": "2.3"
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/9787b09c89ee4d6e0b6172a69ea56292463ad4c5c1dc2b20778d4f3a26ee1de4.png",
+              "icon_digest": "sha256:9787b09c89ee4d6e0b6172a69ea56292463ad4c5c1dc2b20778d4f3a26ee1de4"
             },
             {
               "name": "Moonfin-Lica-Fork.wgt",
@@ -4642,7 +4646,9 @@ HZ7Iu/83A8L1uNyIE911tdpedS4WabezsHPN0yx+9B5+BlJ5SHXbIdwNFDd/9nNLMBK8wlkbK/+B2eyS
               "package_version": "1.0.0",
               "app_id": "2pUgzM8cvD.TizenDebugApp",
               "package_id": "2pUgzM8cvD",
-              "required_version": "4.0"
+              "required_version": "4.0",
+              "icon": "https://apps2samsung.com/catalog/icons/52a268ec7eb2c1bdfe951b2515a044dd459a3eeb6fa041372a4bbd3eb159401c.png",
+              "icon_digest": "sha256:52a268ec7eb2c1bdfe951b2515a044dd459a3eeb6fa041372a4bbd3eb159401c"
             },
             {
               "name": "TizenFeed.wgt",
@@ -4664,7 +4670,9 @@ HZ7Iu/83A8L1uNyIE911tdpedS4WabezsHPN0yx+9B5+BlJ5SHXbIdwNFDd/9nNLMBK8wlkbK/+B2eyS
               "package_version": "1.2.1",
               "app_id": "fCAYP0k0uD.ui",
               "package_id": "fCAYP0k0uD",
-              "required_version": "2.3"
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/d5dd281191ea3e7f90ccdcc6207c23f4e0dbcbac7d82016cf6e3ac6afea33cdb.png",
+              "icon_digest": "sha256:d5dd281191ea3e7f90ccdcc6207c23f4e0dbcbac7d82016cf6e3ac6afea33cdb"
             },
             {
               "name": "TizenSteamLink.wgt",
@@ -4710,7 +4718,9 @@ HZ7Iu/83A8L1uNyIE911tdpedS4WabezsHPN0yx+9B5+BlJ5SHXbIdwNFDd/9nNLMBK8wlkbK/+B2eyS
               "package_version": "1.1.4",
               "app_id": "TorrFfprb1.Ffprobe",
               "package_id": "TorrFfprb1",
-              "required_version": "2.3"
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/eee8f4c039f1ecc6e372bf3fc98c9c32efeb408130c24c3dc4e94b12f24b36ed.png",
+              "icon_digest": "sha256:eee8f4c039f1ecc6e372bf3fc98c9c32efeb408130c24c3dc4e94b12f24b36ed"
             },
             {
               "name": "TorrStream.wgt",
@@ -4720,7 +4730,9 @@ HZ7Iu/83A8L1uNyIE911tdpedS4WabezsHPN0yx+9B5+BlJ5SHXbIdwNFDd/9nNLMBK8wlkbK/+B2eyS
               "package_version": "1.1.4",
               "app_id": "TorrStrm01.TorrStream",
               "package_id": "TorrStrm01",
-              "required_version": "2.3"
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/a00e81df468d8f1e5c421dc8006bb2f25f66f53217cc8489fb9dff7d904357a3.png",
+              "icon_digest": "sha256:a00e81df468d8f1e5c421dc8006bb2f25f66f53217cc8489fb9dff7d904357a3"
             },
             {
               "name": "TorrStreaming.wgt",
@@ -4730,7 +4742,9 @@ HZ7Iu/83A8L1uNyIE911tdpedS4WabezsHPN0yx+9B5+BlJ5SHXbIdwNFDd/9nNLMBK8wlkbK/+B2eyS
               "package_version": "1.0.0",
               "app_id": "DoyolX8he6.TVtorrStreamingTizen",
               "package_id": "DoyolX8he6",
-              "required_version": "2.4"
+              "required_version": "2.4",
+              "icon": "https://apps2samsung.com/catalog/icons/bb837014e8cf4f7480a47097c98b097699b12f5688615421af73173484e5f99a.png",
+              "icon_digest": "sha256:bb837014e8cf4f7480a47097c98b097699b12f5688615421af73173484e5f99a"
             },
             {
               "name": "TransportTycoonDeluxe.wgt",

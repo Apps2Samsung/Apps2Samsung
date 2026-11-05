@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-05T17:23:02.7253948+00:00",
+  "generatedAt": "2026-11-05T17:29:28.318751+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -3403,7 +3403,9 @@
               "package_version": "1.0.0",
               "app_id": "qL5oFoTHoJ.FCastReceiver",
               "package_id": "qL5oFoTHoJ",
-              "required_version": "5.0"
+              "required_version": "5.0",
+              "icon": "https://apps2samsung.com/catalog/icons/052b7ae138efde46f3342647543e2e9c7ff4da48677f5bddde1ea46c852b71a0.png",
+              "icon_digest": "sha256:052b7ae138efde46f3342647543e2e9c7ff4da48677f5bddde1ea46c852b71a0"
             },
             {
               "name": "Film-Merkezi.wgt",
@@ -3737,7 +3739,9 @@
               "package_version": "1.0.35",
               "app_id": "TorrServr1.TorrServer",
               "package_id": "TorrServr1",
-              "required_version": "2.3"
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/9787b09c89ee4d6e0b6172a69ea56292463ad4c5c1dc2b20778d4f3a26ee1de4.png",
+              "icon_digest": "sha256:9787b09c89ee4d6e0b6172a69ea56292463ad4c5c1dc2b20778d4f3a26ee1de4"
             },
             {
               "name": "Moonfin-Lica-Fork.wgt",
@@ -4641,7 +4645,9 @@
               "package_version": "1.0.0",
               "app_id": "2pUgzM8cvD.TizenDebugApp",
               "package_id": "2pUgzM8cvD",
-              "required_version": "4.0"
+              "required_version": "4.0",
+              "icon": "https://apps2samsung.com/catalog/icons/52a268ec7eb2c1bdfe951b2515a044dd459a3eeb6fa041372a4bbd3eb159401c.png",
+              "icon_digest": "sha256:52a268ec7eb2c1bdfe951b2515a044dd459a3eeb6fa041372a4bbd3eb159401c"
             },
             {
               "name": "TizenFeed.wgt",
@@ -4663,7 +4669,9 @@
               "package_version": "1.2.1",
               "app_id": "fCAYP0k0uD.ui",
               "package_id": "fCAYP0k0uD",
-              "required_version": "2.3"
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/d5dd281191ea3e7f90ccdcc6207c23f4e0dbcbac7d82016cf6e3ac6afea33cdb.png",
+              "icon_digest": "sha256:d5dd281191ea3e7f90ccdcc6207c23f4e0dbcbac7d82016cf6e3ac6afea33cdb"
             },
             {
               "name": "TizenSteamLink.wgt",
@@ -4709,7 +4717,9 @@
               "package_version": "1.1.4",
               "app_id": "TorrFfprb1.Ffprobe",
               "package_id": "TorrFfprb1",
-              "required_version": "2.3"
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/eee8f4c039f1ecc6e372bf3fc98c9c32efeb408130c24c3dc4e94b12f24b36ed.png",
+              "icon_digest": "sha256:eee8f4c039f1ecc6e372bf3fc98c9c32efeb408130c24c3dc4e94b12f24b36ed"
             },
             {
               "name": "TorrStream.wgt",
@@ -4719,7 +4729,9 @@
               "package_version": "1.1.4",
               "app_id": "TorrStrm01.TorrStream",
               "package_id": "TorrStrm01",
-              "required_version": "2.3"
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/a00e81df468d8f1e5c421dc8006bb2f25f66f53217cc8489fb9dff7d904357a3.png",
+              "icon_digest": "sha256:a00e81df468d8f1e5c421dc8006bb2f25f66f53217cc8489fb9dff7d904357a3"
             },
             {
               "name": "TorrStreaming.wgt",
@@ -4729,7 +4741,9 @@
               "package_version": "1.0.0",
               "app_id": "DoyolX8he6.TVtorrStreamingTizen",
               "package_id": "DoyolX8he6",
-              "required_version": "2.4"
+              "required_version": "2.4",
+              "icon": "https://apps2samsung.com/catalog/icons/bb837014e8cf4f7480a47097c98b097699b12f5688615421af73173484e5f99a.png",
+              "icon_digest": "sha256:bb837014e8cf4f7480a47097c98b097699b12f5688615421af73173484e5f99a"
             },
             {
               "name": "TransportTycoonDeluxe.wgt",
