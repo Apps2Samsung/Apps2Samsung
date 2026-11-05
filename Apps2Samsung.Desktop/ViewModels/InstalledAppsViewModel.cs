@@ -143,7 +143,10 @@ namespace Apps2Samsung.ViewModels
                 for (int i = 0; i < apps.Count; i++)
                 {
                     // The catalog entry this app came from, by the id its manifest declares (#820).
-                    if (Apps2Samsung.Catalog.InstalledAppUpdates.Find(apps[i], catalog, Apps2Samsung.Helpers.AppSettings.Default.PackageIdRenamesJson) is { } match)
+                    // With the variant this TV got last time (#975), so an app with several files is
+                    // compared with the right one and Update installs that one again.
+                    if (Apps2Samsung.Catalog.InstalledAppUpdates.Find(apps[i], catalog, Apps2Samsung.Helpers.AppSettings.Default.PackageIdRenamesJson,
+                            Apps2Samsung.Helpers.AppSettings.Default.InstalledVariantsJson, _tvIp) is { } match)
                     {
                         _matches[apps[i].TizenId] = match;
                         apps[i] = apps[i] with { CatalogLine = CatalogLine(match), HasUpdate = match.HasUpdate };
@@ -248,7 +251,7 @@ namespace Apps2Samsung.ViewModels
             try
             {
                 var result = await _installer.UninstallAppAsync(_tvIp, app.TizenId);
-                // "failed[132]" = not installed — already gone, treat as success.
+                // "failed[132]" = not installed - already gone, treat as success.
                 var ok = result.ExitCode == 0 ||
                          (result.Output?.Contains("failed[132]", StringComparison.OrdinalIgnoreCase) ?? false);
                 if (!ok)
@@ -337,7 +340,7 @@ namespace Apps2Samsung.ViewModels
 
             if (OnRequestDebugConsole is null)
             {
-                // No window to host it (shouldn't happen outside the designer) — don't leave the
+                // No window to host it (shouldn't happen outside the designer) - don't leave the
                 // list parked on a console that will never open.
                 _debugConsole = null;
                 IsDebugging = false;
@@ -350,7 +353,7 @@ namespace Apps2Samsung.ViewModels
         }
 
         // A partial/failed install can leave a package dir that vd_applist never lists, so it can't be
-        // removed from the list above. vd_appuninstall <packageId> still reclaims it — offer a manual
+        // removed from the list above. vd_appuninstall <packageId> still reclaims it - offer a manual
         // escape hatch: prompt for the package id and force-remove it.
         [RelayCommand]
         private async Task RemoveLeftover()
@@ -378,7 +381,7 @@ namespace Apps2Samsung.ViewModels
             try
             {
                 var result = await _installer.UninstallAppAsync(_tvIp, id);
-                // "failed[132]" = not installed — already gone, treat as success.
+                // "failed[132]" = not installed - already gone, treat as success.
                 var ok = result.ExitCode == 0 ||
                          (result.Output?.Contains("failed[132]", StringComparison.OrdinalIgnoreCase) ?? false);
                 if (!ok)

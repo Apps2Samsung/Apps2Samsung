@@ -216,6 +216,10 @@ public static class InstallCommand
             // The ids as installed: a rename (#839) changed them after the read above.
             var (installedAppId, installedPackageId) = await WgtManifest.ReadIdsAsync(packagePath);
             var renamed = !string.Equals(installedPackageId, packageId, StringComparison.Ordinal);
+            // Which file this TV got (#975), so `installed` and the menu's Update take the same variant
+            // next time. In the desktop's settings.json, so the desktop app remembers it too.
+            if (release is not null && asset is not null)
+                RememberVariant(s, tvIp, duid, asset.AppId ?? appId, release, asset);
             // Launched here rather than by the installer, which swallows a failed launch: the result
             // has to say whether it really opened.
             var launched = false;
@@ -292,6 +296,29 @@ public static class InstallCommand
             {
                 s.Out.Progress($"Kept {packagePath}");
             }
+        }
+    }
+
+    private static void RememberVariant(CliServices s, string tvIp, string? duid, string? appId, GitHubRelease release, Asset asset)
+    {
+        if (string.IsNullOrWhiteSpace(appId))
+            return;
+        try
+        {
+            s.Desktop.InstalledVariantsJson = InstalledVariantStore.Set(s.Desktop.InstalledVariantsJson, new InstalledVariantRecord
+            {
+                TvIp = tvIp,
+                TvDuid = string.IsNullOrWhiteSpace(duid) ? null : duid,
+                AppId = appId,
+                CatalogApp = release.Name,
+                Variant = asset.Variant,
+                PackageFile = asset.FileName,
+                InstalledAtUtc = DateTimeOffset.UtcNow,
+            });
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or UnauthorizedAccessException)
+        {
+            s.Out.Warn($"installed, but which variant could not be remembered: {ex.Message}");
         }
     }
 

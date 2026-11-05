@@ -189,6 +189,7 @@ namespace Apps2Samsung.Helpers
         public string CustomAppTitlesJson { get; set; } = "";  // JSON map { appKey -> custom title } written into the wgt's config.xml <name> at install
         public string AppUserSettingsJson { get; set; } = "";
         public string PackageIdRenamesJson { get; set; } = "";  // JSON list of PackageIdRenameRecord: packages installed under another id, per TV (#839, PackageIdRenameStore)
+        public string InstalledVariantsJson { get; set; } = "";  // JSON list of InstalledVariantRecord: which file of an app with variants each TV got (#975, InstalledVariantStore); shared with the CLI
         /// <summary>The app sheet's "Install under a new package id" for the install that follows (#839). Runtime-only.</summary>
         [JsonIgnore]
         public bool InstallUnderNewPackageId { get; set; }

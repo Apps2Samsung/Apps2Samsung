@@ -32,6 +32,7 @@ public partial class AppSheetPage : ContentPage
 	private readonly bool _tvReady;
 	// The selected TV's Tizen version, when known: "Needs Tizen X" and no Install for a build it is too old for (TV-Store#47).
 	private readonly Version? _tvVersion;
+	private readonly Asset? _openOn;
 	private readonly string? _tvName;
 	// Opened for an app the TV runs another version of: the button says Update (#888).
 	private readonly bool _isUpdate;
@@ -50,10 +51,11 @@ public partial class AppSheetPage : ContentPage
 	public AppSheetPage(IReadOnlyList<GitHubRelease> versions, string? previewUrl, string subline, string? tvName, bool tvReady,
 		bool isFavorite = false, Action<string, bool>? setFavorite = null,
 		Func<bool, Task<IReadOnlyList<GitHubRelease>>>? showAllVersions = null, bool isUpdate = false,
-		Action<string>? searchAuthor = null, Version? tvVersion = null)
+		Action<string>? searchAuthor = null, Version? tvVersion = null, Asset? openOn = null)
 	{
 		InitializeComponent();
 		_tvVersion = tvVersion;
+		_openOn = openOn;
 		var release = versions[0];
 		_name = release.Name;
 		_isFavorite = isFavorite;
@@ -158,8 +160,10 @@ public partial class AppSheetPage : ContentPage
 		}
 
 		var newest = versions[0];
-		// Land on a build this TV runs when the default is too new for it (TV-Store#47).
-		var defaultAsset = TizenRequirement.FirstFitting(newest.Assets, newest.Assets.FirstOrDefault(a => a.IsDefault) ?? newest.Assets.FirstOrDefault(), _tvVersion);
+		// The file the sheet was opened on (the variant the TV got, #975) when it is one of the
+		// newest release's; else land on a build this TV runs when the default is too new for it (TV-Store#47).
+		var defaultAsset = newest.Assets.FirstOrDefault(a => _openOn is not null && string.Equals(a.FileName, _openOn.FileName, StringComparison.OrdinalIgnoreCase))
+			?? TizenRequirement.FirstFitting(newest.Assets, newest.Assets.FirstOrDefault(a => a.IsDefault) ?? newest.Assets.FirstOrDefault(), _tvVersion);
 		Select(defaultAsset is null ? null : new AppSheetChoice(newest, defaultAsset));
 
 		// An app the TV runs an older (or other) version of: the same install, called an update (#888).

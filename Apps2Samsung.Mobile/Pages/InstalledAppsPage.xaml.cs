@@ -156,7 +156,7 @@ public partial class InstalledAppsPage : ContentPage
 	{
 		if (!_matches.TryGetValue(app.TizenId, out var match))
 			return;
-		await CatalogStore.OpenOnInstallTabAsync(new CatalogOpenRequest(match.Release, app.Version, match.HasUpdate));
+		await CatalogStore.OpenOnInstallTabAsync(new CatalogOpenRequest(match.Release, app.Version, match.HasUpdate, match.Asset));
 	}
 
 	private static string? CatalogLine(Apps2Samsung.Catalog.CatalogMatch match) => match.State switch
@@ -199,7 +199,7 @@ public partial class InstalledAppsPage : ContentPage
 		try
 		{
 			var result = await _sdb.UninstallAsync(_tvIp, id);
-			// Exit 0, or "failed[132]" (not installed / already gone) — both mean the leftover is cleared.
+			// Exit 0, or "failed[132]" (not installed / already gone) - both mean the leftover is cleared.
 			var ok = result.ExitCode == 0 ||
 					 (result.Output?.Contains("failed[132]", StringComparison.OrdinalIgnoreCase) ?? false);
 			if (!ok)
@@ -245,7 +245,10 @@ public partial class InstalledAppsPage : ContentPage
 			var catalog = CatalogStore.Releases;
 			for (int i = 0; i < apps.Count; i++)
 			{
-				if (Apps2Samsung.Catalog.InstalledAppUpdates.Find(apps[i], catalog, MobileSettings.PackageIdRenamesJson) is not { } match)
+				// With the variant this TV got last time (#975), so an app with several files is
+				// compared with the right one and Update opens the sheet on that one.
+				if (Apps2Samsung.Catalog.InstalledAppUpdates.Find(apps[i], catalog, MobileSettings.PackageIdRenamesJson,
+						MobileSettings.InstalledVariantsJson, _tvIp) is not { } match)
 					continue;
 				_matches[apps[i].TizenId] = match;
 				apps[i] = apps[i] with { CatalogLine = CatalogLine(match), HasUpdate = match.HasUpdate };
@@ -292,7 +295,7 @@ public partial class InstalledAppsPage : ContentPage
 		try
 		{
 			var result = await _sdb.UninstallAsync(_tvIp, app.TizenId);
-			// The TV reports a not-installed code when the app is already gone — treat that as success.
+			// The TV reports a not-installed code when the app is already gone - treat that as success.
 			var ok = result.ExitCode == 0 ||
 					 (result.Output?.Contains("failed[132]", StringComparison.OrdinalIgnoreCase) ?? false);
 			if (!ok)

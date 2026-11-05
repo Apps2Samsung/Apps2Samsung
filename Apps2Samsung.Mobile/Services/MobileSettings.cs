@@ -31,6 +31,7 @@ public static class MobileSettings
 	private const string KeyCameraPipConfig = "camerapip_config_json";
 	private const string KeyAppUserSettings = "app_user_settings_json";
 	private const string KeyPackageIdRenames = "package_id_renames_json";
+	private const string KeyInstalledVariants = "installed_variants_json";
 	private const string KeyPartnerSigning = "partner_signing";
 	private const string KeyForceLogin = "force_samsung_login";
 	private const string KeyTryOverwrite = "try_overwrite";
@@ -403,6 +404,13 @@ public static class MobileSettings
 	{
 		get => Preferences.Get(KeyPackageIdRenames, string.Empty);
 		set => Preferences.Set(KeyPackageIdRenames, value ?? string.Empty);
+	}
+
+	/// <summary>Which file of an app with variants each TV got (#975, InstalledVariantStore).</summary>
+	public static string InstalledVariantsJson
+	{
+		get => Preferences.Get(KeyInstalledVariants, string.Empty);
+		set => Preferences.Set(KeyInstalledVariants, value ?? string.Empty);
 	}
 
 	/// <summary>Per-app custom launcher icons: JSON map { appKey -> "oblong" | custom PNG path },
