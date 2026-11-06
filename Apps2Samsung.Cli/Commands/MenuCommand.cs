@@ -224,6 +224,7 @@ internal sealed class Menu
                 Act("Installed apps", "with updates from the catalog", "installed"),
                 Act("Certificate", E(certNote), "cert"),
                 Act("TV-Store", "arm TV-Store on the TV with the certificate", "tvstore"),
+                Act("TV-Store log", "save TV-Store's own log for a bug report", "tvstorelog"),
                 Act("Install leftovers", "packages left in the TV's staging folder", "leftovers"),
                 Act("Developer Mode", tv.State.Ready ? "ready; the guide for this TV" : "the guide for this TV", "devmode"),
                 new(M($"{(_unicode ? "←" : "<-")} Back to the TVs"), "back"),
@@ -237,6 +238,9 @@ internal sealed class Menu
                 case "tvstore":
                     if (await ConfirmAsync($"Hand the signing certificate to TV-Store on {E(ip)}? TV-Store must be installed and open on the TV."))
                         await RunAsync("tvstore", "--tv", ip);
+                    break;
+                case "tvstorelog":
+                    await RunAsync("tvstore", "log", "--tv", ip);
                     break;
                 case "devmode":
                     tv = await DeveloperModeAsync(tv);

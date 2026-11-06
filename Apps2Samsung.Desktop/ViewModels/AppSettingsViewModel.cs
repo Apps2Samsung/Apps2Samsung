@@ -654,50 +654,83 @@ namespace Apps2Samsung.ViewModels
         [RelayCommand]
         private void OpenLogsFolder()
         {
+            var logFolder = Apps2Samsung.Diagnostics.FileLog.DefaultLogDirectory;
             try
             {
-                var logFolder = Apps2Samsung.Diagnostics.FileLog.DefaultLogDirectory;
                 Directory.CreateDirectory(logFolder);
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "explorer.exe",
-                        Arguments = $"\"{logFolder}\"",
-                        UseShellExecute = true
-                    });
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "open",
-                        Arguments = $"\"{logFolder}\"",
-                        UseShellExecute = false
-                    });
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "xdg-open",
-                        Arguments = $"\"{logFolder}\"",
-                        UseShellExecute = false
-                    });
-                }
-                else
-                {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = logFolder,
-                        UseShellExecute = true
-                    });
-                }
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"Failed to open Logs folder: {ex}");
+                Trace.WriteLine($"Failed to create the Logs folder: {ex}");
+                return;
+            }
+            OpenWithShell(logFolder);
+        }
+
+        [ObservableProperty]
+        private string tvStoreLogStatus = string.Empty;
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(GetTvStoreLogCommand))]
+        private bool isGettingTvStoreLog;
+
+        /// <summary>
+        /// Backup and diagnostics > Get the TV-Store log: TV-Store's own log from the selected TV,
+        /// saved next to the debug logs and opened. TV-Store has to be open on the TV.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(CanGetTvStoreLog))]
+        private async Task GetTvStoreLog()
+        {
+            var tvIp = AppSettings.Default.TvIp;
+            if (string.IsNullOrWhiteSpace(tvIp))
+            {
+                TvStoreLogStatus = "statusTvStoreLogNoTv".Localized();
+                return;
+            }
+
+            IsGettingTvStoreLog = true;
+            TvStoreLogStatus = string.Format("statusTvStoreLogFetching".Localized(), tvIp);
+            try
+            {
+                var path = await Apps2Samsung.TvStore.TvStoreLog.SaveAsync(tvIp, Apps2Samsung.Diagnostics.FileLog.DefaultLogDirectory);
+                TvStoreLogStatus = string.Format("statusTvStoreLogSaved".Localized(), path);
+                OpenWithShell(path);
+            }
+            catch (Apps2Samsung.TvStore.TvStoreLogUnavailableException ex)
+            {
+                Trace.WriteLine($"[tvstore] {ex.Message}");
+                TvStoreLogStatus = string.Format("statusTvStoreLogFailed".Localized(), tvIp, ex.Reason);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                Trace.WriteLine($"[tvstore] saving TV-Store's log failed: {ex}");
+                TvStoreLogStatus = string.Format("statusTvStoreLogFailed".Localized(), tvIp, ex.Message);
+            }
+            finally
+            {
+                IsGettingTvStoreLog = false;
+            }
+        }
+
+        private bool CanGetTvStoreLog() => !IsGettingTvStoreLog;
+
+        // A folder in the file manager, a file in its default app.
+        private static void OpenWithShell(string path)
+        {
+            try
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    Process.Start(new ProcessStartInfo { FileName = "open", Arguments = $"\"{path}\"", UseShellExecute = false });
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    Process.Start(new ProcessStartInfo { FileName = "xdg-open", Arguments = $"\"{path}\"", UseShellExecute = false });
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Directory.Exists(path))
+                    Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = $"\"{path}\"", UseShellExecute = true });
+                else
+                    Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"Failed to open {path}: {ex}");
             }
         }
 

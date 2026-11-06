@@ -21,6 +21,7 @@ public static class Help
           cert [--tv <ip>]             the signing certificates on this machine; --prepare makes one now,
                                        --export / --import move one between devices
           tvstore --tv <ip>            arm the TV-Store app on the TV: hand it the signing certificate once
+          tvstore log --tv <ip>        save TV-Store's own log from the TV (TV-Store open on the TV)
           leftovers --tv <ip>          the packages left in the TV's install staging folder; --clear deletes
                                        them, --delete <file> one file (the toolbox's Install leftovers)
           sources [add|remove ...]     your own sources: a GitHub repository, a release, a .wgt/.tpk link or a
@@ -171,6 +172,7 @@ public static class Help
 
     private const string TvStore = """
         usage: apps2samsung-cli tvstore --tv <ip> [--partner] [--force-login] [--json]
+               apps2samsung-cli tvstore log --tv <ip> [-o <file>] [--json]
 
         Arms the Apps2Samsung TV-Store app on the TV: hands it the signing certificate this machine
         installs with, so the TV signs and installs catalog apps on its own from then on, with no PC
@@ -182,6 +184,10 @@ public static class Help
         On the TV, Developer Mode's Host PC IP must be the TV's own address or 127.0.0.1 (TV-Store
         0.3.14 or newer), or its sdbd refuses the connection TV-Store makes to it. With 127.0.0.1 this
         machine reaches the TV through TV-Store's relay (port 26201), once it is turned on there.
+
+        tvstore log saves TV-Store's own log (this run and the previous one) for a bug report, from
+        http://<ip>:8077/log.txt, as tvstore_<ip>_<time>.log in the current folder or to -o
+        <file>. TV-Store has to be open on the TV; Developer Mode is not needed.
         """;
 
     private const string Leftovers = """

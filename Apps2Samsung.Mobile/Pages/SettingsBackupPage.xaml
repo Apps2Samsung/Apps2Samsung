@@ -51,6 +51,11 @@
                             <Button Grid.Column="1" Text="{l:Localize lblShareDebugLog}" Style="{StaticResource PlainButton}"
                                     CornerRadius="12" Clicked="OnShareLogClicked" />
                         </Grid>
+                        <!-- TV-Store's own log from the selected TV (GET :8077/log.txt), handed to the share sheet. -->
+                        <Label Style="{StaticResource RowHint}" Text="{l:Localize hintGetTvStoreLog}" Margin="0,6,0,0" />
+                        <Button x:Name="TvStoreLogButton" Text="{l:Localize lblGetTvStoreLog}" Style="{StaticResource SoftButton}"
+                                CornerRadius="12" Clicked="OnGetTvStoreLogClicked" />
+                        <Label x:Name="TvStoreLogStatus" Style="{StaticResource RowHint}" IsVisible="False" />
                     </VerticalStackLayout>
                 </Border>
             </VerticalStackLayout>
