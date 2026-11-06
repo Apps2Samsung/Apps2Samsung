@@ -194,7 +194,12 @@ namespace Apps2Samsung.TvStore
         /// <exception cref="InvalidOperationException">The service refused or did not answer; the message carries its words.</exception>
         public async Task ArmAsync(IReadOnlyList<SigningCertificatePem> certificates, CancellationToken ct = default)
         {
+            // What goes to the TV and what it kept, so a debug log answers "was my Partner one handed over" (#1012).
+            Trace.WriteLine($"[tvstore] arming {AppId} v{Version} with {certificates.Count} certificate(s):");
+            for (var i = 0; i < certificates.Count; i++)
+                Trace.WriteLine("[tvstore]   " + TvStoreArmLog.Describe(certificates[i], i));
             var node = await CallAsync($"A2SStore.setCertificate({ArmPayload(certificates)})", ArmTimeout, ct).ConfigureAwait(false);
+            Trace.WriteLine("[tvstore] TV-Store answered the hand-over: " + TvStoreArmLog.DescribeReply(node));
             if (node?["ok"]?.GetValue<bool>() != true)
                 throw new InvalidOperationException($"TV-Store did not take the certificate: {node?["error"]?.ToString() ?? "no reply"}");
         }
