@@ -15,6 +15,9 @@ public static class TvStoreCommand
 {
     public static async Task<int> RunAsync(CliServices s, CancellationToken ct)
     {
+        if (s.Options.Arguments.FirstOrDefault() is "log" or "logs")
+            return await LogAsync(s, ct);
+
         var ip = s.Options.Tv ?? s.Options.Arguments.FirstOrDefault();
         if (string.IsNullOrWhiteSpace(ip))
             return s.Out.Fail("tvstore needs --tv <ip>", Output.Usage);
@@ -74,5 +77,34 @@ public static class TvStoreCommand
                 $"TV-Store v{store.Version} on {ip} is armed with {profileName} (DUID {duid}).",
                 nextStep,
             });
+    }
+
+    /// <summary>
+    /// <c>tvstore log --tv &lt;ip&gt; [-o &lt;file&gt;]</c>: TV-Store's own log from the TV
+    /// (GET :8077/log.txt), saved in the current folder or to the given file. TV-Store has to be
+    /// open on the TV; no Developer Mode needed.
+    /// </summary>
+    private static async Task<int> LogAsync(CliServices s, CancellationToken ct)
+    {
+        var ip = s.Options.Tv ?? s.Options.Arguments.Skip(1).FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(ip))
+            return s.Out.Fail("tvstore log needs --tv <ip>", Output.Usage);
+
+        s.Out.Progress($"Getting the TV-Store log from {ip}…");
+        string path;
+        try
+        {
+            path = string.IsNullOrWhiteSpace(s.Options.OutputPath)
+                ? await TvStoreLog.SaveAsync(ip, Directory.GetCurrentDirectory(), ct)
+                : await TvStoreLog.SaveToFileAsync(ip, s.Options.OutputPath, ct);
+        }
+        catch (TvStoreLogUnavailableException ex)
+        {
+            return s.Out.Fail(ex.Message);
+        }
+
+        return s.Out.Result(
+            new { ok = true, tv = ip, file = path, url = TvStoreLog.UrlFor(ip) },
+            new[] { $"TV-Store log from {ip} saved to {path}." });
     }
 }

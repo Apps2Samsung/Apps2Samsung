@@ -7,6 +7,7 @@ using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Microsoft.Maui.ApplicationModel.DataTransfer;
 using Microsoft.Maui.Storage;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Apps2Samsung.Mobile.Pages;
 
@@ -44,6 +45,52 @@ public partial class SettingsBackupPage : ContentPage
 		{
 			await DisplayAlert(L10n.Get("lblDebugLog"), string.Format(L10n.Get("statusLogShareFailed"), ex.Message), L10n.Get("btn_Close"));
 		}
+	}
+
+	// TV-Store's own log from the TV the app is working with, saved next to the debug logs and handed
+	// to the share sheet. TV-Store serves it to the LAN while it is open on the TV; no Developer Mode needed.
+	private async void OnGetTvStoreLogClicked(object? sender, EventArgs e)
+	{
+		var tvIp = IPlatformApplication.Current?.Services.GetService<TvSelection>()?.Ip;
+		if (string.IsNullOrWhiteSpace(tvIp))
+		{
+			ShowTvStoreLogStatus(L10n.Get("statusTvStoreLogNoTv"));
+			return;
+		}
+
+		TvStoreLogButton.IsEnabled = false;
+		ShowTvStoreLogStatus(string.Format(L10n.Get("statusTvStoreLogFetching"), tvIp));
+		try
+		{
+			var folder = Path.GetDirectoryName(Apps2Samsung.Diagnostics.FileLog.CurrentLogFile) ?? Path.Combine(FileSystem.AppDataDirectory, "Logs");
+			var path = await Apps2Samsung.TvStore.TvStoreLog.SaveAsync(tvIp, folder);
+			ShowTvStoreLogStatus(string.Format(L10n.Get("statusTvStoreLogSaved"), Path.GetFileName(path)));
+			await Share.Default.RequestAsync(new ShareFileRequest
+			{
+				Title = L10n.Get("lblGetTvStoreLog"),
+				File = new ShareFile(path),
+			});
+		}
+		catch (Apps2Samsung.TvStore.TvStoreLogUnavailableException ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[tvstore] {ex.Message}");
+			ShowTvStoreLogStatus(string.Format(L10n.Get("statusTvStoreLogFailed"), tvIp, ex.Reason));
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[tvstore] getting TV-Store's log failed: {ex}");
+			ShowTvStoreLogStatus(string.Format(L10n.Get("statusTvStoreLogFailed"), tvIp, ex.Message));
+		}
+		finally
+		{
+			TvStoreLogButton.IsEnabled = true;
+		}
+	}
+
+	private void ShowTvStoreLogStatus(string text)
+	{
+		TvStoreLogStatus.Text = text;
+		TvStoreLogStatus.IsVisible = !string.IsNullOrEmpty(text);
 	}
 
 	// ---- Backup (export/import of settings + signing certificates) ----

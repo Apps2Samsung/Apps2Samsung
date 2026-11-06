@@ -56,6 +56,19 @@
 							           Foreground="{DynamicResource InkBrush}"/>
 						</Grid>
 					</Button>
+					<Border Classes="rowline"/>
+					<!-- TV-Store's own log from the selected TV (GET :8077/log.txt), saved next to the debug logs and opened. -->
+					<Button Classes="row" Command="{Binding GetTvStoreLogCommand}">
+						<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+							<fa:SymbolIcon Symbol="Download" Width="18" Height="18" VerticalAlignment="Center" Foreground="{DynamicResource AccentBrush}"/>
+							<StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+								<TextBlock Text="{l:Localize lblGetTvStoreLog}" FontSize="14" Foreground="{DynamicResource InkBrush}"/>
+								<TextBlock Classes="hint" Text="{l:Localize hintGetTvStoreLog}"/>
+								<TextBlock Classes="hint" Text="{Binding TvStoreLogStatus}" TextWrapping="Wrap"
+								           IsVisible="{Binding TvStoreLogStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+							</StackPanel>
+						</Grid>
+					</Button>
 				</StackPanel>
 			</Border>
 		</StackPanel>
