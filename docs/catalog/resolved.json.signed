@@ -1,7 +1,7 @@
-R3tG9Im/sDZkbzbWW+IlSlE5QICHz0UEhofYKm3I1y4vL0vfp/lpA8JWnwJFkfFTyQkbzb/E+7WgRmeKrQRmSg8aCjpHrFR/bgIp10symAcFYvsPr49P7Vfg7Jj8MZPgmhRM2KT8npF8JcKGtGxTJapxDq5Nz9qrBZ0W4tp9SKgpJmjc3DdB5TlDN6eD7Idd5emSbXkqfzMzRN/6eIogla89O8aUImX30KIwixUEXu0XaYmXUvRk0gVVhcLn64IBjzKaIWDO8ikzrrJvfYhT6F7IzDgDew/30QvMY3lnKJqQmD7NiXkUAevden66EEvdhmzOVB2/JLRrfgpZ06fP/LPmfS0H5xb1TUvCy4JvvCpf46ueWbzvvzQ8NkeGdU8QSj35zlU75LDTj8apVLpkky9gLpvgcOPzMTpDc/VcapQEsezuvwsPQepkNiEia8KjPLD0XKu7G1zo+zg7Uf3UpqD3UWT3xc/zZu3F9nIb0/z5g5PWogRFTTbkTCiunVga
+cRUNN623xZ2PUhbWGkp9QaEPQxn6AdzJQxu0ACGs1TVVm4QiFLxpV/WkTtiLkoRTpPazWPvobkPH0UYboYQMY2BBopPqLkvkPpXUSwV59rgyCsNKwg4vqM1qxgpawQwsa7NyPd/Mtuh6RvO0ouozLumEdsXIlJ+iKzA1f79tr3nvka8RVH47r7GWH8cRqjG1lIUf9ZRC8GkUMRfkeH0pxK5qhqNz7CI+HCCwwns4XgX4bZg8SI7HB2BCgFQ+C1YJZKFkzyv+h2UfSWUFMWVgtH4C0/aGIW0/AHg6Fl67eGoQ72JgX6IPR1ho1MGQidj2C40QRzQac+/vwoRANH70GL4kFFA9RB2pm7ZJAOaW2TKbvJ08VV8IE5o+GcWul76Rxi/LCKIXnpPpMrMHP/1PyC5dU+BdyPBQ9pBD1rBqRAKcYoL9QlG+hJNHlfx6xfBzEGLCu+SrQ3F3+20AP02poXNVwJrQX5yG02fSjtSVkRiUqE2HSBJQZe8nzOWFrfwC
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-06T05:08:49.0849699+00:00",
+  "generatedAt": "2026-11-06T05:35:28.0619575+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -2685,20 +2685,20 @@ R3tG9Im/sDZkbzbWW+IlSlE5QICHz0UEhofYKm3I1y4vL0vfp/lpA8JWnwJFkfFTyQkbzb/E+7WgRmeK
       "id": "jellyfin-avplay-smarthub",
       "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases",
       "ok": true,
-      "latestTag": "v0.1.0-2026-11-05-1935",
+      "latestTag": "v0.1.0-2026-11-06-0517",
       "releases": [
         {
-          "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases/435642640",
+          "url": "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases/436125591",
           "name": "Jellyfin - AVPlay - 10.10z SmartHub",
-          "tag_name": "v0.1.0-2026-11-05-1935",
-          "published_at": "2026-11-05T19:35:21Z",
+          "tag_name": "v0.1.0-2026-11-06-0517",
+          "published_at": "2026-11-06T05:17:46Z",
           "draft": false,
           "assets": [
             {
-              "name": "Jellyfin-AVPlay-SmartHub-Oblonged-2026-11-05-1935.wgt",
-              "browser_download_url": "https://github.com/asamahy/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-11-05-1935/Jellyfin-AVPlay-SmartHub-Oblonged-2026-11-05-1935.wgt",
-              "size": 11143682,
-              "digest": "sha256:0dd86b69bb9b73e5f2651ff0f90112916fe26556d9c4c07c17c504ebdf12d96c",
+              "name": "Jellyfin-AVPlay-SmartHub-Oblonged-2026-11-06-0517.wgt",
+              "browser_download_url": "https://github.com/asamahy/tizen-jellyfin-avplay/releases/download/v0.1.0-2026-11-06-0517/Jellyfin-AVPlay-SmartHub-Oblonged-2026-11-06-0517.wgt",
+              "size": 11143675,
+              "digest": "sha256:d6a22a85e3bcdb939b96c527791b4fd610846c16fbdee6bbd418a7a88a76a3a2",
               "package_version": "0.1.0",
               "app_id": "AprZAARz4r.Jellyfin",
               "package_id": "AprZAARz4r",
