@@ -9,7 +9,9 @@ using Apps2Samsung.Certificate;
 using Apps2Samsung.Diagnostics;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Remote;
+using Apps2Samsung.Models;
 using Apps2Samsung.Sdb;
+using Apps2Samsung.Services;
 
 namespace Apps2Samsung.TvStore
 {
@@ -83,6 +85,8 @@ namespace Apps2Samsung.TvStore
                     Trace.WriteLine($"[tvstore] {tvIp}: the relay is not listening; trying anyway");
             }
 
+            await LogNetworkAsync(tvIp, ct).ConfigureAwait(false);
+
             var found = await TvStorePackage.FindAsync(sdb, tvIp, packageIdRenamesJson).ConfigureAwait(false);
             if (!found.IsInstalled || found.AppId is null)
                 throw new TvStoreNotInstalledException(found.State == TvStoreInstallState.Outdated);
@@ -124,6 +128,27 @@ namespace Apps2Samsung.TvStore
                 await session.DisposeAsync().ConfigureAwait(false);
                 throw;
             }
+        }
+
+        // For the debug log (#1012): the TV's /api/v2/ answer (TizenDeveloperInfo logs it), this
+        // device's addresses, and whether the TV's Host PC IP is the one it is reached from. Never throws.
+        private static async Task LogNetworkAsync(string tvIp, CancellationToken ct)
+        {
+            var local = LocalAddress.Toward(tvIp);
+            var all = LocalAddress.AllIpv4();
+            Trace.WriteLine($"[tvstore] this device reaches {tvIp} from {local ?? "no route"}; its IPv4 addresses: {(all.Count == 0 ? "not listed" : string.Join(", ", all))}");
+
+            var tv = await TizenDeveloperInfo.ReadAsync(new NetworkDevice { IpAddress = tvIp }, ct).ConfigureAwait(false);
+            if (string.IsNullOrEmpty(tv.DeveloperMode))
+            {
+                Trace.WriteLine($"[tvstore] {tvIp} did not answer /api/v2/; Host PC IP not known");
+                return;
+            }
+            var verdict = string.IsNullOrEmpty(tv.DeveloperIP) ? "not set"
+                : string.Equals(tv.DeveloperIP, local, StringComparison.Ordinal) ? "this device"
+                : tv.DeveloperIP == SdbEndpoint.LoopbackHostIp ? "TV-Store's relay"
+                : "another address";
+            Trace.WriteLine($"[tvstore] {tvIp} Developer Mode {tv.DeveloperMode}, Host PC IP {(string.IsNullOrEmpty(tv.DeveloperIP) ? "-" : tv.DeveloperIP)} ({verdict})");
         }
 
         // Stops a running TV-Store so `0 debug` can launch it. `0 was_kill` first; a retail set refuses
@@ -194,7 +219,12 @@ namespace Apps2Samsung.TvStore
         /// <exception cref="InvalidOperationException">The service refused or did not answer; the message carries its words.</exception>
         public async Task ArmAsync(IReadOnlyList<SigningCertificatePem> certificates, CancellationToken ct = default)
         {
+            // What goes to the TV and what it kept, so a debug log answers "was my Partner one handed over" (#1012).
+            Trace.WriteLine($"[tvstore] arming {AppId} v{Version} with {certificates.Count} certificate(s):");
+            for (var i = 0; i < certificates.Count; i++)
+                Trace.WriteLine("[tvstore]   " + TvStoreArmLog.Describe(certificates[i], i));
             var node = await CallAsync($"A2SStore.setCertificate({ArmPayload(certificates)})", ArmTimeout, ct).ConfigureAwait(false);
+            Trace.WriteLine("[tvstore] TV-Store answered the hand-over: " + TvStoreArmLog.DescribeReply(node));
             if (node?["ok"]?.GetValue<bool>() != true)
                 throw new InvalidOperationException($"TV-Store did not take the certificate: {node?["error"]?.ToString() ?? "no reply"}");
         }

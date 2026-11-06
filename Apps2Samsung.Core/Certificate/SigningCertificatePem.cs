@@ -104,6 +104,8 @@ namespace Apps2Samsung.Certificate
                 }
                 if (seenAuthors.Add(AuthorLeaf(pem.AuthorCertPem)))
                     list.Add(pem);
+                else
+                    System.Diagnostics.Trace.WriteLine($"[tvstore] not handing over profile {ProfileNameOf(profile)}: same author certificate as one already in the list");
             }
             return list;
         }
