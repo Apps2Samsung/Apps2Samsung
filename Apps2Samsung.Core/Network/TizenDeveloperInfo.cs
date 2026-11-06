@@ -203,6 +203,11 @@ namespace Apps2Samsung.Services
                 if (deviceNode == null)
                     return CreateFallbackDevice(device);
 
+                // The whole answer, for troubleshooting (Developer Mode, Host PC IP, model, firmware),
+                // next to the address this device reaches the TV from, which is what the TV's
+                // Host PC IP has to be.
+                Trace.WriteLine($"[TizenApi] {device.IpAddress} /api/v2/ device: {DescribeDevice(deviceNode)}; this device reaches it from {LocalAddress.Toward(device.IpAddress, Constants.Ports.SamsungTvApiPort) ?? "no route"}");
+
                 return new NetworkDevice
                 {
                     IpAddress = deviceNode["ip"]?.GetValue<string>() ?? device.IpAddress,
@@ -237,6 +242,19 @@ namespace Apps2Samsung.Services
             }
 
             return CreateFallbackDevice(device);
+        }
+
+        /// <summary>
+        /// The <c>device</c> object of an <c>/api/v2/</c> answer as one compact JSON line for the log,
+        /// with the Wi-Fi network name left out: debug logs get attached to public issues.
+        /// </summary>
+        public static string DescribeDevice(JsonNode deviceNode)
+        {
+            ArgumentNullException.ThrowIfNull(deviceNode);
+            var copy = deviceNode.DeepClone();
+            if (copy is JsonObject obj && obj.ContainsKey("ssid"))
+                obj["ssid"] = "(hidden)";
+            return copy.ToJsonString();
         }
 
         private static NetworkDevice CreateFallbackDevice(NetworkDevice device)
