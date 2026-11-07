@@ -55,6 +55,8 @@ namespace Apps2Samsung.Interfaces
 
         /// <summary>Add a source of your own (a repository, release or file link); null when cancelled.</summary>
         Task<Apps2Samsung.Catalog.UserSource?> ShowAddUserSourceAsync(System.Collections.Generic.IReadOnlyList<Apps2Samsung.Catalog.UserSource> existing);
+        /// <summary>A signed repository whose key changed (#1018): its new key, to trust or not; the source to store instead, or null.</summary>
+        Task<Apps2Samsung.Catalog.UserSource?> ShowReviewRepositoryKeyAsync(Apps2Samsung.Catalog.UserSource source);
 
         /// <summary>
         /// The Developer Mode guide for <paramref name="device"/>, re-read through

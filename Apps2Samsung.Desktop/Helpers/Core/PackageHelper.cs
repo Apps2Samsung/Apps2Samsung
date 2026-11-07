@@ -33,9 +33,24 @@ namespace Apps2Samsung.Helpers.Core
             if (release?.PrimaryDownloadUrl == null) return null;
             if (selectedAsset?.DownloadUrl == null) return null;
 
+            // A signed repository that could not be checked now: listed, never installed from (#1018).
+            if (Apps2Samsung.Catalog.Repositories.SignedRepositories.InstallBlocked(release, key => key.Localized()) is { } blocked)
+            {
+                await _dialogService.ShowErrorAsync(blocked);
+                return null;
+            }
+
             try
             {
                 string downloadPath = await _tizenInstaller.DownloadPackageAsync(selectedAsset.DownloadUrl);
+                // A repository's file installs only when its bytes are the ones it signed for (#1018).
+                if (Apps2Samsung.Catalog.Repositories.SignedRepositories.DigestProblem(release, selectedAsset, downloadPath, key => key.Localized()) is { } digest)
+                {
+                    try { File.Delete(downloadPath); } catch (IOException) { /* best-effort */ }
+                    progress?.Invoke("DownloadFailed".Localized());
+                    await _dialogService.ShowErrorAsync(digest);
+                    return null;
+                }
                 progress?.Invoke("DownloadCompleted".Localized());
                 return downloadPath;
             }

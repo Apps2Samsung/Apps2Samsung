@@ -43,8 +43,10 @@
 		</Style>
 	</Window.Styles>
 
-	<DockPanel>
+	<Panel>
+	<DockPanel x:Name="FormPanel">
 		<StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="16,8,16,16">
+			<TextBlock x:Name="BusyText" FontSize="13" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" IsVisible="False"/>
 			<Button Classes="primary" Content="{Binding AddText}" Click="OnAddClick"
 			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12"/>
 			<Button Classes="link" Content="{Binding CancelText}" Click="OnCancelClick" HorizontalAlignment="Center"/>
@@ -93,4 +95,69 @@
 			</StackPanel>
 		</ScrollViewer>
 	</DockPanel>
+
+	<!-- A signed repository (#1018), step 2: check the publisher's key before it is trusted. Also the
+	     review of a key that changed. Mockup row 1, B. -->
+	<DockPanel x:Name="KeyPanel" IsVisible="False">
+		<StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="16,8,16,16">
+			<Button x:Name="TrustButton" Classes="primary" Click="OnTrustClick"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12"/>
+			<Button x:Name="RejectButton" Classes="link" Click="OnCancelClick" HorizontalAlignment="Center" Foreground="{DynamicResource BadBrush}"/>
+		</StackPanel>
+		<ScrollViewer>
+			<StackPanel Margin="16,8,16,8" Spacing="14">
+				<TextBlock x:Name="KeyTitle" FontSize="24" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+				<TextBlock x:Name="KeyHint" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+
+				<Grid x:Name="WasRow" ColumnDefinitions="56,*" IsVisible="False">
+					<TextBlock x:Name="WasLabel" FontSize="13" Foreground="{DynamicResource MutedBrush}"/>
+					<TextBlock x:Name="WasText" Grid.Column="1" FontSize="13" FontFamily="Consolas, Menlo, monospace" TextWrapping="Wrap"
+					           TextDecorations="Strikethrough" Foreground="{DynamicResource MutedBrush}"/>
+				</Grid>
+
+				<Border CornerRadius="12" Background="{DynamicResource SurfaceBrush}" Padding="16,16">
+					<StackPanel Spacing="12" HorizontalAlignment="Stretch">
+						<TextBlock x:Name="NowLabel" FontSize="13" Foreground="{DynamicResource MutedBrush}" IsVisible="False"/>
+						<ItemsControl x:Name="FingerprintGroups" HorizontalAlignment="Center">
+							<ItemsControl.ItemsPanel>
+								<ItemsPanelTemplate>
+									<UniformGrid Columns="4"/>
+								</ItemsPanelTemplate>
+							</ItemsControl.ItemsPanel>
+							<ItemsControl.ItemTemplate>
+								<DataTemplate x:DataType="x:String">
+									<TextBlock Text="{Binding}" FontFamily="Consolas, Menlo, monospace" FontSize="17" Margin="8,4"
+									           HorizontalAlignment="Center" Foreground="{DynamicResource InkBrush}"/>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+						<Button x:Name="CopyButton" Classes="chip" HorizontalAlignment="Center" Click="OnCopyClick"/>
+					</StackPanel>
+				</Border>
+
+				<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
+					<StackPanel>
+						<Grid ColumnDefinitions="44,*" ColumnSpacing="12" Margin="16,12">
+							<Border Width="44" Height="44" CornerRadius="11" Background="{DynamicResource TileGamesBrush}">
+								<TextBlock x:Name="RepoLetter" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"
+								           Foreground="{DynamicResource OnAccentBrush}"/>
+							</Border>
+							<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+								<TextBlock x:Name="RepoName" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+								<TextBlock x:Name="RepoBy" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+							</StackPanel>
+						</Grid>
+						<Border Height="1" Background="{DynamicResource HairBrush}"/>
+						<Grid ColumnDefinitions="Auto,*" Margin="16,12">
+							<TextBlock x:Name="FromLabel" Foreground="{DynamicResource MutedBrush}"/>
+							<TextBlock x:Name="FromText" Grid.Column="1" HorizontalAlignment="Right" Foreground="{DynamicResource InkBrush}"/>
+						</Grid>
+					</StackPanel>
+				</Border>
+
+				<TextBlock x:Name="SignedMeans" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+			</StackPanel>
+		</ScrollViewer>
+	</DockPanel>
+	</Panel>
 </Window>
