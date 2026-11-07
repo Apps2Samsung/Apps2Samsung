@@ -184,6 +184,13 @@ namespace Apps2Samsung.ViewModels
         private bool showClosedSourceApps;
         public event Action? ShowClosedSourceAppsChanged;
 
+        // Settings > Advanced > Skip Developer Mode checks (#1026): for testing, Install no longer
+        // waits for the TV's Developer Mode. Fires SkipDevModeChecksChanged for the main window to
+        // re-evaluate Install and the TV card.
+        [ObservableProperty]
+        private bool skipDevModeChecks;
+        public event Action? SkipDevModeChecksChanged;
+
         /// <summary>
         /// Settings > Installing > Your sources, and the catalog ⋯ > Add a source: the repositories,
         /// releases and file links the user added (<see cref="Apps2Samsung.Catalog.UserSources"/>),
@@ -259,6 +266,8 @@ namespace Apps2Samsung.ViewModels
         public string LblGitHubTokenHint => _localizationService.GetString("lblGitHubTokenHint");
         public string LblManualDuids => _localizationService.GetString("lblManualDuids");
         public string LblManualDuidsHint => _localizationService.GetString("lblManualDuidsHint");
+        public string LblSkipDevModeChecks => _localizationService.GetString("lblSkipDevModeChecks");
+        public string LblSkipDevModeChecksHint => _localizationService.GetString("hintSkipDevModeChecks");
         public string LblOpenLogsFolder => _localizationService.GetString("lblOpenLogsFolder");
 
         public AppSettingsViewModel(
@@ -348,6 +357,8 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblGitHubTokenHint));
             OnPropertyChanged(nameof(LblManualDuids));
             OnPropertyChanged(nameof(LblManualDuidsHint));
+            OnPropertyChanged(nameof(LblSkipDevModeChecks));
+            OnPropertyChanged(nameof(LblSkipDevModeChecksHint));
             OnPropertyChanged(nameof(LblOpenLogsFolder));
         }
 
@@ -378,6 +389,7 @@ namespace Apps2Samsung.ViewModels
             DarkMode = AppSettings.Default.DarkMode;
             GitHubToken = AppSettings.Default.GitHubToken ?? string.Empty;
             ManualDuids = AppSettings.Default.ManualDuids ?? string.Empty;
+            SkipDevModeChecks = AppSettings.Default.SkipDevModeChecks;
         }
 
         // True while LoadNetworkInterfacesAsync restores the selection: a programmatic pick must
@@ -993,6 +1005,15 @@ namespace Apps2Samsung.ViewModels
         partial void OnDarkModeChanged(bool value)
         {
             _themeService.SetTheme(value);
+        }
+
+        partial void OnSkipDevModeChecksChanged(bool value)
+        {
+            if (value == AppSettings.Default.SkipDevModeChecks)
+                return;
+            AppSettings.Default.SkipDevModeChecks = value;
+            AppSettings.Default.Save();
+            SkipDevModeChecksChanged?.Invoke();
         }
 
         partial void OnManualDuidsChanged(string value)

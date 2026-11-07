@@ -46,6 +46,9 @@ public sealed class CliOptions
     public bool AllowRemove { get; set; }
     /// <summary>Install a package the catalog flags root; separate from <see cref="Yes"/>, as the apps ask it separately.</summary>
     public bool AllowRoot { get; set; }
+    /// <summary>For testing (#1026): skip the Developer Mode off / restart checks for this run, as the
+    /// apps' Advanced setting does, so the install fails where it really fails.</summary>
+    public bool SkipDevModeCheck { get; set; }
     public bool NewId { get; set; }
     /// <summary>Back to the package's own id on this TV (#839): forget the rename remembered for it.</summary>
     public bool OwnId { get; set; }
@@ -126,6 +129,7 @@ public sealed class CliOptions
                 case "--virtual": o.Virtual = true; break;
                 case "--allow-remove": o.AllowRemove = true; break;
                 case "--allow-root": o.AllowRoot = true; break;
+                case "--skip-devmode-check": o.SkipDevModeCheck = true; break;
                 case "--data-dir": o.DataDir = Next(arg); if (o.DataDir is null) return (o, "--data-dir needs a path"); break;
                 case "--category": o.Category = Next(arg); if (o.Category is null) return (o, "--category needs a category id"); break;
                 case "--all-versions": o.AllVersions = true; break;

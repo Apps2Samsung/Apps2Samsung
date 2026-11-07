@@ -117,6 +117,8 @@ namespace Apps2Samsung.Views.Controls
             SubRow.IsVisible = SubText.IsVisible || RoutePill.IsVisible;
             MessageText.Text = state?.Message ?? string.Empty;
             StateRow.IsVisible = !string.IsNullOrEmpty(MessageText.Text);
+            NoteText.Text = state?.Note ?? string.Empty;
+            NoteText.IsVisible = state?.HasNote == true;
 
             Led.Classes.Set("ok", state?.Led == TvLed.Ok);
             Led.Classes.Set("warn", state?.Led == TvLed.Warn);

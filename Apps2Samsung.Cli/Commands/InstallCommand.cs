@@ -122,7 +122,14 @@ public static class InstallCommand
         {
             LocalIps = SafeLocalIps(s),
             ConfiguredLocalIp = localIp,
+            SkipDevModeChecks = s.Options.SkipDevModeCheck,
         }, s.Network);
+        // For testing (#1026): the Developer Mode off / restart checks are left out, and the run says so.
+        if (s.Options.SkipDevModeCheck)
+        {
+            System.Diagnostics.Trace.WriteLine("[install] Developer Mode checks skipped (--skip-devmode-check)");
+            s.Out.Warn("Developer Mode checks are off (--skip-devmode-check): the install goes straight to the SDB connect.");
+        }
         var viaTvStore = s.Options.ViaTvStore;
         if (!viaTvStore)
         {
@@ -144,7 +151,8 @@ public static class InstallCommand
                     Output.Stopped, new { checks = guards.Guards.Select(g => new { kind = g.Kind.ToString(), g.DefaultTitle, message = g.DefaultMessageWithDetail }) });
             }
         }
-        else if (!viaTvStore && !await SdbAnswersAsync(s, tvIp) && await TvStoreReadyAsync(s, tvIp, ct))
+        // Not with --skip-devmode-check (#1026): the tester wants the SDB connect's own error.
+        else if (!viaTvStore && !s.Options.SkipDevModeCheck && !await SdbAnswersAsync(s, tvIp) && await TvStoreReadyAsync(s, tvIp, ct))
         {
             // No SDB (Host PC IP 127.0.0.1 without TV-Store's relay, say), but TV-Store is there.
             s.Out.Warn("The TV does not answer over SDB, but TV-Store is running on it: sending the package to TV-Store instead.");

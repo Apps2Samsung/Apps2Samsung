@@ -74,11 +74,15 @@ namespace Apps2Samsung.Design
         TvRoute Route = TvRoute.Direct,
         bool RelayDown = false,
         DevModeProblem Problem = DevModeProblem.None,
-        IReadOnlyList<TvCardAction>? Actions = null)
+        IReadOnlyList<TvCardAction>? Actions = null,
+        string? Note = null)
     {
         public IReadOnlyList<TvCardAction> Actions { get; init; } = Actions ?? Array.Empty<TvCardAction>();
         public bool ViaRelay => Route == TvRoute.Relay;
         public bool HasActions => Actions.Count > 0;
+        /// <summary>A small extra line under the status line (empty hides it): "Developer Mode checks
+        /// are off" while the Advanced setting is on (#1026).</summary>
+        public bool HasNote => !string.IsNullOrEmpty(Note);
     }
 
     /// <summary>The card states, built from a localizer so each head's catalog supplies the words.</summary>
@@ -132,6 +136,23 @@ namespace Apps2Samsung.Design
                 problem == DevModeProblem.None ? TvLed.Ok : TvLed.Warn,
                 message, IsDevice: true, Route: route, RelayDown: relayDown, Problem: problem,
                 Actions: ActionsFor(problem));
+        }
+
+        /// <summary>
+        /// The Advanced "Skip Developer Mode checks" setting is on (#1026): a device card gets the
+        /// reminder line, and loses the chip that leads to the skipped check (Fix Developer Mode for
+        /// Developer Mode off, I restarted it for a closed install port), as Install no longer waits
+        /// for it. The status line and LED stay as the TV reports, so Developer Mode off still reads
+        /// that way. An IP mismatch keeps its chip: that guard still asks.
+        /// </summary>
+        public static TvCardState WithDevModeChecksSkipped(TvCardState state, bool skipped, Func<string, string> localize)
+        {
+            if (!skipped || !state.IsDevice)
+                return state;
+            var actions = state.Problem is DevModeProblem.DeveloperModeOff or DevModeProblem.RestartRequired
+                ? Array.Empty<TvCardAction>()
+                : state.Actions;
+            return state with { Note = localize("tvCardDevModeChecksOff"), Actions = actions };
         }
 
         /// <summary>The older shape: one local address, which is also the list to compare against.</summary>

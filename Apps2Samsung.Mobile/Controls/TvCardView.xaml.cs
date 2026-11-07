@@ -71,6 +71,8 @@ public partial class TvCardView : ContentView
 		SubRow.IsVisible = SubLabel.IsVisible || RoutePill.IsVisible;
 		MessageLabel.Text = state?.Message ?? string.Empty;
 		StateRow.IsVisible = !string.IsNullOrEmpty(MessageLabel.Text);
+		NoteLabel.Text = state?.Note ?? string.Empty;
+		NoteLabel.IsVisible = state?.HasNote == true;
 
 		var (token, blur) = state?.Led switch
 		{

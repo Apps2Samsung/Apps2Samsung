@@ -187,6 +187,9 @@ namespace Apps2Samsung.Helpers
         public string TizenTubeProxyHost { get; set; } = "";  // host[:port] for that proxy; empty = the TV being installed to
         public bool TvAppUseOblongIcon { get; set; } = false;  // legacy: migrated into CustomAppIconsJson ("oblong")
         public bool LitefinUseOblongIcon { get; set; } = false;  // legacy: migrated into CustomAppIconsJson ("oblong")
+        // Settings > Advanced > Skip Developer Mode checks (#1026), for testing: install to a TV that
+        // reports Developer Mode off or whose install port didn't answer. Off by default.
+        public bool SkipDevModeChecks { get; set; } = false;
         public string ManualDuids { get; set; } = "";  // extra Tizen DUIDs to pre-authorize in the distributor cert (one per line / comma-separated)
         public string CustomAppIconsJson { get; set; } = "";  // JSON map { appKey -> "oblong" | custom launcher PNG path } applied to the wgt at install
         public string CustomAppTitlesJson { get; set; } = "";  // JSON map { appKey -> custom title } written into the wgt's config.xml <name> at install

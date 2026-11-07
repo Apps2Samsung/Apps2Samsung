@@ -87,6 +87,9 @@
 							<TextBlock Name="MessageText" Grid.Column="1" FontSize="15" TextWrapping="Wrap"
 							           Foreground="{DynamicResource GlassInkBrush}"/>
 						</Grid>
+						<!-- a small extra line (#1026): "Developer Mode checks are off" while that setting is on -->
+						<TextBlock Name="NoteText" IsVisible="False" FontSize="13" Margin="19,2,0,0" TextWrapping="Wrap"
+						           Foreground="{DynamicResource GlassMutedBrush}"/>
 						<ProgressBar Name="Progress" Height="6" CornerRadius="3" Minimum="0" Maximum="100"
 						             Margin="0,10,0,0" IsVisible="False"
 						             Background="{DynamicResource GlassTrackBrush}"

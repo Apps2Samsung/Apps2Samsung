@@ -79,7 +79,9 @@ public sealed class TvSelection
 		// The phone's IP as this TV sees it: on a hotspot TV that is the hotspot address, not the
 		// cellular one the socket trick returns (#920).
 		var localIp = NetworkInfo.LocalIpFor(tv.Ip);
-		return TvCardStates.ForDevice(tv.Device ?? new NetworkDevice { IpAddress = tv.Ip }, LocalIps(), localIp, L10n.Get);
+		var state = TvCardStates.ForDevice(tv.Device ?? new NetworkDevice { IpAddress = tv.Ip }, LocalIps(), localIp, L10n.Get);
+		// Settings > Advanced > Skip Developer Mode checks (#1026): the reminder line, no Fix chip.
+		return TvCardStates.WithDevModeChecksSkipped(state, MobileSettings.SkipDevModeChecks, L10n.Get);
 	}
 
 	/// <summary>Every address this phone answers on: what a TV's Host PC IP is compared against (the guide's Diagnose).</summary>
