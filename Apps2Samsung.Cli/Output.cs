@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -39,6 +40,26 @@ public sealed class Output : IDisposable
     private static readonly string[] SpinnerFrames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" };
     private static readonly string[] SpinnerFramesAscii = { "|", "/", "-", "\\" };
 
+    /// <summary>
+    /// The process's own stdout and stderr, as they were before the session log (<see cref="CliLog"/>)
+    /// took <see cref="Console.Out"/> over for what other layers print. Everything this class writes
+    /// goes here, so the CLI's answer still reaches the terminal or the pipe.
+    /// Read through until <see cref="KeepStandardWriters"/> pins them: on Windows, setting the output
+    /// encoding below replaces <see cref="Console.Out"/>, and the UTF-8 one is the one to keep.
+    /// </summary>
+    internal static TextWriter StdOut => s_stdOut ?? Console.Out;
+    /// <inheritdoc cref="StdOut"/>
+    internal static TextWriter StdErr => s_stdErr ?? Console.Error;
+    private static TextWriter? s_stdOut;
+    private static TextWriter? s_stdErr;
+
+    /// <summary>Pins <see cref="StdOut"/> and <see cref="StdErr"/> to the current writers, before something replaces them.</summary>
+    internal static void KeepStandardWriters()
+    {
+        s_stdOut ??= Console.Out;
+        s_stdErr ??= Console.Error;
+    }
+
     public bool AsJson { get; }
     public bool Quiet { get; }
     /// <summary>Colours, cards and a live step line: stdout and stderr are both a terminal that takes ANSI, and nothing asked for plain text.</summary>
@@ -73,8 +94,8 @@ public sealed class Output : IDisposable
         {
             try { Console.OutputEncoding = Encoding.UTF8; } catch { /* a console that cannot change encoding keeps its glyphs ASCII below */ }
         }
-        var stdout = Create(Console.Out);
-        var stderr = Create(Console.Error);
+        var stdout = Create(StdOut);
+        var stderr = Create(StdErr);
         if (!stdout.Profile.Capabilities.Ansi || !stderr.Profile.Capabilities.Ansi)
             return;
         _stdout = stdout;
@@ -102,11 +123,12 @@ public sealed class Output : IDisposable
     /// <summary>A progress line (stderr); silenced by <c>--quiet</c>. On a terminal it is the live step line: the step before it gets its check mark.</summary>
     public void Progress(string message)
     {
+        Trace.WriteLine($"[cli] {message}");
         if (Quiet)
             return;
         if (!Rich)
         {
-            Console.Error.WriteLine(message);
+            StdErr.WriteLine(message);
             return;
         }
         var match = Percent.Match(message);
@@ -143,9 +165,10 @@ public sealed class Output : IDisposable
     /// <summary>A warning (stderr), never silenced.</summary>
     public void Warn(string message)
     {
+        Trace.WriteLine($"[cli] warning: {message}");
         if (!Rich)
         {
-            Console.Error.WriteLine($"warning: {message}");
+            StdErr.WriteLine($"warning: {message}");
             return;
         }
         lock (_gate)
@@ -171,15 +194,18 @@ public sealed class Output : IDisposable
     /// <summary>The command's result: the text lines, or the object as JSON. On a terminal, <paramref name="rich"/> when given, else the lines with a check mark on the first.</summary>
     public int Result(object data, IEnumerable<string> text, int exitCode = Ok, IRenderable? rich = null)
     {
+        var lines = text as IReadOnlyList<string> ?? text.ToList();
+        Trace.WriteLine($"[cli] result (exit {exitCode}): {string.Join(" | ", lines)}");
+        text = lines;
         if (AsJson)
         {
-            Console.Out.WriteLine(JsonSerializer.Serialize(data, data.GetType(), Json));
+            StdOut.WriteLine(JsonSerializer.Serialize(data, data.GetType(), Json));
             return exitCode;
         }
         if (!Rich)
         {
             foreach (var line in text)
-                Console.Out.WriteLine(line);
+                StdOut.WriteLine(line);
             return exitCode;
         }
         lock (_gate)
@@ -195,14 +221,15 @@ public sealed class Output : IDisposable
     /// <summary>A failure: the reason on stderr (text mode) or as the JSON result, with the exit code.</summary>
     public int Fail(string message, int exitCode = Failed, object? details = null)
     {
+        Trace.WriteLine($"[cli] error (exit {exitCode}): {message}");
         if (AsJson)
         {
-            Console.Out.WriteLine(JsonSerializer.Serialize(new { ok = false, error = message, details }, Json));
+            StdOut.WriteLine(JsonSerializer.Serialize(new { ok = false, error = message, details }, Json));
             return exitCode;
         }
         if (!Rich)
         {
-            Console.Error.WriteLine($"error: {message}");
+            StdErr.WriteLine($"error: {message}");
             return exitCode;
         }
         lock (_gate)
@@ -257,7 +284,7 @@ public sealed class Output : IDisposable
         if (Rich)
             _stdout!.Write(Views.Help(text, Width));
         else
-            Console.Out.WriteLine(text);
+            StdOut.WriteLine(text);
     }
 
     // ---- the live step line (stderr), always the last line while a step is open ----

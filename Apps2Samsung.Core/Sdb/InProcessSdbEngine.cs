@@ -385,8 +385,15 @@ namespace Apps2Samsung.Sdb
         /// The capture tees rather than swallows: the host console stays wired up, so
         /// <see cref="Diagnostics.FileLog"/> keeps mirroring the same lines into the session log the
         /// way it did when this output came from the exe. The redirect is process-wide, so one capture
-        /// runs at a time. <paramref name="onLine"/> sees each complete line the moment it is written,
-        /// which is how an install's percentage reaches the UI while the install is still running.
+        /// runs at a time. <paramref name="onLine"/> sees each complete line as it is written, which
+        /// is how an install's percentage reaches the UI while the install is still running.
+        /// <para>
+        /// <paramref name="onLine"/> runs on a task of its own, never inside the console write (#975).
+        /// On Linux and Android .NET takes the <c>Console.Out</c> lock for every write to the
+        /// terminal, stderr included, and the tee runs under that same lock. A handler that waits for
+        /// a lock of its own (the CLI's progress line, which a spinner timer also takes to write to
+        /// stderr) then deadlocked the install mid-percentage: the TV finished, the app froze.
+        /// </para>
         /// </summary>
         private Task<ProcessResult> RunCapturingDeviceLog(
             string ip, string command, Func<SdbTcpDevice, Task> body, Action<string>? onLine = null) =>
@@ -396,7 +403,8 @@ namespace Apps2Samsung.Sdb
                 await ConsoleCaptureGate.WaitAsync().ConfigureAwait(false);
                 var log = new StringWriter();
                 var previous = Console.Out;
-                Console.SetOut(new TeeTextWriter(previous, log, onLine));
+                await using var relay = onLine is null ? null : new LineRelay(onLine);
+                Console.SetOut(new TeeTextWriter(previous, log, relay is null ? null : relay.Post));
                 try
                 {
                     await body(device);
@@ -638,6 +646,39 @@ namespace Apps2Samsung.Sdb
                     try { _onLine(line); }
                     catch (Exception ex) { Trace.WriteLine($"[sdb] install log observer failed: {ex.Message}"); }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Hands lines to an observer on a task of its own, in the order they were posted, so the
+        /// writer that posts them (the console tee, under the console's lock) never waits on the
+        /// observer. Disposing drains what is queued before it returns, so every line of an install
+        /// has reached the observer before its result does.
+        /// </summary>
+        internal sealed class LineRelay : IAsyncDisposable
+        {
+            private readonly System.Threading.Channels.Channel<string> _lines =
+                System.Threading.Channels.Channel.CreateUnbounded<string>(new System.Threading.Channels.UnboundedChannelOptions { SingleReader = true });
+            private readonly Task _pump;
+
+            public LineRelay(Action<string> observer)
+            {
+                _pump = Task.Run(async () =>
+                {
+                    await foreach (var line in _lines.Reader.ReadAllAsync().ConfigureAwait(false))
+                    {
+                        try { observer(line); }
+                        catch (Exception ex) { Trace.WriteLine($"[sdb] install log observer failed: {ex.Message}"); }
+                    }
+                });
+            }
+
+            public void Post(string line) => _lines.Writer.TryWrite(line);
+
+            public async ValueTask DisposeAsync()
+            {
+                _lines.Writer.TryComplete();
+                await _pump.ConfigureAwait(false);
             }
         }
 

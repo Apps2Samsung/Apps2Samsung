@@ -33,6 +33,9 @@ public sealed class CliServices : IAsyncDisposable
         Out = new Output(options);
         CliPaths.Use(options.DataDir);
         Directory.CreateDirectory(CliPaths.CliDir);
+        // The session log (#975), except for `logs` itself, which would only list its own new file.
+        if (options.Command is not ("logs" or "log"))
+            CliLog.Start(Out, options);
 
         Desktop = new DesktopSettings(CliPaths.DataDir);
         Config = new CliAppConfig(Desktop)
