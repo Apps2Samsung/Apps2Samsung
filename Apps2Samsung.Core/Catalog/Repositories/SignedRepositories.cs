@@ -75,6 +75,14 @@ namespace Apps2Samsung.Catalog.Repositories
     {
         public const string KeyFileName = "repository.pem";
 
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, RepositoryLoad> Loads = new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// The last load of the repository at <paramref name="url"/> in this process, for its status in
+        /// the source list (Settings > Your sources); null before the catalog loaded it once.
+        /// </summary>
+        public static RepositoryLoad? LastLoad(string url) => Loads.TryGetValue(url.Trim(), out var load) ? load : null;
+
         private readonly HttpClient _http;
         private readonly string? _cacheDir;
         private readonly Func<DateTimeOffset> _clock;
@@ -117,6 +125,13 @@ namespace Apps2Samsung.Catalog.Repositories
 
         /// <summary>One approved repository for a catalog load. Never throws for a broken or unreachable repository.</summary>
         public async Task<RepositoryLoad> LoadAsync(UserSource source, CancellationToken ct = default)
+        {
+            var load = await LoadCoreAsync(source, ct).ConfigureAwait(false);
+            Loads[source.Url.Trim()] = load;
+            return load;
+        }
+
+        private async Task<RepositoryLoad> LoadCoreAsync(UserSource source, CancellationToken ct)
         {
             var cached = ReadCache(source);
             var floor = Max(source.AcceptedGeneratedAt, cached?.GeneratedAt);
@@ -196,6 +211,20 @@ namespace Apps2Samsung.Catalog.Repositories
             }
             return providers;
         }
+
+        /// <summary>Why <paramref name="release"/> cannot be installed now (a repository listed from its last verified copy), or null; en.json text.</summary>
+        public static string? InstallBlocked(GitHubRelease release, Func<string, string> localize) =>
+            release.Source.CanInstall ? null : string.Format(localize("errRepoInstallBlocked"), release.Source.Name);
+
+        /// <summary>
+        /// After the download: a signed repository's file must hash to the digest it signed for, or
+        /// nothing is installed. Null when it does, or when the file is not from a repository.
+        /// </summary>
+        public static string? DigestProblem(GitHubRelease release, Asset asset, string path, Func<string, string> localize) =>
+            release.Source.Kind != CatalogSourceKind.Repository
+            || (!string.IsNullOrWhiteSpace(asset.Digest) && DigestMatches(path, asset.Digest))
+                ? null
+                : string.Format(localize("errRepoDigest"), asset.FileName, release.Source.Name);
 
         /// <summary>The SHA-256 a downloaded package must have, from <see cref="Asset.Digest"/>: true when it matches.</summary>
         public static bool DigestMatches(string path, string digest)
