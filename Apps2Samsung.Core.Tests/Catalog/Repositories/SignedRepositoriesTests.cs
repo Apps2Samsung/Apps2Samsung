@@ -76,6 +76,31 @@ public class SignedRepositoriesTests : IDisposable
     }
 
     [Fact]
+    public void A_repository_apps_flags_reach_its_releases_and_files()
+    {
+        var manifest = new RepositoryManifest
+        {
+            Repository = new RepositoryInfo { Id = "org.example.tizen", Name = "Example" },
+            Providers =
+            {
+                new RepositoryProvider
+                {
+                    Id = "app", Category = "tools", Url = "https://api.github.com/repos/example/app/releases",
+                    Flags = { "closed-source", "Self-Updating", "root" },
+                    Releases = { new GitHubRelease { TagName = "v1", Assets = { new Asset { FileName = "App.wgt" } } } },
+                },
+            },
+        };
+
+        var release = SignedRepositories.ToProviders(new UserSource { Url = Url }, manifest, null).Single().Releases!.Single();
+
+        Assert.True(release.IsClosedSource);
+        Assert.True(release.IsSelfUpdating);
+        Assert.True(release.IsRoot);
+        Assert.True(release.Assets.Single().IsClosedSource);
+    }
+
+    [Fact]
     public async Task A_changed_key_blocks_the_repository_until_approved()
     {
         var source = await ApprovedAsync();

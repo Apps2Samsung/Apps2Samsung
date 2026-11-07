@@ -129,6 +129,9 @@
 								<MenuItem Header="{Binding Settings.Application.LblShowRootApps}" ToggleType="CheckBox"
 								          IsChecked="{Binding Settings.Application.ShowRootApps, Mode=TwoWay}"
 								          ToolTip.Tip="{l:Localize hintShowRootApps}"/>
+								<MenuItem Header="{Binding Settings.Application.LblShowClosedSourceApps}" ToggleType="CheckBox"
+								          IsChecked="{Binding Settings.Application.ShowClosedSourceApps, Mode=TwoWay}"
+								          ToolTip.Tip="{l:Localize hintShowClosedSourceApps}"/>
 								<!-- A source of the user's own (a repository, release or file link), listed from the next refresh. -->
 								<Separator/>
 								<MenuItem Header="{Binding Settings.Application.LblAddSource}" Command="{Binding Settings.Application.AddUserSourceCommand}"
@@ -243,6 +246,16 @@
 																					<Border IsVisible="{Binding IsRoot}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
 																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblRootPackage}">
 																						<TextBlock Text="{l:Localize lblRootBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
+																					</Border>
+																					<!-- downloads and runs newer versions of itself after install (#1016) -->
+																					<Border IsVisible="{Binding IsSelfUpdating}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
+																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblSelfUpdatingPackage}">
+																						<TextBlock Text="{l:Localize lblSelfUpdatingBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
+																					</Border>
+																					<!-- the source is not in the linked repository (#1016): informational, no warning -->
+																					<Border IsVisible="{Binding IsClosedSource}" Background="{DynamicResource FillBrush}" BorderBrush="{DynamicResource HairBrush}"
+																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblClosedSourcePackage}">
+																						<TextBlock Text="{l:Localize lblClosedSourceBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
 																					</Border>
 																					<!-- the selected TV runs none of the app's builds (TV-Store#47) -->
 																					<Border IsVisible="{Binding HasNeedsTizen}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"

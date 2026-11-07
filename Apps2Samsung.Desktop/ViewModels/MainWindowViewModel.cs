@@ -265,6 +265,9 @@ namespace Apps2Samsung.ViewModels
             /// <summary>The 18+ badge next to the name (#850); only ever true with the setting on.</summary>
             public bool IsAdult => Release.IsAdult;
             public bool IsRoot => Release.IsRoot;
+            /// <summary>The neutral "closed source" and the "self-updating" badges next to the name (#1016).</summary>
+            public bool IsClosedSource => Release.IsClosedSource;
+            public bool IsSelfUpdating => Release.IsSelfUpdating;
             /// <summary>The "own source" badge: the entry comes from a source the user added (UserSources).</summary>
             public bool IsUserSource => Release.IsUserSource;
             public bool HasNeedsTizen => NeedsTizen is not null;
@@ -550,6 +553,12 @@ namespace Apps2Samsung.ViewModels
             };
             // The catalog ⋯ > Show root apps: the same.
             _settingsViewModel.Application.ShowRootAppsChanged += () =>
+            {
+                RebuildCategories();
+                ApplyCategoryFilter();
+            };
+            // The catalog ⋯ > Show closed-source apps (#1016): the same.
+            _settingsViewModel.Application.ShowClosedSourceAppsChanged += () =>
             {
                 RebuildCategories();
                 ApplyCategoryFilter();
@@ -1834,9 +1843,11 @@ namespace Apps2Samsung.ViewModels
 
         // Everything loaded minus the adult-only entries while the setting is off (#850), and the
         // root ones while "Show root apps" is off: what the category dropdown, the counts, the
-        // grouped list and the search are built from.
+        // grouped list and the search are built from. With "Show closed-source apps" off a grouped
+        // app shows only its open-source variants (#1016).
         private List<GitHubRelease> VisibleReleases =>
-            CommunityAppList.Visible(_allReleases, AppSettings.Default.ShowAdultApps, AppSettings.Default.ShowRootApps).ToList();
+            CommunityAppList.Visible(_allReleases, AppSettings.Default.ShowAdultApps, AppSettings.Default.ShowRootApps,
+                AppSettings.Default.ShowClosedSourceApps).ToList();
 
         // The synthetic "Custom WGT / TPK" row: one instance, so the selection survives a re-filter.
         private GitHubRelease CustomEntry => _customEntry ??= new GitHubRelease

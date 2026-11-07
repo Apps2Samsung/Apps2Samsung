@@ -191,7 +191,15 @@ namespace Apps2Samsung.Catalog.Repositories
                     if (string.IsNullOrWhiteSpace(release.Name))
                         release.Name = string.IsNullOrWhiteSpace(p.DisplayName) ? p.Id : p.DisplayName!;
                     release.IsAdult = p.Adult;
-                    release.IsRoot = p.Flags.Any(f => string.Equals(f, "root", StringComparison.OrdinalIgnoreCase));
+                    release.IsRoot = HasFlag(p, "root");
+                    // #1016's labels: per file too, so "Show closed-source apps" off drops them like the catalog's own.
+                    release.IsClosedSource = HasFlag(p, "closed-source");
+                    release.IsSelfUpdating = HasFlag(p, "self-updating");
+                    foreach (var asset in release.Assets)
+                    {
+                        asset.IsClosedSource = release.IsClosedSource;
+                        asset.IsSelfUpdating = release.IsSelfUpdating;
+                    }
                 }
                 providers.Add(new ProviderEntry
                 {
@@ -211,6 +219,9 @@ namespace Apps2Samsung.Catalog.Repositories
             }
             return providers;
         }
+
+        private static bool HasFlag(RepositoryProvider provider, string flag) =>
+            provider.Flags.Any(f => string.Equals(f, flag, StringComparison.OrdinalIgnoreCase));
 
         /// <summary>Why <paramref name="release"/> cannot be installed now (a repository listed from its last verified copy), or null; en.json text.</summary>
         public static string? InstallBlocked(GitHubRelease release, Func<string, string> localize) =>

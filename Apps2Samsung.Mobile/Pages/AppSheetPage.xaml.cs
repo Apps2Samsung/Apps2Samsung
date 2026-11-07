@@ -83,6 +83,9 @@ public partial class AppSheetPage : ContentPage
 		PartnerNotice.IsVisible = release.RequiresPartner;
 		AdultBadge.IsVisible = release.IsAdult;
 		RootBadge.IsVisible = release.IsRoot;
+		// #1016: several flags can apply at once; each shows its own badge.
+		SelfUpdatingBadge.IsVisible = SelfUpdatingLabel.IsVisible = release.IsSelfUpdating;
+		ClosedSourceBadge.IsVisible = release.IsClosedSource;
 		ShowSourceLine(release);
 		ShowAlsoOffered(alsoOffered);
 		VersionsTitle.Text = L10n.Get(release.HasVariants ? "lblVariant" : "lblVersion");
