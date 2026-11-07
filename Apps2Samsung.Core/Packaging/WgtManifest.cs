@@ -324,6 +324,50 @@ namespace Apps2Samsung.Packaging
             return null;
         }
 
+        /// <summary>
+        /// The names a package gives itself (#1028): every <c>&lt;name&gt;</c> in a web package's
+        /// config.xml (one per language), or every <c>&lt;label&gt;</c> in a native package's
+        /// tizen-manifest.xml, trimmed and without blanks, with the package id and whether the package
+        /// is native. The TV lists an app under one of these, in its own language, so the installed-apps
+        /// listing can be checked against them to tell "the same app" from "another app with this id".
+        /// </summary>
+        public static async Task<PackageNames> ReadNamesAsync(string packagePath)
+        {
+            var config = await ReadConfigAsync(packagePath);
+            if (config is not null)
+                return new PackageNames(false, ParseIds(config).PackageId, ParseNames(config, "name"));
+
+            var native = await ReadEntryAsync(packagePath, "tizen-manifest.xml");
+            if (native is null)
+                return new PackageNames(false, null, Array.Empty<string>());
+            return new PackageNames(true, ParseNativeManifest(native).PackageId, ParseNames(native, "label"));
+        }
+
+        private static IReadOnlyList<string> ParseNames(string xml, string element)
+        {
+            try
+            {
+                // A widget's names sit right under <widget>; a native app's labels under its application elements.
+                var root = XDocument.Parse(xml).Root;
+                var candidates = root is null ? Enumerable.Empty<XElement>()
+                    : element == "name" ? root.Elements() : root.Descendants();
+                return candidates
+                    .Where(e => e.Name.LocalName == element)
+                    .Select(e => e.Value.Trim())
+                    .Where(v => v.Length > 0)
+                    .Distinct(StringComparer.Ordinal)
+                    .ToList();
+            }
+            catch (System.Xml.XmlException)
+            {
+                var matches = Regex.Matches(xml, $@"<{element}\b[^>]*>(?<v>[^<]*)</{element}>", RegexOptions.IgnoreCase);
+                return matches.Select(m => System.Net.WebUtility.HtmlDecode(m.Groups["v"].Value).Trim())
+                    .Where(v => v.Length > 0)
+                    .Distinct(StringComparer.Ordinal)
+                    .ToList();
+            }
+        }
+
         /// <summary>Reads <c>config.xml</c> out of a .wgt, or null when there isn't one to read.</summary>
         internal static Task<string?> ReadConfigAsync(string wgtPath) => ReadEntryAsync(wgtPath, "config.xml");
 
@@ -410,6 +454,9 @@ namespace Apps2Samsung.Packaging
     /// a web package, <c>api-version</c> on a native one.
     /// </summary>
     public sealed record WgtPackageInfo(string? Version, string? ApplicationId, string? PackageId, string? RequiredVersion);
+
+    /// <summary>What <see cref="WgtManifest.ReadNamesAsync"/> reads: native or web, the package id, and its names.</summary>
+    public sealed record PackageNames(bool IsNative, string? PackageId, IReadOnlyList<string> Names);
 
     /// <summary>
     /// A package's icon as it ships (<see cref="WgtManifest.ReadIconAsync"/>): the file's bytes and

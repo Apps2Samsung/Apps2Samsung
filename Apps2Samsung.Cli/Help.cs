@@ -99,6 +99,8 @@ public static class Help
           -y, --yes             continue past pre-install warnings
           --allow-remove        allow removing the installed copy when only a remove-and-reinstall gets
                                 the new one on (erases the app's data on the TV)
+          --replace             a .tpk whose package id another app on the TV uses: replace that app
+                                (a .wgt in that spot goes in as a separate app on its own)
           --allow-root          install an app the catalog marks (root): it gains root on the TV, and
                                 afterwards Host PC IP has to be 127.0.0.1; this machine then reaches
                                 the TV only through TV-Store's relay (TV-Store 0.3.14+, turned on in

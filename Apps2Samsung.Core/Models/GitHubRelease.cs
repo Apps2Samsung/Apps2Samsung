@@ -201,6 +201,15 @@ namespace Apps2Samsung.Models
         [JsonIgnore]
         public MovedTo? MovedTo { get; set; }
 
+        /// <summary>
+        /// The catalog repository this file is listed for (<c>repo</c> in its tizen-community-packages
+        /// manifest, "owner/repo"). Part of the key the package id of a colliding install is derived
+        /// from (#1028), so TV-Store, reading the same catalog, arrives at the same id. Null outside the
+        /// community bundle; a group can span repositories, which is why it is per file.
+        /// </summary>
+        [JsonIgnore]
+        public string? CatalogRepo { get; set; }
+
         [JsonIgnore]
         public bool IsDefault => FileName.Equals("Jellyfin.wgt", StringComparison.OrdinalIgnoreCase);
 

@@ -987,13 +987,19 @@ public partial class InstallerPage : ContentPage
 			// rejects such a package ("Certificate in signature is not valid yet"). Hold the install
 			// behind a countdown to the moment it becomes valid instead of pushing something the TV
 			// will refuse; the loop re-runs the check once the user chooses to continue.
+			// The catalog entry a colliding package's new id is derived from (#1028); a picked file
+			// is keyed on its own id and name.
+			var catalogKey = custom ? null : PackageIdCollisions.CatalogKey(release, asset);
+			PackageIdRename? rename = null;
 			while (true)
 			{
 				try
 				{
 					await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus, SetStep, cancel.Token,
 						confirmRemove: () => ConfirmRemoveAsync(appName),
-						packageId: new PackageIdPolicy(cert.Duid, newPackageId, ownPackageId));
+						packageId: new PackageIdPolicy(cert.Duid, newPackageId, ownPackageId, catalogKey),
+						confirmReplace: ConfirmReplaceAsync,
+						renamed: r => rename = r);
 					break;
 				}
 				catch (CertificateNotYetValidException notYetValid)
@@ -1033,7 +1039,7 @@ public partial class InstallerPage : ContentPage
 			// The step only the user can take, now that the package is on the TV.
 			if (!custom && release!.IsRoot)
 				await DisplayAlert(string.Format(L10n.Get("lblRootAfterInstallTitle"), appName), L10n.Get("lblRootAfterInstallBody"), L10n.Get("lblOk"));
-			await Navigation.PushModalAsync(new InstallCompletePage(appName));
+			await Navigation.PushModalAsync(new InstallCompletePage(appName, SeparateAppNote(rename)));
 		}
 		catch (OperationCanceledException) when (cancel.IsCancellationRequested)
 		{
@@ -1060,6 +1066,11 @@ public partial class InstallerPage : ContentPage
 			FailProgress(ex.Find is null
 				? string.Format(L10n.Get("statusUserSettingsFileMissing"), ex.PackageFile, ex.File)
 				: string.Format(L10n.Get("statusUserSettingsFindMissing"), ex.PackageFile, ex.Find, ex.File));
+		}
+		catch (ReplaceDeclinedException declined)
+		{
+			// The user kept the other app that has this native package's id (#1028): nothing changed.
+			FailProgress(string.Format(L10n.Get("replaceDeclined"), declined.Collision.OccupantName, declined.Collision.PackageName));
 		}
 		catch (RemovalDeclinedException)
 		{
@@ -1248,6 +1259,23 @@ public partial class InstallerPage : ContentPage
 				L10n.Get("keyRemoveAndInstall"),
 				L10n.Get("lblCancel"));
 		});
+
+	// A native package's id belongs to another app on the TV (#1028): replacing it erases that app,
+	// so the user decides. Shown from the progress sheet, like the question above.
+	private Task<bool> ConfirmReplaceAsync(PackageIdCollision collision) =>
+		MainThread.InvokeOnMainThreadAsync(() =>
+		{
+			Page host = _progress ?? (Page)this;
+			return host.DisplayAlert(
+				string.Format(L10n.Get("confirmReplaceOtherTitle"), collision.OccupantName),
+				string.Format(L10n.Get("confirmReplaceOther"), collision.OccupantName, collision.PackageName),
+				L10n.Get("btnReplace"),
+				L10n.Get("lblCancel"));
+		});
+
+	// "Installed as a separate app (…), because … already uses this id." when that is what happened (#1028).
+	private static string? SeparateAppNote(PackageIdRename? rename) =>
+		rename?.CollidedWith is { } other ? string.Format(L10n.Get("installedAsSeparateApp"), rename.NewId, other) : null;
 
 	private void FailProgress(string message)
 	{

@@ -68,6 +68,13 @@ namespace Apps2Samsung.Catalog
                         candidates.Add((release, asset));
                 }
             }
+            // Installed under an id derived from a catalog entry (#1028): that entry, whether this
+            // client renamed it (the record above maps it back) or TV-Store did (no record here). The
+            // forks that share the original id are then told apart: tacplayer's derived id is not the
+            // Jellyfin client's.
+            var derived = DerivedMatches(app.TizenId, catalog);
+            if (derived.Count > 0)
+                candidates = derived;
             if (candidates.Count == 0)
                 return null;
 
@@ -135,6 +142,30 @@ namespace Apps2Samsung.Catalog
             }
 
             return new CatalogMatch(candidates[0].Release, candidates[0].Asset, CatalogVersionState.Unknown);
+        }
+
+        // The catalog files whose derived package id (PackageIdCollisions.DerivedId of their catalog
+        // key) is the installed app's package, with the same application part ("Pkg.App"'s ".App").
+        private static List<(GitHubRelease Release, Asset Asset)> DerivedMatches(string tizenId, IEnumerable<GitHubRelease> catalog)
+        {
+            var found = new List<(GitHubRelease, Asset)>();
+            var dot = tizenId.IndexOf('.');
+            if (dot != Apps2Samsung.Install.PackageIdCollisions.IdLength)
+                return found;
+            var package = tizenId[..dot];
+            var appPart = tizenId[dot..];
+            foreach (var release in catalog)
+            {
+                foreach (var asset in release.Assets)
+                {
+                    if (string.IsNullOrWhiteSpace(asset.AppId) || !asset.AppId.EndsWith(appPart, StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    var key = Apps2Samsung.Install.PackageIdCollisions.CatalogKey(release, asset);
+                    if (key is not null && string.Equals(Apps2Samsung.Install.PackageIdCollisions.DerivedId(key), package, StringComparison.Ordinal))
+                        found.Add((release, asset));
+                }
+            }
+            return found;
         }
 
         /// <summary>

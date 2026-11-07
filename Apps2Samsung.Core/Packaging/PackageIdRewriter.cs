@@ -14,7 +14,14 @@ namespace Apps2Samsung.Packaging
     /// (relative, '/'-separated paths). A rename that only touched <c>config.xml</c> and one that
     /// also had to rewrite app code are worth telling apart when an install still misbehaves.
     /// </summary>
-    public sealed record PackageIdRename(string OldId, string NewId, IReadOnlyList<string> FilesChanged);
+    public sealed record PackageIdRename(string OldId, string NewId, IReadOnlyList<string> FilesChanged)
+    {
+        /// <summary>
+        /// The name of the other app on the TV that has <see cref="OldId"/>, when that is why the
+        /// package was renamed (#1028); null for a rename the user asked for or one remembered.
+        /// </summary>
+        public string? CollidedWith { get; init; }
+    }
 
     /// <summary>
     /// Renames a Tizen package's id everywhere it occurs, not just in the

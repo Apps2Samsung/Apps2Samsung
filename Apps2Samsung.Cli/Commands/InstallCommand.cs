@@ -226,6 +226,7 @@ public static class InstallCommand
             if (await TvStoreSelfUpdate.AppliesAsync(tvIp, packagePath, s.Config.PackageIdRenamesJson, ct))
                 s.Out.Warn(s.Strings.GetString(TvStoreSelfUpdate.NoticeKey));
             var lastPercent = -1;
+            PackageIdRename? rename = null;
             var output = await s.Installer.InstallAsync(tvIp, packagePath, profile,
                 progress: line =>
                 {
@@ -244,11 +245,17 @@ public static class InstallCommand
                 stage: null,
                 ct: ct,
                 confirmRemove: () => Task.FromResult(s.Options.AllowRemove),
-                packageId: new PackageIdPolicy(duid, s.Options.NewId, s.Options.OwnId));
+                packageId: new PackageIdPolicy(duid, s.Options.NewId, s.Options.OwnId, PackageIdCollisions.CatalogKey(release, asset)),
+                confirmReplace: _ => Task.FromResult(s.Options.Replace),
+                renamed: r => rename = r);
 
             // The ids as installed: a rename (#839) changed them after the read above.
             var (installedAppId, installedPackageId) = await WgtManifest.ReadIdsAsync(packagePath);
             var renamed = !string.Equals(installedPackageId, packageId, StringComparison.Ordinal);
+            // Renamed because another app has this id (#1028): say why, the first thing after the result.
+            var separate = rename?.CollidedWith is { } other
+                ? string.Format(s.Strings.GetString("installedAsSeparateApp"), installedPackageId, other)
+                : null;
             // Which file this TV got (#975), so `installed` and the menu's Update take the same variant
             // next time. In the desktop's settings.json, so the desktop app remembers it too.
             if (release is not null && asset is not null)
@@ -264,13 +271,15 @@ public static class InstallCommand
                 if (!launched)
                     s.Out.Warn($"installed, but the TV did not open it: {(string.IsNullOrWhiteSpace(launch.Error) ? launch.Output.Trim() : launch.Error)}");
             }
-            var lines = release?.IsRoot == true
-                ? new[]
-                {
-                    $"Installed {appName} on {tvIp}{(renamed ? $" under package id {installedPackageId} (remembered for this TV)" : "")}{(launched ? " and launched it" : "")}.",
-                    "Now set Developer Mode's Host PC IP to 127.0.0.1 and restart the TV. From then on this machine reaches the TV through TV-Store's relay: turn it on under TV-Store's Settings (TV-Store 0.3.14 or newer).",
-                }
-                : new[] { $"Installed {appName} on {tvIp}{(renamed ? $" under package id {installedPackageId} (remembered for this TV)" : "")}{(launched ? " and launched it" : "")}." };
+            var resultLines = new List<string>
+            {
+                $"Installed {appName} on {tvIp}{(renamed ? $" under package id {installedPackageId} (remembered for this TV)" : "")}{(launched ? " and launched it" : "")}.",
+            };
+            if (separate is not null)
+                resultLines.Add(separate);
+            if (release?.IsRoot == true)
+                resultLines.Add("Now set Developer Mode's Host PC IP to 127.0.0.1 and restart the TV. From then on this machine reaches the TV through TV-Store's relay: turn it on under TV-Store's Settings (TV-Store 0.3.14 or newer).");
+            var lines = resultLines.ToArray();
             return s.Out.Result(
                 new
                 {
@@ -282,6 +291,7 @@ public static class InstallCommand
                     appId = installedAppId,
                     packageId = installedPackageId,
                     originalPackageId = renamed ? packageId : null,
+                    separateFrom = rename?.CollidedWith,
                     certificate,
                     duid,
                     launched,
@@ -290,6 +300,10 @@ public static class InstallCommand
                 rich: Views.Done(lines, s.Out.Unicode,
                     ("app id", installedAppId), ("package id", installedPackageId), ("certificate", certificate),
                     ("remove with", $"apps2samsung-cli uninstall {installedAppId} --tv {tvIp}")));
+        }
+        catch (ReplaceDeclinedException ex)
+        {
+            return s.Out.Fail($"Already on the TV: {ex.Collision.OccupantName}, under the same package id. Installing {ex.Collision.PackageName} would replace it and erase its data on the TV. Rerun with --replace to do that.", Output.Stopped);
         }
         catch (RemovalDeclinedException)
         {

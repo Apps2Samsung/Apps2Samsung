@@ -44,6 +44,8 @@ public sealed class CliOptions
     public bool Yes { get; set; }
     /// <summary>Allow the remove-and-reinstall that erases the app's data on the TV (#825); separate from <see cref="Yes"/>, as the apps ask it separately.</summary>
     public bool AllowRemove { get; set; }
+    /// <summary>Replace another app on the TV that has a native package's id (#1028); a web package gets its own id instead, unasked.</summary>
+    public bool Replace { get; set; }
     /// <summary>Install a package the catalog flags root; separate from <see cref="Yes"/>, as the apps ask it separately.</summary>
     public bool AllowRoot { get; set; }
     /// <summary>For testing (#1026): skip the Developer Mode off / restart checks for this run, as the
@@ -128,6 +130,7 @@ public sealed class CliOptions
                 case "--local-ip": o.LocalIp = Next(arg); if (o.LocalIp is null) return (o, "--local-ip needs this machine's IP address"); break;
                 case "--virtual": o.Virtual = true; break;
                 case "--allow-remove": o.AllowRemove = true; break;
+                case "--replace": o.Replace = true; break;
                 case "--allow-root": o.AllowRoot = true; break;
                 case "--skip-devmode-check": o.SkipDevModeCheck = true; break;
                 case "--data-dir": o.DataDir = Next(arg); if (o.DataDir is null) return (o, "--data-dir needs a path"); break;
