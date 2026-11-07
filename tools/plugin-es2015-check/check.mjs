@@ -3,14 +3,17 @@
 // esbuild can't bring down to ES2015 (or that esbuild rejects outright) then fails here, before a
 // user installs it onto a TV that can't parse it (#801).
 //
-// Usage: node check.mjs <esbuild binary> [work dir]
+// Usage: node check.mjs <esbuild binary> [work dir] [RegexLower.dll]
+//
+// With tools/RegexLower's dll, esbuild's output goes through the same Unicode property escape pass
+// (RegexPropertyEscapes.Lower) that EsbuildHelper.TranspileAsync runs in the app.
 
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { parse } from 'acorn';
 
-const [esbuild, workDir = 'plugin-sources'] = process.argv.slice(2);
+const [esbuild, workDir = 'plugin-sources', lowerDll] = process.argv.slice(2);
 if (!esbuild) {
     console.error('usage: node check.mjs <esbuild binary> [work dir]');
     process.exit(2);
@@ -89,6 +92,11 @@ for (const plugin of plugins) {
                 warnings++;
             }
             output = run.stdout;
+            if (lowerDll && /\\[pP]\{/.test(output)) {
+                const lower = spawnSync('dotnet', [lowerDll], { input: output, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+                if (lower.error || lower.status !== 0) throw Object.assign(lower.error ?? new Error(`RegexLower exit ${lower.status}`), { stderr: lower.stderr });
+                output = lower.stdout;
+            }
         } catch (e) {
             const detail = (e.stderr || e.message).trim().replace(/^/gm, '      ');
             console.log(`  ✗ ${file}: esbuild failed\n${detail}`);

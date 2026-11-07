@@ -427,6 +427,8 @@ internal sealed class Menu
             if (e.From != "Official") parts.Add(e.From);
             if (e.RequiresPartner) parts.Add("partner");
             if (e.Root) parts.Add("root");
+            if (e.SelfUpdating) parts.Add("self-updating");
+            if (e.ClosedSource) parts.Add("closed source");
             return new Item(E(string.Join("  ", parts)), r);
         }));
         choices.Add(new Item(M($"{(_unicode ? "←" : "<-")} Back"), "back"));
@@ -504,6 +506,9 @@ internal sealed class Menu
                         args.AddRange(new[] { "--set", $"{st.Key}={value.Trim()}" });
                 }
             }
+            // #1016: said, not asked; the root confirmation below stays as it is.
+            if (release.IsSelfUpdating)
+                _con.MarkupLine(M(E(CatalogCommand.Entry.SelfUpdatingNote)));
             if (release.IsRoot)
             {
                 _con.MarkupLine($"[{Views.WarnHex}]{E(release.Name)} gains root on the TV and runs a background service from boot.[/] Afterwards Developer Mode's Host PC IP has to be 127.0.0.1, and this device then reaches the TV only through TV-Store's relay.");

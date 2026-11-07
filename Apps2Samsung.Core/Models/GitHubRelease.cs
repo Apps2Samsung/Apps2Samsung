@@ -81,6 +81,52 @@ namespace Apps2Samsung.Models
         public CatalogSource Source { get; set; } = CatalogSource.Official;
 
         /// <summary>
+        /// True when the community catalog flags this app <c>closed-source</c> (#1016): its source is
+        /// not in the linked repository. A grouped app is closed source when any of its files is
+        /// (<see cref="Asset.IsClosedSource"/> says which); with "Show closed-source apps" off,
+        /// <c>CommunityAppList.Visible</c> drops only those files. Stamped from the catalog, never serialized.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsClosedSource { get; set; }
+
+        /// <summary>
+        /// True when the community catalog flags this app <c>self-updating</c> (#1016): it downloads
+        /// and runs newer versions of itself after install, which the catalogue's scan never sees.
+        /// A grouped app is self-updating when any of its files is. Stamped from the catalog, never serialized.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsSelfUpdating { get; set; }
+
+        // The same entry without its closed-source variants, built once by WithoutClosedSourceVariants
+        // so a re-filter hands out the same instance and a selection survives it.
+        private GitHubRelease? _openVariants;
+
+        /// <summary>
+        /// This grouped app with only its open-source variants (#1016), or null when every file is
+        /// closed source. The entry itself when none is. Shares everything but the asset list, so it
+        /// is only valid once the entry is fully stamped.
+        /// </summary>
+        public GitHubRelease? WithoutClosedSourceVariants()
+        {
+            var open = Assets.Where(a => !a.IsClosedSource).ToList();
+            if (open.Count == 0)
+                return null;
+            if (open.Count == Assets.Count)
+                return this;
+            if (_openVariants is null)
+            {
+                var copy = (GitHubRelease)MemberwiseClone();
+                copy._openVariants = null;
+                copy.Assets = open;
+                copy.HasVariants = HasVariants && open.Count > 1;
+                copy.IsClosedSource = false;
+                copy.IsSelfUpdating = open.Exists(a => a.IsSelfUpdating);
+                _openVariants = copy;
+            }
+            return _openVariants;
+        }
+
+        /// <summary>
         /// Download URL of the release's <c>catalog.json</c>, when the release ships one (the
         /// community bundle). Captured before the asset list is narrowed to .wgt/.tpk. Serialized
         /// (GitHub itself never sends a <c>catalog_url</c>) so the pre-resolved snapshot
@@ -213,6 +259,12 @@ namespace Apps2Samsung.Models
         /// </summary>
         [JsonIgnore]
         public UserSettingsSpec? UserSettings { get; set; }
+
+        /// <summary>This file's <c>closed-source</c> and <c>self-updating</c> flags from the community catalog (#1016); stamped by <c>CommunityAppList</c>.</summary>
+        [JsonIgnore]
+        public bool IsClosedSource { get; set; }
+        [JsonIgnore]
+        public bool IsSelfUpdating { get; set; }
 
         /// <summary>The variant label, or the bare file name when the file is not part of a group.</summary>
         [JsonIgnore]

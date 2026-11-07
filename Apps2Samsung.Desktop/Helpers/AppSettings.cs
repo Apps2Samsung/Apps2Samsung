@@ -125,6 +125,9 @@ namespace Apps2Samsung.Helpers
         public bool ShowAdultApps { get; set; } = false;
         // Catalog entries flagged root (they gain root on the TV) are listed unless this is turned off.
         public bool ShowRootApps { get; set; } = true;
+        // Catalog files flagged closed-source (#1016) are listed unless this is turned off; then a
+        // grouped app keeps its open-source variants.
+        public bool ShowClosedSourceApps { get; set; } = true;
         // Sources the user added themselves (UserSources): JSON array of { name, url, category, partner },
         // listed in the catalog next to the manifest's providers on every load.
         public string UserSourcesJson { get; set; } = "";

@@ -8,6 +8,10 @@ Rules that apply to every plugin:
 
 - **No raw plugin code on the TV.** A file esbuild can't transpile is left out of the app, with a ⛔
   line in the log (`EsbuildHelper.TranspileAsync` returns null).
+- **Unicode property escapes are rewritten after esbuild.** esbuild keeps `\p{L}`-style escapes at
+  es2015 (they need Chromium 64), so `RegexPropertyEscapes.Lower` turns them into code point ranges in
+  the same `u` regex. General categories, `White_Space`, `ASCII`, `ASCII_Hex_Digit` and `Any` are
+  known; a regex with another property (`Script=...`) stays as it is and fails the check below.
 - **Tizen 4.0 and newer.** ES2015 needs Chromium 56 (Tizen 4). Tizen 3 (Chromium 47) lacks parts of it
   and esbuild can't go lower, so below 4.0 no plugins are injected
   (`Constants.TizenVersions.PluginScriptsMin`).
@@ -46,7 +50,8 @@ Known open points:
   files end up in the app, that skipped versions stay out, and which URLs were fetched. Everything it
   caches is then parsed as ES2015.
 - `tools/plugin-es2015-check` runs the bundled esbuild over the current upstream sources of every
-  plugin daily, so a plugin update that breaks the transpile shows up before users install it.
+  plugin daily, through the same `RegexPropertyEscapes` pass (`tools/RegexLower`), so a plugin update
+  that breaks the transpile shows up before users install it.
 
 Both run in `.github/workflows/plugin-es2015-check.yml`. When a plugin changes how it loads its
 scripts, or a new version needs a `MinimumVersion`, add a case to `cases.json` and update this table.
