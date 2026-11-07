@@ -8,7 +8,7 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
 
         <!-- The top bar (#755): the TV with ▾, how many apps and how much space (or what is going on),
              and ⋯ with Refresh / TV information / Remove leftover. -->
@@ -17,7 +17,10 @@
 
         <!-- The apps as a grouped list (#755): tile, name, version and size, a chevron; a row opens
              the app's sheet with Launch / Stop / Debug console / Uninstall. -->
-        <Border Grid.Row="1" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}"
+        <!-- apps on this TV that moved to their author's repository (#1018): filled in code, one card each -->
+        <VerticalStackLayout Grid.Row="1" x:Name="MovedHost" Spacing="8" Margin="16,4,16,4" IsVisible="False" />
+
+        <Border Grid.Row="2" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}"
                 VerticalOptions="Start" Margin="16,4,16,0">
             <RefreshView x:Name="Refresher" Refreshing="OnPulledToRefresh" RefreshColor="{DynamicResource AccentColor}">
             <CollectionView x:Name="AppsList" SelectionMode="None" VerticalScrollBarVisibility="Never">
@@ -66,10 +69,10 @@
         </Border>
 
         <!-- Busy overlay -->
-        <ActivityIndicator Grid.Row="1" x:Name="Busy" IsRunning="False" IsVisible="False"
+        <ActivityIndicator Grid.Row="2" x:Name="Busy" IsRunning="False" IsVisible="False"
                            VerticalOptions="Center" HorizontalOptions="Center" Color="{DynamicResource AccentColor}" />
 
-        <Label Grid.Row="2" Text="{l:Localize lblPullToRefresh}" Style="{StaticResource Footnote}"
+        <Label Grid.Row="3" Text="{l:Localize lblPullToRefresh}" Style="{StaticResource Footnote}"
                HorizontalOptions="Center" Margin="0,4,0,12" />
 
     </Grid>

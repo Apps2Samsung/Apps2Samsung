@@ -89,6 +89,13 @@ namespace Apps2Samsung.Models
         /// package; written only when present, so the snapshot round-trips it as-is and TV-Store
         /// reads it from resolved.json.
         /// </summary>
+        /// <summary>
+        /// The independent repository this app moved to (#1018), copied by build-catalog.sh onto each
+        /// of its files: the signed catalog vouches for that repository's key. Null when it did not move.
+        /// </summary>
+        [JsonPropertyName("moved_to")]
+        public MovedTo? MovedTo { get; set; }
+
         [JsonPropertyName("cert_level")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? CertLevel { get; set; }
@@ -191,5 +198,15 @@ namespace Apps2Samsung.Models
         public List<long>? Disallow { get; set; }
 
         public bool IsNumber => string.Equals(Type, "number", System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Where a catalog app moved to (#1018): its repository's link and the key fingerprint the official catalog vouches for.</summary>
+    public sealed class MovedTo
+    {
+        [JsonPropertyName("url")]
+        public string Url { get; set; } = "";
+
+        [JsonPropertyName("fingerprint")]
+        public string Fingerprint { get; set; } = "";
     }
 }

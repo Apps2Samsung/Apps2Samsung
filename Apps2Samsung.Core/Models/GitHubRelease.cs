@@ -197,6 +197,10 @@ namespace Apps2Samsung.Models
         [JsonPropertyName("digest")]
         public string? Digest { get; set; }
 
+        /// <summary>The repository this file's app moved to (#1018), from the community catalog; stamped, never serialized.</summary>
+        [JsonIgnore]
+        public MovedTo? MovedTo { get; set; }
+
         [JsonIgnore]
         public bool IsDefault => FileName.Equals("Jellyfin.wgt", StringComparison.OrdinalIgnoreCase);
 

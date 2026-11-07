@@ -127,6 +127,38 @@ namespace Apps2Samsung.ViewModels
             _refreshCatalog = refreshCatalog;
         }
 
+        // ---- apps that moved to their author's repository (#1018, moved_to) ----
+
+        /// <summary>One repository apps on this TV moved to, with the sentence and the Add button.</summary>
+        public sealed record MovedRow(Apps2Samsung.Catalog.Repositories.MovedHint Hint, string Text);
+        public System.Collections.ObjectModel.ObservableCollection<MovedRow> Moved { get; } = new();
+        [ObservableProperty]
+        private string movedStatus = string.Empty;
+
+        /// <summary>Adds the repository with the key the official catalog named, then reloads the catalog and this list.</summary>
+        [RelayCommand]
+        private async Task AddMovedRepository(MovedRow? row)
+        {
+            if (row is null)
+                return;
+            var repositories = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions
+                .GetRequiredService<Apps2Samsung.Catalog.Repositories.SignedRepositories>(App.Services);
+            var (source, problem) = await Apps2Samsung.Catalog.Repositories.MovedApps.AdoptAsync(repositories, row.Hint.To);
+            if (source is null)
+            {
+                MovedStatus = string.Format("errMovedNotAdded".Localized(), problem);
+                return;
+            }
+            var sources = Apps2Samsung.Catalog.UserSources.Parse(Apps2Samsung.Helpers.AppSettings.Default.UserSourcesJson);
+            sources.Add(source);
+            Apps2Samsung.Helpers.AppSettings.Default.UserSourcesJson = Apps2Samsung.Catalog.UserSources.Serialize(sources);
+            Apps2Samsung.Helpers.AppSettings.Default.Save();
+            MovedStatus = string.Empty;
+            if (_refreshCatalog is not null)
+                await _refreshCatalog();
+            await Load();
+        }
+
         [RelayCommand]
         private async Task Load()
         {
@@ -163,10 +195,15 @@ namespace Apps2Samsung.ViewModels
                     viewModels.Add(new InstalledAppViewModel(apps[i]));
                 }
 
+                var hints = Apps2Samsung.Catalog.Repositories.MovedApps.Hints(_matches.Values,
+                    Apps2Samsung.Catalog.UserSources.Parse(Apps2Samsung.Helpers.AppSettings.Default.UserSourcesJson));
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     _all = viewModels;
                     ShowInOrder();
+                    Moved.Clear();
+                    foreach (var hint in hints)
+                        Moved.Add(new MovedRow(hint, string.Format("hintMoved".Localized(), string.Join(", ", hint.AppNames), hint.Domain)));
                 });
                 
                 // Start loading bitmaps in the background

@@ -40,6 +40,7 @@ namespace Apps2Samsung.Catalog
                     asset.RequiredVersion = Clean(entry?.RequiredVersion) ?? asset.RequiredVersion;
                     asset.IsClosedSource = entry?.IsClosedSource == true;
                     asset.IsSelfUpdating = entry?.IsSelfUpdating == true;
+                    asset.MovedTo = entry?.MovedTo is { Url.Length: > 0, Fingerprint.Length: > 0 } moved ? moved : null;
 
                     if (entry != null && !string.IsNullOrWhiteSpace(entry.Group))
                     {

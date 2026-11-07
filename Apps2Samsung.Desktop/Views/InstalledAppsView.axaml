@@ -15,6 +15,29 @@
         <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" Height="3" Margin="0,0,0,8"
                      IsVisible="{Binding IsProgressVisible}"/>
 
+        <!-- apps on this TV that moved to their author's repository (#1018): add it, with the key the official catalog names -->
+        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
+            <ItemsControl ItemsSource="{Binding Moved}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:InstalledAppsViewModel+MovedRow">
+                        <Border Background="{DynamicResource AccentSoftBrush}" CornerRadius="12" Padding="14,12" Margin="0,0,0,8">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="{l:Localize lblMovedTitle}" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
+                                    <TextBlock Text="{Binding Text}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Classes="primary" VerticalAlignment="Center" Content="{l:Localize lblMovedAdd}"
+                                        Command="{ReflectionBinding $parent[UserControl].DataContext.AddMovedRepositoryCommand}"
+                                        CommandParameter="{Binding}"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Text="{Binding MovedStatus}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource BadBrush}"
+                       IsVisible="{Binding MovedStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        </StackPanel>
+
         <ScrollViewer IsEnabled="{Binding !IsDebugging}">
             <ScrollViewer.Styles>
                 <Style Selector="ScrollViewer[IsEnabled=False]">

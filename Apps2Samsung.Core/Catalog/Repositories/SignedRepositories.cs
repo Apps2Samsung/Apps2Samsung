@@ -178,7 +178,7 @@ namespace Apps2Samsung.Catalog.Repositories
         /// <summary>The manifest's apps as catalog providers, with their verified releases and this repository as their source.</summary>
         public static List<ProviderEntry> ToProviders(UserSource source, RepositoryManifest manifest, string? installBlockedReason)
         {
-            var label = new CatalogSource(CatalogSourceKind.Repository, manifest.Repository.Name, manifest.Repository.Id, installBlockedReason);
+            var label = new CatalogSource(CatalogSourceKind.Repository, manifest.Repository.Name, manifest.Repository.Id, installBlockedReason, source.Url.Trim());
             var prefix = UserSources.Id(source);
             var providers = new List<ProviderEntry>();
             foreach (var p in manifest.Providers)

@@ -254,6 +254,8 @@ public partial class InstalledAppsPage : ContentPage
 				apps[i] = apps[i] with { CatalogLine = CatalogLine(match), HasUpdate = match.HasUpdate };
 			}
 			AppsList.ItemsSource = InstalledAppSort.Sort(apps, MobileSettings.InstalledAppOrder).ToList();
+			ShowMoved(Apps2Samsung.Catalog.Repositories.MovedApps.Hints(_matches.Values,
+				Apps2Samsung.Catalog.UserSources.Parse(MobileSettings.UserSourcesJson)));
 
 			var updates = apps.Count(a => a.HasUpdate);
 			if (apps.Count == 0)
@@ -278,6 +280,67 @@ public partial class InstalledAppsPage : ContentPage
 		finally
 		{
 			SetBusy(false);
+		}
+	}
+
+	// ---- apps that moved to their author's repository (#1018, the official catalog's moved_to) ----
+
+	private static readonly System.Net.Http.HttpClient MovedHttp = new();
+
+	/// <summary>One card per repository apps on this TV moved to: what moved, and Add repository.</summary>
+	private void ShowMoved(System.Collections.Generic.IReadOnlyList<Apps2Samsung.Catalog.Repositories.MovedHint> hints)
+	{
+		MovedHost.Children.Clear();
+		foreach (var hint in hints)
+		{
+			var add = new Button { Text = L10n.Get("lblMovedAdd"), Style = (Style)Application.Current!.Resources["PrimaryButton"] };
+			add.Clicked += async (_, _) => await AddMovedAsync(hint, add);
+			MovedHost.Children.Add(new Border
+			{
+				StrokeThickness = 0,
+				StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 12 },
+				Padding = new Thickness(14, 12),
+				BackgroundColor = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("AccentSoft"),
+				Content = new VerticalStackLayout
+				{
+					Spacing = 6,
+					Children =
+					{
+						new Label { Text = L10n.Get("lblMovedTitle"), FontAttributes = FontAttributes.Bold, TextColor = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("Ink") },
+						new Label { Text = string.Format(L10n.Get("hintMoved"), string.Join(", ", hint.AppNames), hint.Domain), FontSize = 15,
+							LineBreakMode = LineBreakMode.WordWrap, TextColor = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("Ink") },
+						add,
+					},
+				},
+			});
+		}
+		MovedHost.IsVisible = hints.Count > 0;
+	}
+
+	/// <summary>Adds the repository with the key the official catalog named, then reloads the catalog and the list.</summary>
+	private async Task AddMovedAsync(Apps2Samsung.Catalog.Repositories.MovedHint hint, Button button)
+	{
+		button.IsEnabled = false;
+		try
+		{
+			var repositories = new Apps2Samsung.Catalog.Repositories.SignedRepositories(MovedHttp,
+				System.IO.Path.Combine(FileSystem.AppDataDirectory, "repositories"));
+			var (source, problem) = await Apps2Samsung.Catalog.Repositories.MovedApps.AdoptAsync(repositories, hint.To);
+			if (source is null)
+			{
+				await DisplayAlert(L10n.Get("lblMovedTitle"), string.Format(L10n.Get("errMovedNotAdded"), problem), L10n.Get("btn_Close"));
+				return;
+			}
+			var sources = Apps2Samsung.Catalog.UserSources.Parse(MobileSettings.UserSourcesJson);
+			sources.Add(source);
+			MobileSettings.UserSourcesJson = Apps2Samsung.Catalog.UserSources.Serialize(sources);
+			if (CatalogStore.Refresh is { } refresh)
+				await refresh();
+			await LoadAsync();
+		}
+		finally
+		{
+			button.IsEnabled = true;
 		}
 	}
 

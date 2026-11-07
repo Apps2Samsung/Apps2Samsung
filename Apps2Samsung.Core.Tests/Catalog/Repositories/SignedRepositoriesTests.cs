@@ -203,6 +203,46 @@ public class SignedRepositoriesTests : IDisposable
         Assert.Empty(providers);
     }
 
+    // ---- moved_to: an app that left the official catalog for its author's repository ----
+
+    [Fact]
+    public async Task A_moved_app_is_adopted_only_with_the_key_the_official_catalog_names()
+    {
+        var right = new MovedTo { Url = Url, Fingerprint = RepositoryVerifier.Fingerprint(File.ReadAllText(Path.Combine(Dir, "keys", "test.pub.pem")))! };
+        var wrong = new MovedTo { Url = Url, Fingerprint = new string('0', 64) };
+
+        var (adopted, _) = await MovedApps.AdoptAsync(Repos(), right);
+        var (refused, problem) = await MovedApps.AdoptAsync(Repos(), wrong);
+
+        Assert.Equal("org.example.tizen", adopted!.RepositoryId);
+        Assert.Null(refused);
+        Assert.Contains("official catalog", problem);
+    }
+
+    [Fact]
+    public async Task A_moved_app_updates_from_its_new_repository_once_it_is_added()
+    {
+        var source = await ApprovedAsync();
+        var repoProvider = (await Repos().LoadAsync(source)).Providers.First();
+        var fromRepo = (await new AddLatestRelease(Http()).GetProviderReleasesAsync(repoProvider, 1)).Releases.Single();
+        var appId = fromRepo.Assets[0].AppId!;
+        var official = new GitHubRelease
+        {
+            Name = fromRepo.Name, TagName = "v0.9", PublishedAt = "2026-11-01T00:00:00Z",
+            Assets = { new Asset { FileName = "Old.wgt", AppId = appId, PackageVersion = "0.9.0", MovedTo = new MovedTo { Url = Url, Fingerprint = source.Fingerprint! } } },
+        };
+        var onTv = new InstalledApp(fromRepo.Name, null, appId, "0.9.0", "2026-11-01", true);
+
+        var before = InstalledAppUpdates.Find(onTv, new[] { official });
+        var after = InstalledAppUpdates.Find(onTv, new[] { official, fromRepo });
+
+        Assert.Equal(CatalogSourceKind.Official, before!.Release.Source.Kind);
+        Assert.Equal(CatalogSourceKind.Repository, after!.Release.Source.Kind);
+        Assert.Equal(CatalogVersionState.UpdateAvailable, after.State);
+        Assert.Single(MovedApps.Hints(new[] { before }, Array.Empty<UserSource>()));
+        Assert.Empty(MovedApps.Hints(new[] { before }, new[] { source }));
+    }
+
     [Theory]
     [InlineData("https://repo.example.org/tizen/repository.json.signed", UserSourceKind.SignedRepository)]
     [InlineData("http://repo.example.org/tizen/repository.json.signed", UserSourceKind.None)]
