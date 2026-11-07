@@ -164,6 +164,10 @@ namespace Apps2Samsung
             services.AddSingleton(sp => new Apps2Samsung.Catalog.DownloadStatsService(
                 sp.GetRequiredService<System.Net.Http.HttpClient>(),
                 System.IO.Path.Combine(ProviderManifestService.CacheDirectory, Apps2Samsung.Catalog.DownloadStatsService.CacheFileName)));
+            // Signed independent repositories (#1018): their last verified copies next to the other caches.
+            services.AddSingleton(sp => new Apps2Samsung.Catalog.Repositories.SignedRepositories(
+                sp.GetRequiredService<System.Net.Http.HttpClient>(),
+                System.IO.Path.Combine(ProviderManifestService.CacheDirectory, "repositories")));
             services.AddSingleton<Apps2Samsung.Catalog.AppCatalog>(sp => new Apps2Samsung.Catalog.AppCatalog(
                 new Apps2Samsung.Helpers.Core.AddLatestRelease(
                     sp.GetRequiredService<System.Net.Http.HttpClient>(),

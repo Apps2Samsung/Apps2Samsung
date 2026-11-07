@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Apps2Samsung.Catalog;
+using Apps2Samsung.Catalog.Repositories;
 using Apps2Samsung.Mobile.Resources.Styles;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Design;
@@ -195,9 +196,10 @@ public partial class InstallerPage : ContentPage
 	private bool HasSeveralReleases(string name) =>
 		_manifest?.Providers.Any(p => p.Take > 1 && string.Equals(p.DisplayName, name, StringComparison.OrdinalIgnoreCase)) ?? false;
 
-	// The releases of one app, newest first.
+	// The releases of one app from one source, newest first: another source's copy of the app is a
+	// row (and a sheet) of its own (#1018).
 	private List<GitHubRelease> VersionsOf(GitHubRelease release) => _allReleases
-		.Where(r => string.Equals(r.Name, release.Name, StringComparison.OrdinalIgnoreCase))
+		.Where(r => string.Equals(r.Name, release.Name, StringComparison.OrdinalIgnoreCase) && r.Source.Key == release.Source.Key)
 		.OrderByDescending(r => DateTime.TryParse(r.PublishedAt, out var d) ? d : DateTime.MinValue)
 		.ToList();
 
@@ -226,7 +228,7 @@ public partial class InstallerPage : ContentPage
 		{
 			if (!HasSeveralReleases(release.Name))
 				listed.Add(release);
-			else if (seen.Add(release.Name))
+			else if (seen.Add(release.Name + "\n" + release.Source.Key))
 				listed.Add(VersionsOf(release)[0]);
 		}
 		return listed;
@@ -333,8 +335,9 @@ public partial class InstallerPage : ContentPage
 
 	private static BoxView Hairline() => new() { HeightRequest = 1, Margin = new Thickness(16, 0, 0, 0), Color = DesignTheme.ColorOf("Hair") };
 
-	// One list row: the letter tile (the app's icon once it is loaded, #1000), name and subline, a
-	// chevron; tapping opens the app sheet.
+	// One list row: the letter tile (the app's icon once it is loaded, #1000), name and subline, the
+	// source line for an app that is not from the official catalog (#1018), a chevron; tapping opens
+	// the app sheet. A repository that could not be checked is listed faded: nothing installs from it.
 	private View CatalogRow(GitHubRelease release, string subline)
 	{
 		var tile = AppTile(release, _icons);
@@ -347,6 +350,9 @@ public partial class InstallerPage : ContentPage
 				new Label { Text = subline, FontSize = 13, TextColor = DesignTheme.ColorOf("Muted"), LineBreakMode = LineBreakMode.TailTruncation },
 			},
 		};
+		var sourceLine = CatalogSourceLabels.Line(release.Source, L10n.Get);
+		if (SourceLineView.Build(sourceLine) is { } source)
+			text.Children.Add(source);
 		var chevron = new Microsoft.Maui.Controls.Shapes.Path
 		{
 			Data = (Microsoft.Maui.Controls.Shapes.Geometry)new Microsoft.Maui.Controls.Shapes.PathGeometryConverter().ConvertFromInvariantString("M1,1 L7,6.5 L1,12")!,
@@ -361,6 +367,8 @@ public partial class InstallerPage : ContentPage
 		grid.Add(tile, 0, 0);
 		grid.Add(text, 1, 0);
 		grid.Add(chevron, 2, 0);
+		if (sourceLine.Kind == SourceLineKind.Blocked)
+			grid.Opacity = 0.6;
 		var tap = new TapGestureRecognizer();
 		tap.Tapped += async (_, _) => await OpenAppAsync(release, subline);
 		grid.GestureRecognizers.Add(tap);
@@ -412,7 +420,7 @@ public partial class InstallerPage : ContentPage
 	{
 		var name = new Label { Text = release.Name, FontAttributes = FontAttributes.Bold, LineBreakMode = LineBreakMode.TailTruncation };
 		var needsTizen = TizenRequirement.NoneFits(release, tvVersion);
-		if (!release.IsAdult && !release.IsRoot && !release.IsSelfUpdating && !release.IsClosedSource && !release.IsUserSource && !needsTizen)
+		if (!release.IsAdult && !release.IsRoot && !release.IsSelfUpdating && !release.IsClosedSource && !needsTizen)
 			return name;
 		var line = new HorizontalStackLayout { Spacing = 6, Children = { name } };
 		if (release.IsAdult)
@@ -424,9 +432,6 @@ public partial class InstallerPage : ContentPage
 		// the source is not in the linked repository (#1016): informational, quiet colours
 		if (release.IsClosedSource)
 			line.Children.Add(BadgeText(L10n.Get("lblClosedSourceBadge"), fontSize: 11, padding: new Thickness(5, 0), warn: false));
-		// from a source the user added themselves (Settings > Installing > Your sources): quiet colours
-		if (release.IsUserSource)
-			line.Children.Add(BadgeText(L10n.Get("lblUserSourceBadge"), fontSize: 11, padding: new Thickness(5, 0), warn: false));
 		if (needsTizen)
 			line.Children.Add(BadgeText(string.Format(L10n.Get("lblNeedsTizenBadge"), TizenRequirement.Lowest(release.Assets)), fontSize: 11, padding: new Thickness(5, 0)));
 		return line;
@@ -489,12 +494,22 @@ public partial class InstallerPage : ContentPage
 			tvVersion: SelectedTvVersion,
 			// The variant the TV got (#975), when the sheet came from On the TV.
 			openOn: openOn,
-			icons: _icons);
+			icons: _icons,
+			// The same app from the other sources that list it (#1018): a tap opens that one's sheet.
+			alsoOffered: AlsoOffered(release),
+			openOther: other => _ = OpenAppAsync(other, SublineFor(other)));
 		await Navigation.PushModalAsync(sheet);
 		var choice = await sheet.Result;
 		if (choice is not null)
 			await InstallAsync(choice.Release, choice.Asset, null, choice.NewPackageId, choice.OwnPackageId);
 	}
+
+	// The newest copy of the app from every other source in the list (#1018), one per source.
+	private List<GitHubRelease> AlsoOffered(GitHubRelease release) => ListedReleases()
+		.Where(r => string.Equals(r.Name, release.Name, StringComparison.OrdinalIgnoreCase) && r.Source.Key != release.Source.Key)
+		.GroupBy(r => r.Source.Key)
+		.Select(g => g.First())
+		.ToList();
 
 	// "Your own package": a .wgt or .tpk from the phone, then the same install as a catalog app.
 	private async void OnOwnFileTapped(object? sender, TappedEventArgs e)
@@ -823,6 +838,8 @@ public partial class InstallerPage : ContentPage
 			SetStatus(L10n.Get("statusSelectAppFirst"));
 			return;
 		}
+		if (!custom && !await InstallAllowedAsync(release!))
+			return;
 
 		var tvIp = tv.Ip;
 
@@ -946,6 +963,12 @@ public partial class InstallerPage : ContentPage
 			wgtPath = custom ? customPath! : await _installer.DownloadAsync(asset!.DownloadUrl, SetStatus, cancel.Token);
 			downloading = false;
 			cancel.Token.ThrowIfCancellationRequested();
+			if (!custom && DigestProblem(release!, asset!, wgtPath) is { } digest)
+			{
+				wgtPath = null;
+				FailProgress(digest);
+				return;
+			}
 
 			// Partner if the manifest declared it OR the .wgt itself needs a partner-level privilege.
 			var needsPartner = requirePartner || WgtPrivileges.RequiresPartner(wgtPath);
@@ -1076,6 +1099,28 @@ public partial class InstallerPage : ContentPage
 		}
 	}
 
+	// A repository listed from its last verified copy (#1018): nothing is downloaded from it.
+	private async Task<bool> InstallAllowedAsync(GitHubRelease release)
+	{
+		if (SignedRepositories.InstallBlocked(release, L10n.Get) is not { } blocked)
+			return true;
+		SetStatus(blocked);
+		await DisplayAlert(release.Name, blocked, L10n.Get("lblOk"));
+		return false;
+	}
+
+	// A signed repository's file that does not hash to the digest it signed for (#1018): the file
+	// is deleted and nothing is installed. Null when the file is fine or not from a repository.
+	private static string? DigestProblem(GitHubRelease release, Asset asset, string path)
+	{
+		var problem = SignedRepositories.DigestProblem(release, asset, path, L10n.Get);
+		if (problem is null)
+			return null;
+		System.Diagnostics.Trace.WriteLine($"[installer] {problem}");
+		try { File.Delete(path); } catch (Exception ex) { System.Diagnostics.Trace.WriteLine($"[installer] Could not delete {path}: {ex.Message}"); }
+		return problem;
+	}
+
 	/// <summary>
 	/// The way in without the developer connection (#979): the package, customized as an install
 	/// would (the values asked before install included) but not signed, goes to TV-Store's upload
@@ -1085,6 +1130,8 @@ public partial class InstallerPage : ContentPage
 	private async Task SendToTvStoreAsync(GitHubRelease? release, Asset? asset, string? customPath, string tvIp)
 	{
 		var custom = customPath is not null;
+		if (!custom && !await InstallAllowedAsync(release!))
+			return;
 
 		// A package that gains root: what that means for this TV, before anything else.
 		if (!custom && release!.IsRoot && !await DisplayAlert(
@@ -1120,6 +1167,12 @@ public partial class InstallerPage : ContentPage
 			wgtPath = custom ? customPath! : await _installer.DownloadAsync(asset!.DownloadUrl, SetStatus, cancel.Token);
 			downloading = false;
 			cancel.Token.ThrowIfCancellationRequested();
+			if (!custom && DigestProblem(release!, asset!, wgtPath) is { } digest)
+			{
+				wgtPath = null;
+				FailProgress(digest);
+				return;
+			}
 
 			// Core reports en.json keys; sentences here.
 			Action<string> report = line => SetStatus(ProgressText.Localize(line, L10n.Get));

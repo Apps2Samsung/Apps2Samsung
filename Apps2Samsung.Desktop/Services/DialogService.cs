@@ -393,8 +393,23 @@ namespace Apps2Samsung.Services
                 var window = GetMainWindow();
                 if (window == null)
                     return null;
-                return await new UserSourceWindow(Localize, existing).ShowDialog<Apps2Samsung.Catalog.UserSource?>(window);
+                return await new UserSourceWindow(Localize, existing, ProbeRepository).ShowDialog<Apps2Samsung.Catalog.UserSource?>(window);
             });
+
+        public Task<Apps2Samsung.Catalog.UserSource?> ShowReviewRepositoryKeyAsync(Apps2Samsung.Catalog.UserSource source) =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var window = GetMainWindow();
+                if (window == null)
+                    return null;
+                return await new UserSourceWindow(Localize, System.Array.Empty<Apps2Samsung.Catalog.UserSource>(), ProbeRepository, source)
+                    .ShowDialog<Apps2Samsung.Catalog.UserSource?>(window);
+            });
+
+        // Reads a signed repository and its key for the approval step (#1018).
+        private static System.Threading.Tasks.Task<Apps2Samsung.Catalog.Repositories.RepositoryProbe> ProbeRepository(string url) =>
+            Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions
+                .GetRequiredService<Apps2Samsung.Catalog.Repositories.SignedRepositories>(App.Services).ProbeAsync(url);
 
         public Task<bool> ShowDevModeGuideAsync(
             NetworkDevice device,

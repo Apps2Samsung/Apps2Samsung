@@ -34,6 +34,8 @@ public partial class AppSheetPage : ContentPage
 	private readonly Version? _tvVersion;
 	private readonly Asset? _openOn;
 	private readonly string? _tvName;
+	// Another source's copy of this app tapped under "Also offered by" (#1018): the sheet closes, the caller opens that one.
+	private readonly Action<GitHubRelease>? _openOther;
 	// Opened for an app the TV runs another version of: the button says Update (#888).
 	private readonly bool _isUpdate;
 	private bool _isFavorite;
@@ -48,10 +50,13 @@ public partial class AppSheetPage : ContentPage
 	/// reloads, handing back the releases to list. Null hides the switch.</param>
 	/// <param name="subline">The list row's info line: the category, and the variant count for a grouped app.</param>
 	/// <param name="searchAuthor">Called with the developer's name when the user taps it; null leaves the name plain.</param>
+	/// <param name="alsoOffered">The same app from the other sources in the catalog (#1018), one entry per source.</param>
+	/// <param name="openOther">Opens the sheet of one of <paramref name="alsoOffered"/>, once this one is closed.</param>
 	public AppSheetPage(IReadOnlyList<GitHubRelease> versions, string? previewUrl, string subline, string? tvName, bool tvReady,
 		bool isFavorite = false, Action<string, bool>? setFavorite = null,
 		Func<bool, Task<IReadOnlyList<GitHubRelease>>>? showAllVersions = null, bool isUpdate = false,
-		Action<string>? searchAuthor = null, Version? tvVersion = null, Asset? openOn = null, CatalogIcons? icons = null)
+		Action<string>? searchAuthor = null, Version? tvVersion = null, Asset? openOn = null, CatalogIcons? icons = null,
+		IReadOnlyList<GitHubRelease>? alsoOffered = null, Action<GitHubRelease>? openOther = null)
 	{
 		InitializeComponent();
 		_tvVersion = tvVersion;
@@ -64,6 +69,7 @@ public partial class AppSheetPage : ContentPage
 		_setFavorite = setFavorite;
 		_showAllVersions = showAllVersions;
 		_searchAuthor = searchAuthor;
+		_openOther = openOther;
 		_tvName = tvName;
 		_isUpdate = isUpdate;
 		_tvReady = tvReady;
@@ -80,7 +86,8 @@ public partial class AppSheetPage : ContentPage
 		// #1016: several flags can apply at once; each shows its own badge.
 		SelfUpdatingBadge.IsVisible = SelfUpdatingLabel.IsVisible = release.IsSelfUpdating;
 		ClosedSourceBadge.IsVisible = release.IsClosedSource;
-		SourceBadge.IsVisible = release.IsUserSource;
+		ShowSourceLine(release);
+		ShowAlsoOffered(alsoOffered);
 		VersionsTitle.Text = L10n.Get(release.HasVariants ? "lblVariant" : "lblVersion");
 		// The way back to the package's own id (#839), only for an app renamed on some TV before.
 		OwnIdRow.IsVisible = versions.Any(v => v.Assets.Any(a =>
@@ -137,6 +144,80 @@ public partial class AppSheetPage : ContentPage
 		SourceLabel.IsVisible = true;
 	}
 
+	// Where the app comes from (#1018), under the title; the official catalog has no line. A
+	// repository that could not be checked also says why nothing installs from it.
+	private void ShowSourceLine(GitHubRelease release)
+	{
+		var line = CatalogSourceLabels.Line(release.Source, L10n.Get);
+		SourceLineSlot.Content = SourceLineView.Build(line, 14);
+		SourceLineSlot.IsVisible = line.IsVisible;
+		BlockedHint.Text = line.Kind == SourceLineKind.Blocked ? line.Tip : string.Empty;
+	}
+
+	// "Also offered by": one row per other source, its name with the source's icon, the version it
+	// has; a tap closes this sheet and opens that copy's (#1018).
+	private void ShowAlsoOffered(IReadOnlyList<GitHubRelease>? others)
+	{
+		AlsoOfferedRows.Clear();
+		if (others is null || others.Count == 0 || _openOther is null)
+			return;
+		var first = true;
+		foreach (var other in others)
+		{
+			if (!first)
+				AlsoOfferedRows.Add(new BoxView { HeightRequest = 1, Margin = new Thickness(16, 0, 0, 0), Color = DesignThemeColor("Hair") });
+			first = false;
+			AlsoOfferedRows.Add(OfferRow(other));
+		}
+		AlsoOfferedSection.IsVisible = true;
+	}
+
+	private View OfferRow(GitHubRelease other)
+	{
+		var line = CatalogSourceLabels.Line(other.Source, L10n.Get);
+		var name = new HorizontalStackLayout { Spacing = 6 };
+		if (line.Kind == SourceLineKind.Repository)
+			name.Children.Add(SourceLineView.Icon(SourceLineView.ShieldIcon, "Accent", 14));
+		else if (line.Kind == SourceLineKind.Blocked)
+			name.Children.Add(SourceLineView.Icon(SourceLineView.LockIcon, "Muted", 14));
+		else if (line.Kind == SourceLineKind.Unverified)
+			name.Children.Add(SourceLineView.Icon(SourceLineView.WarnIcon, "Warn", 14));
+		name.Children.Add(new Label
+		{
+			Text = CatalogSourceLabels.Name(other.Source, L10n.Get), FontAttributes = FontAttributes.Bold,
+			LineBreakMode = LineBreakMode.TailTruncation, VerticalOptions = LayoutOptions.Center,
+		});
+		var detail = string.IsNullOrWhiteSpace(other.TagName) ? string.Empty : other.TagName;
+		if (line.Kind == SourceLineKind.Blocked)
+			detail = string.IsNullOrEmpty(detail) ? line.Text : $"{detail} · {line.Text}";
+		var text = new VerticalStackLayout { Spacing = 2, VerticalOptions = LayoutOptions.Center, Children = { name } };
+		if (!string.IsNullOrEmpty(detail))
+			text.Children.Add(new Label { Text = detail, FontSize = 13, TextColor = DesignThemeColor("Muted"), LineBreakMode = LineBreakMode.TailTruncation });
+		var chevron = new Microsoft.Maui.Controls.Shapes.Path
+		{
+			Data = (Microsoft.Maui.Controls.Shapes.Geometry)new Microsoft.Maui.Controls.Shapes.PathGeometryConverter().ConvertFromInvariantString("M1,1 L7,6.5 L1,12")!,
+			Stroke = new SolidColorBrush(DesignThemeColor("Ink")), StrokeThickness = 2, Opacity = 0.35,
+			WidthRequest = 8, HeightRequest = 13, VerticalOptions = LayoutOptions.Center,
+		};
+		var grid = new Grid
+		{
+			ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+			ColumnSpacing = 12, Padding = new Thickness(16, 11), MinimumHeightRequest = 52,
+		};
+		grid.Add(text, 0, 0);
+		grid.Add(chevron, 1, 0);
+		var tap = new TapGestureRecognizer();
+		tap.Tapped += async (_, _) =>
+		{
+			_closedWithResult = true;
+			_result.TrySetResult(null);
+			await Navigation.PopModalAsync();
+			_openOther?.Invoke(other);
+		};
+		grid.GestureRecognizers.Add(tap);
+		return grid;
+	}
+
 	// One row per file; with several releases each row is "tag · file" (the file only when a release
 	// has more than one). The default file of the newest release is preselected.
 	private void ShowVersions(IReadOnlyList<GitHubRelease> versions)
@@ -183,7 +264,10 @@ public partial class AppSheetPage : ContentPage
 	{
 		var asset = _selected?.Asset;
 		var needs = asset is not null && TizenRequirement.NeedsNewer(asset, _tvVersion);
-		InstallBtn.IsEnabled = _tvReady && !string.IsNullOrEmpty(_tvName) && _selected is not null && !needs;
+		// A repository that could not be checked just now (#1018): listed, but nothing installs from it.
+		var blocked = _selected is { Release.Source.CanInstall: false };
+		InstallBtn.IsEnabled = _tvReady && !string.IsNullOrEmpty(_tvName) && _selected is not null && !needs && !blocked;
+		BlockedHintFrame.IsVisible = blocked && !string.IsNullOrEmpty(BlockedHint.Text);
 		TizenBadge.IsVisible = asset is { HasRequiredVersion: true };
 		if (asset is { HasRequiredVersion: true })
 		{

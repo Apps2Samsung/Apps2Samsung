@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+             x:Class="Apps2Samsung.Mobile.Pages.RepositoryKeySheetPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+    <!-- Settings > Installing > Your sources > Review (#1018, mockup KeyChanged): a signed repository
+         now signs with another key. The old fingerprint struck through, the new one, then trust the
+         new key (read the repository again and pin that key) or remove the source. -->
+    <ScrollView>
+        <VerticalStackLayout Padding="16,8,16,24" Spacing="16">
+            <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
+                     Color="{DynamicResource HairColor}" />
+
+            <Border StrokeThickness="0" StrokeShape="RoundRectangle 16" BackgroundColor="{DynamicResource SurfaceColor}" Padding="16,18">
+                <VerticalStackLayout Spacing="14">
+                    <Grid ColumnDefinitions="22,*" ColumnSpacing="10">
+                        <!-- a key -->
+                        <shapes:Path Data="M7.5,10 A5.5,5.5 0 1 1 7.49,10 Z M21,2 L11.4,11.6 M15.5,7.5 L18.5,10.5 L22,7 L19,4"
+                                     Stroke="{DynamicResource BadBrush}" StrokeThickness="2" StrokeLineJoin="Round" StrokeLineCap="Round"
+                                     WidthRequest="22" HeightRequest="22" Aspect="Uniform" VerticalOptions="Center" />
+                        <Label Grid.Column="1" Text="{l:Localize lblRepoKeyChangedTitle}" FontSize="20" FontAttributes="Bold"
+                               LineBreakMode="WordWrap" VerticalOptions="Center" />
+                    </Grid>
+                    <Label x:Name="BodyLabel" FontSize="15" LineBreakMode="WordWrap" />
+                    <Grid ColumnDefinitions="52,*" RowDefinitions="Auto,Auto" RowSpacing="8" ColumnSpacing="10">
+                        <Label Text="{l:Localize lblRepoKeyWas}" FontSize="13" TextColor="{DynamicResource MutedColor}" />
+                        <Label Grid.Column="1" x:Name="WasLabel" FontSize="13" FontFamily="monospace" LineBreakMode="WordWrap"
+                               TextColor="{DynamicResource MutedColor}" TextDecorations="Strikethrough" />
+                        <Label Grid.Row="1" Text="{l:Localize lblRepoKeyNow}" FontSize="13" TextColor="{DynamicResource MutedColor}" />
+                        <Label Grid.Row="1" Grid.Column="1" x:Name="NowLabel" FontSize="13" FontFamily="monospace" LineBreakMode="WordWrap" />
+                    </Grid>
+                    <Label x:Name="ErrorLabel" FontSize="13" TextColor="{DynamicResource BadColor}" LineBreakMode="WordWrap" IsVisible="False" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button x:Name="TrustBtn" Text="{l:Localize lblRepoTrustNewKey}" Style="{StaticResource PlainButton}"
+                                CornerRadius="12" HeightRequest="50" Clicked="OnTrustClicked" />
+                        <Button Grid.Column="1" Text="{l:Localize lblRepoRemoveSource}" Style="{StaticResource DangerButton}"
+                                CornerRadius="12" HeightRequest="50" Clicked="OnRemoveClicked" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Text="{l:Localize lblCancel}" BackgroundColor="Transparent" TextColor="{DynamicResource InkColor}"
+                    FontAttributes="Bold" HeightRequest="44" Clicked="OnCancelClicked" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

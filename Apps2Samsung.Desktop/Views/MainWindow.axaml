@@ -224,7 +224,7 @@
 																	<Button Classes="row"
 																	        Command="{Binding $parent[ItemsControl;1].((viewModels:MainWindowViewModel)DataContext).OpenAppCommand}"
 																	        CommandParameter="{Binding}">
-																		<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+																		<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Opacity="{Binding RowOpacity}">
 																			<!-- the letter tile, replaced by the app's icon from the catalog once it is loaded (#1000) -->
 																			<Panel VerticalAlignment="Center">
 																				<Border Classes="tile" Background="{Binding TileBrush}" IsVisible="{Binding !HasIcon}">
@@ -257,11 +257,6 @@
 																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblClosedSourcePackage}">
 																						<TextBlock Text="{l:Localize lblClosedSourceBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
 																					</Border>
-																					<!-- from a source the user added themselves (Settings > Installing > Your sources) -->
-																					<Border IsVisible="{Binding IsUserSource}" Background="{DynamicResource FillBrush}" BorderBrush="{DynamicResource HairBrush}"
-																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblUserSourcePackage}">
-																						<TextBlock Text="{l:Localize lblUserSourceBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
-																					</Border>
 																					<!-- the selected TV runs none of the app's builds (TV-Store#47) -->
 																					<Border IsVisible="{Binding HasNeedsTizen}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
 																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center">
@@ -269,6 +264,22 @@
 																					</Border>
 																				</StackPanel>
 																				<TextBlock Text="{Binding Subline}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
+																				<!-- where it comes from (#1018): nothing for the official catalog; a shield for a signed
+																				     repository, amber for an unverified source, a lock when the repository can't be checked now -->
+																				<StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding HasSourceLine}" ToolTip.Tip="{Binding Source.Tip}">
+																					<Path Width="12" Height="12" Stretch="Uniform" StrokeThickness="2.2" StrokeLineCap="Round" StrokeJoin="Round" VerticalAlignment="Center"
+																					      IsVisible="{Binding IsRepositoryLine}" Stroke="{DynamicResource AccentBrush}"
+																					      Data="M12,22 C12,22 20,18 20,12 L20,5 L12,2 L4,5 L4,12 C4,18 12,22 12,22 Z M9,12 L11,14 L15,10"/>
+																					<Path Width="12" Height="12" Stretch="Uniform" StrokeThickness="2.2" StrokeLineCap="Round" VerticalAlignment="Center"
+																					      IsVisible="{Binding IsUnverifiedLine}" Stroke="{DynamicResource WarnBrush}"
+																					      Data="M12,3 A9,9 0 1 1 11.99,3 Z M12,8 L12,12 M12,16 L12,16.01"/>
+																					<Path Width="12" Height="12" Stretch="Uniform" StrokeThickness="2.2" StrokeLineCap="Round" VerticalAlignment="Center"
+																					      IsVisible="{Binding IsBlockedLine}" Stroke="{DynamicResource MutedBrush}"
+																					      Data="M5,11 L19,11 L19,21 L5,21 Z M8,11 L8,7 A4,4 0 0 1 16,7 L16,11"/>
+																					<TextBlock Text="{Binding Source.Text}" FontSize="13" TextTrimming="CharacterEllipsis"
+																					           Classes.repo="{Binding IsRepositoryLine}" Classes.unverified="{Binding IsUnverifiedLine}"
+																					           Foreground="{DynamicResource MutedBrush}"/>
+																				</StackPanel>
 																			</StackPanel>
 																			<PathIcon Grid.Column="2" Width="8" Height="13" Opacity="0.35" VerticalAlignment="Center"
 																			          Foreground="{DynamicResource InkBrush}" Data="M1,1 L7,6.5 L1,12"/>

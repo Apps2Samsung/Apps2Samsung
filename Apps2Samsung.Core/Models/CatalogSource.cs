@@ -17,7 +17,8 @@ namespace Apps2Samsung.Models
     /// be installed at all (a repository that failed its last check is listed from its last verified
     /// copy, but nothing is installed from it).
     /// </summary>
-    public sealed record CatalogSource(CatalogSourceKind Kind, string Name, string? RepositoryId = null, string? InstallBlockedReason = null)
+    /// <param name="Url">A repository's manifest link, which the official catalog's <c>moved_to</c> names.</param>
+    public sealed record CatalogSource(CatalogSourceKind Kind, string Name, string? RepositoryId = null, string? InstallBlockedReason = null, string? Url = null)
     {
         public static readonly CatalogSource Official = new(CatalogSourceKind.Official, "Official");
 

@@ -248,9 +248,17 @@ namespace Apps2Samsung.ViewModels
 
         /// <summary>A list row: the release, its letter tile (or the app's icon once it is loaded, #1000) and the one-line subline.</summary>
         /// <param name="NeedsTizen">"Needs Tizen X" when the selected TV runs none of the app's builds (TV-Store#47); null otherwise.</param>
-        public sealed record CatalogRow(GitHubRelease Release, string Letter, IBrush TileBrush, string Subline, string? NeedsTizen = null)
+        /// <param name="Source">Where the app comes from (#1018): no line for the official catalog.</param>
+        public sealed record CatalogRow(GitHubRelease Release, string Letter, IBrush TileBrush, string Subline, string? NeedsTizen = null,
+            Apps2Samsung.Catalog.SourceLine? Source = null)
             : System.ComponentModel.INotifyPropertyChanged
         {
+            public bool HasSourceLine => Source?.IsVisible == true;
+            public bool IsRepositoryLine => Source?.Kind == Apps2Samsung.Catalog.SourceLineKind.Repository;
+            public bool IsUnverifiedLine => Source?.Kind == Apps2Samsung.Catalog.SourceLineKind.Unverified;
+            public bool IsBlockedLine => Source?.Kind == Apps2Samsung.Catalog.SourceLineKind.Blocked;
+            /// <summary>A repository that could not be checked: listed dimmed, not installable.</summary>
+            public double RowOpacity => IsBlockedLine ? 0.6 : 1.0;
             private Bitmap? _icon;
 
             public string Name => Release.Name;
@@ -306,7 +314,8 @@ namespace Apps2Samsung.ViewModels
                 ? string.Format(L("lblNeedsTizenBadge"), TizenRequirement.Lowest(release.Assets))
                 : null;
             var row = new CatalogRow(release, AppTiles.Letter(release.Name),
-                DesignTheme.Brush(AppTiles.ColorToken(release.Category, release.Name)), subline, needsTizen);
+                DesignTheme.Brush(AppTiles.ColorToken(release.Category, release.Name)), subline, needsTizen,
+                Apps2Samsung.Catalog.CatalogSourceLabels.Line(release.Source, L));
             // The icon arrives when it is on disk (a cached one at once); the letter tile holds the place.
             _ = LoadRowIconAsync(row);
             return row;
@@ -389,7 +398,8 @@ namespace Apps2Samsung.ViewModels
                 _multiVersionApps.Contains(row.Release.Name),
                 SelectedTvVersion,
                 row.TileBrush,
-                _catalogIcons);
+                _catalogIcons,
+                OtherSourcesOf(row.Release));
             var showAllBefore = AppSettings.Default.ShowAllJellyfinVersions;
             var asset = await new Views.AppDetailWindow(sheet).ShowDialog<Asset?>(desktop.MainWindow);
             if (asset is not null)
@@ -418,7 +428,18 @@ namespace Apps2Samsung.ViewModels
             // The developer's name clicked: the search box takes it, the list shows their apps (#888).
             if (sheet.SearchAuthorRequested && !string.IsNullOrEmpty(row.Release.Author))
                 SearchText = row.Release.Author;
+            // Another source of the same app picked in the sheet (#1018): its own sheet.
+            if (sheet.SwitchTo is { } other)
+                await OpenAppAsync(RowFor(other));
         }
+
+        /// <summary>The newest entry of each other source listing an app of this name (#1018); never merged by name.</summary>
+        private List<GitHubRelease> OtherSourcesOf(GitHubRelease release) =>
+            VisibleReleases
+                .Where(r => string.Equals(r.Name, release.Name, StringComparison.OrdinalIgnoreCase) && r.Source.Key != release.Source.Key)
+                .GroupBy(r => r.Source.Key)
+                .Select(g => g.First())
+                .ToList();
 
         /// <summary>The "Your own package" row: pick a .wgt / .tpk, then install it on the selected TV.</summary>
         [RelayCommand]
@@ -484,6 +505,8 @@ namespace Apps2Samsung.ViewModels
         // The sidebar footer: the version, and the licence line (LicenseFooter) under it.
         public static string VersionText => $"Apps2Samsung {AppSettings.Default.AppVersion}";
 
+        private readonly Apps2Samsung.Catalog.Repositories.SignedRepositories _repositories;
+
         public MainWindowViewModel(
             ITizenInstallerService tizenInstaller,
             ISdbEngine sdbEngine,
@@ -498,9 +521,11 @@ namespace Apps2Samsung.ViewModels
             FileHelper fileHelper,
             SettingsViewModel settingsViewModel,
             ResolvedCatalogService resolvedCatalog,
-            DownloadStatsService downloadStats
+            DownloadStatsService downloadStats,
+            Apps2Samsung.Catalog.Repositories.SignedRepositories repositories
         )
         {
+            _repositories = repositories;
             _tizenInstaller = tizenInstaller;
             _sdbEngine = sdbEngine;
             AvailableDevices.CollectionChanged += (_, _) => OnPropertyChanged(nameof(CanSwitchTv));
@@ -1734,8 +1759,10 @@ namespace Apps2Samsung.ViewModels
                 _manifest = manifest;
                 // The manifest's providers, then the sources the user added themselves (UserSources):
                 // a developer's own repository, nightly or feed, listed without waiting for the community packages.
+                // Signed repositories (#1018) come along, checked against the keys the user approved.
                 var providers = await Apps2Samsung.Catalog.UserSources.ResolveAsync(
-                    _httpClient, manifest.Providers, Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson), cancellationToken);
+                    _httpClient, manifest.Providers, Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson), cancellationToken,
+                    _repositories, load => Trace.WriteLine($"[Repositories] {load.Source.Url}: {load.State} {load.Message}"));
                 foreach (var provider in providers)
                 {
                     cancellationToken.ThrowIfCancellationRequested();

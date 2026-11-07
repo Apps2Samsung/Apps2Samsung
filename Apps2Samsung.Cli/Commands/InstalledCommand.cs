@@ -68,10 +68,16 @@ public static class InstalledCommand
             s.Out.Warn($"the installed variants could not be read, comparing with each app's default file: {ex.Message}");
         }
 
-        return apps.Select(a =>
+        var matches = apps.Select(a => catalog.Count == 0 ? null : InstalledAppUpdates.Find(a, catalog, s.Config.PackageIdRenamesJson, variants, ip)).ToList();
+        // Apps that moved to their author's repository (#1018): the command that adds it, with the key the official catalog names.
+        foreach (var hint in Apps2Samsung.Catalog.Repositories.MovedApps.Hints(matches, UserSources.Parse(s.Desktop.UserSourcesJson)))
+            s.Out.Warn($"{string.Join(", ", hint.AppNames)} moved to its author's repository at {hint.Domain}. Keep getting updates with: " +
+                $"apps2samsung-cli sources add {hint.To.Url} --fingerprint {hint.To.Fingerprint}");
+
+        return apps.Select((a, i) =>
         {
             // The variant this TV got last time (#975) decides which file an app with several is compared with.
-            var match = catalog.Count == 0 ? null : InstalledAppUpdates.Find(a, catalog, s.Config.PackageIdRenamesJson, variants, ip);
+            var match = matches[i];
             return new Row(a.DisplayName, a.TizenId, string.IsNullOrWhiteSpace(a.Version) ? null : a.Version, a.InstallDate, a.IsRemovable,
                 match?.Release.Name, match?.Asset.FileName, match?.CatalogVersion,
                 match is null ? null : match.State switch

@@ -64,7 +64,7 @@ namespace Apps2Samsung.ViewModels
         public ObservableCollection<Asset> Assets { get; }
         public string InstallText { get; }
         /// <summary>The TV is ready and the selected build runs on it (TV-Store#47).</summary>
-        public bool CanInstall => _tvCanInstall && !SelectedNeedsNewer;
+        public bool CanInstall => _tvCanInstall && !SelectedNeedsNewer && Release.Source.CanInstall;
         private readonly bool _tvCanInstall;
         private readonly Version? _tvVersion;
         private readonly string _tvLabel;
@@ -80,6 +80,26 @@ namespace Apps2Samsung.ViewModels
             ? string.Format(_localize("hintNeedsTizen"), Release.Name, a.RequiredVersion, _tvLabel, _tvVersion)
             : string.Empty;
         public bool HasTizenHint => TizenHint.Length > 0;
+        // ---- where it comes from (#1018) ----
+
+        /// <summary>The source line under the subline: nothing for the official catalog.</summary>
+        public Apps2Samsung.Catalog.SourceLine Source { get; }
+        public bool HasSourceLine => Source.IsVisible;
+        public bool IsRepositoryLine => Source.Kind == Apps2Samsung.Catalog.SourceLineKind.Repository;
+        public bool IsUnverifiedLine => Source.Kind == Apps2Samsung.Catalog.SourceLineKind.Unverified;
+        /// <summary>A repository that could not be checked now: listed from its last verified copy, Install off.</summary>
+        public bool IsBlocked => !Release.Source.CanInstall;
+        public string BlockedText { get; }
+
+        /// <summary>Another source offering an app of this name; picking it closes the sheet and opens that one.</summary>
+        public sealed record OtherSource(GitHubRelease Release, string Name);
+        public System.Collections.Generic.IReadOnlyList<OtherSource> AlsoOffered { get; }
+        public bool HasAlsoOffered => AlsoOffered.Count > 0;
+        public string AlsoOfferedTitle { get; }
+        public string SourcesUpdateHint { get; }
+        /// <summary>Set when the user picked another source: the main window opens its sheet.</summary>
+        public GitHubRelease? SwitchTo { get; set; }
+
         public string PartnerNeededTitle { get; }
         public string PartnerNeededBody { get; }
 
@@ -151,8 +171,16 @@ namespace Apps2Samsung.ViewModels
         public AppDetailViewModel(GitHubRelease release, string? previewUrl, string subline,
             string? tvName, bool tvReady, HttpClient http, Func<string, string> localize,
             bool isFavorite = false, Action<string, bool>? setFavorite = null, bool canShowAllVersions = false,
-            Version? tvVersion = null, Avalonia.Media.IBrush? tileBrush = null, CatalogIcons? icons = null)
+            Version? tvVersion = null, Avalonia.Media.IBrush? tileBrush = null, CatalogIcons? icons = null,
+            System.Collections.Generic.IReadOnlyList<GitHubRelease>? otherSources = null)
         {
+            Source = Apps2Samsung.Catalog.CatalogSourceLabels.Line(release.Source, localize);
+            BlockedText = Apps2Samsung.Catalog.Repositories.SignedRepositories.InstallBlocked(release, localize) ?? string.Empty;
+            AlsoOffered = (otherSources ?? System.Array.Empty<GitHubRelease>())
+                .Select(r => new OtherSource(r, Apps2Samsung.Catalog.CatalogSourceLabels.Name(r.Source, localize)))
+                .ToList();
+            AlsoOfferedTitle = localize("lblAlsoOfferedBy");
+            SourcesUpdateHint = localize("hintSourcesUpdate");
             _tvVersion = tvVersion;
             _icons = icons;
             Letter = Apps2Samsung.Design.AppTiles.Letter(release.Name);

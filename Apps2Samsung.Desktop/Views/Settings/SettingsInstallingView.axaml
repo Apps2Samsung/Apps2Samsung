@@ -192,10 +192,22 @@
 										<StackPanel Spacing="2" VerticalAlignment="Center">
 											<TextBlock Classes="settinglabel" Text="{Binding Name}"/>
 											<TextBlock Classes="hint" Text="{Binding Detail}" TextTrimming="CharacterEllipsis"/>
+											<!-- how the source is doing (#1018): a dot for a signed repository's last check -->
+											<StackPanel Orientation="Horizontal" Spacing="6">
+												<Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="{DynamicResource OkBrush}" IsVisible="{Binding IsOk}"/>
+												<Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="{DynamicResource WarnBrush}" IsVisible="{Binding IsStale}"/>
+												<Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="{DynamicResource BadBrush}" IsVisible="{Binding IsBad}"/>
+												<TextBlock Classes="hint" Text="{Binding Status}"/>
+											</StackPanel>
 										</StackPanel>
-										<Button Grid.Column="1" Classes="soft" VerticalAlignment="Center" Content="{l:Localize lblRemove}"
-										        Command="{Binding $parent[ItemsControl].((viewModels:AppSettingsViewModel)DataContext).RemoveUserSourceCommand}"
-										        CommandParameter="{Binding}"/>
+										<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+											<Button Classes="soft" Content="{l:Localize lblRepoReview}" IsVisible="{Binding CanReview}"
+											        Command="{Binding $parent[ItemsControl].((viewModels:AppSettingsViewModel)DataContext).ReviewUserSourceCommand}"
+											        CommandParameter="{Binding}"/>
+											<Button Classes="soft" Content="{l:Localize lblRemove}"
+											        Command="{Binding $parent[ItemsControl].((viewModels:AppSettingsViewModel)DataContext).RemoveUserSourceCommand}"
+											        CommandParameter="{Binding}"/>
+										</StackPanel>
 									</Grid>
 									<Border Classes="rowline"/>
 								</StackPanel>

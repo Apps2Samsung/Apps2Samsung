@@ -628,6 +628,103 @@ namespace Apps2Samsung.ViewModels
             }
         }
 
+        // ---- Send sources to TV (#1018, TV-Store#82) ----
+
+        /// <summary>One signed repository in the list, ticked to go to the TV; a changed key can't be sent until reviewed.</summary>
+        public sealed partial class TvSourceChoice : ObservableObject
+        {
+            public TvSourceChoice(Apps2Samsung.Catalog.UserSource source, bool canSend, string note)
+            {
+                Source = source;
+                Name = Apps2Samsung.Catalog.UserSources.DisplayName(source);
+                CanSend = canSend;
+                isChecked = canSend;
+                Note = note;
+            }
+            public Apps2Samsung.Catalog.UserSource Source { get; }
+            public string Name { get; }
+            public bool CanSend { get; }
+            [ObservableProperty]
+            private bool isChecked;
+            [ObservableProperty]
+            private string note;
+        }
+
+        public System.Collections.ObjectModel.ObservableCollection<TvSourceChoice> TvSources { get; } = new(LoadTvSources());
+        public bool HasTvSources => TvSources.Count > 0;
+
+        [ObservableProperty]
+        private string sourcesStatus = string.Empty;
+
+        // The approved signed repositories; one whose key changed since is listed but can't be ticked.
+        private static System.Collections.Generic.IEnumerable<TvSourceChoice> LoadTvSources() =>
+            Apps2Samsung.Catalog.UserSources.Parse(Apps2Samsung.Helpers.AppSettings.Default.UserSourcesJson)
+                .Where(Apps2Samsung.Catalog.UserSources.IsApprovedRepository)
+                .Select(src =>
+                {
+                    var keyChanged = Apps2Samsung.Catalog.Repositories.SignedRepositories.LastLoad(src.Url)?.State
+                        == Apps2Samsung.Catalog.Repositories.RepositoryState.KeyChanged;
+                    return new TvSourceChoice(src, !keyChanged, keyChanged ? "lblToolboxSendSourcesReview".Localized() : string.Empty);
+                });
+
+        /// <summary>
+        /// Hands the ticked signed repositories to TV-Store with the keys approved here; the TV asks
+        /// the person at it for each, and this waits for the answers (up to five minutes).
+        /// </summary>
+        [RelayCommand]
+        private async Task SendSourcesToTv()
+        {
+            if (_sdb is null)
+            {
+                SourcesStatus = "lblToolboxAgentNeedsSdb".Localized();
+                return;
+            }
+            var chosen = TvSources.Where(c => c.CanSend && c.IsChecked).Select(c => c.Source).ToList();
+            if (chosen.Count == 0)
+            {
+                SourcesStatus = "lblToolboxSendSourcesNone".Localized();
+                return;
+            }
+            if (IsBusy)
+                return;
+
+            IsBusy = true;
+            try
+            {
+                var renames = Apps2Samsung.Helpers.AppSettings.Default.PackageIdRenamesJson;
+                var progress = new Progress<string>(key => SourcesStatus = key.Localized());
+                await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress, renames);
+                SourcesStatus = "lblToolboxSendSourcesWaiting".Localized();
+                var results = await store.AddSourcesAsync(chosen);
+                foreach (var r in results)
+                {
+                    var choice = TvSources.FirstOrDefault(c => string.Equals(c.Source.RepositoryId, r.RepositoryId, StringComparison.Ordinal));
+                    if (choice is not null)
+                        choice.Note = r.Added ? "lblSourceOnTv".Localized() : r.Error ?? string.Empty;
+                }
+                var lines = new System.Collections.Generic.List<string> { string.Format("lblToolboxSendSourcesDone".Localized(), results.Count(r => r.Added), results.Count) };
+                lines.AddRange(results.Where(r => !r.Added).Select(r => string.Format("lblToolboxSendSourcesNotAdded".Localized(), r.Name ?? r.RepositoryId, r.Error)));
+                SourcesStatus = string.Join(Environment.NewLine, lines);
+            }
+            catch (TvStoreNotInstalledException ex)
+            {
+                SourcesStatus = (ex.IsOutdated ? "lblToolboxTvStoreOutdated" : "lblToolboxTvStoreNotInstalled").Localized();
+            }
+            catch (TvStoreUnreachableException ex)
+            {
+                SourcesStatus = string.Format("lblToolboxTvStoreUnreachable".Localized(), ex.Reason);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[toolbox] send sources failed: {ex}");
+                SourcesStatus = ex is NotSupportedException ? ex.Message : string.Format("lblToolboxTvStoreFailed".Localized(), ex.Message);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
         [ObservableProperty]
         private string packageStatus = string.Empty;
 

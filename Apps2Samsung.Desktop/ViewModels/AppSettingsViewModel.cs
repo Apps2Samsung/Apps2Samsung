@@ -195,7 +195,17 @@ namespace Apps2Samsung.ViewModels
         public event Action? UserSourcesChanged;
 
         /// <summary>One source as the list shows it: the name, then what it points at.</summary>
-        public sealed record UserSourceRow(Apps2Samsung.Catalog.UserSource Source, string Name, string Detail);
+        /// <param name="Status">"Signed · verified", "Key changed · apps hidden", "Unverified · not signed" (#1018).</param>
+        /// <param name="State">The repository's last load; null for an unverified source or one not loaded yet.</param>
+        public sealed record UserSourceRow(Apps2Samsung.Catalog.UserSource Source, string Name, string Detail,
+            string Status = "", Apps2Samsung.Catalog.Repositories.RepositoryState? State = null)
+        {
+            public bool IsOk => State == Apps2Samsung.Catalog.Repositories.RepositoryState.Ok;
+            public bool IsStale => State == Apps2Samsung.Catalog.Repositories.RepositoryState.Stale;
+            public bool IsBad => State is Apps2Samsung.Catalog.Repositories.RepositoryState.KeyChanged or Apps2Samsung.Catalog.Repositories.RepositoryState.Failed;
+            /// <summary>The publisher's key changed: Review opens the new key.</summary>
+            public bool CanReview => State == Apps2Samsung.Catalog.Repositories.RepositoryState.KeyChanged;
+        }
 
         [ObservableProperty]
         private bool darkMode;
@@ -866,12 +876,15 @@ namespace Apps2Samsung.ViewModels
             OwnSources.Clear();
             foreach (var source in Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson))
             {
-                var detail = Apps2Samsung.Catalog.UserSources.IsFeed(source.Url)
+                var detail = Apps2Samsung.Catalog.UserSources.IsApprovedRepository(source)
+                    ? $"{source.Url.Trim()} · {source.RepositoryId}"
+                    : Apps2Samsung.Catalog.UserSources.IsFeed(source.Url)
                     ? $"{source.Url.Trim()} · {_localizationService.GetString("lblUserSourceFeed")}"
                     : $"{source.Url.Trim()} · {Apps2Samsung.Catalog.AppCategories.DisplayName(source.Category, _localizationService.GetString)}";
                 if (source.Partner)
                     detail += $" · {_localizationService.GetString("certLevelPartner")}";
-                OwnSources.Add(new UserSourceRow(source, Apps2Samsung.Catalog.UserSources.DisplayName(source), detail));
+                var (status, state) = Apps2Samsung.Catalog.CatalogSourceLabels.Status(source, _localizationService.GetString);
+                OwnSources.Add(new UserSourceRow(source, Apps2Samsung.Catalog.UserSources.DisplayName(source), detail, status, state));
             }
             OnPropertyChanged(nameof(HasOwnSources));
         }
@@ -893,6 +906,25 @@ namespace Apps2Samsung.ViewModels
             if (added is null)
                 return;
             sources.Add(added);
+            SaveOwnSources(sources);
+        }
+
+        /// <summary>A repository whose key changed (#1018): the new key, to trust or not; trusted, it replaces the stored one.</summary>
+        [RelayCommand]
+        private async Task ReviewUserSourceAsync(UserSourceRow? row)
+        {
+            if (row is null)
+                return;
+            var approved = await _dialogService.ShowReviewRepositoryKeyAsync(row.Source);
+            if (approved is null)
+                return;
+            var sources = Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson);
+            var index = sources.FindIndex(s => string.Equals(s.Url.Trim(), row.Source.Url.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (index < 0)
+                return;
+            approved.Category = sources[index].Category;
+            approved.Partner = sources[index].Partner;
+            sources[index] = approved;
             SaveOwnSources(sources);
         }
 

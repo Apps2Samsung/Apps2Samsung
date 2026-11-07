@@ -17,6 +17,8 @@ public static class TvStoreCommand
     {
         if (s.Options.Arguments.FirstOrDefault() is "log" or "logs")
             return await LogAsync(s, ct);
+        if (s.Options.Arguments.FirstOrDefault() is "sources" or "source")
+            return await SourcesAsync(s, ct);
 
         var ip = s.Options.Tv ?? s.Options.Arguments.FirstOrDefault();
         if (string.IsNullOrWhiteSpace(ip))
@@ -77,6 +79,56 @@ public static class TvStoreCommand
                 $"TV-Store v{store.Version} on {ip} is armed with {profileName} (DUID {duid}).",
                 nextStep,
             });
+    }
+
+    /// <summary>
+    /// <c>tvstore sources --tv &lt;ip&gt; [name|id ...]</c> (#1018, TV-Store#82): hands the signed
+    /// repositories of `sources` (every one, or those named) to TV-Store with the keys approved here.
+    /// The TV asks the person at it for each; this waits for those answers. Unsigned sources stay here.
+    /// </summary>
+    private static async Task<int> SourcesAsync(CliServices s, CancellationToken ct)
+    {
+        var ip = s.Options.Tv;
+        if (string.IsNullOrWhiteSpace(ip))
+            return s.Out.Fail("tvstore sources needs --tv <ip>", Output.Usage);
+        var wanted = s.Options.Arguments.Skip(1).ToList();
+        var repositories = Apps2Samsung.Catalog.UserSources.Parse(s.Desktop.UserSourcesJson)
+            .Where(Apps2Samsung.Catalog.UserSources.IsApprovedRepository)
+            .Where(src => wanted.Count == 0 || wanted.Any(w =>
+                string.Equals(w, src.RepositoryId, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(w, Apps2Samsung.Catalog.UserSources.DisplayName(src), StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+        if (repositories.Count == 0)
+            return s.Out.Fail(wanted.Count == 0
+                ? "No signed repository to send: add one with `sources add <https://…/repository.json.signed>`. Unsigned sources never go to the TV."
+                : $"No signed repository matches {string.Join(", ", wanted)}; `sources` lists them.", Output.Usage);
+
+        var progress = new Progress<string>(key => s.Out.Progress(s.Strings.GetString(key)));
+        try
+        {
+            await using var store = await TvStoreClient.AttachAsync(s.Sdb, ip, progress, s.Config.PackageIdRenamesJson, ct);
+            s.Out.Progress($"Sending {repositories.Count} source(s) to TV-Store on {ip}: confirm each one on the TV…");
+            var results = await store.AddSourcesAsync(repositories, ct);
+            var lines = results.Select(r => r.Added
+                ? $"{r.Name ?? r.RepositoryId}: added on the TV."
+                : $"{r.Name ?? r.RepositoryId}: not added ({r.Error})").ToList();
+            var added = results.Count(r => r.Added);
+            return s.Out.Result(new { ok = added > 0, tv = ip, results }, lines, added == results.Count ? Output.Ok : Output.Stopped);
+        }
+        catch (TvStoreNotInstalledException ex)
+        {
+            return s.Out.Fail(ex.IsOutdated
+                ? $"An old TV-Store is installed on {ip}; update it first (the .wgt comes from {TvStorePackage.RepositoryUrl})."
+                : $"TV-Store is not installed on {ip}; install it first (the .wgt comes from {TvStorePackage.RepositoryUrl}).");
+        }
+        catch (TvStoreUnreachableException ex)
+        {
+            return s.Out.Fail($"TV-Store on {ip} could not be reached ({ex.Reason}). Developer Mode must be on with this machine as Host PC IP, and TV-Store open on the TV.");
+        }
+        catch (NotSupportedException ex)
+        {
+            return s.Out.Fail(ex.Message);
+        }
     }
 
     /// <summary>

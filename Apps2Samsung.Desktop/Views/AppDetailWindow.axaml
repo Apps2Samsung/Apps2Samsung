@@ -75,11 +75,6 @@
 					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblClosedSourcePackage}">
 						<TextBlock Text="{l:Localize lblClosedSourceBadge}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
 					</Border>
-					<!-- from a source the user added themselves (Settings > Installing > Your sources) -->
-					<Border IsVisible="{Binding IsUserSource}" Background="{DynamicResource FillBrush}" BorderBrush="{DynamicResource HairBrush}"
-					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblUserSourcePackage}">
-						<TextBlock Text="{l:Localize lblUserSourceBadge}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
-					</Border>
 					<!-- the Tizen the selected build asks for (TV-Store#47): a warning when this TV is too old for it -->
 					<Border IsVisible="{Binding HasTizenBadgeWarn}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
 					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center">
@@ -102,6 +97,20 @@
 			<!-- what the app is, from the catalog (#835); then the category line the list row shows -->
 			<TextBlock Text="{Binding Description}" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}" IsVisible="{Binding HasDescription}"/>
 			<TextBlock Text="{Binding Subline}" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+			<!-- where it comes from (#1018), as the list row shows it -->
+			<StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasSourceLine}" ToolTip.Tip="{Binding Source.Tip}">
+				<Path Width="14" Height="14" Stretch="Uniform" StrokeThickness="2.2" StrokeLineCap="Round" StrokeJoin="Round" VerticalAlignment="Center"
+				      IsVisible="{Binding IsRepositoryLine}" Stroke="{DynamicResource AccentBrush}"
+				      Data="M12,22 C12,22 20,18 20,12 L20,5 L12,2 L4,5 L4,12 C4,18 12,22 12,22 Z M9,12 L11,14 L15,10"/>
+				<Path Width="14" Height="14" Stretch="Uniform" StrokeThickness="2.2" StrokeLineCap="Round" VerticalAlignment="Center"
+				      IsVisible="{Binding IsUnverifiedLine}" Stroke="{DynamicResource WarnBrush}"
+				      Data="M12,3 A9,9 0 1 1 11.99,3 Z M12,8 L12,12 M12,16 L12,16.01"/>
+				<Path Width="14" Height="14" Stretch="Uniform" StrokeThickness="2.2" StrokeLineCap="Round" VerticalAlignment="Center"
+				      IsVisible="{Binding IsBlocked}" Stroke="{DynamicResource MutedBrush}"
+				      Data="M5,11 L19,11 L19,21 L5,21 Z M8,11 L8,7 A4,4 0 0 1 16,7 L16,11"/>
+				<TextBlock Text="{Binding Source.Text}" TextWrapping="Wrap" Classes.repo="{Binding IsRepositoryLine}"
+				           Classes.unverified="{Binding IsUnverifiedLine}" Foreground="{DynamicResource MutedBrush}"/>
+			</StackPanel>
 			<!-- self-updating (#1016): what the catalogue's scan covers -->
 			<TextBlock Text="{l:Localize lblSelfUpdatingDetails}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource WarnBrush}"
 			           IsVisible="{Binding IsSelfUpdating}"/>
@@ -169,6 +178,32 @@
 						</DataTemplate>
 					</ListBox.ItemTemplate>
 				</ListBox>
+			</Border>
+
+			<!-- other sources offering an app of this name (#1018): each opens its own sheet -->
+			<StackPanel Spacing="6" IsVisible="{Binding HasAlsoOffered}">
+				<TextBlock Text="{Binding AlsoOfferedTitle}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"/>
+				<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
+					<ItemsControl ItemsSource="{Binding AlsoOffered}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate x:DataType="vm:AppDetailViewModel+OtherSource">
+								<Button Classes="row" Click="OnOtherSourceClick" Tag="{Binding Release}">
+									<Grid ColumnDefinitions="*,Auto">
+										<TextBlock Text="{Binding Name}" VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}"/>
+										<PathIcon Grid.Column="1" Width="8" Height="13" Opacity="0.35" VerticalAlignment="Center"
+										          Foreground="{DynamicResource InkBrush}" Data="M1,1 L7,6.5 L1,12"/>
+									</Grid>
+								</Button>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</Border>
+				<TextBlock Text="{Binding SourcesUpdateHint}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+			</StackPanel>
+
+			<!-- a repository that could not be checked now: listed, not installable (#1018) -->
+			<Border IsVisible="{Binding IsBlocked}" Background="{DynamicResource FillBrush}" CornerRadius="10" Padding="12,8">
+				<TextBlock Text="{Binding BlockedText}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
 			</Border>
 
 			<!-- why Install is off: this TV is too old for the selected build (TV-Store#47) -->

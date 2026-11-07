@@ -76,7 +76,20 @@ namespace Apps2Samsung.Catalog
             // another tool) a signed repository never claims the app; the official catalog and the
             // user's unverified sources compare as they always did.
             var record = Apps2Samsung.Packaging.InstalledVariantStore.Find(installedVariantsJson, tvIp, catalogId, tvDuid);
-            candidates = record?.Source is { Length: > 0 } source
+            // An app the official catalog says moved to a repository (moved_to) follows it there once
+            // the user added that repository: from the official catalog (or no record), its updates
+            // come from the repository the catalog named, and from nowhere else.
+            var movedTo = candidates
+                .Where(c => c.Release.Source.Kind == CatalogSourceKind.Official && c.Asset.MovedTo is not null)
+                .Select(c => c.Asset.MovedTo!.Url.Trim())
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var moved = candidates
+                .Where(c => c.Release.Source.Kind == CatalogSourceKind.Repository && c.Release.Source.Url is { } url && movedTo.Contains(url))
+                .ToList();
+            var fromOfficial = record?.Source is null or { Length: 0 } or "official";
+            candidates = fromOfficial && moved.Count > 0
+                ? moved
+                : record?.Source is { Length: > 0 } source
                 ? candidates.Where(c => string.Equals(c.Release.Source.Key, source, StringComparison.Ordinal)).ToList()
                 : candidates.Where(c => c.Release.Source.Kind != CatalogSourceKind.Repository).ToList();
             if (candidates.Count == 0)

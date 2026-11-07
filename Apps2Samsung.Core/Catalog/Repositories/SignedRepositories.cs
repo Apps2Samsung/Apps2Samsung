@@ -75,6 +75,14 @@ namespace Apps2Samsung.Catalog.Repositories
     {
         public const string KeyFileName = "repository.pem";
 
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, RepositoryLoad> Loads = new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// The last load of the repository at <paramref name="url"/> in this process, for its status in
+        /// the source list (Settings > Your sources); null before the catalog loaded it once.
+        /// </summary>
+        public static RepositoryLoad? LastLoad(string url) => Loads.TryGetValue(url.Trim(), out var load) ? load : null;
+
         private readonly HttpClient _http;
         private readonly string? _cacheDir;
         private readonly Func<DateTimeOffset> _clock;
@@ -117,6 +125,13 @@ namespace Apps2Samsung.Catalog.Repositories
 
         /// <summary>One approved repository for a catalog load. Never throws for a broken or unreachable repository.</summary>
         public async Task<RepositoryLoad> LoadAsync(UserSource source, CancellationToken ct = default)
+        {
+            var load = await LoadCoreAsync(source, ct).ConfigureAwait(false);
+            Loads[source.Url.Trim()] = load;
+            return load;
+        }
+
+        private async Task<RepositoryLoad> LoadCoreAsync(UserSource source, CancellationToken ct)
         {
             var cached = ReadCache(source);
             var floor = Max(source.AcceptedGeneratedAt, cached?.GeneratedAt);
@@ -163,7 +178,7 @@ namespace Apps2Samsung.Catalog.Repositories
         /// <summary>The manifest's apps as catalog providers, with their verified releases and this repository as their source.</summary>
         public static List<ProviderEntry> ToProviders(UserSource source, RepositoryManifest manifest, string? installBlockedReason)
         {
-            var label = new CatalogSource(CatalogSourceKind.Repository, manifest.Repository.Name, manifest.Repository.Id, installBlockedReason);
+            var label = new CatalogSource(CatalogSourceKind.Repository, manifest.Repository.Name, manifest.Repository.Id, installBlockedReason, source.Url.Trim());
             var prefix = UserSources.Id(source);
             var providers = new List<ProviderEntry>();
             foreach (var p in manifest.Providers)
@@ -176,7 +191,15 @@ namespace Apps2Samsung.Catalog.Repositories
                     if (string.IsNullOrWhiteSpace(release.Name))
                         release.Name = string.IsNullOrWhiteSpace(p.DisplayName) ? p.Id : p.DisplayName!;
                     release.IsAdult = p.Adult;
-                    release.IsRoot = p.Flags.Any(f => string.Equals(f, "root", StringComparison.OrdinalIgnoreCase));
+                    release.IsRoot = HasFlag(p, "root");
+                    // #1016's labels: per file too, so "Show closed-source apps" off drops them like the catalog's own.
+                    release.IsClosedSource = HasFlag(p, "closed-source");
+                    release.IsSelfUpdating = HasFlag(p, "self-updating");
+                    foreach (var asset in release.Assets)
+                    {
+                        asset.IsClosedSource = release.IsClosedSource;
+                        asset.IsSelfUpdating = release.IsSelfUpdating;
+                    }
                 }
                 providers.Add(new ProviderEntry
                 {
@@ -196,6 +219,23 @@ namespace Apps2Samsung.Catalog.Repositories
             }
             return providers;
         }
+
+        private static bool HasFlag(RepositoryProvider provider, string flag) =>
+            provider.Flags.Any(f => string.Equals(f, flag, StringComparison.OrdinalIgnoreCase));
+
+        /// <summary>Why <paramref name="release"/> cannot be installed now (a repository listed from its last verified copy), or null; en.json text.</summary>
+        public static string? InstallBlocked(GitHubRelease release, Func<string, string> localize) =>
+            release.Source.CanInstall ? null : string.Format(localize("errRepoInstallBlocked"), release.Source.Name);
+
+        /// <summary>
+        /// After the download: a signed repository's file must hash to the digest it signed for, or
+        /// nothing is installed. Null when it does, or when the file is not from a repository.
+        /// </summary>
+        public static string? DigestProblem(GitHubRelease release, Asset asset, string path, Func<string, string> localize) =>
+            release.Source.Kind != CatalogSourceKind.Repository
+            || (!string.IsNullOrWhiteSpace(asset.Digest) && DigestMatches(path, asset.Digest))
+                ? null
+                : string.Format(localize("errRepoDigest"), asset.FileName, release.Source.Name);
 
         /// <summary>The SHA-256 a downloaded package must have, from <see cref="Asset.Digest"/>: true when it matches.</summary>
         public static bool DigestMatches(string path, string digest)
