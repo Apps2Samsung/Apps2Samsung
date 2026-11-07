@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Reads JavaScript on stdin and writes it with Core's RegexPropertyEscapes.Lower applied, the
+       pass EsbuildHelper.TranspileAsync runs after esbuild. tools/plugin-es2015-check/check.mjs pipes
+       esbuild's output through it so the check sees what the app ships.
+       Not in the solution on purpose: it is a CI tool, not a head. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Apps2Samsung.Core\Apps2Samsung.Core.csproj" />
+  </ItemGroup>
+</Project>
