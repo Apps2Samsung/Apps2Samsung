@@ -106,6 +106,8 @@ namespace Apps2Samsung.Helpers.Core
                 }
 
                 string transpiled = await File.ReadAllTextAsync(outputPath, Encoding.UTF8);
+                // esbuild leaves \p{...} in regexes at es2015; older TVs cannot parse the file then.
+                transpiled = RegexPropertyEscapes.Lower(transpiled);
 
                 try
                 {
