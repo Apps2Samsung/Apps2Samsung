@@ -1,15 +1,504 @@
-M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WLuP/tGVDzjPnKxEGYT9agJdxcVga8WFRxGfrxLqnRzmkMvmaI7pf+QUwDB5vnlZmzJSI/ksIdjH2abmNP1bPectSCGEc95tuoy2vnb9m/xYm8OLOT42VttqCEkgKWQfxZpORHUGS9c2wM5mm2RqlaHmINS889VCdKEkexmYZptjlOEEk/5EacFjLwuciptihxMmgfu6HQPz9DnpkGF3H/lotWfSAUk7RYYWCFUbkLobF5lSBicVzY8JrEVtDD5Xf6q9JF7Dd28IxzYTQMFEaZwFJn7nOQ51cSRx26ZJY4W+YtxRPeXIbWvo+lVZpz98V2VCe6y0FKe40iIZllEu8Egbukhr2PVnvV/RH1+4kzaillqD+BdHUy3E1fiUbHQeqxRU+uH2B3HGP/4iji5VD+Z+HFzfPUR5Wpxqy/gwEEAR6LBT9H
+RjRqTgFw/ItjLY1kyaeXpGeeMxl/a1q/6eXMsXcOLwdPtt2JoZxP6LpZFjiZoC2EJW36byFIoMVHouI6s0OiwdFW9ogWwchgJWSJAMZ73x3yNcoiM+AtOAT77tQy2dFxWooshFfJ1HTn0teZtAZxEoMkFTDi5J5PsWWuRvcCDuElIxRzIMB3lSYS2q0U/rT6vxwxJ8FmqXP6BHfvLnSzCDFW6nJoaguQSrQ3AtJlI/LTkOJKqzuxPCaIcU9km7/OarIqXx9bHHmtysqv8oDwcxK4A5GLzAkQrjyykMsBXk4pfk8rvrQ1nM07j5OMzP1lWRjaIBkYJz/lYGfpuZrPHdjq4uoJyTyjqjwNw9FsKirs8bAmLYb6tadrLofyAQGqFIyoiAZp6IGDQvZhQYbzcdSZZtZjFIdvNXM/zW1PqghoMa/HJnz2svRypBR36SzK384xQ57bdw+IyQ7iXXz5nm4ALO9I6LOUKLOilLvfAMvbsg5yenm1CknzRN8mfvlG
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-06T21:38:12.5409968+00:00",
+  "generatedAt": "2026-11-07T02:02:52.0389516+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
       "id": "jellyfin-tizen-builds",
       "url": "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases",
       "ok": true,
-      "latestTag": "2026-11-06-1553",
+      "latestTag": "2026-11-07-0153",
       "releases": [
+        {
+          "url": "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases/437255187",
+          "name": "Jellyfin - 2026-11-07 01:53",
+          "tag_name": "2026-11-07-0153",
+          "published_at": "2026-11-07T02:02:28Z",
+          "draft": false,
+          "assets": [
+            {
+              "name": "Jellyfin-10.11.z-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-10.11.z-GrayFix.wgt",
+              "size": 10612145,
+              "digest": "sha256:2ab9f1661a91cf14c2be64d8b9b00fac6c81cd8f1a017f33287eb869412becc7",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-10.11.z-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-10.11.z-OblongIcon.wgt",
+              "size": 10718842,
+              "digest": "sha256:36707c07fb5bec268b4144df0257202af036fb82bec666d65196e1533ebeaf36",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+            },
+            {
+              "name": "Jellyfin-10.11.z-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-10.11.z-OSA.wgt",
+              "size": 10729592,
+              "digest": "sha256:fe29795e2e7eec8850498db926783d2075f3df1af0aa70084c8580be088ff0ba",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+            },
+            {
+              "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-10.11.z-secondary-TrailerFix.wgt",
+              "size": 10625769,
+              "digest": "sha256:4f5af5673861d4a7f5ab37f434112a17dce14ed28d8655adccb684510ad79aea",
+              "package_version": "0.1.0",
+              "app_id": "JepZAARz4r.Jellyfin",
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+            },
+            {
+              "name": "Jellyfin-10.11.z-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-10.11.z-secondary.wgt",
+              "size": 10614600,
+              "digest": "sha256:59427bb87b36af9dae1c47004126735f3ca5d38e4969592e0b737318507050b9",
+              "package_version": "0.1.0",
+              "app_id": "JepZAARz4r.Jellyfin",
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+            },
+            {
+              "name": "Jellyfin-10.11.z-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-10.11.z-SmartHub.wgt",
+              "size": 10612791,
+              "digest": "sha256:e1743258568b6e218ad86a7ed6985320ccdcaaea2d34b909599dddb3c54e71c6",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-10.11.z-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-10.11.z-TrailerFix.wgt",
+              "size": 10623301,
+              "digest": "sha256:0e004bd11c95f5396a73522cc13c21f8858816f7983012a4857b06de0310518c",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-10.11.z.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-10.11.z.wgt",
+              "size": 10612131,
+              "digest": "sha256:ad4ce0a16d63e38a67b7b05d51f9c09c9d67db85c13c03665f28acb1d0888c68",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-12.z-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-12.z-GrayFix.wgt",
+              "size": 10768552,
+              "digest": "sha256:768e032b5f19d334992c681d4b4cc5b8dad313afd7b4738521177a435410c835",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-12.z-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-12.z-OblongIcon.wgt",
+              "size": 10875255,
+              "digest": "sha256:b7f2e1999f1010dfd9b4c1fd953f149a8fd9df90459a3151ce03b068ac553601",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+            },
+            {
+              "name": "Jellyfin-12.z-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-12.z-OSA.wgt",
+              "size": 10885989,
+              "digest": "sha256:8bddee2d5539186a6d3cd4218ee966cf6b37b8448c488f39f752330572ea695d",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+            },
+            {
+              "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-12.z-secondary-TrailerFix.wgt",
+              "size": 10782179,
+              "digest": "sha256:bdf6adbd085b39579e40e639eacaf92acd4bb0bb9ec57f00267d5eda9b3e3295",
+              "package_version": "0.1.0",
+              "app_id": "JepZAARz4r.Jellyfin",
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+            },
+            {
+              "name": "Jellyfin-12.z-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-12.z-secondary.wgt",
+              "size": 10771016,
+              "digest": "sha256:d9ac22a86770c3d56651f3d6b5ce35785252ee1a61e7fbc17ca296098e7b1561",
+              "package_version": "0.1.0",
+              "app_id": "JepZAARz4r.Jellyfin",
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+            },
+            {
+              "name": "Jellyfin-12.z-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-12.z-SmartHub.wgt",
+              "size": 10769213,
+              "digest": "sha256:2ff29200381b00929cd7d39beec9c890b99fac6f2cf089594b823a3dd07d5cbd",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-12.z-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-12.z-TrailerFix.wgt",
+              "size": 10779711,
+              "digest": "sha256:7702855b87dd9bc26a813e456d39ed79157ee3c2ff9730d820d06b9f20e3b8d3",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-12.z.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-12.z.wgt",
+              "size": 10768545,
+              "digest": "sha256:4be1743691d1a9be7acf0117b2b537129a3211b05619ef9844c543c991ed09b5",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-GrayFix.wgt",
+              "size": 10768535,
+              "digest": "sha256:b79d6caa7b6ea4a0d0e3bca75042ef9ab776d0d7a3fe8a6add7786186934d4fc",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-master-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-master-GrayFix.wgt",
+              "size": 36365156,
+              "digest": "sha256:05ff8fcd78a2bd69dfa2644525e5036ba5324c8f79f275f89789ece03a68759d",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-master-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-master-OblongIcon.wgt",
+              "size": 36471870,
+              "digest": "sha256:7975521e0b184919579ed6197b756aef64d6c7dc1fa442f00d1194dd1b31918c",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+            },
+            {
+              "name": "Jellyfin-master-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-master-OSA.wgt",
+              "size": 36482605,
+              "digest": "sha256:bbb48c287d820c1d25f00455b6c9295aef1cd1687d3326596904d382d02b9df8",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+            },
+            {
+              "name": "Jellyfin-master-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-master-secondary-TrailerFix.wgt",
+              "size": 36378787,
+              "digest": "sha256:da044ab77a032a4c919738abb64ab81f2d954cc7971354ddaa1f7b2a1555b0a1",
+              "package_version": "0.1.0",
+              "app_id": "JepZAARz4r.Jellyfin",
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+            },
+            {
+              "name": "Jellyfin-master-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-master-secondary.wgt",
+              "size": 36367623,
+              "digest": "sha256:47d524b90411c893624a6b2347222f8a9e926e5b3a5f5b66dbf8d7b2da5c88cb",
+              "package_version": "0.1.0",
+              "app_id": "JepZAARz4r.Jellyfin",
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+            },
+            {
+              "name": "Jellyfin-master-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-master-SmartHub.wgt",
+              "size": 36365820,
+              "digest": "sha256:8ec830678749406ea4731c4109c8bc2c145b9570f639950259cf7aa603f0bee2",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-master-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-master-TrailerFix.wgt",
+              "size": 36376319,
+              "digest": "sha256:6748f97955f3fdf135473eb79ba10abf3e0b7be76236c2155606e55ed21e5294",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-master.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-master.wgt",
+              "size": 36365138,
+              "digest": "sha256:f0b18447c8a8fd1d40f2bf1f3a0a91de49ff08fd4ffb0d47b4756ccf2c20bb80",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-OblongIcon.wgt",
+              "size": 10875245,
+              "digest": "sha256:e26a5c931f5370b76fa242f9d0247dad57f33ded0610b254c0abe012d21a8326",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+            },
+            {
+              "name": "Jellyfin-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-OSA.wgt",
+              "size": 10885987,
+              "digest": "sha256:33d359f5453ee29c869c930b4c48823b9b288ce498f97f9bf684f3c006cb1a24",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+            },
+            {
+              "name": "Jellyfin-prerelease-GrayFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-prerelease-GrayFix.wgt",
+              "size": 10768565,
+              "digest": "sha256:74663fa355fb475d6599ddd19a6ca4890235138bba65ee52c5d66a9f2a7c89ac",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-prerelease-OblongIcon.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-prerelease-OblongIcon.wgt",
+              "size": 10875250,
+              "digest": "sha256:3466f14bcbf2c0659002da681be608690d03fd086e1f8da30bee6a978224ddc5",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+            },
+            {
+              "name": "Jellyfin-prerelease-OSA.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-prerelease-OSA.wgt",
+              "size": 10885995,
+              "digest": "sha256:ca65bff20a19849c2b34cb9da35daa7cc90cbe1a4582ea3655422352984d5f7d",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+            },
+            {
+              "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-prerelease-secondary-TrailerFix.wgt",
+              "size": 10782191,
+              "digest": "sha256:d70108be19d728854f9bb8cb22b01d082fe3cd6c8c5081f797fd416e0c988c36",
+              "package_version": "0.1.0",
+              "app_id": "JepZAARz4r.Jellyfin",
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+            },
+            {
+              "name": "Jellyfin-prerelease-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-prerelease-secondary.wgt",
+              "size": 10771012,
+              "digest": "sha256:2e43e972f3190545c974e0427631599b59391a289716f30d9d3bd77424fe4f85",
+              "package_version": "0.1.0",
+              "app_id": "JepZAARz4r.Jellyfin",
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+            },
+            {
+              "name": "Jellyfin-prerelease-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-prerelease-SmartHub.wgt",
+              "size": 10769212,
+              "digest": "sha256:463bde41ab6bcbc4198b9d877b841c2387e16e99f0d3548507d81d69ec6fe8f6",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-prerelease-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-prerelease-TrailerFix.wgt",
+              "size": 10779717,
+              "digest": "sha256:5f6a8777316c14c72c8e357e9b733ea8e77d2882d0d12b1b18f85351f7fa2da2",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-prerelease.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-prerelease.wgt",
+              "size": 10768540,
+              "digest": "sha256:16026fc5cdde0d99d12089c87d0259ccbe3681cd30e016dbc103fae8c4ca330d",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-secondary-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-secondary-TrailerFix.wgt",
+              "size": 10782166,
+              "digest": "sha256:9eef507ff0ba662385debdb366b3fd16faf0fae5f9ce7243864863a8bf6c4c66",
+              "package_version": "0.1.0",
+              "app_id": "JepZAARz4r.Jellyfin",
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+            },
+            {
+              "name": "Jellyfin-secondary.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-secondary.wgt",
+              "size": 10770997,
+              "digest": "sha256:b11d5c3adbf113411a41203c358500847427f48fd63b0dcf1478244129eea15d",
+              "package_version": "0.1.0",
+              "app_id": "JepZAARz4r.Jellyfin",
+              "package_id": "JepZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+            },
+            {
+              "name": "Jellyfin-SmartHub.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-SmartHub.wgt",
+              "size": 10769196,
+              "digest": "sha256:78d279ec59a3cb51194d469064baec11b0290a37ae57c19ad17a40d8a6fb46e5",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin-TrailerFix.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin-TrailerFix.wgt",
+              "size": 10779695,
+              "digest": "sha256:098885eae2e9730d07a129058eaec395bf0fa065111d7176ff7271e6827eaf28",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            },
+            {
+              "name": "Jellyfin.wgt",
+              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-07-0153/Jellyfin.wgt",
+              "size": 10768534,
+              "digest": "sha256:56d600ebc6d9b004e1cf87087a1d91e3ef21bdc67c6b2571f2c9ed0d502b8b44",
+              "package_version": "0.1.0",
+              "app_id": "AprZAARz4r.Jellyfin",
+              "package_id": "AprZAARz4r",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+            }
+          ]
+        },
         {
           "url": "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases/436706061",
           "name": "Jellyfin - 2026-11-06 15:53",
@@ -1965,495 +2454,6 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
               "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
             }
           ]
-        },
-        {
-          "url": "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases/433735144",
-          "name": "Jellyfin - 2026-11-04 09:16",
-          "tag_name": "2026-11-04-0916",
-          "published_at": "2026-11-04T09:25:25Z",
-          "draft": false,
-          "assets": [
-            {
-              "name": "Jellyfin-10.11.z-GrayFix.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-10.11.z-GrayFix.wgt",
-              "size": 10612151,
-              "digest": "sha256:cc584424b31687fed4da502b08d69d6a060fa346676c76949f630cb18210b47f",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-10.11.z-OblongIcon.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-10.11.z-OblongIcon.wgt",
-              "size": 10718837,
-              "digest": "sha256:0ee98ba04834e12d68f7931b09db5556429a10b14791969fadc47f7f420c6cc3",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
-            },
-            {
-              "name": "Jellyfin-10.11.z-OSA.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-10.11.z-OSA.wgt",
-              "size": 10729587,
-              "digest": "sha256:322a43fc8c034f77fa0cbf819f7c363dd92081ac7b3177cfe40494eafa74d8c9",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
-            },
-            {
-              "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-10.11.z-secondary-TrailerFix.wgt",
-              "size": 10625775,
-              "digest": "sha256:9164fa3c17a3028b20614669f343bffb8d34f56ebf29c3826c71ddb010fb84d8",
-              "package_version": "0.1.0",
-              "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
-            },
-            {
-              "name": "Jellyfin-10.11.z-secondary.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-10.11.z-secondary.wgt",
-              "size": 10614592,
-              "digest": "sha256:7cf31b338165dac465029ece5c674ed16270324562771e9da68a11a57b78fa26",
-              "package_version": "0.1.0",
-              "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
-            },
-            {
-              "name": "Jellyfin-10.11.z-SmartHub.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-10.11.z-SmartHub.wgt",
-              "size": 10612805,
-              "digest": "sha256:c0de3b08d11b051fc4dc563b5be599179bcbb402834f24288bb4d8c474c30858",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-10.11.z-TrailerFix.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-10.11.z-TrailerFix.wgt",
-              "size": 10623300,
-              "digest": "sha256:a589d25fb200c3d80e59a3d6f057ecc2db6dfd35f0f1aca913d8210f8bec624b",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-10.11.z.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-10.11.z.wgt",
-              "size": 10612133,
-              "digest": "sha256:8027316ce93e8e3375fa54a8ce4467ee6fb2cb3720768c9c52b391504f0c50f8",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-12.z-GrayFix.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-12.z-GrayFix.wgt",
-              "size": 10768553,
-              "digest": "sha256:8058298a3d263e6b058549223456ebd8f6fb0bda2394ab617ba6ca074170e136",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-12.z-OblongIcon.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-12.z-OblongIcon.wgt",
-              "size": 10875257,
-              "digest": "sha256:6842b61c6a7dc53cd2ad60ae728d2662ce0574498f3cba8569446bab340fb651",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
-            },
-            {
-              "name": "Jellyfin-12.z-OSA.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-12.z-OSA.wgt",
-              "size": 10886000,
-              "digest": "sha256:24a3ed6727b5dcd5d2136f961cd15b14fc0c25421ce3913f50979bf35eb4e4e9",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
-            },
-            {
-              "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-12.z-secondary-TrailerFix.wgt",
-              "size": 10782178,
-              "digest": "sha256:8726dd1a45e4fff6f6cf32ae739f1b64213436678464aaca72618dedeb43badb",
-              "package_version": "0.1.0",
-              "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
-            },
-            {
-              "name": "Jellyfin-12.z-secondary.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-12.z-secondary.wgt",
-              "size": 10771014,
-              "digest": "sha256:2ce59589bbdd879567051da0e82d6da9bed0b191c3d8b4c89bfa2d9d2189bf56",
-              "package_version": "0.1.0",
-              "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
-            },
-            {
-              "name": "Jellyfin-12.z-SmartHub.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-12.z-SmartHub.wgt",
-              "size": 10769205,
-              "digest": "sha256:c8be31a0482a9b1c7a6f7887024b9f259ecb352aeb90f7f83a97ddf7a256c030",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-12.z-TrailerFix.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-12.z-TrailerFix.wgt",
-              "size": 10779714,
-              "digest": "sha256:9b537c310a5c3469a6647ec445b42d043013bd62803aa57d1f436cc687b880ba",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-12.z.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-12.z.wgt",
-              "size": 10768549,
-              "digest": "sha256:a7a3234de024fa4d2f3ce4263b3c111e553afa321a7ea57c3f2d4d3734fa08a8",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-GrayFix.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-GrayFix.wgt",
-              "size": 10768549,
-              "digest": "sha256:7c3986724641ee33ee583e858e3647bfb179bdad436e1c58785c4a84c76745d6",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-master-GrayFix.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-master-GrayFix.wgt",
-              "size": 36341438,
-              "digest": "sha256:3710e39554197d5a6b26a37a37dc8d3e78a812dec693d27928dc72b79b32f9d6",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-master-OblongIcon.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-master-OblongIcon.wgt",
-              "size": 36448130,
-              "digest": "sha256:642931f1f04f07836f61cb3f926a00d60595f80b8f0f00ec8b5ce4f760b52072",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
-            },
-            {
-              "name": "Jellyfin-master-OSA.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-master-OSA.wgt",
-              "size": 36458874,
-              "digest": "sha256:ade2c46883fd167d0d08aff4a7ff1834354c3ee9e2e7947c643c2fc0aca818f8",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
-            },
-            {
-              "name": "Jellyfin-master-secondary-TrailerFix.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-master-secondary-TrailerFix.wgt",
-              "size": 36355060,
-              "digest": "sha256:04562f0bdc8f43105132df33cfc659286869dcf08ef12466a07fad852f06597d",
-              "package_version": "0.1.0",
-              "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
-            },
-            {
-              "name": "Jellyfin-master-secondary.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-master-secondary.wgt",
-              "size": 36343893,
-              "digest": "sha256:30e023cda4ab30cc2d2484760cd30b7242b32390696e9629faf4142adbf7ad2c",
-              "package_version": "0.1.0",
-              "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
-            },
-            {
-              "name": "Jellyfin-master-SmartHub.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-master-SmartHub.wgt",
-              "size": 36342088,
-              "digest": "sha256:4de5833903c2cba8393d32daa0e14bc7af1a2cc6fdfb634e38a90134e0af1164",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-master-TrailerFix.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-master-TrailerFix.wgt",
-              "size": 36352596,
-              "digest": "sha256:fdd253c204ff321308ae487cc171d77243d110456a87145770b8ff203639f20a",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-master.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-master.wgt",
-              "size": 36341411,
-              "digest": "sha256:f2a224a29fc20b30b1d63f99a155ae9150c0a25b661d2825637ebabbb3270f5f",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-OblongIcon.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-OblongIcon.wgt",
-              "size": 10875242,
-              "digest": "sha256:a67360e38d0e9cfcd3696005c6f7a955231fe0c02dd9b889e87e92a39d39fa7e",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
-            },
-            {
-              "name": "Jellyfin-OSA.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-OSA.wgt",
-              "size": 10885990,
-              "digest": "sha256:79b3a1be7b5b65116efa485ce658fed2ba83f6b08a617b43cd47edeee9916229",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
-            },
-            {
-              "name": "Jellyfin-prerelease-GrayFix.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-prerelease-GrayFix.wgt",
-              "size": 10768561,
-              "digest": "sha256:2bd76b06ff6abfe75a7b8bb78a2c896d93ef1c6bb7fece2007dc9733453c3d03",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-prerelease-OblongIcon.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-prerelease-OblongIcon.wgt",
-              "size": 10875254,
-              "digest": "sha256:6be4ad0115dd45ac7ea13ba652522d5b28fcc9436a454c4edb7c34d9a14b726f",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
-            },
-            {
-              "name": "Jellyfin-prerelease-OSA.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-prerelease-OSA.wgt",
-              "size": 10885997,
-              "digest": "sha256:3e25a2d3a8dce67a22e40576565d75b75750c6812d368f7bfbc734c750a249ae",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
-            },
-            {
-              "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-prerelease-secondary-TrailerFix.wgt",
-              "size": 10782176,
-              "digest": "sha256:a3b02d17da82fadf39e956b72740922097aa6efed948ff5f91c56bad1c27e607",
-              "package_version": "0.1.0",
-              "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
-            },
-            {
-              "name": "Jellyfin-prerelease-secondary.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-prerelease-secondary.wgt",
-              "size": 10771012,
-              "digest": "sha256:070026cfb0962d58cc4a1c65e66acb5839a7e5745ec2942e3a2de73d41dec8e0",
-              "package_version": "0.1.0",
-              "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
-            },
-            {
-              "name": "Jellyfin-prerelease-SmartHub.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-prerelease-SmartHub.wgt",
-              "size": 10769210,
-              "digest": "sha256:b64daafe0850a7b932243ab4660c1dc94e5e3fd8a3e062b5f35d342daa4d782b",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-prerelease-TrailerFix.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-prerelease-TrailerFix.wgt",
-              "size": 10779713,
-              "digest": "sha256:57b376310023201dace9c0856b3264a71a43957e5d3b3efa353a3e8d332a0998",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-prerelease.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-prerelease.wgt",
-              "size": 10768545,
-              "digest": "sha256:889e3499f2ff3a1ee7ac3ee975beef35961d17afb782c1f9f0b0e9f43d16a340",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-secondary-TrailerFix.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-secondary-TrailerFix.wgt",
-              "size": 10782167,
-              "digest": "sha256:7986ec84b3d578d6a5e010aec326dadfdcac8d690d7e0f9bb14a6aa27dc1ff71",
-              "package_version": "0.1.0",
-              "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
-            },
-            {
-              "name": "Jellyfin-secondary.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-secondary.wgt",
-              "size": 10771000,
-              "digest": "sha256:e2ec8132df8bb1477f1c1b57690f6d73120a133a3524ad77e1326de7ea6ca27e",
-              "package_version": "0.1.0",
-              "app_id": "JepZAARz4r.Jellyfin",
-              "package_id": "JepZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
-            },
-            {
-              "name": "Jellyfin-SmartHub.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-SmartHub.wgt",
-              "size": 10769191,
-              "digest": "sha256:076917f2139a93019c60a4c318a0c3dd8649a4bba4faddc9c36249b1b0285c29",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin-TrailerFix.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin-TrailerFix.wgt",
-              "size": 10779704,
-              "digest": "sha256:d200edc936f59b8c715a667fc67ef9b03e3f3861a15ec6bcc91d6a49b2a36c2d",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            },
-            {
-              "name": "Jellyfin.wgt",
-              "browser_download_url": "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2026-11-04-0916/Jellyfin.wgt",
-              "size": 10768531,
-              "digest": "sha256:20ea3c881b1912520a6168d94fd65aea79dc2aa52ed3578960072f273d5fb308",
-              "package_version": "0.1.0",
-              "app_id": "AprZAARz4r.Jellyfin",
-              "package_id": "AprZAARz4r",
-              "required_version": "2.3",
-              "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
-            }
-          ]
         }
       ]
     },
@@ -3031,18 +3031,18 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
       "id": "tizen-community",
       "url": "https://api.github.com/repos/Apps2Samsung/tizen-community-packages/releases",
       "ok": true,
-      "latestTag": "community-795",
+      "latestTag": "community-796",
       "releases": [
         {
-          "url": "https://api.github.com/repos/Apps2Samsung/tizen-community-packages/releases/437083107",
+          "url": "https://api.github.com/repos/Apps2Samsung/tizen-community-packages/releases/437254984",
           "name": "Tizen Community",
-          "tag_name": "community-795",
-          "published_at": "2026-11-06T21:37:35Z",
+          "tag_name": "community-796",
+          "published_at": "2026-11-07T02:02:16Z",
           "draft": false,
           "assets": [
             {
               "name": "30nama.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/30nama.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/30nama.wgt",
               "size": 670427,
               "digest": "sha256:3fe55a26da1ad1291ec319c9c596c9d5c0497266abbf0337c50b328903da7203",
               "package_version": "1.3.0",
@@ -3054,7 +3054,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "AerialScreensaver.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/AerialScreensaver.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/AerialScreensaver.wgt",
               "size": 10718832,
               "digest": "sha256:c3cdfc8624728d1f9e6a38599d5afd246ccaa34eb0e5ff1ee8ba2c17666e35e8",
               "package_version": "1.0.5",
@@ -3066,7 +3066,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "AetherFlix.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/AetherFlix.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/AetherFlix.wgt",
               "size": 348201,
               "digest": "sha256:38b067a0e74c0666cb9d2d297764b4c2450a01818d825ed0e9eeab75f9cb1b7e",
               "package_version": "1.2.1",
@@ -3078,7 +3078,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "AIOStreams-Official.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/AIOStreams-Official.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/AIOStreams-Official.wgt",
               "size": 2071017,
               "digest": "sha256:41c834114e59e284451e899e0938e664124a7ff237ebe131ddce35203569118b",
               "package_version": "0.8.0",
@@ -3090,7 +3090,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "AIOStreams-tizen6.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/AIOStreams-tizen6.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/AIOStreams-tizen6.wgt",
               "size": 2054925,
               "digest": "sha256:ed9ff91f1c820a9d0443eb5f682d8609373cee34dbba2c03230566fe352bbbb8",
               "package_version": "0.7.0",
@@ -3102,7 +3102,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "AirTizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/AirTizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/AirTizen.wgt",
               "size": 3731579,
               "digest": "sha256:26c38fed140763ed4f7c3b2298c708f599006f25db275bc8a3f97c9140f14c45",
               "package_version": "2.2.34",
@@ -3114,7 +3114,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "AmbientTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/AmbientTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/AmbientTV.wgt",
               "size": 5431264,
               "digest": "sha256:ce305df8559bd8403417db27ffd87c38a7e74b173abb51b00969ce450dc2f722",
               "package_version": "1.0.0",
@@ -3126,7 +3126,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "AmorecoFlix.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/AmorecoFlix.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/AmorecoFlix.wgt",
               "size": 456254,
               "digest": "sha256:bb5ebfd61096c4db5d047248e6cfacae051476c52c0b66b80ea8f350fcbf06b8",
               "package_version": "2.0.0",
@@ -3138,7 +3138,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "AniLiberty-TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/AniLiberty-TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/AniLiberty-TV.wgt",
               "size": 244149,
               "digest": "sha256:ee0ed2fb6e182eab14cd1911a61e8ef880486b8819141b94bc00f1da31ff46ec",
               "package_version": "1.0.1",
@@ -3150,7 +3150,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "AniLiberty.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/AniLiberty.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/AniLiberty.wgt",
               "size": 115245,
               "digest": "sha256:e7ffd9ba709b87fcbfa03c70bf16c92494a22c5116cc916cc083230c465ad0d0",
               "package_version": "1.1.0",
@@ -3162,7 +3162,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "AniUltimatium.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/AniUltimatium.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/AniUltimatium.wgt",
               "size": 295993,
               "digest": "sha256:72058cd897868ab1becf0afe7bd00abddb89ce7e1d3aca075f1d79e0620e3203",
               "package_version": "2.12.1",
@@ -3174,7 +3174,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Apex-TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Apex-TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Apex-TV.wgt",
               "size": 715884,
               "digest": "sha256:217af790323663ac57d292f4b17c2d6e7d8210bbefc585e0fa02205fabd0792e",
               "package_version": "0.5.14",
@@ -3186,7 +3186,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "APLLauncher.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/APLLauncher.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/APLLauncher.wgt",
               "size": 3818183,
               "digest": "sha256:a7ac59383958fce931dbc19c8204c0a5592a8776bc3ca64346aac5c98c43ea56",
               "package_version": "1.0.20",
@@ -3198,7 +3198,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "APLTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/APLTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/APLTV.wgt",
               "size": 325614,
               "digest": "sha256:20f473eca56d599b91974dc016aa437e806d812cb5d4459a30a5c60bcbcd9e46",
               "package_version": "1.0.2",
@@ -3210,7 +3210,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "AppManager.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/AppManager.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/AppManager.wgt",
               "size": 12004,
               "digest": "sha256:15f66a82b7b61cf16838d09b3574b51d5f4efe2826cbffbfe5866ef4f6a2a15a",
               "package_version": "1.0.3",
@@ -3222,7 +3222,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "AquaPlay-IPTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/AquaPlay-IPTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/AquaPlay-IPTV.wgt",
               "size": 1767730,
               "digest": "sha256:5c072da6d8f7df4eecb19b4f92132584aa72637443c76b9aa170333166ac3d90",
               "package_version": "1.0.51",
@@ -3234,7 +3234,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Arn0Launcher.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Arn0Launcher.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Arn0Launcher.wgt",
               "size": 7945310,
               "digest": "sha256:57d94485ebd0e34ceee9cb929046b812dabce2768dae51de00602ecdc875295e",
               "package_version": "0.6.12",
@@ -3246,7 +3246,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "AudioRecorder.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/AudioRecorder.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/AudioRecorder.wgt",
               "size": 29724428,
               "digest": "sha256:1eb8429cd8efbbf3d5f39a31d8f2b19e08f9df8bf4c6c7fb7dbc18163788180b",
               "package_version": "1.0.0",
@@ -3258,7 +3258,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Baobab.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Baobab.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Baobab.wgt",
               "size": 125438,
               "digest": "sha256:9621b7e4d9169c69e342237c8417c1a07b263c61e9824a6a7562e49ac856d061",
               "package_version": "0.1.0",
@@ -3268,7 +3268,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Beam-TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Beam-TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Beam-TV.wgt",
               "size": 275493,
               "digest": "sha256:b5b32946c894e723bed908734ac47ccd545ed32aa7ff6a224ba76a397aec492f",
               "package_version": "1.0.1",
@@ -3280,7 +3280,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Bilibili.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Bilibili.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Bilibili.wgt",
               "size": 620979,
               "digest": "sha256:372cda1ba4bbddd5ac8179d589beddb92bba3d65ac7acc374a13c87560b7cc12",
               "package_version": "1.4.14",
@@ -3292,7 +3292,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Bisnor.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Bisnor.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Bisnor.wgt",
               "size": 8592112,
               "digest": "sha256:da651dfe83271d592417bbd1413f5cf13b77efd8be999517d83d3138167c0e6c",
               "package_version": "5.3.2",
@@ -3302,7 +3302,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "CameraPip.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/CameraPip.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/CameraPip.wgt",
               "size": 41743,
               "digest": "sha256:9e63a81db93fe11345e9c1af7b737aa0b96d2e8c92490e399c8fa56e0ea9a663",
               "package_version": "1.0.0",
@@ -3314,7 +3314,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Chiaki-Tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Chiaki-Tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Chiaki-Tizen.wgt",
               "size": 1846734,
               "digest": "sha256:05a5e63d711fb06644ea30a4e6315581dd508fddec4dd9f0a1986b380edb0473",
               "package_version": "0.2.0",
@@ -3326,7 +3326,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Chouette-TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Chouette-TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Chouette-TV.wgt",
               "size": 552684,
               "digest": "sha256:cf7dc524d4adbf8a5f89ad1850a751201ce84e60e420b59823a14969bedce88a",
               "package_version": "0.1.1",
@@ -3338,7 +3338,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Copenhagen-Weather.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Copenhagen-Weather.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Copenhagen-Weather.wgt",
               "size": 84458,
               "digest": "sha256:7a987b92fa08852d8768073143b0a07fa6d78ab162b7b3f355fa7ba056709927",
               "package_version": "1.0.0",
@@ -3350,7 +3350,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Crunchyroll.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Crunchyroll.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Crunchyroll.wgt",
               "size": 978485,
               "digest": "sha256:6c26f7d2b13fcf31507f5b33b7bb6198839de4b6521b1eb500d7a00e9930ab56",
               "package_version": "1.0.0",
@@ -3362,7 +3362,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "DevNull-TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/DevNull-TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/DevNull-TV.wgt",
               "size": 745080,
               "digest": "sha256:56fcb95c5cbefd49136286d33f174379ae18e99faa1229bc05477e343da0b35e",
               "package_version": "1.4.0",
@@ -3374,7 +3374,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Doom-tizen55.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Doom-tizen55.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Doom-tizen55.wgt",
               "size": 7251207,
               "digest": "sha256:b0d16ba297c8a979ba956d91a5ce75dcf6c37c07fa312fffb32e5dd48b8a96f5",
               "package_version": "1.20",
@@ -3386,7 +3386,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Doom.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Doom.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Doom.wgt",
               "size": 7225315,
               "digest": "sha256:8c594c487b66331869fb296cb4642db8aa82eefc079b1fbd7e78709e42faf700",
               "package_version": "1.20",
@@ -3398,7 +3398,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Douyin.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Douyin.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Douyin.wgt",
               "size": 284326,
               "digest": "sha256:9a98f59ba6cca1712923f85e4825e0542b56149e746d9f39e8219686f87ac6f9",
               "package_version": "1.4.6",
@@ -3410,7 +3410,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "EN-IPTV_Player.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/EN-IPTV_Player.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/EN-IPTV_Player.wgt",
               "size": 479660,
               "digest": "sha256:caa1579fb5fc6ba94528e3381eaccea5c64c9f8d5b64a733b9e3c1af024150f3",
               "package_version": "3.2.0",
@@ -3422,7 +3422,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "FCastReceiver.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/FCastReceiver.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/FCastReceiver.wgt",
               "size": 6669120,
               "digest": "sha256:cd8c8d9fbfea5c37ec541a7f91a6f2c761c2687b1a191dc32d1ddae095dd553c",
               "package_version": "1.0.0",
@@ -3434,7 +3434,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Film-Merkezi.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Film-Merkezi.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Film-Merkezi.wgt",
               "size": 4225446,
               "digest": "sha256:ab2dff90db66c538bf718558fcc7df58b196c1a2e8ee982b1a3d89a085c35382",
               "package_version": "1.1.7",
@@ -3446,7 +3446,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Fladder.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Fladder.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Fladder.tpk",
               "size": 22763668,
               "digest": "sha256:104a080103316e5bad569b20cb0ed551622995190fee7b8828fafcc79efe6da4",
               "package_version": "0.8.1",
@@ -3458,7 +3458,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "FLOH-IPTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/FLOH-IPTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/FLOH-IPTV.wgt",
               "size": 680155,
               "digest": "sha256:b6f144fa49f358c409d4b581bababd6d33f9b00daf1f67ee05f3eaf7cfab330d",
               "package_version": "1.7.0",
@@ -3470,7 +3470,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Frame-Dashboard.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Frame-Dashboard.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Frame-Dashboard.wgt",
               "size": 25004,
               "digest": "sha256:19f8491376238c710cb3299984fecb1892f12a9a4d3fc67c7007f3d272c496de",
               "package_version": "0.1.0",
@@ -3482,7 +3482,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "FreeMyTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/FreeMyTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/FreeMyTV.wgt",
               "size": 791179,
               "digest": "sha256:89a644830bbff9a2972529f88e70384d4f296db79e355f3c46115a860bdfc794",
               "package_version": "1.3.0",
@@ -3494,7 +3494,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "FreeSerf.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/FreeSerf.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/FreeSerf.wgt",
               "size": 2059698,
               "digest": "sha256:77f4fdd9d448d8664bae9aef57d4dce83be8414beafedaf4b005f48ce239e1c0",
               "package_version": "1.0.0",
@@ -3506,7 +3506,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "GameBoy-Emulator.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/GameBoy-Emulator.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/GameBoy-Emulator.wgt",
               "size": 151207,
               "digest": "sha256:9522e11954ce99e2c86468b27ce2c1ff377906cf862ad329168c5424a9054079",
               "package_version": "1.2.1",
@@ -3518,7 +3518,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "go2rtc-tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/go2rtc-tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/go2rtc-tizen.wgt",
               "size": 55332,
               "digest": "sha256:9c1ef0b817fad2141c43f09162b691e942e316141510cab55c3df52649c0fbc5",
               "package_version": "0.1.0",
@@ -3530,7 +3530,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "HackTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/HackTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/HackTV.wgt",
               "size": 67434,
               "digest": "sha256:1f893e6ce6661dc0325912c2284904975b01854e6ee6232bb658bb25ac27600d",
               "package_version": "0.0.0",
@@ -3542,7 +3542,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Haven.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Haven.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Haven.wgt",
               "size": 2171612,
               "digest": "sha256:df0f77617ca0f1c9f6d32355105c394033ecbf49b2657af2841588b0dddc1bbb",
               "package_version": "1.0.0",
@@ -3554,7 +3554,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "HyperTizen.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/HyperTizen.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/HyperTizen.tpk",
               "size": 6216432,
               "digest": "sha256:369196cf4d43baec0ead66183a6d07292c8ecb5b6a91d9876f20679891b8c1a8",
               "package_version": "1.0.0",
@@ -3566,7 +3566,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "ImmichTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/ImmichTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/ImmichTV.wgt",
               "size": 1070090,
               "digest": "sha256:e1fcb03553774b144c5d7732bdfc0989cd47a4506f764f9255c5d57ba269fb50",
               "package_version": "0.1.2",
@@ -3578,7 +3578,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "ImmiTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/ImmiTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/ImmiTV.wgt",
               "size": 129566,
               "digest": "sha256:148e749eb007b2d50b30595615277204efaa8e62521eaacaee680a3823d2355f",
               "package_version": "1.0.0",
@@ -3590,7 +3590,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "inet-speed-old-tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/inet-speed-old-tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/inet-speed-old-tizen.wgt",
               "size": 150204,
               "digest": "sha256:6507b6d4a48ec9a1d5f3bf1730317d7ffef90ae613dbabc9d9ff9332bd24abe9",
               "package_version": "1.1.1",
@@ -3602,7 +3602,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "iperf3-TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/iperf3-TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/iperf3-TV.wgt",
               "size": 60796,
               "digest": "sha256:c195ecf999e121b489695d4df4e980bacbc0e7abe879276b0744d063af08cb83",
               "package_version": "1.0.0",
@@ -3614,7 +3614,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "IPTV-Manager.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/IPTV-Manager.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/IPTV-Manager.wgt",
               "size": 331832,
               "digest": "sha256:5315884cd49c29e29b7d07e47288069818e326396b007634df9d10f068f19632",
               "package_version": "1.0.0",
@@ -3626,7 +3626,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Jellyfin-Bonfire.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Jellyfin-Bonfire.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Jellyfin-Bonfire.wgt",
               "size": 21145750,
               "digest": "sha256:fd449997114c3480307ca4cb5ad3cae88d831cf9fe40378f62f69716f5aca0ae",
               "package_version": "0.1.0",
@@ -3638,7 +3638,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "JellyLean.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/JellyLean.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/JellyLean.wgt",
               "size": 535774,
               "digest": "sha256:384be3c9897efe3c77e8f3d8abea0b287a9ab31690c57da824421a34134d7196",
               "package_version": "1.0.4",
@@ -3650,7 +3650,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Kick.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Kick.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Kick.wgt",
               "size": 2250158,
               "digest": "sha256:dc9e2a60c9a5d63125e7cb3563bff1b4292b760f65cb723c18402dd865091166",
               "package_version": "1.3.0",
@@ -3662,7 +3662,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "KickTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/KickTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/KickTV.wgt",
               "size": 177553,
               "digest": "sha256:7b988f75e707943886875f9e433af4064618a401b8185594d91d18c61805178b",
               "package_version": "2.3.0",
@@ -3674,7 +3674,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "KickTV20.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/KickTV20.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/KickTV20.wgt",
               "size": 167828,
               "digest": "sha256:fb4e1c6eecedf0adc5f30aea9f92e7a51c2f7ff50b5e159de9596014ba7dc874",
               "package_version": "2.0.1",
@@ -3686,7 +3686,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Kodi-Chorus.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Kodi-Chorus.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Kodi-Chorus.wgt",
               "size": 2023846,
               "digest": "sha256:65b0512a4b3e29780a307cc2caa51e4b6f8c0c7d56a91f82c62125fa79447e39",
               "package_version": "1.0.0",
@@ -3698,7 +3698,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Kodi-Samsung.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Kodi-Samsung.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Kodi-Samsung.wgt",
               "size": 81550815,
               "digest": "sha256:bfaf331de2681bc1d57e2a6dab89d970324798f43204f8d45ed89688e694e0dd",
               "package_version": "23.0.0",
@@ -3710,7 +3710,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Kodi-TeX.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Kodi-TeX.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Kodi-TeX.wgt",
               "size": 2746767,
               "digest": "sha256:0a52da7d2dba3a365310ee7d6c4d799d1dbbaeb548584a8344d686f6be66f047",
               "package_version": "1.0.0",
@@ -3722,7 +3722,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "KROMA.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/KROMA.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/KROMA.wgt",
               "size": 10199496,
               "digest": "sha256:fdfddfe6a58abb655b4730d26cd4817e3ee8b4c7bf65be6c96fe313ef13b78cf",
               "package_version": "0.1.38",
@@ -3734,7 +3734,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Lampa.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Lampa.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Lampa.wgt",
               "size": 5722539,
               "digest": "sha256:15965947790a66dc63638f51b553b8347f801072ded62bf4f77054e7bd2bff91",
               "package_version": "1.9.1",
@@ -3746,9 +3746,9 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Lobby.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Lobby.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Lobby.wgt",
               "size": 32131224,
-              "digest": "sha256:08a0dc578a865c15cb042684ee31aec501fb6f2b6493bced6dee70e9c7202bb5",
+              "digest": "sha256:62842718161f0aaf5e425ac59e185de7cee2e6bb81d63f4280081c6e7cf4135b",
               "package_version": "0.9.14",
               "app_id": "lobbyTV001.Lobby",
               "package_id": "lobbyTV001",
@@ -3758,7 +3758,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "LumenTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/LumenTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/LumenTV.wgt",
               "size": 1586131,
               "digest": "sha256:c1a6b1ef0a158004269b42ca9d565f3f3ab7cd7ffe5de04fcb0f56f2fa53ea17",
               "package_version": "1.17.1",
@@ -3770,7 +3770,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "MonoServer.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/MonoServer.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/MonoServer.wgt",
               "size": 1362431,
               "digest": "sha256:6bcc137fb99d7788807e25d5d6e6a2af1707295bb625e37542c1b0535deb76f1",
               "package_version": "1.0.35",
@@ -3782,7 +3782,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Moonfin-Lica-Fork.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Moonfin-Lica-Fork.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Moonfin-Lica-Fork.wgt",
               "size": 8905386,
               "digest": "sha256:61c8b13612b251459b4120f6eb82aeed8fb2987e2cbdecb7ab964275e0678e84",
               "package_version": "2.0.2",
@@ -3794,7 +3794,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Moonlight-AC3-fidoboy-ForceGM.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Moonlight-AC3-fidoboy-ForceGM.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Moonlight-AC3-fidoboy-ForceGM.wgt",
               "size": 5811253,
               "digest": "sha256:2b5b41355a4be5d864c5e24ade9cd5b36e7ccca07c404564303663d09737a74f",
               "package_version": "1.2.2",
@@ -3806,7 +3806,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Moonlight-AC3-fidoboy.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Moonlight-AC3-fidoboy.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Moonlight-AC3-fidoboy.wgt",
               "size": 5811247,
               "digest": "sha256:75e385502828f95ac39d3085530e199923155ea29f9a76fb09da444797644639",
               "package_version": "1.2.2",
@@ -3818,7 +3818,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Moonlight-Chrome-NoGame.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Moonlight-Chrome-NoGame.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Moonlight-Chrome-NoGame.wgt",
               "size": 1291214,
               "digest": "sha256:1c73e8f6895be39f10ac36d83e00c4c095801ec4ad89d23d9d5630a16fc6c056",
               "package_version": "1.2.1",
@@ -3828,7 +3828,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Moonlight-Chrome-ToypoodleGaming.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Moonlight-Chrome-ToypoodleGaming.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Moonlight-Chrome-ToypoodleGaming.wgt",
               "size": 1294679,
               "digest": "sha256:02a687d3d6d34770f3fd0f1ec3ace653128c0d92a84b8eb47a899ef4159fd7ec",
               "package_version": "1.2.1",
@@ -3838,7 +3838,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Moonlight-Chrome.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Moonlight-Chrome.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Moonlight-Chrome.wgt",
               "size": 1289417,
               "digest": "sha256:00c20f3bea765890fa8fb6816aebbc0ae1f3195c6ed9d95a5a8ce7368f31ffd6",
               "package_version": "1.2.1",
@@ -3848,7 +3848,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Moonlight-ForceGM-Tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Moonlight-ForceGM-Tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Moonlight-ForceGM-Tizen.wgt",
               "size": 2382799,
               "digest": "sha256:5b6967c1e405016c70637632769b7f5f3187987cb37cdc133b8098e19244871f",
               "package_version": "1.20.0",
@@ -3860,7 +3860,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Moonlight-Tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Moonlight-Tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Moonlight-Tizen.wgt",
               "size": 2382796,
               "digest": "sha256:1792975033be111c5f958b06dd659fc3f5a212d821df457a34a67ae2cb4febc4",
               "package_version": "1.20.0",
@@ -3872,7 +3872,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "NhaMinh.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/NhaMinh.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/NhaMinh.wgt",
               "size": 12981250,
               "digest": "sha256:90fcfec546f843b3c2bab51d79124f6a64fced82a1ac480eb227127e132ba7ee",
               "package_version": "1.4.0",
@@ -3884,7 +3884,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Nuvio-Legacy-tizen4.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Nuvio-Legacy-tizen4.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Nuvio-Legacy-tizen4.tpk",
               "size": 37478878,
               "digest": "sha256:b910f86f24135df01786085aa891da92be72361fb7f13bd8417e77bcc3d08c95",
               "package_version": "2.0.8",
@@ -3896,7 +3896,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Nuvio-Legacy-tizen6.5.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Nuvio-Legacy-tizen6.5.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Nuvio-Legacy-tizen6.5.tpk",
               "size": 41411262,
               "digest": "sha256:d0007320e0e9cb69037420b155ffeb908c95da6264c09d05175c525c6b6f9fb7",
               "package_version": "2.0.8",
@@ -3908,7 +3908,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Nuvio-Legacy-tizen6.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Nuvio-Legacy-tizen6.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Nuvio-Legacy-tizen6.tpk",
               "size": 41411178,
               "digest": "sha256:de1590f1414212e386a88e4a43672136971314b239456812a925dcda7a813aef",
               "package_version": "2.0.8",
@@ -3920,7 +3920,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Nuvio-Legacy-tizen8.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Nuvio-Legacy-tizen8.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Nuvio-Legacy-tizen8.tpk",
               "size": 41412122,
               "digest": "sha256:5184fb3cccbfbb8b9399d209b4a5948dfea457246674f567c12345a6691c21d9",
               "package_version": "2.0.8",
@@ -3932,7 +3932,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Nuvio-Legacy.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Nuvio-Legacy.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Nuvio-Legacy.wgt",
               "size": 36586972,
               "digest": "sha256:455af423eeedec619e52ef433d57427f9c57f5cbfe9d1f557cdb5913d904107a",
               "package_version": "2.0.8",
@@ -3944,7 +3944,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "NuvioTV-Official.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/NuvioTV-Official.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/NuvioTV-Official.wgt",
               "size": 7447394,
               "digest": "sha256:cb63b5729fafaf9502b5c8d11cfd3cc8219e2f7e8af4130c8b3ada1448efc2c5",
               "package_version": "1.3.7",
@@ -3956,7 +3956,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Nyx.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Nyx.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Nyx.wgt",
               "size": 112461,
               "digest": "sha256:647f03663497d928bd31f5c012049c859050482e5d1b517b266098c2b7ebaf0a",
               "package_version": "1.4.2",
@@ -3968,7 +3968,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "OmegaTube.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/OmegaTube.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/OmegaTube.tpk",
               "size": 1886471,
               "digest": "sha256:56e5570d68f7140b42f5f3d93755728ec177efe070d427e924d976e6dcd153d1",
               "package_version": "1.4.1",
@@ -3980,7 +3980,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "opencream-tv.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/opencream-tv.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/opencream-tv.wgt",
               "size": 2244292,
               "digest": "sha256:a483a7012a1d9103635e7012803190e48da591de4431d97880b46304e7ed9cf4",
               "package_version": "0.1.2",
@@ -3992,7 +3992,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "OpenIPTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/OpenIPTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/OpenIPTV.wgt",
               "size": 14898131,
               "digest": "sha256:68c6ab6158df5838b57a650286a786836f44e5f4aedf90a49451a401bd52ebd4",
               "package_version": "1.9.3",
@@ -4004,10 +4004,10 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "OsmTwich.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/OsmTwich.wgt",
-              "size": 191084,
-              "digest": "sha256:a026d7243509f40556bf90f722ae2d7ec0a0869ce4ebcd3ce2893bb4b1391457",
-              "package_version": "1.0.71",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/OsmTwich.wgt",
+              "size": 195793,
+              "digest": "sha256:465dd5800f8452e7e34ad1fe4b662461aae075afd53fddd96edbf02220689b8b",
+              "package_version": "1.0.75",
               "app_id": "OsmTwichTV.OsmTwich",
               "package_id": "OsmTwichTV",
               "required_version": "2.3",
@@ -4016,7 +4016,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "OTTplay-FOSS.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/OTTplay-FOSS.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/OTTplay-FOSS.wgt",
               "size": 10090,
               "digest": "sha256:9a178eedbf7bfef37c62cff399e0ae417c37e2db95ad8b76d1a5f2f6075badc9",
               "package_version": "1.1.0",
@@ -4028,7 +4028,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Overscan-tizen4.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Overscan-tizen4.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Overscan-tizen4.tpk",
               "size": 139919,
               "digest": "sha256:552979f72c4c06192a2b8cb9a4e608d2096bdb3edd06bd099d90a237df8ad0a2",
               "package_version": "0.2.0",
@@ -4040,7 +4040,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Overscan-tizen5.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Overscan-tizen5.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Overscan-tizen5.tpk",
               "size": 143078,
               "digest": "sha256:84afe3839317ab02ec890671c60e7e1b5c659ca84fcc7fa21028acd02e388bb6",
               "package_version": "0.2.0",
@@ -4052,7 +4052,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Overscan-tizen6.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Overscan-tizen6.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Overscan-tizen6.tpk",
               "size": 144274,
               "digest": "sha256:3398fbb43d64a68d8025e8dd4c4aac8c7c58b5cd65c28675466541db4dad9091",
               "package_version": "0.2.0",
@@ -4064,7 +4064,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Overscan-tizen8.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Overscan-tizen8.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Overscan-tizen8.tpk",
               "size": 125879,
               "digest": "sha256:ebaac5daf4362b61e0cd51e7b0060f41c43bc6ce385526e44832302d6a10d34d",
               "package_version": "0.2.0",
@@ -4076,7 +4076,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Overscan-tizen9.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Overscan-tizen9.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Overscan-tizen9.tpk",
               "size": 188498,
               "digest": "sha256:4abc1981ba05cca471d54af527aa66a5a67ac2ee4e10a2c5d9d9362fd891db88",
               "package_version": "0.2.0",
@@ -4088,7 +4088,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "pelagica-tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/pelagica-tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/pelagica-tizen.wgt",
               "size": 2820236,
               "digest": "sha256:1fbf8254fd745812f985860806f133762ccf55b84c651eac145afa89e3e38a46",
               "package_version": "4.14.0",
@@ -4100,7 +4100,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Phlix.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Phlix.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Phlix.wgt",
               "size": 745746,
               "digest": "sha256:26647912f3472d272c35306e79ad63a03952a3724954895c49d3883ac1b70f28",
               "package_version": "1.0.0",
@@ -4112,7 +4112,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "PlayerAVPlay.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/PlayerAVPlay.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/PlayerAVPlay.wgt",
               "size": 32385,
               "digest": "sha256:f282742691b83118fad6498948947b039d8e26dc36c39442e180559c3c5d354d",
               "package_version": "0.2.1",
@@ -4124,7 +4124,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Plex-Flixor.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Plex-Flixor.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Plex-Flixor.wgt",
               "size": 834489,
               "digest": "sha256:b2e873e2b380df2c66e92043379090a3c95c76e9b4a9adb623217f4793936261",
               "package_version": "1.0.1",
@@ -4136,9 +4136,9 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Pley.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Pley.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Pley.wgt",
               "size": 685314,
-              "digest": "sha256:fa24b227ad83c806c4a793d1ff8222dc58544845492caf78ad6668807dbdd5c1",
+              "digest": "sha256:9953b4120d83a70330e567dccf5ec825775e4a71579ad5bbf614901cd1f64298",
               "package_version": "0.0.1",
               "app_id": "PleyTizen1.pley",
               "package_id": "PleyTizen1",
@@ -4148,7 +4148,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Prairie.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Prairie.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Prairie.tpk",
               "size": 10438087,
               "digest": "sha256:48f6af5f724a931c4c5055bb6a138b9737a79b2986b217355316b200cc3e7916",
               "package_version": "0.5.4",
@@ -4160,7 +4160,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "React-IPTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/React-IPTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/React-IPTV.wgt",
               "size": 1068270,
               "digest": "sha256:c3cf14bb6c83a79729df9011798ec9ba684e4c9e42f18cb06cde6e0e3436bb1a",
               "package_version": "1.0.0",
@@ -4172,10 +4172,10 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Reelo.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Reelo.wgt",
-              "size": 10010393,
-              "digest": "sha256:482d15493b2b3c772c2a46c94d32f1003fd6c99d7f51e4d6ae4d3bbc081b5232",
-              "package_version": "0.16.122",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Reelo.wgt",
+              "size": 10027991,
+              "digest": "sha256:721c4566bf14712c4f733151831329b9f4a3bfc13cca1fe38284147c0b7985e8",
+              "package_version": "0.16.123",
               "app_id": "ReeloTVapp.Reelo",
               "package_id": "ReeloTVapp",
               "required_version": "2.3",
@@ -4184,7 +4184,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Reiverr.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Reiverr.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Reiverr.wgt",
               "size": 7253970,
               "digest": "sha256:b2543921cd4ae5436d6a233f92f7c7979b3fb76277466eaadfd5a12d7d5cd6b9",
               "package_version": "1.0.0",
@@ -4196,7 +4196,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "ReolinkViewer-legacy.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/ReolinkViewer-legacy.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/ReolinkViewer-legacy.wgt",
               "size": 77774,
               "digest": "sha256:f4cba0e5fbd03e9748563be762cc6f5a96434e4546c19f19526faace81055e29",
               "package_version": "1.1.0",
@@ -4208,7 +4208,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "ReolinkViewer.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/ReolinkViewer.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/ReolinkViewer.wgt",
               "size": 95544,
               "digest": "sha256:c80d562718b1a8fa09b71e12190b81b53aee269172bdb49dec2a59f6807150ff",
               "package_version": "1.1.0",
@@ -4220,7 +4220,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "RetroArch.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/RetroArch.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/RetroArch.wgt",
               "size": 116285,
               "digest": "sha256:4c20a26f6e79c7da40afec2107addf274022285768334c92530d3626551f9813",
               "package_version": "0.3.2",
@@ -4232,7 +4232,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "RetroTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/RetroTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/RetroTV.wgt",
               "size": 40912,
               "digest": "sha256:15719e277177d6748bd2f5fcb1c3d83458b7646a327349938cb4a01424bf588d",
               "package_version": "0.1.0",
@@ -4244,7 +4244,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "RTSP-Camera-Viewer.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/RTSP-Camera-Viewer.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/RTSP-Camera-Viewer.wgt",
               "size": 97191,
               "digest": "sha256:fb3c3b9fc25ee133bc0d5112437ff746adf5390c1e2bb393b72f7303ee78e229",
               "package_version": "1.0.0",
@@ -4256,7 +4256,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "RUVKids.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/RUVKids.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/RUVKids.wgt",
               "size": 714463,
               "digest": "sha256:697ccc915c85e80d5a18d77966c739a43d054eb8f09a802a98c81003d8a3d70a",
               "package_version": "1.2.0",
@@ -4268,7 +4268,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "RUVLive.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/RUVLive.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/RUVLive.wgt",
               "size": 447181,
               "digest": "sha256:62ced405c97a0feb9920accb7545ef292e0ec7bf49bb2215f9eb974f269c36ff",
               "package_version": "5.0.0",
@@ -4280,7 +4280,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "RUVMennta.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/RUVMennta.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/RUVMennta.wgt",
               "size": 659600,
               "digest": "sha256:ae0483e2bd22295050e160b6197a10ce1d6364b44b7670da367922d6ea9eb507",
               "package_version": "1.0.0",
@@ -4292,7 +4292,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "RUVUng.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/RUVUng.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/RUVUng.wgt",
               "size": 663925,
               "digest": "sha256:3447d4bf60c95b553a29040f11768b812d177bf2e4a1ac2a0b69f41d726d4e20",
               "package_version": "1.0.0",
@@ -4304,7 +4304,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "RUVUtvarp.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/RUVUtvarp.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/RUVUtvarp.wgt",
               "size": 690285,
               "digest": "sha256:265960ea45e92e95963ec6155e6cd0c70aff4baf50bf570170935bfd098d7423",
               "package_version": "1.0.0",
@@ -4316,7 +4316,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "RUVVod.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/RUVVod.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/RUVVod.wgt",
               "size": 670098,
               "digest": "sha256:87cb240650c139314bad866a9e7a57fc725379069791adedb3cc3ad62c14c208",
               "package_version": "3.0.0",
@@ -4328,7 +4328,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "SamSUCKS.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/SamSUCKS.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/SamSUCKS.wgt",
               "size": 1213808,
               "digest": "sha256:e15931e0dece5fae10e9968ece7418fcb48c5df05b5a7c2f1329f75fea3f166e",
               "package_version": "0.1.0",
@@ -4340,7 +4340,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "SeanimeTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/SeanimeTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/SeanimeTV.wgt",
               "size": 227156,
               "digest": "sha256:225b5721bae0e02b928980109c87391838fd7ed5b143b8c2dd4ff3e03902ff6d",
               "package_version": "1.0.0",
@@ -4352,7 +4352,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Sendspin-Cinema.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Sendspin-Cinema.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Sendspin-Cinema.wgt",
               "size": 2030146,
               "digest": "sha256:f6b7910d75637c3e48d0d935a5c0a0351e683211f51686bc469906b4fe2489ad",
               "package_version": "1.0.0",
@@ -4364,7 +4364,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "ShmupCup.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/ShmupCup.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/ShmupCup.wgt",
               "size": 1079662,
               "digest": "sha256:c47995edf6cc51dce25b6332de1f949010c95cb7605ada4f6e07b2795b6b24e4",
               "package_version": "1.0.1",
@@ -4376,7 +4376,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Shutter.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Shutter.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Shutter.wgt",
               "size": 116572,
               "digest": "sha256:d5ec078ea12d0c2e248190335f79cfac2d244e78faf630835feb2c1333cc7238",
               "package_version": "1.0.0",
@@ -4388,7 +4388,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Simple-TV-Player.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Simple-TV-Player.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Simple-TV-Player.wgt",
               "size": 1253893,
               "digest": "sha256:f9d817652fcba523a637d45e380d20fdc94a67b9262f683b795576198ce5f09d",
               "package_version": "1.0.0",
@@ -4400,7 +4400,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "SKY-IPTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/SKY-IPTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/SKY-IPTV.wgt",
               "size": 77368,
               "digest": "sha256:24301701ab27c4f9e648ddd8e267ce888ee361f79603328206afa985a3809923",
               "package_version": "1.0.0",
@@ -4412,7 +4412,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "SmartSTBcloneV2.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/SmartSTBcloneV2.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/SmartSTBcloneV2.wgt",
               "size": 202175,
               "digest": "sha256:0137aaf124af651b6bfbb02064dc1addfe28947408d103c0e27d6b9de7a73615",
               "package_version": "2.0.0",
@@ -4424,7 +4424,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "SmartTV_Twitch.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/SmartTV_Twitch.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/SmartTV_Twitch.wgt",
               "size": 424747,
               "digest": "sha256:fba4875d142548a802ab551c9a6d4f65098d0277596603418df855f3a6d97425",
               "package_version": "4.0.1",
@@ -4436,7 +4436,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Snake-Game.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Snake-Game.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Snake-Game.wgt",
               "size": 46266,
               "digest": "sha256:a714c1e2b1f481a30035986a926656f1238bf615c6c84b799ad7c064d7f34c09",
               "package_version": "1.2.0",
@@ -4448,7 +4448,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Sonance3-Oblong.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Sonance3-Oblong.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Sonance3-Oblong.wgt",
               "size": 164002,
               "digest": "sha256:bac36304bcc8e14fc51d1f66b466718cf55bcd9bb246bb56c360dabf65c96d10",
               "package_version": "3.14.0",
@@ -4460,7 +4460,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Sonance3.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Sonance3.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Sonance3.wgt",
               "size": 108631,
               "digest": "sha256:f4d52649e3941e62d11697a71822b6f6507a6da709a08de44b54fed66355ca5c",
               "package_version": "3.14.0",
@@ -4472,7 +4472,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Spelunkr.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Spelunkr.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Spelunkr.wgt",
               "size": 4809,
               "digest": "sha256:9bc399106f4aff99aa6ba4f769669496eed3e0924ed3beabd5d4283ff9650862",
               "package_version": "1.1.0",
@@ -4484,7 +4484,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Sportlink-Club-Viewer.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Sportlink-Club-Viewer.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Sportlink-Club-Viewer.wgt",
               "size": 3682129,
               "digest": "sha256:691a9ae63e7a094d52f39dd2693a928402613553d2f7b1c2c06a20aed2e1c925",
               "package_version": "1.1.0",
@@ -4496,7 +4496,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "StashZen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/StashZen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/StashZen.wgt",
               "size": 295001,
               "digest": "sha256:5b01e450b1e8bc068b381ae04f53539a136185dd71a127c269a93d024027c983",
               "package_version": "0.43.0",
@@ -4508,7 +4508,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "StreamixTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/StreamixTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/StreamixTV.wgt",
               "size": 3322262,
               "digest": "sha256:0c8b44096b59c253f150767ca49770c7a459be6e311370c6a39ca9f09e56e4ec",
               "package_version": "1.0.027",
@@ -4520,7 +4520,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "StreamVault-tizen5.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/StreamVault-tizen5.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/StreamVault-tizen5.wgt",
               "size": 537010,
               "digest": "sha256:4458db46a0f6625d114b8cd1909da0a07fff7f14369d1c4922c2bc66efb2ea19",
               "package_version": "1.0.0",
@@ -4532,7 +4532,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "StreamVault.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/StreamVault.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/StreamVault.wgt",
               "size": 448733,
               "digest": "sha256:4b81deb61d4bf1c8d54a5db1467e28822d1be210bbbbf9d23f12ae567a393c54",
               "package_version": "1.0.0",
@@ -4544,7 +4544,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Stremio-Tizen4.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Stremio-Tizen4.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Stremio-Tizen4.wgt",
               "size": 3130441,
               "digest": "sha256:37375e1315fd9fe215d9e96984c2eadbe1aff4a1ae6d01edf7f688cf0c212d31",
               "package_version": "1.5.0",
@@ -4556,7 +4556,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "StremioK.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/StremioK.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/StremioK.wgt",
               "size": 1181832,
               "digest": "sha256:1b0642f8bc815f067ea95716a7b9fb759fcb5a1d90f3ad4cef9c7e36c47b04ee",
               "package_version": "2.2.9",
@@ -4568,7 +4568,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "SubTizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/SubTizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/SubTizen.wgt",
               "size": 44348,
               "digest": "sha256:6600cb9cc39f17636c0c830f7442b3c165885fc695f0606be51dfbda251ac167",
               "package_version": "1.0.1",
@@ -4580,7 +4580,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "tacplayer.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/tacplayer.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/tacplayer.wgt",
               "size": 13844074,
               "digest": "sha256:db85db6ff7e05658f7d3666ec0b6794d5fb8e542ebfd7572ae550ea4040a40e1",
               "package_version": "0.1.0",
@@ -4592,7 +4592,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Tailscale.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Tailscale.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Tailscale.tpk",
               "size": 9903069,
               "digest": "sha256:6ee4ace2566650aaa42a42d07dc10601171b50e26eda9c76b14ce0214a995f77",
               "package_version": "0.1.0",
@@ -4604,7 +4604,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Telegram-Videos.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Telegram-Videos.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Telegram-Videos.wgt",
               "size": 1911237,
               "digest": "sha256:c78daee1de3e7ca34b7b8822f20d589eb8085f3fd61f9d421678571ac0292138",
               "package_version": "1.2.6",
@@ -4616,7 +4616,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Tessel.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Tessel.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Tessel.wgt",
               "size": 640314,
               "digest": "sha256:2d3f5191c9fc248ee0b99ac37f0cf2cda973bbab71b51db640b33909389771b1",
               "package_version": "1.35.0",
@@ -4628,7 +4628,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "tizen-youtube-tizen-5.0.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/tizen-youtube-tizen-5.0.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/tizen-youtube-tizen-5.0.wgt",
               "size": 780505,
               "digest": "sha256:cea11da15047641f864134d2b7db65b11aed4691c7a36353ead02232e6f6b70e",
               "package_version": "1.5.1",
@@ -4640,7 +4640,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "tizen-youtube-tizen-5.5.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/tizen-youtube-tizen-5.5.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/tizen-youtube-tizen-5.5.wgt",
               "size": 702140,
               "digest": "sha256:6487f485a766d2825ca14123004ddefb7662a4e944e2583c11f213cdef012f94",
               "package_version": "1.5.1",
@@ -4652,7 +4652,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TizenAmbilight.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TizenAmbilight.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TizenAmbilight.tpk",
               "size": 65919,
               "digest": "sha256:384277e64b88b15635cd7ba7a4816246aea16b431ec2b1cc2d95579fcd9b26f6",
               "package_version": "1.0.0",
@@ -4664,7 +4664,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TizenBrew.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TizenBrew.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TizenBrew.wgt",
               "size": 914982,
               "digest": "sha256:4ff4f1d7e400b13ab40e56d928c714e0a0858a818ada180f6c90719398503fbc",
               "package_version": "2.0.5",
@@ -4676,7 +4676,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TizenDebugApp-tizen3.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TizenDebugApp-tizen3.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TizenDebugApp-tizen3.wgt",
               "size": 26841,
               "digest": "sha256:a35f863a61062c3a775e75d738af71b35e7839d90f1114bbe77043ce56026fd3",
               "package_version": "1.0.0",
@@ -4688,7 +4688,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TizenDebugApp.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TizenDebugApp.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TizenDebugApp.wgt",
               "size": 37413,
               "digest": "sha256:626f49042c37d5fd725cddde48d990e8333dc6e6add4e015fdef3b1decd1b2c0",
               "package_version": "1.0.0",
@@ -4700,7 +4700,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TizenFeed.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TizenFeed.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TizenFeed.wgt",
               "size": 33559868,
               "digest": "sha256:2e4cb7022f7aa9719af82e76d4d144b9f49fc83b840d67f7c839b34dce334724",
               "package_version": "1.0.0",
@@ -4712,7 +4712,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TizenOsAmbilight.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TizenOsAmbilight.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TizenOsAmbilight.wgt",
               "size": 129397,
               "digest": "sha256:ad89efd4722c029bad15bf0b5763c273b94b1dc1d99a0e5259f436aa52668483",
               "package_version": "1.2.1",
@@ -4724,7 +4724,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TizenSteamLink.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TizenSteamLink.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TizenSteamLink.wgt",
               "size": 403092,
               "digest": "sha256:dc9c9e84ccd807944e8aac023fdd526319f46112aaebb35bdf8b1a4e8679beeb",
               "package_version": "0.3.2",
@@ -4736,7 +4736,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TizenTube-old-tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TizenTube-old-tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TizenTube-old-tizen.wgt",
               "size": 995205,
               "digest": "sha256:2aa259a2cc63e49c741b0bc70e677af55d21f8dc260499d678ad4d4482f1acb5",
               "package_version": "2.5.0",
@@ -4748,7 +4748,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TizenUtility.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TizenUtility.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TizenUtility.wgt",
               "size": 14497,
               "digest": "sha256:2f5a0d9eca16d285bd154637267ac5be7c6fc9a8400e57677ac14bcf094b9ad1",
               "package_version": "1.1.1",
@@ -4760,10 +4760,10 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TizenXuperTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TizenXuperTV.wgt",
-              "size": 3845176,
-              "digest": "sha256:97249769d545701d4e9831544a9511e1063051c03bcde81ae0d1261f63327285",
-              "package_version": "1.9.0",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TizenXuperTV.wgt",
+              "size": 3889140,
+              "digest": "sha256:994d53afccedbd5c776e930e4700dcf1e11eccbd12afd73c05b58d7f6e797f01",
+              "package_version": "1.9.3",
               "app_id": "XuperTVapp.XuperTV",
               "package_id": "XuperTVapp",
               "required_version": "4.0",
@@ -4772,7 +4772,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TorrStream-ffprobe.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TorrStream-ffprobe.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TorrStream-ffprobe.wgt",
               "size": 19305180,
               "digest": "sha256:9a89ef61c9962527df0d8474e2a91d30c1f81f955489e0a95a52ff279a11a507",
               "package_version": "1.1.4",
@@ -4784,7 +4784,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TorrStream.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TorrStream.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TorrStream.wgt",
               "size": 295048,
               "digest": "sha256:32c5f76557fde753c4cce9c0b293a34f9c6d73715f76922bad77becb557fa7c0",
               "package_version": "1.1.4",
@@ -4796,7 +4796,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TorrStreaming.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TorrStreaming.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TorrStreaming.wgt",
               "size": 21655759,
               "digest": "sha256:6d76e5bb8604661a81dbb228e504eef2e58d1effa2f8dcc37716532431083bfc",
               "package_version": "1.0.0",
@@ -4808,7 +4808,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TransportTycoonDeluxe.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TransportTycoonDeluxe.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TransportTycoonDeluxe.wgt",
               "size": 4621391,
               "digest": "sha256:d2e9f2d46d1b6702c049e40e8cb799277e8a747436d3d8f60151242db2350ade",
               "package_version": "15.3",
@@ -4820,7 +4820,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TubeArchivist-TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TubeArchivist-TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TubeArchivist-TV.wgt",
               "size": 71578,
               "digest": "sha256:9b164540598d014842764e01b423fec03f7732678078edbc2e0ff24a5c25b49a",
               "package_version": "1.0.0",
@@ -4832,7 +4832,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TV-Clock.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TV-Clock.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TV-Clock.wgt",
               "size": 59410,
               "digest": "sha256:37233d5316e962b7fc2d2002f29caf005b8313aba78a521bb0a7da70c0df1672",
               "package_version": "1.2.1",
@@ -4844,7 +4844,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TV-Dashboard.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TV-Dashboard.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TV-Dashboard.wgt",
               "size": 635632,
               "digest": "sha256:45b5c6108024fc79420fabcc4ec12ca1a39d5e3232987e4068ede2f0c0d66106",
               "package_version": "1.6.0",
@@ -4856,7 +4856,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TV-Store.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TV-Store.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TV-Store.wgt",
               "size": 196316,
               "digest": "sha256:04b171d8258dd70564fd8cf33716d852ec1b1862777032b968b8689cb2ad9777",
               "package_version": "0.3.20",
@@ -4868,7 +4868,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "TVApp.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/TVApp.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/TVApp.wgt",
               "size": 979034,
               "digest": "sha256:65d6db96b3a9bbf266c372e4e57b21e644942eb0f1bf4fcec3ea20cf9452957e",
               "package_version": "1.0.0",
@@ -4880,7 +4880,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Twitch-Old-Tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Twitch-Old-Tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Twitch-Old-Tizen.wgt",
               "size": 427658,
               "digest": "sha256:acad5f06e7b8acbade3db3a4d50245d8fd1040af027c4f7b348a8aabd4337d33",
               "package_version": "4.1.4",
@@ -4892,7 +4892,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "UltimatiumTube-Tizen50.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/UltimatiumTube-Tizen50.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/UltimatiumTube-Tizen50.wgt",
               "size": 1432017,
               "digest": "sha256:7b6a37ca980cd361bdffeb51a3dca1a733763428be96b99ec2a455121516553a",
               "package_version": "1.8.0",
@@ -4904,7 +4904,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "UltimatiumTube-Tizen55.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/UltimatiumTube-Tizen55.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/UltimatiumTube-Tizen55.wgt",
               "size": 1352760,
               "digest": "sha256:0ae1c765efc818126850d19dfcd2bdea84417b1d08ca604752022efcb7f1a1be",
               "package_version": "1.8.0",
@@ -4916,7 +4916,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "UniFi-Cameras.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/UniFi-Cameras.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/UniFi-Cameras.wgt",
               "size": 23892,
               "digest": "sha256:34a98622f0aba6c6f90515cc2a71196d716eead6f380bc44c9329c1c29d09e3e",
               "package_version": "1.0.0",
@@ -4928,7 +4928,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "VeloVistrix.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/VeloVistrix.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/VeloVistrix.wgt",
               "size": 438566,
               "digest": "sha256:d193940b6eed18fe29caded26d32d322dabcf8ae9771b0015fdca343ac701857",
               "package_version": "0.1.0",
@@ -4940,7 +4940,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "velox.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/velox.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/velox.wgt",
               "size": 371430,
               "digest": "sha256:80800115ae36fa046172f610268ad15b498c494e4b451a5f9714ec6c88a7e0f9",
               "package_version": "1.1.0",
@@ -4952,7 +4952,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Velvet-TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Velvet-TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Velvet-TV.wgt",
               "size": 192334,
               "digest": "sha256:ec1c5904edd814c8c0177394f402e685274079d942a1f10294708cd27da0190a",
               "package_version": "__VELVET_TV_VERSION__",
@@ -4964,7 +4964,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Vemm.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Vemm.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Vemm.wgt",
               "size": 291215,
               "digest": "sha256:5bd0e7dda46567a36f287a796e734ad57d6776e6859869465489af14307ff761",
               "package_version": "0.10.0",
@@ -4976,7 +4976,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Vetro.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Vetro.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Vetro.wgt",
               "size": 1207690,
               "digest": "sha256:05afd5ecda277e4cc4587e19a51a39c8460fa3ace5ada20451b4b280115d22b7",
               "package_version": "0.5.0",
@@ -4988,7 +4988,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "VexonTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/VexonTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/VexonTV.wgt",
               "size": 11629864,
               "digest": "sha256:35b475c8c5a825efdd717cb9605c4273c4faca6e699e858f03c9116754f5a592",
               "package_version": "1.0.0",
@@ -5000,7 +5000,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "VideoPlayer.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/VideoPlayer.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/VideoPlayer.wgt",
               "size": 61404893,
               "digest": "sha256:04345240c0e6ed017041520cb84e68fb2a2b0bc77a6ed55263abe8df67e61f2b",
               "package_version": "1.0.0",
@@ -5012,7 +5012,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "Wall.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/Wall.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/Wall.wgt",
               "size": 9543,
               "digest": "sha256:020f05379b40b8a2604a8fb6ba2048cc97035d9b9ec5734b7f129c3f74c938bd",
               "package_version": "1.0.0",
@@ -5024,7 +5024,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "XtreamIPTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/XtreamIPTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/XtreamIPTV.wgt",
               "size": 44596,
               "digest": "sha256:67fb36b75dc97631a73313c7bf7fe51ec31a2695f49016194614996ef081a9d3",
               "package_version": "1.0.0",
@@ -5034,7 +5034,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             },
             {
               "name": "youtube-dummy.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/youtube-dummy.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/youtube-dummy.wgt",
               "size": 20385,
               "digest": "sha256:68f5d13d1e7723c5ace1ddb1bbbd6c12628340cbccfa07a9133dc61d18aac12a",
               "package_version": "1.0.0",
@@ -5045,7 +5045,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
               "icon_digest": "sha256:d5dd281191ea3e7f90ccdcc6207c23f4e0dbcbac7d82016cf6e3ac6afea33cdb"
             }
           ],
-          "catalog_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-795/catalog.json"
+          "catalog_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-796/catalog.json"
         }
       ],
       "catalog": {
@@ -6333,7 +6333,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             "variant": "OsmTwich",
             "repo": "josepvarela/OsmTwichPlayer",
             "host": "github",
-            "version": "1.0.71",
+            "version": "1.0.75",
             "app_id": "OsmTwichTV.OsmTwich",
             "package_id": "OsmTwichTV",
             "required_version": "2.3"
@@ -6521,7 +6521,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             "variant": "Reelo",
             "repo": "ihovsky/Reelo",
             "host": "github",
-            "version": "0.16.122",
+            "version": "0.16.123",
             "app_id": "ReeloTVapp.Reelo",
             "package_id": "ReeloTVapp",
             "required_version": "2.3"
@@ -7235,7 +7235,7 @@ M1lW4JPYCTy0nXak8vnENwzsQcOs6Df1Mkt4TcPC+4/uERAsuK6A/kudfeTXeGeQyyVwQc6RhlDfk/WL
             "variant": "TizenXuperTV",
             "repo": "juliochemoreno/TizenXuperTV",
             "host": "github",
-            "version": "1.9.0",
+            "version": "1.9.3",
             "app_id": "XuperTVapp.XuperTV",
             "package_id": "XuperTVapp",
             "required_version": "4.0"
