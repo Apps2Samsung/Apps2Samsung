@@ -135,6 +135,7 @@ apps2samsung-cli sources add github.com/owner/repo      # a source of your own, 
 - [Quick start](../../wiki), [FAQ](../../wiki/FAQ), [Configuration and Jellyfin settings](../../wiki/Configuration),
   [Screenshots](../../wiki/Screenshots), [Alternative install methods](../../wiki/Alternatives), [Uninstall](../../wiki/Remove)
 - Community `.wgt` builds and the catalog's manifests: [tizen-community-packages](https://github.com/Apps2Samsung/tizen-community-packages)
+- [UE55TU7092UXXH / Tizen 5.5 local Vetro port](docs/compatibility/UE55TU7092UXXH.md): exact-build signing, installation, root prerequisites and cold-boot checks.
 - Orsay-based TVs (before 2015) are not supported.
 
 ## Contributing
