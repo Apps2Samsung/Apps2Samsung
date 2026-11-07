@@ -36,6 +36,13 @@ namespace Apps2Samsung.Packaging
         public string PackageFile { get; set; } = "";
         [JsonPropertyName("installedAtUtc")]
         public DateTimeOffset InstalledAtUtc { get; set; }
+        /// <summary>
+        /// The source the file came from (#1018), as <see cref="Models.CatalogSource.Key"/>: "official",
+        /// a signed repository's id, or "unverified:&lt;name&gt;". Updates come only from this source.
+        /// Null on a record written before sources were recorded: treated as not from a repository.
+        /// </summary>
+        [JsonPropertyName("source")]
+        public string? Source { get; set; }
     }
 
     /// <summary>

@@ -22,6 +22,8 @@ public sealed class CliServices : IAsyncDisposable
     public InProcessSdbEngine Sdb { get; }
     public INetworkService Network { get; }
     public CatalogLoader Catalog { get; }
+    /// <summary>Signed repositories (#1018): adding one; the catalog loads them through <see cref="Catalog"/>.</summary>
+    public Apps2Samsung.Catalog.Repositories.SignedRepositories Repositories { get; }
     public CertificateProvisioningService Provisioning { get; }
     public PackageInstaller Installer { get; }
     /// <summary>English strings for the keys Core reports (guards, certificate steps).</summary>
@@ -65,7 +67,8 @@ public sealed class CliServices : IAsyncDisposable
         Catalog = new CatalogLoader(Http, options.GitHubToken, () =>
             Apps2Samsung.Catalog.UserSources.Parse(Desktop.UserSourcesJson)
                 .Concat(options.Sources.Select(link => new Apps2Samsung.Catalog.UserSource { Url = link }))
-                .ToList());
+                .ToList(), Out.Warn);
+        Repositories = new Apps2Samsung.Catalog.Repositories.SignedRepositories(Http, Path.Combine(CliPaths.CliDir, "repositories"));
         Strings = new LocalizationCatalog();
 
         var login = new BrowserSamsungLogin(!options.NoBrowser, TimeSpan.FromSeconds(options.LoginTimeoutSeconds), Out.Progress);

@@ -41,6 +41,24 @@ namespace Apps2Samsung.Catalog
         /// <summary>True when the app needs Partner signing (restricted privileges).</summary>
         [JsonPropertyName("partner")]
         public bool Partner { get; set; }
+
+        // ---- a signed repository (#1018): set only once the user approved its key ----
+
+        /// <summary>The repository's <c>repository.id</c>, pinned: a manifest naming another is rejected.</summary>
+        [JsonPropertyName("repositoryId")]
+        public string? RepositoryId { get; set; }
+
+        /// <summary>The approved key's fingerprint (SHA-256 of its DER SubjectPublicKeyInfo, lowercase hex).</summary>
+        [JsonPropertyName("fingerprint")]
+        public string? Fingerprint { get; set; }
+
+        /// <summary>The approved key itself (PEM). Every load verifies against this one, never a newly fetched key.</summary>
+        [JsonPropertyName("publicKey")]
+        public string? PublicKey { get; set; }
+
+        /// <summary>The <c>generatedAt</c> accepted when the key was approved; a manifest older than this is a rollback.</summary>
+        [JsonPropertyName("acceptedGeneratedAt")]
+        public DateTimeOffset? AcceptedGeneratedAt { get; set; }
     }
 
     public enum UserSourceKind
@@ -58,6 +76,11 @@ namespace Apps2Samsung.Catalog
         /// provider in it is listed, so one link can publish a whole set of apps.
         /// </summary>
         Feed,
+        /// <summary>
+        /// An independent signed repository (#1018): an HTTPS link to its <c>repository.json.signed</c>,
+        /// checked against the key the user approved (<see cref="Repositories.SignedRepositories"/>).
+        /// </summary>
+        SignedRepository,
     }
 
     public static class UserSources
@@ -107,6 +130,13 @@ namespace Apps2Samsung.Catalog
 
         public static bool IsFeed(string? url) => Classify(url) == UserSourceKind.Feed;
 
+        public static bool IsSignedRepository(string? url) => Classify(url) == UserSourceKind.SignedRepository;
+
+        /// <summary>A signed repository whose key the user approved: the only kind that is not labelled Unverified.</summary>
+        public static bool IsApprovedRepository(UserSource source) =>
+            IsSignedRepository(source.Url) && !string.IsNullOrWhiteSpace(source.PublicKey)
+            && !string.IsNullOrWhiteSpace(source.Fingerprint) && !string.IsNullOrWhiteSpace(source.RepositoryId);
+
         /// <summary>
         /// The URL a provider fetches: the GitHub API releases URL for a repository or release page,
         /// the file URL itself for a direct link; null for anything the installer can't read.
@@ -129,7 +159,7 @@ namespace Apps2Samsung.Catalog
             return kind switch
             {
                 UserSourceKind.DirectFile => Path.GetFileNameWithoutExtension(FileName(url)),
-                UserSourceKind.Feed => Uri.TryCreate(api, UriKind.Absolute, out var feed) ? feed.Host : api ?? string.Empty,
+                UserSourceKind.Feed or UserSourceKind.SignedRepository => Uri.TryCreate(api, UriKind.Absolute, out var feed) ? feed.Host : api ?? string.Empty,
                 UserSourceKind.None => url?.Trim() ?? string.Empty,
                 _ => slug?.Split('/').Last() ?? api ?? string.Empty,
             };
@@ -177,7 +207,7 @@ namespace Apps2Samsung.Catalog
         public static ProviderEntry? ToProvider(UserSource source)
         {
             var api = ApiUrl(source.Url);
-            if (api is null || IsFeed(source.Url))
+            if (api is null || IsFeed(source.Url) || IsSignedRepository(source.Url))
                 return null;
             return new ProviderEntry
             {
@@ -188,6 +218,7 @@ namespace Apps2Samsung.Catalog
                 Category = AppCategories.Normalize(source.Category),
                 CertLevel = source.Partner ? "partner" : string.Empty,
                 IsUserSource = true,
+                Source = new CatalogSource(CatalogSourceKind.Unverified, DisplayName(source)),
             };
         }
 
@@ -211,8 +242,14 @@ namespace Apps2Samsung.Catalog
         /// skipped and traced; the rest of the catalog is unaffected. This is what the heads call on
         /// every catalog load.
         /// </summary>
+        /// <param name="repositories">
+        /// Where signed repositories (#1018) keep their last verified copy; null leaves them out of the
+        /// catalog (a head that does not show them yet). <see cref="Repositories.RepositoryLoad"/> per
+        /// repository is reported to <paramref name="onRepository"/>, for its status in the source list.
+        /// </param>
         public static async Task<List<ProviderEntry>> ResolveAsync(
-            HttpClient http, IEnumerable<ProviderEntry> manifestProviders, IEnumerable<UserSource> sources, CancellationToken cancellationToken = default)
+            HttpClient http, IEnumerable<ProviderEntry> manifestProviders, IEnumerable<UserSource> sources, CancellationToken cancellationToken = default,
+            Repositories.SignedRepositories? repositories = null, Action<Repositories.RepositoryLoad>? onRepository = null)
         {
             var list = sources.ToList();
             var result = Merge(manifestProviders, list);
@@ -221,6 +258,17 @@ namespace Apps2Samsung.Catalog
             {
                 foreach (var provider in await FeedProvidersAsync(http, source, cancellationToken).ConfigureAwait(false))
                     AddProvider(result, urls, provider);
+            }
+            if (repositories is not null)
+            {
+                // Listed next to the rest, never merged by URL: two sources offering the same app are
+                // both listed, each with its own label (#1018).
+                foreach (var source in list.Where(IsApprovedRepository))
+                {
+                    var load = await repositories.LoadAsync(source, cancellationToken).ConfigureAwait(false);
+                    onRepository?.Invoke(load);
+                    result.AddRange(load.Providers);
+                }
             }
             return result;
         }
@@ -289,6 +337,8 @@ namespace Apps2Samsung.Catalog
                 if (source.Partner && string.IsNullOrWhiteSpace(provider.CertLevel))
                     provider.CertLevel = "partner";
                 provider.IsUserSource = true;
+                // Labelled with the feed it came from, not the app's own name (#1018).
+                provider.Source = new CatalogSource(CatalogSourceKind.Unverified, DisplayName(source));
                 result.Add(provider);
             }
             return result;
@@ -334,6 +384,10 @@ namespace Apps2Samsung.Catalog
             // A feed: a .json wherever it lives (a raw.githubusercontent.com link to a repo's file too).
             if (parts.Length > 0 && IsFeedName(Uri.UnescapeDataString(parts[^1])))
                 return (UserSourceKind.Feed, uri.AbsoluteUri, null);
+
+            // A signed repository: HTTPS only, the key is fetched next to it and pinned (#1018).
+            if (parts.Length > 0 && Uri.UnescapeDataString(parts[^1]).EndsWith(".signed", StringComparison.OrdinalIgnoreCase))
+                return uri.Scheme == Uri.UriSchemeHttps ? (UserSourceKind.SignedRepository, uri.AbsoluteUri, null) : (UserSourceKind.None, null, null);
 
             if (host is "github.com" or "www.github.com")
             {

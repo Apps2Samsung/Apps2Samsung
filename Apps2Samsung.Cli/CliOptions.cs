@@ -75,6 +75,10 @@ public sealed class CliOptions
     public string? ImportPath { get; set; }
     /// <summary><c>sign -o</c>: where the signed copy goes.</summary>
     public string? OutputPath { get; set; }
+    /// <summary><c>install --from &lt;source&gt;</c> (#1018): which source to install from when several offer the app ("official", a repository's name or id).</summary>
+    public string? From { get; set; }
+    /// <summary><c>sources add --fingerprint &lt;hex&gt;</c> (#1018): approve a signed repository's key without the question, when it is this one.</summary>
+    public string? Fingerprint { get; set; }
     /// <summary><c>install --via tvstore</c>: send the package to TV-Store's upload page instead of SDB.</summary>
     public bool ViaTvStore { get; set; }
     /// <summary>leftovers: delete every package in the TV's staging folder.</summary>
@@ -193,6 +197,8 @@ public sealed class CliOptions
                 case "-o" or "--output": o.OutputPath = Next(arg); if (o.OutputPath is null) return (o, "-o needs the file to write"); break;
                 case "--clear": o.Clear = true; break;
                 case "--delete": o.DeleteFile = Next(arg); if (o.DeleteFile is null) return (o, "--delete needs the file's name as `leftovers` lists it"); break;
+                case "--from": o.From = Next(arg); if (o.From is null) return (o, "--from needs a source: official, or a repository's name or id"); break;
+                case "--fingerprint": o.Fingerprint = Next(arg); if (o.Fingerprint is null) return (o, "--fingerprint needs the repository key's fingerprint"); break;
                 case "--via":
                 {
                     var v = Next(arg)?.ToLowerInvariant();

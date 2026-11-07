@@ -788,6 +788,7 @@ public partial class InstallerPage : ContentPage
 				Variant = asset.Variant,
 				PackageFile = asset.FileName,
 				InstalledAtUtc = DateTimeOffset.UtcNow,
+				Source = release.Source.Key,
 			});
 	}
 

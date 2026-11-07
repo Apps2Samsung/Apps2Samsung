@@ -1407,6 +1407,7 @@ namespace Apps2Samsung.ViewModels
                     Variant = asset.Variant,
                     PackageFile = asset.FileName,
                     InstalledAtUtc = DateTimeOffset.UtcNow,
+                    Source = release.Source.Key,
                 });
             AppSettings.Default.Save();
         }

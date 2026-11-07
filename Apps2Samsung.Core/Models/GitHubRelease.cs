@@ -72,6 +72,15 @@ namespace Apps2Samsung.Models
         public bool IsRoot { get; set; }
 
         /// <summary>
+        /// Where this entry comes from (#1018): the official catalog, a signed repository, or an
+        /// unverified source the user added. Stamped by <c>AddLatestRelease</c> from the provider,
+        /// never serialized. Labels the entry in every head, and <see cref="CatalogSource.CanInstall"/>
+        /// is false for a repository listed from its last verified copy.
+        /// </summary>
+        [JsonIgnore]
+        public CatalogSource Source { get; set; } = CatalogSource.Official;
+
+        /// <summary>
         /// Download URL of the release's <c>catalog.json</c>, when the release ships one (the
         /// community bundle). Captured before the asset list is narrowed to .wgt/.tpk. Serialized
         /// (GitHub itself never sends a <c>catalog_url</c>) so the pre-resolved snapshot

@@ -11,7 +11,8 @@ public static class CatalogCommand
         string? Default, long? Min, long? Max, IReadOnlyList<long>? Disallow);
     /// <param name="OwnSource">True for an app from a source the user added (`sources`, --source), not the catalog.</param>
     public sealed record Entry(string Name, string Category, string Description, bool RequiresPartner, bool HasVariants, bool Adult, bool Root,
-        string? Tag, string? Published, string? Author, string? Source, long? Downloads, IReadOnlyList<FileInfo> Files, bool OwnSource = false);
+        string? Tag, string? Published, string? Author, string? Source, long? Downloads, IReadOnlyList<FileInfo> Files, bool OwnSource = false,
+        string From = "Official", bool Installable = true);
 
     public static async Task<int> RunAsync(CliServices s, CancellationToken ct)
     {
@@ -42,7 +43,7 @@ public static class CatalogCommand
         foreach (var e in list)
         {
             var flags = (e.RequiresPartner ? " (partner certificate)" : "") + (e.Adult ? " (18+)" : "") + (e.Root ? " (root)" : "")
-                + (e.OwnSource ? " (own source)" : "");
+                + (e.From == "Official" ? "" : $" ({e.From}{(e.Installable ? "" : ", not installable now")})");
             text.Add($"{e.Name}  [{e.Category}]{flags}{(e.Downloads is { } n ? $"  {n:N0} downloads" : "")}");
             if (e.Description.Length > 0)
                 text.Add($"    {e.Description}");
@@ -88,6 +89,6 @@ public static class CatalogCommand
         var published = DateTime.TryParse(r.PublishedAt, out var date) ? date.ToString("yyyy-MM-dd") : null;
         return new Entry(r.Name, r.Category, r.Description, r.RequiresPartner, r.HasVariants, r.IsAdult, r.IsRoot,
             string.IsNullOrWhiteSpace(r.TagName) ? null : r.TagName, published, r.Author, r.SourceUrl,
-            r.Downloads > 0 ? r.Downloads : null, files, r.IsUserSource);
+            r.Downloads > 0 ? r.Downloads : null, files, r.IsUserSource, SourcesCommand.Label(r.Source), r.Source.CanInstall);
     }
 }

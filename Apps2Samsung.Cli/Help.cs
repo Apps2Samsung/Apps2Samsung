@@ -70,6 +70,8 @@ public static class Help
           <file>                a local .wgt or .tpk instead of a catalog app
           --file <name>         which file or variant of the app, when it has several (default: the app's default file)
           --version <tag>       which release, for an app with a version history (implies --all-versions)
+          --from <source>       which source, when several offer the app: official, or a repository's name
+                                or id (`catalog` labels each app with its source)
           --set key=value       a value the app asks for before it installs (repeatable; `catalog` lists the keys)
           --partner             sign with a Partner certificate (default: the desktop app's certificate
                                 setting; apps that need Partner get it by themselves)
@@ -212,6 +214,7 @@ public static class Help
     private const string Sources = """
         usage: apps2samsung-cli sources [--json]
                apps2samsung-cli sources add <link> [--name <name>] [--category <id>] [--partner]
+               apps2samsung-cli sources add <https://…/repository.json.signed> [--fingerprint <key>] [--yes]
                apps2samsung-cli sources remove <link|name>
 
         Your own sources, the same list the desktop app keeps under Settings > Installing > Your
@@ -229,6 +232,21 @@ public static class Help
                                                       "url" (a GitHub releases API URL), "displayName",
                                                       "category", "certLevel", "buildInfo": { "description" } } ] }),
                                                       or is a bare array of such providers
+
+          https://host/path/repository.json.signed   a signed repository: a developer's own list of apps,
+                                                      signed with their key (the format is docs/repositories.md
+                                                      in tizen-community-packages)
+
+        Signed repositories: `add` shows the repository's name, domain, maintainer and its key's
+        fingerprint and asks whether to trust that key (or takes --fingerprint <key>, that key and no
+        other, or --yes). From then on every catalog load checks the repository against that stored
+        key. A valid signature means the apps come from that publisher, not that Apps2Samsung checked
+        them. When the publisher's key changes, its apps are left out until you run `sources add` with
+        the same link again and approve the new key; when the repository cannot be verified, its apps
+        are listed from the last verified copy but cannot be installed. A file from a repository is
+        installed only when its bytes match the digest the repository signed. Apps are labelled with
+        their source; an installed app is updated only from the source it came from. The other kinds
+        of link are labelled Unverified.
 
         --name is what the catalog lists it under (default: the repository or file name); --category is
         one of media, iptv, streaming, games, casting, tools, other; --partner marks an app that needs the

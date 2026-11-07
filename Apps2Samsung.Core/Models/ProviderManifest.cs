@@ -47,6 +47,20 @@ namespace Apps2Samsung.Models
         /// </summary>
         [System.Text.Json.Serialization.JsonIgnore]
         public bool IsUserSource { get; set; }
+
+        /// <summary>
+        /// Where this provider comes from (#1018); null for the official manifest's own providers, and
+        /// "Unverified" is assumed for a user source without one. Stamped onto every release.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        public CatalogSource? Source { get; set; }
+
+        /// <summary>
+        /// Releases already resolved and verified: a signed repository carries its own (#1018), so no
+        /// GitHub call is made for it. <c>AddLatestRelease</c> serves copies of these when set.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        public List<GitHubRelease>? Releases { get; set; }
     }
 
     public sealed class ProviderBuildInfo

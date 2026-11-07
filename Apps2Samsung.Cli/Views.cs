@@ -306,7 +306,7 @@ internal static class Views
         if (e.RequiresPartner) flags.Add("partner certificate");
         if (e.Adult) flags.Add("18+");
         if (e.Root) flags.Add("root");
-        if (e.OwnSource) flags.Add("own source");
+        if (e.From != "Official") flags.Add(e.Installable ? e.From : $"{e.From}, not installable now");
         return flags.Count == 0 ? "" : " " + Muted($"({string.Join(", ", flags)})");
     }
 
