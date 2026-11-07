@@ -1,4 +1,5 @@
 using Apps2Samsung.Catalog;
+using Apps2Samsung.Catalog.Repositories;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Resources.Styles;
@@ -38,7 +39,10 @@ public partial class SettingsInstallPage : ContentPage
 		ShowSources();
 	}
 
-	// Your sources: one row per stored source, the name over what it points at, with Remove.
+	// Your sources: one row per stored source, the name over what it points at and how it is doing
+	// (#1018: a signed repository's last check, with a coloured dot; "Unverified · not signed"
+	// otherwise), with Remove. A repository whose key changed gets Review instead: the key-changed
+	// sheet, which offers Remove too.
 	private void ShowSources()
 	{
 		SourceRows.Clear();
@@ -46,18 +50,28 @@ public partial class SettingsInstallPage : ContentPage
 		NoSourcesLabel.IsVisible = sources.Count == 0;
 		foreach (var source in sources)
 		{
-			var detail = UserSources.IsFeed(source.Url)
+			var repository = UserSources.IsSignedRepository(source.Url);
+			var detail = repository ? source.Url.Trim()
+				: UserSources.IsFeed(source.Url)
 				? $"{source.Url.Trim()} · {L10n.Get("lblUserSourceFeed")}"
 				: $"{source.Url.Trim()} · {AppCategories.DisplayName(source.Category, L10n.Get)}";
 			if (source.Partner)
 				detail += $" · {L10n.Get("certLevelPartner")}";
-			var remove = new Button
+			var (statusText, state) = CatalogSourceLabels.Status(source, L10n.Get);
+			var keyChanged = state == RepositoryState.KeyChanged && SignedRepositories.LastLoad(source.Url)?.NewFingerprint is not null;
+			var action = new Button
 			{
-				Text = L10n.Get("lblRemove"), Style = (Style)Application.Current!.Resources["SoftButton"], CornerRadius = 10,
+				Text = L10n.Get(keyChanged ? "lblRepoReview" : "lblRemove"), Style = (Style)Application.Current!.Resources["SoftButton"], CornerRadius = 10,
 				VerticalOptions = LayoutOptions.Center,
 			};
 			var captured = source;
-			remove.Clicked += async (_, _) => await RemoveSourceAsync(captured);
+			action.Clicked += async (_, _) =>
+			{
+				if (keyChanged)
+					await ReviewKeyAsync(captured);
+				else
+					await RemoveSourceAsync(captured);
+			};
 			var row = new Grid { Style = (Style)Application.Current!.Resources["SettingRow"] };
 			row.Add(new VerticalStackLayout
 			{
@@ -65,13 +79,79 @@ public partial class SettingsInstallPage : ContentPage
 				Children =
 				{
 					new Label { Text = UserSources.DisplayName(source), FontSize = 16, LineBreakMode = LineBreakMode.TailTruncation },
+					StatusLine(statusText, state),
 					new Label { Text = detail, Style = (Style)Application.Current!.Resources["RowHint"], LineBreakMode = LineBreakMode.TailTruncation },
 				},
 			}, 0);
-			row.Add(remove, 1);
+			row.Add(action, 1);
 			SourceRows.Add(row);
 			SourceRows.Add(new BoxView { Style = (Style)Application.Current!.Resources["RowDivider"] });
 		}
+	}
+
+	// "Signed · verified" after a green dot, a stale copy amber, a changed key or a failed check red;
+	// an unverified source has no dot (#1018, mockup KeyChanged).
+	private static View StatusLine(string text, RepositoryState? state)
+	{
+		var token = state switch
+		{
+			RepositoryState.Ok => "Ok",
+			RepositoryState.Stale => "Warn",
+			RepositoryState.KeyChanged or RepositoryState.Failed => "Bad",
+			_ => null,
+		};
+		var label = new Label
+		{
+			Text = text, FontSize = 13, LineBreakMode = LineBreakMode.TailTruncation, VerticalOptions = LayoutOptions.Center,
+			TextColor = DesignTheme.ColorOf(token is "Bad" or "Warn" ? token : "Muted"),
+		};
+		if (token is null)
+			return label;
+		var dot = new Microsoft.Maui.Controls.Shapes.Ellipse
+		{
+			Fill = new SolidColorBrush(DesignTheme.ColorOf(token)), WidthRequest = 8, HeightRequest = 8, VerticalOptions = LayoutOptions.Center,
+		};
+		return new HorizontalStackLayout { Spacing = 6, Children = { dot, label } };
+	}
+
+	// The key-changed sheet: trusting the new key replaces the stored source with the newly
+	// approved one; Remove removes it. The catalog reads the sources again on its next appearance.
+	private async Task ReviewKeyAsync(UserSource source)
+	{
+		if (SignedRepositories.LastLoad(source.Url)?.NewFingerprint is not { } fingerprint)
+			return;
+		var choice = await RepositoryKeySheetPage.AskAsync(Navigation, source, fingerprint);
+		if (choice is null)
+			return;
+		var sources = UserSources.Parse(MobileSettings.UserSourcesJson);
+		var index = sources.FindIndex(s => string.Equals(s.Url.Trim(), source.Url.Trim(), StringComparison.OrdinalIgnoreCase));
+		if (choice.Remove || choice.Trusted is null)
+		{
+			if (index >= 0)
+				sources.RemoveAt(index);
+		}
+		else
+		{
+			var trusted = choice.Trusted;
+			trusted.Category = source.Category;
+			trusted.Partner = source.Partner;
+			if (index >= 0)
+				sources[index] = trusted;
+			else
+				sources.Add(trusted);
+			// Checked now with the new key, so the row says how it is doing instead of "key changed".
+			try
+			{
+				var repositories = IPlatformApplication.Current!.Services.GetRequiredService<Apps2Samsung.Mobile.Catalog.CatalogService>().Repositories;
+				await repositories.LoadAsync(trusted);
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Trace.WriteLine($"[sources] Check after trusting the new key failed: {ex.Message}");
+			}
+		}
+		MobileSettings.UserSourcesJson = UserSources.Serialize(sources);
+		ShowSources();
 	}
 
 	private async void OnAddSourceClicked(object? sender, EventArgs e)

@@ -27,10 +27,18 @@ public sealed class CatalogService
 	private readonly BuildInfoService _buildInfo;
 	private readonly DownloadStatsService _downloadStats;
 
+	/// <summary>
+	/// The signed repositories the user approved (#1018): read on every catalog load, probed by Add
+	/// a source, and asked again by the key-changed sheet. Their last verified copies live under
+	/// the app's data folder, so a repository that cannot be checked is still listed (not installable).
+	/// </summary>
+	public Apps2Samsung.Catalog.Repositories.SignedRepositories Repositories { get; }
+
 	public CatalogService(HttpClient http, ResolvedCatalogService resolvedCatalog, DownloadStatsService downloadStats)
 	{
 		_http = http;
 		_downloadStats = downloadStats;
+		Repositories = new Apps2Samsung.Catalog.Repositories.SignedRepositories(http, Path.Combine(FileSystem.AppDataDirectory, "repositories"));
 		// Mobile has no auth handler on its HttpClient, so supply the PAT here. The pre-resolved
 		// snapshot comes first either way; the PAT only matters for the providers it lacks.
 		_releases = new AddLatestRelease(http, () => MobileSettings.GitHubToken, resolvedCatalog);
@@ -53,7 +61,9 @@ public sealed class CatalogService
 		var manifest = await GetManifestAsync();
 		// The manifest's providers, then the sources the user added themselves (UserSources): a
 		// developer's own repository, nightly or feed, listed without waiting for the community packages.
-		var providers = (await UserSources.ResolveAsync(_http, manifest.Providers, UserSources.Parse(MobileSettings.UserSourcesJson)))
+		// Signed repositories (#1018) come along, each checked against the key the user approved.
+		var providers = (await UserSources.ResolveAsync(_http, manifest.Providers, UserSources.Parse(MobileSettings.UserSourcesJson),
+				repositories: Repositories))
 			.Where(p => !string.IsNullOrWhiteSpace(p.Url)).ToList();
 		// Fetched alongside the providers; never fails, at worst there are no counts.
 		var stats = _downloadStats.GetAsync();
