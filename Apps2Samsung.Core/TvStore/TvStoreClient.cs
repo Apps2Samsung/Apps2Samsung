@@ -18,7 +18,7 @@ namespace Apps2Samsung.TvStore
     /// <summary>What TV-Store's service reports about itself, through the page's <c>A2SStore.status()</c>.</summary>
     /// <param name="Armed">True once a signing certificate has been handed over and stored on the TV.</param>
     /// <param name="OwnIp">The address the service connects to its own sdbd on; null when it could not tell.</param>
-    /// <param name="SourceIds">The signed repositories TV-Store already has (#1018, TV-Store#82), by repository id; empty before TV-Store 0.3.22.</param>
+    /// <param name="SourceIds">The signed repositories TV-Store already has (#1018, TV-Store#82), by repository id; empty before TV-Store 0.3.21.</param>
     public sealed record TvStoreStatus(bool Armed, string? OwnIp, System.Collections.Generic.IReadOnlyList<string>? SourceIds = null);
 
     /// <summary>What the TV answered for one source sent with <see cref="TvStoreClient.AddSourcesAsync"/>.</summary>
@@ -248,7 +248,7 @@ namespace Apps2Samsung.TvStore
         /// asks the person at it; the reply comes once each is answered. Unsigned sources are never
         /// sent: TV-Store installs only files it can check.
         /// </summary>
-        /// <exception cref="NotSupportedException">This TV-Store has no sources yet (before 0.3.22): update it.</exception>
+        /// <exception cref="NotSupportedException">This TV-Store has no sources yet (before 0.3.21): update it.</exception>
         /// <exception cref="InvalidOperationException">The service refused or did not answer.</exception>
         public async Task<System.Collections.Generic.IReadOnlyList<TvStoreSourceResult>> AddSourcesAsync(
             System.Collections.Generic.IReadOnlyList<Apps2Samsung.Catalog.UserSource> sources, CancellationToken ct = default)
