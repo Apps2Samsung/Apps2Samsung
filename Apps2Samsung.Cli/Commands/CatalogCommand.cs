@@ -12,7 +12,8 @@ public static class CatalogCommand
     /// <param name="OwnSource">True for an app from a source the user added (`sources`, --source), not the catalog.</param>
     public sealed record Entry(string Name, string Category, string Description, bool RequiresPartner, bool HasVariants, bool Adult, bool Root,
         string? Tag, string? Published, string? Author, string? Source, long? Downloads, IReadOnlyList<FileInfo> Files, bool OwnSource = false,
-        bool ClosedSource = false, bool SelfUpdating = false)
+        bool ClosedSource = false, bool SelfUpdating = false,
+        string From = "Official", bool Installable = true)
     {
         /// <summary>The line under a self-updating app (#1016), as the apps show it on the app sheet.</summary>
         public const string SelfUpdatingNote =
@@ -50,7 +51,7 @@ public static class CatalogCommand
         {
             var flags = (e.RequiresPartner ? " (partner certificate)" : "") + (e.Adult ? " (18+)" : "") + (e.Root ? " (root)" : "")
                 + (e.SelfUpdating ? " (self-updating)" : "") + (e.ClosedSource ? " (closed source)" : "")
-                + (e.OwnSource ? " (own source)" : "");
+                + (e.From == "Official" ? "" : $" ({e.From}{(e.Installable ? "" : ", not installable now")})");
             text.Add($"{e.Name}  [{e.Category}]{flags}{(e.Downloads is { } n ? $"  {n:N0} downloads" : "")}");
             if (e.Description.Length > 0)
                 text.Add($"    {e.Description}");
@@ -98,6 +99,7 @@ public static class CatalogCommand
         var published = DateTime.TryParse(r.PublishedAt, out var date) ? date.ToString("yyyy-MM-dd") : null;
         return new Entry(r.Name, r.Category, r.Description, r.RequiresPartner, r.HasVariants, r.IsAdult, r.IsRoot,
             string.IsNullOrWhiteSpace(r.TagName) ? null : r.TagName, published, r.Author, r.SourceUrl,
-            r.Downloads > 0 ? r.Downloads : null, files, r.IsUserSource, r.IsClosedSource, r.IsSelfUpdating);
+            r.Downloads > 0 ? r.Downloads : null, files, r.IsUserSource, r.IsClosedSource, r.IsSelfUpdating,
+            SourcesCommand.Label(r.Source), r.Source.CanInstall);
     }
 }

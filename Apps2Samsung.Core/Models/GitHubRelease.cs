@@ -72,6 +72,15 @@ namespace Apps2Samsung.Models
         public bool IsRoot { get; set; }
 
         /// <summary>
+        /// Where this entry comes from (#1018): the official catalog, a signed repository, or an
+        /// unverified source the user added. Stamped by <c>AddLatestRelease</c> from the provider,
+        /// never serialized. Labels the entry in every head, and <see cref="CatalogSource.CanInstall"/>
+        /// is false for a repository listed from its last verified copy.
+        /// </summary>
+        [JsonIgnore]
+        public CatalogSource Source { get; set; } = CatalogSource.Official;
+
+        /// <summary>
         /// True when the community catalog flags this app <c>closed-source</c> (#1016): its source is
         /// not in the linked repository. A grouped app is closed source when any of its files is
         /// (<see cref="Asset.IsClosedSource"/> says which); with "Show closed-source apps" off,

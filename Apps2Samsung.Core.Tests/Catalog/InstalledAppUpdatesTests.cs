@@ -131,4 +131,63 @@ public class InstalledAppUpdatesTests
         Assert.Equal("Legacy", match!.Asset.Variant);
         Assert.True(match.VariantRemembered);
     }
+
+    // ---- updates only from the source the app came from (#1018) ----
+
+    private static GitHubRelease FromRepository(string version, string repositoryId = "io.github.someone.tizen")
+    {
+        var release = Litefin(version);
+        release.Source = new CatalogSource(CatalogSourceKind.Repository, "Someone's apps", repositoryId);
+        return release;
+    }
+
+    private static string RememberedFrom(string source) =>
+        InstalledVariantStore.Set(null, new InstalledVariantRecord
+        {
+            TvIp = "10.0.0.5",
+            AppId = AppId,
+            CatalogApp = "Litefin",
+            Variant = "Normal",
+            PackageFile = "Litefin-2.0.30-Tizen-Normal.wgt",
+            Source = source,
+        });
+
+    [Fact]
+    public void A_repository_never_offers_an_update_for_an_app_installed_from_elsewhere()
+    {
+        var match = InstalledAppUpdates.Find(OnTv("2.0.30"), new[] { Litefin("2.0.30"), FromRepository("9.9.9") });
+
+        Assert.NotNull(match);
+        Assert.Equal(CatalogSourceKind.Official, match!.Release.Source.Kind);
+        Assert.Equal(CatalogVersionState.UpToDate, match.State);
+    }
+
+    [Fact]
+    public void Without_a_record_an_app_only_a_repository_offers_is_not_matched()
+    {
+        Assert.Null(InstalledAppUpdates.Find(OnTv("2.0.30"), new[] { FromRepository("2.1.0") }));
+    }
+
+    [Fact]
+    public void An_app_installed_from_a_repository_updates_from_that_repository_only()
+    {
+        var catalog = new[] { Litefin("3.0.0"), FromRepository("2.1.0"), FromRepository("5.0.0", "org.example.other") };
+
+        var match = InstalledAppUpdates.Find(OnTv("2.0.30"), catalog, installedVariantsJson: RememberedFrom("io.github.someone.tizen"), tvIp: "10.0.0.5");
+
+        Assert.NotNull(match);
+        Assert.Equal("io.github.someone.tizen", match!.Release.Source.RepositoryId);
+        Assert.Equal("2.1.0", match.CatalogVersion);
+        Assert.Equal(CatalogVersionState.UpdateAvailable, match.State);
+    }
+
+    [Fact]
+    public void An_app_installed_from_the_official_catalog_ignores_a_newer_repository_copy()
+    {
+        var match = InstalledAppUpdates.Find(OnTv("2.0.30"), new[] { Litefin("2.0.30"), FromRepository("2.1.0") },
+            installedVariantsJson: RememberedFrom("official"), tvIp: "10.0.0.5");
+
+        Assert.Equal(CatalogVersionState.UpToDate, match!.State);
+        Assert.Equal(CatalogSourceKind.Official, match.Release.Source.Kind);
+    }
 }

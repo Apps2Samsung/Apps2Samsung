@@ -71,6 +71,17 @@ namespace Apps2Samsung.Catalog
             if (candidates.Count == 0)
                 return null;
 
+            // Updates come only from the source the app was installed from (#1018): never the newest
+            // across sources. Without a record of it (installed before sources were recorded, or by
+            // another tool) a signed repository never claims the app; the official catalog and the
+            // user's unverified sources compare as they always did.
+            var record = Apps2Samsung.Packaging.InstalledVariantStore.Find(installedVariantsJson, tvIp, catalogId, tvDuid);
+            candidates = record?.Source is { Length: > 0 } source
+                ? candidates.Where(c => string.Equals(c.Release.Source.Key, source, StringComparison.Ordinal)).ToList()
+                : candidates.Where(c => c.Release.Source.Kind != CatalogSourceKind.Repository).ToList();
+            if (candidates.Count == 0)
+                return null;
+
             // With "Show all versions" on, an app lists several releases and every one of them
             // declares the same id. Only its newest release says anything about updates; the
             // older ones would read as "a candidate that is not newer" and block the verdict.
@@ -83,7 +94,7 @@ namespace Apps2Samsung.Catalog
 
             // The variant this TV got last time (#975): that file is the one to compare with and to
             // update to. Only among the candidates, so a variant the catalog dropped falls through.
-            if (Apps2Samsung.Packaging.InstalledVariantStore.Find(installedVariantsJson, tvIp, catalogId, tvDuid) is { } remembered)
+            if (record is { } remembered)
             {
                 var same = candidates
                     .Where(c => string.IsNullOrWhiteSpace(remembered.CatalogApp) ||

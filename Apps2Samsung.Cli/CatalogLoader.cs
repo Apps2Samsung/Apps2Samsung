@@ -21,10 +21,15 @@ public sealed class CatalogLoader
     private readonly DownloadStatsService _downloadStats;
     private readonly string _token;
     private readonly Func<IReadOnlyList<UserSource>> _userSources;
+    private readonly Apps2Samsung.Catalog.Repositories.SignedRepositories _repositories;
+    private readonly Action<string>? _warn;
 
     /// <param name="userSources">The sources the user added (stored plus --source), read on every load.</param>
-    public CatalogLoader(HttpClient http, string token, Func<IReadOnlyList<UserSource>>? userSources = null)
+    /// <param name="warn">Where a signed repository's trouble is said (#1018): a changed key, a failed check.</param>
+    public CatalogLoader(HttpClient http, string token, Func<IReadOnlyList<UserSource>>? userSources = null, Action<string>? warn = null)
     {
+        _warn = warn;
+        _repositories = new Apps2Samsung.Catalog.Repositories.SignedRepositories(http, Path.Combine(CliPaths.CliDir, "repositories"));
         _http = http;
         _token = token;
         _userSources = userSources ?? (() => Array.Empty<UserSource>());
@@ -41,7 +46,7 @@ public sealed class CatalogLoader
         var manifest = await GetManifestAsync(ct);
         // The manifest's providers, then the sources the user added themselves (UserSources), feeds
         // read and unfolded, as the apps do.
-        var providers = (await UserSources.ResolveAsync(_http, manifest.Providers, _userSources(), ct))
+        var providers = (await UserSources.ResolveAsync(_http, manifest.Providers, _userSources(), ct, _repositories, Report))
             .Where(p => !string.IsNullOrWhiteSpace(p.Url)).ToList();
         var multiVersion = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         // Fetched alongside the providers; never fails, at worst there are no counts.
@@ -84,6 +89,24 @@ public sealed class CatalogLoader
         var list = results.SelectMany(r => r.Entries).ToList();
         list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
         return new Catalog(manifest, list, results.Count(r => !r.Ok), multiVersion);
+    }
+
+    /// <summary>A repository that did not load cleanly, said once per load (#1018).</summary>
+    private void Report(Apps2Samsung.Catalog.Repositories.RepositoryLoad load)
+    {
+        var name = UserSources.DisplayName(load.Source);
+        switch (load.State)
+        {
+            case Apps2Samsung.Catalog.Repositories.RepositoryState.KeyChanged:
+                _warn?.Invoke($"{name}: the publisher's key changed (now {Apps2Samsung.Catalog.Repositories.RepositoryVerifier.FormatFingerprint(load.NewFingerprint!)}). Its apps are left out until you approve the new key: apps2samsung-cli sources add {load.Source.Url}");
+                break;
+            case Apps2Samsung.Catalog.Repositories.RepositoryState.Stale:
+                _warn?.Invoke($"{name} could not be verified ({load.Message}); its apps are listed from the last verified copy and cannot be installed until it verifies again");
+                break;
+            case Apps2Samsung.Catalog.Repositories.RepositoryState.Failed:
+                _warn?.Invoke($"{name} could not be verified ({load.Message}); its apps are missing from this list");
+                break;
+        }
     }
 
     // Remote, else the last copy that worked.
@@ -137,6 +160,9 @@ public sealed class CatalogLoader
             .GroupBy(e => e.Name, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.First())
             .ToList();
-        return partial.Count == 1 ? (partial[0], partial) : (null, partial);
+        // One name: every entry under it, so a caller sees each source that offers it (#1018).
+        return partial.Count == 1
+            ? (partial[0], all.Where(e => string.Equals(e.Name, partial[0].Name, StringComparison.OrdinalIgnoreCase)).ToList())
+            : (null, partial);
     }
 }

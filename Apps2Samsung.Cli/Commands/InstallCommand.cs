@@ -38,6 +38,9 @@ public static class InstallCommand
             var catalog = await s.Catalog.LoadAsync(s.Options.AllVersions || wantVersion, ct);
             // Adult-only entries are found by name only with --adult, as `catalog` lists them (#850).
             var visible = CommunityAppList.Visible(catalog.Entries, s.Options.Adult).ToList();
+            // Several sources can offer one app (#1018): --from picks one; they are never merged.
+            if (!string.IsNullOrWhiteSpace(s.Options.From))
+                visible = visible.Where(e => SourcesCommand.Matches(e.Source, s.Options.From)).ToList();
             var (match, candidates) = CatalogLoader.Find(visible, target);
             if (match is null)
             {
@@ -46,6 +49,10 @@ public static class InstallCommand
                     : s.Out.Fail($"'{target}' matches several apps; use the exact name: {string.Join(" | ", candidates.Select(c => c.Name))}",
                         details: new { candidates = candidates.Select(c => c.Name) });
             }
+            var offeredBy = candidates.Select(c => c.Source).DistinctBy(src => src.Key).ToList();
+            if (offeredBy.Count > 1)
+                return s.Out.Fail($"{match.Name} is offered by {offeredBy.Count} sources: {string.Join(", ", offeredBy.Select(SourcesCommand.Label))}. Pick one with --from <{string.Join("|", offeredBy.Select(SourcesCommand.FromValue))}>.",
+                    Output.Usage, new { sources = offeredBy.Select(src => new { label = SourcesCommand.Label(src), from = SourcesCommand.FromValue(src) }) });
             release = match;
             if (wantVersion)
             {
@@ -72,6 +79,10 @@ public static class InstallCommand
                 if (release.HasVariants && release.Assets.Count > 1)
                     s.Out.Warn($"{release.Name} has {release.Assets.Count} variants; installing '{asset.VariantLabel}'. --file picks another: {string.Join(", ", release.Assets.Select(a => a.VariantLabel))}");
             }
+
+            // A repository that failed its last check is listed from its last verified copy, never installed from (#1018).
+            if (!release.Source.CanInstall)
+                return s.Out.Fail(release.Source.InstallBlockedReason!);
 
             // A package that gains root: only when asked for by name, as the apps ask first.
             if (release.IsRoot && !s.Options.AllowRoot)
@@ -158,6 +169,16 @@ public static class InstallCommand
             packagePath = Path.Combine(CliPaths.Downloads, asset!.FileName);
             s.Out.Progress($"Downloading {asset.FileName} ({asset.DisplayText})…");
             await DownloadAsync(s, asset.DownloadUrl, packagePath, ct);
+            // A signed repository's file installs only when its bytes are the ones it signed for (#1018).
+            if (release!.Source.Kind == CatalogSourceKind.Repository)
+            {
+                s.Out.Progress("Checking the file against the repository's signed digest…");
+                if (string.IsNullOrWhiteSpace(asset.Digest) || !Apps2Samsung.Catalog.Repositories.SignedRepositories.DigestMatches(packagePath, asset.Digest))
+                {
+                    try { File.Delete(packagePath); } catch { /* best-effort */ }
+                    return s.Out.Fail($"{asset.FileName} is not the file {release.Source.Name} signed for (its SHA-256 does not match the repository's digest). Nothing was installed.");
+                }
+            }
         }
 
         try
@@ -318,6 +339,7 @@ public static class InstallCommand
                 Variant = asset.Variant,
                 PackageFile = asset.FileName,
                 InstalledAtUtc = DateTimeOffset.UtcNow,
+                Source = release.Source.Key,
             });
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException or UnauthorizedAccessException)

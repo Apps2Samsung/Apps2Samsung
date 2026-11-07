@@ -310,7 +310,7 @@ internal static class Views
         if (e.Root) flags.Add("root");
         if (e.SelfUpdating) flags.Add("self-updating");
         if (e.ClosedSource) flags.Add("closed source");
-        if (e.OwnSource) flags.Add("own source");
+        if (e.From != "Official") flags.Add(e.Installable ? e.From : $"{e.From}, not installable now");
         return flags.Count == 0 ? "" : " " + Muted($"({string.Join(", ", flags)})");
     }
 

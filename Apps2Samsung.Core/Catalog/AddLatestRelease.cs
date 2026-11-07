@@ -40,7 +40,7 @@ namespace Apps2Samsung.Helpers.Core
         /// </summary>
         public sealed record ProviderReleases(List<GitHubRelease> Releases, bool Ok, CommunityCatalog? Catalog, ProviderReleaseSource Source);
 
-        public enum ProviderReleaseSource { Snapshot, Live, CachedSnapshot, None }
+        public enum ProviderReleaseSource { Snapshot, Live, CachedSnapshot, None, Repository }
 
         /// <summary>
         /// Releases for a manifest provider, without an API call when it can be helped:
@@ -53,7 +53,23 @@ namespace Apps2Samsung.Helpers.Core
         /// </summary>
         public async Task<ProviderReleases> GetProviderReleasesAsync(ProviderEntry provider, int take)
         {
+            var result = await GetProviderReleasesCoreAsync(provider, take);
+            // Provenance (#1018): the official manifest's own providers keep the default.
+            var source = provider.Source ?? (provider.IsUserSource ? new CatalogSource(CatalogSourceKind.Unverified, provider.DisplayName) : null);
+            if (source is not null)
+                foreach (var release in result.Releases)
+                    release.Source = source;
+            return result;
+        }
+
+        private async Task<ProviderReleases> GetProviderReleasesCoreAsync(ProviderEntry provider, int take)
+        {
             if (take < 1) take = 1;
+
+            // A signed repository's releases came with its verified manifest (#1018): no API call.
+            if (provider.Releases is not null)
+                return new ProviderReleases(
+                    ResolvedCatalogService.CopyReleases(new ResolvedProvider { Releases = provider.Releases }, take), true, null, ProviderReleaseSource.Repository);
 
             if (_snapshot is not null)
             {

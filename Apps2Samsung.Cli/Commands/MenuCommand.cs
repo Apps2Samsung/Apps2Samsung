@@ -424,7 +424,7 @@ internal sealed class Menu
             if (version is not null) parts.Add(version.StartsWith('v') ? version : $"v{version}");
             parts.Add(e.Category);
             if (e.Downloads is { } n) parts.Add($"{n:N0} {(_unicode ? "↓" : "downloads")}");
-            if (e.OwnSource) parts.Add("own source");
+            if (e.From != "Official") parts.Add(e.From);
             if (e.RequiresPartner) parts.Add("partner");
             if (e.Root) parts.Add("root");
             if (e.SelfUpdating) parts.Add("self-updating");
@@ -469,6 +469,10 @@ internal sealed class Menu
             var entry = CatalogCommand.ToEntry(release);
             Show(Views.Catalog(new[] { entry }, _s.Out.Width, _unicode));
             args.Add(release.Name);
+            // The source the pick came from, when it is not the official catalog (#1018): another
+            // source may offer an app of the same name.
+            if (release.Source.Kind != CatalogSourceKind.Official)
+                args.AddRange(new[] { "--from", SourcesCommand.FromValue(release.Source) });
             what = release.Name;
 
             // Which file, when there is a choice; then the values the file asks for.

@@ -1,0 +1,146 @@
+{
+  "now": "2026-11-07T12:00:00Z",
+  "cases": [
+    {
+      "file": "valid.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "accept",
+      "note": "Two providers, signed with the test key. The first ships two builds of one version (current and legacy): variants, not a duplicate."
+    },
+    {
+      "file": "tampered.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "signature",
+      "note": "valid.signed with one byte of the payload changed after signing."
+    },
+    {
+      "file": "bad-signature.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "signature",
+      "note": "Correct payload, signed with a different key."
+    },
+    {
+      "file": "no-signature.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "no-signature",
+      "note": "The bare JSON without a signature line."
+    },
+    {
+      "file": "weak-key.signed",
+      "key": "keys/weak.pub.pem",
+      "expect": "reject",
+      "reason": "key",
+      "note": "Signed and checked with a 2048-bit key; at least 3072 is required."
+    },
+    {
+      "file": "valid.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "fingerprint",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
+      "note": "valid.signed against an approved fingerprint that isn't the key's."
+    },
+    {
+      "file": "valid.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "rollback",
+      "notBefore": "2026-11-07T06:00:00Z",
+      "note": "valid.signed after a newer manifest was already accepted."
+    },
+    {
+      "file": "valid.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "accept",
+      "notBefore": "2026-11-07T00:00:00Z",
+      "note": "The same manifest again is not a rollback."
+    },
+    {
+      "file": "expired.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "expired",
+      "note": "Signed more than 7 days before now."
+    },
+    {
+      "file": "future.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "future",
+      "note": "Signed more than an hour after now."
+    },
+    {
+      "file": "unknown-schema-version.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "schema-version",
+      "note": "schemaVersion 2: clients fail closed."
+    },
+    {
+      "file": "http-url.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "schema",
+      "note": "A download over plain HTTP."
+    },
+    {
+      "file": "ip-url.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "url",
+      "note": "A download from an IP address."
+    },
+    {
+      "file": "localhost-url.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "url",
+      "note": "A download from localhost."
+    },
+    {
+      "file": "bad-digest.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "schema",
+      "note": "A digest that isn't 64 lowercase hex characters."
+    },
+    {
+      "file": "missing-digest.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "schema",
+      "note": "An asset without a digest cannot be verified, so it is invalid."
+    },
+    {
+      "file": "icon-without-digest.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "schema",
+      "note": "An icon must come with icon_digest."
+    },
+    {
+      "file": "bad-repository-id.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "schema",
+      "note": "repository.id must be reverse-DNS."
+    },
+    {
+      "file": "duplicate-provider.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "duplicate",
+      "note": "Two providers with the same id."
+    },
+    {
+      "file": "duplicate-package.signed",
+      "key": "keys/test.pub.pem",
+      "expect": "reject",
+      "reason": "duplicate",
+      "note": "The same package_id and version offered by two providers."
+    }
+  ]
+}
