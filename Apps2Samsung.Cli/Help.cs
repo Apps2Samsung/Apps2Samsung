@@ -24,6 +24,7 @@ public static class Help
           tvstore log --tv <ip>        save TV-Store's own log from the TV (TV-Store open on the TV)
           leftovers --tv <ip>          the packages left in the TV's install staging folder; --clear deletes
                                        them, --delete <file> one file (the toolbox's Install leftovers)
+          logs [show]                  where the session logs are; `logs show` prints the newest, for a bug report
           sources [add|remove ...]     your own sources: a GitHub repository, a release, a .wgt/.tpk link or a
                                        .json feed, listed by `catalog` next to the community apps
 
@@ -235,6 +236,20 @@ public static class Help
         For a single run without storing anything, pass --source <link> to `catalog` or `install`.
         """;
 
+    private const string Logs = """
+        usage: apps2samsung-cli logs [show] [--json]
+
+        Every command writes a session log: each step, warning and error it printed, every SDB command
+        with its result and the TV's own install output. The last 20 runs are kept, in the cli/logs
+        folder of the data directory (~/.config/Apps2Samsung/cli/logs on Linux and in Termux).
+
+          logs                         the folder and the newest logs
+          logs show                    print the newest log, the run before this one: `logs show > a2s.log`
+                                       makes a file to attach to a GitHub issue
+
+        In the menu, "Session log" shows the log the menu is writing right now.
+        """;
+
     public static string For(string command) => command switch
     {
         "catalog" or "search" or "apps" => Catalog,
@@ -244,6 +259,7 @@ public static class Help
         "cert" or "certificate" => Cert,
         "tvstore" or "tv-store" => TvStore,
         "leftovers" or "staging" => Leftovers,
+        "logs" or "log" => Logs,
         _ => Usage,
     };
 }

@@ -167,6 +167,7 @@ internal sealed class Menu
             items.Add(new Item(TvLabel(tv), tv));
         items.Add(new Item($"{A("+")} Another address{Ellipsis}", "address"));
         items.Add(new Item($"{A("↻".Length == 1 && _unicode ? "↻" : "*")} Scan again", "scan"));
+        items.Add(new Item(M("Session log"), "log"));
         items.Add(new Item(M("Quit"), "quit"));
 
         while (true)
@@ -189,6 +190,9 @@ internal sealed class Menu
                 case "scan":
                     await ScanAsync();
                     return await PickTvAsync(listed: true);
+                case "log":
+                    await SessionLogAsync();
+                    return await PickTvAsync();
                 default:
                     return null;
             }
@@ -227,6 +231,7 @@ internal sealed class Menu
                 Act("TV-Store log", "save TV-Store's own log for a bug report", "tvstorelog"),
                 Act("Install leftovers", "packages left in the TV's staging folder", "leftovers"),
                 Act("Developer Mode", tv.State.Ready ? "ready; the guide for this TV" : "the guide for this TV", "devmode"),
+                Act("Session log", "what this session did, for a bug report", "log"),
                 new(M($"{(_unicode ? "←" : "<-")} Back to the TVs"), "back"),
             };
             var pick = await SelectAsync(M("This TV"), items);
@@ -246,8 +251,56 @@ internal sealed class Menu
                     tv = await DeveloperModeAsync(tv);
                     break;
                 case "leftovers": await LeftoversAsync(tv); break;
+                case "log": await SessionLogAsync(); break;
                 default: return;
             }
+        }
+    }
+
+    // ---- the session log ----
+
+    /// <summary>Where this session's log is (#975), its last lines, and how to get it off the device.</summary>
+    private async Task SessionLogAsync()
+    {
+        Screen();
+        var path = CliLog.Current;
+        if (path is null)
+        {
+            _s.Out.Warn($"this session has no log: {CliLog.Folder} could not be written");
+            await PauseAsync();
+            return;
+        }
+        _con.MarkupLine($"[bold]This session's log[/]");
+        _con.MarkupLine(A(E(path)));
+        _con.WriteLine();
+        foreach (var line in Tail(path, Math.Clamp(_s.Out.Height - 12, 5, 20)))
+            _con.MarkupLine(M(E(line)));
+        _con.WriteLine();
+        _con.MarkupLine(E(CliLog.ShareHint(path)));
+        _con.MarkupLine(M($"Earlier sessions: apps2samsung-cli logs {Dot} the last {CliLog.Keep} are kept"));
+        _con.WriteLine();
+        await PauseAsync();
+    }
+
+    /// <summary>The last lines of a file the log listener still has open.</summary>
+    private static IReadOnlyList<string> Tail(string path, int count)
+    {
+        try
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using var reader = new StreamReader(stream);
+            var lines = new Queue<string>();
+            while (reader.ReadLine() is { } line)
+            {
+                lines.Enqueue(line);
+                if (lines.Count > count)
+                    lines.Dequeue();
+            }
+            return lines.ToList();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return new[] { $"(could not read it: {ex.Message})" };
         }
     }
 
