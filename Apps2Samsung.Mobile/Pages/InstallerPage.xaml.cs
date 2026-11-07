@@ -114,7 +114,8 @@ public partial class InstallerPage : ContentPage
 				return;
 			}
 			// Show adult (18+) apps / Show root apps changed from another tab's ⋯ while this one was hidden (#850).
-			if (_listedAdult != MobileSettings.ShowAdultApps || _listedRoot != MobileSettings.ShowRootApps)
+			if (_listedAdult != MobileSettings.ShowAdultApps || _listedRoot != MobileSettings.ShowRootApps
+				|| _listedClosedSource != MobileSettings.ShowClosedSourceApps)
 				RebuildCatalog();
 			return;
 		}
@@ -204,6 +205,7 @@ public partial class InstallerPage : ContentPage
 	private bool _listedAdult;
 	// The same for the root entries ("Show root apps").
 	private bool _listedRoot;
+	private bool _listedClosedSource;
 	// The user's own sources (UserSources) the catalog was last read with; a change reloads it.
 	private string _loadedSources = string.Empty;
 	// The last install on the selected TV failed: the card stays amber until the TV changes or the next install starts.
@@ -218,7 +220,9 @@ public partial class InstallerPage : ContentPage
 		var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		_listedAdult = MobileSettings.ShowAdultApps;
 		_listedRoot = MobileSettings.ShowRootApps;
-		foreach (var release in CommunityAppList.Visible(_allReleases, _listedAdult, _listedRoot))
+		_listedClosedSource = MobileSettings.ShowClosedSourceApps;
+		// With Show closed-source apps off a grouped app keeps only its open-source variants (#1016).
+		foreach (var release in CommunityAppList.Visible(_allReleases, _listedAdult, _listedRoot, _listedClosedSource))
 		{
 			if (!HasSeveralReleases(release.Name))
 				listed.Add(release);
@@ -402,19 +406,24 @@ public partial class InstallerPage : ContentPage
 
 	// The name, with the 18+ badge after it for an adult-only app (#850; such a row is only ever
 	// built once the user opted in under Settings > Installing), the root badge for a package
-	// that gains root on the TV, and "Needs Tizen X" when the selected TV runs none of the app's
-	// builds (TV-Store#47).
+	// that gains root on the TV, "self-updating" and a quiet "closed source" (#1016), and "Needs
+	// Tizen X" when the selected TV runs none of the app's builds (TV-Store#47).
 	private static View NameLine(GitHubRelease release, Version? tvVersion)
 	{
 		var name = new Label { Text = release.Name, FontAttributes = FontAttributes.Bold, LineBreakMode = LineBreakMode.TailTruncation };
 		var needsTizen = TizenRequirement.NoneFits(release, tvVersion);
-		if (!release.IsAdult && !release.IsRoot && !release.IsUserSource && !needsTizen)
+		if (!release.IsAdult && !release.IsRoot && !release.IsSelfUpdating && !release.IsClosedSource && !release.IsUserSource && !needsTizen)
 			return name;
 		var line = new HorizontalStackLayout { Spacing = 6, Children = { name } };
 		if (release.IsAdult)
 			line.Children.Add(Badge("lblAdultBadge", fontSize: 11, padding: new Thickness(5, 0)));
 		if (release.IsRoot)
 			line.Children.Add(Badge("lblRootBadge", fontSize: 11, padding: new Thickness(5, 0)));
+		if (release.IsSelfUpdating)
+			line.Children.Add(Badge("lblSelfUpdatingBadge", fontSize: 11, padding: new Thickness(5, 0)));
+		// the source is not in the linked repository (#1016): informational, quiet colours
+		if (release.IsClosedSource)
+			line.Children.Add(BadgeText(L10n.Get("lblClosedSourceBadge"), fontSize: 11, padding: new Thickness(5, 0), warn: false));
 		// from a source the user added themselves (Settings > Installing > Your sources): quiet colours
 		if (release.IsUserSource)
 			line.Children.Add(BadgeText(L10n.Get("lblUserSourceBadge"), fontSize: 11, padding: new Thickness(5, 0), warn: false));
@@ -584,6 +593,7 @@ public partial class InstallerPage : ContentPage
 		}
 		entries.Add((new(L10n.Get("lblShowAdultApps"), MoreMenu.IconShow, Checked: MobileSettings.ShowAdultApps), ToggleAdultAppsAsync));
 		entries.Add((new(L10n.Get("lblShowRootApps"), MoreMenu.IconShow, Checked: MobileSettings.ShowRootApps), ToggleRootAppsAsync));
+		entries.Add((new(L10n.Get("lblShowClosedSourceApps"), MoreMenu.IconShow, Checked: MobileSettings.ShowClosedSourceApps), ToggleClosedSourceAppsAsync));
 		// A source of the user's own (a repository, release or file link), listed from the next refresh.
 		entries.Add((new(L10n.Get("lblAddSource"), MoreMenu.IconAdd), AddSourceAsync));
 
@@ -607,6 +617,14 @@ public partial class InstallerPage : ContentPage
 	private Task ToggleRootAppsAsync()
 	{
 		MobileSettings.ShowRootApps = !MobileSettings.ShowRootApps;
+		RebuildCatalog();
+		return Task.CompletedTask;
+	}
+
+	// Show closed-source apps (#1016): on by default, no confirmation; off hides only the closed files.
+	private Task ToggleClosedSourceAppsAsync()
+	{
+		MobileSettings.ShowClosedSourceApps = !MobileSettings.ShowClosedSourceApps;
 		RebuildCatalog();
 		return Task.CompletedTask;
 	}

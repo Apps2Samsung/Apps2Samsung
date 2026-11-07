@@ -38,6 +38,8 @@ namespace Apps2Samsung.Catalog
                     asset.AppId = Clean(entry?.AppId) ?? asset.AppId;
                     asset.PackageId = Clean(entry?.PackageId) ?? asset.PackageId;
                     asset.RequiredVersion = Clean(entry?.RequiredVersion) ?? asset.RequiredVersion;
+                    asset.IsClosedSource = entry?.IsClosedSource == true;
+                    asset.IsSelfUpdating = entry?.IsSelfUpdating == true;
 
                     if (entry != null && !string.IsNullOrWhiteSpace(entry.Group))
                     {
@@ -66,6 +68,9 @@ namespace Apps2Samsung.Catalog
                         // A group is adult when any of its files is (#850), and needs Partner when any does.
                         group.IsAdult |= entry.Adult;
                         group.IsRoot |= entry.IsRoot;
+                        // Closed source per file (#1016): Visible hides only those files, not the group.
+                        group.IsClosedSource |= entry.IsClosedSource;
+                        group.IsSelfUpdating |= entry.IsSelfUpdating;
                         group.RequiresPartner |= entry.RequiresPartner;
                         continue;
                     }
@@ -84,6 +89,8 @@ namespace Apps2Samsung.Catalog
                         Description = Clean(entry?.Description) ?? string.Empty,
                         IsAdult = entry?.Adult == true,
                         IsRoot = entry?.IsRoot == true,
+                        IsClosedSource = entry?.IsClosedSource == true,
+                        IsSelfUpdating = entry?.IsSelfUpdating == true,
                     };
                     if (entry != null)
                         SourceRepo.Stamp(single, entry.Repo, entry.Host);
@@ -110,10 +117,26 @@ namespace Apps2Samsung.Catalog
         /// otherwise the list without the adult entries. Both heads and the CLI run their list
         /// through this before any grouping, count, category filter or search, so with the setting
         /// off nothing in the UI shows that those entries exist. "Show root apps" works the same way
-        /// for entries flagged root, but is on by default.
+        /// for entries flagged root, but is on by default. "Show closed-source apps" (#1016, on by
+        /// default) works per file instead: with it off, a grouped app loses only its closed-source
+        /// variants and stays while it has others; an app whose every file is closed source goes.
         /// </summary>
-        public static IEnumerable<GitHubRelease> Visible(IEnumerable<GitHubRelease> entries, bool showAdult, bool showRoot = true)
-            => entries.Where(e => (showAdult || !e.IsAdult) && (showRoot || !e.IsRoot));
+        public static IEnumerable<GitHubRelease> Visible(IEnumerable<GitHubRelease> entries, bool showAdult, bool showRoot = true, bool showClosedSource = true)
+        {
+            foreach (var e in entries)
+            {
+                if ((!showAdult && e.IsAdult) || (!showRoot && e.IsRoot))
+                    continue;
+                if (!showClosedSource && e.IsClosedSource)
+                {
+                    // A single file flagged closed source has nothing left; a group keeps its open files.
+                    if (e.HasVariants && e.WithoutClosedSourceVariants() is { } open)
+                        yield return open;
+                    continue;
+                }
+                yield return e;
+            }
+        }
 
         /// <summary>The entries in <paramref name="category"/> (<see cref="AppCategories.All"/> keeps everything).</summary>
         public static IEnumerable<GitHubRelease> Filter(IEnumerable<GitHubRelease> entries, string category)

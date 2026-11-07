@@ -77,6 +77,9 @@ public partial class AppSheetPage : ContentPage
 		PartnerNotice.IsVisible = release.RequiresPartner;
 		AdultBadge.IsVisible = release.IsAdult;
 		RootBadge.IsVisible = release.IsRoot;
+		// #1016: several flags can apply at once; each shows its own badge.
+		SelfUpdatingBadge.IsVisible = SelfUpdatingLabel.IsVisible = release.IsSelfUpdating;
+		ClosedSourceBadge.IsVisible = release.IsClosedSource;
 		SourceBadge.IsVisible = release.IsUserSource;
 		VersionsTitle.Text = L10n.Get(release.HasVariants ? "lblVariant" : "lblVersion");
 		// The way back to the package's own id (#839), only for an app renamed on some TV before.

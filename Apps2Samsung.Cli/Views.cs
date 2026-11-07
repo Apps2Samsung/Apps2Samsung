@@ -254,6 +254,7 @@ internal static class Views
                 if (e.Category.Length > 0) meta.Add(e.Category);
                 if (meta.Count > 0) body.Add(new Markup(Muted(string.Join($" {Dot(unicode)} ", meta))));
                 if (e.Description.Length > 0) body.Add(new Markup(Esc(e.Description)));
+                if (e.SelfUpdating) body.Add(new Markup(Muted(CatalogCommand.Entry.SelfUpdatingNote)));
                 body.AddRange(FileRows(e, unicode));
                 rows.Add(new Padder(new Rows(body), new Padding(2, 0, 0, 0)));
             }
@@ -279,6 +280,7 @@ internal static class Views
         {
             var app = new List<IRenderable> { new Markup($"[bold]{Esc(e.Name)}[/]{Flags(e)}") };
             if (e.Description.Length > 0) app.Add(new Markup(Muted(e.Description)));
+            if (e.SelfUpdating) app.Add(new Markup(Muted(CatalogCommand.Entry.SelfUpdatingNote)));
             var meta = new List<string>();
             if (!categoryColumn && e.Category.Length > 0) meta.Add(e.Category);
             if (TizenOf(e) is { } t) meta.Add($"Tizen {t}+");
@@ -306,6 +308,8 @@ internal static class Views
         if (e.RequiresPartner) flags.Add("partner certificate");
         if (e.Adult) flags.Add("18+");
         if (e.Root) flags.Add("root");
+        if (e.SelfUpdating) flags.Add("self-updating");
+        if (e.ClosedSource) flags.Add("closed source");
         if (e.OwnSource) flags.Add("own source");
         return flags.Count == 0 ? "" : " " + Muted($"({string.Join(", ", flags)})");
     }

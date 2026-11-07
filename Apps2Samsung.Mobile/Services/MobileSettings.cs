@@ -18,6 +18,7 @@ public static class MobileSettings
 	private const string KeyShowAllJf = "show_all_jellyfin_versions";
 	private const string KeyShowAdult = "show_adult_apps";
 	private const string KeyShowRoot = "show_root_apps";
+	private const string KeyShowClosedSource = "show_closed_source_apps";
 	private const string KeyUserSources = "user_sources_json";
 	private const string KeyInstalledOrder = "installed_apps_order";
 	private const string KeyManualDuids = "manual_duids";
@@ -80,6 +81,13 @@ public static class MobileSettings
 	{
 		get => Preferences.Get(KeyShowRoot, true);
 		set => Preferences.Set(KeyShowRoot, value);
+	}
+
+	/// <summary>List the catalog files flagged closed-source (#1016); on by default. Off, a grouped app keeps its open-source variants.</summary>
+	public static bool ShowClosedSourceApps
+	{
+		get => Preferences.Get(KeyShowClosedSource, true);
+		set => Preferences.Set(KeyShowClosedSource, value);
 	}
 
 	/// <summary>Sources the user added themselves (Core <c>UserSources</c>): JSON array of { name, url, category, partner },

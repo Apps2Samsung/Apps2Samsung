@@ -26,6 +26,16 @@
                             Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="7,2" VerticalOptions="Center">
                         <Label Text="{l:Localize lblRootBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}" />
                     </Border>
+                    <!-- downloads and runs newer versions of itself after install (#1016) -->
+                    <Border x:Name="SelfUpdatingBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
+                            Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="7,2" VerticalOptions="Center">
+                        <Label Text="{l:Localize lblSelfUpdatingBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}" />
+                    </Border>
+                    <!-- the source is not in the linked repository (#1016): informational, quiet colours -->
+                    <Border x:Name="ClosedSourceBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
+                            Stroke="{DynamicResource HairBrush}" BackgroundColor="{DynamicResource FillColor}" Padding="7,2" VerticalOptions="Center">
+                        <Label Text="{l:Localize lblClosedSourceBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource MutedColor}" />
+                    </Border>
                     <!-- from a source the user added themselves (Settings > Installing > Your sources) -->
                     <Border x:Name="SourceBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
                             Stroke="{DynamicResource HairBrush}" BackgroundColor="{DynamicResource FillColor}" Padding="7,2" VerticalOptions="Center">
@@ -54,6 +64,9 @@
             <!-- what the app is, from the catalog (#835); then the category line the list row shows -->
             <Label x:Name="DescriptionLabel" TextColor="{DynamicResource InkColor}" LineBreakMode="WordWrap" IsVisible="False" />
             <Label x:Name="SublineLabel" TextColor="{DynamicResource MutedColor}" LineBreakMode="WordWrap" />
+            <!-- self-updating (#1016): what the catalogue's scan covers -->
+            <Label x:Name="SelfUpdatingLabel" Text="{l:Localize lblSelfUpdatingDetails}" FontSize="13" TextColor="{DynamicResource WarnColor}"
+                   LineBreakMode="WordWrap" IsVisible="False" />
             <!-- who makes it and where its source, releases and licence live (#820) -->
             <Label x:Name="SourceLabel" FontSize="13" TextColor="{DynamicResource MutedColor}" IsVisible="False" />
 

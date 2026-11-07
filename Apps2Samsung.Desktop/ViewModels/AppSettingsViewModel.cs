@@ -178,6 +178,12 @@ namespace Apps2Samsung.ViewModels
         private bool showRootApps;
         public event Action? ShowRootAppsChanged;
 
+        // The catalog ⋯ > Show closed-source apps (#1016): on by default, no confirmation.
+        // Fires ShowClosedSourceAppsChanged for the main window to refilter the catalog.
+        [ObservableProperty]
+        private bool showClosedSourceApps;
+        public event Action? ShowClosedSourceAppsChanged;
+
         /// <summary>
         /// Settings > Installing > Your sources, and the catalog ⋯ > Add a source: the repositories,
         /// releases and file links the user added (<see cref="Apps2Samsung.Catalog.UserSources"/>),
@@ -232,6 +238,7 @@ namespace Apps2Samsung.ViewModels
         public string LblIncludeBetaUpdates => _localizationService.GetString("lblIncludeBetaUpdates");
         public string LblShowAdultApps => _localizationService.GetString("lblShowAdultApps");
         public string LblShowRootApps => _localizationService.GetString("lblShowRootApps");
+        public string LblShowClosedSourceApps => _localizationService.GetString("lblShowClosedSourceApps");
         public string LblUserSources => _localizationService.GetString("lblUserSources");
         public string LblAddSource => _localizationService.GetString("lblAddSource");
         public string LblUserSourcesEmpty => _localizationService.GetString("lblUserSourcesEmpty");
@@ -319,6 +326,7 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblIncludeBetaUpdates));
             OnPropertyChanged(nameof(LblShowAdultApps));
             OnPropertyChanged(nameof(LblShowRootApps));
+            OnPropertyChanged(nameof(LblShowClosedSourceApps));
             OnPropertyChanged(nameof(LblUserSources));
             OnPropertyChanged(nameof(LblAddSource));
             OnPropertyChanged(nameof(LblUserSourcesEmpty));
@@ -355,6 +363,7 @@ namespace Apps2Samsung.ViewModels
             KeepWGTFile = AppSettings.Default.KeepWGTFile;
             ShowAdultApps = AppSettings.Default.ShowAdultApps;
             ShowRootApps = AppSettings.Default.ShowRootApps;
+            ShowClosedSourceApps = AppSettings.Default.ShowClosedSourceApps;
             LoadOwnSources();
             DarkMode = AppSettings.Default.DarkMode;
             GitHubToken = AppSettings.Default.GitHubToken ?? string.Empty;
@@ -839,6 +848,15 @@ namespace Apps2Samsung.ViewModels
             AppSettings.Default.ShowRootApps = value;
             AppSettings.Default.Save();
             ShowRootAppsChanged?.Invoke();
+        }
+
+        partial void OnShowClosedSourceAppsChanged(bool value)
+        {
+            if (value == AppSettings.Default.ShowClosedSourceApps)
+                return;
+            AppSettings.Default.ShowClosedSourceApps = value;
+            AppSettings.Default.Save();
+            ShowClosedSourceAppsChanged?.Invoke();
         }
 
         // Your sources: the stored list as rows. Re-run on a language change, as the category name
