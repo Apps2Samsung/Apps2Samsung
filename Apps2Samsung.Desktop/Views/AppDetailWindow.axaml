@@ -65,6 +65,16 @@
 					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblRootPackage}">
 						<TextBlock Text="{l:Localize lblRootBadge}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
 					</Border>
+					<!-- downloads and runs newer versions of itself after install (#1016) -->
+					<Border IsVisible="{Binding IsSelfUpdating}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
+					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblSelfUpdatingPackage}">
+						<TextBlock Text="{l:Localize lblSelfUpdatingBadge}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
+					</Border>
+					<!-- the source is not in the linked repository (#1016): informational, no warning -->
+					<Border IsVisible="{Binding IsClosedSource}" Background="{DynamicResource FillBrush}" BorderBrush="{DynamicResource HairBrush}"
+					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblClosedSourcePackage}">
+						<TextBlock Text="{l:Localize lblClosedSourceBadge}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
+					</Border>
 					<!-- from a source the user added themselves (Settings > Installing > Your sources) -->
 					<Border IsVisible="{Binding IsUserSource}" Background="{DynamicResource FillBrush}" BorderBrush="{DynamicResource HairBrush}"
 					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblUserSourcePackage}">
@@ -92,6 +102,9 @@
 			<!-- what the app is, from the catalog (#835); then the category line the list row shows -->
 			<TextBlock Text="{Binding Description}" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}" IsVisible="{Binding HasDescription}"/>
 			<TextBlock Text="{Binding Subline}" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+			<!-- self-updating (#1016): what the catalogue's scan covers -->
+			<TextBlock Text="{l:Localize lblSelfUpdatingDetails}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource WarnBrush}"
+			           IsVisible="{Binding IsSelfUpdating}"/>
 
 			<!-- who makes it and where its source, releases and licence live (#820) -->
 			<StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasSource}">

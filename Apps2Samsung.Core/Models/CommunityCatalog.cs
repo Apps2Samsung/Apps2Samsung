@@ -73,9 +73,11 @@ namespace Apps2Samsung.Models
         public bool Adult { get; set; }
 
         /// <summary>
-        /// Install-time properties the heads warn about before installing (<c>flags</c> in the
-        /// manifest). Null for the usual package; written only when present, so the snapshot
-        /// round-trips it as-is.
+        /// What the heads tell the user about the package (<c>flags</c> in the manifest): <c>root</c>
+        /// (confirmed before install), <c>self-updating</c> (a badge and a line on the app sheet) and
+        /// <c>closed-source</c> (a neutral badge; hidden while "Show closed-source apps" is off).
+        /// Unknown values are ignored. Null for the usual package; written only when present, so the
+        /// snapshot round-trips it as-is.
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public List<string>? Flags { get; set; }
@@ -101,7 +103,25 @@ namespace Apps2Samsung.Models
         /// PC out of SDB until it is set back, so the heads confirm first.
         /// </summary>
         [JsonIgnore]
-        public bool IsRoot => Flags?.Exists(f => string.Equals(f, "root", System.StringComparison.OrdinalIgnoreCase)) == true;
+        public bool IsRoot => HasFlag("root");
+
+        /// <summary>
+        /// The app's source is not in the linked repository (<c>flags: ["closed-source"]</c>, #1016);
+        /// the catalogue carries it because the author allows redistribution. A neutral badge, no
+        /// confirmation; hidden while "Show closed-source apps" is off.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsClosedSource => HasFlag("closed-source");
+
+        /// <summary>
+        /// The app downloads and runs newer code after install, outside the catalogue and its scan
+        /// (<c>flags: ["self-updating"]</c>, #1016). A badge and a line on the app sheet.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsSelfUpdating => HasFlag("self-updating");
+
+        private bool HasFlag(string flag) =>
+            Flags?.Exists(f => string.Equals(f, flag, System.StringComparison.OrdinalIgnoreCase)) == true;
     }
 
     /// <summary>

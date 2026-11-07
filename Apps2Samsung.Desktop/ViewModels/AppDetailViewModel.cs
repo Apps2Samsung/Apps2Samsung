@@ -55,6 +55,10 @@ namespace Apps2Samsung.ViewModels
         public bool IsUserSource => Release.IsUserSource;
         /// <summary>The root badge by the title: the package gains root on the TV, and the install asks first.</summary>
         public bool IsRoot => Release.IsRoot;
+        /// <summary>The neutral "closed source" badge by the title (#1016): the source is not in the linked repository.</summary>
+        public bool IsClosedSource => Release.IsClosedSource;
+        /// <summary>The "self-updating" badge by the title, and the line under the description that says only the catalogue's version is scanned (#1016).</summary>
+        public bool IsSelfUpdating => Release.IsSelfUpdating;
         public string VersionsTitle { get; }
         public string Published { get; }
         public ObservableCollection<Asset> Assets { get; }
