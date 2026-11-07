@@ -38,52 +38,103 @@
             <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
                      Color="{DynamicResource HairColor}" />
 
-            <Grid ColumnDefinitions="44,*" ColumnSpacing="12">
-                <Border WidthRequest="44" HeightRequest="44" StrokeThickness="0" StrokeShape="RoundRectangle 11"
-                        BackgroundColor="{DynamicResource AccentSoftColor}">
-                    <!-- a link -->
-                    <shapes:Path Data="M10,14 L14,10 M8,16 L6,18 A3,3 0 0 1 2,14 L6,10 A3,3 0 0 1 10,10 M16,8 L18,6 A3,3 0 0 1 22,10 L18,14 A3,3 0 0 1 14,14"
-                                 Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.2" StrokeLineJoin="Round" StrokeLineCap="Round"
-                                 WidthRequest="22" HeightRequest="22" Aspect="Uniform"
-                                 HorizontalOptions="Center" VerticalOptions="Center" />
-                </Border>
-                <Label Grid.Column="1" Text="{l:Localize lblAddSourceTitle}" FontSize="17" FontAttributes="Bold" VerticalOptions="Center" />
-            </Grid>
+            <!-- step 1: the link and how to list it -->
+            <VerticalStackLayout x:Name="FormStep" Spacing="14">
+                <Grid ColumnDefinitions="44,*" ColumnSpacing="12">
+                    <Border WidthRequest="44" HeightRequest="44" StrokeThickness="0" StrokeShape="RoundRectangle 11"
+                            BackgroundColor="{DynamicResource AccentSoftColor}">
+                        <!-- a link -->
+                        <shapes:Path Data="M10,14 L14,10 M8,16 L6,18 A3,3 0 0 1 2,14 L6,10 A3,3 0 0 1 10,10 M16,8 L18,6 A3,3 0 0 1 22,10 L18,14 A3,3 0 0 1 14,14"
+                                     Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.2" StrokeLineJoin="Round" StrokeLineCap="Round"
+                                     WidthRequest="22" HeightRequest="22" Aspect="Uniform"
+                                     HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Grid.Column="1" Text="{l:Localize lblAddSourceTitle}" FontSize="17" FontAttributes="Bold" VerticalOptions="Center" />
+                </Grid>
 
-            <Label Text="{l:Localize hintAddSourceForm}" Style="{StaticResource Hint}" />
+                <Label Text="{l:Localize hintAddSourceForm}" Style="{StaticResource Hint}" />
 
-            <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}" Padding="16,14">
-                <VerticalStackLayout Spacing="12">
-                    <VerticalStackLayout Spacing="5">
-                        <Label Text="{l:Localize lblUserSourceUrl}" Style="{StaticResource FieldLabel}" />
-                        <Border Style="{StaticResource Field}"><Entry x:Name="UrlEntry" Keyboard="Url" /></Border>
-                        <Label Text="{l:Localize hintUserSourceUrl}" Style="{StaticResource Hint}" FontSize="12" />
-                        <Label x:Name="UrlError" Style="{StaticResource FieldError}" />
-                    </VerticalStackLayout>
-                    <VerticalStackLayout Spacing="5">
-                        <Label x:Name="NameLabel" Style="{StaticResource FieldLabel}" />
-                        <Border Style="{StaticResource Field}"><Entry x:Name="NameEntry" /></Border>
-                        <Label x:Name="NameError" Style="{StaticResource FieldError}" />
-                    </VerticalStackLayout>
-                    <VerticalStackLayout Spacing="5">
-                        <Label Text="{l:Localize lblUserSourceCategory}" Style="{StaticResource FieldLabel}" />
-                        <Border Style="{StaticResource Field}"><Picker x:Name="CategoryPicker" /></Border>
-                    </VerticalStackLayout>
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                        <VerticalStackLayout Spacing="2" VerticalOptions="Center">
-                            <Label Text="{l:Localize lblUserSourcePartner}" FontSize="16" />
-                            <Label Text="{l:Localize hintUserSourcePartner}" Style="{StaticResource Hint}" FontSize="12" />
+                <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}" Padding="16,14">
+                    <VerticalStackLayout Spacing="12">
+                        <VerticalStackLayout Spacing="5">
+                            <Label Text="{l:Localize lblUserSourceUrl}" Style="{StaticResource FieldLabel}" />
+                            <Border Style="{StaticResource Field}"><Entry x:Name="UrlEntry" Keyboard="Url" /></Border>
+                            <Label Text="{l:Localize hintUserSourceUrl}" Style="{StaticResource Hint}" FontSize="12" />
+                            <Label x:Name="UrlError" Style="{StaticResource FieldError}" />
                         </VerticalStackLayout>
-                        <Switch Grid.Column="1" x:Name="PartnerSwitch" OnColor="{DynamicResource AccentColor}" VerticalOptions="Center" />
-                    </Grid>
-                </VerticalStackLayout>
-            </Border>
+                        <VerticalStackLayout Spacing="5">
+                            <Label x:Name="NameLabel" Style="{StaticResource FieldLabel}" />
+                            <Border Style="{StaticResource Field}"><Entry x:Name="NameEntry" /></Border>
+                            <Label x:Name="NameError" Style="{StaticResource FieldError}" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Spacing="5">
+                            <Label Text="{l:Localize lblUserSourceCategory}" Style="{StaticResource FieldLabel}" />
+                            <Border Style="{StaticResource Field}"><Picker x:Name="CategoryPicker" /></Border>
+                        </VerticalStackLayout>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                            <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblUserSourcePartner}" FontSize="16" />
+                                <Label Text="{l:Localize hintUserSourcePartner}" Style="{StaticResource Hint}" FontSize="12" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" x:Name="PartnerSwitch" OnColor="{DynamicResource AccentColor}" VerticalOptions="Center" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
 
-            <VerticalStackLayout Spacing="8">
-                <Button Text="{l:Localize lblAdd}" Style="{StaticResource PrimaryButton}"
-                        CornerRadius="12" HeightRequest="50" Clicked="OnAddClicked" />
-                <Button Text="{l:Localize lblCancel}" BackgroundColor="Transparent" TextColor="{DynamicResource InkColor}"
-                        FontAttributes="Bold" HeightRequest="44" Clicked="OnCancelClicked" />
+                <VerticalStackLayout Spacing="8">
+                    <Button x:Name="AddBtn" Text="{l:Localize lblAdd}" Style="{StaticResource PrimaryButton}"
+                            CornerRadius="12" HeightRequest="50" Clicked="OnAddClicked" />
+                    <Button Text="{l:Localize lblCancel}" BackgroundColor="Transparent" TextColor="{DynamicResource InkColor}"
+                            FontAttributes="Bold" HeightRequest="44" Clicked="OnCancelClicked" />
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+
+            <!-- step 2 for a signed repository (#1018, mockup ApproveB): the publisher's key fingerprint
+                 to check against what the publisher says, who it is, then add or don't -->
+            <VerticalStackLayout x:Name="KeyStep" Spacing="16" IsVisible="False">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="{l:Localize lblRepoKeyTitle}" FontSize="24" FontAttributes="Bold" />
+                    <Label Text="{l:Localize hintRepoKey}" FontSize="15" TextColor="{DynamicResource MutedColor}" LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+
+                <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}" Padding="16,18">
+                    <VerticalStackLayout Spacing="14">
+                        <!-- 16 groups of four, filled in from code -->
+                        <Grid x:Name="FingerprintGrid" ColumnDefinitions="*,*,*,*" RowSpacing="8" ColumnSpacing="12" />
+                        <Button x:Name="CopyFingerprintBtn" Text="{l:Localize lblRepoCopyFingerprint}" Style="{StaticResource SoftButton}"
+                                CornerRadius="18" HeightRequest="36" MinimumHeightRequest="36" Padding="16,0" FontSize="15"
+                                HorizontalOptions="Center" Clicked="OnCopyFingerprintClicked" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
+                    <VerticalStackLayout>
+                        <Grid ColumnDefinitions="44,*" ColumnSpacing="12" Padding="16,12">
+                            <Border x:Name="RepoTile" WidthRequest="44" HeightRequest="44" StrokeThickness="0" StrokeShape="RoundRectangle 11">
+                                <Label x:Name="RepoLetter" FontSize="20" FontAttributes="Bold" TextColor="{DynamicResource OnAccentColor}"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label x:Name="RepoName" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                                <Label x:Name="RepoBy" FontSize="13" TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
+                            </VerticalStackLayout>
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="{DynamicResource HairColor}" />
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Padding="16,12">
+                            <Label Text="{l:Localize lblRepoFrom}" TextColor="{DynamicResource MutedColor}" />
+                            <Label Grid.Column="1" x:Name="RepoDomain" HorizontalTextAlignment="End" LineBreakMode="TailTruncation" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="{l:Localize hintRepoSignedMeans}" Style="{StaticResource Footnote}" LineBreakMode="WordWrap" />
+
+                <VerticalStackLayout Spacing="10">
+                    <Button Text="{l:Localize lblRepoKeyMatches}" Style="{StaticResource PrimaryButton}"
+                            CornerRadius="12" HeightRequest="50" Clicked="OnKeyMatchesClicked" />
+                    <Button Text="{l:Localize lblRepoDontAdd}" BackgroundColor="Transparent" TextColor="{DynamicResource BadColor}"
+                            HeightRequest="50" Clicked="OnCancelClicked" />
+                </VerticalStackLayout>
             </VerticalStackLayout>
         </VerticalStackLayout>
     </ScrollView>
