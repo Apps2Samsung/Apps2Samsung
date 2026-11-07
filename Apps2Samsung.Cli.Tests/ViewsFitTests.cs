@@ -2,11 +2,7 @@ using Spectre.Console;
 
 namespace Apps2Samsung.Cli.Tests;
 
-/// <summary>
-/// <see cref="Views.Fit"/>: a selection prompt's choice cut to the terminal's width (#975). Spectre
-/// draws the choices without wrapping, so a choice wider than the terminal wrapped on the phone and
-/// the list piled up copies of itself on every key.
-/// </summary>
+
 public sealed class ViewsFitTests
 {
     private static int Cells(string markup) => Views.Cells(Markup.Remove(markup));
