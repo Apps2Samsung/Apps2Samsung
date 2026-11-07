@@ -102,8 +102,11 @@ namespace Apps2Samsung.Helpers.Core
                     LocalIps = localIps,
                     ConfiguredLocalIp = AppSettings.Default.LocalIp,
                     ReversedIpReading = AppSettings.Default.RTLReading,
+                    SkipDevModeChecks = AppSettings.Default.SkipDevModeChecks,
                 },
                 _networkService);
+            if (AppSettings.Default.SkipDevModeChecks)
+                Trace.WriteLine("[install] Developer Mode checks skipped (setting)");
 
             // The checks are about the developer connection; TV-Store's upload page needs none of it
             // (#979). A TV the checks would stop that runs TV-Store gets the offer to take the package

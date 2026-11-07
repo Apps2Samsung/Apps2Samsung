@@ -22,6 +22,7 @@ public static class MobileSettings
 	private const string KeyUserSources = "user_sources_json";
 	private const string KeyInstalledOrder = "installed_apps_order";
 	private const string KeyManualDuids = "manual_duids";
+	private const string KeySkipDevModeChecks = "skip_devmode_checks";
 	private const string KeyTvAppChannels = "tvapp_channels_json";
 	private const string KeyImmiTvServerUrl = "immitv_server_url";
 	private const string KeyImmiTvEmail = "immitv_email";
@@ -203,6 +204,15 @@ public static class MobileSettings
 	{
 		get => Preferences.Get(KeyManualDuids, string.Empty);
 		set => Preferences.Set(KeyManualDuids, value ?? string.Empty);
+	}
+
+	/// <summary>Settings > Advanced > Skip Developer Mode checks (#1026), for testing: a TV that reports
+	/// Developer Mode off or whose install port didn't answer can still be installed to, so the tester
+	/// sees where it really fails. Off by default.</summary>
+	public static bool SkipDevModeChecks
+	{
+		get => Preferences.Get(KeySkipDevModeChecks, false);
+		set => Preferences.Set(KeySkipDevModeChecks, value);
 	}
 
 	// SecureStorage is async; cache secrets so callers on the request path can read them synchronously.

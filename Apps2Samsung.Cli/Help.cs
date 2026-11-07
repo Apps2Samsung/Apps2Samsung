@@ -103,6 +103,8 @@ public static class Help
                                 afterwards Host PC IP has to be 127.0.0.1; this machine then reaches
                                 the TV only through TV-Store's relay (TV-Store 0.3.14+, turned on in
                                 its Settings), which the CLI dials by itself on port 26201
+          --skip-devmode-check  for testing: don't stop on the TV reporting Developer Mode off or a closed
+                                install port; the install then fails at connecting if it really is off
           --no-browser          print the Samsung sign-in address instead of opening a browser
           --login-timeout <s>   how long to wait for the Samsung sign-in (default 300)
           --force-login         make a new certificate even when a usable one exists

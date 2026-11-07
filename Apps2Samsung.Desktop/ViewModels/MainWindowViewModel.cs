@@ -557,6 +557,12 @@ namespace Apps2Samsung.ViewModels
                 RebuildCategories();
                 ApplyCategoryFilter();
             };
+            // Settings > Advanced > Skip Developer Mode checks (#1026): Install and the card follow it.
+            _settingsViewModel.Application.SkipDevModeChecksChanged += () =>
+            {
+                RefreshCanExecuteChanged();
+                UpdateTvCard();
+            };
             // The catalog ⋯ > Show closed-source apps (#1016): the same.
             _settingsViewModel.Application.ShowClosedSourceAppsChanged += () =>
             {
@@ -739,7 +745,8 @@ namespace Apps2Samsung.ViewModels
             else if (device is null || string.IsNullOrWhiteSpace(device.IpAddress) || device.IpAddress == L("lblOther"))
                 state = TvCardStates.NoTv(L, localIp);
             else
-                state = TvCardStates.ForDevice(device, _localIps, localIp, L);
+                state = TvCardStates.WithDevModeChecksSkipped(
+                    TvCardStates.ForDevice(device, _localIps, localIp, L), AppSettings.Default.SkipDevModeChecks, L);
 
             var busy = IsLoadingDevices || IsLoading || IsInstallProgressVisible || IsSamsungLoginActive;
             // The status bar is the card's line while something runs or just happened. At rest, a TV
@@ -1678,11 +1685,13 @@ namespace Apps2Samsung.ViewModels
         // A real TV that is actually installable: has an IP, isn't the "Other" placeholder,
         // and its Tizen debug port (26101) is reachable. TVs detected only via the REST API
         // (Developer Mode not fully active) are not installable.
+        // Settings > Advanced > Skip Developer Mode checks (#1026) drops the port requirement, so a
+        // tester can install and see where it really fails.
         private bool IsSelectedDeviceReady =>
             SelectedDevice != null &&
             !string.IsNullOrWhiteSpace(SelectedDevice.IpAddress) &&
             SelectedDevice.IpAddress != L("lblOther") &&
-            SelectedDevice.DebugPortOpen;
+            (SelectedDevice.DebugPortOpen || AppSettings.Default.SkipDevModeChecks);
 
         private bool CanDownload()
         {

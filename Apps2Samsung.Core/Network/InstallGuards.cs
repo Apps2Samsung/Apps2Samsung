@@ -67,6 +67,13 @@ namespace Apps2Samsung.Services
         /// <summary>The desktop's "Reverse IP (for Arabic/Hebrew)" setting: those TVs render the IP
         /// right-to-left, so the user types it reversed and it is then <i>correct</i>, not a mismatch.</summary>
         public bool ReversedIpReading { get; init; }
+
+        /// <summary>The Advanced "Skip Developer Mode checks" setting (or the CLI's
+        /// <c>--skip-devmode-check</c>): for testing on TVs that misreport, drops the
+        /// <see cref="InstallGuardKind.RestartRequired"/> and <see cref="InstallGuardKind.DeveloperModeOff"/>
+        /// guards so the install goes straight on to the DUID read and the SDB connect and fails
+        /// there with the real error. The IP, subnet, relay and emulator guards still apply.</summary>
+        public bool SkipDevModeChecks { get; init; }
     }
 
     /// <summary>The guards to show, plus the TV IP to install to if evaluation corrected it.</summary>
@@ -147,7 +154,7 @@ namespace Apps2Samsung.Services
                 return new InstallGuardResult(guards, correctedTvIp);
 
             // 1. Developer Mode on, but its install service isn't up yet — only a restart fixes it.
-            if (TizenDeviceReadiness.RequiresRestart(device))
+            if (!options.SkipDevModeChecks && TizenDeviceReadiness.RequiresRestart(device))
             {
                 guards.Add(new InstallGuard(
                     InstallGuardKind.RestartRequired,
@@ -183,7 +190,7 @@ namespace Apps2Samsung.Services
             }
 
             // 3. The TV itself says Developer Mode is off.
-            if (device.DeveloperMode == "0")
+            if (!options.SkipDevModeChecks && device.DeveloperMode == "0")
             {
                 guards.Add(new InstallGuard(
                     InstallGuardKind.DeveloperModeOff,

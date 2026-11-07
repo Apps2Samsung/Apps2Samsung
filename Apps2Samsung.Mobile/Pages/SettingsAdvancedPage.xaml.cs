@@ -3,7 +3,7 @@ using Apps2Samsung.Mobile.Services;
 
 namespace Apps2Samsung.Mobile.Pages;
 
-/// <summary>Settings > Advanced: the GitHub token and extra TV device IDs.</summary>
+/// <summary>Settings > Advanced: the GitHub token, extra TV device IDs and Skip Developer Mode checks (#1026).</summary>
 public partial class SettingsAdvancedPage : ContentPage
 {
 	private bool _loaded;
@@ -20,6 +20,7 @@ public partial class SettingsAdvancedPage : ContentPage
 		_loaded = false;
 		TokenEntry.Text = MobileSettings.GitHubToken;
 		DuidsEditor.Text = MobileSettings.ManualDuids;
+		SkipDevModeSwitch.IsToggled = MobileSettings.SkipDevModeChecks;
 		_loaded = true;
 	}
 
@@ -33,6 +34,12 @@ public partial class SettingsAdvancedPage : ContentPage
 	{
 		if (_loaded)
 			await MobileSettings.SetGitHubTokenAsync(TokenEntry.Text);
+	}
+
+	private void OnSkipDevModeToggled(object? sender, ToggledEventArgs e)
+	{
+		if (_loaded)
+			MobileSettings.SkipDevModeChecks = e.Value;
 	}
 
 	private void OnDuidsUnfocused(object? sender, FocusEventArgs e)

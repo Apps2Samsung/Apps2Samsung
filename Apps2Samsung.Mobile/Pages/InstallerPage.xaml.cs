@@ -466,7 +466,9 @@ public partial class InstallerPage : ContentPage
 		if (_busy)
 			return;
 		var tvName = _tv.HasTv ? _tv.DisplayName : null;
-		var tvReady = _tv.HasTv && _tv.DebugPortOpen;
+		// Settings > Advanced > Skip Developer Mode checks (#1026): Install without the sdb port, so
+		// a tester sees where the install really fails.
+		var tvReady = _tv.HasTv && (_tv.DebugPortOpen || MobileSettings.SkipDevModeChecks);
 
 		var several = HasSeveralReleases(release.Name);
 		IReadOnlyList<GitHubRelease> versions = several ? VersionsOf(release) : new List<GitHubRelease> { release };
@@ -856,8 +858,11 @@ public partial class InstallerPage : ContentPage
 			{
 				LocalIps = LocalIps(),
 				ConfiguredLocalIp = NetworkInfo.LocalIpFor(tv.Ip),
+				SkipDevModeChecks = MobileSettings.SkipDevModeChecks,
 			},
 			_networkService);
+		if (MobileSettings.SkipDevModeChecks)
+			System.Diagnostics.Trace.WriteLine("[install] Developer Mode checks skipped (setting)");
 
 		// The checks are about the developer connection; TV-Store's upload page needs none of it
 		// (#979). A TV the checks would stop that runs TV-Store gets the offer to take the package

@@ -5,7 +5,8 @@
              xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
              x:Class="Apps2Samsung.Views.Settings.SettingsAdvancedView"
              x:DataType="viewModels:AppSettingsViewModel">
-	<!-- Settings > Advanced: the network interface, the GitHub token and extra TV device IDs. -->
+	<!-- Settings > Advanced: the network interface, the GitHub token, extra TV device IDs and the
+	     testing switch that skips the Developer Mode checks (#1026). -->
 	<Border Classes="group">
 		<StackPanel>
 			<StackPanel Spacing="6" Margin="14,10">
@@ -37,6 +38,15 @@
 				<TextBox Classes="clean" Text="{Binding ManualDuids}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"
 				         Watermark="{l:Localize lblDuidsWatermark}"/>
 				<TextBlock Classes="hint" Text="{Binding LblManualDuidsHint}"/>
+			</StackPanel>
+			<Border Classes="rowline"/>
+			<!-- for testing (#1026): install to a TV that reports Developer Mode off -->
+			<StackPanel Spacing="6" Margin="14,10">
+				<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+					<TextBlock Classes="settinglabel" Text="{Binding LblSkipDevModeChecks}" VerticalAlignment="Center"/>
+					<ToggleSwitch Grid.Column="1" MinWidth="0" VerticalAlignment="Center" IsChecked="{Binding SkipDevModeChecks}"/>
+				</Grid>
+				<TextBlock Classes="hint" Text="{Binding LblSkipDevModeChecksHint}"/>
 			</StackPanel>
 		</StackPanel>
 	</Border>

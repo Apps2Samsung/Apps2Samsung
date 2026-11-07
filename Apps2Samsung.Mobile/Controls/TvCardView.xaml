@@ -45,6 +45,9 @@
                             <Label x:Name="MessageLabel" Grid.Column="1" FontSize="15" LineBreakMode="WordWrap"
                                    TextColor="{DynamicResource GlassInkColor}" />
                         </Grid>
+                        <!-- a small extra line (#1026): "Developer Mode checks are off" while that setting is on -->
+                        <Label x:Name="NoteLabel" IsVisible="False" FontSize="13" Margin="19,2,0,0" LineBreakMode="WordWrap"
+                               TextColor="{DynamicResource GlassMutedColor}" />
                         <ProgressBar x:Name="Progress" IsVisible="False" Margin="0,10,0,0" HeightRequest="6"
                                      ProgressColor="{DynamicResource LedBusyColor}"
                                      BackgroundColor="{DynamicResource GlassTrackColor}" />
