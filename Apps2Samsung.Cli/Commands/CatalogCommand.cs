@@ -5,11 +5,13 @@ namespace Apps2Samsung.Cli.Commands;
 
 public static class CatalogCommand
 {
-    public sealed record FileInfo(string File, string? Variant, string? Version, long Size, bool Default, IReadOnlyList<SettingInfo>? Settings);
+    /// <param name="Tizen">The Tizen version the file asks for ("6.0"), from the catalog; null when it does not say (TV-Store#47).</param>
+    public sealed record FileInfo(string File, string? Variant, string? Version, long Size, bool Default, IReadOnlyList<SettingInfo>? Settings, string? Tizen = null);
     public sealed record SettingInfo(string Key, string Label, string Type, bool Required, string? Pattern, string? HelpUrl,
         string? Default, long? Min, long? Max, IReadOnlyList<long>? Disallow);
+    /// <param name="OwnSource">True for an app from a source the user added (`sources`, --source), not the catalog.</param>
     public sealed record Entry(string Name, string Category, string Description, bool RequiresPartner, bool HasVariants, bool Adult, bool Root,
-        string? Tag, string? Published, string? Author, string? Source, long? Downloads, IReadOnlyList<FileInfo> Files);
+        string? Tag, string? Published, string? Author, string? Source, long? Downloads, IReadOnlyList<FileInfo> Files, bool OwnSource = false);
 
     public static async Task<int> RunAsync(CliServices s, CancellationToken ct)
     {
@@ -39,7 +41,8 @@ public static class CatalogCommand
             text.Add("No app matches.");
         foreach (var e in list)
         {
-            var flags = (e.RequiresPartner ? " (partner certificate)" : "") + (e.Adult ? " (18+)" : "") + (e.Root ? " (root)" : "");
+            var flags = (e.RequiresPartner ? " (partner certificate)" : "") + (e.Adult ? " (18+)" : "") + (e.Root ? " (root)" : "")
+                + (e.OwnSource ? " (own source)" : "");
             text.Add($"{e.Name}  [{e.Category}]{flags}{(e.Downloads is { } n ? $"  {n:N0} downloads" : "")}");
             if (e.Description.Length > 0)
                 text.Add($"    {e.Description}");
@@ -49,7 +52,8 @@ public static class CatalogCommand
                 {
                     var label = f.Variant is not null ? $"{f.Variant}: {f.File}" : f.File;
                     var version = f.Version is not null ? $" v{f.Version}" : "";
-                    text.Add($"    - {label}{version}{(f.Default ? " (default)" : "")}");
+                    var tizen = f.Tizen is not null ? $"  Tizen {f.Tizen}+" : "";
+                    text.Add($"    - {label}{version}{(f.Default ? " (default)" : "")}{tizen}");
                     if (f.Settings is not null)
                         foreach (var st in f.Settings)
                             text.Add($"        --set {st.Key}=…  {st.Label}{(st.Required ? "" : st.Default is null ? " (optional)" : $" (optional, default {st.Default})")}{(st.HelpUrl is null ? "" : $"  see {st.HelpUrl}")}");
@@ -59,13 +63,14 @@ public static class CatalogCommand
             {
                 // The package's own version when the catalog knows it, else the release tag.
                 var version = e.Files[0].Version is not null ? $"v{e.Files[0].Version}" : e.Tag;
-                if (version is not null)
-                    text.Add($"    {version}");
+                var tizen = e.Files[0].Tizen is not null ? $"Tizen {e.Files[0].Tizen}+" : null;
+                if (version is not null || tizen is not null)
+                    text.Add($"    {string.Join("  ", new[] { version, tizen }.Where(x => x is not null))}");
             }
         }
         if (list.Count > 0)
             text.Add($"{list.Count} app(s). Install one with: apps2samsung-cli install \"<name>\" --tv <ip>");
-        return s.Out.Result(new { ok = true, count = list.Count, apps = list }, text);
+        return s.Out.Result(new { ok = true, count = list.Count, apps = list }, text, rich: Views.Catalog(list, s.Out.Width, s.Out.Unicode));
     }
 
     public static Entry ToEntry(GitHubRelease r)
@@ -78,10 +83,11 @@ public static class CatalogCommand
             a.IsDefault || (r.Assets.Count == 1),
             a.UserSettings is null ? null : a.UserSettings.Fields.Select(f =>
                 new SettingInfo(f.Key, f.Label, f.Type, f.Required, f.Pattern, a.UserSettings.HelpUrl,
-                    f.Default, f.Min, f.Max, f.Disallow)).ToList())).ToList();
+                    f.Default, f.Min, f.Max, f.Disallow)).ToList(),
+            string.IsNullOrWhiteSpace(a.RequiredVersion) ? null : a.RequiredVersion)).ToList();
         var published = DateTime.TryParse(r.PublishedAt, out var date) ? date.ToString("yyyy-MM-dd") : null;
         return new Entry(r.Name, r.Category, r.Description, r.RequiresPartner, r.HasVariants, r.IsAdult, r.IsRoot,
             string.IsNullOrWhiteSpace(r.TagName) ? null : r.TagName, published, r.Author, r.SourceUrl,
-            r.Downloads > 0 ? r.Downloads : null, files);
+            r.Downloads > 0 ? r.Downloads : null, files, r.IsUserSource);
     }
 }

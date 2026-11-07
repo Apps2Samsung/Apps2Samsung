@@ -45,12 +45,12 @@ jobs:
             exit 1
           fi
 
-      # Checked out with the PAT so the push at the end uses it too (see fdroid-repo.yml).
-      - uses: actions/checkout@v7
+      # The push at the end hands the PAT to git itself (see fdroid-repo.yml), so the clone keeps no credentials.
+      - uses: actions/checkout@v7.0.1
         with:
           ref: beta
           fetch-depth: 0
-          token: ${{ secrets.CI_PUSH_TOKEN }}
+          persist-credentials: false
 
       - name: Read the latest release of the channel
         env:
@@ -99,7 +99,7 @@ jobs:
           fi
           git commit -m "sidestore: publish the source for the latest $CHANNEL IPA [skip ci]"
           for attempt in 1 2 3; do
-            if git push origin beta; then
+            if git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}" beta; then
               exit 0
             fi
             echo "Push rejected (attempt $attempt), rebasing onto the current beta"

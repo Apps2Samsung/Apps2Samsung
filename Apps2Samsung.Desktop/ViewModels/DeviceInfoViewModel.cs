@@ -12,7 +12,7 @@ namespace Apps2Samsung.ViewModels
 {
     /// <summary>
     /// Shows a TV's details (DUID, Tizen version, developer mode/IP, IP, …) gathered by the shared
-    /// Core <see cref="Apps2Samsung.Sdb.TizenDeviceInfoService"/> — the same data the mobile head shows.
+    /// Core <see cref="Apps2Samsung.Sdb.TizenDeviceInfoService"/>, the same data the mobile head shows.
     /// </summary>
     public partial class DeviceInfoViewModel : ViewModelBase
     {
@@ -54,7 +54,7 @@ namespace Apps2Samsung.ViewModels
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     Rows.Clear();
-                    foreach (var row in info.Rows)
+                    foreach (var row in info.RowsFor(key => key.Localized()))
                         Rows.Add(row);
                 });
                 StatusText = TvLabel;

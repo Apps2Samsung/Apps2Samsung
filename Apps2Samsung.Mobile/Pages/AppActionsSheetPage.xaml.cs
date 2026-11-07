@@ -80,12 +80,21 @@ public partial class AppActionsSheetPage : ContentPage
 		grid.Add(label, 1, 0);
 		grid.Add(chevron, 2, 0);
 		var tap = new TapGestureRecognizer();
+		// Pop first, then hand back the choice (like MoreMenu, #818): the caller's continuation runs
+		// inline on TrySetResult, and View in catalog pushes the next modal from it. With the result
+		// set first that push raced this sheet's pop and crashed the app (#888).
 		tap.Tapped += async (_, _) =>
 		{
 			if (_chosen) return;
 			_chosen = true;
-			_result.TrySetResult(action);
-			await Navigation.PopModalAsync();
+			try
+			{
+				await Navigation.PopModalAsync();
+			}
+			finally
+			{
+				_result.TrySetResult(action);
+			}
 		};
 		grid.GestureRecognizers.Add(tap);
 		return grid;

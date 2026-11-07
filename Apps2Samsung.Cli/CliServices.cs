@@ -30,7 +30,7 @@ public sealed class CliServices : IAsyncDisposable
     public CliServices(CliOptions options)
     {
         Options = options;
-        Out = new Output(options.Json, options.Quiet);
+        Out = new Output(options);
         CliPaths.Use(options.DataDir);
         Directory.CreateDirectory(CliPaths.CliDir);
 
@@ -58,7 +58,11 @@ public sealed class CliServices : IAsyncDisposable
 
         // The desktop's extra scan IP is folded into the sweep here too.
         Network = new NetworkService(customIpProvider: () => Desktop.UserCustomIp, maxConcurrentHosts: 64);
-        Catalog = new CatalogLoader(Http, options.GitHubToken);
+        // The user's own sources: the ones stored with the desktop app, plus --source for this run.
+        Catalog = new CatalogLoader(Http, options.GitHubToken, () =>
+            Apps2Samsung.Catalog.UserSources.Parse(Desktop.UserSourcesJson)
+                .Concat(options.Sources.Select(link => new Apps2Samsung.Catalog.UserSource { Url = link }))
+                .ToList());
         Strings = new LocalizationCatalog();
 
         var login = new BrowserSamsungLogin(!options.NoBrowser, TimeSpan.FromSeconds(options.LoginTimeoutSeconds), Out.Progress);
@@ -73,5 +77,6 @@ public sealed class CliServices : IAsyncDisposable
     {
         await Sdb.DisposeAsync();
         Http.Dispose();
+        Out.Dispose();
     }
 }

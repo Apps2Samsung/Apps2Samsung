@@ -16,7 +16,7 @@ public static class TvPicker
 		if (tv.IsLocked || tv.IsScanning || tv.Tvs.Count < 2)
 			return;
 
-		var sheet = new TvSheetPage(tv.Tvs, tv.SelectedIndex);
+		var sheet = new TvSheetPage(tv.Tvs, tv.SelectedIndex, tv.LocalIps());
 		await page.Navigation.PushModalAsync(sheet);
 		var choice = await sheet.Result;
 		if (choice is not null)

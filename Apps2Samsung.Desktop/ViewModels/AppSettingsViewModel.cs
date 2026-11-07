@@ -10,6 +10,7 @@ using Apps2Samsung.Helpers.Tizen.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -80,8 +81,76 @@ namespace Apps2Samsung.ViewModels
         }
 
         // Public and Partner are Samsung's names for the two levels, not translated (as on the phone).
-        public string LblCertificatePublic => Apps2Samsung.Certificate.CertificatePreference.Public;
-        public string LblCertificatePartner => Apps2Samsung.Certificate.CertificatePreference.Partner;
+        // The two levels are shown through the same keys as the certificate sheet's level pill, not
+        // the stored preference values (which are the English words, whatever the language).
+        public string LblCertificatePublic => _localizationService.GetString("certLevelPublic");
+        public string LblCertificatePartner => _localizationService.GetString("certLevelPartner");
+
+        // Samsung / Tizen (#988): the two rows above the level switch, the same choice as the phone
+        // (Core CertificateKind). The status line under them says what is in the store for the choice.
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CertificateSamsung), nameof(CertificateTizen))]
+        private string certificateKind = Apps2Samsung.Certificate.CertificateKind.Samsung;
+
+        public bool CertificateSamsung => !Apps2Samsung.Certificate.CertificateKind.IsTizen(CertificateKind);
+        public bool CertificateTizen => Apps2Samsung.Certificate.CertificateKind.IsTizen(CertificateKind);
+
+        [RelayCommand]
+        private void SelectCertificateKind(string kind) =>
+            CertificateKind = Apps2Samsung.Certificate.CertificateKind.Normalize(kind);
+
+        [ObservableProperty]
+        private string certificateStatusText = string.Empty;
+
+        public string LblCertificateSamsung => _localizationService.GetString("lblCertificateSamsung");
+        public string HintCertificateSamsung => _localizationService.GetString("hintCertificateSamsung");
+        public string LblCertificateTizen => _localizationService.GetString("lblCertificateTizen");
+        public string HintCertificateTizen => _localizationService.GetString("hintCertificateTizen");
+        public string LblCertificateLevel => _localizationService.GetString("lblCertificateLevel");
+
+        /// <summary>
+        /// What the store holds for the chosen certificate and level: the Samsung profile's expiry
+        /// and the TVs it covers, or the Tizen profile's expiry; "none yet" otherwise. Read again
+        /// after every change of the choice and after Prepare the certificate now.
+        /// </summary>
+        public void RefreshCertificateStatus()
+        {
+            try
+            {
+                var store = AppSettings.CertificatePath;
+                var requirePartner = AppSettings.Default.RequiresPartnerSigning;
+                string text;
+                if (CertificateTizen)
+                {
+                    var level = Apps2Samsung.Certificate.CertificateKind.TizenLevel(CertificatePreference, requirePartner);
+                    var dir = Apps2Samsung.Certificate.TizenProfileStore.ProfileDir(store, level);
+                    var until = Apps2Samsung.Certificate.TizenProfileStore.HasProfile(store, level)
+                        ? Apps2Samsung.Certificate.CertificateProvisioningService.AuthorValidUntil(dir)
+                        : null;
+                    text = until is { } u
+                        ? string.Format(_localizationService.GetString("certStatusTizen"), level, u.ToString("d"))
+                        : string.Format(_localizationService.GetString("certStatusTizenNone"), level);
+                }
+                else
+                {
+                    var level = Apps2Samsung.Certificate.CertificatePreference.ResolveLevel(CertificatePreference, requirePartner);
+                    var dir = Path.Combine(store, Apps2Samsung.Certificate.CertificateProvisioningService.ProfileName(level));
+                    var until = Apps2Samsung.Certificate.CertificateProvisioningService.HasProfile(store, level)
+                        ? Apps2Samsung.Certificate.CertificateProvisioningService.AuthorValidUntil(dir)
+                        : null;
+                    text = until is { } u
+                        ? string.Format(_localizationService.GetString("certStatusSamsung"), level, u.ToString("d"),
+                            Apps2Samsung.Certificate.CertificateProvisioningService.GetCoveredDuids(dir).Count)
+                        : string.Format(_localizationService.GetString("certStatusSamsungNone"), level);
+                }
+                CertificateStatusText = text;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"[Settings] Certificate status: {ex.Message}");
+                CertificateStatusText = string.Empty;
+            }
+        }
 
         [ObservableProperty]
         private bool includeBetaUpdates;
@@ -108,6 +177,19 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private bool showRootApps;
         public event Action? ShowRootAppsChanged;
+
+        /// <summary>
+        /// Settings > Installing > Your sources, and the catalog ⋯ > Add a source: the repositories,
+        /// releases and file links the user added (<see cref="Apps2Samsung.Catalog.UserSources"/>),
+        /// as rows with a Remove button. Fires <see cref="UserSourcesChanged"/> for the main window to
+        /// reload the catalog.
+        /// </summary>
+        public ObservableCollection<UserSourceRow> OwnSources { get; } = new();
+        public bool HasOwnSources => OwnSources.Count > 0;
+        public event Action? UserSourcesChanged;
+
+        /// <summary>One source as the list shows it: the name, then what it points at.</summary>
+        public sealed record UserSourceRow(Apps2Samsung.Catalog.UserSource Source, string Name, string Detail);
 
         [ObservableProperty]
         private bool darkMode;
@@ -150,6 +232,9 @@ namespace Apps2Samsung.ViewModels
         public string LblIncludeBetaUpdates => _localizationService.GetString("lblIncludeBetaUpdates");
         public string LblShowAdultApps => _localizationService.GetString("lblShowAdultApps");
         public string LblShowRootApps => _localizationService.GetString("lblShowRootApps");
+        public string LblUserSources => _localizationService.GetString("lblUserSources");
+        public string LblAddSource => _localizationService.GetString("lblAddSource");
+        public string LblUserSourcesEmpty => _localizationService.GetString("lblUserSourcesEmpty");
         public string LblRTL => _localizationService.GetString("lblRTL");
         public string LblKeepWGTFile => _localizationService.GetString("lblKeepWGTFile");
         public string LblSettingsHeader => _localizationService.GetString("lblSettings");
@@ -175,6 +260,7 @@ namespace Apps2Samsung.ViewModels
             _localizationService.LanguageChanged += OnLanguageChanged;
             _themeService.ThemeChanged += OnThemeChanged;
             AppSettings.PartnerSigningAutoEnabled += OnPartnerSigningAutoEnabled;
+            AppSettings.CertificateKindChanged += OnCertificateKindAutoChanged;
 
             AvailableLanguages = new ObservableCollection<LanguageOption>(
                 _localizationService.AvailableLanguages
@@ -191,10 +277,14 @@ namespace Apps2Samsung.ViewModels
             _ = InitializeCertificatesAsync();
         }
 
-        // The installer switched the certificate to Partner for a package that requires it — mirror it
+        // The installer switched the certificate to Partner for a package that requires it, mirror it
         // onto the switch so this (singleton) view model doesn't keep showing the pre-install value.
         private void OnPartnerSigningAutoEnabled() =>
             Dispatcher.UIThread.Post(() => CertificatePreference = AppSettings.Default.CertificatePreference);
+
+        // The installer switched from Tizen to Samsung after a TV refused the Tizen certificate (#988).
+        private void OnCertificateKindAutoChanged() =>
+            Dispatcher.UIThread.Post(() => CertificateKind = AppSettings.Default.CertificateKind);
 
         private void OnLanguageChanged(object? sender, EventArgs e)
         {
@@ -212,6 +302,14 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblMainSettings));
             OnPropertyChanged(nameof(LblLanguage));
             OnPropertyChanged(nameof(LblCertificate));
+            OnPropertyChanged(nameof(LblCertificatePublic));
+            OnPropertyChanged(nameof(LblCertificatePartner));
+            OnPropertyChanged(nameof(LblCertificateSamsung));
+            OnPropertyChanged(nameof(HintCertificateSamsung));
+            OnPropertyChanged(nameof(LblCertificateTizen));
+            OnPropertyChanged(nameof(HintCertificateTizen));
+            OnPropertyChanged(nameof(LblCertificateLevel));
+            RefreshCertificateStatus();
             OnPropertyChanged(nameof(LblLocalIP));
             OnPropertyChanged(nameof(LblTryOverwrite));
             OnPropertyChanged(nameof(LblLaunchOnInstall));
@@ -221,6 +319,10 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(LblIncludeBetaUpdates));
             OnPropertyChanged(nameof(LblShowAdultApps));
             OnPropertyChanged(nameof(LblShowRootApps));
+            OnPropertyChanged(nameof(LblUserSources));
+            OnPropertyChanged(nameof(LblAddSource));
+            OnPropertyChanged(nameof(LblUserSourcesEmpty));
+            LoadOwnSources();
             OnPropertyChanged(nameof(LblRTL));
             OnPropertyChanged(nameof(LblKeepWGTFile));
             OnPropertyChanged(nameof(LblSettingsHeader));
@@ -243,6 +345,8 @@ namespace Apps2Samsung.ViewModels
             DeletePreviousInstall = AppSettings.Default.DeletePreviousInstall;
             ForceSamsungLogin = AppSettings.Default.ForceSamsungLogin;
             CertificatePreference = AppSettings.Default.CertificatePreference;
+            CertificateKind = AppSettings.Default.CertificateKind;
+            RefreshCertificateStatus();
             IncludeBetaUpdates = AppSettings.Default.IncludeBetaUpdates;
             RtlReading = AppSettings.Default.RTLReading;
             LocalIP = AppSettings.Default.LocalIp ?? string.Empty;
@@ -251,10 +355,23 @@ namespace Apps2Samsung.ViewModels
             KeepWGTFile = AppSettings.Default.KeepWGTFile;
             ShowAdultApps = AppSettings.Default.ShowAdultApps;
             ShowRootApps = AppSettings.Default.ShowRootApps;
+            LoadOwnSources();
             DarkMode = AppSettings.Default.DarkMode;
             GitHubToken = AppSettings.Default.GitHubToken ?? string.Empty;
             ManualDuids = AppSettings.Default.ManualDuids ?? string.Empty;
         }
+
+        // True while LoadNetworkInterfacesAsync restores the selection: a programmatic pick must
+        // not overwrite the card the user chose (see OnSelectedNetworkInterfaceChanged).
+        private bool _restoringNetworkInterfaces;
+
+        /// <summary>
+        /// Re-reads the network cards and this machine's local IP from them. Called before every
+        /// TV scan and when the OS reports an address change: after a sleep the Wi-Fi interface is
+        /// torn down and re-created, so the IP picked at startup can describe an interface that no
+        /// longer exists, and the TV then looks not ready until a relaunch re-reads it (#922).
+        /// </summary>
+        public System.Threading.Tasks.Task RefreshNetworkInterfacesAsync() => LoadNetworkInterfacesAsync();
 
         private async System.Threading.Tasks.Task LoadNetworkInterfacesAsync()
         {
@@ -273,7 +390,7 @@ namespace Apps2Samsung.ViewModels
                     // fall back to IP match, then default to first interface
                     var savedName = AppSettings.Default.SavedNetworkInterfaceName;
                     var savedIp = AppSettings.Default.LocalIp;
-                    SelectedNetworkInterface =
+                    var restored =
                         (!string.IsNullOrEmpty(savedName)
                             ? NetworkInterfaces.FirstOrDefault(i => i.Name == savedName)
                             : null)
@@ -281,6 +398,30 @@ namespace Apps2Samsung.ViewModels
                             ? NetworkInterfaces.FirstOrDefault(i => i.IpAddress == savedIp)
                             : null)
                         ?? NetworkInterfaces.FirstOrDefault();
+
+                    _restoringNetworkInterfaces = true;
+                    try
+                    {
+                        SelectedNetworkInterface = restored;
+                        // Same card, new address (DHCP, or the card came back after a wake): the
+                        // setter above does not fire for an equal selection, so push the IP through.
+                        if (restored is not null && AppSettings.Default.LocalIp != restored.IpAddress)
+                        {
+                            LocalIP = restored.IpAddress;
+                            AppSettings.Default.LocalIp = restored.IpAddress;
+                        }
+                        // No card at all (offline): forget the stale address rather than keep
+                        // comparing the TV against an interface that is gone.
+                        if (restored is null)
+                        {
+                            LocalIP = string.Empty;
+                            AppSettings.Default.LocalIp = string.Empty;
+                        }
+                    }
+                    finally
+                    {
+                        _restoringNetworkInterfaces = false;
+                    }
                 });
             }
             catch (Exception ex)
@@ -339,12 +480,12 @@ namespace Apps2Samsung.ViewModels
 
                 var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
                 {
-                    Title = "Export backup",
+                    Title = "lblExportBackup".Localized(),
                     SuggestedFileName = "apps2samsung-backup.zip",
                     DefaultExtension = "zip",
                     FileTypeChoices = new[]
                     {
-                        new FilePickerFileType("Apps2Samsung backup") { Patterns = new[] { "*.zip" } }
+                        new FilePickerFileType("lblBackupFile".Localized()) { Patterns = new[] { "*.zip" } }
                     }
                 });
                 if (file is null)
@@ -378,11 +519,11 @@ namespace Apps2Samsung.ViewModels
 
                 var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
                 {
-                    Title = "Import backup",
+                    Title = "lblImportBackup".Localized(),
                     AllowMultiple = false,
                     FileTypeFilter = new[]
                     {
-                        new FilePickerFileType("Apps2Samsung backup") { Patterns = new[] { "*.zip" } }
+                        new FilePickerFileType("lblBackupFile".Localized()) { Patterns = new[] { "*.zip" } }
                     }
                 });
                 var file = files.FirstOrDefault();
@@ -402,6 +543,83 @@ namespace Apps2Samsung.ViewModels
             {
                 BackupStatus = string.Format("statusImportFailed".Localized(), ex.Message);
                 Trace.WriteLine($"[Backup] import failed: {ex}");
+            }
+        }
+
+        // The certificate on its own (#921): no settings in the file, so importing it on another head
+        // changes nothing there but the signing profile. Preview first; the import replaces a profile
+        // of the same name whole and refuses an expired author certificate (Core CertificateArchive).
+        [RelayCommand]
+        private async Task ExportCertificate()
+        {
+            try
+            {
+                var storage = GetActiveStorageProvider();
+                if (storage is null)
+                    return;
+
+                if (!Apps2Samsung.Certificate.CertificateProvisioningService.HasProfile(AppSettings.CertificatePath, CertificatePrivilegeLevel.Public)
+                    && !Apps2Samsung.Certificate.CertificateProvisioningService.HasProfile(AppSettings.CertificatePath, CertificatePrivilegeLevel.Partner))
+                {
+                    BackupStatus = "certArchiveNothingToExport".Localized();
+                    return;
+                }
+
+                var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
+                {
+                    Title = "certArchiveExportTitle".Localized(),
+                    SuggestedFileName = Apps2Samsung.Certificate.CertificateArchive.SuggestedFileName,
+                    DefaultExtension = Apps2Samsung.Certificate.CertificateArchive.FileExtension.TrimStart('.'),
+                    FileTypeChoices = Views.CertificateArchiveFiles.PickerTypes(key => key.Localized()),
+                });
+                if (file is null)
+                    return;
+
+                await using (var stream = await file.OpenWriteAsync())
+                    Apps2Samsung.Certificate.CertificateArchive.Export(stream, AppSettings.CertificatePath);
+
+                BackupStatus = "statusCertificateExported".Localized();
+            }
+            catch (Exception ex)
+            {
+                BackupStatus = string.Format("statusCertificateExportFailed".Localized(), ex.Message);
+                Trace.WriteLine($"[Backup] certificate export failed: {ex}");
+            }
+        }
+
+        [RelayCommand]
+        private async Task ImportCertificate()
+        {
+            try
+            {
+                var storage = GetActiveStorageProvider();
+                if (storage is null)
+                    return;
+
+                var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+                {
+                    Title = "certArchiveImportTitle".Localized(),
+                    AllowMultiple = false,
+                    FileTypeFilter = Views.CertificateArchiveFiles.PickerTypes(key => key.Localized()),
+                });
+                var file = files.FirstOrDefault();
+                if (file is null)
+                    return;
+
+                // No TV is selected here, so the preview says nothing about coverage of one.
+                var outcome = await Views.CertificateArchiveFiles.ImportWithPreviewAsync(file, tvDuid: null, key => key.Localized(),
+                    (title, text) => _dialogService.ShowConfirmationAsync(title, text, "lblImport".Localized(), "lblCancel".Localized()));
+                if (outcome is null)
+                    return;
+
+                CertificatePreference = AppSettings.Default.CertificatePreference;
+                _ = InitializeCertificatesAsync();
+                BackupStatus = string.Format("statusCertificateImported".Localized(), outcome.FileCount);
+            }
+            catch (Exception ex)
+            {
+                BackupStatus = string.Format("statusCertificateImportFailed".Localized(), ex.Message);
+                Trace.WriteLine($"[Backup] certificate import failed: {ex}");
             }
         }
 
@@ -436,50 +654,83 @@ namespace Apps2Samsung.ViewModels
         [RelayCommand]
         private void OpenLogsFolder()
         {
+            var logFolder = Apps2Samsung.Diagnostics.FileLog.DefaultLogDirectory;
             try
             {
-                var logFolder = Apps2Samsung.Diagnostics.FileLog.DefaultLogDirectory;
                 Directory.CreateDirectory(logFolder);
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "explorer.exe",
-                        Arguments = $"\"{logFolder}\"",
-                        UseShellExecute = true
-                    });
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "open",
-                        Arguments = $"\"{logFolder}\"",
-                        UseShellExecute = false
-                    });
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "xdg-open",
-                        Arguments = $"\"{logFolder}\"",
-                        UseShellExecute = false
-                    });
-                }
-                else
-                {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = logFolder,
-                        UseShellExecute = true
-                    });
-                }
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"Failed to open Logs folder: {ex}");
+                Trace.WriteLine($"Failed to create the Logs folder: {ex}");
+                return;
+            }
+            OpenWithShell(logFolder);
+        }
+
+        [ObservableProperty]
+        private string tvStoreLogStatus = string.Empty;
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(GetTvStoreLogCommand))]
+        private bool isGettingTvStoreLog;
+
+        /// <summary>
+        /// Backup and diagnostics > Get the TV-Store log: TV-Store's own log from the selected TV,
+        /// saved next to the debug logs and opened. TV-Store has to be open on the TV.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(CanGetTvStoreLog))]
+        private async Task GetTvStoreLog()
+        {
+            var tvIp = AppSettings.Default.TvIp;
+            if (string.IsNullOrWhiteSpace(tvIp))
+            {
+                TvStoreLogStatus = "statusTvStoreLogNoTv".Localized();
+                return;
+            }
+
+            IsGettingTvStoreLog = true;
+            TvStoreLogStatus = string.Format("statusTvStoreLogFetching".Localized(), tvIp);
+            try
+            {
+                var path = await Apps2Samsung.TvStore.TvStoreLog.SaveAsync(tvIp, Apps2Samsung.Diagnostics.FileLog.DefaultLogDirectory);
+                TvStoreLogStatus = string.Format("statusTvStoreLogSaved".Localized(), path);
+                OpenWithShell(path);
+            }
+            catch (Apps2Samsung.TvStore.TvStoreLogUnavailableException ex)
+            {
+                Trace.WriteLine($"[tvstore] {ex.Message}");
+                TvStoreLogStatus = string.Format("statusTvStoreLogFailed".Localized(), tvIp, ex.Reason);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                Trace.WriteLine($"[tvstore] saving TV-Store's log failed: {ex}");
+                TvStoreLogStatus = string.Format("statusTvStoreLogFailed".Localized(), tvIp, ex.Message);
+            }
+            finally
+            {
+                IsGettingTvStoreLog = false;
+            }
+        }
+
+        private bool CanGetTvStoreLog() => !IsGettingTvStoreLog;
+
+        // A folder in the file manager, a file in its default app.
+        private static void OpenWithShell(string path)
+        {
+            try
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    Process.Start(new ProcessStartInfo { FileName = "open", Arguments = $"\"{path}\"", UseShellExecute = false });
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    Process.Start(new ProcessStartInfo { FileName = "xdg-open", Arguments = $"\"{path}\"", UseShellExecute = false });
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Directory.Exists(path))
+                    Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = $"\"{path}\"", UseShellExecute = true });
+                else
+                    Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"Failed to open {path}: {ex}");
             }
         }
 
@@ -490,7 +741,11 @@ namespace Apps2Samsung.ViewModels
 
             LocalIP = value.IpAddress;
             AppSettings.Default.LocalIp = value.IpAddress;
-            AppSettings.Default.SavedNetworkInterfaceName = value.Name;
+            // Remember the card only when the user picked it (or nothing was remembered yet). A
+            // restore that fell through to "first card" because the chosen one is momentarily down
+            // must not replace the choice: when the Wi-Fi comes back it has to win again.
+            if (!_restoringNetworkInterfaces || string.IsNullOrEmpty(AppSettings.Default.SavedNetworkInterfaceName))
+                AppSettings.Default.SavedNetworkInterfaceName = value.Name;
             AppSettings.Default.Save();
         }
 
@@ -547,6 +802,14 @@ namespace Apps2Samsung.ViewModels
         {
             AppSettings.Default.CertificatePreference = Apps2Samsung.Certificate.CertificatePreference.Normalize(value);
             AppSettings.Default.Save();
+            RefreshCertificateStatus();
+        }
+
+        partial void OnCertificateKindChanged(string value)
+        {
+            AppSettings.Default.CertificateKind = Apps2Samsung.Certificate.CertificateKind.Normalize(value);
+            AppSettings.Default.Save();
+            RefreshCertificateStatus();
         }
 
         partial void OnIncludeBetaUpdatesChanged(bool value)
@@ -576,6 +839,61 @@ namespace Apps2Samsung.ViewModels
             AppSettings.Default.ShowRootApps = value;
             AppSettings.Default.Save();
             ShowRootAppsChanged?.Invoke();
+        }
+
+        // Your sources: the stored list as rows. Re-run on a language change, as the category name
+        // in the detail line is localized.
+        private void LoadOwnSources()
+        {
+            OwnSources.Clear();
+            foreach (var source in Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson))
+            {
+                var detail = Apps2Samsung.Catalog.UserSources.IsFeed(source.Url)
+                    ? $"{source.Url.Trim()} · {_localizationService.GetString("lblUserSourceFeed")}"
+                    : $"{source.Url.Trim()} · {Apps2Samsung.Catalog.AppCategories.DisplayName(source.Category, _localizationService.GetString)}";
+                if (source.Partner)
+                    detail += $" · {_localizationService.GetString("certLevelPartner")}";
+                OwnSources.Add(new UserSourceRow(source, Apps2Samsung.Catalog.UserSources.DisplayName(source), detail));
+            }
+            OnPropertyChanged(nameof(HasOwnSources));
+        }
+
+        private void SaveOwnSources(List<Apps2Samsung.Catalog.UserSource> sources)
+        {
+            AppSettings.Default.UserSourcesJson = Apps2Samsung.Catalog.UserSources.Serialize(sources);
+            AppSettings.Default.Save();
+            LoadOwnSources();
+            UserSourcesChanged?.Invoke();
+        }
+
+        /// <summary>The Add a source form; a source it returns is stored and the catalog reloads.</summary>
+        [RelayCommand]
+        private async Task AddUserSourceAsync()
+        {
+            var sources = Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson);
+            var added = await _dialogService.ShowAddUserSourceAsync(sources);
+            if (added is null)
+                return;
+            sources.Add(added);
+            SaveOwnSources(sources);
+        }
+
+        [RelayCommand]
+        private async Task RemoveUserSourceAsync(UserSourceRow? row)
+        {
+            if (row is null)
+                return;
+            var ok = await _dialogService.ShowConfirmationAsync(
+                _localizationService.GetString("lblRemoveSourceTitle"),
+                string.Format(_localizationService.GetString("lblRemoveSourceBody"), row.Name),
+                _localizationService.GetString("lblRemove"),
+                _localizationService.GetString("lblCancel"));
+            if (!ok)
+                return;
+            var sources = Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson);
+            var api = Apps2Samsung.Catalog.UserSources.ApiUrl(row.Source.Url);
+            sources.RemoveAll(s => string.Equals(Apps2Samsung.Catalog.UserSources.ApiUrl(s.Url), api, StringComparison.OrdinalIgnoreCase));
+            SaveOwnSources(sources);
         }
 
         // The one-time "I am 18 or older" before adult entries get listed (#850).

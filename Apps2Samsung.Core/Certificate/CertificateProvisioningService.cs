@@ -95,17 +95,20 @@ namespace Apps2Samsung.Certificate
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
-            bool hasAuthor = HasUsableAuthorCert(profileDir);
-            var covered = hasAuthor
-                ? GetCoveredDuids(profileDir)
-                : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            bool duidsCovered = covered.Contains(deviceDuid) && manual.All(covered.Contains);
+            (bool HasAuthor, HashSet<string> Covered, bool NeedsFullProfile, bool NeedsDistributorOnly) Assess()
+            {
+                bool hasAuthor = HasUsableAuthorCert(profileDir);
+                var covered = hasAuthor
+                    ? GetCoveredDuids(profileDir)
+                    : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                bool duidsCovered = covered.Contains(deviceDuid) && manual.All(covered.Contains);
 
-            bool needsFullProfile = forceLogin || !hasAuthor;
-            bool needsDistributorOnly = !needsFullProfile && !duidsCovered;
+                bool needsFullProfile = forceLogin || !hasAuthor;
+                bool needsDistributorOnly = !needsFullProfile && !duidsCovered;
+                return (hasAuthor, covered, needsFullProfile, needsDistributorOnly);
+            }
 
-            // ---- Silent reuse: valid author + DUID already covered ----
-            if (!needsFullProfile && !needsDistributorOnly)
+            CertificateProfile Reuse()
             {
                 var pw = File.ReadAllText(Path.Combine(profileDir, PasswordFileName)).Trim();
                 return new CertificateProfile(
@@ -114,9 +117,24 @@ namespace Apps2Samsung.Certificate
                     pw, profileDir, profileName, level);
             }
 
+            var (_, covered, needsFullProfile, needsDistributorOnly) = Assess();
+
+            // ---- Silent reuse: valid author + DUID already covered ----
+            if (!needsFullProfile && !needsDistributorOnly)
+                return Reuse();
+
             // ---- A Samsung login is required ----
             if (beforeLoginAsync is not null)
+            {
                 await beforeLoginAsync(level, ct);
+
+                // The sheet can also end with a certificate imported from another device (#921):
+                // look at the store again. Covers this TV: no sign-in at all. Author only: keep it
+                // and sign in for the distributor, which is the whole point of carrying it over.
+                (_, covered, needsFullProfile, needsDistributorOnly) = Assess();
+                if (!needsFullProfile && !needsDistributorOnly)
+                    return Reuse();
+            }
             onLoginStarting?.Invoke();
             var auth = await _login.LoginAsync(ct);
             if (string.IsNullOrEmpty(auth.access_token))
@@ -177,6 +195,31 @@ namespace Apps2Samsung.Certificate
             {
                 Trace.WriteLine($"[Cert] Author cert check failed for '{certDir}': {ex.Message}");
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// When the author certificate in <paramref name="certDir"/> expires (local date), or null
+        /// when there is none that loads: Settings' line on what is there (#988).
+        /// </summary>
+        public static DateTime? AuthorValidUntil(string certDir)
+        {
+            try
+            {
+                var authorP12 = Path.Combine(certDir, AuthorFileName);
+                var passwordFile = Path.Combine(certDir, PasswordFileName);
+                if (!File.Exists(authorP12) || !File.Exists(passwordFile))
+                    return null;
+                var password = File.ReadAllText(passwordFile).Trim();
+#pragma warning disable SYSLIB0057
+                using var cert = new X509Certificate2(authorP12, password, PlatformService.SigningCertificateFlags);
+#pragma warning restore SYSLIB0057
+                return cert.NotAfter.ToLocalTime();
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Cert] Author cert validity read failed for '{certDir}': {ex.Message}");
+                return null;
             }
         }
 

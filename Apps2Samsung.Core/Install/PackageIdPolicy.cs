@@ -1,18 +1,23 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Apps2Samsung.Configuration;
 using Apps2Samsung.Packaging;
-
+using Apps2Samsung.Localization;
 namespace Apps2Samsung.Install
 {
     /// <summary>
     /// Which package id an install goes out under (#839). <see cref="NewId"/> asks for a fresh random
     /// id (the way out when the TV has the package's own id blocked, [118, -22]); the choice is
     /// stored per TV, so without it the install still applies a rename made earlier for this TV.
+    /// <see cref="OwnId"/> undoes that: the rename remembered for this TV is forgotten and the
+    /// package goes out under its own id again (a rename is otherwise for good: deleting the app
+    /// on the TV and reinstalling it brought the remembered id straight back, TV-Store on a tester's
+    /// set). The TV then shows a new tile next to the renamed copy, which stays until removed.
     /// </summary>
-    public sealed record PackageIdPolicy(string TvDuid, bool NewId = false);
+    public sealed record PackageIdPolicy(string TvDuid, bool NewId = false, bool OwnId = false);
 
     public static class PackageIds
     {
@@ -37,6 +42,15 @@ namespace Apps2Samsung.Install
                     string.Equals(r.NewPackageId, originalPackageId, StringComparison.Ordinal)))
                 return null;
 
+            // Back to the package's own id on this TV: drop the record, so neither this install nor
+            // any later one reuses the renamed id. With NewId as well, a fresh id follows below.
+            if (policy.OwnId && PackageIdRenameStore.Find(config.PackageIdRenamesJson, policy.TvDuid, originalPackageId) is { } forgotten)
+            {
+                config.PackageIdRenamesJson = PackageIdRenameStore.Remove(config.PackageIdRenamesJson, policy.TvDuid, originalPackageId);
+                Trace.WriteLine($"[PackageId] Forgot the rename {forgotten.OriginalPackageId} -> {forgotten.NewPackageId} for this TV; installing under {originalPackageId}.");
+                progress?.Invoke(ProgressText.Key("statusPackageIdForgotten", originalPackageId, forgotten.NewPackageId));
+            }
+
             var remembered = PackageIdRenameStore.Find(config.PackageIdRenamesJson, policy.TvDuid, originalPackageId);
             PackageIdRename? rename;
             if (remembered is not null)
@@ -57,7 +71,7 @@ namespace Apps2Samsung.Install
                 return null;
 
             var (newAppId, _) = await WgtManifest.ReadIdsAsync(wgtPath);
-            progress?.Invoke($"Package id {rename.OldId} → {rename.NewId} on this TV");
+            progress?.Invoke(ProgressText.Key("statusPackageIdRenamed", rename.OldId, rename.NewId));
             if (remembered is null || !string.Equals(remembered.NewPackageId, rename.NewId, StringComparison.Ordinal) || string.IsNullOrEmpty(remembered.NewAppId))
             {
                 config.PackageIdRenamesJson = PackageIdRenameStore.Set(config.PackageIdRenamesJson, new PackageIdRenameRecord

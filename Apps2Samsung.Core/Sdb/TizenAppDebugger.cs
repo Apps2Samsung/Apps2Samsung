@@ -51,6 +51,15 @@ namespace Apps2Samsung.Sdb
         // uses, and a TV that drops three fresh connections in a row is not having a race.
         private const int DebugAttempts = 3;
 
+        // Tizen below 4.0 knows `0 debug` only with a trailing number: `0 debug <id> 30`. Its sdbd
+        // answers the bare form by closing the channel, the same "closed" a verb it does not know
+        // gets, which is what a 2017 Tizen 3.0 set did to Arm TV-Store (#954). Samsung's own WITs
+        // and Appium's Tizen TV driver both send the suffixed form on those sets (300 and 30); what
+        // the number means is undocumented, most likely seconds to wait for the inspector client.
+        // Newer sets take the bare form, which is what Tizen Studio sends them.
+        public static readonly Version LegacyDebugFormBelow = new(4, 0);
+        public const int LegacyDebugWait = 30;
+
         /// <summary>
         /// Relaunches <paramref name="tizenId"/> in debug mode and tunnels its inspector to
         /// <paramref name="localPort"/> (0 picks a free one — prefer that over a fixed port unless a
@@ -69,7 +78,7 @@ namespace Apps2Samsung.Sdb
             int remotePort;
             try
             {
-                var result = await AskForDebugPortAsync(sdb, tvIpAddress, tizenId);
+                var (result, command) = await AskForDebugPortAsync(sdb, tvIpAddress, tizenId);
                 if (result.ExitCode != 0)
                 {
                     var error = string.IsNullOrWhiteSpace(result.Error) ? result.Output : result.Error;
@@ -78,9 +87,9 @@ namespace Apps2Samsung.Sdb
                     // debug mode, it has said nothing at all, and the two want different next steps.
                     throw new InvalidOperationException(SdbTransportErrors.IsTransient(result)
                         ? $"The TV closed the connection instead of answering the request to start debug mode " +
-                          $"for {tizenId}, on {DebugAttempts} fresh connections in a row. Its sdbd does that for " +
-                          $"an id it won't launch, so this reads as the TV not running that id at all rather " +
-                          $"than as a refusal it worded. Last transport error: {error}"
+                          $"for {tizenId} (`{command}`), on {DebugAttempts} fresh connections in a row. Its sdbd " +
+                          $"does that for an id it won't launch, so this reads as the TV not running that id at " +
+                          $"all rather than as a refusal it worded. Last transport error: {error}"
                         : $"The TV refused to start debug mode for {tizenId}: {error}");
                 }
 
@@ -108,8 +117,17 @@ namespace Apps2Samsung.Sdb
             return new TizenDebugSession(localPort, remotePort, forward);
         }
 
+        /// <summary>The `0 debug` command for <paramref name="tizenId"/>, in the form this Tizen version takes.</summary>
+        public static string DebugCommand(string tizenId, bool legacyForm) =>
+            legacyForm ? $"0 debug {tizenId} {LegacyDebugWait}" : $"0 debug {tizenId}";
+
+        /// <summary>Whether a TV on <paramref name="platformVersion"/> wants the suffixed `0 debug` form (below 4.0).</summary>
+        public static bool UsesLegacyDebugForm(Version? platformVersion) =>
+            platformVersion is not null && platformVersion < LegacyDebugFormBelow;
+
         /// <summary>
-        /// Asks the TV for an inspector port, on a connection of this command's own.
+        /// Asks the TV for an inspector port, on a connection of this command's own. Returns the TV's
+        /// answer and the command it answered.
         /// </summary>
         /// <remarks>
         /// The caller's pre-stop may have killed the pooled connection (see <see cref="StartAsync"/>),
@@ -117,22 +135,40 @@ namespace Apps2Samsung.Sdb
         /// torn down, so the first try can die without the TV having seen the command. `0 debug` is safe
         /// to repeat — it launches an app that is meant to be launched — so it is retried on a fresh
         /// connection, and only a result that survives that is worth reporting.
+        ///
+        /// The form follows the TV's Tizen version (<see cref="TizenVersionCache"/>, one capability
+        /// round-trip when it is not known yet). A TV whose version could not be read gets the bare
+        /// form first and the suffixed one on the retries: a dropped channel is also how an old set
+        /// answers the bare form, so the retry asks the other way rather than the same way again.
         /// </remarks>
-        private static async Task<ProcessResult> AskForDebugPortAsync(
+        private static async Task<(ProcessResult Result, string Command)> AskForDebugPortAsync(
             ISdbEngine sdb, string tvIpAddress, string tizenId)
         {
+            var version = await TizenVersionCache.ProbeAsync(sdb, tvIpAddress).ConfigureAwait(false);
+            var legacyForm = UsesLegacyDebugForm(version);
+
             ProcessResult result;
+            string command;
             for (int attempt = 1; ; attempt++)
             {
                 // Drop the pooled connection first: reusing one the pre-stop may have killed is the
                 // failure this guards against.
                 await sdb.DisconnectAsync(tvIpAddress);
 
-                result = await sdb.ShellAsync(tvIpAddress, $"0 debug {tizenId}");
+                command = DebugCommand(tizenId, legacyForm);
+                result = await sdb.ShellAsync(tvIpAddress, command);
                 if (attempt >= DebugAttempts || !SdbTransportErrors.IsTransient(result))
-                    return result;
+                    return (result, command);
 
-                Trace.WriteLine($"[debug] {tizenId}: link died on attempt {attempt}, retrying");
+                if (version is null && !legacyForm)
+                {
+                    Trace.WriteLine($"[debug] {tizenId}: link died on attempt {attempt} and this TV's Tizen version is unknown, retrying with the pre-4.0 form");
+                    legacyForm = true;
+                }
+                else
+                {
+                    Trace.WriteLine($"[debug] {tizenId}: link died on attempt {attempt}, retrying");
+                }
                 await Task.Delay(400 * attempt);
             }
         }

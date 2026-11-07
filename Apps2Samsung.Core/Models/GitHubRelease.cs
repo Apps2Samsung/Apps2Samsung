@@ -108,6 +108,15 @@ namespace Apps2Samsung.Models
         [JsonIgnore]
         public long Downloads { get; set; }
 
+        /// <summary>
+        /// True when this entry comes from a source the user added themselves (<c>UserSources</c>):
+        /// a repository or file link of their own, not the manifest or the community bundle. Shown
+        /// with an "own source" badge so it is clear who vouches for it. Stamped by the heads from
+        /// <see cref="ProviderEntry.IsUserSource"/>, never serialized.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsUserSource { get; set; }
+
         public GitHubRelease()
         {
         }
@@ -157,6 +166,32 @@ namespace Apps2Samsung.Models
         public string? AppId { get; set; }
         [JsonPropertyName("package_id")]
         public string? PackageId { get; set; }
+
+        /// <summary>
+        /// The Tizen version the file asks for (config.xml <c>required_version</c> or tizen-manifest.xml
+        /// <c>api-version</c>), recorded next to the three above the same way (TV-Store#47). Null when
+        /// unknown; a TV below it refuses the package.
+        /// </summary>
+        [JsonPropertyName("required_version")]
+        public string? RequiredVersion { get; set; }
+
+        /// <summary>
+        /// The icon the package ships, published by the snapshot tool next to resolved.json for
+        /// TV-Store (#1000, TV-Store#66): <see cref="Icon"/> is its URL, <see cref="IconDigest"/> the
+        /// SHA-256 of the exact bytes served there as <c>sha256:&lt;hex&gt;</c>, and the file is named by
+        /// that hash so identical icons share one file. TV-Store shows an icon only when its bytes
+        /// hash to this. Both null when the package has no readable raster icon; never empty.
+        /// </summary>
+        [JsonPropertyName("icon")]
+        public string? Icon { get; set; }
+        [JsonPropertyName("icon_digest")]
+        public string? IconDigest { get; set; }
+
+        /// <summary>"Tizen 6.0+" for the version picker, empty when the catalog does not say.</summary>
+        [JsonIgnore]
+        public string RequiredVersionText => string.IsNullOrWhiteSpace(RequiredVersion) ? string.Empty : $"Tizen {RequiredVersion}+";
+        [JsonIgnore]
+        public bool HasRequiredVersion => !string.IsNullOrWhiteSpace(RequiredVersion);
 
         /// <summary>Label from the community catalog when this file is one variant of a grouped app.</summary>
         [JsonIgnore]

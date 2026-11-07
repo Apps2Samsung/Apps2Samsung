@@ -1,3 +1,4 @@
+using Apps2Samsung.Mobile.Localization;
 using System.Text.Json;
 using Apps2Samsung.Collections;
 using Apps2Samsung.Mobile.Resources.Styles;
@@ -34,7 +35,7 @@ public partial class SettingsTvAppPage : ContentPage
 
 	private void AddChannelRow(string name, string url)
 	{
-		var nameEntry = new Entry { Text = name, Placeholder = "Name", BackgroundColor = Colors.Transparent };
+		var nameEntry = new Entry { Text = name, Placeholder = L10n.Get("lblChannelName"), BackgroundColor = Colors.Transparent };
 		var urlEntry = new Entry { Text = url, Placeholder = "https://…/stream.m3u8", BackgroundColor = Colors.Transparent };
 		var upBtn = SmallChannelButton("↑", "Accent");
 		var downBtn = SmallChannelButton("↓", "Accent");

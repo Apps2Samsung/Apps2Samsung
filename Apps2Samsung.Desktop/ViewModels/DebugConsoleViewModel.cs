@@ -226,7 +226,19 @@ namespace Apps2Samsung.ViewModels
             // The switch survives a target change: the user asked for timings, not for timings on one
             // particular page.
             if (NetworkEnabled)
-                await console.SetNetworkEnabledAsync(true);
+            {
+                try
+                {
+                    await console.SetNetworkEnabledAsync(true);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    // An older inspector (a 2017 set) has no Network domain: attach without timings
+                    // rather than failing the whole attach over an optional switch.
+                    Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Error,
+                        string.Format("statusNetworkFailed".Localized(), ex.Message), null, NetworkSource));
+                }
+            }
 
             _switchingTarget = true;
             SelectedTarget = target;

@@ -13,6 +13,8 @@ namespace Apps2Samsung.Cli;
 public sealed class DesktopSettings
 {
     private const string RenamesKey = "PackageIdRenamesJson";
+    private const string UserSourcesKey = "UserSourcesJson";
+    private const string InstalledVariantsKey = "InstalledVariantsJson";
 
     private readonly string _path;
     private JsonObject? _root;
@@ -32,7 +34,8 @@ public sealed class DesktopSettings
     /// <summary>Extra DUIDs to put in the distributor certificate.</summary>
     public string ManualDuids => Get("ManualDuids");
 
-    /// <summary>Automatic / Public / Partner, as Core's <c>CertificatePreference</c> reads it.</summary>
+    /// <summary>Automatic / Public / Partner, as Core's <c>CertificatePreference</c> reads it. Set after
+    /// <c>cert --import</c>, so the desktop signs at the imported level too (#921).</summary>
     public string CertificatePreference
     {
         get
@@ -43,22 +46,47 @@ public sealed class DesktopSettings
                 return Apps2Samsung.Certificate.CertificatePreference.Partner;
             return Apps2Samsung.Certificate.CertificatePreference.Normalize(preference);
         }
+        set => Set("CertificatePreference", Apps2Samsung.Certificate.CertificatePreference.Normalize(value), "the certificate preference");
     }
+
+    /// <summary>Samsung / Tizen (#988), the desktop's Settings > Installing choice (Core
+    /// <c>CertificateKind</c>): the CLI signs the same way unless a run says otherwise with
+    /// --tizen-cert or --samsung-cert.</summary>
+    public string CertificateKind => Apps2Samsung.Certificate.CertificateKind.Normalize(Get("CertificateKind"));
 
     public string PackageIdRenamesJson
     {
         get => Get(RenamesKey);
-        set
-        {
-            _ = Root;
-            if (!_writable)
-                throw new InvalidOperationException($"{_path} could not be read, so the package-id rename was not saved in it.");
-            Root[RenamesKey] = value ?? string.Empty;
-            Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
-            var temp = _path + ".tmp";
-            File.WriteAllText(temp, Root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
-            File.Move(temp, _path, overwrite: true);
-        }
+        set => Set(RenamesKey, value ?? string.Empty, "the package-id rename");
+    }
+
+    /// <summary>Which file of an app with variants each TV got (Core <c>InstalledVariantStore</c>, #975):
+    /// the desktop's list, so an update from either side takes the variant that is on the TV.</summary>
+    public string InstalledVariantsJson
+    {
+        get => Get(InstalledVariantsKey);
+        set => Set(InstalledVariantsKey, value ?? string.Empty, "the installed variant");
+    }
+
+    /// <summary>The sources the user added themselves (Core <c>UserSources</c>), the desktop's list: a
+    /// source added here is listed there and the other way round.</summary>
+    public string UserSourcesJson
+    {
+        get => Get(UserSourcesKey);
+        set => Set(UserSourcesKey, value ?? string.Empty, "the source");
+    }
+
+    // One key, written atomically; a file that did not parse is never written over.
+    private void Set(string key, string value, string what)
+    {
+        _ = Root;
+        if (!_writable)
+            throw new InvalidOperationException($"{_path} could not be read, so {what} was not saved in it.");
+        Root[key] = value;
+        Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
+        var temp = _path + ".tmp";
+        File.WriteAllText(temp, Root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        File.Move(temp, _path, overwrite: true);
     }
 
     private JsonObject Root => _root ??= Load();

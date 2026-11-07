@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
@@ -59,6 +60,10 @@ namespace Apps2Samsung.Sdb
             ISdbEngine sdb, string tvIpAddress, Version? platformVersion, string sdkToolPath, string deviceProfilePath)
         {
             if (!IsRequired(platformVersion))
+                return;
+            // A Tizen (SDK) profile has no device profile: its distributor names no TV, so there is
+            // nothing to push (#988). The TV then judges the package by its signature alone.
+            if (!File.Exists(deviceProfilePath))
                 return;
 
             await sdb.PermitInstallAsync(tvIpAddress, deviceProfilePath, TargetPath(platformVersion!, sdkToolPath));

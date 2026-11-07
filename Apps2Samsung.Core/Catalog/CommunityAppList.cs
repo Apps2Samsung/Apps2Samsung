@@ -37,6 +37,7 @@ namespace Apps2Samsung.Catalog
                     asset.PackageVersion = Clean(entry?.Version) ?? asset.PackageVersion;
                     asset.AppId = Clean(entry?.AppId) ?? asset.AppId;
                     asset.PackageId = Clean(entry?.PackageId) ?? asset.PackageId;
+                    asset.RequiredVersion = Clean(entry?.RequiredVersion) ?? asset.RequiredVersion;
 
                     if (entry != null && !string.IsNullOrWhiteSpace(entry.Group))
                     {
@@ -62,9 +63,10 @@ namespace Apps2Samsung.Catalog
                             groups[entry.Group] = group;
                         }
                         group.Assets.Add(asset);
-                        // A group is adult when any of its files is (#850).
+                        // A group is adult when any of its files is (#850), and needs Partner when any does.
                         group.IsAdult |= entry.Adult;
                         group.IsRoot |= entry.IsRoot;
+                        group.RequiresPartner |= entry.RequiresPartner;
                         continue;
                     }
 
@@ -76,7 +78,8 @@ namespace Apps2Samsung.Catalog
                         PublishedAt = r.PublishedAt,
                         Url = r.Url,
                         Assets = new List<Asset> { asset },
-                        RequiresPartner = requiresPartner,
+                        // The provider's level, or the package's own cert_level (TV-Store #50).
+                        RequiresPartner = requiresPartner || entry?.RequiresPartner == true,
                         Category = category,
                         Description = Clean(entry?.Description) ?? string.Empty,
                         IsAdult = entry?.Adult == true,

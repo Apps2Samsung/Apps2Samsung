@@ -29,8 +29,15 @@
                     <VerticalStackLayout x:Name="Screen" VerticalOptions="End" Spacing="4" AnchorY="1">
                         <Label x:Name="NameLabel" FontSize="23" FontAttributes="Bold" LineBreakMode="WordWrap"
                                TextColor="{DynamicResource GlassInkColor}" />
-                        <Label x:Name="SubLabel" FontSize="15" LineBreakMode="WordWrap"
-                               TextColor="{DynamicResource GlassMutedColor}" />
+                        <HorizontalStackLayout x:Name="SubRow" Spacing="8">
+                            <Label x:Name="SubLabel" FontSize="15" LineBreakMode="TailTruncation" VerticalOptions="Center"
+                                   TextColor="{DynamicResource GlassMutedColor}" />
+                            <!-- the route pill (TV-Store#52): quiet while the relay answers, amber while it does not -->
+                            <Border x:Name="RoutePill" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 6"
+                                    Stroke="{DynamicResource GlassMutedBrush}" BackgroundColor="Transparent" Padding="6,1" VerticalOptions="Center">
+                                <Label x:Name="RouteLabel" FontSize="11" FontAttributes="Bold" TextColor="{DynamicResource GlassMutedColor}" />
+                            </Border>
+                        </HorizontalStackLayout>
                         <Grid x:Name="StateRow" ColumnDefinitions="Auto,*" ColumnSpacing="9" Margin="0,8,0,0">
                             <shapes:Ellipse x:Name="Led" WidthRequest="10" HeightRequest="10"
                                             VerticalOptions="Start" Margin="0,5,0,0"

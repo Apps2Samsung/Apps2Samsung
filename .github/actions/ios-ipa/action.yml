@@ -24,7 +24,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-dotnet@v6
+    - uses: actions/setup-dotnet@v6.1.0
       with:
         dotnet-version: 10.0.x
 

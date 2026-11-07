@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+             x:Class="Apps2Samsung.Mobile.Pages.UserSourceSheetPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+    <ContentPage.Resources>
+        <Style x:Key="Hint" TargetType="Label">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Opacity" Value="0.6" />
+        </Style>
+        <Style x:Key="FieldLabel" TargetType="Label">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+        </Style>
+        <Style x:Key="FieldError" TargetType="Label">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="{DynamicResource BadColor}" />
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style x:Key="Field" TargetType="Border">
+            <Setter Property="Padding" Value="8,0" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 8" />
+            <Setter Property="Stroke" Value="{DynamicResource HairColor}" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource Surface2Color}" />
+        </Style>
+        <Style TargetType="Entry">
+            <Setter Property="BackgroundColor" Value="Transparent" />
+        </Style>
+    </ContentPage.Resources>
+    <!-- Settings > Installing > Your sources > Add a source (also the catalog's ⋯): a GitHub repository
+         or release, or a direct .wgt/.tpk link, listed in the catalog from the next refresh. See UserSources. -->
+    <ScrollView>
+        <VerticalStackLayout Padding="16,8,16,24" Spacing="14">
+            <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
+                     Color="{DynamicResource HairColor}" />
+
+            <Grid ColumnDefinitions="44,*" ColumnSpacing="12">
+                <Border WidthRequest="44" HeightRequest="44" StrokeThickness="0" StrokeShape="RoundRectangle 11"
+                        BackgroundColor="{DynamicResource AccentSoftColor}">
+                    <!-- a link -->
+                    <shapes:Path Data="M10,14 L14,10 M8,16 L6,18 A3,3 0 0 1 2,14 L6,10 A3,3 0 0 1 10,10 M16,8 L18,6 A3,3 0 0 1 22,10 L18,14 A3,3 0 0 1 14,14"
+                                 Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.2" StrokeLineJoin="Round" StrokeLineCap="Round"
+                                 WidthRequest="22" HeightRequest="22" Aspect="Uniform"
+                                 HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <Label Grid.Column="1" Text="{l:Localize lblAddSourceTitle}" FontSize="17" FontAttributes="Bold" VerticalOptions="Center" />
+            </Grid>
+
+            <Label Text="{l:Localize hintAddSourceForm}" Style="{StaticResource Hint}" />
+
+            <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}" Padding="16,14">
+                <VerticalStackLayout Spacing="12">
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="{l:Localize lblUserSourceUrl}" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource Field}"><Entry x:Name="UrlEntry" Keyboard="Url" /></Border>
+                        <Label Text="{l:Localize hintUserSourceUrl}" Style="{StaticResource Hint}" FontSize="12" />
+                        <Label x:Name="UrlError" Style="{StaticResource FieldError}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="5">
+                        <Label x:Name="NameLabel" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource Field}"><Entry x:Name="NameEntry" /></Border>
+                        <Label x:Name="NameError" Style="{StaticResource FieldError}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="{l:Localize lblUserSourceCategory}" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource Field}"><Picker x:Name="CategoryPicker" /></Border>
+                    </VerticalStackLayout>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                            <Label Text="{l:Localize lblUserSourcePartner}" FontSize="16" />
+                            <Label Text="{l:Localize hintUserSourcePartner}" Style="{StaticResource Hint}" FontSize="12" />
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1" x:Name="PartnerSwitch" OnColor="{DynamicResource AccentColor}" VerticalOptions="Center" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <VerticalStackLayout Spacing="8">
+                <Button Text="{l:Localize lblAdd}" Style="{StaticResource PrimaryButton}"
+                        CornerRadius="12" HeightRequest="50" Clicked="OnAddClicked" />
+                <Button Text="{l:Localize lblCancel}" BackgroundColor="Transparent" TextColor="{DynamicResource InkColor}"
+                        FontAttributes="Bold" HeightRequest="44" Clicked="OnCancelClicked" />
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

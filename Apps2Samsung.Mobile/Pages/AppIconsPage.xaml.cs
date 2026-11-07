@@ -73,7 +73,7 @@ public partial class AppIconsPage : ContentPage
 		}
 		catch (Exception ex)
 		{
-			StatusLabel.Text = $"Couldn't load the app list: {ex.Message}";
+			StatusLabel.Text = string.Format(L10n.Get("statusCatalogFailed"), ex.Message);
 			StatusLabel.IsVisible = true;
 		}
 	}

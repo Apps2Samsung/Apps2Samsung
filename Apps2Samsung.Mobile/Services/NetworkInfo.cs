@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using Apps2Samsung.Models;
 
 namespace Apps2Samsung.Mobile.Services;
 
@@ -24,4 +25,14 @@ public static class NetworkInfo
 			return null;
 		}
 	}
+
+	/// <summary>
+	/// The phone's IP as the TV at <paramref name="tvIp"/> sees it: the address on the local network
+	/// that contains the TV (the hotspot address for a TV on the phone's hotspot, the Wi-Fi address
+	/// for a TV on the home LAN), else <see cref="GetLocalIPv4"/>. This is what goes next to a TV on
+	/// screen and into the TV's Host PC IP field (#920): with a hotspot on, the default-route address
+	/// is the cellular one, which the TV can never reach.
+	/// </summary>
+	public static string? LocalIpFor(string? tvIp) =>
+		LocalNetwork.LocalIpFor(LocalNetworks.Enumerate(), tvIp) ?? GetLocalIPv4();
 }

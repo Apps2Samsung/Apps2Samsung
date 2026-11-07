@@ -140,6 +140,11 @@ namespace Apps2Samsung.Helpers.Core
         {
             if (take < 1) take = 1;
 
+            // A user source that is a link to the file itself: no release list to read, the file is
+            // the release (see GetDirectFileAsync).
+            if (UserSources.IsDirectFile(url))
+                return await GetDirectFileAsync(url, displayName);
+
             try
             {
                 using var request = BuildRequest(url);
@@ -189,6 +194,66 @@ namespace Apps2Samsung.Helpers.Core
                 System.Diagnostics.Trace.WriteLine($"Failed to fetch release from {url}: {ex}");
                 return (new List<GitHubRelease>(), false);
             }
+        }
+
+        /// <summary>
+        /// A direct .wgt/.tpk link as one release with one asset: the file's name, its size and its
+        /// Last-Modified date as the version, read from the headers (HEAD, or a GET whose body is
+        /// not downloaded when the host refuses HEAD). A developer's nightly at a fixed URL lists as
+        /// "updated on" that date, and Refresh re-reads the headers. <c>Ok=false</c> when the host
+        /// could not be reached or refused the request.
+        /// </summary>
+        private async Task<(List<GitHubRelease> Releases, bool Ok)> GetDirectFileAsync(string url, string displayName)
+        {
+            try
+            {
+                using var response = await SendHeadOrGetAsync(url);
+                response.EnsureSuccessStatusCode();
+
+                var fileName = UserSources.FileName(url);
+                var modified = response.Content.Headers.LastModified;
+                var release = new GitHubRelease
+                {
+                    Name = string.IsNullOrWhiteSpace(displayName) ? System.IO.Path.GetFileNameWithoutExtension(fileName) : displayName,
+                    TagName = modified?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                    PublishedAt = modified?.UtcDateTime.ToString("o", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                    Url = url,
+                    Assets = new List<Asset>
+                    {
+                        new()
+                        {
+                            FileName = fileName,
+                            DownloadUrl = url,
+                            Size = response.Content.Headers.ContentLength ?? 0,
+                        },
+                    },
+                };
+                return (new List<GitHubRelease> { release }, true);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"Failed to read the file at {url}: {ex.Message}");
+                return (new List<GitHubRelease>(), false);
+            }
+        }
+
+        private async Task<HttpResponseMessage> SendHeadOrGetAsync(string url)
+        {
+            using (var head = BuildRequest(url))
+            {
+                head.Method = HttpMethod.Head;
+                var response = await _httpClient.SendAsync(head, HttpCompletionOption.ResponseHeadersRead);
+                // Some hosts (and some CDNs in front of a release asset) answer HEAD with 403/405; the
+                // headers of a GET say the same, and the body is left unread.
+                if (response.IsSuccessStatusCode
+                    || response.StatusCode is not (System.Net.HttpStatusCode.MethodNotAllowed
+                        or System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.NotImplemented))
+                    return response;
+                response.Dispose();
+            }
+
+            using var get = BuildRequest(url);
+            return await _httpClient.SendAsync(get, HttpCompletionOption.ResponseHeadersRead);
         }
     }
 }

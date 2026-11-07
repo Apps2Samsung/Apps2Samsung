@@ -12,9 +12,63 @@
 			<TextBlock Classes="grouptitle" Text="{l:Localize lblSigning}"/>
 			<Border Classes="group">
 				<StackPanel>
-					<!-- Automatic / Public / Partner, the same switch as the phone's Settings > Installing -->
+					<!-- Samsung / Tizen (#988): two rows in the Settings list's own style, the chosen one on
+					     the soft accent, then the level switch for either. A Tizen certificate is the SDK's,
+					     made here with no account and no device ID; the TV says at the install when it
+					     only takes a Samsung one. -->
+					<StackPanel Margin="6" Spacing="4">
+						<Button Classes="settingsrow" Classes.selected="{Binding CertificateSamsung}"
+						        Command="{Binding SelectCertificateKindCommand}" CommandParameter="Samsung">
+							<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+								<Border Classes="icontile" Background="{DynamicResource AccentBrush}" VerticalAlignment="Center">
+									<Viewbox Width="15" Height="15">
+										<Canvas Width="24" Height="24">
+											<Path Classes="tileicon" Data="M12,3 L19,6 L19,11 C19,15.5 16,19 12,21 C8,19 5,15.5 5,11 L5,6 Z M9,12 L11,14 L15,10"/>
+										</Canvas>
+									</Viewbox>
+								</Border>
+								<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+									<TextBlock Classes="settingsrowlabel" Text="{Binding LblCertificateSamsung}" FontSize="14" Foreground="{DynamicResource InkBrush}"/>
+									<TextBlock Classes="hint" Text="{Binding HintCertificateSamsung}" TextWrapping="Wrap"/>
+								</StackPanel>
+								<Panel Grid.Column="2" Width="18" Height="18" VerticalAlignment="Center">
+									<Ellipse Width="18" Height="18" Stroke="{DynamicResource HairBrush}" StrokeThickness="2" IsVisible="{Binding !CertificateSamsung}"/>
+									<Ellipse Width="18" Height="18" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding CertificateSamsung}"/>
+									<Path Width="11" Height="11" Stretch="Uniform" Stroke="{DynamicResource OnAccentBrush}" StrokeThickness="3.2"
+									      StrokeLineCap="Round" StrokeJoin="Round" IsVisible="{Binding CertificateSamsung}"
+									      Data="M5,12.5 L9.5,17 L19,7"/>
+								</Panel>
+							</Grid>
+						</Button>
+						<Button Classes="settingsrow" Classes.selected="{Binding CertificateTizen}"
+						        Command="{Binding SelectCertificateKindCommand}" CommandParameter="Tizen">
+							<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+								<Border Classes="icontile" Background="{DynamicResource TileToolsBrush}" VerticalAlignment="Center">
+									<Viewbox Width="15" Height="15">
+										<Canvas Width="24" Height="24">
+											<Path Classes="tileicon" Data="M12,3 L19,6 L19,11 C19,15.5 16,19 12,21 C8,19 5,15.5 5,11 L5,6 Z M12,8 L12,13 M12,16 L12,16.5"/>
+										</Canvas>
+									</Viewbox>
+								</Border>
+								<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+									<TextBlock Classes="settingsrowlabel" Text="{Binding LblCertificateTizen}" FontSize="14" Foreground="{DynamicResource InkBrush}"/>
+									<TextBlock Classes="hint" Text="{Binding HintCertificateTizen}" TextWrapping="Wrap"/>
+								</StackPanel>
+								<Panel Grid.Column="2" Width="18" Height="18" VerticalAlignment="Center">
+									<Ellipse Width="18" Height="18" Stroke="{DynamicResource HairBrush}" StrokeThickness="2" IsVisible="{Binding !CertificateTizen}"/>
+									<Ellipse Width="18" Height="18" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding CertificateTizen}"/>
+									<Path Width="11" Height="11" Stretch="Uniform" Stroke="{DynamicResource OnAccentBrush}" StrokeThickness="3.2"
+									      StrokeLineCap="Round" StrokeJoin="Round" IsVisible="{Binding CertificateTizen}"
+									      Data="M5,12.5 L9.5,17 L19,7"/>
+								</Panel>
+							</Grid>
+						</Button>
+					</StackPanel>
+					<Border Classes="rowline"/>
+					<!-- Automatic / Public / Partner, the same switch as the phone's Settings > Installing;
+					     for a Tizen certificate the same words pick the SDK's Public or Partner signer. -->
 					<StackPanel Margin="14,12" Spacing="10">
-						<TextBlock Classes="settinglabel" Text="{Binding LblCertificate}"/>
+						<TextBlock Classes="settinglabel" Text="{Binding LblCertificateLevel}"/>
 						<Border Padding="2" CornerRadius="8" Background="{DynamicResource FillBrush}" HorizontalAlignment="Left">
 							<UniformGrid Rows="1" MinWidth="330">
 								<RadioButton Classes="segment" GroupName="certificate" Content="{l:Localize lblCertificateAutomatic}" IsChecked="{Binding CertificateAutomatic}"/>
@@ -22,11 +76,19 @@
 								<RadioButton Classes="segment" GroupName="certificate" Content="{Binding LblCertificatePartner}" IsChecked="{Binding CertificatePartner}"/>
 							</UniformGrid>
 						</Border>
-						<TextBlock Classes="hint" Text="{l:Localize hintCertificateType}"/>
+						<!-- The level hint for the chosen certificate kind: Samsung's mentions the account, Tizen's does not. -->
+						<TextBlock Classes="hint" Text="{l:Localize hintCertificateType}" IsVisible="{Binding CertificateSamsung}"/>
+						<TextBlock Classes="hint" Text="{l:Localize hintCertificateTypeTizen}" IsVisible="{Binding CertificateTizen}"/>
 					</StackPanel>
 					<Border Classes="rowline"/>
 					<!-- A certificate the user added to the certificate folder themselves; only when there is one. -->
-					<Grid Classes="setting" ColumnDefinitions="*,Auto" ColumnSpacing="12" IsVisible="{Binding HasOwnCertificates}">
+					<Grid Classes="setting" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+						<Grid.IsVisible>
+							<MultiBinding Converter="{x:Static BoolConverters.And}">
+								<Binding Path="HasOwnCertificates"/>
+								<Binding Path="CertificateSamsung"/>
+							</MultiBinding>
+						</Grid.IsVisible>
 						<StackPanel Spacing="2" VerticalAlignment="Center">
 							<TextBlock Classes="settinglabel" Text="{l:Localize lblOwnCertificate}"/>
 							<TextBlock Classes="hint" Text="{l:Localize hintOwnCertificate}"/>
@@ -41,7 +103,14 @@
 							</ComboBox.ItemTemplate>
 						</ComboBox>
 					</Grid>
-					<Border Classes="rowline" IsVisible="{Binding HasOwnCertificates}"/>
+					<Border Classes="rowline">
+						<Border.IsVisible>
+							<MultiBinding Converter="{x:Static BoolConverters.And}">
+								<Binding Path="HasOwnCertificates"/>
+								<Binding Path="CertificateSamsung"/>
+							</MultiBinding>
+						</Border.IsVisible>
+					</Border>
 					<Grid Classes="setting" ColumnDefinitions="*,Auto" ColumnSpacing="12">
 						<StackPanel Spacing="2" VerticalAlignment="Center">
 							<TextBlock Classes="settinglabel" Text="{Binding LblForceLogin}"/>
@@ -54,6 +123,8 @@
 					     with the certificate sheet when a sign-in is needed. The TV and the flow live with
 					     the main window, reached through the Settings hub. -->
 					<StackPanel Margin="14,12" Spacing="10">
+						<TextBlock Classes="hint" Text="{Binding CertificateStatusText}" TextWrapping="Wrap"
+						           IsVisible="{Binding CertificateStatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 						<TextBlock Classes="hint" Text="{l:Localize hintPrepareCertificateNow}"/>
 						<Button Classes="soft" HorizontalAlignment="Left"
 						        Content="{Binding $parent[views:SettingsView].((viewModels:SettingsViewModel)DataContext).PrepareCertificateText}"
@@ -98,6 +169,42 @@
 						</StackPanel>
 						<ToggleSwitch Grid.Column="1" MinWidth="0" VerticalAlignment="Center" IsChecked="{Binding KeepWGTFile}"/>
 					</Grid>
+				</StackPanel>
+			</Border>
+		</StackPanel>
+
+		<!-- Your sources: repositories, releases and file links the user added (UserSources). Listed
+		     in the catalog next to the manifest's providers; read again on every refresh. -->
+		<StackPanel Spacing="6">
+			<TextBlock Classes="grouptitle" Text="{Binding LblUserSources}"/>
+			<Border Classes="group">
+				<StackPanel>
+					<StackPanel Margin="14,12" Spacing="10">
+						<TextBlock Classes="hint" Text="{l:Localize hintUserSources}"/>
+					</StackPanel>
+					<Border Classes="rowline"/>
+					<TextBlock Classes="hint" Margin="14,12" Text="{Binding LblUserSourcesEmpty}" IsVisible="{Binding !HasOwnSources}"/>
+					<ItemsControl ItemsSource="{Binding OwnSources}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate x:DataType="viewModels:AppSettingsViewModel+UserSourceRow">
+								<StackPanel>
+									<Grid Classes="setting" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+										<StackPanel Spacing="2" VerticalAlignment="Center">
+											<TextBlock Classes="settinglabel" Text="{Binding Name}"/>
+											<TextBlock Classes="hint" Text="{Binding Detail}" TextTrimming="CharacterEllipsis"/>
+										</StackPanel>
+										<Button Grid.Column="1" Classes="soft" VerticalAlignment="Center" Content="{l:Localize lblRemove}"
+										        Command="{Binding $parent[ItemsControl].((viewModels:AppSettingsViewModel)DataContext).RemoveUserSourceCommand}"
+										        CommandParameter="{Binding}"/>
+									</Grid>
+									<Border Classes="rowline"/>
+								</StackPanel>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+					<StackPanel Margin="14,12" Spacing="10">
+						<Button Classes="soft" HorizontalAlignment="Left" Content="{Binding LblAddSource}" Command="{Binding AddUserSourceCommand}"/>
+					</StackPanel>
 				</StackPanel>
 			</Border>
 		</StackPanel>

@@ -100,6 +100,23 @@ public sealed class DesktopSettingsTests : IDisposable
     }
 
     [Fact]
+    public void InstalledVariants_RoundTrip_InTheDesktopsFile()
+    {
+        WriteSettings(new JsonObject { ["LocalIp"] = "10.0.0.2" });
+
+        new DesktopSettings(_dir).InstalledVariantsJson = InstalledVariantStore.Set(null, new InstalledVariantRecord
+        {
+            TvIp = "192.168.1.8", AppId = "Pkg.Litefin", CatalogApp = "Litefin", Variant = "Legacy", PackageFile = "Litefin-2.0.30-Tizen-Legacy.wgt",
+        });
+
+        var saved = JsonNode.Parse(File.ReadAllText(SettingsPath))!.AsObject();
+        Assert.Equal("10.0.0.2", (string?)saved["LocalIp"]);
+        Assert.Equal("Legacy", InstalledVariantStore.Find((string?)saved["InstalledVariantsJson"], "192.168.1.8", "Pkg.Litefin")!.Variant);
+        Assert.Equal("Legacy", InstalledVariantStore.Find(new DesktopSettings(_dir).InstalledVariantsJson, "192.168.1.8", "Pkg.Litefin")!.Variant);
+        Assert.Equal(string.Empty, new DesktopSettings(Directory.CreateTempSubdirectory("a2s-cli-empty-").FullName).InstalledVariantsJson);
+    }
+
+    [Fact]
     public void UnreadableSettingsFile_IsNeverWrittenOver()
     {
         const string broken = "{ \"LocalIp\": \"10.0.0.2\", ";
@@ -137,5 +154,51 @@ public sealed class DesktopSettingsTests : IDisposable
 
         Assert.True(File.Exists(LegacyRenamesPath));
         Assert.Equal("not json", File.ReadAllText(SettingsPath));
+    }
+
+    [Fact]
+    public void CertificatePreference_IsSavedNextToTheDesktopsOtherKeys()
+    {
+        // cert --import sets the preference the desktop signs with (#921); nothing else moves.
+        WriteSettings(new JsonObject { ["LocalIp"] = "192.168.1.10", ["CertificatePreference"] = "Automatic" });
+
+        new DesktopSettings(_dir).CertificatePreference = "Partner";
+
+        var reread = new DesktopSettings(_dir);
+        Assert.Equal("Partner", reread.CertificatePreference);
+        Assert.Equal("192.168.1.10", reread.LocalIp);
+        Assert.Equal("Partner", JsonNode.Parse(File.ReadAllText(SettingsPath))!["CertificatePreference"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void UserSources_AreSharedWithTheDesktopsSettingsFile()
+    {
+        // `sources add` writes the same key the desktop reads (Settings > Installing > Your sources).
+        WriteSettings(new JsonObject { ["LocalIp"] = "192.168.1.10" });
+        Assert.Equal(string.Empty, new DesktopSettings(_dir).UserSourcesJson);
+
+        var json = Apps2Samsung.Catalog.UserSources.Serialize(new[]
+        {
+            new Apps2Samsung.Catalog.UserSource { Url = "owner/repo", Name = "Mine", Category = "tools" },
+        });
+        new DesktopSettings(_dir).UserSourcesJson = json;
+
+        var reread = new DesktopSettings(_dir);
+        Assert.Equal(json, reread.UserSourcesJson);
+        Assert.Equal("192.168.1.10", reread.LocalIp);
+        var stored = Apps2Samsung.Catalog.UserSources.Parse(JsonNode.Parse(File.ReadAllText(SettingsPath))!["UserSourcesJson"]!.GetValue<string>());
+        Assert.Single(stored);
+        Assert.Equal("Mine", stored[0].Name);
+    }
+
+    [Fact]
+    public void CertificatePreference_UnknownValueIsStoredAsAutomatic_AndABrokenFileIsNeverWrittenOver()
+    {
+        new DesktopSettings(_dir).CertificatePreference = "whatever";
+        Assert.Equal("Automatic", new DesktopSettings(_dir).CertificatePreference);
+
+        File.WriteAllText(SettingsPath, "{ not json");
+        Assert.Throws<InvalidOperationException>(() => new DesktopSettings(_dir).CertificatePreference = "Public");
+        Assert.Equal("{ not json", File.ReadAllText(SettingsPath));
     }
 }

@@ -253,6 +253,26 @@
                         <Button x:Name="ArmTvStoreBtn" HeightRequest="44" MinimumHeightRequest="44"
                                 Text="{l:Localize lblToolboxTvStoreArm}" Clicked="OnArmTvStoreClicked" />
                         <Label x:Name="TvStoreStatusLabel" Style="{StaticResource Report}" />
+                        <!-- No (or an old) TV-Store on the set: straight to its catalog sheet (#888) -->
+                        <Button x:Name="ShowTvStoreBtn" Style="{StaticResource SoftButton}" HeightRequest="44" MinimumHeightRequest="44"
+                                IsVisible="False" Text="{l:Localize lblToolboxTvStoreShowInCatalog}" Clicked="OnShowTvStoreClicked" />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
+
+                <!-- ============ Package file ============ -->
+                <!-- A package of the user's own, without installing it from here (#979): signed with the
+                     certificate that covers this TV and shared, or sent to TV-Store's upload page on the
+                     TV (no Developer Mode needed on this side; TV-Store asks on the screen). -->
+                <controls:ExpanderSection x:Name="PackageCard" Title="{l:Localize lblToolboxPackage}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxPackageHint}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" x:Name="SignPackageBtn" HeightRequest="44" MinimumHeightRequest="44"
+                                    Text="{l:Localize lblToolboxSignPackage}" Clicked="OnSignPackageClicked" />
+                            <Button Grid.Column="1" x:Name="SendToTvStoreBtn" Style="{StaticResource SoftButton}" HeightRequest="44" MinimumHeightRequest="44"
+                                    Text="{l:Localize lblToolboxSendToTvStore}" Clicked="OnSendToTvStoreClicked" />
+                        </Grid>
+                        <Label x:Name="PackageStatusLabel" Style="{StaticResource Report}" />
                     </VerticalStackLayout>
                 </controls:ExpanderSection>
 

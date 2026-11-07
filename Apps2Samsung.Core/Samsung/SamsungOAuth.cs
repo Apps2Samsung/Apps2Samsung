@@ -19,6 +19,11 @@ namespace Apps2Samsung.Samsung
         public const int CallbackPort = 4794;
         public const string CallbackPath = "/signin/callback";
 
+        /// <summary>The redirect_uri every head registers: the loopback listener above. Also what the
+        /// desktop's "Copy sign-in link" hands the user, so a sign-in pasted into another browser still
+        /// lands on the same listener.</summary>
+        public static readonly string LoopbackRedirectUri = $"http://localhost:{CallbackPort}{CallbackPath}";
+
         /// <summary>Builds the SignInGate authorize URL for the given loopback <paramref name="redirectUri"/>.</summary>
         public static string BuildAuthorizeUrl(string redirectUri) =>
             $"{SignInGateUrl}?locale=&clientId={ClientId}" +

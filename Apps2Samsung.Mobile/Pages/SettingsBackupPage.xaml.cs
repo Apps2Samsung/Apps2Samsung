@@ -7,6 +7,7 @@ using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Microsoft.Maui.ApplicationModel.DataTransfer;
 using Microsoft.Maui.Storage;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Apps2Samsung.Mobile.Pages;
 
@@ -36,7 +37,7 @@ public partial class SettingsBackupPage : ContentPage
 		{
 			await Share.Default.RequestAsync(new ShareFileRequest
 			{
-				Title = "Apps2Samsung debug log",
+				Title = L10n.Get("lblDebugLog"),
 				File = new ShareFile(logPath),
 			});
 		}
@@ -44,6 +45,52 @@ public partial class SettingsBackupPage : ContentPage
 		{
 			await DisplayAlert(L10n.Get("lblDebugLog"), string.Format(L10n.Get("statusLogShareFailed"), ex.Message), L10n.Get("btn_Close"));
 		}
+	}
+
+	// TV-Store's own log from the TV the app is working with, saved next to the debug logs and handed
+	// to the share sheet. TV-Store serves it to the LAN while it is open on the TV; no Developer Mode needed.
+	private async void OnGetTvStoreLogClicked(object? sender, EventArgs e)
+	{
+		var tvIp = IPlatformApplication.Current?.Services.GetService<TvSelection>()?.Ip;
+		if (string.IsNullOrWhiteSpace(tvIp))
+		{
+			ShowTvStoreLogStatus(L10n.Get("statusTvStoreLogNoTv"));
+			return;
+		}
+
+		TvStoreLogButton.IsEnabled = false;
+		ShowTvStoreLogStatus(string.Format(L10n.Get("statusTvStoreLogFetching"), tvIp));
+		try
+		{
+			var folder = Path.GetDirectoryName(Apps2Samsung.Diagnostics.FileLog.CurrentLogFile) ?? Path.Combine(FileSystem.AppDataDirectory, "Logs");
+			var path = await Apps2Samsung.TvStore.TvStoreLog.SaveAsync(tvIp, folder);
+			ShowTvStoreLogStatus(string.Format(L10n.Get("statusTvStoreLogSaved"), Path.GetFileName(path)));
+			await Share.Default.RequestAsync(new ShareFileRequest
+			{
+				Title = L10n.Get("lblGetTvStoreLog"),
+				File = new ShareFile(path),
+			});
+		}
+		catch (Apps2Samsung.TvStore.TvStoreLogUnavailableException ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[tvstore] {ex.Message}");
+			ShowTvStoreLogStatus(string.Format(L10n.Get("statusTvStoreLogFailed"), tvIp, ex.Reason));
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[tvstore] getting TV-Store's log failed: {ex}");
+			ShowTvStoreLogStatus(string.Format(L10n.Get("statusTvStoreLogFailed"), tvIp, ex.Message));
+		}
+		finally
+		{
+			TvStoreLogButton.IsEnabled = true;
+		}
+	}
+
+	private void ShowTvStoreLogStatus(string text)
+	{
+		TvStoreLogStatus.Text = text;
+		TvStoreLogStatus.IsVisible = !string.IsNullOrEmpty(text);
 	}
 
 	// ---- Backup (export/import of settings + signing certificates) ----
@@ -96,7 +143,7 @@ public partial class SettingsBackupPage : ContentPage
 			using (var stream = File.Create(path))
 				BackupService.Export(stream, BuildSettingsJson(), CertStorePath);
 
-			await Share.Default.RequestAsync(new ShareFileRequest("Apps2Samsung backup", new ShareFile(path)));
+			await Share.Default.RequestAsync(new ShareFileRequest(L10n.Get("lblBackupFile"), new ShareFile(path)));
 		}
 		catch (Exception ex)
 		{
@@ -137,6 +184,55 @@ public partial class SettingsBackupPage : ContentPage
 				L10n.Get("lblImportBackup"),
 				string.Format(L10n.Get("statusImportBackupFailed"), ErrorText.Describe(ex, "backup/import"))
 					+ "\n\n" + L10n.Get("statusSeeDebugLog"),
+				L10n.Get("lblOk"));
+		}
+	}
+
+	// ---- The certificate on its own (#921) ----
+
+	private async void OnExportCertificateClicked(object? sender, EventArgs e)
+	{
+		try
+		{
+			var path = Path.Combine(FileSystem.CacheDirectory, CertificateArchive.SuggestedFileName);
+			using (var stream = File.Create(path))
+				CertificateArchive.Export(stream, CertStorePath);
+
+			await Share.Default.RequestAsync(new ShareFileRequest(L10n.Get("lblCertificateArchive"), new ShareFile(path)));
+		}
+		catch (CertificateArchiveException)
+		{
+			await DisplayAlert(L10n.Get("certArchiveExportTitle"), L10n.Get("certArchiveNothingToExport"), L10n.Get("lblOk"));
+		}
+		catch (Exception ex)
+		{
+			await DisplayAlert(
+				L10n.Get("certArchiveExportTitle"),
+				string.Format(L10n.Get("statusCertificateExportFailed"), ErrorText.Describe(ex, "certificate/export")),
+				L10n.Get("lblOk"));
+		}
+	}
+
+	private async void OnImportCertificateClicked(object? sender, EventArgs e)
+	{
+		try
+		{
+			// The selected TV's DUID is only read during an install, so the preview here says nothing
+			// about covering one; the certificate sheet during an install does.
+			var outcome = await CertificateArchiveFiles.PickAndImportAsync(this, tvDuid: null);
+			if (outcome is null)
+				return;
+
+			await DisplayAlert(
+				L10n.Get("certArchiveImportTitle"),
+				string.Format(L10n.Get("statusCertificateImported"), outcome.FileCount),
+				L10n.Get("lblOk"));
+		}
+		catch (Exception ex)
+		{
+			await DisplayAlert(
+				L10n.Get("certArchiveImportTitle"),
+				string.Format(L10n.Get("statusCertificateImportFailed"), ErrorText.Describe(ex, "certificate/import")),
 				L10n.Get("lblOk"));
 		}
 	}

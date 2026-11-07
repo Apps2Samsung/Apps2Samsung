@@ -47,6 +47,15 @@ namespace Apps2Samsung.Models
         public string? PackageId { get; set; }
 
         /// <summary>
+        /// The Tizen version the file asks for (<c>required_version</c> in config.xml, <c>api-version</c>
+        /// in tizen-manifest.xml), read with the three above. A TV older than this refuses the package
+        /// with install failed[118, -19] (TV-Store#44), so TV-Store labels such an app and stops the
+        /// install before the push. Null in a bundle built before it was recorded.
+        /// </summary>
+        [JsonPropertyName("required_version")]
+        public string? RequiredVersion { get; set; }
+
+        /// <summary>
         /// Values the user has to supply before this file installs (a per-user API key, a server
         /// address), written into the package by <c>UserSettingsPatcher</c>. Null for the usual
         /// package that needs nothing (#791).
@@ -70,6 +79,21 @@ namespace Apps2Samsung.Models
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public List<string>? Flags { get; set; }
+
+        /// <summary>
+        /// The certificate level the app needs to work (<c>cert_level</c> in the manifest, TV-Store
+        /// #50): "partner" for an app that uses partner-level rights or hooks into a Samsung native
+        /// package, which installs fine signed Public and then fails to run. Null for the usual
+        /// package; written only when present, so the snapshot round-trips it as-is and TV-Store
+        /// reads it from resolved.json.
+        /// </summary>
+        [JsonPropertyName("cert_level")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? CertLevel { get; set; }
+
+        /// <summary>The app only works when signed with a Partner certificate (<c>cert_level: "partner"</c>).</summary>
+        [JsonIgnore]
+        public bool RequiresPartner => string.Equals(CertLevel, "partner", System.StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// The package gains root on the TV and runs a service from boot (<c>flags: ["root"]</c>).

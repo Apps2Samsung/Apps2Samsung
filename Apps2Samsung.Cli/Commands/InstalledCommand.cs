@@ -6,8 +6,20 @@ namespace Apps2Samsung.Cli.Commands;
 
 public static class InstalledCommand
 {
+    /// <param name="CatalogVariant">Which of the app's files the comparison is with, when it has several: the
+    /// one this machine installed on this TV (<paramref name="VariantRemembered"/>), else the catalog's pick.</param>
     public sealed record Row(string Title, string AppId, string? Version, string InstallDate, bool Removable,
-        string? CatalogApp, string? CatalogFile, string? CatalogVersion, string? State);
+        string? CatalogApp, string? CatalogFile, string? CatalogVersion, string? State,
+        string? CatalogVariant = null, bool VariantRemembered = false);
+
+    /// <summary>The `install` line that brings the row's catalog app to the TV: with --file when the app has several files (#975).</summary>
+    public static List<string> InstallArgs(Row r, string ip)
+    {
+        var args = new List<string> { "install", r.CatalogApp ?? string.Empty, "--tv", ip };
+        if (r.CatalogVariant is not null)
+            args.AddRange(new[] { "--file", r.CatalogVariant });
+        return args;
+    }
 
     public static async Task<int> RunAsync(CliServices s, CancellationToken ct)
     {
@@ -15,6 +27,24 @@ public static class InstalledCommand
         if (string.IsNullOrWhiteSpace(ip))
             return s.Out.Fail("usage: apps2samsung-cli installed --tv <ip>", Output.Usage);
 
+        var rows = await ReadAsync(s, ip, ct);
+        var text = new List<string>();
+        if (rows.Count == 0)
+            text.Add("The TV lists no apps.");
+        foreach (var r in rows)
+        {
+            var version = r.Version is null ? "" : $" v{r.Version}";
+            var variant = r.CatalogVariant is null ? "" : $" {r.CatalogVariant}";
+            var cat = r.CatalogApp is null ? "" : $"  catalog: {r.CatalogApp}{variant}{(r.CatalogVersion is null ? "" : $" v{r.CatalogVersion}")} ({r.State})";
+            text.Add($"{r.Title}{version}  [{r.AppId}]{cat}");
+        }
+        return s.Out.Result(new { ok = true, tv = ip, count = rows.Count, apps = rows }, text,
+            rich: Views.InstalledApps(rows, ip, s.Out.Width, s.Out.Unicode));
+    }
+
+    /// <summary>The apps on the TV with the catalog comparison, for the listing and for the menu.</summary>
+    public static async Task<List<Row>> ReadAsync(CliServices s, string ip, CancellationToken ct)
+    {
         s.Out.Progress($"Reading the apps on {ip}…");
         var result = await s.Sdb.AppsAsync(ip);
         var apps = TizenInstalledApps.ParseOrThrow(result);
@@ -31,9 +61,17 @@ public static class InstalledCommand
             s.Out.Warn($"catalog not available, versions not compared: {ex.Message}");
         }
 
-        var rows = apps.Select(a =>
+        string? variants = null;
+        try { variants = s.Desktop.InstalledVariantsJson; }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or UnauthorizedAccessException)
         {
-            var match = catalog.Count == 0 ? null : InstalledAppUpdates.Find(a, catalog, s.Config.PackageIdRenamesJson);
+            s.Out.Warn($"the installed variants could not be read, comparing with each app's default file: {ex.Message}");
+        }
+
+        return apps.Select(a =>
+        {
+            // The variant this TV got last time (#975) decides which file an app with several is compared with.
+            var match = catalog.Count == 0 ? null : InstalledAppUpdates.Find(a, catalog, s.Config.PackageIdRenamesJson, variants, ip);
             return new Row(a.DisplayName, a.TizenId, string.IsNullOrWhiteSpace(a.Version) ? null : a.Version, a.InstallDate, a.IsRemovable,
                 match?.Release.Name, match?.Asset.FileName, match?.CatalogVersion,
                 match is null ? null : match.State switch
@@ -42,18 +80,9 @@ public static class InstalledCommand
                     CatalogVersionState.UpdateAvailable => "update-available",
                     CatalogVersionState.Different => "different",
                     _ => "unknown",
-                });
+                },
+                match is { Release.Assets.Count: > 1 } ? match.Asset.VariantLabel : null,
+                match?.VariantRemembered ?? false);
         }).ToList();
-
-        var text = new List<string>();
-        if (rows.Count == 0)
-            text.Add("The TV lists no apps.");
-        foreach (var r in rows)
-        {
-            var version = r.Version is null ? "" : $" v{r.Version}";
-            var cat = r.CatalogApp is null ? "" : $"  catalog: {r.CatalogApp}{(r.CatalogVersion is null ? "" : $" v{r.CatalogVersion}")} ({r.State})";
-            text.Add($"{r.Title}{version}  [{r.AppId}]{cat}");
-        }
-        return s.Out.Result(new { ok = true, tv = ip, count = rows.Count, apps = rows }, text);
     }
 }

@@ -18,6 +18,7 @@ public static class MobileSettings
 	private const string KeyShowAllJf = "show_all_jellyfin_versions";
 	private const string KeyShowAdult = "show_adult_apps";
 	private const string KeyShowRoot = "show_root_apps";
+	private const string KeyUserSources = "user_sources_json";
 	private const string KeyInstalledOrder = "installed_apps_order";
 	private const string KeyManualDuids = "manual_duids";
 	private const string KeyTvAppChannels = "tvapp_channels_json";
@@ -30,6 +31,7 @@ public static class MobileSettings
 	private const string KeyCameraPipConfig = "camerapip_config_json";
 	private const string KeyAppUserSettings = "app_user_settings_json";
 	private const string KeyPackageIdRenames = "package_id_renames_json";
+	private const string KeyInstalledVariants = "installed_variants_json";
 	private const string KeyPartnerSigning = "partner_signing";
 	private const string KeyForceLogin = "force_samsung_login";
 	private const string KeyTryOverwrite = "try_overwrite";
@@ -80,6 +82,14 @@ public static class MobileSettings
 		set => Preferences.Set(KeyShowRoot, value);
 	}
 
+	/// <summary>Sources the user added themselves (Core <c>UserSources</c>): JSON array of { name, url, category, partner },
+	/// listed in the catalog next to the manifest's providers on every load.</summary>
+	public static string UserSourcesJson
+	{
+		get => Preferences.Get(KeyUserSources, string.Empty);
+		set => Preferences.Set(KeyUserSources, value ?? string.Empty);
+	}
+
 	/// <summary>How On the TV orders the apps (#888); largest first until the user picks another.</summary>
 	public static Apps2Samsung.Sdb.InstalledAppOrder InstalledAppOrder
 	{
@@ -97,7 +107,7 @@ public static class MobileSettings
 	}
 
 	/// <summary>Offer beta (pre-release) versions in the in-app update check, and download that beta
-	/// rather than the older stable. On by default — the mobile app has historically shipped as -beta
+	/// rather than the older stable. On by default, the mobile app has historically shipped as -beta
 	/// builds, so keep existing users on the beta channel unless they turn it off.</summary>
 	public static bool IncludeBetaUpdates
 	{
@@ -114,7 +124,7 @@ public static class MobileSettings
 	}
 
 	/// <summary>Attempt an overwrite-install and, on failure, retry after removing the old copy
-	/// (desktop: "Override existing app"). On by default — matches the desktop's recovery behaviour.</summary>
+	/// (desktop: "Override existing app"). On by default, matches the desktop's recovery behaviour.</summary>
 	public static bool TryOverwrite
 	{
 		get => Preferences.Get(KeyTryOverwrite, true);
@@ -133,6 +143,20 @@ public static class MobileSettings
 		get => CertificatePreference == CertificatePreferencePartner;
 		set => CertificatePreference = value ? CertificatePreferencePartner : CertificatePreferenceAuto;
 	}
+
+	public const string CertificateKindSamsung = Apps2Samsung.Certificate.CertificateKind.Samsung;
+	public const string CertificateKindTizen = Apps2Samsung.Certificate.CertificateKind.Tizen;
+	private const string KeyCertKind = "certificate_kind";
+
+	/// <summary>Samsung or Tizen (#988), the same choice as the desktop's (Core CertificateKind): a
+	/// Tizen certificate is the SDK's, made on the phone with no account and no DUID; some TVs refuse it.</summary>
+	public static string CertificateKind
+	{
+		get => Apps2Samsung.Certificate.CertificateKind.Normalize(Preferences.Get(KeyCertKind, CertificateKindSamsung));
+		set => Preferences.Set(KeyCertKind, Apps2Samsung.Certificate.CertificateKind.Normalize(value));
+	}
+
+	public static bool UsesTizenCertificate => Apps2Samsung.Certificate.CertificateKind.IsTizen(CertificateKind);
 
 	public const string CertificatePreferenceAuto = Apps2Samsung.Certificate.CertificatePreference.Automatic;
 	public const string CertificatePreferencePublic = Apps2Samsung.Certificate.CertificatePreference.Public;
@@ -208,7 +232,7 @@ public static class MobileSettings
 			else
 				await SecureStorage.SetAsync(KeyGitHubToken, _gitHubToken);
 		}
-		catch { /* secure storage unavailable — keep the in-memory value for this run */ }
+		catch { /* secure storage unavailable, keep the in-memory value for this run */ }
 	}
 
 	// ---- Jellyfin (Settings → Jellyfin): injected into a Jellyfin .wgt at install by the shared
@@ -276,7 +300,7 @@ public static class MobileSettings
 			else
 				await SecureStorage.SetAsync(KeyJellyfinAccessToken, _jellyfinAccessToken);
 		}
-		catch { /* secure storage unavailable — keep the in-memory value for this run */ }
+		catch { /* secure storage unavailable, keep the in-memory value for this run */ }
 	}
 
 	/// <summary>Persisted TVApp channels as a JSON array of {name,url} (empty when unset).</summary>
@@ -322,7 +346,7 @@ public static class MobileSettings
 			else
 				await SecureStorage.SetAsync(KeyImmiTvPassword, _immiTvPassword);
 		}
-		catch { /* secure storage unavailable — keep the in-memory value for this run */ }
+		catch { /* secure storage unavailable, keep the in-memory value for this run */ }
 	}
 
 	/// <summary>Immich API key (empty if unset). Backed by <see cref="SecureStorage"/>.</summary>
@@ -338,7 +362,7 @@ public static class MobileSettings
 			else
 				await SecureStorage.SetAsync(KeyImmiTvApiKey, _immiTvApiKey);
 		}
-		catch { /* secure storage unavailable — keep the in-memory value for this run */ }
+		catch { /* secure storage unavailable, keep the in-memory value for this run */ }
 	}
 
 	/// <summary>Opt-in: point a TizenTube Cobalt build's proxy at a LAN address (Tizen 9 fix). Off by default.</summary>
@@ -382,6 +406,13 @@ public static class MobileSettings
 		set => Preferences.Set(KeyPackageIdRenames, value ?? string.Empty);
 	}
 
+	/// <summary>Which file of an app with variants each TV got (#975, InstalledVariantStore).</summary>
+	public static string InstalledVariantsJson
+	{
+		get => Preferences.Get(KeyInstalledVariants, string.Empty);
+		set => Preferences.Set(KeyInstalledVariants, value ?? string.Empty);
+	}
+
 	/// <summary>Per-app custom launcher icons: JSON map { appKey -> "oblong" | custom PNG path },
 	/// applied to the wgt at install by the shared CustomIconPackagePatcher. (Same Preferences key as
 	/// MobileAppConfig.CustomAppIconsJson, so the settings page and the patcher share one store.)</summary>
@@ -407,7 +438,7 @@ public static class MobileSettings
 
 	/// <summary>
 	/// The UI language as a two-letter code. Empty until the first run has detected one, which is when
-	/// the shared catalog commits the OS language (see L10n) — the same detect-once behaviour as the
+	/// the shared catalog commits the OS language (see L10n), the same detect-once behaviour as the
 	/// desktop head's AppSettings.Language.
 	/// </summary>
 	public static string Language

@@ -2,30 +2,35 @@ using Apps2Samsung.Catalog;
 using Apps2Samsung.Agent;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Install;
+using Apps2Samsung.Packaging;
+using Apps2Samsung.Localization;
 using Apps2Samsung.TvStore;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Services;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Remote;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
+using Microsoft.Maui.Storage;
 
 namespace Apps2Samsung.Mobile.Pages;
 
 /// <summary>
 /// The TV toolbox (#635): opening an app by ID, and sending a documented service-menu key combination.
-/// The key combinations ride the <c>samsung.remote.control</c> channel, which needs no Developer Mode —
+/// The key combinations ride the <c>samsung.remote.control</c> channel, which needs no Developer Mode , 
 /// the point, since the sets this exists for (hospitality firmware, a dead or numberless remote) may
 /// have none to switch on. The phone is the natural host: it is what you are holding when the remote
 /// has died.
 /// <para>
 /// The system-app list is the exception: the TV's own menus were never store apps, so no deep link
-/// addresses them — and, it turned out, SDB's launcher refuses them too (#641, then #34). They go
+/// addresses them, and, it turned out, SDB's launcher refuses them too (#641, then #34). They go
 /// through the debug agent: a small app of ours on the TV that asks the platform directly. The agent
 /// also yields the one honest app list a hospitality set has, hidden flags and all.
 /// </para>
 /// <para>
 /// Its own page rather than a panel under the remote's keys: these are not remote buttons. And the app
-/// list here is not the Installed apps page — that one goes over SDB, needs Developer Mode, and reports
+/// list here is not the Installed apps page, that one goes over SDB, needs Developer Mode, and reports
 /// what is really installed; this one launches by ID whether or not the TV admits to having the app.
 /// </para>
 /// </summary>
@@ -42,7 +47,7 @@ public partial class TvToolboxPage : ContentPage
 	// to say "no such app" (see SamsungRemoteApps.LaunchAsync).
 	private bool _isConsumerSet;
 
-	// How this head puts a .wgt on the TV — certificate, resign, push — so the agent installs like
+	// How this head puts a .wgt on the TV, certificate, resign, push, so the agent installs like
 	// any package. Null where the caller has no installer; the agent then has to be on the set already.
 	private readonly Func<string, Action<string>, Task<bool>>? _installWgt;
 	private DebugAgentClient? _agent;
@@ -50,7 +55,12 @@ public partial class TvToolboxPage : ContentPage
 	// The head's certificate flow for this TV (#844): the signing profile an install would use, made
 	// (with the Samsung sign-in sheet) when none covers the set yet; null when that was cancelled.
 	// What Arm TV-Store hands over. Null where the caller has no certificate flow.
-	private readonly Func<Action<string>, Task<SigningProfile?>>? _signingProfile;
+	private readonly Func<bool, Action<string>, Task<SigningProfile?>>? _signingProfile;
+
+	// The Package file section (#979): a .wgt/.tpk from the phone (a cache copy, never the user's
+	// file), and the install's customization step for a package that goes to TV-Store.
+	private readonly Func<Task<string?>>? _pickPackage;
+	private readonly Func<string, string, Action<string>?, Task>? _customize;
 
 	// The full list behind the filtered one shown.
 	private IReadOnlyList<SamsungRemoteLaunchTarget> _targets = Array.Empty<SamsungRemoteLaunchTarget>();
@@ -63,7 +73,8 @@ public partial class TvToolboxPage : ContentPage
 	private bool _busy;
 
 	public TvToolboxPage(ISdbEngine? sdb, string tvIp, string tvLabel, Func<string, Action<string>, Task<bool>>? installWgt = null,
-		Func<Action<string>, Task<SigningProfile?>>? signingProfile = null)
+		Func<bool, Action<string>, Task<SigningProfile?>>? signingProfile = null,
+		Func<Task<string?>>? pickPackage = null, Func<string, string, Action<string>?, Task>? customize = null)
 	{
 		InitializeComponent();
 		_tvIp = tvIp;
@@ -71,6 +82,10 @@ public partial class TvToolboxPage : ContentPage
 		_sdb = sdb;
 		_installWgt = installWgt;
 		_signingProfile = signingProfile;
+		_pickPackage = pickPackage;
+		_customize = customize;
+		SignPackageBtn.IsEnabled = sdb is not null && pickPackage is not null && signingProfile is not null;
+		SendToTvStoreBtn.IsEnabled = pickPackage is not null;
 		AgentCard.IsEnabled = sdb is not null;
 		AgentNeedsSdbHint.IsVisible = sdb is null;
 		ArmTvStoreBtn.IsEnabled = sdb is not null;
@@ -129,10 +144,10 @@ public partial class TvToolboxPage : ContentPage
 
 	private async Task ConnectAsync()
 	{
-		var progress = new Progress<string>(key => SetStatus($"{_tvLabel} — {L10n.Get(key)}"));
+		var progress = new Progress<string>(key => SetStatus($"{_tvLabel} · {L10n.Get(key)}"));
 		var session = await RemoteSession.ConnectAsync(_tvIp, RemoteCredentials.Instance, progress);
 
-		// Read off the probe, which happens even on the runs that then fail to open the channel — a
+		// Read off the probe, which happens even on the runs that then fail to open the channel, a
 		// refused pairing still told us what kind of set this is.
 		HospitalityNotice.IsVisible = session.Capability.Supported && session.Capability.IsHospitality;
 		_isConsumerSet = session.Capability.Supported && session.Capability.IsConsumer;
@@ -140,16 +155,16 @@ public partial class TvToolboxPage : ContentPage
 
 		if (!session.Connected)
 		{
-			SetStatus($"{_tvLabel} — {L10n.Get(RemoteCredentials.StatusKeyFor(session.Outcome))}");
+			SetStatus($"{_tvLabel} · {L10n.Get(RemoteCredentials.StatusKeyFor(session.Outcome))}");
 			return;
 		}
 
 		_remote = session.Client;
 		var name = string.IsNullOrWhiteSpace(session.TvName) ? _tvLabel : session.TvName;
-		SetStatus($"{name} — {L10n.Get("lblRemoteConnected")}");
+		SetStatus($"{name} · {L10n.Get("lblRemoteConnected")}");
 
 		// Older sets answer "what have you got installed?"; Tizen dropped the query around 2020 and
-		// most current firmware never replies, so this enriches the list rather than filling it — and
+		// most current firmware never replies, so this enriches the list rather than filling it, and
 		// it runs after the list is already on screen.
 		_ = AskTheTvAsync(session.Client!);
 	}
@@ -197,7 +212,7 @@ public partial class TvToolboxPage : ContentPage
 			await LaunchAsync(row.Target);
 	}
 
-	/// <summary>Launches an ID typed by hand — an app in neither list, from a forum post or a manual.</summary>
+	/// <summary>Launches an ID typed by hand, an app in neither list, from a forum post or a manual.</summary>
 	private async void OnLaunchManualClicked(object? sender, EventArgs e)
 	{
 		var id = ManualAppIdEntry.Text?.Trim();
@@ -253,7 +268,7 @@ public partial class TvToolboxPage : ContentPage
 	{
 		var remote = _remote;
 
-		// A system app is launched over SDB, which is a different channel entirely — so an unpaired
+		// A system app is launched over SDB, which is a different channel entirely, so an unpaired
 		// set only blocks the launches that actually need the remote one.
 		if (remote is null && _sdb is null)
 		{
@@ -273,7 +288,7 @@ public partial class TvToolboxPage : ContentPage
 			SetStatus(result switch
 			{
 				{ Succeeded: true, Verified: true } => string.Format(L10n.Get("lblToolboxLaunched"), target.Name),
-				// The message went out and the set never says what became of it — common firmware
+				// The message went out and the set never says what became of it, common firmware
 				// behaviour, and not something to dress up as a confirmed launch.
 				{ Succeeded: true } => string.Format(L10n.Get("lblToolboxLaunchSent"), target.Name),
 				// The launcher's own verdicts, in its words: no route below it can do better.
@@ -290,7 +305,7 @@ public partial class TvToolboxPage : ContentPage
 	}
 
 	// ---------------------------------------------------------------------------------------------
-	// Install leftovers — through the agent (sdbd's own "0 rmfile" deletes nothing on retail firmware)
+	// Install leftovers, through the agent (sdbd's own "0 rmfile" deletes nothing on retail firmware)
 	// ---------------------------------------------------------------------------------------------
 
 	/// <summary>Reads the staging folder again. Read-only; the list and the status line follow.</summary>
@@ -515,32 +530,44 @@ public partial class TvToolboxPage : ContentPage
 
 		_busy = true;
 		ArmTvStoreBtn.IsEnabled = false;
+		ShowTvStoreBtn.IsVisible = false;
 		try
 		{
-			var state = await TvStorePackage.GetInstallStateAsync(_sdb, _tvIp);
+			// This device's package-id renames (#839): a TV-Store installed under a new id is TV-Store too.
+			var renames = MobileSettings.PackageIdRenamesJson;
+			var state = await TvStorePackage.GetInstallStateAsync(_sdb, _tvIp, renames);
 			if (state != TvStoreInstallState.Installed)
 			{
 				SetTvStoreStatus(L10n.Get(state == TvStoreInstallState.Outdated ? "lblToolboxTvStoreOutdated" : "lblToolboxTvStoreNotInstalled"));
+				// The message stays; one more button takes the user to TV-Store's catalog sheet (#888).
+				_tvStoreEntry = TvStorePackage.FindInCatalog(CatalogStore.Releases);
+				_tvStoreOutdated = state == TvStoreInstallState.Outdated;
+				ShowTvStoreBtn.IsVisible = _tvStoreEntry is not null;
 				return;
 			}
 
 			SetTvStoreStatus(L10n.Get("lblToolboxTvStoreCertificate"));
 			var profile = _signingProfile is null
 				? null
-				: await _signingProfile(message => MainThread.BeginInvokeOnMainThread(() => SetTvStoreStatus(message)));
+				: await _signingProfile(false, message => MainThread.BeginInvokeOnMainThread(() => SetTvStoreStatus(message)));
 			if (profile is null)
 			{
 				SetTvStoreStatus(L10n.Get("lblToolboxTvStoreNoCertificate"));
 				return;
 			}
-			var pem = SigningCertificatePem.FromProfile(profile);
+			// Every profile on this phone goes along, the covering one first (#44), so TV-Store can
+			// update an app whichever of them installed it. The store is the profile's parent folder.
+			var pems = SigningCertificatePem.OpenAll(profile, SigningCertificatePem.ProfilesIn(Path.GetDirectoryName(profile.ProfileDir)));
 
 			var progress = new Progress<string>(key => SetTvStoreStatus(L10n.Get(key)));
-			await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress);
+			await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress, renames);
 			SetTvStoreStatus(L10n.Get("lblToolboxTvStoreArming"));
-			await store.ArmAsync(pem);
+			await store.ArmAsync(pems);
 			var status = await store.StatusAsync();
-			SetTvStoreStatus(string.Format(L10n.Get("lblToolboxTvStoreArmed"), store.Version, status.OwnIp ?? _tvIp));
+			// What is left to do depends on the Host PC IP the TV has right now (#960).
+			var tv = await TizenDeveloperInfo.ReadAsync(new NetworkDevice { IpAddress = _tvIp });
+			var next = TvStoreNextSteps.For(tv.DeveloperIP, status.OwnIp);
+			SetTvStoreStatus(string.Format(L10n.Get(TvStoreNextSteps.MessageKey(next)), store.Version, status.OwnIp ?? _tvIp));
 		}
 		catch (OperationCanceledException)
 		{
@@ -566,6 +593,146 @@ public partial class TvToolboxPage : ContentPage
 	}
 
 	private void SetTvStoreStatus(string message) => TvStoreStatusLabel.Text = message;
+
+	private void SetPackageStatus(string message) => PackageStatusLabel.Text = message;
+
+	private void SetPackageBusy(bool busy)
+	{
+		_busy = busy;
+		SignPackageBtn.IsEnabled = !busy && _sdb is not null && _pickPackage is not null && _signingProfile is not null;
+		SendToTvStoreBtn.IsEnabled = !busy && _pickPackage is not null;
+	}
+
+	/// <summary>
+	/// Sign a package (#979): a .wgt/.tpk from the phone, signed with the certificate that covers this
+	/// TV (made first when none does, the same sheet as an install) and handed to the share sheet,
+	/// without installing it. For tools that install another way. The picked file is a cache copy,
+	/// so the user's own file is never changed.
+	/// </summary>
+	private async void OnSignPackageClicked(object? sender, EventArgs e)
+	{
+		if (_busy || _pickPackage is null || _signingProfile is null)
+			return;
+		if (_sdb is null)
+		{
+			SetPackageStatus(L10n.Get("lblToolboxAgentNeedsSdb"));
+			return;
+		}
+
+		var input = await _pickPackage();
+		if (input is null)
+			return;
+		if (!PackageSigner.IsPackage(input))
+		{
+			SetPackageStatus(L10n.Get("statusChooseWgt"));
+			return;
+		}
+
+		SetPackageBusy(true);
+		try
+		{
+			// Partner when the package needs it, as an install would.
+			var needsPartner = WgtPrivileges.RequiresPartner(input);
+			SetPackageStatus(L10n.Get("lblToolboxTvStoreCertificate"));
+			var profile = await _signingProfile(needsPartner, message => MainThread.BeginInvokeOnMainThread(() => SetPackageStatus(message)));
+			if (profile is null)
+			{
+				SetPackageStatus(L10n.Get("lblToolboxTvStoreNoCertificate"));
+				return;
+			}
+
+			var output = Path.Combine(FileSystem.CacheDirectory, "signed", PackageSigner.SuggestedOutputName(input));
+			SetPackageStatus(string.Format(L10n.Get("lblToolboxPackageSigning"), Path.GetFileName(input)));
+			var signed = await PackageSigner.SignCopyAsync(_sdb, input, output, profile,
+				line => MainThread.BeginInvokeOnMainThread(() => SetPackageStatus(ProgressText.Localize(line, L10n.Get))));
+			SetPackageStatus(string.Format(L10n.Get("lblToolboxPackageSigned"), Path.GetFileName(input), _tvLabel, Path.GetFileName(signed.Path)));
+
+			// The phone has no Save as: the share sheet puts the signed copy where it is wanted
+			// (Files, a PC, another app).
+			await Share.Default.RequestAsync(new ShareFileRequest(L10n.Get("lblSignedPackage"), new ShareFile(signed.Path)));
+		}
+		catch (OperationCanceledException)
+		{
+			// The certificate sheet was cancelled.
+			SetPackageStatus(L10n.Get("lblToolboxTvStoreNoCertificate"));
+		}
+		catch (CertificateNotYetValidException ex)
+		{
+			SetPackageStatus(ex.Message);
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[toolbox] sign package failed: {ex}");
+			SetPackageStatus(string.Format(L10n.Get("lblToolboxPackageSignFailed"), ex.Message));
+		}
+		finally
+		{
+			try { File.Delete(input); } catch { /* the cache copy; best-effort */ }
+			SetPackageBusy(false);
+		}
+	}
+
+	/// <summary>
+	/// Send to TV-Store (#979): a .wgt/.tpk from the phone goes to TV-Store's upload page on the TV,
+	/// customized as an install would (the values asked before install) but not signed; TV-Store is
+	/// opened on the TV when it is not running, asks on the screen and signs it itself. No developer
+	/// connection from this phone is involved, so it works while Host PC IP is 127.0.0.1.
+	/// </summary>
+	private async void OnSendToTvStoreClicked(object? sender, EventArgs e)
+	{
+		if (_busy || _pickPackage is null)
+			return;
+
+		var input = await _pickPackage();
+		if (input is null)
+			return;
+		if (!PackageSigner.IsPackage(input))
+		{
+			SetPackageStatus(L10n.Get("statusChooseWgt"));
+			return;
+		}
+
+		SetPackageBusy(true);
+		try
+		{
+			Action<string> report = line => MainThread.BeginInvokeOnMainThread(() => SetPackageStatus(ProgressText.Localize(line, L10n.Get)));
+			if (!await TvStoreHandoff.EnsureRunningAsync(_tvIp, report))
+			{
+				SetPackageStatus(L10n.Get("tvStoreNotRunning"));
+				return;
+			}
+			// The picked file is the cache copy, so the customization may edit it in place.
+			if (_customize is not null)
+				await _customize(_tvIp, input, report);
+			var sent = await TvStoreHandoff.SendAsync(_tvIp, input, report);
+			SetPackageStatus(string.Format(L10n.Get(sent.TvStoreOpened ? "tvStoreSentBody" : "tvStoreSentBodyClosed"), sent.Upload.Name));
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[toolbox] send to TV-Store failed: {ex}");
+			SetPackageStatus(string.Format(L10n.Get("lblToolboxTvStoreFailed"), ex.Message));
+		}
+		finally
+		{
+			try { File.Delete(input); } catch { /* the cache copy; best-effort */ }
+			SetPackageBusy(false);
+		}
+	}
+
+	// TV-Store's catalog entry and whether the TV runs an old one, from the last Arm attempt (#888).
+	private GitHubRelease? _tvStoreEntry;
+	private bool _tvStoreOutdated;
+
+	// Leaves the toolbox (it sits on the Install tab's stack) and opens TV-Store's sheet there, as
+	// an Update when the set has an old one. Install, then come back and arm.
+	private async void OnShowTvStoreClicked(object? sender, EventArgs e)
+	{
+		if (_tvStoreEntry is null || _busy)
+			return;
+		var request = new CatalogOpenRequest(_tvStoreEntry, null, _tvStoreOutdated);
+		await Navigation.PopAsync();
+		await CatalogStore.OpenOnInstallTabAsync(request);
+	}
 
 	private async void OnDetachAgentClicked(object? sender, EventArgs e)
 	{
@@ -795,7 +962,7 @@ public sealed class ToolboxSequenceRow
 		Name = L10n.Get(sequence.NameKey);
 		Description = L10n.Get(sequence.DescriptionKey);
 		Caveat = sequence.CaveatKey is null ? string.Empty : L10n.Get(sequence.CaveatKey);
-		// "KEY_MUTE" reads as "MUTE" — the label on the physical remote, which is what the manuals
+		// "KEY_MUTE" reads as "MUTE", the label on the physical remote, which is what the manuals
 		// that document these combinations print.
 		Keys = string.Join(" · ", sequence.Keys.Select(k => k.StartsWith("KEY_", StringComparison.Ordinal) ? k[4..] : k));
 	}

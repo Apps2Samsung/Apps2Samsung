@@ -32,23 +32,92 @@ public sealed class CertificateProvisioner
 		_config = config;
 	}
 
-	public sealed record Result(string AuthorP12, string DistributorP12, string Password, string ProfileDir, string Duid);
+	/// <param name="Tizen">Set when the profile is a Tizen certificate (#988): a [118, -12] chain
+	/// refusal then means the TV only takes a Samsung one.</param>
+	public sealed record Result(string AuthorP12, string DistributorP12, string Password, string ProfileDir, string Duid,
+		TizenCertificateProfile? Tizen = null);
+
+	/// <summary>How a Tizen certificate run ended (#988): the profile, or the switch to a Samsung one.</summary>
+	public sealed record TizenOutcome(Result? Result, bool Created, bool SamsungInstead);
+
+	/// <summary>
+	/// A Tizen certificate (#988): the SDK's, made on the phone with no account and no DUID, or the
+	/// one already on it for the level the Settings switch means. No TV is needed; with
+	/// <paramref name="tvIp"/> the DUID is read for the package-id rename memory (#839) and a TV that
+	/// will not hand it out only loses that.
+	/// </summary>
+	/// <param name="beforeCreateAsync">Awaited when the certificate has to be made, with the level:
+	/// <see cref="CertificateFlow"/> shows the sheet here. False means the user wants a Samsung
+	/// certificate instead; the caller switches the setting.</param>
+	public async Task<TizenOutcome> ProvisionTizenAsync(
+		string? tvIp,
+		bool requirePartner = false,
+		Action<string>? progress = null,
+		Func<TizenDistributorLevel, CancellationToken, Task<bool>>? beforeCreateAsync = null,
+		Action<CertificateStage>? stage = null,
+		CancellationToken ct = default)
+	{
+		var level = Apps2Samsung.Certificate.CertificateKind.TizenLevel(MobileSettings.CertificatePreference, requirePartner);
+		var store = _config.CertificateStorePath;
+		bool needsNew = _config.ForceSamsungLogin || !TizenProfileStore.HasProfile(store, level);
+
+		if (needsNew && beforeCreateAsync is not null && !await beforeCreateAsync(level, ct))
+			return new TizenOutcome(null, false, true);
+
+		var duid = string.Empty;
+		if (tvIp is not null)
+		{
+			try
+			{
+				progress?.Invoke(L10n.Get("statusReadingTvDuid"));
+				duid = await TizenDuidReader.ReadAsync(_sdb, tvIp, progress: progress);
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Trace.WriteLine($"[cert] DUID not read for the Tizen certificate (not needed): {ex.Message}");
+			}
+		}
+
+		ProgressCallback cb = key =>
+		{
+			if (CertificateStages.FromProgressKey(key) is { } next)
+				stage?.Invoke(next);
+			progress?.Invoke(L10n.Get(key));
+		};
+		var profile = await TizenProfileStore.EnsureAsync(store, level, force: _config.ForceSamsungLogin, progress: cb);
+		return new TizenOutcome(
+			new Result(profile.AuthorP12, profile.DistributorP12, profile.Password, profile.ProfileDir, duid, profile),
+			needsNew, false);
+	}
 
 	/// <param name="beforeLoginAsync">Awaited when a certificate has to be made, before the Samsung
-	/// sign-in: <see cref="CertificateFlow"/> shows the certificate sheet here.</param>
+	/// sign-in, with the level and the TV's DUID: <see cref="CertificateFlow"/> shows the certificate
+	/// sheet here (the DUID tells an imported certificate's coverage, #921).</param>
 	/// <param name="stage">The certificate sheet's step, as the certificate service moves on.</param>
+	/// <param name="knownDuid">The TV's DUID when the caller has it already; null reads it over SDB.</param>
 	public async Task<Result> ProvisionAsync(
 		string tvIp,
 		bool requirePartner = false,
 		Action<string>? progress = null,
-		Func<CertificatePrivilegeLevel, CancellationToken, Task>? beforeLoginAsync = null,
+		Func<CertificatePrivilegeLevel, string, CancellationToken, Task>? beforeLoginAsync = null,
 		Action<CertificateStage>? stage = null,
-		CancellationToken ct = default)
+		CancellationToken ct = default,
+		string? knownDuid = null)
 	{
-		progress?.Invoke(L10n.Get("statusReadingTvDuid"));
-		// Retry the read: old/slow TVs often hand back an empty reply or drop the connection mid-command
-		// on the first try, then answer on a retry. A validated DUID is returned; anything else throws.
-		var duid = await TizenDuidReader.ReadAsync(_sdb, tvIp, progress: progress);
+		string duid;
+		if (knownDuid is not null)
+		{
+			// The caller names the TV (a manual DUID from Settings, #979): nothing is read over SDB,
+			// so this works while the TV's Host PC IP points elsewhere.
+			duid = knownDuid;
+		}
+		else
+		{
+			progress?.Invoke(L10n.Get("statusReadingTvDuid"));
+			// Retry the read: old/slow TVs often hand back an empty reply or drop the connection mid-command
+			// on the first try, then answer on a retry. A validated DUID is returned; anything else throws.
+			duid = await TizenDuidReader.ReadAsync(_sdb, tvIp, progress: progress);
+		}
 
 		var caPath = await MaterializeCaAsync();
 
@@ -87,7 +156,7 @@ public sealed class CertificateProvisioner
 			forceLogin: _config.ForceSamsungLogin,
 			onLoginStarting: () => progress?.Invoke(L10n.Get("SamsungLogin")),
 			progress: cb,
-			beforeLoginAsync: beforeLoginAsync,
+			beforeLoginAsync: beforeLoginAsync is null ? null : (level, token) => beforeLoginAsync(level, duid, token),
 			ct: ct);
 
 		return new Result(profile.AuthorP12, profile.DistributorP12, profile.Password, profile.ProfileDir, duid);

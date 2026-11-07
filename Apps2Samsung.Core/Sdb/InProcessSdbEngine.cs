@@ -325,11 +325,14 @@ namespace Apps2Samsung.Sdb
                 catch (Exception ex)
                 {
                     await slot.DropAsync();
-                    return Fail(ex);
+                    return await WithRelayHintAsync(ip, Fail(ex));
                 }
 
                 if (result.ExitCode != 0)
+                {
                     await slot.DropAsync();
+                    result = await WithRelayHintAsync(ip, result);
+                }
 
                 return result;
             }
@@ -337,6 +340,35 @@ namespace Apps2Samsung.Sdb
             {
                 slot.Gate.Release();
             }
+        }
+
+        // The connect to the relay worked (else ConnectWithRetryAsync already said it is down) but the
+        // relay then dropped the link. TV-Store 0.3.15+ says why at GET /relay, which is better than
+        // any guess; an older one (404), no answer, or a failure that is not this one falls back to
+        // the generic hint.
+        internal static async Task<ProcessResult> WithRelayHintAsync(string ip, ProcessResult result)
+        {
+            if (!SdbEndpoint.UsesRelay(ip) || !SdbTransportErrors.IsTransient(result) ||
+                $"{result.Error} {result.Output}".Contains(SdbEndpoint.RelayHintMarker, StringComparison.Ordinal))
+                return result;
+
+            string? reason = null;
+            try
+            {
+                reason = await SdbEndpoint.RelayReasonAsync(ip).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[sdb] {ip}: could not read the relay's reason: {ex.Message}");
+            }
+
+            var hint = reason ?? SdbEndpoint.RelayDroppedHint(ip, SdbEndpoint.RelayPort(ip));
+            return new ProcessResult
+            {
+                ExitCode = result.ExitCode,
+                Output = $"{result.Output} {hint}".Trim(),
+                Error = $"{result.Error} {hint}".Trim(),
+            };
         }
 
         // Success → ExitCode 0 with the body's text.
@@ -416,6 +448,11 @@ namespace Apps2Samsung.Sdb
         private static async Task<SdbTcpDevice> ConnectWithRetryAsync(string ip)
         {
             var address = IPAddress.Parse(ip);
+            // 26101, or TV-Store's relay port when the TV's Host PC IP is 127.0.0.1 (TV-Store#52):
+            // sdbd then refuses every direct connection and the relay on the TV is the one way in.
+            var port = await SdbEndpoint.ResolvePortAsync(ip);
+            if (port != SdbEndpoint.DirectPort)
+                Trace.WriteLine($"[sdb] {ip}: Host PC IP is 127.0.0.1, connecting through {SdbEndpoint.Describe(ip, port)}");
             Exception? last = null;
             bool competitorSeen = false;
 
@@ -423,7 +460,7 @@ namespace Apps2Samsung.Sdb
             {
                 competitorSeen |= StopCompetingSdbServer();
 
-                var device = new SdbTcpDevice(address);
+                var device = new SdbTcpDevice(address, port);
                 try
                 {
                     await device.ConnectAsync();
@@ -438,7 +475,12 @@ namespace Apps2Samsung.Sdb
                 }
             }
 
-            var failure = last ?? new InvalidOperationException($"Could not connect to {ip}.");
+            var failure = last ?? new InvalidOperationException($"Could not connect to {SdbEndpoint.Describe(ip, port)}.");
+
+            // The relay port did not answer: the user can act on that (turn the relay on in
+            // TV-Store, or point Host PC IP back at this device), not on a bare socket error.
+            if (port != SdbEndpoint.DirectPort)
+                throw new InvalidOperationException($"{failure.Message} {SdbEndpoint.RelayDownHint(ip, port)}", failure);
 
             // The connect still died after a competing server was stopped: either it came straight
             // back (Tizen Studio relaunches it) or the TV has not let go of the old link yet. Either

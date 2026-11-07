@@ -81,6 +81,15 @@ namespace Apps2Samsung.Packaging
             return Write(records);
         }
 
+        /// <summary>
+        /// Whether <paramref name="originalPackageId"/> was installed under another id on any TV. For
+        /// the app sheet, which has no DUID at hand yet offers the way back to the package's own id
+        /// (<c>PackageIdPolicy.OwnId</c>) only when there is a rename to undo.
+        /// </summary>
+        public static bool IsRenamedAnywhere(string? json, string? originalPackageId) =>
+            !string.IsNullOrWhiteSpace(originalPackageId) &&
+            Read(json).Any(r => string.Equals(r.OriginalPackageId, originalPackageId, StringComparison.Ordinal));
+
         /// <summary>Forgets the rename for (TV, original package id); the next install uses the package's own id again.</summary>
         public static string Remove(string? json, string? tvDuid, string? originalPackageId)
         {

@@ -56,7 +56,9 @@ namespace Apps2Samsung.Catalog
             var q = (query ?? string.Empty).Trim();
             if (q.Length > 0)
             {
-                var hits = all.Where(r => r.Name.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
+                // The app's name or who makes it (#888): "that app by XYZ" finds XYZ's apps.
+                var hits = all.Where(r => r.Name.Contains(q, StringComparison.OrdinalIgnoreCase)
+                    || (r.Author?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false)).ToList();
                 return new[] { new CatalogGroup(SearchId, localize("lblResults"), hits.Count, hits, false, true) };
             }
 

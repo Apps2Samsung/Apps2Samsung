@@ -4,6 +4,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Apps2Samsung.Catalog;
+using Apps2Samsung.Sdb;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
@@ -11,6 +12,7 @@ using Apps2Samsung.Packaging;
 using Apps2Samsung.Design;
 using Apps2Samsung.Update;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Apps2Samsung.Styles;
 using Apps2Samsung.Models;
 using Apps2Samsung.Services;
@@ -21,6 +23,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
 using Apps2Samsung.Extensions;
@@ -61,6 +64,8 @@ namespace Apps2Samsung.ViewModels
         // Apps from a provider with a version history (Jellyfin): their sheet offers "Show all versions".
         private readonly HashSet<string> _multiVersionApps = new(StringComparer.OrdinalIgnoreCase);
         private GitHubRelease? _customEntry;
+        // Set when the user's sources changed during a catalog load: one more load follows it.
+        private bool _reloadReleasesWhenDone;
 
         [ObservableProperty]
         private ObservableCollection<CategoryOption> categories = new ObservableCollection<CategoryOption>();
@@ -192,6 +197,8 @@ namespace Apps2Samsung.ViewModels
         // install. Releases / SelectedRelease / SelectedAsset stay the install pipeline's inputs;
         // the list is a view over them.
         private readonly HttpClient _httpClient;
+        // The catalog's app icons (#1000), cached next to the manifest cache.
+        private readonly CatalogIcons _catalogIcons;
         private ProviderManifest? _manifest;
         [ObservableProperty]
         private string searchText = string.Empty;
@@ -239,13 +246,37 @@ namespace Apps2Samsung.ViewModels
             public bool IsEmpty => Rows.Count == 0;
         }
 
-        /// <summary>A list row: the release, its letter tile and the one-line subline.</summary>
-        public sealed record CatalogRow(GitHubRelease Release, string Letter, IBrush TileBrush, string Subline)
+        /// <summary>A list row: the release, its letter tile (or the app's icon once it is loaded, #1000) and the one-line subline.</summary>
+        /// <param name="NeedsTizen">"Needs Tizen X" when the selected TV runs none of the app's builds (TV-Store#47); null otherwise.</param>
+        public sealed record CatalogRow(GitHubRelease Release, string Letter, IBrush TileBrush, string Subline, string? NeedsTizen = null)
+            : System.ComponentModel.INotifyPropertyChanged
         {
+            private Bitmap? _icon;
+
             public string Name => Release.Name;
             /// <summary>The 18+ badge next to the name (#850); only ever true with the setting on.</summary>
             public bool IsAdult => Release.IsAdult;
             public bool IsRoot => Release.IsRoot;
+            /// <summary>The "own source" badge: the entry comes from a source the user added (UserSources).</summary>
+            public bool IsUserSource => Release.IsUserSource;
+            public bool HasNeedsTizen => NeedsTizen is not null;
+
+            /// <summary>The app's icon from the catalog, set once it is on disk; the letter tile shows until then and when there is none.</summary>
+            public Bitmap? Icon
+            {
+                get => _icon;
+                set
+                {
+                    if (ReferenceEquals(_icon, value))
+                        return;
+                    _icon = value;
+                    PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(Icon)));
+                    PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(HasIcon)));
+                }
+            }
+            public bool HasIcon => _icon is not null;
+
+            public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
         }
 
         /// <summary>"Show all" / "Show less" on a group.</summary>
@@ -267,8 +298,26 @@ namespace Apps2Samsung.ViewModels
                 : category;
             if (release.Downloads > 0)
                 subline += $" · {string.Format(L("lblDownloadsCount"), DownloadStatsService.Compact(release.Downloads))}";
-            return new CatalogRow(release, AppTiles.Letter(release.Name),
-                DesignTheme.Brush(AppTiles.ColorToken(release.Category, release.Name)), subline);
+            // The selected TV runs none of the app's builds (TV-Store#47): badge it like TV-Store does.
+            var needsTizen = TizenRequirement.NoneFits(release, SelectedTvVersion)
+                ? string.Format(L("lblNeedsTizenBadge"), TizenRequirement.Lowest(release.Assets))
+                : null;
+            var row = new CatalogRow(release, AppTiles.Letter(release.Name),
+                DesignTheme.Brush(AppTiles.ColorToken(release.Category, release.Name)), subline, needsTizen);
+            // The icon arrives when it is on disk (a cached one at once); the letter tile holds the place.
+            _ = LoadRowIconAsync(row);
+            return row;
+        }
+
+        private async Task LoadRowIconAsync(CatalogRow row)
+        {
+            var asset = CatalogIcons.IconAssetOf(row.Release);
+            if (asset is null)
+                return;
+            var path = await _catalogIcons.PathForAsync(asset);
+            var bitmap = CatalogIconBitmaps.For(path);
+            if (bitmap is not null)
+                await Dispatcher.UIThread.InvokeAsync(() => row.Icon = bitmap);
         }
 
         // The catalog as short groups per category (Core's CatalogGroups), or one flat result
@@ -304,7 +353,7 @@ namespace Apps2Samsung.ViewModels
             if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
                 return;
             var found = AvailableDevices.Where(d => !string.IsNullOrWhiteSpace(d.IpAddress) && d.IpAddress != L("lblOther")).ToList();
-            var result = await new Views.TvPickerWindow(found, SelectedDevice, L).ShowDialog<Views.TvPickerResult?>(desktop.MainWindow);
+            var result = await new Views.TvPickerWindow(found, SelectedDevice, L, _localIps, PreferredLocalIp).ShowDialog<Views.TvPickerResult?>(desktop.MainWindow);
             if (result is null)
                 return;
             if (result.Rescan)
@@ -334,7 +383,10 @@ namespace Apps2Samsung.ViewModels
                 L,
                 _favorites.Contains(row.Release.Name),
                 SetFavorite,
-                _multiVersionApps.Contains(row.Release.Name));
+                _multiVersionApps.Contains(row.Release.Name),
+                SelectedTvVersion,
+                row.TileBrush,
+                _catalogIcons);
             var showAllBefore = AppSettings.Default.ShowAllJellyfinVersions;
             var asset = await new Views.AppDetailWindow(sheet).ShowDialog<Asset?>(desktop.MainWindow);
             if (asset is not null)
@@ -342,9 +394,10 @@ namespace Apps2Samsung.ViewModels
                 CustomWgtPath = string.Empty;
                 SelectedRelease = row.Release;
                 SelectedAsset = asset;
-                // The sheet's "Install under a new package id" (#839) holds for this install only; a
-                // rename made earlier for this TV applies by itself.
+                // The sheet's "Install under a new package id" and "Back to its own package id" (#839)
+                // hold for this install only; a rename made earlier for this TV applies by itself.
                 AppSettings.Default.InstallUnderNewPackageId = sheet.NewPackageId;
+                AppSettings.Default.InstallUnderOwnPackageId = sheet.OwnPackageId;
                 try
                 {
                     if (DownloadAndInstallCommand.CanExecute(null))
@@ -353,11 +406,15 @@ namespace Apps2Samsung.ViewModels
                 finally
                 {
                     AppSettings.Default.InstallUnderNewPackageId = false;
+                    AppSettings.Default.InstallUnderOwnPackageId = false;
                 }
             }
             // "Show all versions" changed in the sheet: the catalog follows once it is closed.
             if (AppSettings.Default.ShowAllJellyfinVersions != showAllBefore)
                 await LoadReleasesAsync();
+            // The developer's name clicked: the search box takes it, the list shows their apps (#888).
+            if (sheet.SearchAuthorRequested && !string.IsNullOrEmpty(row.Release.Author))
+                SearchText = row.Release.Author;
         }
 
         /// <summary>The "Your own package" row: pick a .wgt / .tpk, then install it on the selected TV.</summary>
@@ -447,12 +504,15 @@ namespace Apps2Samsung.ViewModels
             _dialogService = dialogService;
             _networkService = networkService;
             _packageHelper = packageHelper;
+            // A failed install turns the card amber (TvCardStates): re-rendered when the helper records or clears one.
+            _packageHelper.InstallFailureChanged += () => Dispatcher.UIThread.Post(UpdateTvCard);
             _localizationService = localizationService;
             _themeService = themeService;
             _updaterService = updaterService;
             _updateDialogService = updateDialogService;
             _fileHelper = fileHelper;
             _settingsViewModel = settingsViewModel;
+            SubscribeToNetworkChanges();
             // Settings > Check: the same check as at startup, but it always speaks.
             _settingsViewModel.CheckForUpdatesHandler = () => CheckForUpdatesAsync(manual: true);
             // Settings > Installing > Prepare the certificate now: for the selected TV.
@@ -469,7 +529,17 @@ namespace Apps2Samsung.ViewModels
                 RebuildCategories();
                 ApplyCategoryFilter();
             };
+            // A source of the user's own added or removed: the catalog is read again with it (after
+            // the load in progress, when there is one).
+            _settingsViewModel.Application.UserSourcesChanged += () =>
+            {
+                if (IsLoading)
+                    _reloadReleasesWhenDone = true;
+                else
+                    _ = LoadReleasesAsync();
+            };
             _httpClient = httpClient;
+            _catalogIcons = new CatalogIcons(httpClient, Path.Combine(ProviderManifestService.CacheDirectory, "catalog-icons"));
 
             // Snapshot-first: the pre-resolved catalog serves the manifest's providers; the GitHub
             // API is only asked for what it lacks.
@@ -579,12 +649,31 @@ namespace Apps2Samsung.ViewModels
             DownloadCommand?.NotifyCanExecuteChanged();
         }
 
+        /// <summary>The selected TV's Tizen version, once a capability report or a probe said it; null until then.</summary>
+        private Version? SelectedTvVersion =>
+            SelectedDevice is { } d && d.IpAddress != L("lblOther") ? TizenVersionCache.TryGet(d.IpAddress) : null;
+
+        // One capability round-trip when a ready TV is selected (TV-Store#47): the catalog can then
+        // say which apps this set is too old for. The rows are rebuilt when the answer comes in.
+        private async Task ProbeTizenVersionAsync(string ip)
+        {
+            if (TizenVersionCache.TryGet(ip) is not null)
+                return;
+            await TizenVersionCache.ProbeAsync(_sdbEngine, ip);
+            if (TizenVersionCache.TryGet(ip) is not null && SelectedDevice?.IpAddress == ip)
+                await Dispatcher.UIThread.InvokeAsync(RebuildCatalogRows);
+        }
+
         partial void OnSelectedDeviceChanged(NetworkDevice? value)
         {
+            _packageHelper.ClearInstallFailure();
             if (value?.IpAddress == L("lblOther"))
                 _ = PromptForManualIpAsync();
             else if (value != null && !value.DebugPortOpen && !string.IsNullOrWhiteSpace(value.IpAddress))
                 SetStatus(DeviceNotReadyStatusKey(value)); // detected TV, but not installable yet
+            else if (value != null && !string.IsNullOrWhiteSpace(value.IpAddress))
+                _ = ProbeTizenVersionAsync(value.IpAddress);
+            RebuildCatalogRows();
 
             // Read once per TV, not on every status line: the guide's Diagnose compares against them.
             _localIps = _packageHelper.LocalIps();
@@ -608,7 +697,7 @@ namespace Apps2Samsung.ViewModels
         /// </summary>
         private void UpdateTvCard()
         {
-            var localIp = AppSettings.Default.LocalIp;
+            var localIp = PreferredLocalIp;
             var device = SelectedDevice;
             TvCardState state;
             if (IsLoadingDevices)
@@ -616,19 +705,176 @@ namespace Apps2Samsung.ViewModels
             else if (device is null || string.IsNullOrWhiteSpace(device.IpAddress) || device.IpAddress == L("lblOther"))
                 state = TvCardStates.NoTv(L, localIp);
             else
-                state = TvCardStates.ForDevice(device, localIp, L);
+                state = TvCardStates.ForDevice(device, _localIps, localIp, L);
 
             var busy = IsLoadingDevices || IsLoading || IsInstallProgressVisible || IsSamsungLoginActive;
+            // The status bar is the card's line while something runs or just happened. At rest, a TV
+            // the guide calls not ready keeps its own verdict: "Ready for use..." from the scan would
+            // otherwise sit on an amber LED.
+            var idle = _currentStatusKey is "Ready" || _currentStatusKey.StartsWith("DevNotReady", StringComparison.Ordinal);
+            var message = string.IsNullOrWhiteSpace(StatusBar) || (!busy && idle && state.Led == TvLed.Warn)
+                ? state.Message
+                : StatusBar;
+            // The last install on this TV failed (a refused connection, most often): amber, with the
+            // failure as the line, until the TV or the list changes or the next install starts.
+            var failed = !busy && _packageHelper.LastInstallFailure is not null && state.IsDevice;
             TvCard = state with
             {
-                Led = busy ? TvLed.Busy : state.Led,
-                Message = string.IsNullOrWhiteSpace(StatusBar) ? state.Message : StatusBar,
+                Led = busy ? TvLed.Busy : failed && state.Led == TvLed.Ok ? TvLed.Warn : state.Led,
+                Message = message,
                 Progress = IsInstallProgressVisible ? InstallProgress : null,
+                Actions = busy ? Array.Empty<TvCardAction>() : state.Actions,
             };
+            TvCardRouteText = TvCardStates.RouteText(TvCard, L);
+            SyncTvCardActions(TvCard.Actions);
             OpenTvGuideCommand.NotifyCanExecuteChanged();
         }
 
+        // The address to name in a message: the card the user picked in Settings, else the first
+        // interface we have. Empty only means "say nothing about the IP", never 127.0.0.1.
+        private string? PreferredLocalIp => string.IsNullOrEmpty(AppSettings.Default.LocalIp)
+            ? _localIps.FirstOrDefault()
+            : AppSettings.Default.LocalIp;
+
+        /// <summary>The route pill on the card: "via TV-Store relay" / "relay off"; empty for a direct TV.</summary>
+        [ObservableProperty]
+        private string tvCardRouteText = string.Empty;
+
+        /// <summary>One chip on the TV card's screen (<see cref="TvCardAction"/>, labelled through the catalog).</summary>
+        public sealed record TvCardActionItem(TvCardAction Action, string Label);
+
+        /// <summary>The chips under the card's status line while the TV isn't ready; empty when it is, or while something runs.</summary>
+        public ObservableCollection<TvCardActionItem> TvCardActions { get; } = new();
+        public bool HasTvCardActions => TvCardActions.Count > 0;
+
+        // Rebuilt only when the set changes, so a status-line tick doesn't re-create the buttons.
+        private void SyncTvCardActions(IReadOnlyList<TvCardAction> actions)
+        {
+            if (TvCardActions.Select(a => a.Action).SequenceEqual(actions)
+                && TvCardActions.All(a => a.Label == L(TvCardStates.ActionLabelKey(a.Action))))
+                return;
+            TvCardActions.Clear();
+            foreach (var action in actions)
+                TvCardActions.Add(new TvCardActionItem(action, L(TvCardStates.ActionLabelKey(action))));
+            OnPropertyChanged(nameof(HasTvCardActions));
+        }
+
+        /// <summary>
+        /// A chip on the card: the guide for a Developer Mode problem or the relay, a re-read of the
+        /// TV for "Check again" and "I restarted it" (the debug port is probed again only when the
+        /// scan saw it closed, which is the restart case).
+        /// </summary>
+        [RelayCommand]
+        private async Task RunTvCardActionAsync(TvCardActionItem? item)
+        {
+            if (item is null || SelectedDevice is not { } device)
+                return;
+            switch (item.Action)
+            {
+                case TvCardAction.FixDeveloperMode:
+                case TvCardAction.TurnOnRelay:
+                    if (OpenTvGuideCommand.CanExecute(null))
+                        await OpenTvGuideAsync();
+                    break;
+                case TvCardAction.CheckAgain:
+                case TvCardAction.Restarted:
+                    _localIps = _packageHelper.LocalIps();
+                    await _packageHelper.RefreshDeviceAsync(device);
+                    _packageHelper.ClearInstallFailure();
+                    SetStatus(IsSelectedDeviceReady ? "Ready" : DeviceNotReadyStatusKey(device));
+                    RefreshCanExecuteChanged();
+                    UpdateTvCard();
+                    break;
+            }
+        }
+
         private IReadOnlyCollection<string> _localIps = Array.Empty<string>();
+
+        // ---- The local side of the readiness verdict (#922) ----
+        // Everything "this machine" is compared against is re-read on every scan and when the OS
+        // reports an address change (a Mac waking up tears the Wi-Fi interface down and brings it
+        // back; the addresses read at startup then describe an interface that no longer exists, and
+        // the TV stays "not ready" until a relaunch re-reads them).
+
+        private CancellationTokenSource? _networkChangeDebounce;
+
+        private void SubscribeToNetworkChanges()
+        {
+            try
+            {
+                NetworkChange.NetworkAddressChanged += OnNetworkChanged;
+                NetworkChange.NetworkAvailabilityChanged += OnNetworkChanged;
+            }
+            catch (Exception ex)
+            {
+                // Not every platform raises these; the per-scan refresh still covers it.
+                Trace.WriteLine($"[Network] Address change notifications unavailable: {ex.Message}");
+            }
+        }
+
+        // Interfaces flap several times while one re-associates; wait for them to settle, then
+        // re-read the local side and re-probe the TVs we know about. Quiet: no "no TV found, retry?"
+        // dialog from a rescan nobody asked for.
+        private void OnNetworkChanged(object? sender, EventArgs e)
+        {
+            _networkChangeDebounce?.Cancel();
+            var cts = new CancellationTokenSource();
+            _networkChangeDebounce = cts;
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(3), cts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+
+                await Dispatcher.UIThread.InvokeAsync(async () =>
+                {
+                    if (!_windowOpened || IsLoadingDevices || IsLoading || IsInstallProgressVisible || IsSamsungLoginActive)
+                        return;
+                    Trace.WriteLine("[Network] Address change: re-reading the local side and rescanning.");
+                    await LoadDevicesAsync(quiet: true);
+                });
+            });
+        }
+
+        // Re-read the configured local IP (Settings' network card list) and the interface addresses
+        // before a scan, so the verdicts of this scan are computed against the machine as it is now.
+        private async Task RefreshLocalSideAsync()
+        {
+            await _settingsViewModel.Application.RefreshNetworkInterfacesAsync();
+            _localIps = _packageHelper.LocalIps();
+        }
+
+        // The SDB engine reuses one connection per TV; after a sleep that connection follows a route
+        // that is gone. Drop them so the next install connects fresh along the current route.
+        private async Task ForgetSdbConnectionsAsync(IEnumerable<string> tvIps)
+        {
+            foreach (var ip in tvIps)
+            {
+                try { await _sdbEngine.DisconnectAsync(ip); }
+                catch (Exception ex) { Trace.WriteLine($"[Network] Could not drop the SDB connection to {ip}: {ex.Message}"); }
+            }
+        }
+
+        private void TraceScanDiagnostics()
+        {
+            try
+            {
+                Trace.WriteLine(ScanDiagnostics.Describe(
+                    AppSettings.Default.LocalIp,
+                    _networkService.GetLocalIPAddress(),
+                    _localIps,
+                    AvailableDevices.Where(d => d.IpAddress != L("lblOther"))));
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Scan] diagnostics failed: {ex.Message}");
+            }
+        }
 
         /// <summary>The card is clickable while the TV isn't ready and nothing runs on it.</summary>
         private bool CanOpenTvGuide() =>
@@ -1087,6 +1333,10 @@ namespace Apps2Samsung.ViewModels
                         if (!AppSettings.Default.KeepWGTFile)
                             _packageHelper.CleanupDownloadedPackage(downloadPath);
 
+                        // Which file this TV got (#975): On the TV compares with it, and its Update installs it again.
+                        if (installed && SelectedAsset is not null)
+                            RememberInstalledVariant(SelectedDevice.IpAddress, SelectedRelease, SelectedAsset);
+
                         // The step only the user can take, now that the package is on the TV.
                         if (installed && rootRelease is not null)
                             await _dialogService.ShowMessageAsync(
@@ -1138,6 +1388,29 @@ namespace Apps2Samsung.ViewModels
                 await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblInstalledApps"), ex));
             }
         }
+        /// <summary>
+        /// Writes down which of an app's files a TV got (#975, Core <c>InstalledVariantStore</c>): an
+        /// app with several variants ships them under one id and version, so the TV's own list cannot
+        /// tell them apart. Keyed by the catalog's app id, the id the On the TV section matches on.
+        /// </summary>
+        private static void RememberInstalledVariant(string tvIp, GitHubRelease release, Asset asset)
+        {
+            if (string.IsNullOrWhiteSpace(asset.AppId))
+                return;
+            AppSettings.Default.InstalledVariantsJson = Apps2Samsung.Packaging.InstalledVariantStore.Set(
+                AppSettings.Default.InstalledVariantsJson,
+                new Apps2Samsung.Packaging.InstalledVariantRecord
+                {
+                    TvIp = tvIp,
+                    AppId = asset.AppId,
+                    CatalogApp = release.Name,
+                    Variant = asset.Variant,
+                    PackageFile = asset.FileName,
+                    InstalledAtUtc = DateTimeOffset.UtcNow,
+                });
+            AppSettings.Default.Save();
+        }
+
         // "Update" on an installed app (#820): the catalog entry it came from, installed the same
         // way the app sheet does it. SelectedRelease first: changing it resets the asset.
         private async Task UpdateFromCatalogAsync(GitHubRelease release, Asset asset)
@@ -1256,19 +1529,87 @@ namespace Apps2Samsung.ViewModels
                 // Arm TV-Store (#844) hands over the profile an install would sign with: made or
                 // extended here first (the certificate sheet when a sign-in is needed), then read back
                 // from the store for the TV's DUID.
-                Func<Action<string>, Task<Apps2Samsung.Install.SigningProfile?>> signingProfile = async report =>
+                // Sign a package… (#979) asks the same, Partner when the package needs it, and falls
+                // back to the first manual DUID from Settings when the TV cannot be read over SDB (a
+                // Host PC IP that points elsewhere), as the CLI's --duids does.
+                Func<bool, Action<string>, Task<Apps2Samsung.Install.SigningProfile?>> signingProfile = async (requirePartner, report) =>
                 {
-                    using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-                    if (await _tizenInstaller.PrepareCertificateAsync(tvIp, timeout.Token) == CertificatePreparation.Failed)
-                        return null;
+                    // A Tizen certificate (#988) names no TV: no DUID to read, the profile is the
+                    // one on disk (made now when missing). Unless its sheet switched to Samsung.
+                    if (Apps2Samsung.Certificate.CertificateKind.IsTizen(AppSettings.Default.CertificateKind))
+                    {
+                        using var tizenTimeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                        if (await _tizenInstaller.PrepareCertificateAsync(tvIp, tizenTimeout.Token, requirePartner) == CertificatePreparation.Failed)
+                            return null;
+                        if (Apps2Samsung.Certificate.CertificateKind.IsTizen(AppSettings.Default.CertificateKind))
+                        {
+                            var tizen = await Apps2Samsung.Certificate.TizenProfileStore.EnsureAsync(AppSettings.CertificatePath,
+                                Apps2Samsung.Certificate.CertificateKind.TizenLevel(AppSettings.Default.CertificatePreference, AppSettings.Default.RequiresPartnerSigning || requirePartner));
+                            return new Apps2Samsung.Install.SigningProfile(tizen.AuthorP12, tizen.DistributorP12, tizen.Password, tizen.ProfileDir);
+                        }
+                    }
+                    var preferred = requirePartner ? Apps2Samsung.Interfaces.CertificatePrivilegeLevel.Partner : (Apps2Samsung.Interfaces.CertificatePrivilegeLevel?)null;
                     report(L("lblToolboxTvStoreReadingDuid"));
-                    var duid = await Apps2Samsung.Sdb.TizenDuidReader.ReadAsync(_sdbEngine, tvIp, progress: report);
-                    return Apps2Samsung.Certificate.SigningCertificatePem.FindProfileCovering(AppSettings.CertificatePath, duid);
+                    string duid;
+                    try
+                    {
+                        duid = await Apps2Samsung.Sdb.TizenDuidReader.ReadAsync(_sdbEngine, tvIp, progress: report);
+                    }
+                    catch (Exception ex)
+                    {
+                        // No developer connection: a profile that already lists the manual DUID (made
+                        // from Settings, where the manual DUIDs go into the certificate) is what there is.
+                        Trace.WriteLine($"[toolbox] DUID over SDB failed, trying the manual DUIDs: {ex.Message}");
+                        var manual = AppSettings.Default.ManualDuids
+                            .Split(new[] { ',', ';', ' ', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                            .FirstOrDefault();
+                        if (manual is null)
+                        {
+                            report(L("lblToolboxPackageNoDuid"));
+                            return null;
+                        }
+                        return Apps2Samsung.Certificate.SigningCertificatePem.FindProfileCovering(AppSettings.CertificatePath, manual, preferred);
+                    }
+                    using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                    if (await _tizenInstaller.PrepareCertificateAsync(tvIp, timeout.Token, requirePartner) == CertificatePreparation.Failed)
+                        return null;
+                    return Apps2Samsung.Certificate.SigningCertificatePem.FindProfileCovering(AppSettings.CertificatePath, duid, preferred);
                 };
 
-                var vm = new TvToolboxViewModel(tvIp, label, _sdbEngine, installWgt, signingProfile);
+                // The Package file section's pickers (this window's storage provider) and the
+                // install's customization step (#979).
+                var storage = desktop.MainWindow?.StorageProvider;
+                var packageHooks = storage is null ? null : new TvToolboxPackageHooks(
+                    PickPackage: async () =>
+                    {
+                        var picked = await _fileHelper.BrowseWgtFilesAsync(storage);
+                        return picked?.Split(';', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+                    },
+                    PickSavePath: async suggested =>
+                    {
+                        var ext = Path.GetExtension(suggested).TrimStart('.');
+                        var target = await storage.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
+                        {
+                            Title = L("lblSignedPackage"),
+                            SuggestedFileName = suggested,
+                            DefaultExtension = ext,
+                            FileTypeChoices = new[] { new Avalonia.Platform.Storage.FilePickerFileType(ext.ToUpperInvariant()) { Patterns = new[] { "*." + ext } } },
+                        });
+                        return target?.Path.LocalPath;
+                    },
+                    Customize: (ip, path) => _tizenInstaller.CustomizeAsync(ip, path));
+
+                // No (or an old) TV-Store on the set: the toolbox closes itself and TV-Store's sheet
+                // opens here, where installs run (#888). Only offered while the catalog lists it.
+                GitHubRelease? tvStoreToShow = null;
+                var tvStoreEntry = TvStore.TvStorePackage.FindInCatalog(_allReleases);
+                Action? showTvStoreInCatalog = tvStoreEntry is null ? null : () => tvStoreToShow = tvStoreEntry;
+
+                var vm = new TvToolboxViewModel(tvIp, label, _sdbEngine, installWgt, signingProfile, showTvStoreInCatalog, packageHooks);
                 var window = new Views.TvToolboxWindow(vm);
                 await window.ShowDialog(desktop.MainWindow);
+                if (tvStoreToShow is not null)
+                    await OpenAppAsync(RowFor(tvStoreToShow));
             }
             catch (Exception ex)
             {
@@ -1381,7 +1722,11 @@ namespace Apps2Samsung.ViewModels
                 var stats = _downloadStats.GetAsync(cancellationToken);
                 var manifest = await _providerManifestService.GetAsync();
                 _manifest = manifest;
-                foreach (var provider in manifest.Providers)
+                // The manifest's providers, then the sources the user added themselves (UserSources):
+                // a developer's own repository, nightly or feed, listed without waiting for the community packages.
+                var providers = await Apps2Samsung.Catalog.UserSources.ResolveAsync(
+                    _httpClient, manifest.Providers, Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson), cancellationToken);
+                foreach (var provider in providers)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     if (string.IsNullOrWhiteSpace(provider.Url))
@@ -1419,6 +1764,7 @@ namespace Apps2Samsung.ViewModels
                         {
                             r.RequiresPartner = requiresPartner;
                             r.Category = category;
+                            r.IsUserSource = provider.IsUserSource;
                             SourceRepo.StampFromApiUrl(r, provider.Url);
                             r.Description = provider.BuildInfo?.Description?.Trim() ?? string.Empty;
                             if (provider.Take > 1)
@@ -1450,6 +1796,11 @@ namespace Apps2Samsung.ViewModels
                 if (!Releases.Contains(CustomEntry))
                     Releases.Add(CustomEntry);
                 IsLoading = false;
+            }
+            if (_reloadReleasesWhenDone)
+            {
+                _reloadReleasesWhenDone = false;
+                await LoadReleasesAsync(cancellationToken);
             }
         }
 
@@ -1496,9 +1847,14 @@ namespace Apps2Samsung.ViewModels
             RebuildCatalogRows();
         }
 
-        private async Task LoadDevicesAsync(CancellationToken cancellationToken = default, bool virtualScan = false)
+        private async Task LoadDevicesAsync(CancellationToken cancellationToken = default, bool virtualScan = false, bool quiet = false)
         {
+            _packageHelper.ClearInstallFailure();
             IsLoadingDevices = true;
+            var knownIps = AvailableDevices
+                .Select(d => d.IpAddress)
+                .Where(ip => !string.IsNullOrWhiteSpace(ip) && ip != L("lblOther"))
+                .ToList();
             AvailableDevices.Clear();
             RefreshVpnWarning();
 
@@ -1506,14 +1862,20 @@ namespace Apps2Samsung.ViewModels
             {
                 string? selectedIp = SelectedDevice?.IpAddress;
 
+                // This machine's side first, as it is now, not as it was at startup (#922).
+                await RefreshLocalSideAsync();
+                await ForgetSdbConnectionsAsync(knownIps);
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // Scan + Developer-Mode enrichment, shared with the mobile head (Core).
                 var devices = await TizenDeveloperInfo.ScanAsync(_networkService, cancellationToken, virtualScan);
                 foreach (var device in devices)
                     AvailableDevices.Add(device);
+                TraceScanDiagnostics();
 
                 if (AvailableDevices.Count == 0)
                 {
-                    if (!virtualScan)
+                    if (!virtualScan && !quiet)
                     {
                         SetStatus("NoDevicesFoundRetry");
                         var rescan = await _dialogService.ShowConfirmationAsync(
@@ -1579,6 +1941,9 @@ namespace Apps2Samsung.ViewModels
                 }
 
                 IsLoadingDevices = false;
+                // The verdict on the card is recomputed from the freshly read local side even when
+                // the selection did not change (same TV found again).
+                UpdateTvCard();
             }
         }
         private async Task PromptForManualIpAsync()

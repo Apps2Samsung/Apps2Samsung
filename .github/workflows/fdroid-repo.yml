@@ -35,23 +35,23 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           ref: beta
           fetch-depth: 0
           # Admins are on the ruleset's bypass list, GITHUB_TOKEN is not — and the commit
           # below carries [skip ci], so the required checks can never report on it anyway.
-          # Checking out with the PAT makes the push at the end use it too.
-          token: ${{ secrets.CI_PUSH_TOKEN }}
+          # The push at the end hands the PAT to git itself, so the clone keeps no credentials.
+          persist-credentials: false
 
       - name: Set up Java
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@v6.1.0
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Set up Android build-tools (apksigner/aapt for fdroidserver)
-        uses: android-actions/setup-android@v4
+        uses: android-actions/setup-android@v4.0.4
 
       - name: Install build-tools + fdroidserver
         run: |
@@ -126,5 +126,5 @@ jobs:
             echo "No changes to publish."
           else
             git commit -m "fdroid: publish repo for the latest stable APK [skip ci]"
-            git push origin beta
+            git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}" beta
           fi

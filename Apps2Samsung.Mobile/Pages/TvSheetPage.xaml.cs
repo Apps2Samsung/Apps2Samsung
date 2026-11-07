@@ -22,18 +22,23 @@ public partial class TvSheetPage : ContentPage
 
 	public Task<TvSheetChoice?> Result => _result.Task;
 
-	public TvSheetPage(IReadOnlyList<TvEntry> tvs, int selected)
+	/// <param name="localIps">This phone's addresses, for the readiness verdict per row (the card's own, <see cref="TvCardStates.RowStatus"/>).</param>
+	public TvSheetPage(IReadOnlyList<TvEntry> tvs, int selected, IReadOnlyCollection<string>? localIps = null)
 	{
 		InitializeComponent();
-		var localIp = NetworkInfo.GetLocalIPv4();
+		localIps ??= Array.Empty<string>();
 		for (var i = 0; i < tvs.Count; i++)
 		{
 			if (i > 0)
 				Rows.Add(Hairline(37));
 			var tv = tvs[i];
-			var state = TvCardStates.ForDevice(tv.Device ?? new NetworkDevice { IpAddress = tv.Ip }, localIp, L10n.Get);
+			var localIp = NetworkInfo.LocalIpFor(tv.Ip);
+			var device = tv.Device ?? new NetworkDevice { IpAddress = tv.Ip };
+			var state = TvCardStates.ForDevice(device, localIps, localIp, L10n.Get);
+			// Name over "model · IP · where it stands": "via relay", "points at 192.168.1.20", "needs a restart".
+			var (led, detail) = TvCardStates.RowStatus(device, localIps, localIp, L10n.Get);
 			var index = i;
-			Rows.Add(TvRow(state.Name, $"{state.Subline} · {state.Message}", i == selected, state.Led == TvLed.Ok,
+			Rows.Add(TvRow(state.Name, string.IsNullOrEmpty(detail) ? state.Subline : $"{state.Subline} · {detail}", i == selected, led == TvLed.Ok,
 				() => Choose(new TvSheetChoice(index))));
 		}
 		FoundTitle.IsVisible = FoundCard.IsVisible = tvs.Count > 0;

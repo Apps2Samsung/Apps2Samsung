@@ -21,6 +21,25 @@
 		<Style Selector="Border.led.bad">
 			<Setter Property="Background" Value="{DynamicResource LedBadBrush}"/>
 		</Style>
+		<!-- the route pill (TV-Store#52): quiet while the relay answers, amber while it does not -->
+		<Style Selector="Border.pill">
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="BorderBrush" Value="{DynamicResource GlassChipBrush}"/>
+			<Setter Property="CornerRadius" Value="6"/>
+			<Setter Property="Padding" Value="6,0"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+		</Style>
+		<Style Selector="Border.pill TextBlock">
+			<Setter Property="FontSize" Value="11"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="Foreground" Value="{DynamicResource GlassMutedBrush}"/>
+		</Style>
+		<Style Selector="Border.pill.warn">
+			<Setter Property="BorderBrush" Value="{DynamicResource LedWarnBrush}"/>
+		</Style>
+		<Style Selector="Border.pill.warn TextBlock">
+			<Setter Property="Foreground" Value="{DynamicResource LedWarnBrush}"/>
+		</Style>
 		<Style Selector="Border.led.busy">
 			<Setter Property="Background" Value="{DynamicResource LedBusyBrush}"/>
 			<Style.Animations>
@@ -56,8 +75,13 @@
 						</StackPanel.RenderTransform>
 						<TextBlock Name="NameText" FontSize="23" FontWeight="Bold" TextWrapping="Wrap"
 						           Foreground="{DynamicResource GlassInkBrush}"/>
-						<TextBlock Name="SubText" FontSize="15" TextWrapping="Wrap"
-						           Foreground="{DynamicResource GlassMutedBrush}"/>
+						<WrapPanel Name="SubRow" Orientation="Horizontal">
+							<TextBlock Name="SubText" FontSize="15" TextWrapping="Wrap" VerticalAlignment="Center"
+							           Foreground="{DynamicResource GlassMutedBrush}"/>
+							<Border Name="RoutePill" Classes="pill" Margin="8,0,0,0" IsVisible="False">
+								<TextBlock Name="RouteText"/>
+							</Border>
+						</WrapPanel>
 						<Grid Name="StateRow" ColumnDefinitions="Auto,*" ColumnSpacing="9" Margin="0,8,0,0">
 							<Border Name="Led" Classes="led" VerticalAlignment="Top"/>
 							<TextBlock Name="MessageText" Grid.Column="1" FontSize="15" TextWrapping="Wrap"

@@ -23,5 +23,13 @@ namespace Apps2Samsung.Views
         {
             Close((DataContext as AppDetailViewModel)?.SelectedAsset);
         }
+
+        // The developer's name: nothing to install, the main window searches the catalog for them (#888).
+        private void OnAuthorClick(object? sender, RoutedEventArgs e)
+        {
+            if (DataContext is AppDetailViewModel vm)
+                vm.SearchAuthorRequested = true;
+            Close(null);
+        }
     }
 }

@@ -19,7 +19,9 @@ namespace Apps2Samsung.Catalog
     }
 
     /// <summary>An installed app's entry in the catalog: the listed app, the exact file, and how their versions compare.</summary>
-    public sealed record CatalogMatch(GitHubRelease Release, Asset Asset, CatalogVersionState State)
+    /// <param name="VariantRemembered">The file is the variant this TV got last time (#975,
+    /// <see cref="Apps2Samsung.Packaging.InstalledVariantStore"/>), not the app's default or a guess.</param>
+    public sealed record CatalogMatch(GitHubRelease Release, Asset Asset, CatalogVersionState State, bool VariantRemembered = false)
     {
         public bool HasUpdate => State is CatalogVersionState.UpdateAvailable or CatalogVersionState.Different;
         public string? CatalogVersion => Asset.PackageVersion;
@@ -43,7 +45,13 @@ namespace Apps2Samsung.Catalog
         /// </summary>
         /// <param name="packageIdRenamesJson">The heads' rename store (#839): an app installed under
         /// another id is matched by the id its package was built with, which is what the catalog records.</param>
-        public static CatalogMatch? Find(InstalledApp app, IEnumerable<GitHubRelease> catalog, string? packageIdRenamesJson = null)
+        /// <param name="installedVariantsJson">The heads' installed-variant store (#975): which of the
+        /// candidates this TV got last time. With a record, the comparison is against that one file,
+        /// so an app with several variants at one version reads as up to date or as an update of the
+        /// variant that is on the TV, never of the app's default file.</param>
+        /// <param name="tvIp">The TV the apps were read from, the store's key; <paramref name="tvDuid"/> when known.</param>
+        public static CatalogMatch? Find(InstalledApp app, IEnumerable<GitHubRelease> catalog, string? packageIdRenamesJson = null,
+            string? installedVariantsJson = null, string? tvIp = null, string? tvDuid = null)
         {
             if (app is null || string.IsNullOrWhiteSpace(app.TizenId))
                 return null;
@@ -73,14 +81,26 @@ namespace Apps2Samsung.Catalog
                 .Where(c => PublishedAt(c.Release) == newestPerApp[c.Release.Name ?? string.Empty])
                 .ToList();
 
+            // The variant this TV got last time (#975): that file is the one to compare with and to
+            // update to. Only among the candidates, so a variant the catalog dropped falls through.
+            if (Apps2Samsung.Packaging.InstalledVariantStore.Find(installedVariantsJson, tvIp, catalogId, tvDuid) is { } remembered)
+            {
+                var same = candidates
+                    .Where(c => string.IsNullOrWhiteSpace(remembered.CatalogApp) ||
+                                string.Equals(c.Release.Name, remembered.CatalogApp, StringComparison.OrdinalIgnoreCase))
+                    .FirstOrDefault(c => Apps2Samsung.Packaging.InstalledVariantStore.IsSameVariant(remembered, c.Asset.FileName, c.Asset.Variant));
+                if (same.Asset is not null)
+                    return new CatalogMatch(same.Release, same.Asset, Compare(app.Version, same.Asset.PackageVersion), VariantRemembered: true);
+            }
+
             if (candidates.Count == 1)
                 return new CatalogMatch(candidates[0].Release, candidates[0].Asset, Compare(app.Version, candidates[0].Asset.PackageVersion));
 
             var states = candidates.Select(c => (c, State: Compare(app.Version, c.Asset.PackageVersion))).ToList();
-            var same = states.FirstOrDefault(x => x.State == CatalogVersionState.UpToDate &&
+            var installed = states.FirstOrDefault(x => x.State == CatalogVersionState.UpToDate &&
                 string.Equals(Normalize(app.Version), Normalize(x.c.Asset.PackageVersion), StringComparison.OrdinalIgnoreCase));
-            if (same.c.Asset is not null)
-                return new CatalogMatch(same.c.Release, same.c.Asset, CatalogVersionState.UpToDate);
+            if (installed.c.Asset is not null)
+                return new CatalogMatch(installed.c.Release, installed.c.Asset, CatalogVersionState.UpToDate);
 
             if (states.All(x => x.State == CatalogVersionState.UpdateAvailable))
             {

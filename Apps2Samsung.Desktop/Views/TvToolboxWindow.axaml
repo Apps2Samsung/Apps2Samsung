@@ -128,7 +128,7 @@
 
                     <!-- An id from a forum post or a manual, for an app in neither list. Launch goes the
                          usual routes (remote channel / was_execute); "0 execute" is sdbd's other launcher
-                         verb, which answers in the platform's own words — for a service, or an id Smart
+                         verb, which answers in the platform's own words, for a service, or an id Smart
                          Hub does not know. Needs Developer Mode. -->
                     <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
                         <TextBox Grid.Column="0" Text="{Binding ManualAppId}"
@@ -266,6 +266,28 @@
                                 Content="{l:Localize lblToolboxTvStoreArm}"
                                 Command="{Binding ArmTvStoreCommand}"/>
                         <TextBlock Grid.Column="1" Text="{Binding TvStoreStatus}" FontSize="12" Opacity="0.8"
+                                   TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </Grid>
+                    <!-- No (or an old) TV-Store on the set: straight to its catalog sheet (#888) -->
+                    <Button Classes="action" HorizontalAlignment="Left" IsVisible="{Binding CanShowTvStoreInCatalog}"
+                            Content="{l:Localize lblToolboxTvStoreShowInCatalog}"
+                            Command="{Binding ShowTvStoreInCatalogCommand}"/>
+
+                    <!-- ============ Package file ============ -->
+                    <!-- A package of the user's own, without installing it from here (#979): signed with
+                         the certificate that covers this TV and saved, or sent to TV-Store's upload page
+                         on the TV (no Developer Mode needed on this side; TV-Store asks on the screen). -->
+                    <TextBlock Classes="section" Text="{l:Localize lblToolboxPackage}" Margin="0,12,0,0"/>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxPackageHint}"/>
+                    <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
+                        <Button Grid.Column="0" Classes="action" Width="140"
+                                Content="{l:Localize lblToolboxSignPackage}"
+                                Command="{Binding SignPackageCommand}"
+                                IsEnabled="{Binding HasSdb}"/>
+                        <Button Grid.Column="1" Width="140"
+                                Content="{l:Localize lblToolboxSendToTvStore}"
+                                Command="{Binding SendToTvStoreCommand}"/>
+                        <TextBlock Grid.Column="2" Text="{Binding PackageStatus}" FontSize="12" Opacity="0.8"
                                    TextWrapping="Wrap" VerticalAlignment="Center"/>
                     </Grid>
 

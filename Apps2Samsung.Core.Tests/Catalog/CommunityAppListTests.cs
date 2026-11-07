@@ -13,7 +13,7 @@ public class CommunityAppListTests
         {
           "schemaVersion": 1,
           "apps": [
-            { "file": "Vetro.wgt", "name": "Vetro", "category": "tools", "repo": "andrearicci93/vetro", "flags": ["root"],
+            { "file": "Vetro.wgt", "name": "Vetro", "category": "tools", "repo": "andrearicci93/vetro", "flags": ["root"], "required_version": "6.0",
               "user_settings": { "fields": [ { "key": "port", "label": "Port", "type": "number", "required": false, "default": "8099",
                 "min": 1024, "max": 65535, "disallow": [8001, 8002, 26101],
                 "targets": [ { "file": "config.xml", "find": "8099", "replace": "{value}" } ] } ] } },
@@ -22,7 +22,10 @@ public class CommunityAppListTests
             { "file": "Mixed.wgt", "name": "Mixed", "category": "other", "repo": "a/c",
               "user_settings": { "file": "a.js", "fields": [ { "key": "k", "label": "K", "type": "text", "targets": [ { "file": "a.js", "find": "x", "replace": "{value}" } ] } ] } },
             { "file": "Rooted-A.wgt", "name": "Rooted", "group": "Rooted", "category": "tools", "repo": "a/d" },
-            { "file": "Rooted-B.wgt", "name": "Rooted", "group": "Rooted", "category": "tools", "repo": "a/d", "flags": ["root"] }
+            { "file": "Rooted-B.wgt", "name": "Rooted", "group": "Rooted", "category": "tools", "repo": "a/d", "flags": ["root"] },
+            { "file": "yt-5.5.wgt", "name": "YouTube for Tizen", "group": "YouTube for Tizen", "category": "streaming", "repo": "SushyDev/tizen-youtube", "cert_level": "partner" },
+            { "file": "yt-5.0.wgt", "name": "YouTube for Tizen", "group": "YouTube for Tizen", "category": "streaming", "repo": "SushyDev/tizen-youtube", "cert_level": "partner" },
+            { "file": "Public-Only.wgt", "name": "Public Only", "category": "other", "repo": "a/e", "cert_level": "public" }
           ]
         }
         """;
@@ -42,6 +45,15 @@ public class CommunityAppListTests
     private static GitHubRelease Named(List<GitHubRelease> list, string name) => list.Single(r => r.Name == name);
 
     [Fact]
+    public void RequiredVersion_IsStampedOnTheAsset_AndNullWhenTheCatalogHasNone()
+    {
+        var list = Expand();
+
+        Assert.Equal("6.0", Named(list, "Vetro").Assets[0].RequiredVersion);
+        Assert.Null(Named(list, "Frame Dashboard").Assets[0].RequiredVersion);
+    }
+
+    [Fact]
     public void RootFlag_IsStamped_AndAGroupIsRootWhenAnyFileIs()
     {
         var list = Expand();
@@ -49,6 +61,28 @@ public class CommunityAppListTests
         Assert.True(Named(list, "Vetro").IsRoot);
         Assert.False(Named(list, "Frame Dashboard").IsRoot);
         Assert.True(Named(list, "Rooted").IsRoot);
+    }
+
+    [Fact]
+    public void CertLevel_Partner_IsStamped_AndAGroupNeedsPartnerWhenAnyFileDoes()
+    {
+        var list = Expand();
+
+        Assert.True(Named(list, "YouTube for Tizen").RequiresPartner);
+        Assert.False(Named(list, "Public Only").RequiresPartner);
+        Assert.False(Named(list, "Vetro").RequiresPartner);
+    }
+
+    [Fact]
+    public void CertLevel_RoundTripsThroughTheSnapshot()
+    {
+        var catalog = JsonSerializer.Deserialize<CommunityCatalog>(CatalogJson, JsonSerializerOptionsProvider.Default)!;
+        var json = JsonSerializer.Serialize(catalog, JsonSerializerOptionsProvider.Default);
+        var again = JsonSerializer.Deserialize<CommunityCatalog>(json, JsonSerializerOptionsProvider.Default)!;
+
+        Assert.Equal("partner", again.Apps.Single(a => a.File == "yt-5.5.wgt").CertLevel);
+        Assert.Null(again.Apps.Single(a => a.File == "Vetro.wgt").CertLevel);
+        Assert.DoesNotContain("\"cert_level\":null", json);
     }
 
     [Fact]

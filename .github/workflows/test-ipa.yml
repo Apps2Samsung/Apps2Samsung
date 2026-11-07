@@ -29,7 +29,9 @@ jobs:
   test-ipa:
     runs-on: xcode-27
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Extract version
         shell: bash
@@ -49,13 +51,13 @@ jobs:
       # accepts. The run number is unique per workflow, which is enough for a test build that no
       # store sees.
       - name: Build IPA
-        uses: ./.github/actions/ios-ipa
+        uses: $/.github/actions/ios-ipa
         with:
           version: ${{ env.VERSION }}
           build-number: ${{ github.run_number }}
           output: dist/Apps2Samsung-${{ env.VERSION_NAME }}-ios.ipa
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v7.0.2
         with:
           name: Apps2Samsung-${{ env.VERSION_NAME }}-ios
           path: dist/*.ipa
@@ -97,7 +99,7 @@ jobs:
           done
           ls -la dist-sim
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v7.0.2
         with:
           name: Apps2Samsung-${{ env.VERSION_NAME }}-ios-simulator
           path: dist-sim/*.zip
@@ -222,7 +224,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           exit $FAILED
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v7.0.2
         if: ${{ always() && steps.smoke.outcome != 'skipped' }}
         with:
           name: Apps2Samsung-${{ env.VERSION_NAME }}-ios-simulator-smoke-test

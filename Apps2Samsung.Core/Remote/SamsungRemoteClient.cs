@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
@@ -381,6 +382,31 @@ namespace Apps2Samsung.Remote
                     ["TypeOfRemote"] = "SendInputString",
                 },
             }, "text input", cancellationToken);
+
+        /// <summary>
+        /// Sends a prepared run of key codes in order, on the one connection, spaced by
+        /// <paramref name="gap"/>. This is the transport behind <see cref="SamsungRemoteKeyboard"/>:
+        /// app keyboards are navigated with dozens of quick arrow presses, and a TV that is sent them
+        /// back to back drops some, so a small gap is part of the protocol rather than politeness.
+        /// Stops at the first press that could not be delivered. Returns whether every press went out.
+        /// </summary>
+        public async Task<bool> SendKeysAsync(
+            IReadOnlyList<string> keys,
+            TimeSpan? gap = null,
+            CancellationToken cancellationToken = default)
+        {
+            var pace = gap ?? TimeSpan.FromMilliseconds(120);
+            foreach (var key in keys)
+            {
+                if (!await SendKeyAsync(key, cancellationToken).ConfigureAwait(false))
+                    return false;
+
+                if (pace > TimeSpan.Zero)
+                    await Task.Delay(pace, cancellationToken).ConfigureAwait(false);
+            }
+
+            return true;
+        }
 
         private async Task<bool> SendAsync(JsonObject payload, string what, CancellationToken cancellationToken)
         {

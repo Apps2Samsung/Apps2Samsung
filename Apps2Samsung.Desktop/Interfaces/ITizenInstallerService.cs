@@ -47,7 +47,15 @@ namespace Apps2Samsung.Interfaces
         /// account page or a dialog), so the caller only reports <see cref="CertificatePreparation.Created"/>
         /// and <see cref="CertificatePreparation.Reused"/>.
         /// </summary>
-        Task<CertificatePreparation> PrepareCertificateAsync(string tvIpAddress, CancellationToken cancellationToken = default);
+        /// <param name="requirePartner">The certificate has to be Partner (the package to sign needs it, #979).</param>
+        Task<CertificatePreparation> PrepareCertificateAsync(string tvIpAddress, CancellationToken cancellationToken = default, bool requirePartner = false);
+
+        /// <summary>
+        /// The per-app modifications an install makes before signing (the registered patchers, the
+        /// values asked before install among them), on <paramref name="packagePath"/> in place, for a
+        /// package that is signed and installed elsewhere: TV-Store's upload page (#979).
+        /// </summary>
+        Task CustomizeAsync(string tvIpAddress, string packagePath);
 
         Task LaunchAppAsync(string tvIpAddress, string tizenId);
         Task StopAppAsync(string tvIpAddress, string tizenId);

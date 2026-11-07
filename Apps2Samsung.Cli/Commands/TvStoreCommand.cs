@@ -1,5 +1,7 @@
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
+using Apps2Samsung.Services;
 using Apps2Samsung.TvStore;
 
 namespace Apps2Samsung.Cli.Commands;
@@ -13,6 +15,9 @@ public static class TvStoreCommand
 {
     public static async Task<int> RunAsync(CliServices s, CancellationToken ct)
     {
+        if (s.Options.Arguments.FirstOrDefault() is "log" or "logs")
+            return await LogAsync(s, ct);
+
         var ip = s.Options.Tv ?? s.Options.Arguments.FirstOrDefault();
         if (string.IsNullOrWhiteSpace(ip))
             return s.Out.Fail("tvstore needs --tv <ip>", Output.Usage);
@@ -22,7 +27,8 @@ public static class TvStoreCommand
         TvStoreInstallState state;
         try
         {
-            state = await TvStorePackage.GetInstallStateAsync(s.Sdb, ip);
+            // This machine's package-id renames (#839): a TV-Store installed under a new id is TV-Store too.
+            state = await TvStorePackage.GetInstallStateAsync(s.Sdb, ip, s.Config.PackageIdRenamesJson);
         }
         catch (TvStoreUnreachableException ex)
         {
@@ -49,20 +55,56 @@ public static class TvStoreCommand
         var profile = SigningCertificatePem.FindProfileCovering(CliPaths.CertificateStore, duid) ?? ensured;
         var profileName = Path.GetFileName(profile.ProfileDir);
         s.Out.Progress("Opening the certificate…");
-        var pem = SigningCertificatePem.FromProfile(profile);
+        // Every profile in the store goes along, the covering one first (#44).
+        var pems = SigningCertificatePem.OpenAll(profile, SigningCertificatePem.ProfilesIn(CliPaths.CertificateStore));
 
         var progress = new Progress<string>(key => s.Out.Progress(s.Strings.GetString(key)));
-        await using var store = await TvStoreClient.AttachAsync(s.Sdb, ip, progress, ct);
+        await using var store = await TvStoreClient.AttachAsync(s.Sdb, ip, progress, s.Config.PackageIdRenamesJson, ct);
         s.Out.Progress(s.Strings.GetString("lblToolboxTvStoreArming"));
-        await store.ArmAsync(pem, ct);
+        await store.ArmAsync(pems, ct);
         var status = await store.StatusAsync(ct);
 
+        // What is left to do depends on the Host PC IP the TV has right now, as in both apps (#960).
+        var tv = await TizenDeveloperInfo.ReadAsync(new NetworkDevice { IpAddress = ip }, ct);
+        var nextStep = string.Format(
+            s.Strings.GetString(TvStoreNextSteps.MessageKey(TvStoreNextSteps.For(tv.DeveloperIP, status.OwnIp))),
+            store.Version, status.OwnIp ?? ip);
+
         return s.Out.Result(
-            new { ok = true, tv = ip, duid, profile = profileName, tvStoreVersion = store.Version, armed = status.Armed, ownIp = status.OwnIp },
+            new { ok = true, tv = ip, duid, profile = profileName, tvStoreVersion = store.Version, tvStoreAppId = store.AppId, armed = status.Armed, ownIp = status.OwnIp },
             new[]
             {
                 $"TV-Store v{store.Version} on {ip} is armed with {profileName} (DUID {duid}).",
-                $"It signs and installs on its own from now on. On the TV, now set Developer Mode's Host PC IP to the TV's own network address ({status.OwnIp ?? ip}, not 127.0.0.1) and restart the TV.",
+                nextStep,
             });
+    }
+
+    /// <summary>
+    /// <c>tvstore log --tv &lt;ip&gt; [-o &lt;file&gt;]</c>: TV-Store's own log from the TV
+    /// (GET :8077/log.txt), saved in the current folder or to the given file. TV-Store has to be
+    /// open on the TV; no Developer Mode needed.
+    /// </summary>
+    private static async Task<int> LogAsync(CliServices s, CancellationToken ct)
+    {
+        var ip = s.Options.Tv ?? s.Options.Arguments.Skip(1).FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(ip))
+            return s.Out.Fail("tvstore log needs --tv <ip>", Output.Usage);
+
+        s.Out.Progress($"Getting the TV-Store log from {ip}…");
+        string path;
+        try
+        {
+            path = string.IsNullOrWhiteSpace(s.Options.OutputPath)
+                ? await TvStoreLog.SaveAsync(ip, Directory.GetCurrentDirectory(), ct)
+                : await TvStoreLog.SaveToFileAsync(ip, s.Options.OutputPath, ct);
+        }
+        catch (TvStoreLogUnavailableException ex)
+        {
+            return s.Out.Fail(ex.Message);
+        }
+
+        return s.Out.Result(
+            new { ok = true, tv = ip, file = path, url = TvStoreLog.UrlFor(ip) },
+            new[] { $"TV-Store log from {ip} saved to {path}." });
     }
 }

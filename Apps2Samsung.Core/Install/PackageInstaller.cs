@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -8,10 +9,12 @@ using Apps2Samsung.Certificate;
 using Apps2Samsung.Configuration;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Localization;
 using Apps2Samsung.Models;
 using Apps2Samsung.Packaging;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Sdb;
+using Apps2Samsung.TvStore;
 
 namespace Apps2Samsung.Install
 {
@@ -49,6 +52,39 @@ namespace Apps2Samsung.Install
             _patchers = patchers;
         }
 
+        /// <summary>
+        /// Per-app modifications before signing: the user's TVApp channels into a TVApp package, then
+        /// the registered patchers (the values asked before install, among others). All of it edits one
+        /// workspace, so the package is unpacked once and rezipped once however much applies to it.
+        /// Part of <see cref="InstallAsync"/>; on its own for a package that is signed and installed
+        /// elsewhere (TV-Store's upload page signs it on the TV).
+        /// </summary>
+        public async Task CustomizeAsync(string tvIp, string wgtPath, Action<string>? progress = null)
+        {
+            var channels = TvAppChannelInjector.AppliesTo(wgtPath)
+                ? TvAppChannelInjector.ParseChannelsJson(_config.TvAppChannelsJson)
+                : Array.Empty<TvChannel>();
+            var patchers = _patchers.Where(p => p.CanHandle(wgtPath)).ToList();
+            if (channels.Count == 0 && patchers.Count == 0)
+                return;
+
+            progress?.Invoke(channels.Count > 0 ? "statusApplyingTvAppChannels" : "statusApplyingCustomizations");
+
+            using var workspace = PackageWorkspace.Extract(wgtPath, tvIp);
+
+            if (channels.Count > 0)
+                await TvAppChannelInjector.InjectChannelsAsync(workspace, channels);
+
+            // A patcher that cannot continue throws (UserSettingsPatchException); a soft failure
+            // is logged by the patcher and the install goes on, as it always has on both heads.
+            foreach (var patcher in patchers)
+                await patcher.ApplyAsync(workspace);
+
+            // A patcher that matched on the file name but found nothing to do leaves the package
+            // exactly as downloaded rather than as a recompressed copy of itself.
+            workspace.RepackIfChanged();
+        }
+
         /// <param name="progress">Human-readable status lines, in order.</param>
         /// <param name="stage">The stage reached, with the TV's install percentage while it reports one.</param>
         /// <param name="ct">Honoured up to the moment the TV is touched for real (old copy removed, package
@@ -57,6 +93,7 @@ namespace Apps2Samsung.Install
         /// erases that app's settings, sign-in and local data on the TV (#825). False stops the install
         /// with <see cref="RemovalDeclinedException"/>; null (no UI) keeps the remove-and-retry as it was.</param>
         /// <returns>The TV's install output.</returns>
+        /// <remarks>Progress lines are en.json keys (<see cref="ProgressText"/>); a head localizes them through its catalog.</remarks>
         /// <param name="packageId">Which id to install under (#839): a new one on request, or the one
         /// remembered for this TV. Null installs under the package's own id.</param>
         public async Task<string> InstallAsync(string tvIp, string wgtPath, SigningProfile cert, Action<string>? progress = null,
@@ -64,12 +101,27 @@ namespace Apps2Samsung.Install
             PackageIdPolicy? packageId = null)
         {
             stage?.Invoke(InstallStage.Sign, null);
-            progress?.Invoke("Reading TV capabilities…");
+            // Which way in: a TV whose Host PC IP is 127.0.0.1 is reached through TV-Store's relay
+            // (TV-Store#52); say so up front, the same line the engine writes to the log.
+            var port = await SdbEndpoint.ResolvePortAsync(tvIp);
+            progress?.Invoke(port == SdbEndpoint.DirectPort
+                ? "statusConnectingToTv"
+                : ProgressText.Key("statusConnectingThroughRelay", port));
+            progress?.Invoke("statusReadingTvCapabilities");
             var cap = await _sdb.CapabilityAsync(tvIp);
             ct.ThrowIfCancellationRequested();
             var caps = TizenCapabilities.Parse(cap.Output);
             var sdkToolPath = caps.SdkToolPath;
             var version = caps.Version;
+            TizenVersionCache.Remember(tvIp, caps.PlatformVersion);
+
+            // Updating TV-Store through TV-Store's own relay (#1005): the TV drops this connection
+            // while it replaces TV-Store, so the end of the install is read another way below.
+            // Decided on the package's own ids, before a rename changes them.
+            var (ownAppId, ownPackageId) = await WgtManifest.ReadIdsAsync(wgtPath);
+            bool selfUpdate = port != SdbEndpoint.DirectPort && TvStoreSelfUpdate.IsTvStore(ownPackageId, ownAppId, _config.PackageIdRenamesJson);
+            if (selfUpdate)
+                Trace.WriteLine($"[install] {tvIp}: updating TV-Store through its own relay; the connection is expected to drop while it restarts");
 
             // Another id for this TV, by request or as remembered (#839). Before anything reads the
             // ids: from here on the package is the renamed one.
@@ -106,38 +158,13 @@ namespace Apps2Samsung.Install
             // carry the authorization in the re-signed package itself.
             if (TizenPermitInstall.IsRequired(version))
             {
-                progress?.Invoke("Authorizing device…");
+                progress?.Invoke("statusAuthorizingDevice");
                 var profileXml = Path.Combine(cert.ProfileDir, "device-profile.xml");
                 await TizenPermitInstall.EnsureAsync(_sdb, tvIp, version, sdkToolPath, profileXml);
                 ct.ThrowIfCancellationRequested();
             }
 
-            // Per-app modifications before signing: the user's TVApp channels into a TVApp package,
-            // then the registered patchers. All of it edits one workspace, so the package is unpacked
-            // once and rezipped once however much applies to it.
-            var channels = TvAppChannelInjector.AppliesTo(wgtPath)
-                ? TvAppChannelInjector.ParseChannelsJson(_config.TvAppChannelsJson)
-                : Array.Empty<TvChannel>();
-            var patchers = _patchers.Where(p => p.CanHandle(wgtPath)).ToList();
-
-            if (channels.Count > 0 || patchers.Count > 0)
-            {
-                progress?.Invoke(channels.Count > 0 ? "Applying TVApp channels…" : "Applying customizations…");
-
-                using var workspace = PackageWorkspace.Extract(wgtPath, tvIp);
-
-                if (channels.Count > 0)
-                    await TvAppChannelInjector.InjectChannelsAsync(workspace, channels);
-
-                // A patcher that cannot continue throws (UserSettingsPatchException); a soft failure
-                // is logged by the patcher and the install goes on, as it always has on both heads.
-                foreach (var patcher in patchers)
-                    await patcher.ApplyAsync(workspace);
-
-                // A patcher that matched on the file name but found nothing to do leaves the package
-                // exactly as downloaded rather than as a recompressed copy of itself.
-                workspace.RepackIfChanged();
-            }
+            await CustomizeAsync(tvIp, wgtPath, progress);
 
             // The certificate must already be inside its validity window: Tizen checks the signature
             // against the TV's clock and refuses one whose start date is still in the future
@@ -147,7 +174,7 @@ namespace Apps2Samsung.Install
             if (validity.IsNotYetValid)
                 throw new CertificateNotYetValidException(validity);
 
-            progress?.Invoke("Re-signing package…");
+            progress?.Invoke("statusResigningPackage");
             var resign = await _sdb.ResignAsync(wgtPath, cert.AuthorP12, cert.DistributorP12, cert.Password);
             if (resign.ExitCode != 0 || resign.Output.Contains("Re-sign failed", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException($"Re-sign failed: {Detail(resign.Error, resign.Output)}");
@@ -156,14 +183,29 @@ namespace Apps2Samsung.Install
             ct.ThrowIfCancellationRequested();
             stage?.Invoke(InstallStage.Install, null);
 
-            if (_config.DeletePreviousInstall && !string.IsNullOrWhiteSpace(packageIdInFile))
+            // Not for TV-Store through its own relay: removing it first takes the relay down before
+            // the package can be pushed, and the install replaces the copy anyway (#1005).
+            if (_config.DeletePreviousInstall && !string.IsNullOrWhiteSpace(packageIdInFile) && !selfUpdate)
             {
-                progress?.Invoke("Removing old version…");
+                progress?.Invoke("statusRemovingOldVersion");
                 try { await _sdb.UninstallAsync(tvIp, packageIdInFile!); } catch { /* nothing to remove */ }
             }
 
-            progress?.Invoke("Installing on TV…");
+            progress?.Invoke("statusInstallingOnTv");
             var install = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath, InstallPercentFor(progress, stage));
+
+            // The relay closed when the TV stopped TV-Store to replace it: expected, not a failure
+            // (#1005). The new version is read over the TV's REST API, TV-Store is opened again
+            // the same way (which brings the relay back), and that is the install's result.
+            if (selfUpdate && TvStoreSelfUpdate.IsExpectedDrop(install) && !string.IsNullOrWhiteSpace(appId))
+            {
+                var expected = (await WgtManifest.ReadPackageInfoAsync(wgtPath)).Version;
+                var restart = await TvStoreSelfUpdate.AwaitRestartAsync(tvIp, appId!, expected, _sdb, progress);
+                if (!restart.CameBack)
+                    throw new InvalidOperationException(TvStoreSelfUpdate.NotBackMessage(restart));
+                progress?.Invoke(ProgressText.Key("statusTvStoreRestarted", restart.Version));
+                return TvStoreSelfUpdate.CompletedOutput(restart);
+            }
             // The Tizen install helper returns a zero exit code (cmd_ret:0) even when the app install
             // itself failed (e.g. "app_id[...] install failed[118]"), so classify the OUTPUT as well
             // and route real failures into recovery.
@@ -173,7 +215,7 @@ namespace Apps2Samsung.Install
             if (_config.OpenAfterInstall && !string.IsNullOrWhiteSpace(appId))
             {
                 stage?.Invoke(InstallStage.Open, null);
-                progress?.Invoke("Launching on TV…");
+                progress?.Invoke("statusLaunchingOnTv");
                 try { await _sdb.LaunchAsync(tvIp, appId!); } catch { /* launch is best-effort */ }
             }
 
@@ -186,7 +228,7 @@ namespace Apps2Samsung.Install
             progress is null && stage is null ? null : new SyncProgress<int>(percent =>
             {
                 stage?.Invoke(InstallStage.Install, percent);
-                progress?.Invoke($"Installing on TV… {percent}%");
+                progress?.Invoke(ProgressText.Key("statusInstallingOnTvPercent", percent));
             });
 
         // [118, -22] from the TV's security manager. Worded the same as the desktop head's
@@ -229,12 +271,39 @@ namespace Apps2Samsung.Install
                 throw new InvalidOperationException(
                     "The TV refused this package ([118, -4]). Either the app needs a newer Tizen than this TV, or it needs Partner signing / a privilege your certificate doesn't allow. If other apps install fine, turn on Partner signing and retry, or try an older build.");
 
+            // [118, -19] "parsing error" (118019 on a 2018 set): the TV could not read the manifest, which
+            // in practice means the package asks for a newer Tizen than the set runs (TV-Store#44).
+            if (TizenInstallDiagnostics.IsManifestParseError(output))
+            {
+                var asksFor = await WgtManifest.ReadRequiredVersionAsync(wgtPath);
+                var tvRuns = TizenVersionCache.TryGet(tvIp);
+                throw new InvalidOperationException(
+                    "The TV refused this package ([118, -19]): it could not read the package's manifest. " +
+                    (asksFor is not null
+                        ? $"The app asks for Tizen {asksFor} or newer" + (tvRuns is not null ? $", and this TV runs Tizen {tvRuns}" : "") + ". Try an older build of the app."
+                        : "This usually means the app asks for a newer Tizen than this TV runs. Try an older build of the app."));
+            }
+
             // [116] "download failed": the TV has no room for the package (#666).
             if (TizenInstallDiagnostics.IsInsufficientSpace(output))
             {
                 await ClearPartialIfFresh();
                 throw new InvalidOperationException(
                     "Not enough free space on the TV [116]. Remove some apps on the TV (Settings → Support → Device Care → Manage Storage), then install again.");
+            }
+
+            // The TV refused the certificate itself (#907): removing an installed copy can't help, and
+            // there usually is none, so no prompt and no retry. Say what the TV said and what fixes it.
+            var rejection = TizenInstallDiagnostics.GetCertificateRejection(output);
+            if (rejection != CertificateRejection.None)
+            {
+                await ClearPartialIfFresh();
+                var message = CertificateRejectionMessage(rejection, output);
+                // The chain itself: with a Tizen certificate (#988) the heads turn this into the offer
+                // of a Samsung one, so it is its own type.
+                if (rejection == CertificateRejection.InvalidChain)
+                    throw new CertificateChainRejectedException(message, TizenInstallDiagnostics.CertificateRejectionReason(output));
+                throw new InvalidOperationException(message);
             }
 
             bool certMismatch = TizenInstallDiagnostics.IsCertificateMismatch(output);
@@ -256,7 +325,7 @@ namespace Apps2Samsung.Install
                 if (!_config.DeletePreviousInstall && confirmRemove is not null && !await confirmRemove())
                     throw new RemovalDeclinedException();
 
-                progress?.Invoke("Install failed — removing the old copy and retrying…");
+                progress?.Invoke("statusInstallRetryRemoveOld");
                 try { await _sdb.UninstallAsync(tvIp, packageId!); } catch { /* best-effort */ }
 
                 var retry = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath, InstallPercentFor(progress, null));
@@ -289,6 +358,20 @@ namespace Apps2Samsung.Install
 
         private static string Detail(string error, string output) =>
             !string.IsNullOrWhiteSpace(error) ? error : output.Trim();
+
+        // English, like the other Core messages: the mobile head has no string catalog. The desktop
+        // head has the same four texts as localized keys (certificateRejected*).
+        private static string CertificateRejectionMessage(CertificateRejection rejection, string output) => rejection switch
+        {
+            CertificateRejection.InvalidFormat =>
+                "The TV rejected the signing certificate itself ([118, -12], \"Invalid format of certificate in signature\"). This is not about an installed copy. The TV verifies a developer certificate online, so a TV without internet access fails exactly like this (#907): connect the TV to the internet for the install, then install again. Also check the TV's date and time (Settings → General → System Manager → Time); if both are fine, create a new certificate and retry.",
+            CertificateRejection.NotYetValid =>
+                "The TV says the signing certificate isn't valid yet ([118, -12]). The certificate is fine on this device, so the TV's clock is behind: set the TV's date and time (Settings → General → System Manager → Time) or wait a few minutes, then install again.",
+            CertificateRejection.Expired =>
+                "The TV says the signing certificate has expired ([118, -12]). Either the TV's clock is ahead (Settings → General → System Manager → Time) or the certificate is past its end date: create a new one and install again.",
+            _ =>
+                $"The TV rejected the signing certificate ([118, -12]: {TizenInstallDiagnostics.CertificateRejectionReason(output) ?? "check certificate error"}). Removing an installed copy won't help. Make sure the TV has internet access during the install (it verifies the certificate online) and that its date and time are right (Settings → General → System Manager → Time); if both are, create a new certificate and install again.",
+        };
     }
 
     /// <summary>
