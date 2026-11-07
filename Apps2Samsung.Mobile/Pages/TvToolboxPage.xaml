@@ -256,6 +256,16 @@
                         <!-- No (or an old) TV-Store on the set: straight to its catalog sheet (#888) -->
                         <Button x:Name="ShowTvStoreBtn" Style="{StaticResource SoftButton}" HeightRequest="44" MinimumHeightRequest="44"
                                 IsVisible="False" Text="{l:Localize lblToolboxTvStoreShowInCatalog}" Clicked="OnShowTvStoreClicked" />
+
+                        <!-- Send sources to TV (#1018, TV-Store#82): the signed repositories of Your sources, with
+                             the keys approved here; the TV asks before adding each. Unsigned ones never go. -->
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxSendSourcesHint}" Margin="0,8,0,0" />
+                        <Label x:Name="NoTvSourcesLabel" Style="{StaticResource Hint}" Text="{l:Localize lblToolboxSendSourcesNone}" IsVisible="False" />
+                        <!-- one row per repository, filled in from code -->
+                        <VerticalStackLayout x:Name="TvSourceRows" Spacing="2" />
+                        <Button x:Name="SendSourcesBtn" Style="{StaticResource SoftButton}" HeightRequest="44" MinimumHeightRequest="44"
+                                Text="{l:Localize lblToolboxSendSources}" Clicked="OnSendSourcesClicked" />
+                        <Label x:Name="SourcesStatusLabel" Style="{StaticResource Report}" />
                     </VerticalStackLayout>
                 </controls:ExpanderSection>
 

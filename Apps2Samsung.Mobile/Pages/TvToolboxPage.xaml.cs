@@ -90,6 +90,7 @@ public partial class TvToolboxPage : ContentPage
 		AgentNeedsSdbHint.IsVisible = sdb is null;
 		ArmTvStoreBtn.IsEnabled = sdb is not null;
 		TvStoreNeedsSdbHint.IsVisible = sdb is null;
+		ShowTvSources();
 		ExecuteManualBtn.IsEnabled = sdb is not null;
 
 		// The TV's own menus, addressed by id (#641). Fixed, not filtered: a short list to try in
@@ -593,6 +594,106 @@ public partial class TvToolboxPage : ContentPage
 	}
 
 	private void SetTvStoreStatus(string message) => TvStoreStatusLabel.Text = message;
+
+	// ---- Send sources to TV (#1018, TV-Store#82) ----
+
+	/// <summary>One signed repository in the list: ticked to go to the TV unless its key changed since (review it first).</summary>
+	private sealed record TvSourceRow(UserSource Source, bool CanSend, CheckBox Check, Label Note);
+
+	private readonly List<TvSourceRow> _tvSources = new();
+
+	// The approved signed repositories of Your sources, ticked; one whose key changed is listed off with a note.
+	private void ShowTvSources()
+	{
+		TvSourceRows.Clear();
+		_tvSources.Clear();
+		foreach (var source in UserSources.Parse(MobileSettings.UserSourcesJson).Where(UserSources.IsApprovedRepository))
+		{
+			var keyChanged = Apps2Samsung.Catalog.Repositories.SignedRepositories.LastLoad(source.Url)?.State
+				== Apps2Samsung.Catalog.Repositories.RepositoryState.KeyChanged;
+			var check = new CheckBox { IsChecked = !keyChanged, IsEnabled = !keyChanged, VerticalOptions = LayoutOptions.Center };
+			var note = new Label
+			{
+				Text = keyChanged ? L10n.Get("lblToolboxSendSourcesReview") : string.Empty, FontSize = 12, LineBreakMode = LineBreakMode.WordWrap,
+				TextColor = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("Muted"),
+			};
+			note.IsVisible = !string.IsNullOrEmpty(note.Text);
+			var row = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star) }, ColumnSpacing = 4 };
+			row.Add(check, 0, 0);
+			row.Add(new VerticalStackLayout
+			{
+				Spacing = 1, VerticalOptions = LayoutOptions.Center,
+				Children = { new Label { Text = UserSources.DisplayName(source), LineBreakMode = LineBreakMode.TailTruncation }, note },
+			}, 1, 0);
+			TvSourceRows.Add(row);
+			_tvSources.Add(new TvSourceRow(source, !keyChanged, check, note));
+		}
+		NoTvSourcesLabel.IsVisible = _tvSources.Count == 0;
+		TvSourceRows.IsVisible = SendSourcesBtn.IsVisible = _tvSources.Count > 0;
+		SendSourcesBtn.IsEnabled = _sdb is not null;
+	}
+
+	/// <summary>
+	/// Hands the ticked signed repositories to TV-Store with the keys approved here; the TV asks the
+	/// person at it for each, and this waits for the answers (up to five minutes).
+	/// </summary>
+	private async void OnSendSourcesClicked(object? sender, EventArgs e)
+	{
+		if (_sdb is null)
+		{
+			SourcesStatusLabel.Text = L10n.Get("lblToolboxAgentNeedsSdb");
+			return;
+		}
+		var chosen = _tvSources.Where(r => r.CanSend && r.Check.IsChecked).Select(r => r.Source).ToList();
+		if (chosen.Count == 0)
+		{
+			SourcesStatusLabel.Text = L10n.Get("lblToolboxSendSourcesNone");
+			return;
+		}
+		if (_busy)
+			return;
+
+		_busy = true;
+		SendSourcesBtn.IsEnabled = false;
+		try
+		{
+			var renames = MobileSettings.PackageIdRenamesJson;
+			var progress = new Progress<string>(key => SourcesStatusLabel.Text = L10n.Get(key));
+			await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress, renames);
+			SourcesStatusLabel.Text = L10n.Get("lblToolboxSendSourcesWaiting");
+			var results = await store.AddSourcesAsync(chosen);
+			foreach (var result in results)
+			{
+				var row = _tvSources.FirstOrDefault(r => string.Equals(r.Source.RepositoryId, result.RepositoryId, StringComparison.Ordinal));
+				if (row is null)
+					continue;
+				row.Note.Text = result.Added ? L10n.Get("lblSourceOnTv") : result.Error ?? string.Empty;
+				row.Note.IsVisible = !string.IsNullOrEmpty(row.Note.Text);
+			}
+			var lines = new List<string> { string.Format(L10n.Get("lblToolboxSendSourcesDone"), results.Count(r => r.Added), results.Count) };
+			lines.AddRange(results.Where(r => !r.Added).Select(r => string.Format(L10n.Get("lblToolboxSendSourcesNotAdded"), r.Name ?? r.RepositoryId, r.Error)));
+			SourcesStatusLabel.Text = string.Join(Environment.NewLine, lines);
+		}
+		catch (TvStoreNotInstalledException ex)
+		{
+			SourcesStatusLabel.Text = L10n.Get(ex.IsOutdated ? "lblToolboxTvStoreOutdated" : "lblToolboxTvStoreNotInstalled");
+		}
+		catch (TvStoreUnreachableException ex)
+		{
+			SourcesStatusLabel.Text = string.Format(L10n.Get("lblToolboxTvStoreUnreachable"), ex.Reason);
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[toolbox] send sources failed: {ex}");
+			// Too old a TV-Store says so in its own words.
+			SourcesStatusLabel.Text = ex is NotSupportedException ? ex.Message : string.Format(L10n.Get("lblToolboxTvStoreFailed"), ex.Message);
+		}
+		finally
+		{
+			_busy = false;
+			SendSourcesBtn.IsEnabled = true;
+		}
+	}
 
 	private void SetPackageStatus(string message) => PackageStatusLabel.Text = message;
 
