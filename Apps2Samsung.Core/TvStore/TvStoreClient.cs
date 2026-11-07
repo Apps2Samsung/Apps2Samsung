@@ -18,7 +18,11 @@ namespace Apps2Samsung.TvStore
     /// <summary>What TV-Store's service reports about itself, through the page's <c>A2SStore.status()</c>.</summary>
     /// <param name="Armed">True once a signing certificate has been handed over and stored on the TV.</param>
     /// <param name="OwnIp">The address the service connects to its own sdbd on; null when it could not tell.</param>
-    public sealed record TvStoreStatus(bool Armed, string? OwnIp);
+    /// <param name="SourceIds">The signed repositories TV-Store already has (#1018, TV-Store#82), by repository id; empty before TV-Store 0.3.22.</param>
+    public sealed record TvStoreStatus(bool Armed, string? OwnIp, System.Collections.Generic.IReadOnlyList<string>? SourceIds = null);
+
+    /// <summary>What the TV answered for one source sent with <see cref="TvStoreClient.AddSourcesAsync"/>.</summary>
+    public sealed record TvStoreSourceResult(string Url, string? RepositoryId, bool Added, string? Name, string? Error);
 
     /// <summary>
     /// A head's end of the TV-Store app (#844): the way to hand it the signing certificate. TV-Store's
@@ -194,9 +198,15 @@ namespace Apps2Samsung.TvStore
             var node = await CallAsync("A2SStore.status()", EvaluateTimeout, ct).ConfigureAwait(false);
             if (node?["ok"]?.GetValue<bool>() != true)
                 throw new InvalidOperationException($"TV-Store's service did not answer: {node?["error"]?.ToString() ?? "no reply"}");
+            var sources = (node["sources"] as JsonArray)?
+                .Select(src => src?["repositoryId"]?.ToString())
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Select(id => id!)
+                .ToList();
             return new TvStoreStatus(
                 Armed: node["certReady"]?.GetValue<bool>() ?? false,
-                OwnIp: node["ownIp"]?.ToString());
+                OwnIp: node["ownIp"]?.ToString(),
+                SourceIds: sources ?? new System.Collections.Generic.List<string>());
         }
 
         /// <summary>
@@ -227,6 +237,55 @@ namespace Apps2Samsung.TvStore
             Trace.WriteLine("[tvstore] TV-Store answered the hand-over: " + TvStoreArmLog.DescribeReply(node));
             if (node?["ok"]?.GetValue<bool>() != true)
                 throw new InvalidOperationException($"TV-Store did not take the certificate: {node?["error"]?.ToString() ?? "no reply"}");
+        }
+
+        /// <summary>How long the TV may take to answer every source: someone has to walk to it and press OK.</summary>
+        private static readonly TimeSpan SourcesTimeout = TimeSpan.FromMinutes(5);
+
+        /// <summary>
+        /// Sends signed repositories to TV-Store (#1018, TV-Store#82): each one's link, pinned id,
+        /// the fingerprint the user approved here, and the key itself. The TV shows every source and
+        /// asks the person at it; the reply comes once each is answered. Unsigned sources are never
+        /// sent: TV-Store installs only files it can check.
+        /// </summary>
+        /// <exception cref="NotSupportedException">This TV-Store has no sources yet (before 0.3.22): update it.</exception>
+        /// <exception cref="InvalidOperationException">The service refused or did not answer.</exception>
+        public async Task<System.Collections.Generic.IReadOnlyList<TvStoreSourceResult>> AddSourcesAsync(
+            System.Collections.Generic.IReadOnlyList<Apps2Samsung.Catalog.UserSource> sources, CancellationToken ct = default)
+        {
+            var supported = await CallAsync("typeof A2SStore.addSources === 'function'", EvaluateTimeout, ct).ConfigureAwait(false);
+            if (supported?.GetValueKind() != JsonValueKind.True)
+                throw new NotSupportedException("This TV-Store cannot take sources yet: update TV-Store on the TV first.");
+            Trace.WriteLine($"[tvstore] sending {sources.Count} source(s) to {AppId} v{Version}: {string.Join(", ", sources.Select(src => src.RepositoryId))}");
+            var node = await CallAsync($"A2SStore.addSources({SourcesPayload(sources)})", SourcesTimeout, ct).ConfigureAwait(false);
+            if (node?["ok"]?.GetValue<bool>() != true)
+                throw new InvalidOperationException($"TV-Store did not take the sources: {node?["error"]?.ToString() ?? "no reply"}");
+            var results = (node["results"] as JsonArray ?? new JsonArray())
+                .Select(r => new TvStoreSourceResult(
+                    r?["url"]?.ToString() ?? string.Empty,
+                    r?["repositoryId"]?.ToString(),
+                    r?["added"]?.GetValueKind() == JsonValueKind.True,
+                    r?["name"]?.ToString(),
+                    r?["error"]?.ToString()))
+                .ToList();
+            Trace.WriteLine("[tvstore] the TV answered: " + string.Join("; ", results.Select(r => $"{r.RepositoryId} {(r.Added ? "added" : r.Error)}")));
+            return results;
+        }
+
+        /// <summary>The array A2SStore.addSources takes; only approved signed repositories, never an unsigned source.</summary>
+        public static string SourcesPayload(System.Collections.Generic.IReadOnlyList<Apps2Samsung.Catalog.UserSource> sources)
+        {
+            var approved = sources.Where(Apps2Samsung.Catalog.UserSources.IsApprovedRepository).ToList();
+            if (approved.Count == 0)
+                throw new ArgumentException("Only signed repositories with an approved key can go to the TV.", nameof(sources));
+            return JsonSerializer.Serialize(approved.Select(src => new
+            {
+                url = src.Url.Trim(),
+                repositoryId = src.RepositoryId,
+                fingerprint = Apps2Samsung.Catalog.Repositories.RepositoryVerifier.NormalizeFingerprint(src.Fingerprint!),
+                name = Apps2Samsung.Catalog.UserSources.DisplayName(src),
+                publicKeyPem = src.PublicKey,
+            }).ToList());
         }
 
         /// <summary>

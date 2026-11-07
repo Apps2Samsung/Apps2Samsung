@@ -22,6 +22,7 @@ public static class Help
                                        --export / --import move one between devices
           tvstore --tv <ip>            arm the TV-Store app on the TV: hand it the signing certificate once
           tvstore log --tv <ip>        save TV-Store's own log from the TV (TV-Store open on the TV)
+          tvstore sources --tv <ip>    hand your signed repositories to TV-Store; the TV asks before adding each
           leftovers --tv <ip>          the packages left in the TV's install staging folder; --clear deletes
                                        them, --delete <file> one file (the toolbox's Install leftovers)
           logs [show]                  where the session logs are; `logs show` prints the newest, for a bug report

@@ -273,6 +273,29 @@
                             Content="{l:Localize lblToolboxTvStoreShowInCatalog}"
                             Command="{Binding ShowTvStoreInCatalogCommand}"/>
 
+                    <!-- Send sources to TV (#1018, TV-Store#82): the signed repositories of Your sources, with
+                         the keys approved here; the TV asks before adding each. Unsigned ones never go. -->
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxSendSourcesHint}" Margin="0,8,0,0"/>
+                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxSendSourcesNone}" IsVisible="{Binding !HasTvSources}"/>
+                    <ItemsControl ItemsSource="{Binding TvSources}" IsVisible="{Binding HasTvSources}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="viewModels:TvToolboxViewModel+TvSourceChoice">
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                                    <CheckBox IsChecked="{Binding IsChecked}" IsEnabled="{Binding CanSend}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Note}" FontSize="12" Opacity="0.8" VerticalAlignment="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsEnabled="{Binding HasSdb}" IsVisible="{Binding HasTvSources}">
+                        <Button Grid.Column="0" Classes="action" Width="160"
+                                Content="{l:Localize lblToolboxSendSources}"
+                                Command="{Binding SendSourcesToTvCommand}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding SourcesStatus}" FontSize="12" Opacity="0.8"
+                                   TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </Grid>
+
                     <!-- ============ Package file ============ -->
                     <!-- A package of the user's own, without installing it from here (#979): signed with
                          the certificate that covers this TV and saved, or sent to TV-Store's upload page
