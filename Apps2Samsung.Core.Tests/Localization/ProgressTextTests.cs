@@ -52,6 +52,7 @@ public class ProgressTextTests
     [InlineData("statusInstallRetryRemoveOld")]
     [InlineData("statusPackageIdForgotten")]
     [InlineData("statusPackageIdRenamed")]
+    [InlineData("statusPackageIdSeparateApp")]
     public void EveryProgressKeyCoreEmitsIsInEnglish(string key)
     {
         Assert.NotEqual(key, English.GetString(key));

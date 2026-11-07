@@ -69,7 +69,9 @@ namespace Apps2Samsung.Helpers.Core
                 return null;
             }
         }
-        public async Task<bool> InstallPackageAsync(string? packagePath, NetworkDevice selectedDevice, CancellationToken cancellationToken, ProgressCallback? progress = null, Action? onSamsungLoginStarted = null, IProgress<int>? installProgress = null)
+        /// <param name="catalogKey">The catalog entry the package is from (PackageIdCollisions.CatalogKey), which a
+        /// colliding package's new id is derived from (#1028); null for a picked file.</param>
+        public async Task<bool> InstallPackageAsync(string? packagePath, NetworkDevice selectedDevice, CancellationToken cancellationToken, ProgressCallback? progress = null, Action? onSamsungLoginStarted = null, IProgress<int>? installProgress = null, string? catalogKey = null)
         {
             if (string.IsNullOrEmpty(packagePath) || !File.Exists(packagePath))
             {
@@ -173,7 +175,8 @@ namespace Apps2Samsung.Helpers.Core
                     cancellationToken,
                     progress,
                     onSamsungLoginStarted,
-                    installProgress: installProgress);
+                    installProgress: installProgress,
+                    catalogKey: catalogKey);
 
                 if (result.Success)
                 {
@@ -184,6 +187,7 @@ namespace Apps2Samsung.Helpers.Core
                     if (win.DataContext is InstallationCompleteViewModel vm)
                     {
                         vm.InstalledPackageName = prettyName;
+                        vm.Note = result.Note;
                     }
 
                     if (Avalonia.Application.Current?.ApplicationLifetime is

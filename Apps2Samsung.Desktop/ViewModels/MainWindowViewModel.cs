@@ -1361,7 +1361,9 @@ namespace Apps2Samsung.ViewModels
                                 _samsungLoginCts.Token,
                                 message => Dispatcher.UIThread.Post(() => StatusBar = message),
                                 onSamsungLoginStarted: OnSamsungLoginStarted,
-                                installProgress: InstallProgressSink);
+                                installProgress: InstallProgressSink,
+                                catalogKey: Apps2Samsung.Install.PackageIdCollisions.CatalogKey(
+                                    SelectedRelease, SelectedAsset ?? SelectedRelease.Assets.FirstOrDefault()));
                         }
                         finally
                         {

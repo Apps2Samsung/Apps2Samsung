@@ -3,6 +3,7 @@ using Apps2Samsung.Localization;
 using System.Net.Http.Headers;
 using Apps2Samsung.Configuration;
 using Apps2Samsung.Install;
+using Apps2Samsung.Packaging;
 using Apps2Samsung.Interfaces;
 using Microsoft.Maui.Storage;
 
@@ -72,7 +73,11 @@ public sealed class WgtInstaller
 	/// erases that app's settings, sign-in and local data on the TV (#825). False stops the install
 	/// with <see cref="RemovalDeclinedException"/>; null (no UI) keeps the remove-and-retry as it was.</param>
 	/// <param name="packageId">Which id to install under (#839); null keeps the package's own id unless
-	/// this TV already has it renamed.</param>
+	/// this TV already has it renamed. A web package whose id another app on the TV has is renamed
+	/// on its own (#1028).</param>
+	/// <param name="confirmReplace">Asked when a native package's id belongs to another app on the TV
+	/// (#1028); false stops with <see cref="ReplaceDeclinedException"/>.</param>
+	/// <param name="renamed">Told the rename applied, if any.</param>
 	/// <summary>
 	/// The per-app modifications an install makes before signing, on the file in place, for a
 	/// package that is signed and installed elsewhere: TV-Store's upload page (#979).
@@ -82,7 +87,8 @@ public sealed class WgtInstaller
 
 	public Task<string> InstallAsync(string tvIp, string wgtPath, CertificateProvisioner.Result cert, Action<string>? progress = null,
 		Action<InstallStep, int?>? step = null, CancellationToken ct = default, Func<Task<bool>>? confirmRemove = null,
-		PackageIdPolicy? packageId = null)
+		PackageIdPolicy? packageId = null, Func<PackageIdCollision, Task<bool>>? confirmReplace = null,
+		Action<PackageIdRename>? renamed = null)
 	{
 		// The sequence itself lives in Core (PackageInstaller, shared with the CLI, #836); this
 		// head only maps its stages onto the progress sheet's numbered steps.
@@ -97,6 +103,6 @@ public sealed class WgtInstaller
 		Action<string>? localized = progress is null ? null : message => progress(ProgressText.Localize(message, L10n.Get));
 		return _installer.InstallAsync(tvIp, wgtPath,
 			new SigningProfile(cert.AuthorP12, cert.DistributorP12, cert.Password, cert.ProfileDir),
-			localized, stage, ct, confirmRemove, packageId);
+			localized, stage, ct, confirmRemove, packageId, confirmReplace, renamed);
 	}
 }

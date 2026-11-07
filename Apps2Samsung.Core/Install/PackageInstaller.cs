@@ -95,10 +95,17 @@ namespace Apps2Samsung.Install
         /// <returns>The TV's install output.</returns>
         /// <remarks>Progress lines are en.json keys (<see cref="ProgressText"/>); a head localizes them through its catalog.</remarks>
         /// <param name="packageId">Which id to install under (#839): a new one on request, or the one
-        /// remembered for this TV. Null installs under the package's own id.</param>
+        /// remembered for this TV, or the derived one when another app on the TV has the package's id
+        /// (#1028). Null installs under the package's own id.</param>
+        /// <param name="confirmReplace">Asked when a native package's id belongs to a different app on
+        /// the TV (#1028): true replaces that app, false stops with <see cref="ReplaceDeclinedException"/>.
+        /// Null (no UI) installs over it as before.</param>
+        /// <param name="renamed">Told the rename applied, if any, so the head can say the app went in as
+        /// a separate app (<see cref="PackageIdRename.CollidedWith"/>).</param>
         public async Task<string> InstallAsync(string tvIp, string wgtPath, SigningProfile cert, Action<string>? progress = null,
             Action<InstallStage, int?>? stage = null, CancellationToken ct = default, Func<Task<bool>>? confirmRemove = null,
-            PackageIdPolicy? packageId = null)
+            PackageIdPolicy? packageId = null, Func<PackageIdCollision, Task<bool>>? confirmReplace = null,
+            Action<PackageIdRename>? renamed = null)
         {
             stage?.Invoke(InstallStage.Sign, null);
             // Which way in: a TV whose Host PC IP is 127.0.0.1 is reached through TV-Store's relay
@@ -123,9 +130,35 @@ namespace Apps2Samsung.Install
             if (selfUpdate)
                 Trace.WriteLine($"[install] {tvIp}: updating TV-Store through its own relay; the connection is expected to drop while it restarts");
 
-            // Another id for this TV, by request or as remembered (#839). Before anything reads the
-            // ids: from here on the package is the renamed one.
-            await PackageIds.ApplyAsync(wgtPath, packageId, _config, progress);
+            // What is on the TV now: whether another app already has this package's id (#1028), and
+            // further down whether this package was there before. Null when it could not be read.
+            IReadOnlyList<InstalledApp>? installedApps = null;
+            ProcessResult? listing = null;
+            try
+            {
+                listing = await _sdb.AppsAsync(tvIp);
+                installedApps = TizenInstalledApps.Parse(listing?.Output);
+                if (installedApps.Count == 0 && !TizenInstalledApps.IsEmptyListing(listing?.Output))
+                    installedApps = null;
+            }
+            catch { /* best-effort: no listing means no collision check and a fresh-install guess below */ }
+            ct.ThrowIfCancellationRequested();
+
+            // A native package cannot be renamed safely (its code can hardcode its own paths), so a
+            // different app under its id is the user's call: replace it, or stop here (#1028).
+            if (confirmReplace is not null && !selfUpdate && installedApps is not null && packageId?.OwnId != true)
+            {
+                var names = await WgtManifest.ReadNamesAsync(wgtPath);
+                if (names.IsNative && PackageIdCollisions.Find(installedApps, names) is { } collision && !await confirmReplace(collision))
+                    throw new ReplaceDeclinedException(collision);
+            }
+
+            // Another id for this TV, by request, as remembered (#839) or because another app has
+            // this one's id (#1028). Before anything reads the ids: from here on the package is the
+            // renamed one.
+            var rename = await PackageIds.ApplyAsync(wgtPath, packageId, _config, progress, installedApps);
+            if (rename is not null)
+                renamed?.Invoke(rename);
 
             // The Tizen app/package ids live in the package's config.xml; needed to remove an old
             // version before install and/or launch the app afterwards.
@@ -142,17 +175,10 @@ namespace Apps2Samsung.Install
 
             // Was this package already on the TV before we started? The failure cleanup below only
             // clears a partial from a FRESH install and never removes a pre-existing working app.
-            bool wasInstalledBefore = false;
-            if (!string.IsNullOrWhiteSpace(packageIdInFile))
-            {
-                try
-                {
-                    var listed = await _sdb.AppsAsync(tvIp);
-                    wasInstalledBefore = listed?.Output?.Contains(packageIdInFile!, StringComparison.OrdinalIgnoreCase) ?? false;
-                }
-                catch { /* best-effort; if we can't tell, treat as fresh (cleanup guard still needs packageIdInFile) */ }
-            }
-            ct.ThrowIfCancellationRequested();
+            // Read from the listing taken above; if it could not be read, treat as fresh (the cleanup
+            // guard still needs packageIdInFile).
+            bool wasInstalledBefore = !string.IsNullOrWhiteSpace(packageIdInFile)
+                && (listing?.Output?.Contains(packageIdInFile!, StringComparison.OrdinalIgnoreCase) ?? false);
 
             // Older TVs (<= 4.0) need the distributor device profile pushed before install; newer TVs
             // carry the authorization in the re-signed package itself.
@@ -381,5 +407,17 @@ namespace Apps2Samsung.Install
     public sealed class RemovalDeclinedException : Exception
     {
         public RemovalDeclinedException() : base("The installed copy was kept at the user's request.") { }
+    }
+
+    /// <summary>
+    /// The user kept the other app that has a native package's id rather than replace it (#1028).
+    /// Nothing on the TV was touched.
+    /// </summary>
+    public sealed class ReplaceDeclinedException : Exception
+    {
+        public ReplaceDeclinedException(PackageIdCollision collision)
+            : base($"Kept {collision.OccupantName}; {collision.PackageName} was not installed.") => Collision = collision;
+
+        public PackageIdCollision Collision { get; }
     }
 }

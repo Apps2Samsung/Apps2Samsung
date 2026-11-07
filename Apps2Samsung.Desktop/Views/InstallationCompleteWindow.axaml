@@ -54,6 +54,14 @@
                        Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
                        FontWeight="Medium"/>
 
+			<!-- Installed under another package id than its own (#1028): why, in one line. -->
+			<TextBlock Text="{Binding Note}"
+                       IsVisible="{Binding HasNote}"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                       FontSize="14"/>
+
 			<!-- Extra Info -->
 			<TextBlock Text="{Binding EasyRight}"
                        TextWrapping="Wrap"

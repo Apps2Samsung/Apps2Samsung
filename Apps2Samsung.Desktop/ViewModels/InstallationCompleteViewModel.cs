@@ -14,6 +14,13 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(SuccessMessage))]
         private string installedPackageName = string.Empty;
+
+        /// <summary>One more line under the message (InstallResult.Note), such as why the app went in as a separate app (#1028).</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasNote))]
+        private string? note;
+
+        public bool HasNote => !string.IsNullOrWhiteSpace(Note);
         public InstallationCompleteViewModel(ILocalizationService localization)
         {
             Trace.WriteLine(installedPackageName);

@@ -220,7 +220,8 @@ namespace Apps2Samsung.Services
             ProgressCallback? progress = null,
             Action? onSamsungLoginStarted = null,
             bool? wasAlreadyInstalled = null,
-            IProgress<int>? installProgress = null)
+            IProgress<int>? installProgress = null,
+            string? catalogKey = null)
         {
             // Record whether the app was already on the TV BEFORE this run. This gates the fresh-install
             // partial cleanup in HandleInstallationResultAsync: we only clear a partial for an app that
@@ -255,11 +256,20 @@ namespace Apps2Samsung.Services
                 WasAlreadyInstalled = wasAlreadyInstalled.Value,
                 SourcePackage = packageUrl,
                 InstallProgress = installProgress,
+                CatalogKey = catalogKey,
             };
 
             try
             {
-                return await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
+                var result = await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
+                // Renamed because another app on the TV has this id (#1028): the result says so.
+                if (result.Success && run.Rename?.CollidedWith is { } other)
+                {
+                    var note = string.Format("installedAsSeparateApp".Localized(), run.Rename.NewId, other);
+                    progress?.Invoke(note);
+                    return new InstallResult { Success = true, Note = note };
+                }
+                return result;
             }
             finally
             {
@@ -291,11 +301,6 @@ namespace Apps2Samsung.Services
                 run.TvStoreSelfUpdate ??= await Apps2Samsung.TvStore.TvStoreSelfUpdate.AppliesAsync(
                     tvIpAddress, run.SourcePackage, _appSettings.PackageIdRenamesJson, cancellationToken);
 
-                // Step 1: Prepare device and check for existing installations
-                var prepareResult = await PrepareDeviceAsync(tvIpAddress, packagePath, progress, run);
-                if (!prepareResult.Success)
-                    return prepareResult;
-
                 // Step 2: Connect and get device information
                 progress?.Invoke(Constants.LocalizationKeys.ConnectingToDevice.Localized());
 
@@ -320,23 +325,64 @@ namespace Apps2Samsung.Services
                 // an earlier install on this TV already renamed this package and the update has to
                 // land on that tile, unless the sheet asked for the package's own id back. Not on
                 // the retry that keeps a [118]-renamed working copy, which already carries its new id.
+                // Also the automatic rename of a web package whose id another app on the TV has
+                // (#1028), and the Cancel/Replace question for a native one. All of it before Step 3c
+                // below, which removes an old copy by the package's id: that has to be the new id by
+                // then, or it removes the other app.
                 run.TvDuid = deviceInfo.Duid;
                 run.TvName = deviceInfo.Name;
                 if (!run.KeepWorkingPackage)
                 {
                     var (_, ownPackageId) = await WgtManifest.ReadIdsAsync(packagePath);
-                    var forgotten = AppSettings.Default.InstallUnderOwnPackageId
+                    var ownId = AppSettings.Default.InstallUnderOwnPackageId;
+                    var forgotten = ownId
                         ? Apps2Samsung.Packaging.PackageIdRenameStore.Find(_appSettings.PackageIdRenamesJson, deviceInfo.Duid, ownPackageId)
                         : null;
+
+                    var installedApps = await ReadInstalledAppsAsync(tvIpAddress);
+                    if (installedApps is not null && run.TvStoreSelfUpdate != true && !ownId && run.ReplaceConfirmed is null)
+                    {
+                        var names = await WgtManifest.ReadNamesAsync(packagePath);
+                        if (names.IsNative && Apps2Samsung.Install.PackageIdCollisions.Find(installedApps, names) is { } collision)
+                        {
+                            run.ReplaceConfirmed = await Dispatcher.UIThread.InvokeAsync(() => _dialogService.ShowConfirmationAsync(
+                                string.Format("confirmReplaceOtherTitle".Localized(), collision.OccupantName),
+                                string.Format("confirmReplaceOther".Localized(), collision.OccupantName, collision.PackageName),
+                                "btnReplace".Localized(),
+                                Constants.LocalizationKeys.Cancel.Localized()));
+                            Trace.WriteLine($"[PackageId] Replacing '{collision.OccupantName}' with native '{collision.PackageName}' was {(run.ReplaceConfirmed == true ? "confirmed" : "declined")}.");
+                            if (run.ReplaceConfirmed != true)
+                            {
+                                var message = string.Format("replaceDeclined".Localized(), collision.OccupantName, collision.PackageName);
+                                progress?.Invoke(message);
+                                return InstallResult.FailureResult(message);
+                            }
+                        }
+                    }
+
                     var rename = await Apps2Samsung.Install.PackageIds.ApplyAsync(
                         packagePath,
-                        new Apps2Samsung.Install.PackageIdPolicy(deviceInfo.Duid, AppSettings.Default.InstallUnderNewPackageId, AppSettings.Default.InstallUnderOwnPackageId),
-                        _appSettings);
+                        new Apps2Samsung.Install.PackageIdPolicy(deviceInfo.Duid, AppSettings.Default.InstallUnderNewPackageId, ownId, run.CatalogKey),
+                        _appSettings,
+                        installed: installedApps);
                     if (forgotten is not null)
                         progress?.Invoke(string.Format("statusPackageIdForgotten".Localized(), forgotten.OriginalPackageId, forgotten.NewPackageId));
+                    if (rename?.CollidedWith is { } other)
+                        progress?.Invoke(string.Format("statusPackageIdSeparateApp".Localized(), rename.NewId, other));
                     if (rename is not null)
+                    {
                         progress?.Invoke(string.Format("statusPackageIdRenamed".Localized(), rename.OldId, rename.NewId));
+                        // A retry re-applies the remembered rename, which no longer says why; keep the first.
+                        if (run.Rename is null || rename.CollidedWith is not null)
+                            run.Rename = rename;
+                    }
                 }
+
+                // Step 3c (was Step 1): prepare the device and remove an existing copy where the
+                // settings say so. After the rename above, so "existing copy" is this package's.
+                var prepareResult = await PrepareDeviceAsync(tvIpAddress, packagePath, progress, run);
+                if (!prepareResult.Success)
+                    return prepareResult;
 
                 // Step 4: Handle certificate selection/generation
                 var certificateResult = await HandleCertificateAsync(
@@ -1521,6 +1567,22 @@ namespace Apps2Samsung.Services
             return true;
         }
 
+        /// <summary>The TV's installed apps for the package-id collision check (#1028), or null when they could not be read.</summary>
+        private async Task<IReadOnlyList<InstalledApp>?> ReadInstalledAppsAsync(string tvIpAddress)
+        {
+            try
+            {
+                var result = await _sdb.AppsAsync(tvIpAddress);
+                var apps = Apps2Samsung.Sdb.TizenInstalledApps.Parse(result?.Output);
+                return apps.Count > 0 || Apps2Samsung.Sdb.TizenInstalledApps.IsEmptyListing(result?.Output) ? apps : null;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[PackageId] Could not read the installed apps for the collision check: {ex.Message}");
+                return null;
+            }
+        }
+
         private async Task<(bool isInstalled, string? appId)> CheckForInstalledApp(string tvIpAddress, string packagePath)
         {
             var result = await _sdb.AppsAsync(tvIpAddress);
@@ -1658,6 +1720,15 @@ namespace Apps2Samsung.Services
 
             /// <summary>The TV's name once Step 2 read it, for the sheets.</summary>
             public string? TvName { get; set; }
+
+            /// <summary>The catalog entry the package is from, which a colliding package's new id is derived from (#1028).</summary>
+            public string? CatalogKey { get; init; }
+
+            /// <summary>The rename the first attempt applied, if any; the result says why when another app had the id (#1028).</summary>
+            public Apps2Samsung.Packaging.PackageIdRename? Rename { get; set; }
+
+            /// <summary>The answer to "replace the other app that has this native package's id?" (#1028), asked once per run.</summary>
+            public bool? ReplaceConfirmed { get; set; }
 
             /// <summary>
             /// Whether this run updates TV-Store through TV-Store's own relay (#1005), decided once
