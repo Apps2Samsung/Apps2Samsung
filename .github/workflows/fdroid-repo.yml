@@ -39,8 +39,8 @@ jobs:
         with:
           ref: beta
           fetch-depth: 0
-          # Admins are on the ruleset's bypass list, GITHUB_TOKEN is not — and the commit
-          # below carries [skip ci], so the required checks can never report on it anyway.
+          # Admins are on the ruleset's bypass list, GITHUB_TOKEN is not: the commit below goes
+          # straight to beta, not through a PR.
           # The push at the end hands the PAT to git itself, so the clone keeps no credentials.
           persist-credentials: false
 
@@ -125,6 +125,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to publish."
           else
-            git commit -m "fdroid: publish repo for the latest stable APK [skip ci]"
+            git commit -m "fdroid: publish repo for the latest stable APK"
             git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}" beta
           fi

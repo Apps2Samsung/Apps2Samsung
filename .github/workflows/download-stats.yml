@@ -78,7 +78,7 @@ jobs:
             echo "Counts unchanged; nothing to publish."
             exit 0
           fi
-          git commit -m "chore(catalog): refresh download stats [skip ci]"
+          git commit -m "chore(catalog): refresh download stats"
           # The catalog snapshot may have pushed since the checkout.
           git pull --rebase origin beta
           git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}" beta

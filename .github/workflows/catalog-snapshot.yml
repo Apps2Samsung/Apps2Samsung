@@ -157,5 +157,5 @@ jobs:
           # New icons and the ones pruned as unreferenced, in the same commit as the catalog that
           # names them.
           if [ -d "$ICONS" ]; then git add -A -- "$ICONS"; fi
-          git commit -m "chore(catalog): refresh resolved catalog [skip ci]"
+          git commit -m "chore(catalog): refresh resolved catalog"
           git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}" beta
