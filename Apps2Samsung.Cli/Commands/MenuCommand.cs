@@ -766,7 +766,7 @@ internal sealed class Menu
         if (args[0] is not ("install" or "uninstall" or "leftovers"))
             ShowLine(args);
         _con.WriteLine();
-        await Dispatch.RunLineAsync(line, _ct);
+        await Dispatch.RunLineAsync(line, _ct, _s.Sdb);
         _con.WriteLine();
     }
 
