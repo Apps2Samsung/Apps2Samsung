@@ -47,7 +47,7 @@ workflows:
         - 'actions/upload-artifact@v7.0.2'
     '.github/workflows/plumber.yml':
         - 'actions/checkout@v5.0.1'
-        - 'getplumber/plumber@v0.7.18'
+        - 'getplumber/plumber@v0.7.23'
     '.github/workflows/pr-build.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
@@ -134,9 +134,9 @@ dependencies:
         commit: 'sha1-5b9790df740c85af5412a3a3a91b24988d5d324f'
         owner_id: 861398
         repo_id: 258521306
-    'getplumber/plumber@v0.7.18':
-        ref: 'v0.7.18'
-        commit: 'sha1-ebc213aa45dccd233ce5c2630f0aafa8e8d650c5'
+    'getplumber/plumber@v0.7.23':
+        ref: 'v0.7.23'
+        commit: 'sha1-ec8cb3a7edd6a324b33e85109b627b2df6023d94'
         owner_id: 255179076
         repo_id: 1137327132
         uses:
