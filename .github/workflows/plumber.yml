@@ -27,7 +27,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: getplumber/plumber@v0.7.18
+      - uses: getplumber/plumber@v0.7.23
         with:
           # Code scanning upload needs security-events write, which PRs
           # from forks do not get. The report stays available as a
