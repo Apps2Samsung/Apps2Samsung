@@ -308,31 +308,23 @@ internal sealed class Menu
 
     /// <summary>
     /// The toolbox's Install leftovers card (#681): the TV's staging folder as the debug agent lists
-    /// it, then Clear or one file. Each choice is its own `leftovers` run, which attaches the agent
-    /// again; the listing here is read directly so the file names can be offered.
+    /// it, then Clear or one file. The agent is attached ONCE and stays attached through the choice and
+    /// the confirm, and the delete runs on it, as the desktop and mobile toolbox do (#975). Each choice
+    /// still prints the `leftovers` line that does the same from a script, but the menu does not run
+    /// that line: a fresh run stopped the agent after the listing and launched it again for the delete,
+    /// and a 2020 TV refused every connection in between, so the agent "closed straight away" on the
+    /// TV and the delete never happened.
     /// </summary>
     private async Task LeftoversAsync(Tv tv)
     {
         var ip = tv.State.Ip;
         Screen();
         Show(Views.TvCard(tv.State, _unicode));
-        List<LeftoversCommand.Row> rows;
-        string summary;
+
+        DebugAgentClient agent;
         try
         {
-            await using var agent = await LeftoversCommand.AttachAsync(_s, ip, _ct);
-            if (!agent.SupportsStaging)
-            {
-                _s.Out.Warn($"the debug agent on the TV is v{agent.AgentVersion}; reading the staging folder needs v{DebugAgentClient.StagingSince} or later");
-                _s.Out.Idle(Glyph.Failed);
-                await PauseAsync();
-                return;
-            }
-            var listing = await LeftoversCommand.ListAsync(_s, agent, _ct);
-            rows = listing.Files.Select(LeftoversCommand.ToRow).ToList();
-            summary = LeftoversCommand.Summary(_s, listing);
-            foreach (var e in listing.Errors)
-                _s.Out.Warn(e);
+            agent = await LeftoversCommand.AttachAsync(_s, ip, _ct);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -346,47 +338,104 @@ internal sealed class Menu
             await PauseAsync();
             return;
         }
-        _s.Out.Idle();
-        Show(Views.Leftovers(rows, summary, ip, _s.Out.Width, _unicode));
-        ShowLine(new[] { "leftovers", "--tv", ip });
-        if (rows.Count == 0)
-        {
-            await PauseAsync();
-            return;
-        }
 
-        var packages = rows.Count(r => r.IsPackage);
-        var items = new List<Item>();
-        if (packages > 0)
-            items.Add(Act("Clear", $"delete the {packages} package{(packages == 1 ? "" : "s")}, keep the rest", "clear"));
-        items.Add(Act($"Delete one file{Ellipsis}", "package or not", "delete"));
-        items.Add(new Item(M($"{(_unicode ? "←" : "<-")} Back"), "back"));
-        var pick = await SelectAsync(M($"Leftovers on {E(ip)}"), items);
-        switch (pick.Tag)
+        // Disposing stops the agent on the TV; that happens when the user is done here, not before.
+        await using (agent)
         {
-            case "clear":
+            if (!agent.SupportsStaging)
             {
-                var args = new[] { "leftovers", "--tv", ip, "--clear" };
-                ShowLine(args);
-                if (await ConfirmAsync($"Delete the {packages} package{(packages == 1 ? "" : "s")} from the staging folder on {E(ip)}? Installed apps are not touched."))
-                    await RunAsync(args);
+                _s.Out.Warn($"the debug agent on the TV is v{agent.AgentVersion}; reading the staging folder needs v{DebugAgentClient.StagingSince} or later");
+                _s.Out.Idle(Glyph.Failed);
+                await PauseAsync();
                 return;
             }
-            case "delete":
+
+            List<LeftoversCommand.Row> rows;
+            string summary;
+            try
             {
-                var choices = rows.Select(r => new Item($"{E(r.Name)}  {M(E(InstalledApp.FormatSize(r.Size)))}", r)).ToList();
-                choices.Add(new Item(M($"{(_unicode ? "←" : "<-")} Back"), "back"));
-                if ((await SelectAsync(M("Which file"), choices)).Tag is not LeftoversCommand.Row file)
+                var listing = await LeftoversCommand.ListAsync(_s, agent, _ct);
+                rows = listing.Files.Select(LeftoversCommand.ToRow).ToList();
+                summary = LeftoversCommand.Summary(_s, listing);
+                foreach (var e in listing.Errors)
+                    _s.Out.Warn(e);
+                System.Diagnostics.Trace.WriteLine($"[cli] leftovers on {ip}: {summary} ({string.Join(", ", rows.Select(r => r.Name))})");
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _s.Out.Warn($"the staging folder could not be read: {E(ex.Message)}");
+                _s.Out.Idle(Glyph.Failed);
+                await PauseAsync();
+                return;
+            }
+            _s.Out.Idle();
+            Show(Views.Leftovers(rows, summary, ip, _s.Out.Width, _unicode));
+            ShowLine(new[] { "leftovers", "--tv", ip });
+            if (rows.Count == 0)
+            {
+                await PauseAsync();
+                return;
+            }
+
+            var packages = rows.Count(r => r.IsPackage);
+            var items = new List<Item>();
+            if (packages > 0)
+                items.Add(Act("Clear", $"delete the {packages} package{(packages == 1 ? "" : "s")}, keep the rest", "clear"));
+            items.Add(Act($"Delete one file{Ellipsis}", "package or not", "delete"));
+            items.Add(new Item(M($"{(_unicode ? "←" : "<-")} Back"), "back"));
+            var pick = await SelectAsync(M($"Leftovers on {E(ip)}"), items);
+            switch (pick.Tag)
+            {
+                case "clear":
+                {
+                    var args = new[] { "leftovers", "--tv", ip, "--clear" };
+                    ShowLine(args);
+                    if (await ConfirmAsync($"Delete the {packages} package{(packages == 1 ? "" : "s")} from the staging folder on {E(ip)}? Installed apps are not touched."))
+                        await RunOnAgentAsync(agent, ip, args, clear: true, deleteFile: null);
                     return;
-                var args = new[] { "leftovers", "--tv", ip, "--delete", file.Name };
-                ShowLine(args);
-                if (await ConfirmAsync($"Delete {E(file.Name)} from the TV?", defaultValue: false))
-                    await RunAsync(args);
-                return;
+                }
+                case "delete":
+                {
+                    var choices = rows.Select(r => new Item($"{E(r.Name)}  {M(E(InstalledApp.FormatSize(r.Size)))}", r)).ToList();
+                    choices.Add(new Item(M($"{(_unicode ? "←" : "<-")} Back"), "back"));
+                    if ((await SelectAsync(M("Which file"), choices)).Tag is not LeftoversCommand.Row file)
+                        return;
+                    var args = new[] { "leftovers", "--tv", ip, "--delete", file.Name };
+                    ShowLine(args);
+                    if (await ConfirmAsync($"Delete {E(file.Name)} from the TV?", defaultValue: false))
+                        await RunOnAgentAsync(agent, ip, args, clear: false, deleteFile: file.Name);
+                    return;
+                }
+                default:
+                    return;
             }
-            default:
-                return;
         }
+    }
+
+    /// <summary>
+    /// Runs the clear or the one-file delete on the agent the listing came from, with the same output
+    /// and the same failure answer as the `leftovers` line it stands for, then waits for a key.
+    /// </summary>
+    private async Task RunOnAgentAsync(DebugAgentClient agent, string ip, IReadOnlyList<string> args, bool clear, string? deleteFile)
+    {
+        _s.Out.Idle();
+        _con.WriteLine();
+        System.Diagnostics.Trace.WriteLine($"[cli] > {string.Join(' ', args)} (menu, on the attached agent)");
+        try
+        {
+            await LeftoversCommand.RunOnAgentAsync(_s, agent, ip, clear, deleteFile, _ct);
+        }
+        catch (OperationCanceledException) when (_ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // What Dispatch.RunLineAsync makes of a command that throws.
+            _s.Out.Fail(ex.Message);
+        }
+        _con.WriteLine();
+        await PauseAsync();
     }
 
     // ---- install ----

@@ -44,83 +44,92 @@ public static class LeftoversCommand
         }
 
         await using (agent)
+            return await RunOnAgentAsync(s, agent, ip, s.Options.Clear, s.Options.DeleteFile, ct);
+    }
+
+    /// <summary>
+    /// The listing, <paramref name="clear"/> or <paramref name="deleteFile"/> on an agent that is already
+    /// attached. The menu lists, asks, and then deletes on the SAME agent, the way the desktop and mobile
+    /// toolbox keep theirs: stopping it after the listing and launching it again for the delete is what
+    /// left the TV refusing the second connection on a 2020 set (#975). The caller disposes the agent.
+    /// </summary>
+    public static async Task<int> RunOnAgentAsync(CliServices s, DebugAgentClient agent, string ip, bool clear, string? deleteFile, CancellationToken ct)
+    {
+        if (!agent.SupportsStaging)
         {
-            if (!agent.SupportsStaging)
+            return s.Out.Fail(
+                $"The debug agent on the TV is v{agent.AgentVersion}; reading the staging folder needs v{DebugAgentClient.StagingSince} or later, " +
+                "and this build could not replace it. Run the command again; if the same answer comes back, remove the Apps2Samsung Debug agent on the TV and retry.");
+        }
+
+        // ---- One file by name ----
+        if (deleteFile is { } name)
+        {
+            var before = await ListAsync(s, agent, ct);
+            var file = before.Files.FirstOrDefault(f => string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase))
+                       ?? before.Files.FirstOrDefault(f => string.Equals(f.Path, name, StringComparison.OrdinalIgnoreCase));
+            if (file is null)
+            {
+                return s.Out.Fail(before.Files.Count == 0
+                    ? $"The staging folder on {ip} is empty; nothing called {name} to delete."
+                    : $"No file called {name} in the staging folder on {ip}. There: {string.Join(", ", before.Files.Select(f => f.Name))}");
+            }
+            if (!agent.SupportsStagedDelete)
             {
                 return s.Out.Fail(
-                    $"The debug agent on the TV is v{agent.AgentVersion}; reading the staging folder needs v{DebugAgentClient.StagingSince} or later, " +
-                    "and this build could not replace it. Run the command again; if the same answer comes back, remove the Apps2Samsung Debug agent on the TV and retry.");
+                    $"The debug agent on the TV is v{agent.AgentVersion}; deleting one file needs v{DebugAgentClient.StagedDeleteSince} or later. " +
+                    "Run the command again so the agent gets replaced; --clear takes every package on any agent that lists the folder.");
             }
-
-            // ---- One file by name ----
-            if (s.Options.DeleteFile is { } name)
-            {
-                var before = await ListAsync(s, agent, ct);
-                var file = before.Files.FirstOrDefault(f => string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase))
-                           ?? before.Files.FirstOrDefault(f => string.Equals(f.Path, name, StringComparison.OrdinalIgnoreCase));
-                if (file is null)
-                {
-                    return s.Out.Fail(before.Files.Count == 0
-                        ? $"The staging folder on {ip} is empty; nothing called {name} to delete."
-                        : $"No file called {name} in the staging folder on {ip}. There: {string.Join(", ", before.Files.Select(f => f.Name))}");
-                }
-                if (!agent.SupportsStagedDelete)
-                {
-                    return s.Out.Fail(
-                        $"The debug agent on the TV is v{agent.AgentVersion}; deleting one file needs v{DebugAgentClient.StagedDeleteSince} or later. " +
-                        "Run the command again so the agent gets replaced; --clear takes every package on any agent that lists the folder.");
-                }
-                s.Out.Progress(string.Format(s.Strings.GetString("lblToolboxStagingDeleting"), file.Name));
-                await agent.DeleteStagedFileAsync(file, ct);
-                var line = string.Format(s.Strings.GetString("lblToolboxStagingDeleted"), file.Name, InstalledApp.FormatSize(file.Size));
-                return s.Out.Result(
-                    new { ok = true, tv = ip, deleted = new[] { ToRow(file) }, freedBytes = file.Size, left = (await ListAsync(s, agent, ct)).Files.Count },
-                    new[] { line },
-                    rich: Views.Done(new[] { line }, s.Out.Unicode));
-            }
-
-            // ---- Every package ----
-            if (s.Options.Clear)
-            {
-                var before = await ListAsync(s, agent, ct);
-                if (!before.Packages.Any())
-                {
-                    var none = s.Strings.GetString("lblToolboxStagingEmpty");
-                    var kept = before.Files.Count - before.Packages.Count();
-                    var lines = kept == 0
-                        ? new[] { none }
-                        : new[] { none, $"{kept} other file{(kept == 1 ? "" : "s")} there; --delete <file> takes one by name." };
-                    return s.Out.Result(new { ok = true, tv = ip, deleted = Array.Empty<Row>(), failed = Array.Empty<string>(), freedBytes = 0L, left = before.Files.Count },
-                        lines, rich: Views.Done(lines, s.Out.Unicode));
-                }
-                s.Out.Progress(s.Strings.GetString("lblToolboxStagingClearing"));
-                var result = await agent.ClearStagingAsync(ct);
-                var summary = result.Failed.Count == 0
-                    ? string.Format(s.Strings.GetString("lblToolboxStagingCleared"), result.Deleted.Count, InstalledApp.FormatSize(result.FreedBytes))
-                    : string.Format(s.Strings.GetString("lblToolboxStagingPartial"), result.Deleted.Count, result.Failed.Count, string.Join("; ", result.Failed));
-                foreach (var f in result.Failed)
-                    s.Out.Warn(f);
-                return s.Out.Result(
-                    new { ok = result.Failed.Count == 0, tv = ip, deleted = result.Deleted.Select(ToRow), failed = result.Failed, freedBytes = result.FreedBytes },
-                    new[] { summary },
-                    result.Failed.Count == 0 ? Output.Ok : Output.Failed,
-                    Views.Done(new[] { summary }, s.Out.Unicode));
-            }
-
-            // ---- The listing ----
-            var listing = await ListAsync(s, agent, ct);
-            var rows = listing.Files.Select(ToRow).ToList();
-            var text = new List<string>();
-            foreach (var r in rows)
-                text.Add($"{r.Name}  {InstalledApp.FormatSize(r.Size)}  {r.Modified ?? ""}  {(r.IsPackage ? "package" : s.Strings.GetString("lblToolboxStagingKept"))}");
-            text.Add(Summary(s, listing));
-            foreach (var e in listing.Errors)
-                s.Out.Warn(e);
+            s.Out.Progress(string.Format(s.Strings.GetString("lblToolboxStagingDeleting"), file.Name));
+            await agent.DeleteStagedFileAsync(file, ct);
+            var line = string.Format(s.Strings.GetString("lblToolboxStagingDeleted"), file.Name, InstalledApp.FormatSize(file.Size));
             return s.Out.Result(
-                new { ok = true, tv = ip, agentVersion = agent.AgentVersion, count = rows.Count, packages = listing.Packages.Count(), packageBytes = listing.PackageBytes, files = rows, errors = listing.Errors },
-                text,
-                rich: Views.Leftovers(rows, Summary(s, listing), ip, s.Out.Width, s.Out.Unicode));
+                new { ok = true, tv = ip, deleted = new[] { ToRow(file) }, freedBytes = file.Size, left = (await ListAsync(s, agent, ct)).Files.Count },
+                new[] { line },
+                rich: Views.Done(new[] { line }, s.Out.Unicode));
         }
+
+        // ---- Every package ----
+        if (clear)
+        {
+            var before = await ListAsync(s, agent, ct);
+            if (!before.Packages.Any())
+            {
+                var none = s.Strings.GetString("lblToolboxStagingEmpty");
+                var kept = before.Files.Count - before.Packages.Count();
+                var lines = kept == 0
+                    ? new[] { none }
+                    : new[] { none, $"{kept} other file{(kept == 1 ? "" : "s")} there; --delete <file> takes one by name." };
+                return s.Out.Result(new { ok = true, tv = ip, deleted = Array.Empty<Row>(), failed = Array.Empty<string>(), freedBytes = 0L, left = before.Files.Count },
+                    lines, rich: Views.Done(lines, s.Out.Unicode));
+            }
+            s.Out.Progress(s.Strings.GetString("lblToolboxStagingClearing"));
+            var result = await agent.ClearStagingAsync(ct);
+            var summary = result.Failed.Count == 0
+                ? string.Format(s.Strings.GetString("lblToolboxStagingCleared"), result.Deleted.Count, InstalledApp.FormatSize(result.FreedBytes))
+                : string.Format(s.Strings.GetString("lblToolboxStagingPartial"), result.Deleted.Count, result.Failed.Count, string.Join("; ", result.Failed));
+            foreach (var f in result.Failed)
+                s.Out.Warn(f);
+            return s.Out.Result(
+                new { ok = result.Failed.Count == 0, tv = ip, deleted = result.Deleted.Select(ToRow), failed = result.Failed, freedBytes = result.FreedBytes },
+                new[] { summary },
+                result.Failed.Count == 0 ? Output.Ok : Output.Failed,
+                Views.Done(new[] { summary }, s.Out.Unicode));
+        }
+
+        // ---- The listing ----
+        var listing = await ListAsync(s, agent, ct);
+        var rows = listing.Files.Select(ToRow).ToList();
+        var text = new List<string>();
+        foreach (var r in rows)
+            text.Add($"{r.Name}  {InstalledApp.FormatSize(r.Size)}  {r.Modified ?? ""}  {(r.IsPackage ? "package" : s.Strings.GetString("lblToolboxStagingKept"))}");
+        text.Add(Summary(s, listing));
+        foreach (var e in listing.Errors)
+            s.Out.Warn(e);
+        return s.Out.Result(
+            new { ok = true, tv = ip, agentVersion = agent.AgentVersion, count = rows.Count, packages = listing.Packages.Count(), packageBytes = listing.PackageBytes, files = rows, errors = listing.Errors },
+            text,
+            rich: Views.Leftovers(rows, Summary(s, listing), ip, s.Out.Width, s.Out.Unicode));
     }
 
     /// <summary>The folder as the agent lists it, for the command and for the menu.</summary>
