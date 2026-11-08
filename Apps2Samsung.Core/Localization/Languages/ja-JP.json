@@ -1007,5 +1007,6 @@
   "errContributeUrl": "http:// または https:// で始まる必要があります",
   "lblUserSourceCategory": "カテゴリ",
   "tvCardActionCheckAgain": "再確認",
-  "infoPortOpen": "開く"
+  "infoPortOpen": "開く",
+  "lblRemovedOn": "{0} に"
 }

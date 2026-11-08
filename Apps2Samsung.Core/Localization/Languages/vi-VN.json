@@ -1004,5 +1004,6 @@
   "errContributeUrl": "Phải bắt đầu bằng http:// hoặc https://",
   "lblUserSourceCategory": "Danh mục",
   "tvCardActionCheckAgain": "Kiểm tra lại",
-  "infoPortOpen": "Mở"
+  "infoPortOpen": "Mở",
+  "lblRemovedOn": "trên {0}"
 }

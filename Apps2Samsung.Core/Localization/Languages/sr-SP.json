@@ -1008,5 +1008,6 @@
   "errContributeUrl": "Мора да почиње са http:// или https://",
   "lblUserSourceCategory": "Категорија",
   "tvCardActionCheckAgain": "Провери поново",
-  "infoPortOpen": "Отвори"
+  "infoPortOpen": "Отвори",
+  "lblRemovedOn": "на {0}"
 }

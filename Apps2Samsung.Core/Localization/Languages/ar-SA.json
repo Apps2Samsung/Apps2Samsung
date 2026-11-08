@@ -1010,5 +1010,6 @@
   "errContributeUrl": "يجب أن يبدأ بـ http:// أو https://",
   "lblUserSourceCategory": "الفئة",
   "tvCardActionCheckAgain": "تحقق مرة أخرى",
-  "infoPortOpen": "فتح"
+  "infoPortOpen": "فتح",
+  "lblRemovedOn": "على {0}"
 }

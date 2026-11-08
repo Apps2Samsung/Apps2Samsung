@@ -986,5 +986,6 @@
   "errContributeUrl": "Deve iniziare con http:// o https://",
   "lblUserSourceCategory": "Categoria",
   "tvCardActionCheckAgain": "Controlla di nuovo",
-  "infoPortOpen": "Apri"
+  "infoPortOpen": "Apri",
+  "lblRemovedOn": "su {0}"
 }

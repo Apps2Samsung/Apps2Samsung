@@ -1005,5 +1005,6 @@
   "errContributeUrl": "Alun on oltava http:// tai https://",
   "lblUserSourceCategory": "Luokka",
   "tvCardActionCheckAgain": "Tarkista uudelleen",
-  "infoPortOpen": "Avaa"
+  "infoPortOpen": "Avaa",
+  "lblRemovedOn": "kohteessa {0}"
 }

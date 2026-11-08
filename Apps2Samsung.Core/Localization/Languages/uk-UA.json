@@ -1010,5 +1010,6 @@
   "errContributeUrl": "Має починатися з http:// або https://",
   "lblUserSourceCategory": "Категорія",
   "tvCardActionCheckAgain": "Перевірити знову",
-  "infoPortOpen": "Відкрити"
+  "infoPortOpen": "Відкрити",
+  "lblRemovedOn": "на {0}"
 }

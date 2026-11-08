@@ -999,5 +999,6 @@
   "errContributeUrl": "Moet met http:// of https:// begin",
   "lblUserSourceCategory": "Kategorie",
   "tvCardActionCheckAgain": "Kontroleer weer",
-  "infoPortOpen": "Maak oop"
+  "infoPortOpen": "Maak oop",
+  "lblRemovedOn": "op {0}"
 }

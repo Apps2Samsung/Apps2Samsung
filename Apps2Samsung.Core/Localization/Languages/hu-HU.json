@@ -1008,5 +1008,6 @@
   "errContributeUrl": "http:// vagy https:// előtaggal kell kezdődnie",
   "lblUserSourceCategory": "Kategória",
   "tvCardActionCheckAgain": "Ellenőrzés újra",
-  "infoPortOpen": "Megnyitás"
+  "infoPortOpen": "Megnyitás",
+  "lblRemovedOn": "ezen: {0}"
 }
