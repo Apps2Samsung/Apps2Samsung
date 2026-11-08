@@ -1,7 +1,7 @@
-hy1dFYv+IDLxisDzHjbQdlQZDCZQcOiwd31rBmLh/lPZC8uLqHfZhc7+NvXTRYWvuEHOfzBR+Knq5l7SF54aNvv5l5oC9nmSGcZvSCJ3s6wBd9eWkGPboHpJKIbZWbFayOJJN9NYybQ8EYU97Lf/t4r2aZMV6Ki3V0dytRtuMcV+4EpxhSmgaedlJwxUmyMVST7eLJqKWje9zAsFBQ+3P5aRki3ALWI2NwWWjzlgSsOSsIilEwoK+Eb6elWZlIvkIWig+jlwoeeEz/8J0iXN2FkTqHjmDDoRsvYK3+Z5HJqrxGEAbH+yDb3lTBwl7/XhXugH9xMl82YqIkt2NF6u4qJ+2t3U2bPpviIm5o+zRN9NxR5UE0D4jO3j9LKQ8otY2gmIrVuYfN4antXmsKGUsGlYxUEEBick5IhHD+hYoMbEp37QAJYr4eqpfywMRsmXOjmG/00fxEI+WG2aYgTRPDloMfnKyiL1l4REf9ArQmLoXu8hBgffh9DH8rIAPqkB
+DBnZUbsJsc5u1LCFPPQj9GawSeUUP1VP2UIQkl2kRIpYId0Q24xCP1JZoC63F7kGOp+QmTQf50Lp5CifaNGk1f92DDZ5y8vQWbU2L61HOxd8iIMpgsqI1q1x+6nf+7OhcfqjuqUSZm4EsW2IDVsb36M7Gq8NW8//mEaiVvxzjJCPvYXb7KlNDG1QFGUTyuIAlU7D031pKRceGFr1/pcLIAS/UpXKxZ9dCBdrb5uLEMCudkKkN8nGQFqyAScwObupvimswEukx9VoOzsF7WgfCVVQcycBEBxFjQXPXxSQ8Ocm31QeyDxtCVnrUUs/PIy++gAIVxrYabOrVFuyX+5TiPAHPanb2W4H8AvU+sjt2lIVCrwaMJyUnuAp4mDDja0Z+nJKjtKxPKYa879DqK2oNY8ASFcqztIbx2u5J4JGjKlaEPgWxy4z0VGezjt9pYxvnyO7dYqUDqMqDvjvoNXVqRMVs+R6IgkOnXlpgJOAkkrRnxtufxJb+qYblb5P/er7
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-08T09:46:16.2803674+00:00",
+  "generatedAt": "2026-11-08T10:07:36.1361411+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -3206,7 +3206,13 @@ hy1dFYv+IDLxisDzHjbQdlQZDCZQcOiwd31rBmLh/lPZC8uLqHfZhc7+NvXTRYWvuEHOfzBR+Knq5l7S
               "name": "Doom.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/Doom.wgt",
               "size": 2907034,
-              "digest": "sha256:6f7c9b7c5be5121684924ae12f8a9e245f19de4be8cdcb485fec4abefd735a61"
+              "digest": "sha256:6f7c9b7c5be5121684924ae12f8a9e245f19de4be8cdcb485fec4abefd735a61",
+              "package_version": "1.21",
+              "app_id": "doomwasm01.Doom",
+              "package_id": "doomwasm01",
+              "required_version": "5.5",
+              "icon": "https://apps2samsung.com/catalog/icons/1e781ba9ca11597718f8f87f4b6869e72810b24d2f09d80ab74e962cf4823cbf.png",
+              "icon_digest": "sha256:1e781ba9ca11597718f8f87f4b6869e72810b24d2f09d80ab74e962cf4823cbf"
             },
             {
               "name": "Douyin.wgt",
@@ -3254,7 +3260,13 @@ hy1dFYv+IDLxisDzHjbQdlQZDCZQcOiwd31rBmLh/lPZC8uLqHfZhc7+NvXTRYWvuEHOfzBR+Knq5l7S
               "name": "GameBoy-Emulator.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/GameBoy-Emulator.wgt",
               "size": 151207,
-              "digest": "sha256:9522e11954ce99e2c86468b27ce2c1ff377906cf862ad329168c5424a9054079"
+              "digest": "sha256:9522e11954ce99e2c86468b27ce2c1ff377906cf862ad329168c5424a9054079",
+              "package_version": "1.2.1",
+              "app_id": "gbemutzn01.GBEmu",
+              "package_id": "gbemutzn01",
+              "required_version": "5.5",
+              "icon": "https://apps2samsung.com/catalog/icons/6bee51e8490375f2df8b17d8b2179c004d238c15fed263297ee699eb9995e7c6.png",
+              "icon_digest": "sha256:6bee51e8490375f2df8b17d8b2179c004d238c15fed263297ee699eb9995e7c6"
             },
             {
               "name": "go2rtc-tizen.wgt",
@@ -3428,7 +3440,13 @@ hy1dFYv+IDLxisDzHjbQdlQZDCZQcOiwd31rBmLh/lPZC8uLqHfZhc7+NvXTRYWvuEHOfzBR+Knq5l7S
               "name": "opencream-tv.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/opencream-tv.wgt",
               "size": 2244292,
-              "digest": "sha256:a483a7012a1d9103635e7012803190e48da591de4431d97880b46304e7ed9cf4"
+              "digest": "sha256:a483a7012a1d9103635e7012803190e48da591de4431d97880b46304e7ed9cf4",
+              "package_version": "0.1.2",
+              "app_id": "OpnCrmTV01.opencreamtv",
+              "package_id": "OpnCrmTV01",
+              "required_version": "5.0",
+              "icon": "https://apps2samsung.com/catalog/icons/769904a2328ff4563d2dc5803fb02f015731216129ffd0976fc55402580b664b.png",
+              "icon_digest": "sha256:769904a2328ff4563d2dc5803fb02f015731216129ffd0976fc55402580b664b"
             },
             {
               "name": "OpenIPTV.wgt",
@@ -3500,7 +3518,13 @@ hy1dFYv+IDLxisDzHjbQdlQZDCZQcOiwd31rBmLh/lPZC8uLqHfZhc7+NvXTRYWvuEHOfzBR+Knq5l7S
               "name": "RTSP-Camera-Viewer.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/RTSP-Camera-Viewer.wgt",
               "size": 97191,
-              "digest": "sha256:408fcabfc9b1c3db458559e3cee6c3afa91df51ff1e6af95413fc7b545eb0ddb"
+              "digest": "sha256:408fcabfc9b1c3db458559e3cee6c3afa91df51ff1e6af95413fc7b545eb0ddb",
+              "package_version": "1.0.0",
+              "app_id": "rfhFEcdD35.CameraDevice",
+              "package_id": "rfhFEcdD35",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/eaa353346c4941516ca315c8f63d12b38db7b8a6b295e4bacc1b86ebfbb89410.png",
+              "icon_digest": "sha256:eaa353346c4941516ca315c8f63d12b38db7b8a6b295e4bacc1b86ebfbb89410"
             },
             {
               "name": "RUVKids.wgt",
@@ -3530,13 +3554,25 @@ hy1dFYv+IDLxisDzHjbQdlQZDCZQcOiwd31rBmLh/lPZC8uLqHfZhc7+NvXTRYWvuEHOfzBR+Knq5l7S
               "name": "SamSUCKS.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/SamSUCKS.wgt",
               "size": 1213808,
-              "digest": "sha256:91cd13a7784dff5b0889b5b9578a32299396c65edc2f03c7f4d68114de0e3de9"
+              "digest": "sha256:91cd13a7784dff5b0889b5b9578a32299396c65edc2f03c7f4d68114de0e3de9",
+              "package_version": "0.1.0",
+              "app_id": "SamSucks01.samsucks",
+              "package_id": "SamSucks01",
+              "required_version": "6.5",
+              "icon": "https://apps2samsung.com/catalog/icons/27951c27e2c98d496f5de70cef943ba972adb19f34570991d44ffedfc43b4733.png",
+              "icon_digest": "sha256:27951c27e2c98d496f5de70cef943ba972adb19f34570991d44ffedfc43b4733"
             },
             {
               "name": "SeanimeTV.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/SeanimeTV.wgt",
               "size": 227156,
-              "digest": "sha256:51f0d9d6210f963dc6cb6a49b01bae073308752fb7d3651a4d5071ec591bb5a5"
+              "digest": "sha256:51f0d9d6210f963dc6cb6a49b01bae073308752fb7d3651a4d5071ec591bb5a5",
+              "package_version": "1.0.0",
+              "app_id": "MadeByAhm5.SeanimeTVClient",
+              "package_id": "MadeByAhm5",
+              "required_version": "4.0",
+              "icon": "https://apps2samsung.com/catalog/icons/992fc7578479d919dabac766116598e67b8d82a98f4aadbe730d711e7b803a16.png",
+              "icon_digest": "sha256:992fc7578479d919dabac766116598e67b8d82a98f4aadbe730d711e7b803a16"
             },
             {
               "name": "Sendspin-Cinema.wgt",
@@ -3596,7 +3632,13 @@ hy1dFYv+IDLxisDzHjbQdlQZDCZQcOiwd31rBmLh/lPZC8uLqHfZhc7+NvXTRYWvuEHOfzBR+Knq5l7S
               "name": "Sportlink-Club-Viewer.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/Sportlink-Club-Viewer.wgt",
               "size": 3682129,
-              "digest": "sha256:691a9ae63e7a094d52f39dd2693a928402613553d2f7b1c2c06a20aed2e1c925"
+              "digest": "sha256:691a9ae63e7a094d52f39dd2693a928402613553d2f7b1c2c06a20aed2e1c925",
+              "package_version": "1.1.0",
+              "app_id": "Lt8KPyCeb1.SportlinkClubViewer",
+              "package_id": "Lt8KPyCeb1",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/41fd470af63e66804d567d5538d6315321e31dadee498f451269c62053169d34.png",
+              "icon_digest": "sha256:41fd470af63e66804d567d5538d6315321e31dadee498f451269c62053169d34"
             },
             {
               "name": "StreamVault-tizen5.wgt",
@@ -3626,7 +3668,13 @@ hy1dFYv+IDLxisDzHjbQdlQZDCZQcOiwd31rBmLh/lPZC8uLqHfZhc7+NvXTRYWvuEHOfzBR+Knq5l7S
               "name": "Stremio-Tizen4.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/Stremio-Tizen4.wgt",
               "size": 3130441,
-              "digest": "sha256:37375e1315fd9fe215d9e96984c2eadbe1aff4a1ae6d01edf7f688cf0c212d31"
+              "digest": "sha256:37375e1315fd9fe215d9e96984c2eadbe1aff4a1ae6d01edf7f688cf0c212d31",
+              "package_version": "1.5.0",
+              "app_id": "newslO9NqF.stremio",
+              "package_id": "newslO9NqF",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/6f3498489de81b0e5ee3cb486ca1c6ea5b31c4946a49243f6c5b161e988a4f38.png",
+              "icon_digest": "sha256:6f3498489de81b0e5ee3cb486ca1c6ea5b31c4946a49243f6c5b161e988a4f38"
             },
             {
               "name": "Tailscale.tpk",
@@ -3662,7 +3710,13 @@ hy1dFYv+IDLxisDzHjbQdlQZDCZQcOiwd31rBmLh/lPZC8uLqHfZhc7+NvXTRYWvuEHOfzBR+Knq5l7S
               "name": "TorrStream.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/TorrStream.wgt",
               "size": 295048,
-              "digest": "sha256:32c5f76557fde753c4cce9c0b293a34f9c6d73715f76922bad77becb557fa7c0"
+              "digest": "sha256:32c5f76557fde753c4cce9c0b293a34f9c6d73715f76922bad77becb557fa7c0",
+              "package_version": "1.1.4",
+              "app_id": "TorrStrm01.TorrStream",
+              "package_id": "TorrStrm01",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/a00e81df468d8f1e5c421dc8006bb2f25f66f53217cc8489fb9dff7d904357a3.png",
+              "icon_digest": "sha256:a00e81df468d8f1e5c421dc8006bb2f25f66f53217cc8489fb9dff7d904357a3"
             },
             {
               "name": "TorrStreaming.wgt",
@@ -3674,7 +3728,13 @@ hy1dFYv+IDLxisDzHjbQdlQZDCZQcOiwd31rBmLh/lPZC8uLqHfZhc7+NvXTRYWvuEHOfzBR+Knq5l7S
               "name": "TubeArchivist-TV.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/TubeArchivist-TV.wgt",
               "size": 71578,
-              "digest": "sha256:ada2ab83fae6dfdbd10f578da539c97c2b7797159e76eb965658b98abe6ad412"
+              "digest": "sha256:ada2ab83fae6dfdbd10f578da539c97c2b7797159e76eb965658b98abe6ad412",
+              "package_version": "1.0.0",
+              "app_id": "TubeArchiv.TubeArchivistTV",
+              "package_id": "TubeArchiv",
+              "required_version": "2.4",
+              "icon": "https://apps2samsung.com/catalog/icons/f98d64d4c402d35bb9db861ea299bef9f36bf7db383d66c0c1e6614865af4dc9.png",
+              "icon_digest": "sha256:f98d64d4c402d35bb9db861ea299bef9f36bf7db383d66c0c1e6614865af4dc9"
             },
             {
               "name": "TV-Clock.wgt",
@@ -3686,7 +3746,13 @@ hy1dFYv+IDLxisDzHjbQdlQZDCZQcOiwd31rBmLh/lPZC8uLqHfZhc7+NvXTRYWvuEHOfzBR+Knq5l7S
               "name": "TV-Dashboard.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/TV-Dashboard.wgt",
               "size": 635632,
-              "digest": "sha256:ddc55941a1dbecc272893f3a5ddf21c9a5659ebbe551d20eb5c3551fd6b567d7"
+              "digest": "sha256:ddc55941a1dbecc272893f3a5ddf21c9a5659ebbe551d20eb5c3551fd6b567d7",
+              "package_version": "1.6.0",
+              "app_id": "BonsoirTV1.Bonsoir",
+              "package_id": "BonsoirTV1",
+              "required_version": "4.0",
+              "icon": "https://apps2samsung.com/catalog/icons/876c087ba79c1e8ef51a9d75bfb410fea69a1e86990eddd7037be84a1fd196c4.png",
+              "icon_digest": "sha256:876c087ba79c1e8ef51a9d75bfb410fea69a1e86990eddd7037be84a1fd196c4"
             },
             {
               "name": "TVApp.wgt",
@@ -3716,1649 +3782,100 @@ hy1dFYv+IDLxisDzHjbQdlQZDCZQcOiwd31rBmLh/lPZC8uLqHfZhc7+NvXTRYWvuEHOfzBR+Knq5l7S
               "name": "UniFi-Cameras.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/UniFi-Cameras.wgt",
               "size": 23892,
-              "digest": "sha256:5186a62c77850feb306db1d4ecddac152011d4d19bb91d20839e43362108256c"
+              "digest": "sha256:5186a62c77850feb306db1d4ecddac152011d4d19bb91d20839e43362108256c",
+              "package_version": "1.0.0",
+              "app_id": "camgrid001.CameraGrid",
+              "package_id": "camgrid001",
+              "required_version": "6.0",
+              "icon": "https://apps2samsung.com/catalog/icons/5e19628007c2fe484197dffdfd70bf7c1685eace01bc67f790e0d95dfd2ad9cc.png",
+              "icon_digest": "sha256:5e19628007c2fe484197dffdfd70bf7c1685eace01bc67f790e0d95dfd2ad9cc"
             },
             {
               "name": "VeloVistrix.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/VeloVistrix.wgt",
               "size": 438566,
-              "digest": "sha256:50815a7a34f954ea8192981ba45860b5b26aa141917a059630403bae773f2a88"
+              "digest": "sha256:50815a7a34f954ea8192981ba45860b5b26aa141917a059630403bae773f2a88",
+              "package_version": "0.1.0",
+              "app_id": "VVstrixTiz.VeloVistrix",
+              "package_id": "VVstrixTiz",
+              "required_version": "5.0",
+              "icon": "https://apps2samsung.com/catalog/icons/7fa661dd17d101d059b2320390844407f8162f0ed8af1dc98c52a33990f6a29e.png",
+              "icon_digest": "sha256:7fa661dd17d101d059b2320390844407f8162f0ed8af1dc98c52a33990f6a29e"
             },
             {
               "name": "Velvet-TV.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/Velvet-TV.wgt",
               "size": 192334,
-              "digest": "sha256:9ea678b10e9b811fab91921e8dc01b3441eb13d9040c3239a8aadeffac1bab14"
+              "digest": "sha256:9ea678b10e9b811fab91921e8dc01b3441eb13d9040c3239a8aadeffac1bab14",
+              "package_version": "__VELVET_TV_VERSION__",
+              "app_id": "VelvetTV00.VelvetTV",
+              "package_id": "VelvetTV00",
+              "required_version": "5.5",
+              "icon": "https://apps2samsung.com/catalog/icons/03fe874e444860c713502e5c83e5a8402a85cccd299a9baa90eb87d2421241f7.png",
+              "icon_digest": "sha256:03fe874e444860c713502e5c83e5a8402a85cccd299a9baa90eb87d2421241f7"
             },
             {
               "name": "Vetro.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/Vetro.wgt",
               "size": 1221214,
-              "digest": "sha256:a27f71eca39c749bb2c9340f7ba88ce00c7c2421b94963f0ed228bba816c4ddf"
+              "digest": "sha256:a27f71eca39c749bb2c9340f7ba88ce00c7c2421b94963f0ed228bba816c4ddf",
+              "package_version": "0.5.0",
+              "app_id": "vetrotvapp.app",
+              "package_id": "vetrotvapp",
+              "required_version": "3.0",
+              "icon": "https://apps2samsung.com/catalog/icons/18c94bb01f33bfe79d430f428fb813e36f69cf6ff103d360dc1213d55645fcbc.png",
+              "icon_digest": "sha256:18c94bb01f33bfe79d430f428fb813e36f69cf6ff103d360dc1213d55645fcbc"
             },
             {
               "name": "VexonTV.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/VexonTV.wgt",
               "size": 11629864,
-              "digest": "sha256:59007832eccae7b3cca4f8088aacc1850a865cdafe536ea60d46210879520485"
+              "digest": "sha256:59007832eccae7b3cca4f8088aacc1850a865cdafe536ea60d46210879520485",
+              "package_version": "1.0.0",
+              "app_id": "ts9k4m2w8p.VexonTV",
+              "package_id": "ts9k4m2w8p",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/6369c7a67ef706a3f0d3e3312a766c3a2e5106b3dc05aa77ee1ea8b62f98881a.png",
+              "icon_digest": "sha256:6369c7a67ef706a3f0d3e3312a766c3a2e5106b3dc05aa77ee1ea8b62f98881a"
             },
             {
               "name": "VideoPlayer.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/VideoPlayer.wgt",
               "size": 61404893,
-              "digest": "sha256:04345240c0e6ed017041520cb84e68fb2a2b0bc77a6ed55263abe8df67e61f2b"
+              "digest": "sha256:04345240c0e6ed017041520cb84e68fb2a2b0bc77a6ed55263abe8df67e61f2b",
+              "package_version": "1.0.0",
+              "app_id": "IiieP4mr3S.TVideoPlayer",
+              "package_id": "IiieP4mr3S",
+              "required_version": "2.3",
+              "icon": "https://apps2samsung.com/catalog/icons/d5dd281191ea3e7f90ccdcc6207c23f4e0dbcbac7d82016cf6e3ac6afea33cdb.png",
+              "icon_digest": "sha256:d5dd281191ea3e7f90ccdcc6207c23f4e0dbcbac7d82016cf6e3ac6afea33cdb"
             },
             {
               "name": "Wall.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/Wall.wgt",
               "size": 9543,
-              "digest": "sha256:020f05379b40b8a2604a8fb6ba2048cc97035d9b9ec5734b7f129c3f74c938bd"
+              "digest": "sha256:020f05379b40b8a2604a8fb6ba2048cc97035d9b9ec5734b7f129c3f74c938bd",
+              "package_version": "1.0.0",
+              "app_id": "VfSDNITC9n.Wall",
+              "package_id": "VfSDNITC9n",
+              "required_version": "2.4",
+              "icon": "https://apps2samsung.com/catalog/icons/222ed8d43289c431cdca2ce5951eb8b1d7361d7558923f770f44f2ae632e4a6d.png",
+              "icon_digest": "sha256:222ed8d43289c431cdca2ce5951eb8b1d7361d7558923f770f44f2ae632e4a6d"
             },
             {
               "name": "XtreamIPTV.wgt",
               "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/XtreamIPTV.wgt",
               "size": 44596,
-              "digest": "sha256:cd540a6ed469f7fc0ac7c606010b47fc3a8992ff8e7045d991b07a994be16589"
+              "digest": "sha256:cd540a6ed469f7fc0ac7c606010b47fc3a8992ff8e7045d991b07a994be16589",
+              "package_version": "1.0.0",
+              "app_id": "XtreamIPTV.XtreamIPTVPlayer",
+              "package_id": "XtreamIPTV",
+              "required_version": "2.3"
             }
           ],
           "catalog_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-823/catalog.json"
         }
-      ],
-      "catalog": {
-        "schemaVersion": 1,
-        "categories": {
-          "media": "Media servers \u0026 players",
-          "iptv": "IPTV \u0026 Live TV",
-          "streaming": "Streaming",
-          "games": "Games \u0026 emulators",
-          "casting": "Casting \u0026 cameras",
-          "tools": "Tools \u0026 system",
-          "other": "Other"
-        },
-        "apps": [
-          {
-            "file": "AerialScreensaver.wgt",
-            "name": "Aerial Screensaver",
-            "description": "Apple TV Aerial screensavers: 115 videos streamed from Apple\u0027s CDN and decoded in hardware as HEVC 4K via AVPlay.",
-            "category": "media",
-            "variant": "AerialScreensaver",
-            "repo": "jeancarlos/aerial-tizen",
-            "host": "github",
-            "version": "1.0.5",
-            "app_id": "AerialScr0.AerialScreensaver",
-            "package_id": "AerialScr0",
-            "required_version": "5.5"
-          },
-          {
-            "file": "AIOStreams-tizen6.wgt",
-            "name": "AIOStreams (thomasrtg)",
-            "description": "Tizen 6 build of AIOStreams, the all-in-one Stremio super-addon for debrid and Usenet sources.",
-            "category": "streaming",
-            "group": "AIOStreams",
-            "variant": "thomasrtg \u00B7 Tizen 6",
-            "repo": "thomasrtg/AIOStreams",
-            "host": "github",
-            "version": "0.7.0",
-            "app_id": "AIOStreams.aiostreams",
-            "package_id": "AIOStreams",
-            "required_version": "2.3"
-          },
-          {
-            "file": "AirTizen.wgt",
-            "name": "AirTizen",
-            "description": "AirPlay receiver for Samsung Tizen TV: stream audio/video to older Samsung TVs.",
-            "category": "casting",
-            "variant": "AirTizen",
-            "repo": "MrHumanRebel/airtizen",
-            "host": "github",
-            "version": "2.2.34",
-            "app_id": "AirTizen01.AirTizen",
-            "package_id": "AirTizen01",
-            "required_version": "3.0"
-          },
-          {
-            "file": "AmbientTV.wgt",
-            "name": "Ambient TV",
-            "description": "Ambient dashboard for Samsung Tizen 5.5\u002B TVs: clock, weather, calendar, Google Photos slideshow and daily quotes. Google Photos and calendar need the project\u0027s optional companion service on your LAN.",
-            "category": "other",
-            "variant": "AmbientTV",
-            "repo": "Bryan-Cee/Ambient",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "amdntTv001.AmbientTV",
-            "package_id": "amdntTv001",
-            "required_version": "5.5"
-          },
-          {
-            "file": "AmorecoFlix.wgt",
-            "name": "AmorecoFlix",
-            "description": "Personal Netflix-style player for a USB drive plugged into the TV: posters, synopses, continue watching, next episode, skip intro, audio and subtitle choice. No server needed; PowerShell scripts in the repo organise the library on a PC. Portuguese UI.",
-            "category": "media",
-            "variant": "AmorecoFlix",
-            "repo": "Pablitorox/AmorecoFlix",
-            "host": "github",
-            "version": "2.0.0",
-            "app_id": "MYpLyr0001.MeuPlayer",
-            "package_id": "MYpLyr0001",
-            "required_version": "2.4"
-          },
-          {
-            "file": "APLLauncher.wgt",
-            "name": "APL Launcher",
-            "description": "Apple-TV-style home screen: Top Shelf, glass dock, Control Center over any app, Settings and Sources. Needs Vetro on a rooted screen: pick the full package on Tizen 7 or newer, the launcher alone on Tizen 6. After install, open it and choose Settings \u203A Remote and Devices \u203A Set Up the Remote Buttons. Optional TMDB, YouTube and Fanart.tv keys are written into the package on install.",
-            "category": "tools",
-            "group": "APL Launcher",
-            "variant": "Tizen 7 and newer (full package)",
-            "repo": "Knikt/APL-Launcher-for-TizenOS",
-            "host": "github",
-            "version": "1.0.21",
-            "app_id": "APLauncher.Home",
-            "package_id": "APLauncher",
-            "required_version": "2.4",
-            "user_settings": {
-              "help_url": "https://github.com/Knikt/APL-Launcher-for-TizenOS/blob/main/docs/installation.md#optional-api-keys",
-              "file": "res/wgt/js/keys.local.js",
-              "fields": [
-                {
-                  "key": "tmdb",
-                  "label": "TMDB API key (v3), for the live Top Shelf; optional",
-                  "type": "text",
-                  "required": false,
-                  "pattern": "^[A-Za-z0-9]\u002B$",
-                  "find": "tmdb: \u0022\u0022,",
-                  "replace": "tmdb: \u0022{value}\u0022,",
-                  "isNumber": false
-                },
-                {
-                  "key": "youtube",
-                  "label": "YouTube Data API v3 key, for TizenTube\u0027s Top Shelf; optional",
-                  "type": "text",
-                  "required": false,
-                  "pattern": "^[A-Za-z0-9_-]\u002B$",
-                  "find": "youtube: \u0022\u0022,",
-                  "replace": "youtube: \u0022{value}\u0022,",
-                  "isNumber": false
-                },
-                {
-                  "key": "fanart",
-                  "label": "Fanart.tv API key, for textless HD backgrounds; optional",
-                  "type": "text",
-                  "required": false,
-                  "pattern": "^[A-Za-z0-9]\u002B$",
-                  "find": "fanart: \u0022\u0022,",
-                  "replace": "fanart: \u0022{value}\u0022,",
-                  "isNumber": false
-                }
-              ]
-            },
-            "flags": [
-              "self-updating"
-            ],
-            "cert_level": "partner"
-          },
-          {
-            "file": "AppManager.wgt",
-            "name": "App Manager",
-            "description": "Alternative launcher for Samsung Tizen TVs: lists installed third-party and sideloaded apps in one grid to launch them, or hide them from Smart Hub without uninstalling.",
-            "category": "tools",
-            "variant": "AppManager",
-            "repo": "no-cover/appmanager",
-            "host": "github",
-            "version": "1.0.3",
-            "app_id": "9KN9k5Eqgh.Apps",
-            "package_id": "9KN9k5Eqgh",
-            "required_version": "2.4"
-          },
-          {
-            "file": "AquaPlay-IPTV.wgt",
-            "name": "AquaPlay IPTV",
-            "description": "Lightweight IPTV player for M3U and Xtream playlists, with a full guide, catch-up and setup from your phone",
-            "category": "iptv",
-            "variant": "AquaPlay-IPTV",
-            "repo": "AquaPlayIPTV/aquaplay-samsung",
-            "host": "github",
-            "version": "1.0.51",
-            "app_id": "AquaPlay02.AquaPlay",
-            "package_id": "AquaPlay02",
-            "required_version": "3.0",
-            "flags": [
-              "closed-source"
-            ]
-          },
-          {
-            "file": "Arn0Launcher.wgt",
-            "name": "Arn0 Launcher",
-            "description": "Minimal remote-friendly home screen for Samsung TVs: a clock, your apps, your consoles and rotating wallpapers.",
-            "category": "other",
-            "variant": "Arn0Launcher",
-            "repo": "NelsonEU/arn0-tv",
-            "host": "github",
-            "version": "0.6.12",
-            "app_id": "Arn0Lnchr0.Launcher",
-            "package_id": "Arn0Lnchr0",
-            "required_version": "3.0"
-          },
-          {
-            "file": "AudioRecorder.wgt",
-            "name": "TizenTVAudioRecorder",
-            "description": "HTML5 Audio Recorder (kalaoke App).",
-            "category": "other",
-            "variant": "AudioRecorder",
-            "repo": "TizenTVWebApp/TizenTVAudioRecorder",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "yKdEw6j88z.TizenTVAudioRecorder",
-            "package_id": "yKdEw6j88z",
-            "required_version": "2.3"
-          },
-          {
-            "file": "Baobab.wgt",
-            "name": "Baobab Signage",
-            "description": "Player for Baobab, open-source local digital signage: plays the playlist your own Baobab server on the LAN assigns to this screen. Server URL and screen key are written into the package on install.",
-            "category": "other",
-            "variant": "Baobab",
-            "repo": "Gonqas/baobab",
-            "host": "github",
-            "version": "0.1.0",
-            "app_id": "org.baobab.signage",
-            "package_id": "org.baobab.signage",
-            "required_version": "2.4",
-            "user_settings": {
-              "help_url": "https://github.com/Gonqas/baobab#readme",
-              "file": "js/config.js",
-              "fields": [
-                {
-                  "key": "api_base_url",
-                  "label": "Baobab server URL (e.g. http://192.168.1.10:4000)",
-                  "type": "text",
-                  "required": true,
-                  "pattern": "^https?://[^\\s\u0027\\\u0022\\\\]\u002B$",
-                  "find": "API_BASE_URL: \u0027\u0027,",
-                  "replace": "API_BASE_URL: \u0027{value}\u0027,",
-                  "isNumber": false
-                },
-                {
-                  "key": "screen_key",
-                  "label": "Screen key (e.g. display-1)",
-                  "type": "text",
-                  "required": true,
-                  "pattern": "^[A-Za-z0-9._-]\u002B$",
-                  "find": "SCREEN_KEY: \u0027\u0027,",
-                  "replace": "SCREEN_KEY: \u0027{value}\u0027,",
-                  "isNumber": false
-                }
-              ]
-            }
-          },
-          {
-            "file": "Beam-TV.wgt",
-            "name": "Beam-TV",
-            "description": "Open-source USB and DLNA media player for Samsung Tizen TVs: subtitles, resume playback, remote navigation, and a local companion server.",
-            "category": "media",
-            "variant": "Beam-TV",
-            "repo": "TAGISWILD/beam-tv",
-            "host": "github",
-            "version": "1.0.1",
-            "app_id": "b41x9K7qTn.Beam",
-            "package_id": "b41x9K7qTn",
-            "required_version": "6.0"
-          },
-          {
-            "file": "Bilibili.wgt",
-            "name": "bilibili",
-            "description": "Unofficial bilibili client for Samsung TVs, driven entirely by the remote: QR sign-in with multiple accounts, continue-watching row, danmaku, search, live, up to 1080p H.265 (4K with premium). Installs on Tizen 3.0\u002B; tested on Tizen 5.5 and 9.0, playback on older sets not confirmed yet. Updates itself. Talks to bilibili directly, no backend or proxy.",
-            "category": "streaming",
-            "variant": "Bilibili",
-            "repo": "titlog/bilibili-tizen",
-            "host": "github",
-            "version": "1.4.14",
-            "app_id": "BiliTvApp0.Bilibili",
-            "package_id": "BiliTvApp0",
-            "required_version": "3.0",
-            "flags": [
-              "self-updating"
-            ]
-          },
-          {
-            "file": "Chiaki-Tizen.wgt",
-            "name": "Chiaki-Tizen",
-            "description": "An open source PlayStation remote play project serving as the next-generation of Chiaki.",
-            "category": "games",
-            "variant": "Chiaki-Tizen",
-            "repo": "Trent407/chiaki-tizen",
-            "host": "github",
-            "version": "0.2.0",
-            "app_id": "ChIaKiTiZ0.ChiakiTizen",
-            "package_id": "ChIaKiTiZ0",
-            "required_version": "5.5"
-          },
-          {
-            "file": "Chouette-TV.wgt",
-            "name": "Chouette TV",
-            "description": "IPTV player for Samsung Tizen 2.3\u002B TVs: Xtream and M3U sources, EPG, favourites, profiles and resume. Ships with no channels; connect your own source in Settings. French UI.",
-            "category": "iptv",
-            "variant": "Chouette-TV",
-            "repo": "ipaifix/chouette-tv",
-            "host": "github",
-            "version": "0.1.1",
-            "app_id": "ChouetteTV.iptv",
-            "package_id": "ChouetteTV",
-            "required_version": "2.3"
-          },
-          {
-            "file": "Copenhagen-Weather.wgt",
-            "name": "Copenhagen Weather",
-            "description": "Current conditions, hourly and 7-day forecast for Copenhagen on Samsung Tizen 6.0\u002B TVs. Open-Meteo data, no API key and no account.",
-            "category": "other",
-            "variant": "Copenhagen-Weather",
-            "repo": "cocodedk/copenhagen-weather-tv",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "WxCph00001.CopenhagenWeather",
-            "package_id": "WxCph00001",
-            "required_version": "6.0"
-          },
-          {
-            "file": "Crunchyroll.wgt",
-            "name": "Crunchyroll",
-            "description": "Unofficial Crunchyroll client for Samsung Tizen TVs with anime streaming support.",
-            "category": "streaming",
-            "variant": "Crunchyroll",
-            "repo": "jhassan8/crunchyroll-tizen",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "qXuEoRvlCp.Crunchyroll",
-            "package_id": "qXuEoRvlCp",
-            "required_version": "3.0"
-          },
-          {
-            "file": "DevNull-TV.wgt",
-            "name": "/dev/null on TV",
-            "description": "Big-screen client for dev-null.sh, the social network for developers: the commit log of the people you add, drawn as a git graph, with ambient modes. Read-only public API, no login.",
-            "category": "other",
-            "variant": "DevNull-TV",
-            "repo": "HelgeSverre/devnull-tv",
-            "host": "github",
-            "version": "1.4.0",
-            "app_id": "DvNullSh01.DevNull",
-            "package_id": "DvNullSh01",
-            "required_version": "2.3"
-          },
-          {
-            "file": "Doom-tizen55.wgt",
-            "name": "Doom",
-            "description": "Doom for Samsung Tizen TVs, based on Chocolate Doom and WebAssembly. Includes Chex Quest, Freedoom and HacX as selectable game modes with separate save games.",
-            "category": "games",
-            "group": "Doom",
-            "variant": "Tizen 5.5",
-            "repo": "dos-ise/doom-tizen",
-            "host": "github",
-            "version": "1.21",
-            "app_id": "doomwasm01.Doom",
-            "package_id": "doomwasm01",
-            "required_version": "5.5"
-          },
-          {
-            "file": "Doom.wgt",
-            "name": "Doom",
-            "description": "Doom for Samsung Tizen TVs, based on Chocolate Doom and WebAssembly. Includes Chex Quest, Freedoom and HacX as selectable game modes with separate save games.",
-            "category": "games",
-            "group": "Doom",
-            "variant": "Tizen 6\u002B",
-            "repo": "dos-ise/doom-tizen",
-            "host": "github",
-            "version": "1.21",
-            "app_id": "doomwasm01.Doom",
-            "package_id": "doomwasm01",
-            "required_version": "5.5"
-          },
-          {
-            "file": "Douyin.wgt",
-            "name": "Douyin (\u6296\u97F3)",
-            "description": "Unofficial Douyin client for Samsung Tizen 6.0\u002B TVs, driven by the remote: Featured, Following and For You feeds, QR sign-in, your history, likes and favourites, creator pages, collections and comments. Updates itself. Talks to Douyin directly, no backend or proxy. Chinese UI.",
-            "category": "streaming",
-            "variant": "Douyin",
-            "repo": "titlog/douyin-tizen",
-            "host": "github",
-            "version": "1.4.6",
-            "app_id": "DouYinTv00.DouyinTv",
-            "package_id": "DouYinTv00",
-            "required_version": "6.0",
-            "flags": [
-              "self-updating"
-            ]
-          },
-          {
-            "file": "EN-IPTV_Player.wgt",
-            "name": "EN TV Player",
-            "description": "IPTV player for Samsung Tizen TVs with DRM support, M3U/M3U8 playlists, groups and live TV.",
-            "category": "iptv",
-            "variant": "EN-IPTV_Player",
-            "repo": "Nur-allhi/en-tvplayer",
-            "host": "github",
-            "version": "3.2.0",
-            "app_id": "IPTVPlayer.IPTV",
-            "package_id": "IPTVPlayer",
-            "required_version": "5.0"
-          },
-          {
-            "file": "FCastReceiver.wgt",
-            "name": "FCast",
-            "description": "FCast is an open source protocol that enables wireless streaming of audio and video content between devices.",
-            "category": "casting",
-            "variant": "FCastReceiver",
-            "repo": "futo-org/fcast",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "qL5oFoTHoJ.FCastReceiver",
-            "package_id": "qL5oFoTHoJ",
-            "required_version": "5.0"
-          },
-          {
-            "file": "FLOH-IPTV.wgt",
-            "name": "FLOH IPTV",
-            "description": "A fast IPTV player for Samsung TVs. You enter the M3U link of your own provider.",
-            "category": "iptv",
-            "variant": "FLOH-IPTV",
-            "repo": "kingflooow/floh-iptv",
-            "host": "github",
-            "version": "1.7.0",
-            "app_id": "FloTvPlay1.FloTV",
-            "package_id": "FloTvPlay1",
-            "required_version": "3.0",
-            "flags": [
-              "closed-source"
-            ]
-          },
-          {
-            "file": "Frame-Dashboard.wgt",
-            "name": "Frame Dashboard",
-            "description": "Daily dashboard for the Samsung Frame TV: a public-domain painting beside your calendar, focus and tasks. Thin shell around your own deployment of the hosted dashboard; its URL is written into the package on install.",
-            "category": "other",
-            "variant": "Frame-Dashboard",
-            "repo": "joseamijares/frame-dashboard",
-            "host": "github",
-            "version": "0.1.0",
-            "app_id": "FrmDashbd1.FrameDashboard",
-            "package_id": "FrmDashbd1",
-            "required_version": "3.0",
-            "user_settings": {
-              "help_url": "https://github.com/joseamijares/frame-dashboard#readme",
-              "file": "dashboard-url.js",
-              "fields": [
-                {
-                  "key": "dashboard_url",
-                  "label": "Dashboard URL (your deployment, including the read key)",
-                  "type": "text",
-                  "required": true,
-                  "pattern": "^https?://[^\\s\u0027\\\u0022\\\\]\u002B$",
-                  "find": "window.DASHBOARD_URL = \u0022\u0022;",
-                  "replace": "window.DASHBOARD_URL = \u0022{value}\u0022;",
-                  "isNumber": false
-                }
-              ]
-            }
-          },
-          {
-            "file": "FreeMyTV.wgt",
-            "name": "Free My TV",
-            "description": "Fast, ad-free home screen with your app shelf, weather, sunset-based day/night theme and a photo screensaver.",
-            "category": "other",
-            "variant": "FreeMyTV",
-            "repo": "simbasjungles/free-my-tv",
-            "host": "github",
-            "version": "1.3.0",
-            "app_id": "FreeMyTVio.FreeMyTV",
-            "package_id": "FreeMyTVio",
-            "required_version": "2.3"
-          },
-          {
-            "file": "GameBoy-Emulator.wgt",
-            "name": "GameBoy-Emulator",
-            "description": "A Game Boy (DMG) emulator.",
-            "category": "games",
-            "variant": "GameBoy-Emulator",
-            "repo": "dos-ise/GB-EMU_Tizen",
-            "host": "github",
-            "version": "1.2.1",
-            "app_id": "gbemutzn01.GBEmu",
-            "package_id": "gbemutzn01",
-            "required_version": "5.5"
-          },
-          {
-            "file": "go2rtc-tizen.wgt",
-            "name": "go2rtc",
-            "description": "Watch the cameras of a go2rtc server (standalone or embedded in Frigate): camera grid with previews and full-screen live view.",
-            "category": "casting",
-            "variant": "go2rtc-tizen",
-            "repo": "Edsol/go2rtc-tizen",
-            "host": "github",
-            "version": "0.1.0",
-            "app_id": "G2rtcView0.go2rtc",
-            "package_id": "G2rtcView0",
-            "required_version": "3.0"
-          },
-          {
-            "file": "HackTV.wgt",
-            "name": "HackTV",
-            "description": "IPTV client for Samsung Tizen TVs.",
-            "category": "iptv",
-            "variant": "HackTV",
-            "repo": "kosmodrey/hackTV",
-            "host": "github",
-            "version": "0.0.0",
-            "app_id": "axAXSQIgQ1.hackTV",
-            "package_id": "axAXSQIgQ1",
-            "required_version": "2.3"
-          },
-          {
-            "file": "Haven.wgt",
-            "name": "Haven",
-            "description": "Home Assistant powered home screen: sensors, lights and scenes by room, weather, live cameras, a Jellyfin client and music from Home Assistant\u0027s media folder. Your Home Assistant address and token are written into the package on install.",
-            "category": "other",
-            "variant": "Haven",
-            "repo": "natureglass/haven-tizen-ha",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "HavenHome1.Haven",
-            "package_id": "HavenHome1",
-            "required_version": "3.0",
-            "user_settings": {
-              "help_url": "https://github.com/natureglass/haven-tizen-ha#readme",
-              "file": "shell-config.js",
-              "fields": [
-                {
-                  "key": "ha_address",
-                  "label": "Home Assistant address, for example http://192.168.1.10:8123",
-                  "type": "text",
-                  "required": true,
-                  "pattern": "^https?://[A-Za-z0-9.-]\u002B(:[0-9]\u002B)?$",
-                  "find": "base: \u0022\u0022",
-                  "replace": "base: \u0022{value}/local/haven/\u0022",
-                  "isNumber": false
-                },
-                {
-                  "key": "ha_token",
-                  "label": "Home Assistant long-lived access token (your profile, Security tab)",
-                  "type": "text",
-                  "required": true,
-                  "pattern": "^[A-Za-z0-9._-]\u002B$",
-                  "find": "haToken: \u0022\u0022",
-                  "replace": "haToken: \u0022{value}\u0022",
-                  "isNumber": false
-                }
-              ]
-            }
-          },
-          {
-            "file": "ImmichTV.wgt",
-            "name": "Immich TV",
-            "description": "Read-only Immich photo and video client for Samsung TVs: timeline, albums, people, memories, search, slideshows.",
-            "category": "media",
-            "variant": "ImmichTV",
-            "repo": "rfsmason/immich-tv-for-samsung",
-            "host": "github",
-            "version": "0.1.2",
-            "app_id": "imchTV0001.ImmichTV",
-            "package_id": "imchTV0001",
-            "required_version": "5.0",
-            "user_settings": {
-              "help_url": "https://github.com/rfsmason/immich-tv-for-samsung#required-api-key-permissions",
-              "file": "scripts/install-preset.js",
-              "fields": [
-                {
-                  "key": "server_url",
-                  "label": "Immich server URL",
-                  "type": "text",
-                  "required": false,
-                  "pattern": "^https?://\\S\u002B$",
-                  "find": "serverUrl: \u0022\u0022",
-                  "replace": "serverUrl: \u0022{value}\u0022",
-                  "isNumber": false
-                },
-                {
-                  "key": "api_key",
-                  "label": "Immich API key (read-only recommended)",
-                  "type": "text",
-                  "required": false,
-                  "find": "apiKey: \u0022\u0022",
-                  "replace": "apiKey: \u0022{value}\u0022",
-                  "isNumber": false
-                }
-              ]
-            }
-          },
-          {
-            "file": "ImmiTV.wgt",
-            "name": "ImmiTV",
-            "description": "Lightweight Immich photo and video client for Samsung Tizen 4.0 TVs: remote-control navigation, hardware-accelerated AVPlay video playback and a month-based timeline.",
-            "category": "media",
-            "variant": "ImmiTV",
-            "repo": "xHiqhAim/immitv",
-            "host": "gitlab",
-            "version": "1.0.0",
-            "app_id": "MadeByAhm2.ImmiTV",
-            "package_id": "MadeByAhm2",
-            "required_version": "4.0"
-          },
-          {
-            "file": "inet-speed-old-tizen.wgt",
-            "name": "inet-speed-old-tizen",
-            "description": "Internet diagnostics for Samsung Tizen 2.4\u002B TVs: response times of popular sites and download speed from Cloudflare, Fastly and HOSTKEY test CDNs, plus TV model, firmware and network info. English and Russian UI. No proxy or server needed.",
-            "category": "tools",
-            "variant": "inet-speed-old-tizen",
-            "repo": "numbereleven-a/inet-speed-old-tizen",
-            "host": "github",
-            "version": "1.1.1",
-            "app_id": "InetSpd001.TV",
-            "package_id": "InetSpd001",
-            "required_version": "2.4"
-          },
-          {
-            "file": "iperf3-TV.wgt",
-            "name": "iperf3 TV",
-            "description": "Measures your Samsung TV\u0027s network throughput to an iperf3 server, upload or download. Requires a small WebSocket-to-TCP relay on your LAN.",
-            "category": "tools",
-            "variant": "iperf3-TV",
-            "repo": "DmitryMaksakov/samsung-tv-iperf3",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "Iperf3TvAp.iperf3tv",
-            "package_id": "Iperf3TvAp",
-            "required_version": "2.4"
-          },
-          {
-            "file": "IPTV-Manager.wgt",
-            "name": "IPTV Manager",
-            "description": "IPTV manager for Samsung Tizen TV with Xtream Codes support and HLS playback.",
-            "category": "iptv",
-            "variant": "IPTV-Manager",
-            "repo": "matifDreamIt/IPTV-Tizen-TV",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "AbCdEfGhIj.IPTVManager",
-            "package_id": "AbCdEfGhIj",
-            "required_version": "6.0"
-          },
-          {
-            "file": "Jellyfin-Bonfire.wgt",
-            "name": "Jellyfin \u002B Bonfire",
-            "description": "Official Jellyfin Tizen client patched with the Bonfire loader for multi-user profile switching. Requires the Bonfire plugin on your Jellyfin server.",
-            "category": "media",
-            "variant": "Jellyfin-Bonfire",
-            "repo": "jellyfin/jellyfin-tizen",
-            "host": "github",
-            "version": "0.1.0",
-            "app_id": "JellyBnfir.Jellyfin",
-            "package_id": "JellyBnfir",
-            "required_version": "2.3",
-            "flags": [
-              "self-updating"
-            ]
-          },
-          {
-            "file": "KickTV20.wgt",
-            "name": "Kick TV 2.0",
-            "description": "Kick live streams and public archives for Samsung Tizen TVs.",
-            "category": "streaming",
-            "variant": "KickTV20",
-            "repo": "janrydzewski/kick-tv-2.0",
-            "host": "github",
-            "version": "2.0.1",
-            "app_id": "JrKickTv20.KickTV20",
-            "package_id": "JrKickTv20",
-            "required_version": "4.0"
-          },
-          {
-            "file": "Kodi-Chorus.wgt",
-            "name": "Chorus2-Tizen",
-            "description": "Chorus2-Tizen (Kodi) Samsung Tizen.",
-            "category": "media",
-            "group": "Kodi",
-            "variant": "Chorus2 web UI",
-            "repo": "PatrickSt1991/chorus2-tizen",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "chorus2tzn.Chorus2",
-            "package_id": "chorus2tzn",
-            "required_version": "5.0"
-          },
-          {
-            "file": "KROMA.wgt",
-            "name": "KROMA",
-            "description": "Client for KROMA, a self-hosted direct-play media server for your NAS. Needs your own KROMA server.",
-            "category": "media",
-            "variant": "KROMA",
-            "repo": "kromatv/kroma",
-            "host": "github",
-            "version": "0.1.38",
-            "app_id": "KromaTV001.KROMA",
-            "package_id": "KromaTV001",
-            "required_version": "6.0"
-          },
-          {
-            "file": "Lampa.wgt",
-            "name": "Lampa",
-            "description": "Free movie and TV catalogue with info, new releases and trailers. Can be extended with user plugins.",
-            "category": "streaming",
-            "variant": "Lampa",
-            "repo": "yumata/lampa",
-            "host": "github",
-            "version": "1.9.1",
-            "app_id": "YmCqOOVbor.Lampa",
-            "package_id": "YmCqOOVbor",
-            "required_version": "2.3",
-            "flags": [
-              "self-updating"
-            ]
-          },
-          {
-            "file": "Lobby.wgt",
-            "name": "Lobby",
-            "description": "Home screen for Samsung TVs with your Emby (or Jellyfin) server\u0027s Continue Watching, Live TV and teams, and Seerr\u0027s trending titles.",
-            "category": "other",
-            "variant": "Lobby",
-            "repo": "CtznSniiips/Lobby",
-            "host": "github",
-            "version": "0.9.15",
-            "app_id": "lobbyTV001.Lobby",
-            "package_id": "lobbyTV001",
-            "required_version": "6.5"
-          },
-          {
-            "file": "MonoServer.wgt",
-            "name": "MonoServer",
-            "description": "TorrServer rewritten in C# (MonoTorrent) that runs as a background service on the TV itself, including Tizen 5.5 where the official TorrServer cannot start. TorrServer MatriX API on port 8090, with a small status launcher.",
-            "category": "tools",
-            "variant": "MonoServer",
-            "repo": "cash94/MonoServer",
-            "host": "github",
-            "version": "1.0.35",
-            "app_id": "TorrServr1.TorrServer",
-            "package_id": "TorrServr1",
-            "required_version": "2.3"
-          },
-          {
-            "file": "Moonlight-AC3-fidoboy-ForceGM.wgt",
-            "name": "Moonlight Enhanced (AC-3)",
-            "description": "Open-source Moonlight client for Tizen OS with optional support for Dolby Digital and Dolby Digital Plus (stereo and 5.1) optical-audio and HDMI passthrough.",
-            "category": "games",
-            "group": "Moonlight",
-            "variant": "fidoboy \u00B7 Enhanced \u00B7 Dolby \u00B7 ForceGM",
-            "repo": "fidoboy/moonlight-tizen-ac3",
-            "host": "github",
-            "version": "1.2.3",
-            "app_id": "MoonLightS.MoonlightWasm",
-            "package_id": "MoonLightS",
-            "required_version": "5.5"
-          },
-          {
-            "file": "Moonlight-AC3-fidoboy.wgt",
-            "name": "Moonlight Enhanced (AC-3)",
-            "description": "Open-source Moonlight client for Tizen OS with optional support for Dolby Digital and Dolby Digital Plus (stereo and 5.1) optical-audio and HDMI passthrough.",
-            "category": "games",
-            "group": "Moonlight",
-            "variant": "fidoboy \u00B7 Enhanced \u00B7 Dolby",
-            "repo": "fidoboy/moonlight-tizen-ac3",
-            "host": "github",
-            "version": "1.2.3",
-            "app_id": "MoonLightS.MoonlightWasm",
-            "package_id": "MoonLightS",
-            "required_version": "5.5"
-          },
-          {
-            "file": "Moonlight-Chrome-ToypoodleGaming.wgt",
-            "name": "Moonlight (ToypoodleGaming)",
-            "description": "Moonlight NVIDIA GameStream / Sunshine client (ToypoodleGaming fork).",
-            "category": "games",
-            "group": "Moonlight",
-            "variant": "ToypoodleGaming",
-            "repo": "toypoodlegaming/moonlight-chrome-tizen",
-            "host": "github",
-            "version": "1.2.1",
-            "app_id": "MoonLightS.MoonlightWasm",
-            "package_id": "MoonLightS",
-            "required_version": "5.5"
-          },
-          {
-            "file": "Nuvio-Legacy-tizen4.tpk",
-            "name": "Nuvio Native Legacy",
-            "description": "Unofficial native C/SDL2 Nuvio client, fast on older TVs. Native .tpk per Tizen version (4.0-5.5, 6.0, 6.5-7, 8-9) plus a WebAssembly .wgt for Tizen 5.5\u002B.",
-            "category": "streaming",
-            "group": "Nuvio",
-            "variant": "Native legacy \u00B7 Tizen 4.0 to 5.5",
-            "repo": "iqui27/nuvio-native-legacy",
-            "host": "github",
-            "version": "2.0.8",
-            "app_id": "NuvioTV002.Nuvio",
-            "package_id": "NuvioTV002.Nuvio",
-            "required_version": "4"
-          },
-          {
-            "file": "Nuvio-Legacy-tizen6.5.tpk",
-            "name": "Nuvio Native Legacy",
-            "description": "Unofficial native C/SDL2 Nuvio client, fast on older TVs. Native .tpk per Tizen version (4.0-5.5, 6.0, 6.5-7, 8-9) plus a WebAssembly .wgt for Tizen 5.5\u002B.",
-            "category": "streaming",
-            "group": "Nuvio",
-            "variant": "Native legacy \u00B7 Tizen 6.5 to 7",
-            "repo": "iqui27/nuvio-native-legacy",
-            "host": "github",
-            "version": "2.0.8",
-            "app_id": "NuvioTV002.Nuvio",
-            "package_id": "NuvioTV002.Nuvio",
-            "required_version": "6.5"
-          },
-          {
-            "file": "Nuvio-Legacy.wgt",
-            "name": "Nuvio Native Legacy",
-            "description": "Unofficial native C/SDL2 Nuvio client, fast on older TVs. Native .tpk per Tizen version (4.0-5.5, 6.0, 6.5-7, 8-9) plus a WebAssembly .wgt for Tizen 5.5\u002B.",
-            "category": "streaming",
-            "group": "Nuvio",
-            "variant": "Native legacy \u00B7 WebAssembly (Tizen 5.5\u002B)",
-            "repo": "iqui27/nuvio-native-legacy",
-            "host": "github",
-            "version": "2.0.8",
-            "app_id": "NuvioTV002.NuvioNative",
-            "package_id": "NuvioTV002",
-            "required_version": "5.5"
-          },
-          {
-            "file": "Nyx.wgt",
-            "name": "Nyx",
-            "description": "IPTV player for your own Xtream or M3U playlist with a simple, remote-first interface. Opens in under a second and never lags, even with 40,000 titles on an entry-level TV. 8-day guide, resume for movies and series, SD to 4K in one channel.",
-            "category": "iptv",
-            "variant": "Nyx",
-            "repo": "victorreinor/nyx-tv",
-            "host": "github",
-            "version": "1.5.0",
-            "app_id": "NyxTvApp01.Nyx",
-            "package_id": "NyxTvApp01",
-            "required_version": "2.3",
-            "flags": [
-              "self-updating"
-            ]
-          },
-          {
-            "file": "opencream-tv.wgt",
-            "name": "opencream TV",
-            "description": "A calm home screen for Samsung TVs with your own Xtream Codes IPTV built in: live TV, films, series, guide search. No channels included.",
-            "category": "iptv",
-            "variant": "opencream-tv",
-            "repo": "opencream-ai/opencream-tv",
-            "host": "github",
-            "version": "0.1.2",
-            "app_id": "OpnCrmTV01.opencreamtv",
-            "package_id": "OpnCrmTV01",
-            "required_version": "5.0",
-            "user_settings": {
-              "help_url": "https://github.com/opencream-ai/opencream-tv/blob/main/INSTALL.md",
-              "file": "js/config.local.js",
-              "fields": [
-                {
-                  "key": "server",
-                  "label": "IPTV server address (Xtream Codes), several separated by commas",
-                  "type": "text",
-                  "required": false,
-                  "find": "servers: \u0022__OCTV_SERVER__\u0022,",
-                  "replace": "servers: \u0022{value}\u0022,",
-                  "default": "__OCTV_SERVER__",
-                  "isNumber": false
-                },
-                {
-                  "key": "username",
-                  "label": "IPTV username",
-                  "type": "text",
-                  "required": false,
-                  "find": "user: \u0022__OCTV_USER__\u0022,",
-                  "replace": "user: \u0022{value}\u0022,",
-                  "default": "__OCTV_USER__",
-                  "isNumber": false
-                },
-                {
-                  "key": "password",
-                  "label": "IPTV password (stored by Apps2Samsung on this computer)",
-                  "type": "text",
-                  "required": false,
-                  "find": "pass: \u0022__OCTV_PASS__\u0022,",
-                  "replace": "pass: \u0022{value}\u0022,",
-                  "default": "__OCTV_PASS__",
-                  "isNumber": false
-                },
-                {
-                  "key": "video_servers",
-                  "label": "Optional: servers that deliver video, if your provider names them",
-                  "type": "text",
-                  "required": false,
-                  "find": "streamServers: \u0022__OCTV_BACKUPS__\u0022",
-                  "replace": "streamServers: \u0022{value}\u0022",
-                  "default": "__OCTV_BACKUPS__",
-                  "isNumber": false
-                }
-              ]
-            }
-          },
-          {
-            "file": "OpenIPTV.wgt",
-            "name": "OpenIPTV",
-            "description": "Privacy focused IPTV player for Samsung Tizen TVs with extended M3U playlists, favourites and search.",
-            "category": "iptv",
-            "variant": "OpenIPTV",
-            "repo": "shayanline/OpenIPTV",
-            "host": "github",
-            "version": "1.9.3",
-            "app_id": "5mzc7dQsGK.OpenIPTV",
-            "package_id": "5mzc7dQsGK",
-            "required_version": "2.4"
-          },
-          {
-            "file": "OTTplay-FOSS.wgt",
-            "name": "OTTplay FOSS",
-            "description": "FOSS OTT / IPTV thin client for Tizen.",
-            "category": "iptv",
-            "variant": "OTTplay-FOSS",
-            "repo": "prog4food/ottplay-foss-thin-clients",
-            "host": "github",
-            "version": "1.1.0",
-            "app_id": "ayGVHJ9PTd.OTTplayFOSS",
-            "package_id": "ayGVHJ9PTd",
-            "required_version": "2.3",
-            "flags": [
-              "self-updating"
-            ]
-          },
-          {
-            "file": "pelagica-tizen.wgt",
-            "name": "Pelagica",
-            "description": "A modern web, desktop and TV client for Jellyfin",
-            "category": "media",
-            "variant": "pelagica-tizen",
-            "repo": "PelagicaApp/pelagica",
-            "host": "github",
-            "version": "4.14.0",
-            "app_id": "Pel4g1c4Ap.pelagica",
-            "package_id": "Pel4g1c4Ap",
-            "required_version": "6.5"
-          },
-          {
-            "file": "PlayerAVPlay.wgt",
-            "name": "PlayerAVPlay",
-            "description": "AVPlayer app",
-            "category": "media",
-            "variant": "PlayerAVPlay",
-            "repo": "yadPe/PlayerAVPlay",
-            "host": "github",
-            "version": "0.2.1",
-            "app_id": "Tgm0wE9QkY.PlayerAVPlay",
-            "package_id": "Tgm0wE9QkY",
-            "required_version": "2.3"
-          },
-          {
-            "file": "Pley.wgt",
-            "name": "Pley",
-            "description": "Client for the Pley media server: movies, shows, music and live TV with a guide, played through the TV\u0027s own player (AVPlay). Needs a Pley server. Tizen 4.0\u002B.",
-            "category": "media",
-            "group": "Pley",
-            "variant": "Web app (Tizen 4.0\u002B)",
-            "repo": "pley-media-server/pley",
-            "host": "github",
-            "version": "0.0.1",
-            "app_id": "PleyTizen1.pley",
-            "package_id": "PleyTizen1",
-            "required_version": "4.0"
-          },
-          {
-            "file": "Reelo.wgt",
-            "name": "Reelo",
-            "description": "TV client for the Reelo service: films and series with a remote-first interface, family profiles and library sync between devices (Russian UI).",
-            "category": "streaming",
-            "variant": "Reelo",
-            "repo": "ihovsky/Reelo",
-            "host": "github",
-            "version": "0.16.125",
-            "app_id": "ReeloTVapp.Reelo",
-            "package_id": "ReeloTVapp",
-            "required_version": "2.3",
-            "flags": [
-              "closed-source"
-            ]
-          },
-          {
-            "file": "Reiverr.wgt",
-            "name": "Reiverr",
-            "description": "A clean combined interface for Jellyfin, TMDB, Radarr and Sonarr, as well as a replacement to Overseerr.",
-            "category": "media",
-            "variant": "Reiverr",
-            "repo": "aleksilassila/reiverr",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "JZUbM5WimZ.Reiverr",
-            "package_id": "JZUbM5WimZ",
-            "required_version": "2.3"
-          },
-          {
-            "file": "ReolinkViewer.wgt",
-            "name": "Reolink Viewer",
-            "description": "Watch a Reolink camera or NVR on your TV: enter its local IP and login, press Start. Plays the camera\u0027s H.264 FLV stream over the LAN, or H.265 main streams over RTSP through a relay inside the app (2018\u002B TVs). No cloud or helper box.",
-            "category": "casting",
-            "group": "Reolink Viewer",
-            "variant": "ReolinkViewer",
-            "repo": "Apps2Samsung/ReolinkViewer",
-            "host": "github",
-            "version": "1.1.0",
-            "app_id": "ReoLnkVwr1.ReolinkViewer",
-            "package_id": "ReoLnkVwr1",
-            "required_version": "4.0"
-          },
-          {
-            "file": "RetroTV.wgt",
-            "name": "RetroTV",
-            "description": "Retro game console for Samsung Tizen 5.0\u002B TVs: WebAssembly emulator cores (jsnes and kazuki-4ys builds, hash-pinned) downloaded on first use, games copied over the LAN from the project\u0027s companion server on a PC, or streamed from that PC. Portuguese UI.",
-            "category": "games",
-            "variant": "RetroTV",
-            "repo": "guhcostan/retro-tv",
-            "host": "github",
-            "version": "0.1.0",
-            "app_id": "RetroTV001.RetroTV",
-            "package_id": "RetroTV001",
-            "required_version": "5.0",
-            "flags": [
-              "self-updating"
-            ]
-          },
-          {
-            "file": "RTSP-Camera-Viewer.wgt",
-            "name": "RTSP Camera Viewer",
-            "description": "Display RTSP streams from IP cameras on your Samsung TV, with numpad channel switching and a 4-camera grid. Requires the companion rtsp-samsung-tv server (Node or Docker) running on your LAN.",
-            "category": "casting",
-            "variant": "RTSP-Camera-Viewer",
-            "repo": "vzakharchenko/rtsp-samsung-tv",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "rfhFEcdD35.CameraDevice",
-            "package_id": "rfhFEcdD35",
-            "required_version": "2.3"
-          },
-          {
-            "file": "RUVKids.wgt",
-            "name": "R\u00DAV",
-            "description": "Apps for R\u00DAV, the Icelandic national broadcaster: Sarpur on demand, Barnaefni for children, Unglingar for teens, Menntun for education, and \u00DAtvarp radio (not affiliated with R\u00DAV)",
-            "category": "iptv",
-            "group": "R\u00DAV",
-            "variant": "Barnaefni \u00B7 kids",
-            "repo": "sverrirs/ruv-app-samsung",
-            "host": "github",
-            "version": "1.2.0",
-            "app_id": "XDg7NvGl3M.RuvKids",
-            "package_id": "XDg7NvGl3M",
-            "required_version": "2.3",
-            "flags": [
-              "closed-source"
-            ]
-          },
-          {
-            "file": "RUVLive.wgt",
-            "name": "R\u00DAV Live",
-            "description": "Live TV from R\u00DAV, the Icelandic national broadcaster: the R\u00DAV and R\u00DAV 2 channels, with the running schedule and rewind inside the live window (not affiliated with R\u00DAV)",
-            "category": "iptv",
-            "group": "R\u00DAV",
-            "variant": "Sj\u00F3nvarp \u00B7 live TV",
-            "repo": "sverrirs/ruv-live-samsung",
-            "host": "github",
-            "version": "5.0.0",
-            "app_id": "cFFG22dMoM.RuvLive",
-            "package_id": "cFFG22dMoM",
-            "required_version": "2.3",
-            "flags": [
-              "closed-source"
-            ]
-          },
-          {
-            "file": "RUVUtvarp.wgt",
-            "name": "R\u00DAV",
-            "description": "Apps for R\u00DAV, the Icelandic national broadcaster: Sarpur on demand, Barnaefni for children, Unglingar for teens, Menntun for education, and \u00DAtvarp radio (not affiliated with R\u00DAV)",
-            "category": "iptv",
-            "group": "R\u00DAV",
-            "variant": "\u00DAtvarp \u00B7 radio",
-            "repo": "sverrirs/ruv-app-samsung",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "Dng1NvQl3R.RuvUtvarp",
-            "package_id": "Dng1NvQl3R",
-            "required_version": "2.3",
-            "flags": [
-              "closed-source"
-            ]
-          },
-          {
-            "file": "SamSUCKS.wgt",
-            "name": "SamSUCKS",
-            "description": "Fast from-scratch Plex client for Samsung Tizen 6.5\u002B TVs: smooth scrolling, hardware AVPlay playback with direct play, instant search, audio/subtitle picker and up-next autoplay. Plain JavaScript, no framework.",
-            "category": "media",
-            "variant": "SamSUCKS",
-            "repo": "rfaile313/samsucks",
-            "host": "github",
-            "version": "0.1.0",
-            "app_id": "SamSucks01.samsucks",
-            "package_id": "SamSucks01",
-            "required_version": "6.5"
-          },
-          {
-            "file": "SeanimeTV.wgt",
-            "name": "SeanimeTV",
-            "description": "Unofficial Seanime client for Samsung Tizen TVs with torrent streaming and AVPlay playback.",
-            "category": "streaming",
-            "variant": "SeanimeTV",
-            "repo": "ihiqhaim/SeanimeTV-Tizen",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "MadeByAhm5.SeanimeTVClient",
-            "package_id": "MadeByAhm5",
-            "required_version": "4.0"
-          },
-          {
-            "file": "Sendspin-Cinema.wgt",
-            "name": "Sendspin Cinema",
-            "description": "Minimal cinema-style Sendspin player for Music Assistant on Samsung Tizen 3.0\u002B TVs: album art with adaptive accent colours, set up from the TV screen. Needs a Music Assistant server.",
-            "category": "media",
-            "variant": "Sendspin-Cinema",
-            "repo": "zonya/sendspin-cinema-tizen",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "sendspin01.Cinema",
-            "package_id": "sendspin01",
-            "required_version": "3.0"
-          },
-          {
-            "file": "ShmupCup.wgt",
-            "name": "Shmup Cup",
-            "description": "A side-scrolling shoot-\u0027em-up written for the TV remote: nine zones, two ships, sixteen routes and a boss at the end of each.",
-            "category": "games",
-            "variant": "ShmupCup",
-            "repo": "detain/shmup-cup",
-            "host": "github",
-            "version": "1.0.1",
-            "app_id": "ShmpCupGam.ShmupCup",
-            "package_id": "ShmpCupGam",
-            "required_version": "5.5"
-          },
-          {
-            "file": "Shutter.wgt",
-            "name": "Shutter",
-            "description": "Unofficial Synology Photos slideshow for Samsung TVs: all photos, favorites, an album or Shared Space, with crossfades, pan/zoom and a clock. Talks to your NAS directly on the LAN (DSM 7).",
-            "category": "media",
-            "variant": "Shutter",
-            "repo": "khanh-ly/shutter",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "SynFrame01.SynologyFrame",
-            "package_id": "SynFrame01",
-            "required_version": "3.0"
-          },
-          {
-            "file": "SKY-IPTV.wgt",
-            "name": "SKY IPTV",
-            "description": "IPTV player for Samsung Tizen 5.0\u002B TVs: M3U and Xtream playlists, remote-friendly UI, audio and subtitle track switching, embedded mov_text subtitles. Bring your own playlist.",
-            "category": "iptv",
-            "variant": "SKY-IPTV",
-            "repo": "sanwhere/sky-iptv-tizen",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "SKYIPTV001.SkyIptv",
-            "package_id": "SKYIPTV001",
-            "required_version": "5.0"
-          },
-          {
-            "file": "SmartTV_Twitch.wgt",
-            "name": "Twitch",
-            "description": "Twitch client for Samsung Smart TVs 2015 and newer models.",
-            "category": "streaming",
-            "variant": "SmartTV_Twitch",
-            "repo": "fgl27/smarttv-twitch",
-            "host": "github",
-            "version": "4.0.1",
-            "app_id": "flbtxFhd64.SmartTV",
-            "package_id": "flbtxFhd64",
-            "required_version": "2.3"
-          },
-          {
-            "file": "Snake-Game.wgt",
-            "name": "Snake",
-            "description": "Snake game for Samsung Tizen TVs, played with the remote.",
-            "category": "games",
-            "variant": "Snake-Game",
-            "repo": "pvk689/snake-game-tizen",
-            "host": "github",
-            "version": "1.2.0",
-            "app_id": "SnkGmA7xQ2.SnakeGame",
-            "package_id": "SnkGmA7xQ2",
-            "required_version": "3.0"
-          },
-          {
-            "file": "Sonance3-Oblong.wgt",
-            "name": "Sonance3",
-            "description": "A music player for Samsung Tizen TVs, built to stream from your self-hosted Jellyfin, Navidrome or Subsonic-compatible server.",
-            "category": "media",
-            "group": "Sonance3",
-            "variant": "Oblong tile",
-            "repo": "MrSimmo/sonance3",
-            "host": "github",
-            "version": "3.14.0",
-            "app_id": "S0nance003.Sonance",
-            "package_id": "S0nance003",
-            "required_version": "5.0"
-          },
-          {
-            "file": "Sonance3.wgt",
-            "name": "Sonance3",
-            "description": "A music player for Samsung Tizen TVs, built to stream from your self-hosted Jellyfin, Navidrome or Subsonic-compatible server.",
-            "category": "media",
-            "group": "Sonance3",
-            "variant": "Standard",
-            "repo": "MrSimmo/sonance3",
-            "host": "github",
-            "version": "3.14.0",
-            "app_id": "S0nance003.Sonance",
-            "package_id": "S0nance003",
-            "required_version": "5.0"
-          },
-          {
-            "file": "Spelunkr.wgt",
-            "name": "Spelunkr",
-            "description": "Unofficial spelunkr.tv client: 24/7 synchronized channels of Internet Archive video, driven by the remote, with a fix that lets Samsung\u0027s player seek in archive.org videos.",
-            "category": "streaming",
-            "variant": "Spelunkr",
-            "repo": "pedr/spelunkrtv-tizen-app",
-            "host": "github",
-            "version": "1.1.0",
-            "app_id": "SpelunkrTV.Spelunkr",
-            "package_id": "SpelunkrTV",
-            "required_version": "6.0"
-          },
-          {
-            "file": "Sportlink-Club-Viewer.wgt",
-            "name": "Sportlink Club Viewer",
-            "description": "Solution for sports clubs to display match information in real time and in a clear, organized way on screens throughout the club!",
-            "category": "other",
-            "variant": "Sportlink-Club-Viewer",
-            "repo": "PatrickSt1991/Sportlink.Club.Info.Viewer",
-            "host": "github",
-            "version": "1.1.0",
-            "app_id": "Lt8KPyCeb1.SportlinkClubViewer",
-            "package_id": "Lt8KPyCeb1",
-            "required_version": "2.3"
-          },
-          {
-            "file": "StreamVault-tizen5.wgt",
-            "name": "StreamVault",
-            "description": "IPTV streaming app for Samsung Tizen TVs built with React, TypeScript, and Zustand.",
-            "category": "iptv",
-            "group": "StreamVault",
-            "variant": "Tizen 5",
-            "repo": "christopherklint97/streamvault",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "StrmVault0.StreamVault",
-            "package_id": "StrmVault0",
-            "required_version": "5.0"
-          },
-          {
-            "file": "StreamVault.wgt",
-            "name": "StreamVault",
-            "description": "IPTV streaming app for Samsung Tizen TVs built with React, TypeScript, and Zustand.",
-            "category": "iptv",
-            "group": "StreamVault",
-            "variant": "Standard",
-            "repo": "christopherklint97/streamvault",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "StrmVault0.StreamVault",
-            "package_id": "StrmVault0",
-            "required_version": "6.5"
-          },
-          {
-            "file": "Stremio-Tizen4.wgt",
-            "name": "Stremio (Tizen 4)",
-            "description": "Stremio media center packaged for Tizen 4.0 devices.",
-            "category": "streaming",
-            "variant": "Stremio-Tizen4",
-            "repo": "Apps2Samsung/tizen-community-packages",
-            "host": "github",
-            "version": "1.5.0",
-            "app_id": "newslO9NqF.stremio",
-            "package_id": "newslO9NqF",
-            "required_version": "2.3"
-          },
-          {
-            "file": "Tailscale.tpk",
-            "name": "Tailscale",
-            "description": "Tailscale exit-node app for Samsung Tizen TV (experimental; advertises the TV as a tailnet exit node).",
-            "category": "tools",
-            "variant": "Tailscale",
-            "repo": "PatrickSt1991/tailscale-tizen",
-            "host": "github",
-            "version": "0.1.0",
-            "app_id": "com.tailscale.tailscale",
-            "package_id": "com.tailscale.tailscale",
-            "required_version": "8.0",
-            "cert_level": "partner"
-          },
-          {
-            "file": "Tizen-IPTV-Player.wgt",
-            "name": "Tizen IPTV Player by mhma26395",
-            "description": "Lightweight IPTV player for compatible Samsung Tizen TVs. Users provide and manage their own playlists.",
-            "category": "iptv",
-            "variant": "Tizen-IPTV-Player",
-            "repo": "mhma26395-ctrl/tizen-iptv-player",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "t7w8q2z0x1.TizenIPTVPlayer",
-            "package_id": "t7w8q2z0x1",
-            "required_version": "2.4",
-            "flags": [
-              "closed-source"
-            ]
-          },
-          {
-            "file": "TizenUtility.wgt",
-            "name": "TizenUtility",
-            "description": "System utility for Samsung Tizen TVs: detailed device, firmware and network info, plus a launcher for hidden built-in Samsung apps that are not reachable from the normal UI.",
-            "category": "tools",
-            "variant": "TizenUtility",
-            "repo": "no-cover/tizenutility",
-            "host": "github",
-            "version": "1.1.1",
-            "app_id": "EhHdEN3vSa.TizenUtility",
-            "package_id": "EhHdEN3vSa",
-            "required_version": "1.0"
-          },
-          {
-            "file": "TorrStream.wgt",
-            "name": "TorrStream",
-            "description": "Movies and TV shows through TorrServer, with TMDB catalogs and audio and subtitle track names read on the TV. Works with a TorrServer on your network or MonoServer on the TV itself.",
-            "category": "streaming",
-            "group": "TorrStream",
-            "variant": "TorrStream",
-            "repo": "cash94/TorrStream-Tizen",
-            "host": "github",
-            "version": "1.1.4",
-            "app_id": "TorrStrm01.TorrStream",
-            "package_id": "TorrStrm01",
-            "required_version": "2.3",
-            "flags": [
-              "self-updating"
-            ]
-          },
-          {
-            "file": "TorrStreaming.wgt",
-            "name": "Torr Streaming",
-            "description": "Runs TorrServer as a background service on the TV itself, so local web apps can stream torrents directly without a separate box. Hybrid .NET package with a small launcher widget; Tizen 4.0\u002B.",
-            "category": "tools",
-            "variant": "TorrStreaming",
-            "repo": "no-cover/torr-streaming",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "DoyolX8he6.TVtorrStreamingTizen",
-            "package_id": "DoyolX8he6",
-            "required_version": "2.4"
-          },
-          {
-            "file": "TubeArchivist-TV.wgt",
-            "name": "TubeArchivist TV",
-            "description": "10-foot client for your self-hosted TubeArchivist: pair from your phone, never type on the remote. Needs the project\u0027s gateway and transcoder containers on your LAN; the gateway URL is written into the package on install.",
-            "category": "media",
-            "variant": "TubeArchivist-TV",
-            "repo": "raykholo/tubearchivist-tv",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "TubeArchiv.TubeArchivistTV",
-            "package_id": "TubeArchiv",
-            "required_version": "2.4",
-            "user_settings": {
-              "help_url": "https://github.com/raykholo/tubearchivist-tv/blob/main/docs/tv-install.md",
-              "file": "index.html",
-              "fields": [
-                {
-                  "key": "gateway_url",
-                  "label": "Gateway URL (e.g. http://192.168.1.10:8090/)",
-                  "type": "text",
-                  "required": true,
-                  "pattern": "^https?://[^\\s\u0027\\\u0022\\\\]\u002B$",
-                  "find": "var TARGET = \u0027__TATV_URL__\u0027;",
-                  "replace": "var TARGET = \u0027{value}\u0027;",
-                  "isNumber": false
-                }
-              ]
-            }
-          },
-          {
-            "file": "TV-Clock.wgt",
-            "name": "TV Clock",
-            "description": "Simple clock and screen saver for Samsung Tizen 6.0\u002B TVs.",
-            "category": "other",
-            "variant": "TV-Clock",
-            "repo": "anandhuremanan/samsung-tizen-clock-app",
-            "host": "github",
-            "version": "1.2.1",
-            "app_id": "TvClock001.TvClock",
-            "package_id": "TvClock001",
-            "required_version": "6.0"
-          },
-          {
-            "file": "TV-Dashboard.wgt",
-            "name": "TV Dashboard",
-            "description": "A calm remote-first home screen: weather and news as a short letter, an app rack, and an ambient art gallery.",
-            "category": "other",
-            "variant": "TV-Dashboard",
-            "repo": "lvndry/tv-dashboard",
-            "host": "github",
-            "version": "1.6.0",
-            "app_id": "BonsoirTV1.Bonsoir",
-            "package_id": "BonsoirTV1",
-            "required_version": "4.0"
-          },
-          {
-            "file": "TVApp.wgt",
-            "name": "TVapp",
-            "description": "Enable seamless playback of HLS/m3u8 streams as channels.",
-            "category": "iptv",
-            "variant": "TVApp",
-            "repo": "KaashDev/TVapp",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "wAKjt4yhqx.TVapp",
-            "package_id": "wAKjt4yhqx",
-            "required_version": "2.3"
-          },
-          {
-            "file": "UltimatiumTube-Tizen55.wgt",
-            "name": "UltimatiumTube",
-            "description": "Ad-free YouTube for Samsung Tizen 5.0 and 5.5 TVs.",
-            "category": "streaming",
-            "group": "UltimatiumTube",
-            "variant": "Tizen 5.5",
-            "repo": "AdvaithAvinash/UltimatiumTube",
-            "host": "github",
-            "version": "1.9.0",
-            "app_id": "U1tmTube55.UltimatiumTube",
-            "package_id": "U1tmTube55",
-            "required_version": "5.5"
-          },
-          {
-            "file": "UniFi-Cameras.wgt",
-            "name": "UniFi Cameras",
-            "description": "Live camera grid for UniFi Protect or any RTSP cameras on Samsung Tizen 6.0\u002B TVs, D-pad to go fullscreen. Needs the project\u0027s restreamer (ffmpeg and Python) on an always-on LAN host; its address is written into the package on install.",
-            "category": "casting",
-            "variant": "UniFi-Cameras",
-            "repo": "xtantaudio/unifi-cameras-on-tizen",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "camgrid001.CameraGrid",
-            "package_id": "camgrid001",
-            "required_version": "6.0",
-            "user_settings": {
-              "help_url": "https://github.com/xtantaudio/unifi-cameras-on-tizen#readme",
-              "file": "js/config.js",
-              "fields": [
-                {
-                  "key": "restreamer_host",
-                  "label": "Restreamer address (e.g. http://192.168.1.50:8099)",
-                  "type": "text",
-                  "required": true,
-                  "pattern": "^https?://[^\\s\u0027\\\u0022\\\\]\u002B$",
-                  "find": "host: \u0022http://CHANGE_ME:8099\u0022",
-                  "replace": "host: \u0022{value}\u0022",
-                  "isNumber": false
-                }
-              ]
-            }
-          },
-          {
-            "file": "VeloVistrix.wgt",
-            "name": "VeloVistrix",
-            "description": "Read-only PhotoPrism viewer for Samsung Tizen 5.0\u002B TVs, driven by the remote: albums, places, calendar, labels and folders from your own server, with slideshow. Sign in with an app password, or straight in if the server runs in public mode.",
-            "category": "media",
-            "variant": "VeloVistrix",
-            "repo": "zephy-lee/velovistrix-tizen",
-            "host": "github",
-            "version": "0.1.0",
-            "app_id": "VVstrixTiz.VeloVistrix",
-            "package_id": "VVstrixTiz",
-            "required_version": "5.0"
-          },
-          {
-            "file": "Velvet-TV.wgt",
-            "name": "Velvet TV",
-            "description": "Big-screen TV client for the Velvet self-hosted music server.",
-            "category": "media",
-            "variant": "Velvet-TV",
-            "repo": "aroundmyroom/Velvet",
-            "host": "github",
-            "version": "__VELVET_TV_VERSION__",
-            "app_id": "VelvetTV00.VelvetTV",
-            "package_id": "VelvetTV00",
-            "required_version": "5.5"
-          },
-          {
-            "file": "Vetro.wgt",
-            "name": "Vetro",
-            "description": "TV management dashboard with root integration: app inventory, controls and diagnostics in your browser. After install, set Developer Mode Host PC IP to 127.0.0.1 and restart.",
-            "category": "tools",
-            "variant": "Vetro",
-            "repo": "andrearicci93/vetro",
-            "host": "github",
-            "version": "0.5.0",
-            "app_id": "vetrotvapp.app",
-            "package_id": "vetrotvapp",
-            "required_version": "3.0",
-            "user_settings": {
-              "help_url": "https://github.com/andrearicci93/vetro/blob/main/app/docs/INSTALLATION.md",
-              "file": "",
-              "fields": [
-                {
-                  "key": "port",
-                  "label": "Dashboard port (default 8099; change it if tizen-youtube is installed)",
-                  "type": "number",
-                  "required": false,
-                  "find": "",
-                  "replace": "",
-                  "targets": [
-                    {
-                      "file": "config.xml",
-                      "find": "\u003Caccess origin=\u0022http://127.0.0.1:8099\u0022 subdomains=\u0022false\u0022/\u003E",
-                      "replace": "\u003Caccess origin=\u0022http://127.0.0.1:{value}\u0022 subdomains=\u0022false\u0022/\u003E"
-                    },
-                    {
-                      "file": "index.html",
-                      "find": "var BASE = \u0027http://127.0.0.1:8099\u0027;",
-                      "replace": "var BASE = \u0027http://127.0.0.1:{value}\u0027;"
-                    },
-                    {
-                      "file": "index.html",
-                      "find": "Dashboard at \u003Ccode\u003Ehttp://\u0026lt;TV\u0026gt;:8099/\u003C/code\u003E",
-                      "replace": "Dashboard at \u003Ccode\u003Ehttp://\u0026lt;TV\u0026gt;:{value}/\u003C/code\u003E"
-                    },
-                    {
-                      "file": "index.html",
-                      "find": "did not answer on port 8099.",
-                      "replace": "did not answer on port {value}."
-                    },
-                    {
-                      "file": "service/main.js",
-                      "find": "|| buildInfo.port || 8099;",
-                      "replace": "|| buildInfo.port || {value};"
-                    }
-                  ],
-                  "default": "8099",
-                  "min": 1024,
-                  "max": 65535,
-                  "disallow": [
-                    8001,
-                    8002,
-                    26101
-                  ],
-                  "isNumber": true
-                }
-              ]
-            },
-            "flags": [
-              "root",
-              "self-updating"
-            ]
-          },
-          {
-            "file": "VexonTV.wgt",
-            "name": "VexonTV",
-            "description": "Live TV player for Samsung Tizen TVs: M3U, Xtream Codes and Stalker portals, provider EPG and a remote-first interface.",
-            "category": "iptv",
-            "variant": "VexonTV",
-            "repo": "DvzZDev/VexonTV",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "ts9k4m2w8p.VexonTV",
-            "package_id": "ts9k4m2w8p",
-            "required_version": "2.3"
-          },
-          {
-            "file": "VideoPlayer.wgt",
-            "name": "TVideoPlayer",
-            "description": "Tizen TV HTML video player based on videojs.",
-            "category": "media",
-            "variant": "VideoPlayer",
-            "repo": "TizenTVWebApp/TVideoPlayer",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "IiieP4mr3S.TVideoPlayer",
-            "package_id": "IiieP4mr3S",
-            "required_version": "2.3"
-          },
-          {
-            "file": "Wall.wgt",
-            "name": "Wall",
-            "description": "Digital photo frame for Samsung Tizen TVs: give it the URL of a ZIP of images, it downloads them and runs a configurable slideshow, with a background service that auto-starts it on boot.",
-            "category": "other",
-            "variant": "Wall",
-            "repo": "no-cover/wall",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "VfSDNITC9n.Wall",
-            "package_id": "VfSDNITC9n",
-            "required_version": "2.4"
-          },
-          {
-            "file": "XtreamIPTV.wgt",
-            "name": "Xtream IPTV Player",
-            "description": "IPTV player for Samsung Tizen TVs with Xtream API support: live TV, movies and series. Bring your own Xtream subscription.",
-            "category": "iptv",
-            "variant": "XtreamIPTV",
-            "repo": "dearbulut/tizen-xtream-iptv",
-            "host": "github",
-            "version": "1.0.0",
-            "app_id": "XtreamIPTV.XtreamIPTVPlayer",
-            "package_id": "XtreamIPTV",
-            "required_version": "2.3"
-          }
-        ]
-      }
+      ]
     }
   ]
 }
