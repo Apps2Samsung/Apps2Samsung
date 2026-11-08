@@ -27,7 +27,34 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: getplumber/plumber@v0.7.18
+      # The action downloads its binary from Plumber's GitHub release and fails
+      # outright when that download does (a 504 on #1034); soft-fail only covers
+      # the score gate. So check first, and skip with a warning when it is not
+      # reachable, or when the repository variable SKIP_PLUMBER is "true".
+      - name: Check that Plumber can be downloaded
+        id: available
+        env:
+          # Keep in step with the getplumber/plumber@ version below.
+          PLUMBER_VERSION: v0.7.23
+          SKIP_PLUMBER: ${{ vars.SKIP_PLUMBER }}
+        run: |
+          if [ "$SKIP_PLUMBER" = "true" ]; then
+            echo "::warning::Plumber skipped: the repository variable SKIP_PLUMBER is true."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          base="https://github.com/getplumber/plumber/releases/download/${PLUMBER_VERSION}"
+          for file in plumber-linux-amd64 checksums.txt; do
+            if ! curl -fsSIL --retry 3 --retry-delay 10 --retry-all-errors -o /dev/null "${base}/${file}"; then
+              echo "::warning::Plumber skipped: ${base}/${file} could not be downloaded. The analysis did not run."
+              echo "ok=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          echo "ok=true" >> "$GITHUB_OUTPUT"
+
+      - uses: getplumber/plumber@v0.7.23
+        if: steps.available.outputs.ok == 'true'
         with:
           # Code scanning upload needs security-events write, which PRs
           # from forks do not get. The report stays available as a
