@@ -1023,5 +1023,6 @@
   "errContributeUrl": "Должен начинаться с http:// или https://",
   "lblUserSourceCategory": "Категории",
   "tvCardActionCheckAgain": "Проверить ещё раз",
-  "infoPortOpen": "Открыть"
+  "infoPortOpen": "Открыть",
+  "lblRemovedOn": "на {0}"
 }

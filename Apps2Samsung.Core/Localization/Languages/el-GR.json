@@ -999,5 +999,6 @@
   "errContributeUrl": "Πρέπει να ξεκινά με http:// ή https://",
   "lblUserSourceCategory": "Κατηγορία",
   "tvCardActionCheckAgain": "Έλεγχος ξανά",
-  "infoPortOpen": "Άνοιγμα"
+  "infoPortOpen": "Άνοιγμα",
+  "lblRemovedOn": "στο {0}"
 }

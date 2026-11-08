@@ -1007,5 +1007,6 @@
   "errContributeUrl": "http:// 또는 https://로 시작해야 합니다",
   "lblUserSourceCategory": "카테고리",
   "tvCardActionCheckAgain": "다시 확인",
-  "infoPortOpen": "열기"
+  "infoPortOpen": "열기",
+  "lblRemovedOn": "{0}에"
 }

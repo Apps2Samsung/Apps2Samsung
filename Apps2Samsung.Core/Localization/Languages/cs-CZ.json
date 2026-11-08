@@ -1126,5 +1126,6 @@
   "lblToolboxPackageSigning": "Podepisuji {0}…",
   "lblToolboxPackageSigned": "Podepsáno {0} pro {1}: {2}",
   "lblToolboxPackageSignFailed": "Podepisování se nezdařilo: {0}",
-  "lblSignedPackage": "Podepsaný balíček"
+  "lblSignedPackage": "Podepsaný balíček",
+  "lblRemovedOn": "na {0}"
 }

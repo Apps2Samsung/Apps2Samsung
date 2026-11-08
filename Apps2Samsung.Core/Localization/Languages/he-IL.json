@@ -1007,5 +1007,6 @@
   "errContributeUrl": "חייב להתחיל ב-http:// או https://",
   "lblUserSourceCategory": "קטגוריה",
   "tvCardActionCheckAgain": "בדוק שוב",
-  "infoPortOpen": "פתח"
+  "infoPortOpen": "פתח",
+  "lblRemovedOn": "ב-{0}"
 }

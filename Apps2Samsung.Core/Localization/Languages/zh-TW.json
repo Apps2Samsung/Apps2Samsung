@@ -1009,5 +1009,6 @@
   "errContributeUrl": "必須以 http:// 或 https:// 開頭",
   "lblUserSourceCategory": "分類",
   "tvCardActionCheckAgain": "再次檢查",
-  "infoPortOpen": "開啟"
+  "infoPortOpen": "開啟",
+  "lblRemovedOn": "在 {0} 上"
 }

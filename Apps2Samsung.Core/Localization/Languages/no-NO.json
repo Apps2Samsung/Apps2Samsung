@@ -1002,5 +1002,6 @@
   "errContributeUrl": "Må starte med http:// eller https://",
   "lblUserSourceCategory": "Kategori",
   "tvCardActionCheckAgain": "Sjekk igjen",
-  "infoPortOpen": "Åpne"
+  "infoPortOpen": "Åpne",
+  "lblRemovedOn": "på {0}"
 }
