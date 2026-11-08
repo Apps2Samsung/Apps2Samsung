@@ -29,6 +29,17 @@ name: PR build
 # A beta merged at a version master already shipped would move that stable's beta tag
 # (beta-prerelease.yml tags with -f) and the stable release of it would then be refused.
 
+# The bots (catalog-snapshot, download-stats, sidestore-source, fdroid-repo, update-version-table)
+# push their data commits straight to beta WITHOUT a skip marker. A skip marker on beta's newest
+# commit made GitHub skip every pull_request workflow for the release PR (beta -> master), so its
+# required checks sat at "Expected" until someone pushed real code. Instead the `scope` job below
+# looks at what the push to the PR changed: when it only touched the bots' data files and the PR
+# build of the commit before it passed, the four build jobs skip. A skipped required check counts
+# as passed, and the code under it is the code that was just built green, so nothing is lost.
+# Anything else (a code change, a force push, a first push, no green build to lean on, an API
+# hiccup) builds as before. A human commit can still carry a skip marker on purpose: GitHub
+# handles that before this workflow is even looked at.
+
 on:
   pull_request:
   workflow_dispatch:
@@ -41,8 +52,58 @@ permissions:
   contents: read
 
 jobs:
+  # Decides whether the builds below have anything new to build. Fails open: `build` is true unless
+  # every check proves it is not needed, and the jobs below run on an empty answer too.
+  scope:
+    name: What changed
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      build: ${{ steps.decide.outputs.build }}
+    steps:
+      - id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ACTION: ${{ github.event.action }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -uo pipefail
+          build() { echo "build=$1" >> "$GITHUB_OUTPUT"; echo "$2"; exit 0; }
+
+          [ "${GITHUB_EVENT_NAME}" = pull_request ] || build true "Not a pull_request event: building."
+          [ "${ACTION}" = synchronize ] || build true "PR ${ACTION:-event}: building."
+          [ -n "${BEFORE}" ] && [ -n "${AFTER}" ] || build true "No before/after commit: building."
+
+          # Only a plain fast-forward on top of the commit that was built before.
+          cmp=$(gh api "repos/${REPO}/compare/${BEFORE}...${AFTER}" \
+                  --jq '"\(.status) \(.files | length)", (.files[].filename)') || build true "Compare failed: building."
+          read -r status count <<< "$(head -n1 <<< "$cmp")"
+          [ "$status" = ahead ] || build true "Push is ${status:-unknown} of the previous head (force push?): building."
+          [ "${count:-0}" -gt 0 ] && [ "${count}" -lt 300 ] || build true "${count:-0} files changed: building."
+
+          # Every file must be bot-owned data that no build reads.
+          while IFS= read -r file; do
+            case "$file" in
+              docs/catalog/*|docs/sidestore/*|docs/fdroid/*|README.md) ;;
+              *) build true "Code or other files changed ($file): building." ;;
+            esac
+          done < <(tail -n +2 <<< "$cmp")
+
+          # And the PR build of the commit underneath must have passed, so a skip never hides a failure.
+          green=$(gh api "repos/${REPO}/actions/workflows/pr-build.yml/runs?head_sha=${BEFORE}&status=success&per_page=1" \
+                    --jq '.total_count') || build true "Could not read the previous run: building."
+          [ "${green:-0}" -gt 0 ] || build true "No passed PR build for ${BEFORE}: building."
+
+          build false "Only bot data changed on top of ${BEFORE}, whose PR build passed: skipping the builds."
+
   desktop:
     name: Core + desktop
+    needs: scope
+    if: ${{ !cancelled() && needs.scope.outputs.build != 'false' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
@@ -91,6 +152,8 @@ jobs:
 
   android:
     name: Mobile (Android)
+    needs: scope
+    if: ${{ !cancelled() && needs.scope.outputs.build != 'false' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
@@ -117,6 +180,8 @@ jobs:
 
   ios:
     name: Mobile (iOS)
+    needs: scope
+    if: ${{ !cancelled() && needs.scope.outputs.build != 'false' }}
     # The Xcode-major image, not macos-latest: the current .NET for iOS workload (27.x) demands
     # Xcode 27.0, and macos-latest (macOS 26) tops out at Xcode 26.6, the first run of this job
     # failed on exactly that. When .NET for iOS moves to the next major, bump this label with it
@@ -164,6 +229,8 @@ jobs:
 
   linux-packages:
     name: Linux packages
+    needs: scope
+    if: ${{ !cancelled() && needs.scope.outputs.build != 'false' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1

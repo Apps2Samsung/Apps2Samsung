@@ -134,10 +134,12 @@ jobs:
           if gh api "repos/${GITHUB_REPOSITORY}/releases/generate-notes" "${ARGS[@]}" --jq .body > CHANGELOG.md; then
             echo "Generated PR-based notes (since ${LAST_STABLE:-the beginning})"
           else
-            # Fallback: filtered commit log (no [skip ci] noise, no dupes)
+            # Fallback: filtered commit log (no bot data commits, no dupes). The bots' commits
+            # (catalog, download stats, SideStore, F-Droid) are told apart by their prefix; older
+            # ones still carry the skip marker they used to be pushed with.
             echo "## ✅ What's New & Improved" > CHANGELOG.md
             git log ${LAST_STABLE:+$LAST_STABLE..HEAD} --pretty=format:"- %s" \
-              | grep -iv '\[skip ci\]' | awk '!seen[$0]++' >> CHANGELOG.md
+              | grep -iEv '\[skip ci\]|^- (chore\(catalog\)|sidestore|fdroid): ' | awk '!seen[$0]++' >> CHANGELOG.md
           fi
 
       # ---------------- RELEASE NOTES ----------------

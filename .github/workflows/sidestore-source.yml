@@ -97,7 +97,7 @@ jobs:
             echo "No changes to publish."
             exit 0
           fi
-          git commit -m "sidestore: publish the source for the latest $CHANNEL IPA [skip ci]"
+          git commit -m "sidestore: publish the source for the latest $CHANNEL IPA"
           for attempt in 1 2 3; do
             if git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}" beta; then
               exit 0
