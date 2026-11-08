@@ -361,7 +361,9 @@ internal static class Views
             foreach (var r in rows)
             {
                 var lines = new List<string> { $"[bold]{Esc(r.Title)}[/]{(r.Version is null ? "" : $" v{Esc(r.Version)}")}", "  " + Muted(r.AppId) };
-                if (r.CatalogApp is not null)
+                if (r.Removed is not null)
+                    lines.Add("  " + RemovedState(r.Removed));
+                else if (r.CatalogApp is not null)
                     lines.Add("  " + State(r, unicode));
                 list.Add(new Markup(string.Join("\n", lines)));
             }
@@ -383,10 +385,15 @@ internal static class Views
             table.AddRow(
                 new Markup($"[bold]{Esc(r.Title)}[/]\n{Muted(r.AppId)}"),
                 new Markup(r.Version is null ? Muted("?") : $"v{Esc(r.Version)}"),
-                new Markup(r.CatalogApp is null ? "" : State(r, unicode)));
+                new Markup(r.Removed is not null ? RemovedState(r.Removed) : r.CatalogApp is null ? "" : State(r, unicode)));
         }
         return new Rows(table, footer);
     }
+
+    // A removed app (#1033): the badge, why, and that the copy keeps working. No update, no source link.
+    private static string RemovedState(InstalledCommand.RemovedInfo gone) =>
+        $"[{WarnHex}]Removed[/] {Esc(gone.Text)}" + (gone.Note is null ? "" : $" {Muted(gone.Note)}") +
+        "\n" + Muted("Keeps working, no updates from Apps2Samsung" + (gone.Since is null ? "." : $". Removed {gone.Since}."));
 
     private static string State(InstalledCommand.Row r, bool unicode)
     {

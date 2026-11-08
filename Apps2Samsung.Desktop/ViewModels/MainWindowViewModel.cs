@@ -220,6 +220,18 @@ namespace Apps2Samsung.ViewModels
         private bool isCatalogEmpty;
         [ObservableProperty]
         private string catalogFoot = string.Empty;
+
+        // Apps the official catalog stopped distributing (#1033): never listed, only named under a
+        // search for them (S2) and flagged on the TV's installed apps.
+        private List<CommunityCatalogRemoved> _removedApps = new();
+
+        /// <summary>One line per removed app the search names: its name and why it is gone (#1033).</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasRemovedSearchLines))]
+        private IReadOnlyList<string> removedSearchLines = Array.Empty<string>();
+
+        public bool HasRemovedSearchLines => RemovedSearchLines.Count > 0;
+        public string LblRemovedSearchFooter => L(RemovedApps.SearchFooterKey);
         public string CustomFileSubline => string.IsNullOrEmpty(CustomWgtPath)
             ? L("lblInstallOwnFile")
             : string.Join(", ", CustomWgtPath.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(Path.GetFileName));
@@ -348,6 +360,7 @@ namespace Apps2Samsung.ViewModels
             }
             IsCatalogEmpty = !any && !IsLoading;
             CatalogFoot = string.Format(L("lblCatalogFoot"), all.Count);
+            RemovedSearchLines = RemovedApps.Search(SearchText, _removedApps).Select(r => RemovedApps.SearchLine(r, L)).ToList();
         }
 
         /// <summary>More than one TV found: the sidebar's TV gets its ▾ and switches between them.</summary>
@@ -1421,6 +1434,7 @@ namespace Apps2Samsung.ViewModels
             {
                 var vm = new InstalledAppsViewModel(_tizenInstaller, _dialogService, SelectedDevice!.IpAddress, SelectedTvLabel,
                     catalog: () => Releases.ToList(),
+                    removed: () => _removedApps,
                     update: UpdateFromCatalogAsync,
                     refreshCatalog: () => LoadReleasesAsync());
                 vm.OnRequestClose += () => SelectedSection = Section.Install;
@@ -1763,6 +1777,7 @@ namespace Apps2Samsung.ViewModels
             try
             {
                 var list = new List<GitHubRelease>();
+                var removed = new List<CommunityCatalogRemoved>();
                 _multiVersionApps.Clear();
                 // Fetched alongside the providers; never fails, at worst there are no counts.
                 var stats = _downloadStats.GetAsync(cancellationToken);
@@ -1802,6 +1817,8 @@ namespace Apps2Samsung.ViewModels
                         var catalog = fetched.Catalog
                             ?? await _addLatestRelease.GetCommunityCatalogAsync(release[0].CatalogUrl);
                         var apps = CommunityAppList.Expand(release, catalog, requiresPartner);
+                        if (RemovedApps.IsOfficial(provider))
+                            removed.AddRange(CommunityAppList.Removed(catalog));
                         DownloadStatsService.Stamp(apps, provider, await stats);
                         list.AddRange(apps);
                     }
@@ -1826,6 +1843,7 @@ namespace Apps2Samsung.ViewModels
                 // Show every app alphabetically (A-Z, 0-9) regardless of manifest/fetch order.
                 list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
                 _allReleases = list;
+                _removedApps = removed;
                 RebuildCategories();
                 ApplyCategoryFilter();
             }

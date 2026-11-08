@@ -1226,5 +1226,18 @@
   "lblToolboxPackageSigned": "Signed {0} for {1}: {2}",
   "lblToolboxPackageSignFailed": "Signing failed: {0}",
   "lblToolboxPackageNoDuid": "The TV's DUID could not be read over the developer connection, and Settings lists no manual DUID. Add the TV's DUID under Settings, or fix the developer connection, and try again.",
-  "lblSignedPackage": "Signed package"
+  "lblSignedPackage": "Signed package",
+  "lblRemovedBadge": "Removed",
+  "lblRemovedReasonUnlicensedContent": "Removed: it ships streams or links to content it has no licence for.",
+  "lblRemovedReasonUnlicensedService": "Removed: it's a client for a service without a licence for its content.",
+  "lblRemovedReasonUnlicensedGameData": "Removed: it ships game data it may not redistribute.",
+  "lblRemovedReasonTakedown": "Removed after a copyright (DMCA) notice.",
+  "lblRemovedReasonSuperseded": "Removed: replaced by another app in the catalogue.",
+  "lblRemovedReasonUpstreamGone": "Removed: the developer took the project down.",
+  "lblRemovedReasonUnknown": "Removed from the catalogue.",
+  "lblRemovedFooter": "Your installed copy keeps working, but it won't get updates from Apps2Samsung.",
+  "lblRemovedRowTap": "Removed from the catalogue · tap for why",
+  "lblRemovedRowClick": "Removed from the catalogue · click for why",
+  "lblRemovedOn": "on {0}",
+  "lblRemovedSearchFooter": "These can't be installed. A copy already on your TV keeps working, without updates."
 }

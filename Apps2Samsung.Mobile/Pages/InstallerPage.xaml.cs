@@ -166,7 +166,7 @@ public partial class InstallerPage : ContentPage
 		{
 			result = await _catalog.LoadReleasesAsync();
 			_allReleases = result.Releases;
-			CatalogStore.Set(_allReleases);
+			CatalogStore.Set(_allReleases, result.Removed);
 			_catalogFailed = result.Failed;
 		}
 		catch (Exception ex)
@@ -280,6 +280,16 @@ public partial class InstallerPage : ContentPage
 				Text = L10n.Get(listed.Count == 0 ? "statusCatalogEmpty" : "lblNoAppMatches"),
 				TextColor = DesignTheme.ColorOf("Muted"), Padding = new Thickness(16, 14),
 			}));
+		}
+		// Removed apps the search names (#1033, S2): a footnote under the results, never a row to install.
+		var gone = RemovedApps.Search(_query, CatalogStore.Removed);
+		if (gone.Count > 0)
+		{
+			var notes = new VerticalStackLayout { Spacing = 8, Margin = new Thickness(4, 14, 4, 0) };
+			foreach (var r in gone)
+				notes.Add(new Label { Text = RemovedApps.SearchLine(r, L10n.Get), FontSize = 13, LineBreakMode = LineBreakMode.WordWrap, TextColor = DesignTheme.ColorOf("Muted") });
+			notes.Add(new Label { Text = L10n.Get(RemovedApps.SearchFooterKey), FontSize = 13, LineBreakMode = LineBreakMode.WordWrap, TextColor = DesignTheme.ColorOf("Muted") });
+			CatalogList.Add(notes);
 		}
 		CatalogFoot.Text = _catalogFailed > 0
 			? string.Format(L10n.Get("lblCatalogFootFailed"), listed.Count, _catalogFailed)

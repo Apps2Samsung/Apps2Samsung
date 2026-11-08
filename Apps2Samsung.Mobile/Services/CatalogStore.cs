@@ -17,7 +17,14 @@ public static class CatalogStore
 	/// <summary>Opens an app's sheet on the Install tab; set by the Install tab once it is up.</summary>
 	public static Func<CatalogOpenRequest, Task>? Open { get; set; }
 
-	public static void Set(IReadOnlyList<GitHubRelease> releases) => Releases = releases;
+	/// <summary>Apps the official catalog stopped distributing (#1033), to flag an installed copy.</summary>
+	public static IReadOnlyList<CommunityCatalogRemoved> Removed { get; private set; } = Array.Empty<CommunityCatalogRemoved>();
+
+	public static void Set(IReadOnlyList<GitHubRelease> releases, IReadOnlyList<CommunityCatalogRemoved>? removed = null)
+	{
+		Releases = releases;
+		Removed = removed ?? Array.Empty<CommunityCatalogRemoved>();
+	}
 
 	/// <summary>
 	/// Switches to the Install tab and opens <paramref name="request"/>'s sheet there. The tab's

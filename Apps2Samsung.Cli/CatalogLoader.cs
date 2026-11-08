@@ -38,7 +38,13 @@ public sealed class CatalogLoader
         _downloadStats = new DownloadStatsService(http, Path.Combine(CliPaths.CliDir, DownloadStatsService.CacheFileName));
     }
 
-    public sealed record Catalog(ProviderManifest Manifest, IReadOnlyList<GitHubRelease> Entries, int FailedProviders, IReadOnlySet<string> MultiVersionApps);
+    /// <param name="Removed">Apps the official catalog stopped distributing (#1033): never in <paramref name="Entries"/>,
+    /// only to flag an installed copy and to say why `install` will not find one.</param>
+    public sealed record Catalog(ProviderManifest Manifest, IReadOnlyList<GitHubRelease> Entries, int FailedProviders, IReadOnlySet<string> MultiVersionApps,
+        IReadOnlyList<CommunityCatalogRemoved>? Removed = null)
+    {
+        public IReadOnlyList<CommunityCatalogRemoved> RemovedApps => Removed ?? Array.Empty<CommunityCatalogRemoved>();
+    }
 
     /// <param name="allVersions">Keep every release of an app with a version history (Jellyfin) instead of the latest.</param>
     public async Task<Catalog> LoadAsync(bool allVersions, CancellationToken ct = default)
@@ -49,6 +55,7 @@ public sealed class CatalogLoader
         var providers = (await UserSources.ResolveAsync(_http, manifest.Providers, _userSources(), ct, _repositories, Report))
             .Where(p => !string.IsNullOrWhiteSpace(p.Url)).ToList();
         var multiVersion = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var removed = new List<CommunityCatalogRemoved>();
         // Fetched alongside the providers; never fails, at worst there are no counts.
         var stats = _downloadStats.GetAsync(ct);
 
@@ -65,6 +72,9 @@ public sealed class CatalogLoader
                     ? await _releases.GetCommunityCatalogAsync(fetched.Releases[0].CatalogUrl)
                     : null);
                 entries.AddRange(CommunityAppList.Expand(fetched.Releases, catalog, requiresPartner));
+                // Only the official catalog says what it removed; a user's own source cannot (#1033).
+                if (RemovedApps.IsOfficial(provider))
+                    lock (removed) removed.AddRange(CommunityAppList.Removed(catalog));
             }
             else
             {
@@ -88,7 +98,7 @@ public sealed class CatalogLoader
         var results = await Task.WhenAll(tasks);
         var list = results.SelectMany(r => r.Entries).ToList();
         list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
-        return new Catalog(manifest, list, results.Count(r => !r.Ok), multiVersion);
+        return new Catalog(manifest, list, results.Count(r => !r.Ok), multiVersion, removed);
     }
 
     /// <summary>A repository that did not load cleanly, said once per load (#1018).</summary>

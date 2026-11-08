@@ -16,8 +16,12 @@ namespace Apps2Samsung.Models
         long SizeBytes = 0,
         string? IconUrl = null,
         string? CatalogLine = null,
-        bool HasUpdate = false)
+        bool HasUpdate = false,
+        CommunityCatalogRemoved? Removed = null)
     {
+        /// <summary>The catalog stopped distributing this app (#1033): <see cref="Removed"/> says why. No update comes for it.</summary>
+        public bool IsRemoved => Removed is not null;
+
         /// <summary>Title if the TV reported one, otherwise the Tizen id — never empty.</summary>
         public string DisplayName => string.IsNullOrWhiteSpace(Title) ? TizenId : Title;
 

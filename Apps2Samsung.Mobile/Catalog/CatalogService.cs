@@ -53,7 +53,10 @@ public sealed class CatalogService
 	}
 
 	/// <summary>The catalog plus how many providers failed to load (e.g. GitHub rate limit).</summary>
-	public sealed record CatalogResult(IReadOnlyList<GitHubRelease> Releases, int Failed, int Total);
+	/// <param name="Removed">Apps the official catalog stopped distributing (#1033): never listed, only
+	/// named under a search for them and flagged on an installed copy.</param>
+	public sealed record CatalogResult(IReadOnlyList<GitHubRelease> Releases, int Failed, int Total,
+		IReadOnlyList<CommunityCatalogRemoved>? Removed = null);
 
 	/// <summary>Loads the catalog and returns the selectable releases, sorted by name.</summary>
 	public async Task<CatalogResult> LoadReleasesAsync()
@@ -67,6 +70,7 @@ public sealed class CatalogService
 			.Where(p => !string.IsNullOrWhiteSpace(p.Url)).ToList();
 		// Fetched alongside the providers; never fails, at worst there are no counts.
 		var stats = _downloadStats.GetAsync();
+		var removed = new List<CommunityCatalogRemoved>();
 
 		// Fetch every provider concurrently, one slow/failing source no longer blocks the rest.
 		var tasks = providers.Select(async provider =>
@@ -91,6 +95,8 @@ public sealed class CatalogService
 					? await _releases.GetCommunityCatalogAsync(releases[0].CatalogUrl)
 					: null);
 				entries.AddRange(CommunityAppList.Expand(releases, catalog, requiresPartner));
+				if (RemovedApps.IsOfficial(provider))
+					lock (removed) removed.AddRange(CommunityAppList.Removed(catalog));
 			}
 			else
 			{
@@ -115,7 +121,7 @@ public sealed class CatalogService
 		var failed = results.Count(r => !r.Ok);
 
 		list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
-		return new CatalogResult(list, failed, providers.Count);
+		return new CatalogResult(list, failed, providers.Count, removed);
 	}
 
 	/// <summary>Fetches the provider manifest (remote, else cached, else empty). Public so the

@@ -296,6 +296,20 @@
 									</ItemsControl.ItemTemplate>
 								</ItemsControl>
 
+								<!-- removed apps a search names (#1033, S2): a footnote, never a row to install -->
+								<StackPanel Spacing="6" Margin="4,0,4,8" IsVisible="{Binding HasRemovedSearchLines}">
+									<ItemsControl ItemsSource="{Binding RemovedSearchLines}">
+										<ItemsControl.ItemsPanel>
+											<ItemsPanelTemplate><StackPanel Spacing="6"/></ItemsPanelTemplate>
+										</ItemsControl.ItemsPanel>
+										<ItemsControl.ItemTemplate>
+											<DataTemplate x:DataType="x:String">
+												<TextBlock Text="{Binding}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+											</DataTemplate>
+										</ItemsControl.ItemTemplate>
+									</ItemsControl>
+									<TextBlock Text="{Binding LblRemovedSearchFooter}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+								</StackPanel>
 								<TextBlock Text="{Binding CatalogFoot}" FontSize="13" Margin="4,0" Foreground="{DynamicResource MutedBrush}"/>
 						</StackPanel>
 					</StackPanel>

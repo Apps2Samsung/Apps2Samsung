@@ -44,6 +44,14 @@ public static class InstallCommand
             var (match, candidates) = CatalogLoader.Find(visible, target);
             if (match is null)
             {
+                // An app the catalog stopped distributing (#1033): say why instead of "not found". No link to it.
+                if (candidates.Count == 0 && (RemovedApps.Named(target, catalog.RemovedApps)
+                        ?? (RemovedApps.Search(target, catalog.RemovedApps) is { Count: 1 } one ? one[0] : null)) is { } gone)
+                {
+                    var why = InstalledCommand.Removal(s, gone);
+                    return s.Out.Fail($"{why.Name} was removed from the catalogue{(why.Since is null ? "" : $" on {why.Since}")} and cannot be installed. {why.Text}{(why.Note is null ? "" : $" {why.Note}")}",
+                        Output.Failed, new { removed = why });
+                }
                 return candidates.Count == 0
                     ? s.Out.Fail($"No catalog app matches '{target}'. `apps2samsung-cli catalog {target}` searches descriptions too.")
                     : s.Out.Fail($"'{target}' matches several apps; use the exact name: {string.Join(" | ", candidates.Select(c => c.Name))}",

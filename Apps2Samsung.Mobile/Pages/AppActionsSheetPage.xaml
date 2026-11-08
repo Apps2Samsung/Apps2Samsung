@@ -32,6 +32,8 @@
                         BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnCloseClicked" />
             </Grid>
             <Label x:Name="IdLabel" FontSize="12" FontFamily="monospace" TextColor="{DynamicResource MutedColor}" Margin="4,0" />
+            <!-- removed from the catalogue (#1033): why, since when, and that the copy keeps working; filled in code -->
+            <VerticalStackLayout x:Name="RemovedHost" IsVisible="False" />
 
             <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}" Margin="0,6,0,0">
                 <VerticalStackLayout x:Name="Actions" />

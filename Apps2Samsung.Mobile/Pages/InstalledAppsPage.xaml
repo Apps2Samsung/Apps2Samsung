@@ -52,8 +52,16 @@
                                     <Label Text="{Binding DisplayName}" FontAttributes="Bold" FontSize="15" LineBreakMode="TailTruncation" />
                                     <Label Text="{Binding Subline}" FontSize="13" TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
                                     <!-- What the catalog says about this app, when it is in there (#820). -->
-                                    <Label Text="{Binding CatalogLine}" IsVisible="{Binding HasCatalogLine}" FontSize="12"
-                                           TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
+                                    <!-- Removed from the catalogue (#1033, direction C): the same quiet line with an amber mark; the sheet says why. -->
+                                    <HorizontalStackLayout Spacing="5" IsVisible="{Binding HasCatalogLine}">
+                                        <Grid WidthRequest="12" HeightRequest="12" VerticalOptions="Center" IsVisible="{Binding IsRemoved}">
+                                            <Ellipse Stroke="{DynamicResource WarnBrush}" StrokeThickness="1.4" />
+                                            <Label Text="!" FontSize="9" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}"
+                                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Grid>
+                                        <Label Text="{Binding CatalogLine}" FontSize="12"
+                                               TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
+                                    </HorizontalStackLayout>
                                 </VerticalStackLayout>
                                 <Button Grid.Column="2" Text="{l:Localize lblUpdate}" IsVisible="{Binding HasUpdate}" Clicked="OnUpdateClicked"
                                         HeightRequest="32" MinimumHeightRequest="32" CornerRadius="16" Padding="12,0" FontSize="13" FontAttributes="Bold"

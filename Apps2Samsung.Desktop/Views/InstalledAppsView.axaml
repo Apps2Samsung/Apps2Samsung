@@ -43,6 +43,16 @@
                 <Style Selector="ScrollViewer[IsEnabled=False]">
                     <Setter Property="Opacity" Value="0.4"/>
                 </Style>
+                <Style Selector="Button.removedline">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="MinHeight" Value="0"/>
+                    <Setter Property="Cursor" Value="Hand"/>
+                </Style>
+                <Style Selector="Button.removedline:pointerover /template/ ContentPresenter">
+                    <Setter Property="Background" Value="Transparent"/>
+                </Style>
                 <Style Selector="Grid.approw:pointerover">
                     <Setter Property="Background" Value="{DynamicResource Surface2Brush}"/>
                 </Style>
@@ -94,7 +104,33 @@
                                                                    Foreground="{DynamicResource MutedBrush}"/>
                                                         <!-- What the catalog says about this app, when it is in there (#820). -->
                                                         <TextBlock Text="{Binding App.CatalogLine}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                                                   IsVisible="{Binding App.HasCatalogLine}" Foreground="{DynamicResource MutedBrush}"/>
+                                                                   IsVisible="{Binding ShowCatalogLine}" Foreground="{DynamicResource MutedBrush}"/>
+                                                        <!-- removed from the catalogue (#1033, direction C): a quiet line; why opens under it.
+                                                             No Update, no link to the app, no uninstall prompt. -->
+                                                        <Button Classes="removedline" IsVisible="{Binding IsRemoved}" HorizontalAlignment="Left">
+                                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                                <fa:SymbolIcon Symbol="Important" FontSize="12" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding App.CatalogLine}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                                                           Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                            <Button.Flyout>
+                                                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                                                    <Border Background="{DynamicResource WarnSoftBrush}" CornerRadius="12" Padding="14,12" MaxWidth="380">
+                                                                        <StackPanel Spacing="6">
+                                                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                                <Border Background="{DynamicResource WarnSoftBrush}" CornerRadius="999" Padding="8,1">
+                                                                                    <TextBlock Text="{Binding RemovedBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
+                                                                                </Border>
+                                                                                <TextBlock Text="{Binding RemovedOn}" FontSize="12" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
+                                                                            </StackPanel>
+                                                                            <TextBlock Text="{Binding RemovedReason}" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+                                                                            <TextBlock Text="{Binding RemovedNote}" IsVisible="{Binding HasRemovedNote}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+                                                                            <TextBlock Text="{Binding RemovedFooter}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+                                                                        </StackPanel>
+                                                                    </Border>
+                                                                </Flyout>
+                                                            </Button.Flyout>
+                                                        </Button>
                                                     </StackPanel>
                                                     <Button Grid.Column="2" Classes="pill" Content="{l:Localize lblUpdate}" VerticalAlignment="Center"
                                                             IsVisible="{Binding App.HasUpdate}"
