@@ -112,6 +112,12 @@ namespace Apps2Samsung.Catalog
             return singles;
         }
 
+        /// <summary>
+        /// The apps the catalog stopped distributing (#1033), kept apart from <see cref="Expand"/>: they
+        /// never reach the list, its categories or its counts. See <see cref="RemovedApps"/>.
+        /// </summary>
+        public static IReadOnlyList<CommunityCatalogRemoved> Removed(CommunityCatalog? catalog) => RemovedApps.From(catalog);
+
         private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
         /// <summary>

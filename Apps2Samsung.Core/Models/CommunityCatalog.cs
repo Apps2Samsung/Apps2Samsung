@@ -18,6 +18,49 @@ namespace Apps2Samsung.Models
         public Dictionary<string, string> Categories { get; set; } = new();
 
         public List<CommunityCatalogEntry> Apps { get; set; } = new();
+
+        /// <summary>
+        /// Apps the community catalog stopped distributing, with the reason (#1033). Never installable
+        /// and never in <see cref="Apps"/>: the heads only use them to flag an installed copy and to
+        /// answer a search for the name. Null in a bundle built before removed apps were listed;
+        /// written only when present, so the snapshot round-trips it as-is into resolved.json, where
+        /// TV-Store reads it.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public List<CommunityCatalogRemoved>? Removed { get; set; }
+    }
+
+    /// <summary>
+    /// One app under <c>removed</c> in <c>catalog.json</c> (#1033): what it was, why it is gone, and
+    /// the ids its files had while it shipped, which is what an installed copy is matched on.
+    /// </summary>
+    public sealed class CommunityCatalogRemoved
+    {
+        public string Name { get; set; } = "";
+        /// <summary>The community manifest's <c>repo</c> ("owner/repo"); with <see cref="Files"/> the key of the derived package id (#1028).</summary>
+        public string Repo { get; set; } = "";
+        public string Host { get; set; } = "github";
+        public string Category { get; set; } = "";
+        /// <summary>
+        /// <c>unlicensed-content</c>, <c>unlicensed-service</c>, <c>unlicensed-game-data</c>,
+        /// <c>takedown</c>, <c>superseded</c> or <c>upstream-gone</c>; anything else shows the
+        /// generic "Removed from the catalogue".
+        /// </summary>
+        public string Reason { get; set; } = "";
+        /// <summary>One neutral line of detail, English only. Never a link.</summary>
+        public string? Note { get; set; }
+        /// <summary>The file names the package shipped under in the bundle.</summary>
+        public List<string>? Files { get; set; }
+        /// <summary>The date it was first listed as removed (yyyy-MM-dd).</summary>
+        public string? Since { get; set; }
+
+        /// <summary>The package ids its files had in the last release that shipped them. Optional.</summary>
+        [JsonPropertyName("package_ids")]
+        public List<string>? PackageIds { get; set; }
+
+        /// <summary>The application ids its files had in the last release that shipped them. Optional.</summary>
+        [JsonPropertyName("app_ids")]
+        public List<string>? AppIds { get; set; }
     }
 
     public sealed class CommunityCatalogEntry
