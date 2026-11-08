@@ -152,11 +152,23 @@ public static class InstallCommand
             }
         }
         // Not with --skip-devmode-check (#1026): the tester wants the SDB connect's own error.
-        else if (!viaTvStore && !s.Options.SkipDevModeCheck && !await SdbAnswersAsync(s, tvIp) && await TvStoreReadyAsync(s, tvIp, ct))
+        else if (!viaTvStore && !s.Options.SkipDevModeCheck && !await SdbAnswersAsync(s, tvIp))
         {
-            // No SDB (Host PC IP 127.0.0.1 without TV-Store's relay, say), but TV-Store is there.
-            s.Out.Warn("The TV does not answer over SDB, but TV-Store is running on it: sending the package to TV-Store instead.");
-            viaTvStore = true;
+            var tvStoreReady = await TvStoreReadyAsync(s, tvIp, ct);
+            if (!tvStoreReady && !await SdbConnectsAsync(s, tvIp))
+            {
+                // Neither way in: stop here instead of downloading and failing on the DUID read (#975).
+                // Only when the connect itself fails: an old sdbd without the capability service
+                // still installs, as before.
+                return s.Out.Fail($"{tvIp} does not answer over SDB, so nothing can be installed. Turn the TV off at the wall for 30 seconds and try again; " +
+                    "if it still does not answer, check that Developer Mode's Host PC IP is this device's address.");
+            }
+            if (tvStoreReady)
+            {
+                // No SDB (Host PC IP 127.0.0.1 without TV-Store's relay, say), but TV-Store is there.
+                s.Out.Warn("The TV does not answer over SDB, but TV-Store is running on it: sending the package to TV-Store instead.");
+                viaTvStore = true;
+            }
         }
 
         // ---- Download, or a working copy of the local file ----
@@ -381,6 +393,19 @@ public static class InstallCommand
         {
             var cap = await s.Sdb.CapabilityAsync(tvIp);
             return cap.ExitCode == 0 && !string.IsNullOrWhiteSpace(cap.Output);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>Does the TV accept an SDB connection at all? Unlike <see cref="SdbAnswersAsync"/>, a set without the capability service still counts.</summary>
+    private static async Task<bool> SdbConnectsAsync(CliServices s, string tvIp)
+    {
+        try
+        {
+            return (await s.Sdb.DevicesAsync(tvIp)).ExitCode == 0;
         }
         catch
         {

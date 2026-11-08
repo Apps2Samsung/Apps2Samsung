@@ -25,8 +25,10 @@ public static class Dispatch
     /// <summary>
     /// Runs one command line as if it had been typed: its own services and output, so what the menu
     /// does is exactly what the line it shows would do. Exceptions become the exit code, as in Program.
+    /// <paramref name="sdb"/> is the caller's engine, so the line talks to the TV over the caller's
+    /// connection instead of opening a second one (see <see cref="CliServices"/>).
     /// </summary>
-    public static async Task<int> RunLineAsync(IReadOnlyList<string> args, CancellationToken ct)
+    public static async Task<int> RunLineAsync(IReadOnlyList<string> args, CancellationToken ct, Apps2Samsung.Sdb.InProcessSdbEngine? sdb = null)
     {
         var (options, parseError) = CliOptions.Parse(args.ToArray());
         if (parseError is not null)
@@ -34,7 +36,7 @@ public static class Dispatch
             Console.Error.WriteLine($"error: {parseError}");
             return Output.Usage;
         }
-        await using var services = new CliServices(options);
+        await using var services = new CliServices(options, sdb);
         try
         {
             return await RunAsync(services, ct);

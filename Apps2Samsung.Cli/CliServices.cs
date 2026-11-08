@@ -29,7 +29,15 @@ public sealed class CliServices : IAsyncDisposable
     /// <summary>English strings for the keys Core reports (guards, certificate steps).</summary>
     public LocalizationCatalog Strings { get; }
 
-    public CliServices(CliOptions options)
+    // False when the engine is the menu's (see the constructor): the menu disposes it, not this run.
+    private readonly bool _ownsSdb;
+
+    /// <param name="sdb">The menu's engine, for a command the menu runs (#975). Null builds a new one.
+    /// Samsung's sdbd serves one connection at a time on some sets (a 2020 UN32T4300 among them): a
+    /// second engine next to the menu's opens a second connection while the menu's is still held, and
+    /// the TV resets every attempt, so the install, uninstall or leftovers run from the menu failed with
+    /// "Connection reset by peer" while the menu's own app list kept working. One engine, one connection.</param>
+    public CliServices(CliOptions options, InProcessSdbEngine? sdb = null)
     {
         Options = options;
         Out = new Output(options);
@@ -56,7 +64,8 @@ public sealed class CliServices : IAsyncDisposable
 
         // The engine persists its RSA auth keypair; give it the CLI's own directory.
         SdbTcpDevice.KeyDirectory = CliPaths.CliDir;
-        Sdb = new InProcessSdbEngine();
+        _ownsSdb = sdb is null;
+        Sdb = sdb ?? new InProcessSdbEngine();
         // As on the desktop: a Tizen Studio sdb server (Device Manager, Emulator Manager) holds the
         // TV's one debug connection, so it is cleared before every fresh connect.
         InProcessSdbEngine.ClearCompetingSdbServer = ProcessHelper.KillSdbServers;
@@ -81,7 +90,8 @@ public sealed class CliServices : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        await Sdb.DisposeAsync();
+        if (_ownsSdb)
+            await Sdb.DisposeAsync();
         Http.Dispose();
         Out.Dispose();
     }
