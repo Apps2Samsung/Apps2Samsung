@@ -73,7 +73,7 @@ public sealed class CatalogLoader
                     : null);
                 entries.AddRange(CommunityAppList.Expand(fetched.Releases, catalog, requiresPartner));
                 // Only the official catalog says what it removed; a user's own source cannot (#1033).
-                if (!provider.IsUserSource && provider.Source is null or { Kind: CatalogSourceKind.Official })
+                if (RemovedApps.IsOfficial(provider))
                     lock (removed) removed.AddRange(CommunityAppList.Removed(catalog));
             }
             else

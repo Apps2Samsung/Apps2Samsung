@@ -116,7 +116,8 @@ namespace Apps2Samsung.ViewModels
         public InstalledAppsViewModel(ITizenInstallerService installer, IDialogService dialogService, string tvIp, string tvLabel,
             Func<System.Collections.Generic.IReadOnlyList<GitHubRelease>>? catalog = null,
             Func<GitHubRelease, Asset, Task>? update = null,
-            Func<Task>? refreshCatalog = null)
+            Func<Task>? refreshCatalog = null,
+            Func<System.Collections.Generic.IReadOnlyList<CommunityCatalogRemoved>>? removed = null)
         {
             _installer = installer;
             _dialogService = dialogService;
@@ -125,7 +126,11 @@ namespace Apps2Samsung.ViewModels
             _catalog = catalog;
             _update = update;
             _refreshCatalog = refreshCatalog;
+            _removed = removed;
         }
+
+        // Apps the official catalog stopped distributing (#1033), to flag an installed copy.
+        private readonly Func<System.Collections.Generic.IReadOnlyList<CommunityCatalogRemoved>>? _removed;
 
         // ---- apps that moved to their author's repository (#1018, moved_to) ----
 
@@ -170,10 +175,17 @@ namespace Apps2Samsung.ViewModels
                 var apps = (await _installer.GetInstalledAppsAsync(_tvIp)).ToList();
                 var viewModels = new System.Collections.Generic.List<InstalledAppViewModel>();
                 var catalog = _catalog?.Invoke() ?? Array.Empty<GitHubRelease>();
+                var removed = _removed?.Invoke() ?? Array.Empty<CommunityCatalogRemoved>();
                 _matches.Clear();
 
                 for (int i = 0; i < apps.Count; i++)
                 {
+                    // An app the catalog removed (#1033): the quiet line, the reason behind it, and no
+                    // catalog comparison, so no Update.
+                    if (Apps2Samsung.Catalog.RemovedApps.Find(apps[i], removed, catalog, Apps2Samsung.Helpers.AppSettings.Default.PackageIdRenamesJson) is { } gone)
+                        apps[i] = apps[i] with { CatalogLine = Apps2Samsung.Catalog.RemovedApps.RowClickKey.Localized(), Removed = gone };
+                    else
+
                     // The catalog entry this app came from, by the id its manifest declares (#820).
                     // With the variant this TV got last time (#975), so an app with several files is
                     // compared with the right one and Update installs that one again.
@@ -471,6 +483,18 @@ namespace Apps2Samsung.ViewModels
         {
             App = app;
         }
+
+        // ---- a removed app (#1033): what the line under its name opens ----
+        public bool IsRemoved => App.IsRemoved;
+        public bool ShowCatalogLine => App.HasCatalogLine && !App.IsRemoved;
+        public string RemovedBadge => Apps2Samsung.Catalog.RemovedApps.BadgeKey.Localized();
+        public string RemovedReason => App.Removed is { } r ? Apps2Samsung.Catalog.RemovedApps.ReasonKey(r.Reason).Localized() : string.Empty;
+        public string RemovedNote => App.Removed?.Note?.Trim() ?? string.Empty;
+        public bool HasRemovedNote => RemovedNote.Length > 0;
+        public string RemovedOn => Apps2Samsung.Catalog.RemovedApps.SinceText(App.Removed?.Since, System.Globalization.CultureInfo.CurrentUICulture) is { } date
+            ? string.Format(Apps2Samsung.Catalog.RemovedApps.OnDateKey.Localized(), date)
+            : string.Empty;
+        public string RemovedFooter => Apps2Samsung.Catalog.RemovedApps.FooterKey.Localized();
         
         public async Task LoadIconAsync(System.Net.Http.HttpClient http, System.Collections.Generic.Dictionary<string, Avalonia.Media.Imaging.Bitmap?> cache)
         {

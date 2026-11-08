@@ -161,6 +161,32 @@ public class RemovedAppsTests
         Assert.Null(RemovedApps.Named("bis", removed));
     }
 
+    [Fact]
+    public void The_date_reads_in_the_user_s_language_and_a_bad_one_is_left_out()
+    {
+        Assert.Equal("8 November 2026", RemovedApps.SinceText("2026-11-08", new System.Globalization.CultureInfo("en-GB")));
+        Assert.Equal("8 november 2026", RemovedApps.SinceText("2026-11-08", new System.Globalization.CultureInfo("nl-NL")));
+        Assert.Null(RemovedApps.SinceText("08-11-2026", System.Globalization.CultureInfo.InvariantCulture));
+        Assert.Null(RemovedApps.SinceText(null, System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    [Fact]
+    public void Only_the_official_catalog_may_say_what_it_removed()
+    {
+        Assert.True(RemovedApps.IsOfficial(new ProviderEntry()));
+        Assert.True(RemovedApps.IsOfficial(new ProviderEntry { Source = CatalogSource.Official }));
+        Assert.False(RemovedApps.IsOfficial(new ProviderEntry { IsUserSource = true }));
+        Assert.False(RemovedApps.IsOfficial(new ProviderEntry { Source = new CatalogSource(CatalogSourceKind.Repository, "Someone's repo") }));
+    }
+
+    [Fact]
+    public void A_search_line_is_the_name_and_the_reason()
+    {
+        var english = new LocalizationCatalog();
+        Assert.Equal("Bisnor · Removed: it ships streams or links to content it has no licence for.",
+            RemovedApps.SearchLine(RemovedApps.From(Parse())[0], english.GetString));
+    }
+
     [Theory]
     [InlineData("unlicensed-content", "lblRemovedReasonUnlicensedContent")]
     [InlineData("unlicensed-service", "lblRemovedReasonUnlicensedService")]

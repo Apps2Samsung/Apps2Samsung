@@ -245,6 +245,13 @@ public partial class InstalledAppsPage : ContentPage
 			var catalog = CatalogStore.Releases;
 			for (int i = 0; i < apps.Count; i++)
 			{
+				// An app the catalog removed (#1033, direction C): a quiet line, the reason on its sheet,
+				// and no catalog comparison, so no Update.
+				if (Apps2Samsung.Catalog.RemovedApps.Find(apps[i], CatalogStore.Removed, catalog, MobileSettings.PackageIdRenamesJson) is { } gone)
+				{
+					apps[i] = apps[i] with { CatalogLine = L10n.Get(Apps2Samsung.Catalog.RemovedApps.RowTapKey), Removed = gone };
+					continue;
+				}
 				// With the variant this TV got last time (#975), so an app with several files is
 				// compared with the right one and Update opens the sheet on that one.
 				if (Apps2Samsung.Catalog.InstalledAppUpdates.Find(apps[i], catalog, MobileSettings.PackageIdRenamesJson,
@@ -445,7 +452,7 @@ public partial class InstalledAppsPage : ContentPage
 	{
 		if ((sender as BindableObject)?.BindingContext is not InstalledApp app)
 			return;
-		var sheet = new AppActionsSheetPage(app, _matches.ContainsKey(app.TizenId));
+		var sheet = new AppActionsSheetPage(app, _matches.ContainsKey(app.TizenId), app.Removed);
 		await Navigation.PushModalAsync(sheet);
 		switch (await sheet.Result)
 		{

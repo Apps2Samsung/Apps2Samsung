@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Apps2Samsung.Install;
 using Apps2Samsung.Models;
@@ -23,6 +24,38 @@ namespace Apps2Samsung.Catalog
 
         /// <summary>A search shorter than this does not list removed entries (one letter would list them all).</summary>
         public const int MinSearchLength = 2;
+
+        /// <summary>The row line on an installed app the catalog removed (phone: the sheet says why).</summary>
+        public const string RowTapKey = "lblRemovedRowTap";
+
+        /// <summary>The row line on an installed app the catalog removed (desktop: the line opens why).</summary>
+        public const string RowClickKey = "lblRemovedRowClick";
+
+        /// <summary>"on {0}", the date it was removed, next to the badge.</summary>
+        public const string OnDateKey = "lblRemovedOn";
+
+        /// <summary>The line under the removed apps a search names: they cannot be installed.</summary>
+        public const string SearchFooterKey = "lblRemovedSearchFooter";
+
+        /// <summary>
+        /// Whether <paramref name="provider"/> may say what it removed: only the official catalog. A
+        /// user's own source or a signed repository cannot flag apps as removed.
+        /// </summary>
+        public static bool IsOfficial(ProviderEntry provider) =>
+            provider is not null && !provider.IsUserSource && provider.Source is null or { Kind: CatalogSourceKind.Official };
+
+        /// <summary>
+        /// <paramref name="since"/> (yyyy-MM-dd) as a date in <paramref name="culture"/> ("8 November
+        /// 2026"), or null when there is none or it does not parse.
+        /// </summary>
+        public static string? SinceText(string? since, CultureInfo culture) =>
+            DateTime.TryParseExact(since?.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
+                ? date.ToString(culture.DateTimeFormat.LongDatePattern.Contains("dddd") ? "d MMMM yyyy" : culture.DateTimeFormat.LongDatePattern, culture)
+                : null;
+
+        /// <summary>One line under the search results for a removed entry: its name and why it is gone.</summary>
+        public static string SearchLine(CommunityCatalogRemoved removed, Func<string, string> localize) =>
+            $"{removed.Name.Trim()} · {localize(ReasonKey(removed.Reason))}";
 
         /// <summary>The removed entries with a name, from the official catalog's <paramref name="catalog"/>.</summary>
         public static IReadOnlyList<CommunityCatalogRemoved> From(CommunityCatalog? catalog) =>
