@@ -9,8 +9,9 @@
              BackgroundColor="{DynamicResource BgColor}">
 
     <!-- The TV toolbox in the v3 language (#755): the top bar with back and reload, the status line
-         under it, then one grouped-list card per tool. The cards collapse (ExpanderSection), with
-         "Open an app" open by default, so the page is a list of headings rather than a wall. Rows
+         under it, the debug agent's chip, then one grouped-list card per tool. The cards collapse
+         (ExpanderSection), all closed when the page opens and one open at a time (#1041), so the
+         page is a list of headings rather than a wall. Rows
          are the list idiom: name and subline on the left, a soft pill action on the right. The
          names and handlers are the ones the code-behind drives; only the drawing changed. -->
     <ContentPage.Resources>
@@ -58,13 +59,38 @@
             <Setter Property="HeightRequest" Value="1" />
             <Setter Property="Color" Value="{DynamicResource HairColor}" />
         </Style>
+        <!-- the debug agent's chip under the status line (#1041); code colours it once attached -->
+        <Style x:Key="AgentChip" TargetType="Button">
+            <Setter Property="HeightRequest" Value="34" />
+            <Setter Property="MinimumHeightRequest" Value="34" />
+            <Setter Property="CornerRadius" Value="17" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="BorderWidth" Value="0" />
+            <Setter Property="FontFamily" Value="OpenSansSemibold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="HorizontalOptions" Value="Start" />
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
+            <Setter Property="BackgroundColor" Value="{DynamicResource FillColor}" />
+        </Style>
+        <!-- one half of Open an app's list switch -->
+        <Style x:Key="Segment" TargetType="Button">
+            <Setter Property="HeightRequest" Value="30" />
+            <Setter Property="MinimumHeightRequest" Value="30" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="BorderWidth" Value="0" />
+            <Setter Property="FontFamily" Value="OpenSansSemibold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextColor" Value="{DynamicResource InkColor}" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+        </Style>
         <Style x:Key="Step" TargetType="Label">
             <Setter Property="FontSize" Value="14" />
             <Setter Property="LineBreakMode" Value="WordWrap" />
         </Style>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,*" Padding="16,0,16,0" RowSpacing="8">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="16,0,16,0" RowSpacing="8">
 
         <!-- the top bar (#755): Back, the title, reload -->
         <controls:TopBarView Grid.Row="0" Margin="-16,0" Title="{l:Localize lblToolbox}" BackText="{l:Localize lblNavBack}"
@@ -74,7 +100,18 @@
         <Label Grid.Row="1" x:Name="StatusLabel" Style="{StaticResource Hint}" Margin="4,0"
                Text="{l:Localize lblRemoteConnecting}" />
 
-        <ScrollView Grid.Row="2">
+        <!-- The debug agent (#34, #1041): not a section of its own but a chip. Tap attaches (installing
+             the agent first when the TV has none); once attached, tap offers Evaluate and Detach. The
+             tools that need it (Open an app's TV list, Install leftovers) pick it up from here. -->
+        <VerticalStackLayout Grid.Row="2" Spacing="4" Margin="4,0">
+            <Button x:Name="AgentChip" Style="{StaticResource AgentChip}"
+                    Text="{l:Localize lblToolboxAgentChipAttach}" Clicked="OnAgentChipClicked" />
+            <Label x:Name="AgentStatusLabel" Style="{StaticResource Hint}" IsVisible="False" />
+            <Label x:Name="AgentNeedsSdbHint" Style="{StaticResource Hint}" IsVisible="False"
+                   Text="{l:Localize lblToolboxAgentNeedsSdb}" />
+        </VerticalStackLayout>
+
+        <ScrollView Grid.Row="3">
             <VerticalStackLayout Spacing="10" Padding="0,0,0,24">
 
                 <Label Style="{StaticResource Footnote}" Text="{l:Localize lblToolboxOwnerNote}" LineBreakMode="WordWrap" />
@@ -92,12 +129,24 @@
                 </Border>
 
                 <!-- ============ Open an app ============ -->
-                <controls:ExpanderSection Title="{l:Localize lblToolboxApps}" IsExpanded="True">
+                <controls:ExpanderSection x:Name="AppsCard" Title="{l:Localize lblToolboxApps}" Summary="{l:Localize lblToolboxAppsRow}">
                     <VerticalStackLayout Spacing="8">
                         <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxAppsHint}" />
                         <Label x:Name="OfflineHint" Style="{StaticResource Hint}" IsVisible="False"
                                Text="{l:Localize lblToolboxAppsOffline}" />
 
+                        <!-- With the agent attached, the TV's own list sits next to the known one -->
+                        <Border x:Name="AppListSwitch" Padding="2" StrokeThickness="0" StrokeShape="RoundRectangle 9"
+                                BackgroundColor="{DynamicResource FillColor}" IsVisible="False">
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="2">
+                                <Button x:Name="KnownAppsSegment" Grid.Column="0" Style="{StaticResource Segment}"
+                                        Text="{l:Localize lblToolboxAppsKnown}" Clicked="OnAppListSwitchClicked" />
+                                <Button x:Name="AgentAppsSegment" Grid.Column="1" Style="{StaticResource Segment}"
+                                        Text="{l:Localize lblToolboxAppsOnTv}" Clicked="OnAppListSwitchClicked" />
+                            </Grid>
+                        </Border>
+
+                        <VerticalStackLayout x:Name="KnownAppsSection" Spacing="8">
                         <Border Style="{StaticResource Field}">
                             <Entry x:Name="AppSearch" Placeholder="{l:Localize lblToolboxFilter}" BackgroundColor="Transparent"
                                    ReturnType="Search" TextChanged="OnFilterChanged" />
@@ -125,78 +174,11 @@
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
-
-                        <!-- An ID from a forum post or a manual, for an app in neither list. Launch goes the
-                             usual routes; "0 execute" is sdbd's other launcher verb, which answers in the
-                             platform's own words - for a service, or an ID Smart Hub does not know. -->
-                        <BoxView Style="{StaticResource Hairline}" />
-                        <Border Style="{StaticResource Field}" Margin="0,6,0,0">
-                            <Entry x:Name="ManualAppIdEntry" Keyboard="Text" BackgroundColor="Transparent"
-                                   Placeholder="{l:Localize lblToolboxManualPlaceholder}" />
-                        </Border>
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                            <Button Grid.Column="0" Style="{StaticResource SoftButton}" HeightRequest="44" MinimumHeightRequest="44" Padding="12,0"
-                                    Text="{l:Localize lblToolboxLaunch}" Clicked="OnLaunchManualClicked" />
-                            <Button Grid.Column="1" x:Name="ExecuteManualBtn" Style="{StaticResource PlainButton}" HeightRequest="44" MinimumHeightRequest="44" Padding="12,0"
-                                    Text="{l:Localize lblToolboxExecute}" Clicked="OnExecuteManualClicked" />
-                        </Grid>
-                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxExecuteHint}" />
-                    </VerticalStackLayout>
-                </controls:ExpanderSection>
-
-                <!-- ============ Hidden system apps ============ -->
-                <!-- The TV's own menus, addressed by ID because the key combination that used to open them
-                     has stopped answering. They launch through the debug agent below (#34); without it the
-                     SDB attempt still runs so the TV's own refusal is what the user reads (#641). -->
-                <controls:ExpanderSection Title="{l:Localize lblToolboxSystemApps}">
-                    <VerticalStackLayout Spacing="8">
-                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxSystemAppsHint}" />
-                        <VerticalStackLayout x:Name="SystemAppList" Spacing="0">
-                            <BindableLayout.ItemTemplate>
-                                <DataTemplate>
-                                    <VerticalStackLayout Spacing="0">
-                                        <BoxView Style="{StaticResource Hairline}" />
-                                        <Grid Style="{StaticResource Row}" ColumnDefinitions="*,Auto">
-                                            <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
-                                                <Label Style="{StaticResource RowTitle}" Text="{Binding Name}" />
-                                                <Label Style="{StaticResource RowSub}" Text="{Binding Description}" />
-                                                <Label FontSize="12" TextColor="{DynamicResource MutedColor}" Text="{Binding AppId}" FontFamily="monospace" />
-                                                <Label FontSize="12" TextColor="{DynamicResource WarnColor}" LineBreakMode="WordWrap"
-                                                       Text="{l:Localize lblToolboxSystemAppCaution}" IsVisible="{Binding IsCaution}" />
-                                            </VerticalStackLayout>
-                                            <Button Grid.Column="1" Style="{StaticResource RowButton}" Text="{l:Localize lblToolboxLaunch}"
-                                                    CommandParameter="{Binding}" Clicked="OnLaunchSystemAppClicked" />
-                                        </Grid>
-                                    </VerticalStackLayout>
-                                </DataTemplate>
-                            </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
-                    </VerticalStackLayout>
-                </controls:ExpanderSection>
 
-                <!-- ============ Debug agent ============ -->
-                <!-- The route that reaches the rows above (#34): an app of ours on the TV, driven over the
-                     web inspector, asking the platform's own application manager. Also the one honest app
-                     list a hospitality set has. Needs Developer Mode. -->
-                <controls:ExpanderSection x:Name="AgentCard" Title="{l:Localize lblToolboxAgent}">
-                    <VerticalStackLayout Spacing="8">
-                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxAgentHint}" />
-                        <Label x:Name="AgentNeedsSdbHint" Style="{StaticResource Hint}" IsVisible="False"
-                               Text="{l:Localize lblToolboxAgentNeedsSdb}" />
-
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                            <Button Grid.Column="0" x:Name="AttachAgentBtn" HeightRequest="44" MinimumHeightRequest="44"
-                                    Text="{l:Localize lblToolboxAgentAttach}" Clicked="OnAttachAgentClicked" />
-                            <Button Grid.Column="1" x:Name="DetachAgentBtn" Style="{StaticResource PlainButton}" HeightRequest="44" MinimumHeightRequest="44" Padding="16,0"
-                                    Text="{l:Localize lblToolboxAgentDetach}" Clicked="OnDetachAgentClicked" IsEnabled="False" />
-                        </Grid>
-                        <Label x:Name="AgentStatusLabel" Style="{StaticResource Report}" />
-
+                        <!-- The agent's list: everything really installed, hidden flags and all -->
                         <VerticalStackLayout x:Name="AgentSection" Spacing="8" IsVisible="False">
-                            <BoxView Style="{StaticResource Hairline}" Margin="0,4" />
-                            <Label Style="{StaticResource RowTitle}" Text="{l:Localize lblToolboxAgentApps}" />
                             <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxAgentAppsHint}" />
-
                             <Border Style="{StaticResource Field}">
                                 <Entry x:Name="AgentSearch" Placeholder="{l:Localize lblToolboxFilter}" BackgroundColor="Transparent"
                                        ReturnType="Search" TextChanged="OnAgentFilterChanged" />
@@ -227,17 +209,52 @@
                                     </DataTemplate>
                                 </BindableLayout.ItemTemplate>
                             </VerticalStackLayout>
+                        </VerticalStackLayout>
 
-                            <!-- Anything not a button yet, straight into the agent -->
-                            <BoxView Style="{StaticResource Hairline}" />
-                            <Border Style="{StaticResource Field}" Margin="0,6,0,0">
-                                <Entry x:Name="AgentExpression" Keyboard="Text" BackgroundColor="Transparent"
-                                       Placeholder="{l:Localize lblToolboxAgentEvaluatePlaceholder}" />
-                            </Border>
-                            <Button Style="{StaticResource SoftButton}" HeightRequest="44" MinimumHeightRequest="44"
-                                    Text="{l:Localize lblToolboxAgentEvaluate}" Clicked="OnEvaluateAgentClicked" />
-                            <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxAgentEvaluateHint}" />
-                            <Label x:Name="AgentExpressionResult" FontSize="12" FontFamily="monospace" LineBreakMode="WordWrap" />
+                        <!-- An ID from a forum post or a manual, for an app in neither list. Launch goes the
+                             usual routes; "0 execute" is sdbd's other launcher verb, which answers in the
+                             platform's own words - for a service, or an ID Smart Hub does not know. -->
+                        <BoxView Style="{StaticResource Hairline}" />
+                        <Border Style="{StaticResource Field}" Margin="0,6,0,0">
+                            <Entry x:Name="ManualAppIdEntry" Keyboard="Text" BackgroundColor="Transparent"
+                                   Placeholder="{l:Localize lblToolboxManualPlaceholder}" />
+                        </Border>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Style="{StaticResource SoftButton}" HeightRequest="44" MinimumHeightRequest="44" Padding="12,0"
+                                    Text="{l:Localize lblToolboxLaunch}" Clicked="OnLaunchManualClicked" />
+                            <Button Grid.Column="1" x:Name="ExecuteManualBtn" Style="{StaticResource PlainButton}" HeightRequest="44" MinimumHeightRequest="44" Padding="12,0"
+                                    Text="{l:Localize lblToolboxExecute}" Clicked="OnExecuteManualClicked" />
+                        </Grid>
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxExecuteHint}" />
+                    </VerticalStackLayout>
+                </controls:ExpanderSection>
+
+                <!-- ============ Hidden system apps ============ -->
+                <!-- The TV's own menus, addressed by ID because the key combination that used to open them
+                     has stopped answering. They launch through the debug agent when it is attached (#34);
+                     without it the SDB attempt still runs so the TV's own refusal is what the user reads (#641). -->
+                <controls:ExpanderSection x:Name="SystemAppsCard" Title="{l:Localize lblToolboxSystemApps}" Summary="{l:Localize lblToolboxSystemAppsRow}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxSystemAppsHint}" />
+                        <VerticalStackLayout x:Name="SystemAppList" Spacing="0">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <VerticalStackLayout Spacing="0">
+                                        <BoxView Style="{StaticResource Hairline}" />
+                                        <Grid Style="{StaticResource Row}" ColumnDefinitions="*,Auto">
+                                            <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                                                <Label Style="{StaticResource RowTitle}" Text="{Binding Name}" />
+                                                <Label Style="{StaticResource RowSub}" Text="{Binding Description}" />
+                                                <Label FontSize="12" TextColor="{DynamicResource MutedColor}" Text="{Binding AppId}" FontFamily="monospace" />
+                                                <Label FontSize="12" TextColor="{DynamicResource WarnColor}" LineBreakMode="WordWrap"
+                                                       Text="{l:Localize lblToolboxSystemAppCaution}" IsVisible="{Binding IsCaution}" />
+                                            </VerticalStackLayout>
+                                            <Button Grid.Column="1" Style="{StaticResource RowButton}" Text="{l:Localize lblToolboxLaunch}"
+                                                    CommandParameter="{Binding}" Clicked="OnLaunchSystemAppClicked" />
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
                     </VerticalStackLayout>
                 </controls:ExpanderSection>
@@ -245,7 +262,7 @@
                 <!-- ============ TV-Store ============ -->
                 <!-- The catalog on the TV itself (#844): TV-Store installs through the set's own sdbd and
                      signs with the certificate this head hands it once, here. Needs Developer Mode. -->
-                <controls:ExpanderSection x:Name="TvStoreCard" Title="{l:Localize lblToolboxTvStore}">
+                <controls:ExpanderSection x:Name="TvStoreCard" Title="{l:Localize lblToolboxTvStore}" Summary="{l:Localize lblToolboxTvStoreRow}">
                     <VerticalStackLayout Spacing="8">
                         <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxTvStoreHint}" />
                         <Label x:Name="TvStoreNeedsSdbHint" Style="{StaticResource Hint}" IsVisible="False"
@@ -273,7 +290,7 @@
                 <!-- A package of the user's own, without installing it from here (#979): signed with the
                      certificate that covers this TV and shared, or sent to TV-Store's upload page on the
                      TV (no Developer Mode needed on this side; TV-Store asks on the screen). -->
-                <controls:ExpanderSection x:Name="PackageCard" Title="{l:Localize lblToolboxPackage}">
+                <controls:ExpanderSection x:Name="PackageCard" Title="{l:Localize lblToolboxPackage}" Summary="{l:Localize lblToolboxPackageRow}">
                     <VerticalStackLayout Spacing="8">
                         <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxPackageHint}" />
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
@@ -291,11 +308,16 @@
                      "0 rmfile" verb is accepted but deletes nothing on retail firmware. The agent runs as that
                      folder's owner, so it lists and clears the folder itself. Clear takes package files only;
                      any other file goes by its own ✕ (#681). Needs the agent attached. -->
-                <controls:ExpanderSection x:Name="StagingCard" Title="{l:Localize lblToolboxStaging}">
+                <controls:ExpanderSection x:Name="StagingCard" Title="{l:Localize lblToolboxStaging}" Summary="{l:Localize lblToolboxStagingRow}">
                     <VerticalStackLayout Spacing="8">
                         <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxStagingHint}" />
-                        <Label x:Name="StagingNeedsAgentHint" Style="{StaticResource Hint}"
-                               Text="{l:Localize lblToolboxStagingNeedsAgent}" />
+                        <!-- Not attached: say so, with the attach right here -->
+                        <VerticalStackLayout x:Name="StagingNeedsAgent" Spacing="8">
+                            <Label Style="{StaticResource Hint}" TextColor="{DynamicResource WarnColor}"
+                                   Text="{l:Localize lblToolboxStagingNeedsAgent}" />
+                            <Button x:Name="StagingAttachBtn" Style="{StaticResource SoftButton}" HeightRequest="44" MinimumHeightRequest="44"
+                                    Text="{l:Localize lblToolboxAgentChipAttach}" Clicked="OnAttachAgentClicked" />
+                        </VerticalStackLayout>
 
                         <VerticalStackLayout x:Name="StagingSection" Spacing="8" IsVisible="False">
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
@@ -329,7 +351,7 @@
                 </controls:ExpanderSection>
 
                 <!-- ============ Service menu ============ -->
-                <controls:ExpanderSection Title="{l:Localize lblToolboxSequences}">
+                <controls:ExpanderSection x:Name="SequencesCard" Title="{l:Localize lblToolboxSequences}" Summary="{l:Localize lblToolboxSequencesRow}">
                     <VerticalStackLayout Spacing="8">
                         <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxSequencesHint}" />
 
@@ -370,7 +392,7 @@
                 <!-- Printed rather than offered: a sleeping set serves no channel, so a button for one of
                      these could never fire. They are also the sequences most likely to rescue a locked
                      set, which is why they are here at all (#639). -->
-                <controls:ExpanderSection Title="{l:Localize lblToolboxStandbySequences}">
+                <controls:ExpanderSection x:Name="StandbyCard" Title="{l:Localize lblToolboxStandbySequences}" Summary="{l:Localize lblToolboxStandbyRow}">
                     <VerticalStackLayout Spacing="8">
                         <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxStandbyNote}" />
 

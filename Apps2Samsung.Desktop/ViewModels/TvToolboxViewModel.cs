@@ -168,6 +168,34 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private bool isConsumer;
 
+        /// <summary>
+        /// The one tool card that is open (#1041); null, all closed, is how the window opens, so
+        /// every tool is in view as a row instead of the app list filling the screen.
+        /// </summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsAppsOpen), nameof(IsSystemAppsOpen), nameof(IsTvStoreOpen),
+            nameof(IsPackageOpen), nameof(IsStagingOpen), nameof(IsSequencesOpen), nameof(IsStandbyOpen))]
+        private string? openSection;
+
+        public bool IsAppsOpen => OpenSection == "Apps";
+        public bool IsSystemAppsOpen => OpenSection == "SystemApps";
+        public bool IsTvStoreOpen => OpenSection == "TvStore";
+        public bool IsPackageOpen => OpenSection == "Package";
+        public bool IsStagingOpen => OpenSection == "Staging";
+        public bool IsSequencesOpen => OpenSection == "Sequences";
+        public bool IsStandbyOpen => OpenSection == "Standby";
+
+        /// <summary>Opens a tool card, closing the one that was open; the open one's header closes it.</summary>
+        [RelayCommand]
+        private void ToggleSection(string? name) => OpenSection = OpenSection == name ? null : name;
+
+        /// <summary>
+        /// Open an app shows the agent's list (everything really installed) instead of the known
+        /// apps. Only reachable while the agent is attached; attaching switches to it.
+        /// </summary>
+        [ObservableProperty]
+        private bool showAgentApps;
+
         public event Action? OnRequestClose;
 
         public TvToolboxViewModel(
@@ -869,6 +897,7 @@ namespace Apps2Samsung.ViewModels
                 ApplyAgentFilter();
 
                 IsAgentAttached = true;
+                ShowAgentApps = true;
                 AgentStatus = string.Format("lblToolboxAgentAttached".Localized(),
                     agent.AgentVersion, _agentApps.Count, _agentApps.Count(a => !a.Show), platform.Tizen ?? "?");
 
@@ -904,6 +933,7 @@ namespace Apps2Samsung.ViewModels
             var agent = _agent;
             _agent = null;
             IsAgentAttached = false;
+            ShowAgentApps = false;
             _agentApps = Array.Empty<DebugAgentApp>();
             AgentApps.Clear();
             StagedFiles.Clear();

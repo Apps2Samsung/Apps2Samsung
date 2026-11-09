@@ -10,12 +10,23 @@ namespace Apps2Samsung.Mobile.Controls;
 public sealed class ExpanderSection : ContentView
 {
 	private readonly Label _title;
+	private readonly Label _summary;
 	private readonly Label _chevron;
 	private readonly ContentView _host;
 
 	public static readonly BindableProperty TitleProperty = BindableProperty.Create(
 		nameof(Title), typeof(string), typeof(ExpanderSection), string.Empty,
 		propertyChanged: (b, _, n) => ((ExpanderSection)b)._title.Text = (string)n);
+
+	// One muted line under the title (#1041), so a closed section still says what it is for.
+	public static readonly BindableProperty SummaryProperty = BindableProperty.Create(
+		nameof(Summary), typeof(string), typeof(ExpanderSection), string.Empty,
+		propertyChanged: (b, _, n) =>
+		{
+			var section = (ExpanderSection)b;
+			section._summary.Text = (string)n;
+			section._summary.IsVisible = !string.IsNullOrEmpty((string)n);
+		});
 
 	public static readonly BindableProperty IsExpandedProperty = BindableProperty.Create(
 		nameof(IsExpanded), typeof(bool), typeof(ExpanderSection), false,
@@ -26,12 +37,20 @@ public sealed class ExpanderSection : ContentView
 		propertyChanged: (b, _, n) => ((ExpanderSection)b)._host.Content = (View?)n);
 
 	public string Title { get => (string)GetValue(TitleProperty); set => SetValue(TitleProperty, value); }
+	public string Summary { get => (string)GetValue(SummaryProperty); set => SetValue(SummaryProperty, value); }
 	public bool IsExpanded { get => (bool)GetValue(IsExpandedProperty); set => SetValue(IsExpandedProperty, value); }
 	public View? SectionContent { get => (View?)GetValue(SectionContentProperty); set => SetValue(SectionContentProperty, value); }
 
 	public ExpanderSection()
 	{
 		_title = new Label { FontAttributes = FontAttributes.Bold, FontSize = 14, VerticalOptions = LayoutOptions.Center };
+		_summary = new Label
+		{
+			FontSize = 13,
+			IsVisible = false,
+			LineBreakMode = LineBreakMode.TailTruncation,
+		};
+		_summary.SetDynamicResource(Label.TextColorProperty, "MutedColor");
 		_chevron = new Label { Text = "⌄", FontSize = 18, Opacity = 0.55, VerticalOptions = LayoutOptions.Center };
 		_host = new ContentView { IsVisible = false, Margin = new Thickness(0, 10, 0, 0) };
 
@@ -44,7 +63,7 @@ public sealed class ExpanderSection : ContentView
 			},
 			Padding = new Thickness(0, 4),
 		};
-		header.Add(_title, 0, 0);
+		header.Add(new VerticalStackLayout { Spacing = 1, VerticalOptions = LayoutOptions.Center, Children = { _title, _summary } }, 0, 0);
 		header.Add(_chevron, 1, 0);
 
 		var tap = new TapGestureRecognizer();

@@ -86,7 +86,8 @@ public partial class TvToolboxPage : ContentPage
 		_customize = customize;
 		SignPackageBtn.IsEnabled = sdb is not null && pickPackage is not null && signingProfile is not null;
 		SendToTvStoreBtn.IsEnabled = pickPackage is not null;
-		AgentCard.IsEnabled = sdb is not null;
+		AgentChip.IsEnabled = sdb is not null;
+		StagingAttachBtn.IsEnabled = sdb is not null;
 		AgentNeedsSdbHint.IsVisible = sdb is null;
 		ArmTvStoreBtn.IsEnabled = sdb is not null;
 		TvStoreNeedsSdbHint.IsVisible = sdb is null;
@@ -111,6 +112,18 @@ public partial class TvToolboxPage : ContentPage
 		BindableLayout.SetItemsSource(
 			StandbyStepList,
 			SamsungRemoteSequences.StandbyStepKeys.Select(L10n.Get).ToList());
+
+		// One tool open at a time (#1041): opening a card closes the one that was open.
+		var cards = new[] { AppsCard, SystemAppsCard, TvStoreCard, PackageCard, StagingCard, SequencesCard, StandbyCard };
+		foreach (var card in cards)
+			card.PropertyChanged += (_, e) =>
+			{
+				if (e.PropertyName != nameof(Apps2Samsung.Mobile.Controls.ExpanderSection.IsExpanded) || !card.IsExpanded)
+					return;
+				foreach (var other in cards)
+					if (!ReferenceEquals(other, card))
+						other.IsExpanded = false;
+			};
 	}
 
 	protected override async void OnAppearing()
@@ -457,6 +470,56 @@ public partial class TvToolboxPage : ContentPage
 	/// Installs the agent if the TV doesn't list it, starts it in debug mode, attaches, and reads the
 	/// platform and the app list. Every step reports into the agent's own status line.
 	/// </summary>
+	/// <summary>
+	/// The agent's chip (#1041): attaches when there is no agent; once attached it offers what the
+	/// agent itself does, Evaluate and Detach.
+	/// </summary>
+	private async void OnAgentChipClicked(object? sender, EventArgs e)
+	{
+		if (_agent is null)
+		{
+			OnAttachAgentClicked(sender, e);
+			return;
+		}
+
+		var evaluate = L10n.Get("lblToolboxAgentEvaluate");
+		var detach = L10n.Get("lblToolboxAgentDetach");
+		var chosen = await DisplayActionSheet(AgentStatusLabel.Text, L10n.Get("lblCancel"), null, evaluate, detach);
+		if (chosen == evaluate)
+			await EvaluateAgentAsync();
+		else if (chosen == detach)
+			OnDetachAgentClicked(sender, e);
+	}
+
+	// The chip says whether the agent is there; attached it takes the accent, like the TV card's chips.
+	private void ShowAgentChip(bool attached)
+	{
+		AgentChip.Text = L10n.Get(attached ? "lblToolboxAgentChipAttached" : "lblToolboxAgentChipAttach") + (attached ? "  ▾" : string.Empty);
+		if (attached)
+		{
+			AgentChip.SetDynamicResource(Button.BackgroundColorProperty, "AccentSoftColor");
+			AgentChip.SetDynamicResource(Button.TextColorProperty, "AccentColor");
+		}
+		else
+		{
+			AgentChip.SetDynamicResource(Button.BackgroundColorProperty, "FillColor");
+			AgentChip.SetDynamicResource(Button.TextColorProperty, "InkColor");
+		}
+	}
+
+	// Open an app shows either the known apps or, with the agent attached, the TV's own list.
+	private void ShowAppList(bool agentList)
+	{
+		AppListSwitch.IsVisible = _agent is not null;
+		agentList &= _agent is not null;
+		KnownAppsSection.IsVisible = !agentList;
+		AgentSection.IsVisible = agentList;
+		KnownAppsSegment.BackgroundColor = agentList ? Colors.Transparent : Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("Surface");
+		AgentAppsSegment.BackgroundColor = agentList ? Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("Surface") : Colors.Transparent;
+	}
+
+	private void OnAppListSwitchClicked(object? sender, EventArgs e) => ShowAppList(ReferenceEquals(sender, AgentAppsSegment));
+
 	private async void OnAttachAgentClicked(object? sender, EventArgs e)
 	{
 		if (_sdb is null)
@@ -469,7 +532,8 @@ public partial class TvToolboxPage : ContentPage
 			return;
 
 		_busy = true;
-		AttachAgentBtn.IsEnabled = false;
+		AgentChip.IsEnabled = false;
+		StagingAttachBtn.IsEnabled = false;
 		try
 		{
 			await DetachAgentAsync();
@@ -486,13 +550,13 @@ public partial class TvToolboxPage : ContentPage
 			_agentApps = await agent.ListAppsAsync();
 			ApplyAgentFilter();
 
-			AgentSection.IsVisible = true;
-			DetachAgentBtn.IsEnabled = true;
+			ShowAgentChip(attached: true);
+			ShowAppList(agentList: true);
 			SetAgentStatus(string.Format(L10n.Get("lblToolboxAgentAttached"),
 				agent.AgentVersion, _agentApps.Count, _agentApps.Count(a => !a.Show), platform.Tizen ?? "?"));
 
 			// Read-only, and the one look at the folder that tells whether a clear is worth a tap.
-			StagingNeedsAgentHint.IsVisible = false;
+			StagingNeedsAgent.IsVisible = false;
 			StagingSection.IsVisible = true;
 			await RefreshStagingAsync(agent);
 		}
@@ -510,7 +574,8 @@ public partial class TvToolboxPage : ContentPage
 		finally
 		{
 			_busy = false;
-			AttachAgentBtn.IsEnabled = true;
+			AgentChip.IsEnabled = true;
+			StagingAttachBtn.IsEnabled = true;
 		}
 	}
 
@@ -847,11 +912,11 @@ public partial class TvToolboxPage : ContentPage
 		_agent = null;
 		_agentApps = Array.Empty<DebugAgentApp>();
 		BindableLayout.SetItemsSource(AgentAppList, Array.Empty<ToolboxAgentAppRow>());
-		AgentSection.IsVisible = false;
-		DetachAgentBtn.IsEnabled = false;
+		ShowAgentChip(attached: false);
+		ShowAppList(agentList: false);
 		BindableLayout.SetItemsSource(StagedFileList, Array.Empty<ToolboxStagedFileRow>());
 		StagingSection.IsVisible = false;
-		StagingNeedsAgentHint.IsVisible = true;
+		StagingNeedsAgent.IsVisible = true;
 		ClearStagingBtn.IsEnabled = false;
 		StagingStatusLabel.Text = string.Empty;
 
@@ -974,30 +1039,43 @@ public partial class TvToolboxPage : ContentPage
 	private static string ShortOperation(string operation) =>
 		operation.Replace("http://", string.Empty).Replace("/appcontrol/operation/", "/");
 
-	/// <summary>Runs the typed expression inside the agent and shows what came back, verbatim.</summary>
-	private async void OnEvaluateAgentClicked(object? sender, EventArgs e)
+	// The last expression, offered again: these get tweaked and rerun.
+	private string _lastExpression = string.Empty;
+
+	/// <summary>Asks for an expression, runs it inside the agent and shows what came back, verbatim.</summary>
+	private async Task EvaluateAgentAsync()
 	{
 		var agent = _agent;
-		var expression = AgentExpression.Text?.Trim();
 		if (agent is null)
 		{
-			AgentExpressionResult.Text = L10n.Get("lblToolboxAgentNotAttached");
+			SetAgentStatus(L10n.Get("lblToolboxAgentNotAttached"));
 			return;
 		}
+
+		var expression = (await DisplayPromptAsync(L10n.Get("lblToolboxAgentEvaluate"), L10n.Get("lblToolboxAgentEvaluateHint"),
+			L10n.Get("lblToolboxAgentEvaluate"), L10n.Get("lblCancel"),
+			L10n.Get("lblToolboxAgentEvaluatePlaceholder"), initialValue: _lastExpression))?.Trim();
 		if (string.IsNullOrEmpty(expression))
 			return;
+		_lastExpression = expression;
 
+		string result;
 		try
 		{
-			AgentExpressionResult.Text = await agent.EvaluateAsync(expression);
+			result = await agent.EvaluateAsync(expression);
 		}
 		catch (Exception ex)
 		{
-			AgentExpressionResult.Text = ex.Message;
+			result = ex.Message;
 		}
+		await DisplayAlert(expression, result, L10n.Get("lblOk"));
 	}
 
-	private void SetAgentStatus(string message) => AgentStatusLabel.Text = message;
+	private void SetAgentStatus(string message)
+	{
+		AgentStatusLabel.Text = message;
+		AgentStatusLabel.IsVisible = !string.IsNullOrEmpty(message);
+	}
 
 	/// <summary>
 	/// Walks one documented combination through the channel, reporting each press as it goes. What
