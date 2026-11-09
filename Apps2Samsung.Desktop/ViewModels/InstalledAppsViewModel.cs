@@ -113,12 +113,17 @@ namespace Apps2Samsung.ViewModels
         /// <summary>The window hosts the console (it needs an owner window); the view model just asks for it.</summary>
         public event Action<DebugConsoleViewModel>? OnRequestDebugConsole;
 
+        // The catalog's own icons (#1000), for the apps that came from the catalog.
+        private readonly Apps2Samsung.Catalog.CatalogIcons? _icons;
+
         public InstalledAppsViewModel(ITizenInstallerService installer, IDialogService dialogService, string tvIp, string tvLabel,
             Func<System.Collections.Generic.IReadOnlyList<GitHubRelease>>? catalog = null,
             Func<GitHubRelease, Asset, Task>? update = null,
             Func<Task>? refreshCatalog = null,
-            Func<System.Collections.Generic.IReadOnlyList<CommunityCatalogRemoved>>? removed = null)
+            Func<System.Collections.Generic.IReadOnlyList<CommunityCatalogRemoved>>? removed = null,
+            Apps2Samsung.Catalog.CatalogIcons? icons = null)
         {
+            _icons = icons;
             _installer = installer;
             _dialogService = dialogService;
             _tvIp = tvIp;
@@ -218,11 +223,29 @@ namespace Apps2Samsung.ViewModels
                         Moved.Add(new MovedRow(hint, string.Format("hintMoved".Localized(), string.Join(", ", hint.AppNames), hint.Domain)));
                 });
                 
-                // Start loading bitmaps in the background
+                // Start loading bitmaps in the background. An app that came from the catalog takes the
+                // catalog's icon (#1000): the store-icon list only knows store apps, so Jellyfin,
+                // TizenTube and the community apps drew their letter.
+                var matches = new System.Collections.Generic.Dictionary<string, Apps2Samsung.Catalog.CatalogMatch>(_matches, StringComparer.OrdinalIgnoreCase);
                 _ = Task.Run(async () =>
                 {
                     foreach (var vm in viewModels)
                     {
+                        if (_icons is not null && matches.TryGetValue(vm.App.TizenId, out var m))
+                        {
+                            try
+                            {
+                                if (await _icons.PathForAsync(m.Release) is { } path && Apps2Samsung.Helpers.CatalogIconBitmaps.For(path) is { } bitmap)
+                                {
+                                    vm.IconBitmap = bitmap;
+                                    continue;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Trace.WriteLine($"[installed] catalog icon for {m.Release.Name}: {ex.Message}");
+                            }
+                        }
                         if (!string.IsNullOrEmpty(vm.App.IconUrl))
                             await vm.LoadIconAsync(_http, _bitmapCache);
                     }
@@ -477,7 +500,11 @@ namespace Apps2Samsung.ViewModels
         public InstalledApp App { get; }
         
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasIconBitmap))]
         private Avalonia.Media.Imaging.Bitmap? iconBitmap;
+
+        /// <summary>An icon is loaded (the catalog's or the store's); until then, or without one, the letter tile.</summary>
+        public bool HasIconBitmap => IconBitmap is not null;
         
         public InstalledAppViewModel(InstalledApp app)
         {
