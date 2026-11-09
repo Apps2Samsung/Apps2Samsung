@@ -10,7 +10,7 @@
     </title>
     <meta
       name="description"
-      content="Free, open-source installer that side-loads any app onto Samsung Smart TVs, projectors and smart monitors: Jellyfin, Moonlight, TizenTube, Chiaki and 110+ community Tizen apps. Manage what's installed, use your device as a TV remote. Windows, macOS, Linux, Android and iPhone (beta), in 30 languages."
+      content="Free, open-source installer that side-loads any app onto Samsung Smart TVs, projectors and smart monitors: Jellyfin, Moonlight, TizenTube, Chiaki and 110+ community Tizen apps. Manage what's installed, use your device as a TV remote. Windows, macOS, Linux, Android and iPhone, in 30 languages."
     />
     <meta
       name="keywords"
@@ -25,7 +25,7 @@
     />
     <meta
       property="og:description"
-      content="Side-load Jellyfin, Moonlight, TizenTube and 110+ community Tizen apps onto your Samsung TV, manage what's installed, and use your device as a remote. Windows, macOS, Linux, Android and iPhone (beta)."
+      content="Side-load Jellyfin, Moonlight, TizenTube and 110+ community Tizen apps onto your Samsung TV, manage what's installed, and use your device as a remote. Windows, macOS, Linux, Android and iPhone."
     />
     <meta property="og:image" content="https://apps2samsung.com/og-image.png" />
     <meta property="og:image:width" content="512" />
@@ -41,7 +41,7 @@
     />
     <meta
       name="twitter:description"
-      content="Side-load Jellyfin, Moonlight, TizenTube and the whole community Tizen catalog onto Samsung TVs from Windows, macOS, Linux, Android or iPhone (beta)."
+      content="Side-load Jellyfin, Moonlight, TizenTube and the whole community Tizen catalog onto Samsung TVs from Windows, macOS, Linux, Android or iPhone."
     />
     <meta
       name="twitter:image"
@@ -61,7 +61,7 @@
         "applicationCategory": "UtilitiesApplication",
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
         "author": { "@type": "Person", "name": "Patrick Stel" },
-        "description": "Cross-platform installer that side-loads any app onto Samsung Smart TVs, projectors and smart monitors: Jellyfin, Moonlight and the whole community Tizen catalog. Manages installed apps and doubles as a TV remote. Runs on desktop, on Android and on iPhone (beta), and from the command line.",
+        "description": "Cross-platform installer that side-loads any app onto Samsung Smart TVs, projectors and smart monitors: Jellyfin, Moonlight and the whole community Tizen catalog. Manages installed apps and doubles as a TV remote. Runs on desktop, on Android and on iPhone, and from the command line.",
         "url": "https://apps2samsung.com/",
         "license": "https://opensource.org/licenses/MIT",
         "downloadUrl": "https://github.com/Apps2Samsung/Apps2Samsung/releases",
@@ -120,7 +120,7 @@
             "name": "Is there an iPhone app?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes, as a beta. It has the same screens as the Android app and installs through SideStore with your own Apple ID; a free one works, and SideStore refreshes it every 7 days. Add https://apps2samsung.com/sidestore/beta/apps.json as a source in SideStore."
+              "text": "Yes. It has the same screens as the Android app and installs through SideStore with your own Apple ID; a free one works, and SideStore refreshes it every 7 days. Add https://apps2samsung.com/sidestore/apps.json as a source in SideStore (https://apps2samsung.com/sidestore/beta/apps.json for the beta channel)."
             }
           },
           {
@@ -1168,7 +1168,7 @@
             ><span class="pill" data-os="macos">macOS</span
             ><span class="pill" data-os="linux">Linux</span
             ><span class="pill" data-os="android">Android</span
-            ><span class="pill" data-os="ios">iPhone beta</span>
+            ><span class="pill" data-os="ios">iPhone</span>
           </div>
           <div class="verline">
             Stable release <b id="latestVersion">on GitHub</b>
@@ -1219,9 +1219,9 @@
               Add to Obtainium</a
             >
           </div>
-          <!-- iPhone: beta only, sideloaded with SideStore -->
+          <!-- iPhone: sideloaded with SideStore -->
           <div class="card">
-            <h4 style="margin: 0 0 6px">iPhone (beta)</h4>
+            <h4 style="margin: 0 0 6px">iPhone</h4>
             <p style="margin: 0 0 12px; color: var(--muted); font-size: 0.9rem">
               Not on the App Store: install
               <a href="https://sidestore.io" target="_blank" rel="noopener"
@@ -1232,11 +1232,11 @@
               asks, or the app can't find your TV.
             </p>
             <p class="copyline" style="margin: 0">
-              <code>https://apps2samsung.com/sidestore/beta/apps.json</code>
+              <code>https://apps2samsung.com/sidestore/apps.json</code>
               <button
                 class="copybtn"
                 type="button"
-                data-copy="https://apps2samsung.com/sidestore/beta/apps.json"
+                data-copy="https://apps2samsung.com/sidestore/apps.json"
               >
                 Copy
               </button>
@@ -1742,7 +1742,7 @@
           </div>
           <div class="phone-links">
             <p style="margin: 0">
-              Android, plus iPhone in beta through SideStore.
+              Android, plus iPhone through SideStore.
             </p>
             <a class="text-link" href="#download">Get the phone app</a>
           </div>
@@ -1902,21 +1902,17 @@
           <details>
             <summary>Is there an iPhone app?</summary>
             <p>
-              Yes, as a beta. It has the same screens as the Android app and
+              Yes. It has the same screens as the Android app and
               installs through
               <a href="https://sidestore.io" target="_blank" rel="noopener"
                 >SideStore</a
               >
               with your own Apple ID; a free one works, and SideStore refreshes
               it every 7 days. Add
-              <code>https://apps2samsung.com/sidestore/beta/apps.json</code> as
-              a source in SideStore. Please report what you find in
-              <a
-                href="https://github.com/Apps2Samsung/Apps2Samsung/issues/753"
-                target="_blank"
-                rel="noopener"
-                >#753</a
-              >.
+              <code>https://apps2samsung.com/sidestore/apps.json</code> as
+              a source in SideStore
+              (<code>https://apps2samsung.com/sidestore/beta/apps.json</code>
+              for the beta channel).
             </p>
           </details>
           <details>
@@ -2220,7 +2216,7 @@
             if (list && list.length) best = list[0];
           }
           if (os === "ios") {
-            setPrimary("#iphone", "Get the iPhone beta");
+            setPrimary("#iphone", "Get the iPhone app");
             els.dl.removeAttribute("target");
           } else if (best) {
             setPrimary(
