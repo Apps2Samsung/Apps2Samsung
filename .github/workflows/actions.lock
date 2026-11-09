@@ -6,8 +6,8 @@ workflows:
     '.github/workflows/beta-prerelease.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
-        - 'actions/setup-java@v6.1.0'
-        - 'softprops/action-gh-release@v3.0.3'
+        - 'actions/setup-java@v6.2.0'
+        - 'softprops/action-gh-release@v3.0.4'
     '.github/workflows/catalog-snapshot.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
@@ -30,13 +30,13 @@ workflows:
         - 'actions/setup-python@v7.1.0'
     '.github/workflows/crowdin-sync.yml':
         - 'actions/checkout@v7.0.1'
-        - 'crowdin/github-action@v3.5.1'
+        - 'crowdin/github-action@v3.6.0'
     '.github/workflows/download-stats.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
     '.github/workflows/fdroid-repo.yml':
         - 'actions/checkout@v7.0.1'
-        - 'actions/setup-java@v6.1.0'
+        - 'actions/setup-java@v6.2.0'
         - 'android-actions/setup-android@v4.0.4'
     '.github/workflows/label-pull-request.yml':
         - 'actions/checkout@v7.0.1'
@@ -46,12 +46,12 @@ workflows:
         - 'actions/setup-dotnet@v6.1.0'
         - 'actions/upload-artifact@v7.0.2'
     '.github/workflows/plumber.yml':
-        - 'actions/checkout@v5.0.1'
+        - 'actions/checkout@v7.0.1'
         - 'getplumber/plumber@v0.7.23'
     '.github/workflows/pr-build.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
-        - 'actions/setup-java@v6.1.0'
+        - 'actions/setup-java@v6.2.0'
     '.github/workflows/require-log-files.yml':
         - 'actions/github-script@v9.0.0'
     '.github/workflows/sidestore-source.yml':
@@ -59,13 +59,13 @@ workflows:
     '.github/workflows/stable-release.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
-        - 'actions/setup-java@v6.1.0'
+        - 'actions/setup-java@v6.2.0'
         - 'ksxgithub/github-actions-deploy-aur@v4.2.0'
-        - 'softprops/action-gh-release@v3.0.3'
+        - 'softprops/action-gh-release@v3.0.4'
     '.github/workflows/test-apk.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
-        - 'actions/setup-java@v6.1.0'
+        - 'actions/setup-java@v6.2.0'
         - 'actions/upload-artifact@v7.0.2'
     '.github/workflows/test-ipa.yml':
         - 'actions/checkout@v7.0.1'
@@ -79,11 +79,6 @@ workflows:
     '.github/workflows/verify-lockfile.yml':
         - 'actions/checkout@v7.0.1'
 dependencies:
-    'actions/checkout@v5.0.1':
-        ref: 'v5.0.1'
-        commit: 'sha1-93cb6efe18208431cddfb8368fd83d5badbf9bfd'
-        owner_id: 44036562
-        repo_id: 197814629
     'actions/checkout@v7.0.1':
         ref: 'v7.0.1'
         commit: 'sha1-3d3c42e5aac5ba805825da76410c181273ba90b1'
@@ -99,9 +94,9 @@ dependencies:
         commit: 'sha1-0f4a354dd5547a28c70b7853dbd95d5b67886e73'
         owner_id: 44036562
         repo_id: 192625306
-    'actions/setup-java@v6.1.0':
-        ref: 'v6.1.0'
-        commit: 'sha1-b843ebf9b913146b38da2eaa7aeddf76074ae1ad'
+    'actions/setup-java@v6.2.0':
+        ref: 'v6.2.0'
+        commit: 'sha1-77dd5b2ce225ea11469928ac317850245a74ae78'
         owner_id: 44036562
         repo_id: 196057608
     'actions/setup-python@v7.1.0':
@@ -129,9 +124,9 @@ dependencies:
         commit: 'sha1-be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd'
         owner_id: 69522701
         repo_id: 286780795
-    'crowdin/github-action@v3.5.1':
-        ref: 'v3.5.1'
-        commit: 'sha1-5b9790df740c85af5412a3a3a91b24988d5d324f'
+    'crowdin/github-action@v3.6.0':
+        ref: 'v3.6.0'
+        commit: 'sha1-d651c77756acbe11a31d77a6fb79d8a239e1e05a'
         owner_id: 861398
         repo_id: 258521306
     'getplumber/plumber@v0.7.23':
@@ -152,8 +147,8 @@ dependencies:
         commit: 'sha1-084b0d9b15415bf9cdb65d44dad1efe37a354050'
         owner_id: 11488886
         repo_id: 261159912
-    'softprops/action-gh-release@v3.0.3':
-        ref: 'v3.0.3'
-        commit: 'sha1-efb35369e0ad2afab669f228072c1b0d510eae64'
+    'softprops/action-gh-release@v3.0.4':
+        ref: 'v3.0.4'
+        commit: 'sha1-8a0cd651e5b2365bd640854a3fa5dfc70e4875f3'
         owner_id: 2242
         repo_id: 204253808

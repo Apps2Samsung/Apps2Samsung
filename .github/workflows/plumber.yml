@@ -23,7 +23,7 @@ jobs:
       # Needed by score-push to publish the score for the README badge.
       id-token: write
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
