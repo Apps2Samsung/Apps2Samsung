@@ -1206,6 +1206,7 @@
   "tvStoreSelfUpdateBody": "Esteu actualitzant TV-Store a través de la connexió del mateix TV-Store. El televisor tallarà aquesta connexió mentre reinicia TV-Store; és normal, i l'actualització es completa igualment.",
   "statusTvStoreRestarting": "El televisor ha tallat la connexió mentre reinicia TV-Store; és normal. S'està esperant que TV-Store torni…",
   "statusWaitingForRelay": "S'està esperant que torni el retransmissor de TV-Store…",
+  "statusWaitingForRelayUp": "S'està esperant el retransmissor de TV-Store…",
   "statusTvStoreRestarted": "TV-Store s'ha reiniciat amb la versió {0}.",
   "statusTvStoreNotBack": "TV-Store no ha tornat després de l'actualització{0}. Obriu TV-Store al televisor: si hi és, activeu \"Connect from Apps2Samsung\" a Settings de TV-Store; si no hi és, torneu-lo a instal·lar.",
   "statusTvStoreNotBackVersion": " (el televisor encara mostra la versió {0})",
