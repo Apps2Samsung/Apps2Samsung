@@ -356,8 +356,8 @@ public partial class InstallerPage : ContentPage
 			Spacing = 1, VerticalOptions = LayoutOptions.Center,
 			Children =
 			{
-				NameLine(release, SelectedTvVersion),
-				new Label { Text = subline, FontSize = 13, TextColor = DesignTheme.ColorOf("Muted"), LineBreakMode = LineBreakMode.TailTruncation },
+				new Label { Text = release.Name, FontAttributes = FontAttributes.Bold, LineBreakMode = LineBreakMode.TailTruncation },
+				TaggedSubline(release, SelectedTvVersion, subline),
 			},
 		};
 		var sourceLine = CatalogSourceLabels.Line(release.Source, L10n.Get);
@@ -422,51 +422,45 @@ public partial class InstallerPage : ContentPage
 		});
 	}
 
-	// The name, with the 18+ badge after it for an adult-only app (#850; such a row is only ever
-	// built once the user opted in under Settings > Installing), the root badge for a package
-	// that gains root on the TV, "self-updating" and a quiet "closed source" (#1016), and "Needs
-	// Tizen X" when the selected TV runs none of the app's builds (TV-Store#47).
-	private static View NameLine(GitHubRelease release, Version? tvVersion)
+	// The grey line under the name, opened by the row's tags (#1041 follow-up, option B; Core
+	// CatalogTags): amber for a warning, grey for information. The tags never shorten; the category
+	// and downloads after them do. The same tags as the desktop.
+	private static View TaggedSubline(GitHubRelease release, Version? tvVersion, string subline)
 	{
-		var name = new Label { Text = release.Name, FontAttributes = FontAttributes.Bold, LineBreakMode = LineBreakMode.TailTruncation };
-		var needsTizen = TizenRequirement.NoneFits(release, tvVersion);
-		if (!release.IsAdult && !release.IsRoot && !release.IsSelfUpdating && !release.IsClosedSource && !needsTizen)
-			return name;
-		var line = new HorizontalStackLayout { Spacing = 6, Children = { name } };
-		if (release.IsAdult)
-			line.Children.Add(Badge("lblAdultBadge", fontSize: 11, padding: new Thickness(5, 0)));
-		if (release.IsRoot)
-			line.Children.Add(Badge("lblRootBadge", fontSize: 11, padding: new Thickness(5, 0)));
-		if (release.IsSelfUpdating)
-			line.Children.Add(Badge("lblSelfUpdatingBadge", fontSize: 11, padding: new Thickness(5, 0)));
-		// the source is not in the linked repository (#1016): informational, quiet colours
-		if (release.IsClosedSource)
-			line.Children.Add(BadgeText(L10n.Get("lblClosedSourceBadge"), fontSize: 11, padding: new Thickness(5, 0), warn: false));
-		if (needsTizen)
-			line.Children.Add(BadgeText(string.Format(L10n.Get("lblNeedsTizenBadge"), TizenRequirement.Lowest(release.Assets)), fontSize: 11, padding: new Thickness(5, 0)));
+		var rest = new Label { Text = subline, FontSize = 13, TextColor = DesignTheme.ColorOf("Muted"), LineBreakMode = LineBreakMode.TailTruncation };
+		var tags = Apps2Samsung.Design.CatalogTags.For(release, tvVersion, L10n.Get);
+		if (tags.Count == 0)
+			return rest;
+		var text = new FormattedString();
+		foreach (var tag in tags)
+		{
+			text.Spans.Add(new Span { Text = tag.Text, FontAttributes = FontAttributes.Bold, TextColor = DesignTheme.ColorOf(tag.IsWarning ? "Warn" : "Muted") });
+			text.Spans.Add(new Span { Text = " · ", TextColor = DesignTheme.ColorOf("Muted") });
+		}
+		var line = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star) } };
+		line.Add(new Label { FormattedText = text, FontSize = 13, LineBreakMode = LineBreakMode.NoWrap }, 0, 0);
+		line.Add(rest, 1, 0);
 		return line;
 	}
 
-	/// <summary>A warning pill after an app's name ("18+" (#850), "root").</summary>
-	internal static Border Badge(string textKey, double fontSize, Thickness padding) => BadgeText(L10n.Get(textKey), fontSize, padding);
+	// The catalog is rebuilt once typing pauses: a rebuild lays out every matching row, and one letter
+	// matches most of the catalog, so rebuilding per keystroke froze the field while typing.
+	private CancellationTokenSource? _searchPause;
+	private static readonly TimeSpan SearchPause = TimeSpan.FromMilliseconds(250);
 
-	/// <summary>The same pill with ready-made text ("Needs Tizen 6.0"), warning colours unless <paramref name="warn"/> is off.</summary>
-	internal static Border BadgeText(string text, double fontSize, Thickness padding, bool warn = true) => new()
-	{
-		StrokeThickness = 1, Stroke = new SolidColorBrush(DesignTheme.ColorOf(warn ? "Warn" : "Hair")),
-		BackgroundColor = DesignTheme.ColorOf(warn ? "WarnSoft" : "Fill"), Padding = padding, VerticalOptions = LayoutOptions.Center,
-		StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 6 },
-		Content = new Label
-		{
-			Text = text, FontSize = fontSize, FontAttributes = FontAttributes.Bold,
-			TextColor = DesignTheme.ColorOf(warn ? "Warn" : "Muted"), VerticalOptions = LayoutOptions.Center,
-		},
-	};
-
-	private void OnSearchChanged(object? sender, TextChangedEventArgs e)
+	private async void OnSearchChanged(object? sender, TextChangedEventArgs e)
 	{
 		_query = (e.NewTextValue ?? string.Empty).Trim();
-		RebuildCatalog();
+		_searchPause?.Cancel();
+		var pause = _searchPause = new CancellationTokenSource();
+		// Clearing the field shows the groups again at once.
+		if (_query.Length > 0)
+		{
+			try { await Task.Delay(SearchPause, pause.Token); }
+			catch (TaskCanceledException) { return; }
+		}
+		if (!pause.IsCancellationRequested)
+			RebuildCatalog();
 	}
 
 	// The app sheet: preview, description, the version or variant to install, Install for the

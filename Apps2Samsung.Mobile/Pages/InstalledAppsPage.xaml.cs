@@ -115,6 +115,38 @@ public partial class InstalledAppsPage : ContentPage
 		});
 	}
 
+	private void ShowRelayNotice(bool show)
+	{
+		RelayNotice.IsVisible = show;
+		RelayNoticeLabel.Text = L10n.Get("lblOnTvRelayClosed");
+		OpenTvStoreBtn.IsEnabled = true;
+	}
+
+	// The relay's own answer: listening, or TV-Store not answering at all (closed).
+	private static async Task<bool> RelayListeningAsync(string tvIp)
+	{
+		try { return await Apps2Samsung.Sdb.SdbEndpoint.WaitForRelayAsync(tvIp, TimeSpan.Zero, untilReachable: true); }
+		catch { return false; }
+	}
+
+	/// <summary>Opens TV-Store on the TV (the TV's own app launch, no SDB), waits for its relay, then loads the list.</summary>
+	private async void OnOpenTvStoreClicked(object? sender, EventArgs e)
+	{
+		OpenTvStoreBtn.IsEnabled = false;
+		var tvIp = _tvIp;
+		var up = await Apps2Samsung.TvStore.TvStoreHandoff.OpenForRelayAsync(tvIp,
+			key => MainThread.BeginInvokeOnMainThread(() => RelayNoticeLabel.Text = L10n.Get(key)));
+		if (tvIp != _tvIp)
+			return;
+		if (!up)
+		{
+			RelayNoticeLabel.Text = L10n.Get("lblOnTvRelayNotUp");
+			OpenTvStoreBtn.IsEnabled = true;
+			return;
+		}
+		await LoadAsync();
+	}
+
 	private async void OnChangeTvClicked(object? sender, EventArgs e) => await TvPicker.ChooseAsync(this, _tv);
 
 	// The ⋯ in the top bar: Refresh, TV information, and the escape hatch for a leftover package.
@@ -265,6 +297,7 @@ public partial class InstalledAppsPage : ContentPage
 		SetBusy(true, L10n.Get("statusReadingInstalledApps"));
 		try
 		{
+			ShowRelayNotice(false);
 			var result = await _sdb.AppsAsync(_tvIp);
 			// An empty list is the TV's answer (a fresh emulator, a reset set); a failed read throws.
 			var apps = TizenInstalledApps.ParseOrThrow(result).ToList();
@@ -324,6 +357,8 @@ public partial class InstalledAppsPage : ContentPage
 			AppsList.ItemsSource = null;
 			EmptyLabel.Text = string.Format(L10n.Get("statusReadAppListFailed"), ex.Message);
 			SetSubtitle(string.Empty, TopBarStatus.None);
+			// Through TV-Store's relay (Host PC IP 127.0.0.1) a closed TV-Store is the usual reason.
+			ShowRelayNotice(Apps2Samsung.Sdb.SdbEndpoint.UsesRelay(_tvIp) && !await RelayListeningAsync(_tvIp));
 		}
 		finally
 		{

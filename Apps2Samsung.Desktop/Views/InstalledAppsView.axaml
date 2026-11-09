@@ -15,6 +15,17 @@
         <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" Height="3" Margin="0,0,0,8"
                      IsVisible="{Binding IsProgressVisible}"/>
 
+        <!-- Host PC IP 127.0.0.1 and TV-Store closed: the list comes through TV-Store's relay, so say so
+             and open TV-Store on the TV from here (#1041 follow-up) -->
+        <Border DockPanel.Dock="Top" IsVisible="{Binding ShowRelayNotice}" Background="{DynamicResource WarnSoftBrush}"
+                BorderBrush="{DynamicResource WarnBrush}" BorderThickness="1" CornerRadius="12" Padding="14,12" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <TextBlock Text="{Binding RelayNotice}" FontSize="13" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}"/>
+                <Button Grid.Column="1" Classes="primary" VerticalAlignment="Center" Content="{l:Localize lblOpenTvStore}"
+                        Command="{Binding OpenTvStoreCommand}" IsEnabled="{Binding !IsOpeningTvStore}"/>
+            </Grid>
+        </Border>
+
         <!-- apps on this TV that moved to their author's repository (#1018): add it, with the key the official catalog names -->
         <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
             <ItemsControl ItemsSource="{Binding Moved}">

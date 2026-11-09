@@ -68,7 +68,7 @@ public partial class TvCardView : ContentView
 		var pill = DesignTheme.ColorOf(state?.RelayDown == true ? "LedWarn" : "GlassChip");
 		RoutePill.Stroke = new SolidColorBrush(pill);
 		RouteLabel.TextColor = DesignTheme.ColorOf(state?.RelayDown == true ? "LedWarn" : "GlassMuted");
-		SubRow.IsVisible = SubLabel.IsVisible || RoutePill.IsVisible;
+		SubRow.IsVisible = SubLabel.IsVisible;
 		MessageLabel.Text = state?.Message ?? string.Empty;
 		StateRow.IsVisible = !string.IsNullOrEmpty(MessageLabel.Text);
 		NoteLabel.Text = state?.Note ?? string.Empty;

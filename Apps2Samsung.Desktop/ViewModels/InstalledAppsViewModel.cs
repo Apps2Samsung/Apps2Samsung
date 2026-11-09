@@ -116,6 +116,47 @@ namespace Apps2Samsung.ViewModels
         // The catalog's own icons (#1000), for the apps that came from the catalog.
         private readonly Apps2Samsung.Catalog.CatalogIcons? _icons;
 
+        /// <summary>Host PC IP 127.0.0.1 and TV-Store closed: the list comes through its relay (#1041 follow-up).</summary>
+        [ObservableProperty]
+        private bool showRelayNotice;
+
+        [ObservableProperty]
+        private string relayNotice = string.Empty;
+
+        [ObservableProperty]
+        private bool isOpeningTvStore;
+
+        // The relay's own answer: listening, or TV-Store not answering at all (closed).
+        private static async Task<bool> RelayListeningAsync(string tvIp)
+        {
+            try { return await Apps2Samsung.Sdb.SdbEndpoint.WaitForRelayAsync(tvIp, TimeSpan.Zero, untilReachable: true); }
+            catch { return false; }
+        }
+
+        /// <summary>Opens TV-Store on the TV (the TV's own app launch, no SDB), waits for its relay, then loads the list.</summary>
+        [RelayCommand]
+        private async Task OpenTvStore()
+        {
+            if (IsOpeningTvStore)
+                return;
+            IsOpeningTvStore = true;
+            try
+            {
+                var up = await Apps2Samsung.TvStore.TvStoreHandoff.OpenForRelayAsync(_tvIp,
+                    key => Dispatcher.UIThread.Post(() => RelayNotice = key.Localized()));
+                if (!up)
+                {
+                    RelayNotice = "lblOnTvRelayNotUp".Localized();
+                    return;
+                }
+                await Load();
+            }
+            finally
+            {
+                IsOpeningTvStore = false;
+            }
+        }
+
         public InstalledAppsViewModel(ITizenInstallerService installer, IDialogService dialogService, string tvIp, string tvLabel,
             Func<System.Collections.Generic.IReadOnlyList<GitHubRelease>>? catalog = null,
             Func<GitHubRelease, Asset, Task>? update = null,
@@ -174,6 +215,7 @@ namespace Apps2Samsung.ViewModels
         {
             IsBusy = true;
             StatusText = "statusReadingInstalledApps".Localized();
+            ShowRelayNotice = false;
             try
             {
                 var iconMap = await Apps2Samsung.Catalog.AppIconResolver.GetIconMapAsync();
@@ -262,6 +304,12 @@ namespace Apps2Samsung.ViewModels
             catch (Exception ex)
             {
                 StatusText = string.Format("statusReadAppListFailed".Localized(), ex.Message);
+                // Through TV-Store's relay (Host PC IP 127.0.0.1) a closed TV-Store is the usual reason.
+                if (Apps2Samsung.Sdb.SdbEndpoint.UsesRelay(_tvIp) && !await RelayListeningAsync(_tvIp))
+                {
+                    RelayNotice = "lblOnTvRelayClosed".Localized();
+                    ShowRelayNotice = true;
+                }
             }
             finally
             {
