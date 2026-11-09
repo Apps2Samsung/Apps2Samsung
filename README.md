@@ -9,7 +9,7 @@ Install any app on your Samsung TV.
   <img src="https://img.shields.io/github/v/release/Apps2Samsung/Apps2Samsung?label=stable&style=for-the-badge" />
   <img src="https://img.shields.io/github/v/release/Apps2Samsung/Apps2Samsung?include_prereleases&label=beta&style=for-the-badge" />
   <img src="https://img.shields.io/badge/Tizen-TVs%20%7C%20projectors%20%7C%20monitors-blue?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/OS-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS%20(beta)-brightgreen?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/OS-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-brightgreen?style=for-the-badge" />
   <a href="https://discord.gg/7mga3zh8Cv"><img src="https://img.shields.io/badge/Discord-Community-7289DA?style=for-the-badge&logo=discord&logoColor=white" /></a>
   <a href="https://score.getplumber.io/github.com/Apps2Samsung/Apps2Samsung"><img src="https://score.getplumber.io/github.com/Apps2Samsung/Apps2Samsung.svg?style=for-the-badge" alt="Plumber Score" /></a>
 </p>
