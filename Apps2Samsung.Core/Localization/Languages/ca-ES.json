@@ -494,9 +494,7 @@
   "lblToolboxFilter": "Cerca aplicacions...",
   "lblToolboxOnTv": "en aquest televisor",
   "lblToolboxSystemApps": "Aplicacions de sistema ocultes",
-  "lblToolboxSystemAppsHint": "Els menús propis del televisor, oberts per identificador perquè la combinació de tecles que els obria ha deixat de respondre. No són aplicacions de Smart Hub, de manera que tant el canal de xarxa com la connexió de desenvolupador les rebutgen: s'inicien des de l'agent de depuració de sota, que ho demana directament a la plataforma. Connecteu primer l'agent. No tots els models els tenen tots.",
   "lblToolboxSystemAppCaution": "Compte: aquest pot canviar o restablir la configuració del televisor.",
-  "lblToolboxLaunchNotSmartHub": "{0} no és una aplicació de Smart Hub en aquest televisor, així que ni el canal de xarxa ni la connexió de desenvolupador la poden obrir. El televisor ha dit: {1}. Feu servir l'agent de depuració de sota.",
   "lblToolboxLaunchRefused": "El televisor s'ha negat a obrir {0}: {1}",
   "lblToolboxAgent": "Agent de depuració",
   "lblToolboxAgentHint": "Una aplicació petita d'Apps2Samsung instal·lada al televisor (cal el mode de desenvolupador). Un cop connectat, llista totes les aplicacions realment instal·lades, incloses les ocultes, i les inicia de la mateixa manera que ho fa el televisor mateix, amb la resposta de la plataforma com a veredicte. És l'única via per arribar als menús d'hotel i de fàbrica.",
@@ -1226,5 +1224,17 @@
   "lblToolboxPackageSignFailed": "La signatura ha fallat: {0}",
   "lblToolboxPackageNoDuid": "No s'ha pogut llegir el DUID del televisor a través de la connexió de desenvolupador, i a la configuració no hi ha cap DUID manual. Afegiu el DUID del televisor a la configuració, o arregleu la connexió de desenvolupador, i torneu-ho a provar.",
   "lblSignedPackage": "Paquet signat",
-  "lblRemovedOn": "a {0}"
+  "lblRemovedBadge": "Retirada",
+  "lblRemovedReasonUnlicensedContent": "Retirada: inclou transmissions o enllaços a contingut per al qual no té llicència.",
+  "lblRemovedReasonUnlicensedService": "Retirada: és un client d'un servei que no té llicència per al seu contingut.",
+  "lblRemovedReasonUnlicensedGameData": "Retirada: inclou dades de joc que potser no pot redistribuir.",
+  "lblRemovedReasonTakedown": "Retirada després d'un avís de drets d'autor (DMCA).",
+  "lblRemovedReasonSuperseded": "Retirada: l'ha substituït una altra aplicació del catàleg.",
+  "lblRemovedReasonUpstreamGone": "Retirada: el desenvolupador ha retirat el projecte.",
+  "lblRemovedReasonUnknown": "Retirada del catàleg.",
+  "lblRemovedFooter": "La còpia que teniu instal·lada continua funcionant, però no rebrà actualitzacions d'Apps2Samsung.",
+  "lblRemovedRowTap": "Retirada del catàleg · toqueu per veure'n el motiu",
+  "lblRemovedRowClick": "Retirada del catàleg · feu clic per veure'n el motiu",
+  "lblRemovedOn": "a {0}",
+  "lblRemovedSearchFooter": "No es poden instal·lar. Si ja en teniu una còpia al televisor, continua funcionant, però sense actualitzacions."
 }
