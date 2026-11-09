@@ -72,12 +72,46 @@ public sealed class TvSelection
 	/// desktop head): scanning, no TV, or the TV with its readiness.</summary>
 	public TvCardState CardState()
 	{
-		var localIp = NetworkInfo.GetLocalIPv4();
 		if (IsScanning)
 			return TvCardStates.Scanning(L10n.Get);
 		if (Selected is not { } tv)
-			return TvCardStates.NoTv(L10n.Get, localIp);
-		return TvCardStates.ForDevice(tv.Device ?? new NetworkDevice { IpAddress = tv.Ip }, localIp, L10n.Get);
+			return NoTvState();
+		// The phone's IP as this TV sees it: on a hotspot TV that is the hotspot address, not the
+		// cellular one the socket trick returns (#920).
+		var localIp = NetworkInfo.LocalIpFor(tv.Ip);
+		var state = TvCardStates.ForDevice(tv.Device ?? new NetworkDevice { IpAddress = tv.Ip }, LocalIps(), localIp, L10n.Get);
+		// Settings > Advanced > Skip Developer Mode checks (#1026): the reminder line, no Fix chip.
+		return TvCardStates.WithDevModeChecksSkipped(state, MobileSettings.SkipDevModeChecks, L10n.Get);
+	}
+
+	/// <summary>Every address this phone answers on: what a TV's Host PC IP is compared against (the guide's Diagnose).</summary>
+	public IReadOnlyCollection<string> LocalIps()
+	{
+		try
+		{
+			return _network.GetRelevantLocalIPs().Select(ip => ip.ToString()).ToList();
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[tv] Couldn't enumerate local IPs: {ex.Message}");
+			return Array.Empty<string>();
+		}
+	}
+
+	// Nothing found. When the phone's only LAN is the hotspot it hosts, say so: the TV has to join
+	// that hotspot, and the address shown is the one for its Host PC IP field.
+	private TvCardState NoTvState()
+	{
+		if (LocalNetworks.HotspotOnly() is { } hotspot)
+		{
+			var ip = hotspot.Address.ToString();
+			return TvCardStates.NoTv(L10n.Get, ip) with
+			{
+				Subline = string.Format(L10n.Get("tvCardNoTvHintHotspot"), ip),
+			};
+		}
+
+		return TvCardStates.NoTv(L10n.Get, NetworkInfo.GetLocalIPv4());
 	}
 
 	/// <summary>Makes the TV at <paramref name="index"/> the one in use (−1 = none).</summary>
@@ -119,6 +153,7 @@ public sealed class TvSelection
 				devices = await TizenDeveloperInfo.ScanAsync(_network);
 			}
 			LocalNetworkBlocked = devices.Count == 0 && _network.LastScanBlockedByOs && OperatingSystem.IsIOS();
+			TraceScanDiagnostics(devices);
 			var keepIp = Ip;
 
 			_tvs.Clear();
@@ -186,15 +221,40 @@ public sealed class TvSelection
 	/// </summary>
 	public string SelectedStatus()
 	{
-		var localIp = NetworkInfo.GetLocalIPv4();
+		// The card's own verdict (the guide's Diagnose): amber with the reason, so a Host PC IP that
+		// points elsewhere is said here too, not only once the TV is tapped.
+		if (Selected is not null && CardState() is { Led: TvLed.Warn } card)
+			return card.Message;
 
-		if (Device is { DebugPortOpen: false } device)
-			return TizenDeviceReadiness.Describe(TizenDeviceReadiness.WhyNotReady(device, localIp), localIp, L10n.Get);
-
-		var notReady = _tvs.Count(t => t.Device is { DebugPortOpen: false });
+		var localIps = LocalIps();
+		var notReady = _tvs.Count(t => t.Device is { } d && DevModeGuide.Diagnose(d, localIps) != DevModeProblem.None);
 		return notReady > 0
 			? string.Format(L10n.Get("statusTvsFoundNotReady"), _tvs.Count, notReady)
 			: L10n.Get("Ready");
+	}
+
+	/// <summary>Re-reads the selected TV (the card's Check again / I restarted it) and tells every tab.</summary>
+	public async Task RecheckSelectedAsync()
+	{
+		await RefreshSelectedAsync();
+		Status = SelectedStatus();
+		Raise();
+	}
+
+	// One line per scan with everything the readiness verdict was computed from, the same line the
+	// desktop writes (#922): what to look at in the debug log when a TV is shown as not ready.
+	private void TraceScanDiagnostics(IReadOnlyList<NetworkDevice> devices)
+	{
+		try
+		{
+			var localIps = _network.GetRelevantLocalIPs().Select(ip => ip.ToString()).ToList();
+			System.Diagnostics.Trace.WriteLine(ScanDiagnostics.Describe(
+				NetworkInfo.GetLocalIPv4(), _network.GetLocalIPAddress(), localIps, devices));
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[Scan] diagnostics failed: {ex.Message}");
+		}
 	}
 
 	// Reads a TV's Developer-Mode state over its REST API; null when it doesn't answer.

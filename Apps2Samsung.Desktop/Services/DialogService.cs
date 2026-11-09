@@ -302,7 +302,7 @@ namespace Apps2Samsung.Services
         }
 
         // The defaults have to be compile-time constants, so they are empty here and filled in
-        // from the catalog below — otherwise an unlocalized "Yes"/"No" would ship.
+        // from the catalog below, otherwise an unlocalized "Yes"/"No" would ship.
         public async Task<bool> ShowConfirmationAsync(string title, string message, string? yesText = null, string? noText = null, Window? owner = null)
         {
             yesText ??= "keyYes".Localized();
@@ -336,17 +336,40 @@ namespace Apps2Samsung.Services
                 return await new CertificateWaitWindow(validFromLocal, Localize).ShowDialog<bool>(window);
             });
 
-        public Task<CertificateSheet?> OpenCertificateSheetAsync(string tvName, CertificatePrivilegeLevel level) =>
+        public Task<CertificateSheet?> OpenCertificateSheetAsync(string tvName, CertificatePrivilegeLevel level, string? tvDuid = null) =>
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var window = GetMainWindow();
                 if (window == null)
                     return (CertificateSheet?)null;
-                var sheet = new CertificateWindow(tvName, level, Localize);
+                var sheet = new CertificateWindow(tvName, level, Localize, this, tvDuid);
                 // Not awaited: the sheet stays up while the certificate is made and closes itself.
                 _ = sheet.ShowDialog(window);
                 return new CertificateSheet(sheet);
             }).GetTask();
+
+        public Task<CertificateSheet?> OpenTizenCertificateSheetAsync(string? tvName, TizenDistributorLevel level) =>
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var window = GetMainWindow();
+                if (window == null)
+                    return (CertificateSheet?)null;
+                var sheet = new CertificateWindow(tvName, level, Localize, this);
+                _ = sheet.ShowDialog(window);
+                return new CertificateSheet(sheet);
+            }).GetTask();
+
+        public Task<bool> ShowTizenCertificateRefusedAsync(string tvName, TizenDistributorLevel level, string profileName, string? reason, DateTime? validUntil) =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var window = GetMainWindow();
+                if (window == null)
+                    return false;
+                var sheet = new CertificateWindow(tvName, level, Localize, this);
+                sheet.ShowRefused(profileName, reason, validUntil);
+                await sheet.ShowDialog(window);
+                return sheet.SamsungInstead;
+            });
 
         public Task ShowAccountEmailMissingAsync() =>
             Dispatcher.UIThread.InvokeAsync(async () =>
@@ -363,6 +386,30 @@ namespace Apps2Samsung.Services
                 if (window != null)
                     await new ContributeAppWindow(Localize).ShowDialog(window);
             });
+
+        public Task<Apps2Samsung.Catalog.UserSource?> ShowAddUserSourceAsync(System.Collections.Generic.IReadOnlyList<Apps2Samsung.Catalog.UserSource> existing) =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var window = GetMainWindow();
+                if (window == null)
+                    return null;
+                return await new UserSourceWindow(Localize, existing, ProbeRepository).ShowDialog<Apps2Samsung.Catalog.UserSource?>(window);
+            });
+
+        public Task<Apps2Samsung.Catalog.UserSource?> ShowReviewRepositoryKeyAsync(Apps2Samsung.Catalog.UserSource source) =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var window = GetMainWindow();
+                if (window == null)
+                    return null;
+                return await new UserSourceWindow(Localize, System.Array.Empty<Apps2Samsung.Catalog.UserSource>(), ProbeRepository, source)
+                    .ShowDialog<Apps2Samsung.Catalog.UserSource?>(window);
+            });
+
+        // Reads a signed repository and its key for the approval step (#1018).
+        private static System.Threading.Tasks.Task<Apps2Samsung.Catalog.Repositories.RepositoryProbe> ProbeRepository(string url) =>
+            Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions
+                .GetRequiredService<Apps2Samsung.Catalog.Repositories.SignedRepositories>(App.Services).ProbeAsync(url);
 
         public Task<bool> ShowDevModeGuideAsync(
             NetworkDevice device,
@@ -433,7 +480,7 @@ namespace Apps2Samsung.Services
                 tcs: tcs,
                 yesText: linkText,
                 noText: closeText ?? "btn_Close".Localized(),
-                // The link label is a sentence, not a "Yes" — let the button grow to fit it.
+                // The link label is a sentence, not a "Yes", let the button grow to fit it.
                 onButtonsCreated: (yes, no) =>
                 {
                     yes.Width = double.NaN;

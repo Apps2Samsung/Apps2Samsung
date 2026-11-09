@@ -11,6 +11,21 @@ public static class CertCommand
         var ip = s.Options.Tv ?? s.Options.Arguments.FirstOrDefault();
         var level = Certificates.Level(s);
 
+        if (s.Options.ExportPath is { } exportPath)
+            return Export(s, exportPath);
+        if (s.Options.ImportPath is { } importPath)
+            return await ImportAsync(s, importPath, ip, ct);
+
+        if (s.Options.Prepare && Certificates.UseTizen(s))
+        {
+            // A Tizen certificate (#988): made from the SDK files, no TV and no sign-in involved.
+            var tizenLevel = Certificates.TizenLevel(s);
+            var (_, tizen) = await Certificates.EnsureTizenAsync(s, tizenLevel);
+            return s.Out.Result(
+                new { ok = true, tizen = true, level = tizenLevel.ToString(), chain = tizen.Chain.ToString(), profile = Certificates.DescribeTizen(tizenLevel, tizen.Chain) },
+                new[] { $"{tizen.ProfileName} is ready (no TV named in it: installs with --tizen-cert use it on any TV that accepts a Tizen certificate)." });
+        }
+
         if (s.Options.Prepare)
         {
             var manual = s.Options.ManualDuids.Split(new[] { ',', ';', ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -33,6 +48,8 @@ public static class CertCommand
         }
 
         var profiles = new[] { Certificates.Describe(CertificatePrivilegeLevel.Public), Certificates.Describe(CertificatePrivilegeLevel.Partner) };
+        // The Tizen profiles (#988) only when they exist: most machines have none.
+        var tizenProfiles = Certificates.TizenProfiles().Select(p => Certificates.DescribeTizen(p.Level, p.Chain)).Where(p => p.Exists).ToList();
         var text = new List<string> { $"Certificate store: {CliPaths.CertificateStore}" };
         foreach (var p in profiles)
         {
@@ -46,6 +63,11 @@ public static class CertCommand
             foreach (var d in p.Duids)
                 text.Add($"    {d}{(tvDuid is not null && string.Equals(d, tvDuid, StringComparison.OrdinalIgnoreCase) ? $"  <- {ip}" : "")}");
         }
+        foreach (var p in tizenProfiles)
+        {
+            var window = p.ValidFrom is null ? "unreadable" : $"valid {p.ValidFrom} to {p.ValidUntil}{(p.Usable ? "" : " (expired or unreadable)")}";
+            text.Add($"{p.Level}: {window}, no TV named in it (Tizen certificate, --tizen-cert)");
+        }
         if (tvDuid is not null)
         {
             var coveredBy = profiles.Where(p => p.Usable && p.Duids.Contains(tvDuid, StringComparer.OrdinalIgnoreCase)).Select(p => p.Level).ToList();
@@ -53,6 +75,103 @@ public static class CertCommand
                 ? $"{ip} (DUID {tvDuid}) is covered by: {string.Join(", ", coveredBy)}. Installs need no sign-in."
                 : $"{ip} (DUID {tvDuid}) is not covered yet. The first install signs in to Samsung, or run: cert --tv {ip} --prepare");
         }
-        return s.Out.Result(new { ok = true, store = CliPaths.CertificateStore, tv = ip, tvDuid, profiles }, text);
+        return s.Out.Result(new { ok = true, store = CliPaths.CertificateStore, tv = ip, tvDuid, profiles, tizenProfiles }, text,
+            rich: Views.Certificates(profiles, tvDuid, ip, CliPaths.CertificateStore, s.Out.Unicode));
     }
+
+    // cert --export <file> [--partner]: the signing certificate on its own, for another head or
+    // machine (#921). Every usable level, or the Partner one with --partner.
+    private static int Export(CliServices s, string path)
+    {
+        try
+        {
+            var level = s.Options.Partner ? CertificatePrivilegeLevel.Partner : (CertificatePrivilegeLevel?)null;
+            IReadOnlyList<CertificateArchiveProfile> exported;
+            using (var stream = File.Create(path))
+                exported = CertificateArchive.Export(stream, CliPaths.CertificateStore, level);
+
+            return s.Out.Result(
+                new { ok = true, file = Path.GetFullPath(path), profiles = exported.Select(Json) },
+                exported.Select(Line).Prepend($"Exported to {Path.GetFullPath(path)}:"));
+        }
+        catch (CertificateArchiveException ex)
+        {
+            return s.Out.Fail(ex.Message);
+        }
+    }
+
+    // cert --import <file> [--tv <ip>] [--yes]: preview first (what it holds, what it replaces, and
+    // with --tv whether that TV is covered); replacing a certificate already here needs --yes.
+    private static async Task<int> ImportAsync(CliServices s, string path, string? ip, CancellationToken ct)
+    {
+        if (!File.Exists(path))
+            return s.Out.Fail($"{path} does not exist", Output.Usage);
+
+        string? tvDuid = null;
+        if (!string.IsNullOrWhiteSpace(ip))
+        {
+            s.Out.Progress($"Reading the DUID of {ip}…");
+            try { tvDuid = await TizenDuidReader.ReadAsync(s.Sdb, ip, progress: s.Out.Progress); }
+            catch (Exception ex) { s.Out.Warn($"could not read the TV's DUID: {ex.Message}"); }
+        }
+
+        CertificateArchivePreview preview;
+        using (var stream = File.OpenRead(path))
+            preview = CertificateArchive.Preview(stream, CliPaths.CertificateStore);
+
+        if (preview.IsEmpty)
+            return s.Out.Fail(s.Strings.GetString("certArchiveNoProfiles"));
+        var text = CertificateArchive.Summarize(preview, tvDuid, s.Strings.GetString).Split('\n').ToList();
+
+        if (preview.Rejected.Any())
+            return s.Out.Fail(text[0], Output.Failed, new { profiles = preview.Profiles.Select(Json) });
+
+        if (preview.Replaces.Count > 0 && !s.Options.Yes)
+        {
+            text.Add("Nothing was imported: add --yes to replace the certificate on this machine.");
+            return s.Out.Result(new { ok = false, imported = false, profiles = preview.Profiles.Select(Json), replaces = preview.Replaces.Select(Json) }, text, Output.Stopped);
+        }
+
+        try
+        {
+            CertificateArchiveImportResult result;
+            using (var stream = File.OpenRead(path))
+                result = CertificateArchive.Import(stream, CliPaths.CertificateStore);
+
+            try
+            {
+                s.Desktop.CertificatePreference = CertificateArchive.PreferenceAfterImport(s.Desktop.CertificatePreference, CliPaths.CertificateStore);
+            }
+            catch (InvalidOperationException ex)
+            {
+                s.Out.Warn(ex.Message);
+            }
+
+            text.Add($"Imported {result.FileCount} file(s) into {CliPaths.CertificateStore}.");
+            if (tvDuid is not null)
+                text.Add(preview.Covers(tvDuid)
+                    ? $"{ip} is covered: installs need no sign-in."
+                    : $"{ip} is not covered yet: the first install signs in to Samsung to extend it, or run: cert --tv {ip} --prepare");
+            return s.Out.Result(new { ok = true, imported = true, files = result.FileCount, tv = ip, tvDuid, covered = tvDuid is not null && preview.Covers(tvDuid), profiles = result.Imported.Select(Json) }, text);
+        }
+        catch (CertificateArchiveException ex)
+        {
+            return s.Out.Fail(ex.Message);
+        }
+    }
+
+    private static string Line(CertificateArchiveProfile p) =>
+        $"  {p.Level?.ToString() ?? p.ProfileName}: {p.AccountEmail ?? p.AuthorSubject ?? "?"}, valid {p.NotBeforeUtc:yyyy-MM-dd} to {p.NotAfterUtc:yyyy-MM-dd}, covers {p.Duids.Count} TV(s)";
+
+    private static object Json(CertificateArchiveProfile p) => new
+    {
+        level = p.Level?.ToString(),
+        profile = p.ProfileName,
+        account = p.AccountEmail,
+        subject = p.AuthorSubject,
+        state = p.State.ToString(),
+        validFrom = p.NotBeforeUtc?.ToString("yyyy-MM-dd"),
+        validUntil = p.NotAfterUtc?.ToString("yyyy-MM-dd"),
+        duids = p.Duids,
+    };
 }

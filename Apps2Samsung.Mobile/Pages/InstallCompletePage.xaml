@@ -19,6 +19,10 @@
                 <Label x:Name="MessageLabel" FontSize="16" FontAttributes="Bold"
                        HorizontalTextAlignment="Center" HorizontalOptions="Center" />
 
+                <!-- Installed under another package id than its own (#1028): why, in one line. -->
+                <Label x:Name="NoteLabel" FontSize="14" IsVisible="False"
+                       HorizontalTextAlignment="Center" HorizontalOptions="Center" />
+
                 <Label Text="{l:Localize lbleasyRight}" FontSize="14" Opacity="0.7"
                        HorizontalTextAlignment="Center" HorizontalOptions="Center" />
 

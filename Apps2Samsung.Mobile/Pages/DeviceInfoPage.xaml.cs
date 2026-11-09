@@ -1,3 +1,4 @@
+using Apps2Samsung.Mobile.Localization;
 using System;
 using System.Threading.Tasks;
 using Apps2Samsung.Interfaces;
@@ -8,7 +9,7 @@ namespace Apps2Samsung.Mobile.Pages;
 
 /// <summary>
 /// Shows a TV's details (DUID, Tizen version, developer mode/IP, IP, …) gathered by the shared Core
-/// <see cref="TizenDeviceInfoService"/> — the same data the desktop head shows. The phone's own LAN IP
+/// <see cref="TizenDeviceInfoService"/>, the same data the desktop head shows. The phone's own LAN IP
 /// is listed too, next to the TV's Developer-host IP, so a mismatch is visible at a glance.
 /// </summary>
 public partial class DeviceInfoPage : ContentPage
@@ -40,17 +41,17 @@ public partial class DeviceInfoPage : ContentPage
 
 	private async Task LoadAsync()
 	{
-		SetBusy(true, "Reading TV information…");
+		SetBusy(true, L10n.Get("statusReadingTvInfo"));
 		try
 		{
-			var info = await TizenDeviceInfoService.GatherAsync(_sdb, _tvIp, _debugPortOpen, NetworkInfo.GetLocalIPv4());
-			RowsList.ItemsSource = info.Rows;
+			var info = await TizenDeviceInfoService.GatherAsync(_sdb, _tvIp, _debugPortOpen, NetworkInfo.LocalIpFor(_tvIp));
+			RowsList.ItemsSource = info.RowsFor(L10n.Get);
 			CountLabel.Text = _tvLabel;
 		}
 		catch (Exception ex)
 		{
 			RowsList.ItemsSource = null;
-			EmptyLabel.Text = $"Couldn't read TV information: {ex.Message}";
+			EmptyLabel.Text = string.Format(L10n.Get("statusReadTvInfoFailed"), ex.Message);
 			CountLabel.Text = _tvLabel;
 		}
 		finally

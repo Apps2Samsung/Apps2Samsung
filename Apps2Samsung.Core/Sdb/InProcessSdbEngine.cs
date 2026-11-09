@@ -325,11 +325,14 @@ namespace Apps2Samsung.Sdb
                 catch (Exception ex)
                 {
                     await slot.DropAsync();
-                    return Fail(ex);
+                    return await WithRelayHintAsync(ip, Fail(ex));
                 }
 
                 if (result.ExitCode != 0)
+                {
                     await slot.DropAsync();
+                    result = await WithRelayHintAsync(ip, result);
+                }
 
                 return result;
             }
@@ -337,6 +340,35 @@ namespace Apps2Samsung.Sdb
             {
                 slot.Gate.Release();
             }
+        }
+
+        // The connect to the relay worked (else ConnectWithRetryAsync already said it is down) but the
+        // relay then dropped the link. TV-Store 0.3.15+ says why at GET /relay, which is better than
+        // any guess; an older one (404), no answer, or a failure that is not this one falls back to
+        // the generic hint.
+        internal static async Task<ProcessResult> WithRelayHintAsync(string ip, ProcessResult result)
+        {
+            if (!SdbEndpoint.UsesRelay(ip) || !SdbTransportErrors.IsTransient(result) ||
+                $"{result.Error} {result.Output}".Contains(SdbEndpoint.RelayHintMarker, StringComparison.Ordinal))
+                return result;
+
+            string? reason = null;
+            try
+            {
+                reason = await SdbEndpoint.RelayReasonAsync(ip).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[sdb] {ip}: could not read the relay's reason: {ex.Message}");
+            }
+
+            var hint = reason ?? SdbEndpoint.RelayDroppedHint(ip, SdbEndpoint.RelayPort(ip));
+            return new ProcessResult
+            {
+                ExitCode = result.ExitCode,
+                Output = $"{result.Output} {hint}".Trim(),
+                Error = $"{result.Error} {hint}".Trim(),
+            };
         }
 
         // Success → ExitCode 0 with the body's text.
@@ -353,8 +385,15 @@ namespace Apps2Samsung.Sdb
         /// The capture tees rather than swallows: the host console stays wired up, so
         /// <see cref="Diagnostics.FileLog"/> keeps mirroring the same lines into the session log the
         /// way it did when this output came from the exe. The redirect is process-wide, so one capture
-        /// runs at a time. <paramref name="onLine"/> sees each complete line the moment it is written,
-        /// which is how an install's percentage reaches the UI while the install is still running.
+        /// runs at a time. <paramref name="onLine"/> sees each complete line as it is written, which
+        /// is how an install's percentage reaches the UI while the install is still running.
+        /// <para>
+        /// <paramref name="onLine"/> runs on a task of its own, never inside the console write (#975).
+        /// On Linux and Android .NET takes the <c>Console.Out</c> lock for every write to the
+        /// terminal, stderr included, and the tee runs under that same lock. A handler that waits for
+        /// a lock of its own (the CLI's progress line, which a spinner timer also takes to write to
+        /// stderr) then deadlocked the install mid-percentage: the TV finished, the app froze.
+        /// </para>
         /// </summary>
         private Task<ProcessResult> RunCapturingDeviceLog(
             string ip, string command, Func<SdbTcpDevice, Task> body, Action<string>? onLine = null) =>
@@ -364,7 +403,8 @@ namespace Apps2Samsung.Sdb
                 await ConsoleCaptureGate.WaitAsync().ConfigureAwait(false);
                 var log = new StringWriter();
                 var previous = Console.Out;
-                Console.SetOut(new TeeTextWriter(previous, log, onLine));
+                await using var relay = onLine is null ? null : new LineRelay(onLine);
+                Console.SetOut(new TeeTextWriter(previous, log, relay is null ? null : relay.Post));
                 try
                 {
                     await body(device);
@@ -416,6 +456,11 @@ namespace Apps2Samsung.Sdb
         private static async Task<SdbTcpDevice> ConnectWithRetryAsync(string ip)
         {
             var address = IPAddress.Parse(ip);
+            // 26101, or TV-Store's relay port when the TV's Host PC IP is 127.0.0.1 (TV-Store#52):
+            // sdbd then refuses every direct connection and the relay on the TV is the one way in.
+            var port = await SdbEndpoint.ResolvePortAsync(ip);
+            if (port != SdbEndpoint.DirectPort)
+                Trace.WriteLine($"[sdb] {ip}: Host PC IP is 127.0.0.1, connecting through {SdbEndpoint.Describe(ip, port)}");
             Exception? last = null;
             bool competitorSeen = false;
 
@@ -423,7 +468,7 @@ namespace Apps2Samsung.Sdb
             {
                 competitorSeen |= StopCompetingSdbServer();
 
-                var device = new SdbTcpDevice(address);
+                var device = new SdbTcpDevice(address, port);
                 try
                 {
                     await device.ConnectAsync();
@@ -438,7 +483,12 @@ namespace Apps2Samsung.Sdb
                 }
             }
 
-            var failure = last ?? new InvalidOperationException($"Could not connect to {ip}.");
+            var failure = last ?? new InvalidOperationException($"Could not connect to {SdbEndpoint.Describe(ip, port)}.");
+
+            // The relay port did not answer: the user can act on that (turn the relay on in
+            // TV-Store, or point Host PC IP back at this device), not on a bare socket error.
+            if (port != SdbEndpoint.DirectPort)
+                throw new InvalidOperationException($"{failure.Message} {SdbEndpoint.RelayDownHint(ip, port)}", failure);
 
             // The connect still died after a competing server was stopped: either it came straight
             // back (Tizen Studio relaunches it) or the TV has not let go of the old link yet. Either
@@ -596,6 +646,39 @@ namespace Apps2Samsung.Sdb
                     try { _onLine(line); }
                     catch (Exception ex) { Trace.WriteLine($"[sdb] install log observer failed: {ex.Message}"); }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Hands lines to an observer on a task of its own, in the order they were posted, so the
+        /// writer that posts them (the console tee, under the console's lock) never waits on the
+        /// observer. Disposing drains what is queued before it returns, so every line of an install
+        /// has reached the observer before its result does.
+        /// </summary>
+        internal sealed class LineRelay : IAsyncDisposable
+        {
+            private readonly System.Threading.Channels.Channel<string> _lines =
+                System.Threading.Channels.Channel.CreateUnbounded<string>(new System.Threading.Channels.UnboundedChannelOptions { SingleReader = true });
+            private readonly Task _pump;
+
+            public LineRelay(Action<string> observer)
+            {
+                _pump = Task.Run(async () =>
+                {
+                    await foreach (var line in _lines.Reader.ReadAllAsync().ConfigureAwait(false))
+                    {
+                        try { observer(line); }
+                        catch (Exception ex) { Trace.WriteLine($"[sdb] install log observer failed: {ex.Message}"); }
+                    }
+                });
+            }
+
+            public void Post(string line) => _lines.Writer.TryWrite(line);
+
+            public async ValueTask DisposeAsync()
+            {
+                _lines.Writer.TryComplete();
+                await _pump.ConfigureAwait(false);
             }
         }
 

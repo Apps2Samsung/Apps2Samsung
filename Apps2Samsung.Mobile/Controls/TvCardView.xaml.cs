@@ -14,6 +14,11 @@ public partial class TvCardView : ContentView
 		nameof(State), typeof(TvCardState), typeof(TvCardView), null,
 		propertyChanged: (b, _, _) => ((TvCardView)b).Render());
 
+	/// <summary>The route pill's text ("via TV-Store relay", "relay off"), localized by the page; shown only for a relay TV.</summary>
+	public static readonly BindableProperty RouteTextProperty = BindableProperty.Create(
+		nameof(RouteText), typeof(string), typeof(TvCardView), string.Empty,
+		propertyChanged: (b, _, _) => ((TvCardView)b).Render());
+
 	private string? _shownDeviceName;
 	private int _pulseGeneration;
 
@@ -37,6 +42,12 @@ public partial class TvCardView : ContentView
 		set => SetValue(StateProperty, value);
 	}
 
+	public string RouteText
+	{
+		get => (string)GetValue(RouteTextProperty);
+		set => SetValue(RouteTextProperty, value);
+	}
+
 	/// <summary>The content under the status line, on the screen.</summary>
 	public View? Actions
 	{
@@ -50,8 +61,18 @@ public partial class TvCardView : ContentView
 		NameLabel.Text = state?.Name ?? string.Empty;
 		SubLabel.Text = state?.Subline ?? string.Empty;
 		SubLabel.IsVisible = !string.IsNullOrEmpty(SubLabel.Text);
+		// The route pill: only for a TV reached through TV-Store's relay; amber while it is down.
+		var route = state is { ViaRelay: true } ? RouteText : string.Empty;
+		RouteLabel.Text = route;
+		RoutePill.IsVisible = !string.IsNullOrEmpty(route);
+		var pill = DesignTheme.ColorOf(state?.RelayDown == true ? "LedWarn" : "GlassChip");
+		RoutePill.Stroke = new SolidColorBrush(pill);
+		RouteLabel.TextColor = DesignTheme.ColorOf(state?.RelayDown == true ? "LedWarn" : "GlassMuted");
+		SubRow.IsVisible = SubLabel.IsVisible;
 		MessageLabel.Text = state?.Message ?? string.Empty;
 		StateRow.IsVisible = !string.IsNullOrEmpty(MessageLabel.Text);
+		NoteLabel.Text = state?.Note ?? string.Empty;
+		NoteLabel.IsVisible = state?.HasNote == true;
 
 		var (token, blur) = state?.Led switch
 		{

@@ -19,6 +19,15 @@
 						<Button Grid.Column="1" Classes="plain" Padding="10,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
 						        Content="{l:Localize lblImportBackup}" Command="{Binding ImportBackupCommand}"/>
 					</Grid>
+					<Border Classes="rowline"/>
+					<!-- The signing certificate on its own (#921): no settings inside, for moving to another head. -->
+					<TextBlock Classes="hint" Text="{l:Localize hintCertificateArchive}"/>
+					<Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+						<Button Grid.Column="0" Classes="plain" Padding="10,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+						        Content="{l:Localize lblExportCertificate}" Command="{Binding ExportCertificateCommand}"/>
+						<Button Grid.Column="1" Classes="plain" Padding="10,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+						        Content="{l:Localize lblImportCertificate}" Command="{Binding ImportCertificateCommand}"/>
+					</Grid>
 					<TextBlock Classes="hint" Text="{Binding BackupStatus}"
 					           IsVisible="{Binding BackupStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 				</StackPanel>
@@ -45,6 +54,19 @@
 							<fa:SymbolIcon Symbol="Folder" Width="18" Height="18" Foreground="{DynamicResource AccentBrush}"/>
 							<TextBlock Grid.Column="1" Text="{Binding LblOpenLogsFolder}" FontSize="14" VerticalAlignment="Center"
 							           Foreground="{DynamicResource InkBrush}"/>
+						</Grid>
+					</Button>
+					<Border Classes="rowline"/>
+					<!-- TV-Store's own log from the selected TV (GET :8077/log.txt), saved next to the debug logs and opened. -->
+					<Button Classes="row" Command="{Binding GetTvStoreLogCommand}">
+						<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+							<fa:SymbolIcon Symbol="Download" Width="18" Height="18" VerticalAlignment="Center" Foreground="{DynamicResource AccentBrush}"/>
+							<StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+								<TextBlock Text="{l:Localize lblGetTvStoreLog}" FontSize="14" Foreground="{DynamicResource InkBrush}"/>
+								<TextBlock Classes="hint" Text="{l:Localize hintGetTvStoreLog}"/>
+								<TextBlock Classes="hint" Text="{Binding TvStoreLogStatus}" TextWrapping="Wrap"
+								           IsVisible="{Binding TvStoreLogStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+							</StackPanel>
 						</Grid>
 					</Button>
 				</StackPanel>

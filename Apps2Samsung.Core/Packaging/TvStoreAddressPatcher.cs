@@ -54,7 +54,12 @@ namespace Apps2Samsung.Packaging
             return InstallResult.SuccessResult();
         }
 
-        /// <summary>True for a TV-Store build: its config.xml declares the TV-Store package id.</summary>
+        /// <summary>
+        /// True for a TV-Store build: its config.xml declares the TV-Store package id, or, once an
+        /// install under a new package id (#839) has rewritten that, still TV-Store's widget id (its
+        /// repository URL) or its name. The rename runs before the patchers are picked, and a renamed
+        /// TV-Store left on loopback never reaches its service on Tizen 10.
+        /// </summary>
         public static bool IsTvStorePackage(string packagePath)
         {
             try
@@ -65,7 +70,10 @@ namespace Apps2Samsung.Packaging
                     return false;
 
                 using var reader = new StreamReader(entry.Open(), Encoding.UTF8);
-                return reader.ReadToEnd().Contains($"package=\"{TvStorePackage.PackageId}\"", StringComparison.Ordinal);
+                var config = reader.ReadToEnd();
+                return config.Contains($"package=\"{TvStorePackage.PackageId}\"", StringComparison.Ordinal)
+                    || config.Contains($"id=\"{TvStorePackage.RepositoryUrl}\"", StringComparison.OrdinalIgnoreCase)
+                    || config.Contains($"<name>{TvStorePackage.Title}</name>", StringComparison.OrdinalIgnoreCase);
             }
             catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException)
             {

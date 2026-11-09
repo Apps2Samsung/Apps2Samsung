@@ -7,7 +7,8 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
 
-    <!-- Settings > Advanced: the GitHub token (rate limits) and extra TV device IDs for the certificate. -->
+    <!-- Settings > Advanced: the GitHub token (rate limits), extra TV device IDs for the certificate, and
+         the testing switch that skips the Developer Mode checks (#1026). -->
     <Grid RowDefinitions="Auto,*">
         <controls:TopBarView x:Name="TopBar" Grid.Row="0" BackText="{l:Localize lblSettingsTab}" />
 
@@ -46,6 +47,17 @@
                         <Label Style="{StaticResource RowHint}"
                                Text="{l:Localize hintManualDuids}" />
                     </VerticalStackLayout>
+                </Border>
+                <!-- for testing (#1026): install to a TV that reports Developer Mode off -->
+                <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                    <Grid Style="{StaticResource SettingRow}">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                            <Label Text="{l:Localize lblSkipDevModeChecks}" FontSize="16" />
+                            <Label Style="{StaticResource RowHint}" Text="{l:Localize hintSkipDevModeChecks}" />
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1" x:Name="SkipDevModeSwitch" OnColor="{DynamicResource AccentColor}"
+                                VerticalOptions="Center" Toggled="OnSkipDevModeToggled" />
+                    </Grid>
                 </Border>
             </VerticalStackLayout>
         </ScrollView>

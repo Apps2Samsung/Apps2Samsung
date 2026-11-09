@@ -28,7 +28,9 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Find manifest files on this branch
         id: files
@@ -108,7 +110,7 @@ jobs:
           git checkout -B "$BRANCH"
           git add -A
           git commit -m "fix: repair malformed third-party-apps.json (auto)"
-          git push -f origin "$BRANCH"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}" "$BRANCH"
 
           gh pr create --base "$GITHUB_REF_NAME" --head "$BRANCH" \
             --title "Repair malformed third-party-apps.json (${GITHUB_REF_NAME})" \

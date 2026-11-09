@@ -61,3 +61,5 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+# Signed test vectors: the signature covers the exact bytes.
+Apps2Samsung.Core.Tests/Catalog/Repositories/Fixtures/** -text

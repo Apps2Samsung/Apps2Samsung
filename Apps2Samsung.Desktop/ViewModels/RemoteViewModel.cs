@@ -1,9 +1,13 @@
 using Apps2Samsung.Extensions;
+using Avalonia.Threading;
+using Apps2Samsung.Helpers;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Remote;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,6 +41,237 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private string textToSend = string.Empty;
 
+        /// <summary>
+        /// Type by walking the app's own on-screen keyboard with the d-pad instead of sending
+        /// <c>SendInputString</c>. Off by default because it is slower and it needs the app's keyboard
+        /// on screen, but it is the only way into apps that draw their own — YouTube and everything
+        /// built on it, TizenTube included — whose grids take nothing from the TV's IME. The layout
+        /// is YouTube's alphabetical grid, so other apps would need one of their own; see
+        /// <see cref="SamsungRemoteKeyboard"/> for why.
+        /// </summary>
+        [ObservableProperty]
+        private bool typeOnAppKeyboard;
+
+        /// <summary>
+        /// The app whose keyboard is being typed into. A grid walk is only right for the app its profile
+        /// was measured on, so the choice is explicit and remembered, never inferred from "it is
+        /// probably YouTube".
+        /// </summary>
+        [ObservableProperty]
+        private string keyboardProfileAppId = AppSettings.Default.KeyboardProfileAppId;
+
+        /// <summary>The selected app's profile as editable JSON — built-in until the user saves their own.</summary>
+        [ObservableProperty]
+        private string keyboardProfileJson = string.Empty;
+
+        /// <summary>How live typing reaches the TV: pressed on the app's own keyboard, or sent as text.</summary>
+        public enum LiveKeyboardMode { Off, Dpad, Direct }
+
+        [ObservableProperty]
+        private LiveKeyboardMode liveMode = LiveKeyboardMode.Off;
+
+        /// <summary>True while the laptop keyboard is being forwarded to the TV in d-pad mode.</summary>
+        public bool IsLiveDpad
+        {
+            get => LiveMode == LiveKeyboardMode.Dpad;
+            set => LiveMode = value ? LiveKeyboardMode.Dpad : LiveKeyboardMode.Off;
+        }
+
+        /// <summary>True while the laptop keyboard is being forwarded to the TV as text.</summary>
+        public bool IsLiveDirect
+        {
+            get => LiveMode == LiveKeyboardMode.Direct;
+            set => LiveMode = value ? LiveKeyboardMode.Direct : LiveKeyboardMode.Off;
+        }
+
+        /// <summary>
+        /// What the TV's field is believed to hold. Direct mode has no way to read the field back, so the
+        /// string we sent is the state — `SendInputString` replaces the whole field each time.
+        /// </summary>
+        private string _liveBuffer = string.Empty;
+
+        /// <summary>Serialises live keystrokes so a fast typist cannot interleave two key runs.</summary>
+        private LiveTypingQueue? _liveQueue;
+
+        /// <summary>
+        /// The profile live typing should use, resolved once when the mode or the app changes. Resolving it
+        /// per keystroke read <see cref="AppSettings.Default"/>'s dictionary from the pump thread while the
+        /// UI thread can be writing it, and re-parsed the profile JSON every character.
+        /// </summary>
+        private volatile SamsungRemoteKeyboardProfile? _liveProfile;
+
+        /// <summary>
+        /// The direct-mode buffer, touched by the UI thread when the mode changes and by the pump thread
+        /// while sending.
+        /// </summary>
+        private readonly object _liveBufferGate = new();
+
+        partial void OnLiveModeChanged(LiveKeyboardMode value)
+        {
+            lock (_liveBufferGate)
+                _liveBuffer = string.Empty;
+
+            _liveProfile = value == LiveKeyboardMode.Off
+                ? null
+                : SamsungRemoteKeyboardProfiles.Resolve(KeyboardProfileAppId, AppSettings.Default.KeyboardProfiles);
+            OnPropertyChanged(nameof(IsLiveDpad));
+            OnPropertyChanged(nameof(IsLiveDirect));
+
+            if (value == LiveKeyboardMode.Off)
+            {
+                StatusText = "lblRemoteLiveOff".Localized();
+                return;
+            }
+
+            Tone = StatusTone.Ok;
+            StatusText = value == LiveKeyboardMode.Dpad
+                ? "lblRemoteLiveOnDpad".Localized()
+                : "lblRemoteLiveOnDirect".Localized();
+        }
+
+        /// <summary>
+        /// One keystroke from the laptop keyboard, while live typing is on. D-pad mode **homes before every
+        /// character**: with human-speed gaps the app moves focus to its suggestion row after a letter, so a
+        /// plan that reuses the cursor lands the next ENTER on a suggestion (typing `hi` gave `helloi` on
+        /// the set). Homing costs a few presses and makes each character independent of what the app did in
+        /// between. Direct mode keeps a buffer and re-sends the whole field, because `SendInputString`
+        /// replaces it.
+        /// </summary>
+        internal Task SendLiveKeyAsync(string character)
+        {
+            if (_remote is null || LiveMode == LiveKeyboardMode.Off)
+                return Task.CompletedTask;
+
+            _liveQueue ??= new LiveTypingQueue(SendLiveKeyNowAsync);
+            _liveQueue.Enqueue(character);
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Status updates that may arrive on the queue's pump thread. The toolbar binds these, and every
+        /// other write in this class happens on the UI thread, so the pump posts rather than assigns.
+        /// </summary>
+        /// <summary>How a keystroke or cell name reads in a status message.</summary>
+        private static string Describe(string key) => key switch
+        {
+            "\b" => "Backspace",
+            "\r" => "Enter",
+            " " => "Space",
+            _ => key,
+        };
+
+        private void SetStatus(StatusTone tone, string text)
+        {
+            if (Dispatcher.UIThread.CheckAccess())
+            {
+                Tone = tone;
+                StatusText = text;
+                return;
+            }
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                Tone = tone;
+                StatusText = text;
+            });
+        }
+
+        /// <summary>The actual send for one keystroke — always called from the queue, never concurrently.</summary>
+        private async Task SendLiveKeyNowAsync(string character, CancellationToken cancellationToken)
+        {
+            var remote = _remote;
+            if (remote is null || LiveMode == LiveKeyboardMode.Off)
+                return;
+
+            if (LiveMode == LiveKeyboardMode.Direct)
+            {
+                string buffer;
+                lock (_liveBufferGate)
+                {
+                    if (character == "\b")
+                        _liveBuffer = _liveBuffer.Length > 0 ? _liveBuffer[..^1] : string.Empty;
+                    else if (character != "\r")
+                        _liveBuffer += character;
+
+                    buffer = _liveBuffer;
+                }
+
+                if (character == "\r")
+                {
+                    await remote.SendKeyAsync(SamsungRemoteKeys.Enter, cancellationToken);
+                    return;
+                }
+                if (await remote.SendTextAsync(buffer, cancellationToken))
+                {
+                    SetStatus(StatusTone.Ok, "lblRemoteKeyboardTyped".Localized());
+                }
+
+                return;
+            }
+
+            // Cached by LoadProfileJson/OnLiveModeChanged, negatives included: resolving here would read the
+            // settings dictionary off the pump thread and re-parse the JSON on every keystroke.
+            var profile = _liveProfile;
+            if (profile is null)
+            {
+                SetStatus(StatusTone.Warn, string.Format(
+                    "lblRemoteKeyboardNoProfile".Localized(),
+                    SamsungRemoteKeyboardProfiles.LabelFor(KeyboardProfileAppId)));
+                return;
+            }
+
+            var keyboard = SamsungRemoteKeyboard.For(profile);
+            SamsungRemoteKeyboardPlan plan;
+
+            if (character == "\b")
+                plan = keyboard.PlanPress(SamsungRemoteKeyboard.DeleteCell);
+            else if (character == "\r")
+                plan = keyboard.PlanPress(SamsungRemoteKeyboard.SubmitCell);
+            else
+                plan = keyboard.PlanFromAnywhere(character);
+
+            if (plan.IsEmpty)
+            {
+                SetStatus(StatusTone.Warn, string.Format("lblRemoteKeyboardUnsupported".Localized(), Describe(character)));
+                return;
+            }
+
+            if (await remote.SendKeysAsync(plan.Keys, gap: null, cancellationToken))
+            {
+                SetStatus(
+                    plan.SkippedCells.Count == 0 ? StatusTone.Ok : StatusTone.Warn,
+                    plan.SkippedCells.Count == 0
+                        ? "lblRemoteKeyboardTyped".Localized()
+                        : string.Format(
+                            "lblRemoteKeyboardSkipped".Localized(),
+                            string.Join(", ", plan.SkippedCells.Select(Describe))));
+            }
+            else
+            {
+                SetStatus(StatusTone.Warn, "lblRemoteKeyFailed".Localized());
+            }
+        }
+
+        /// <summary>Empty the field first (the app appends otherwise).</summary>
+        [ObservableProperty]
+        private bool clearBeforeTyping = AppSettings.Default.KeyboardClearBeforeTyping;
+
+        partial void OnClearBeforeTypingChanged(bool value)
+        {
+            AppSettings.Default.KeyboardClearBeforeTyping = value;
+            AppSettings.Default.Save();
+        }
+
+        /// <summary>Press the app's search cell afterwards — typing alone does not search.</summary>
+        [ObservableProperty]
+        private bool submitAfterTyping = AppSettings.Default.KeyboardSubmitAfterTyping;
+
+        partial void OnSubmitAfterTypingChanged(bool value)
+        {
+            AppSettings.Default.KeyboardSubmitAfterTyping = value;
+            AppSettings.Default.Save();
+        }
+
         /// <summary>The dot beside the status line once nothing is in flight: green with the channel
         /// up, amber when a press or a text didn't get through, red when there is no channel.</summary>
         [ObservableProperty]
@@ -55,6 +290,97 @@ namespace Apps2Samsung.ViewModels
         {
             _tvIp = tvIp;
             TvLabel = tvLabel;
+
+            var settings = AppSettings.Default;
+            if (string.IsNullOrWhiteSpace(settings.KeyboardProfileAppId))
+                settings.KeyboardProfileAppId = SamsungRemoteKeyboardProfiles.DefaultAppId;
+            keyboardProfileAppId = settings.KeyboardProfileAppId;
+            selectedKeyboardProfile = KeyboardProfileChoices
+                .FirstOrDefault(c => string.Equals(c.AppId, keyboardProfileAppId, StringComparison.OrdinalIgnoreCase));
+            LoadProfileJson();
+        }
+
+        /// <summary>What the picker shows: a friendly name plus the app id it maps to.</summary>
+        public sealed record KeyboardProfileChoice(string AppId, string Label)
+        {
+            public override string ToString() => Label;
+        }
+
+        /// <summary>
+        /// Every app the remote can offer a profile for: all built-ins (YouTube and TizenTube), then any
+        /// the user has saved a profile for.
+        /// </summary>
+        public IReadOnlyList<KeyboardProfileChoice> KeyboardProfileChoices
+        {
+            get
+            {
+                var choices = SamsungRemoteKeyboardProfiles.BuiltIn
+                    .Select(p => new KeyboardProfileChoice(p.AppId!, SamsungRemoteKeyboardProfiles.LabelFor(p.AppId!)))
+                    .ToList();
+
+                foreach (var id in AppSettings.Default.KeyboardProfiles.Keys)
+                {
+                    if (!choices.Any(c => string.Equals(c.AppId, id, StringComparison.OrdinalIgnoreCase)))
+                        choices.Add(new KeyboardProfileChoice(id, SamsungRemoteKeyboardProfiles.LabelFor(id)));
+                }
+
+                return choices;
+            }
+        }
+
+        [ObservableProperty]
+        private KeyboardProfileChoice? selectedKeyboardProfile;
+
+        partial void OnSelectedKeyboardProfileChanged(KeyboardProfileChoice? value)
+        {
+            if (value is null)
+                return;
+
+            KeyboardProfileAppId = value.AppId;
+        }
+
+        /// <summary>
+        /// Validates the pasted JSON and stores it against the selected app, so another app's grid can
+        /// be filled in once instead of shipping a layout that only suits YouTube.
+        /// </summary>
+        [RelayCommand]
+        private void SaveKeyboardProfile()
+        {
+            if (!SamsungRemoteKeyboardJson.TryParse(KeyboardProfileJson, out _, out var error))
+            {
+                Tone = StatusTone.Warn;
+                StatusText = string.Format("lblRemoteKeyboardProfileInvalid".Localized(), error);
+                return;
+            }
+
+            var settings = AppSettings.Default;
+            settings.KeyboardProfiles[KeyboardProfileAppId] = KeyboardProfileJson;
+            settings.Save();
+
+            // Refresh the cache: otherwise live typing keeps walking the previous grid until the mode or the
+            // app changes — the "types the wrong letters silently" failure this whole feature avoids.
+            LoadProfileJson();
+            Tone = StatusTone.Ok;
+            StatusText = "lblRemoteKeyboardProfileSaved".Localized();
+        }
+
+        private void LoadProfileJson()
+        {
+            _liveProfile = SamsungRemoteKeyboardProfiles.Resolve(KeyboardProfileAppId, AppSettings.Default.KeyboardProfiles);
+            var settings = AppSettings.Default;
+            KeyboardProfileJson = settings.KeyboardProfiles.TryGetValue(KeyboardProfileAppId, out var saved) && !string.IsNullOrWhiteSpace(saved)
+                ? saved
+                : SamsungRemoteKeyboardProfiles.Resolve(KeyboardProfileAppId) is { } builtIn
+                    ? SamsungRemoteKeyboardJson.ToJson(builtIn)
+                    : string.Empty;
+        }
+
+        partial void OnKeyboardProfileAppIdChanged(string value)
+        {
+            AppSettings.Default.KeyboardProfileAppId = value;
+            AppSettings.Default.Save();
+            LoadProfileJson();
+            OnPropertyChanged(nameof(KeyboardProfileChoices));
         }
 
         [RelayCommand]
@@ -154,8 +480,12 @@ namespace Apps2Samsung.ViewModels
             await PressAsync(_lastWasPlay ? SamsungRemoteKeys.Play : SamsungRemoteKeys.Pause);
         }
 
+        /// <summary>
+        /// Cancellable on purpose: a d-pad run is tens of presses at a fixed pace, so the user has to be
+        /// able to stop it — the command's token is handed all the way down to the key loop.
+        /// </summary>
         [RelayCommand]
-        private async Task SendText()
+        private async Task SendText(CancellationToken cancellationToken)
         {
             var text = TextToSend;
             if (string.IsNullOrEmpty(text))
@@ -168,7 +498,13 @@ namespace Apps2Samsung.ViewModels
                 return;
             }
 
-            if (await remote.SendTextAsync(text))
+            if (TypeOnAppKeyboard)
+            {
+                await TypeOnAppKeyboardAsync(remote, text, cancellationToken);
+                return;
+            }
+
+            if (await remote.SendTextAsync(text, cancellationToken))
             {
                 TextToSend = string.Empty;
                 Tone = StatusTone.Ok;
@@ -178,6 +514,127 @@ namespace Apps2Samsung.ViewModels
             {
                 Tone = StatusTone.Warn;
                 StatusText = "lblRemoteTextFailed".Localized();
+            }
+        }
+
+        /// <summary>
+        /// Types <paramref name="text"/> by pressing the keys the app's own on-screen keyboard
+        /// understands. The plan starts with the profile's measured home presses, so it does not matter
+        /// where the app left the cursor — but the app's keyboard does have to be open and in front,
+        /// which is the caller's job and the honest caveat in the UI.
+        /// </summary>
+        private async Task TypeOnAppKeyboardAsync(SamsungRemoteClient remote, string text, CancellationToken cancellationToken)
+        {
+            var profile = SamsungRemoteKeyboardProfiles.Resolve(
+                KeyboardProfileAppId, AppSettings.Default.KeyboardProfiles);
+            if (profile is null)
+            {
+                // No profile for this app: say so and press nothing. Guessing YouTube's grid here is
+                // exactly how the wrong letters get typed.
+                Tone = StatusTone.Warn;
+                StatusText = string.Format(
+                    "lblRemoteKeyboardNoProfile".Localized(),
+                    SamsungRemoteKeyboardProfiles.LabelFor(KeyboardProfileAppId));
+                return;
+            }
+
+            var plan = SamsungRemoteKeyboard.For(profile)
+                .PlanQuery(text, ClearBeforeTyping, SubmitAfterTyping);
+            if (plan.IsEmpty)
+            {
+                // Nothing typeable: say so without moving the cursor. (An empty plan must not be sent —
+                // it used to fire thirteen park presses and then report that nothing was typed.)
+                Tone = StatusTone.Warn;
+                StatusText = string.Format("lblRemoteKeyboardUnsupported".Localized(), text);
+                return;
+            }
+
+            IsBusy = true;
+            try
+            {
+                if (await remote.SendKeysAsync(plan.Keys, gap: null, cancellationToken))
+                {
+                    Tone = StatusTone.Ok;
+                    // A grid that cannot spell the whole string types what it can; say so rather than
+                    // claiming the lot went in, and keep the box so the rest can be fixed up by hand.
+                    if (plan.Unsupported is null)
+                    {
+                        TextToSend = string.Empty;
+                        StatusText = "lblRemoteKeyboardTyped".Localized();
+                    }
+                    else
+                    {
+                        StatusText = string.Format("lblRemoteKeyboardUnsupported".Localized(), plan.Unsupported);
+                    }
+                }
+                else
+                {
+                    IsConnected = remote.IsConnected;
+                    Tone = StatusTone.Warn;
+                    StatusText = "lblRemoteKeyFailed".Localized();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Tone = StatusTone.Warn;
+                StatusText = "lblRemoteKeyFailed".Localized();
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        /// <summary>
+        /// Presses the app keyboard's CLEAR cell now — the same run the automatic clear uses, exposed so a
+        /// field can be emptied between searches without typing anything.
+        /// </summary>
+        [RelayCommand]
+        private async Task ClearField(CancellationToken cancellationToken)
+        {
+            var remote = _remote;
+            if (remote is null)
+            {
+                StatusText = "lblRemoteNotConnected".Localized();
+                return;
+            }
+
+            var profile = SamsungRemoteKeyboardProfiles.Resolve(
+                KeyboardProfileAppId, AppSettings.Default.KeyboardProfiles);
+            if (profile is null)
+            {
+                Tone = StatusTone.Warn;
+                StatusText = string.Format(
+                    "lblRemoteKeyboardNoProfile".Localized(),
+                    SamsungRemoteKeyboardProfiles.LabelFor(KeyboardProfileAppId));
+                return;
+            }
+
+            var plan = SamsungRemoteKeyboard.For(profile).PlanPress(SamsungRemoteKeyboard.ClearCell);
+            if (plan.IsEmpty)
+            {
+                // No CLEAR cell in this profile: say so instead of reporting a clear that pressed nothing.
+                SetStatus(StatusTone.Warn, string.Format("lblRemoteKeyboardUnsupported".Localized(), "CLEAR"));
+                return;
+            }
+
+            IsBusy = true;
+            try
+            {
+                if (await remote.SendKeysAsync(plan.Keys, gap: null, cancellationToken))
+                {
+                    Tone = StatusTone.Ok;
+                    StatusText = "lblRemoteKeyboardCleared".Localized();
+                }
+                else
+                {
+                    Tone = StatusTone.Warn;
+                    StatusText = "lblRemoteKeyFailed".Localized();
+                }
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 
@@ -203,6 +660,9 @@ namespace Apps2Samsung.ViewModels
 
         public async ValueTask DisposeAsync()
         {
+            if (_liveQueue is not null)
+                await _liveQueue.DisposeAsync();
+
             var remote = _remote;
             _remote = null;
             IsConnected = false;

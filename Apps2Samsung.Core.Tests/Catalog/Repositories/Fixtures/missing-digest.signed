@@ -1,0 +1,81 @@
+TwUnbILFn3aEDoAR7eyLRFreuTdY/Aal0w1PfvijwFR6MddctFJwq7PnbYHeSliJHcLNPVZCHXRYjdSDa6Bop5xY4P5dvd/7qrooIdLxFR5AIKCIOuJvM2qpIvhouhdZitEEiTaOFZsXpEFyHOMhutEJiQcJubzN5Vv2G97Fxk3mHbqleHss977L+vZBGb1zD5hfT5gFrasu1uD5EPGn0pHE2N+9Q796+5QtpUOPPyfF44ysSMDMqASl1gn2B5RlE2t5eTkvET8gsZsgUPSxROEt4yebwnDWoGLFwODPXdgtQ2X9akKRah0l4aVHJhOSj+K26RLH/hNZm6SrDIsgzjfBY0c7HA++LTQqZ5IMTaO4LdA8vcdiH9m8do+mtGRvAp/hUYRLsm1hj/vOhz7VcwZyNr3GMhswGUJQsJzi6oVomYqW/nFUqweSBH887OoP86zcnmhwSazSSb6LT7SA9wR1I0y3Kr5DsnkblnbHcIWu5uGoC7R+zj4iCveiVgee
+{
+  "schemaVersion": 1,
+  "repository": {
+    "id": "org.example.tizen",
+    "name": "Example Tizen Repository",
+    "maintainer": "Example Developer",
+    "description": "Test vector, not a real repository",
+    "homepage": "https://example.org/tizen"
+  },
+  "generatedAt": "2026-11-07T00:00:00Z",
+  "providers": [
+    {
+      "id": "example-player",
+      "category": "media",
+      "url": "https://api.github.com/repos/example/player/releases",
+      "displayName": "Example Player",
+      "take": 1,
+      "source_url": "https://github.com/example/player",
+      "ok": true,
+      "latestTag": "v1.2.0",
+      "releases": [
+        {
+          "url": "https://api.github.com/repos/example/player/releases/1",
+          "name": "Example Player 1.2.0",
+          "tag_name": "v1.2.0",
+          "published_at": "2026-11-06T10:00:00Z",
+          "draft": false,
+          "assets": [
+            {
+              "name": "ExamplePlayer.wgt",
+              "browser_download_url": "https://github.com/example/player/releases/download/v1.2.0/ExamplePlayer.wgt",
+              "size": 1234567,
+              "package_version": "1.2.0",
+              "app_id": "AbCdE12345.ExamplePlayer",
+              "package_id": "AbCdE12345",
+              "required_version": "5.0"
+            },
+            {
+              "name": "ExamplePlayer-legacy.wgt",
+              "browser_download_url": "https://github.com/example/player/releases/download/v1.2.0/ExamplePlayer-legacy.wgt",
+              "size": 1200000,
+              "digest": "sha256:89abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567",
+              "package_version": "1.2.0",
+              "app_id": "AbCdE12345.ExamplePlayer",
+              "package_id": "AbCdE12345",
+              "required_version": "2.4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "example-tool",
+      "category": "tools",
+      "url": "https://api.github.com/repos/example/tool/releases",
+      "displayName": "Example Tool",
+      "flags": [
+        "closed-source"
+      ],
+      "ok": true,
+      "latestTag": "2026.11.01",
+      "releases": [
+        {
+          "tag_name": "2026.11.01",
+          "assets": [
+            {
+              "name": "ExampleTool-tizen6.tpk",
+              "browser_download_url": "https://github.com/example/tool/releases/download/2026.11.01/ExampleTool-tizen6.tpk",
+              "size": 2048,
+              "digest": "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+              "package_version": "2026.11.1",
+              "package_id": "org.example.tool",
+              "required_version": "6.0"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

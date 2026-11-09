@@ -42,9 +42,19 @@
 	<ScrollViewer>
 		<StackPanel Margin="16,8,16,16" Spacing="10">
 			<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
-			<Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-				<TextBlock Text="{Binding Name}" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}" VerticalAlignment="Center"/>
-				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+			<Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+				<!-- the letter tile, or the app's icon from the catalog (#1000), as in the list -->
+				<Panel Width="44" Height="44" VerticalAlignment="Center">
+					<Border CornerRadius="11" Background="{Binding TileBrush}" IsVisible="{Binding !HasIcon}">
+						<TextBlock Text="{Binding Letter}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource OnAccentBrush}"
+						           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+					</Border>
+					<Border CornerRadius="11" ClipToBounds="True" IsVisible="{Binding HasIcon}">
+						<Image Source="{Binding Icon}" Stretch="UniformToFill"/>
+					</Border>
+				</Panel>
+				<TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}" VerticalAlignment="Center"/>
+				<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
 					<!-- adult-only (#850) -->
 					<Border IsVisible="{Binding IsAdult}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
 					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblAdultOnly}">
@@ -55,9 +65,28 @@
 					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblRootPackage}">
 						<TextBlock Text="{l:Localize lblRootBadge}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
 					</Border>
+					<!-- downloads and runs newer versions of itself after install (#1016) -->
+					<Border IsVisible="{Binding IsSelfUpdating}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
+					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblSelfUpdatingPackage}">
+						<TextBlock Text="{l:Localize lblSelfUpdatingBadge}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
+					</Border>
+					<!-- the source is not in the linked repository (#1016): informational, no warning -->
+					<Border IsVisible="{Binding IsClosedSource}" Background="{DynamicResource FillBrush}" BorderBrush="{DynamicResource HairBrush}"
+					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblClosedSourcePackage}">
+						<TextBlock Text="{l:Localize lblClosedSourceBadge}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
+					</Border>
+					<!-- the Tizen the selected build asks for (TV-Store#47): a warning when this TV is too old for it -->
+					<Border IsVisible="{Binding HasTizenBadgeWarn}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
+					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center">
+						<TextBlock Text="{Binding TizenBadgeText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
+					</Border>
+					<Border IsVisible="{Binding HasTizenBadgeMute}" Background="{DynamicResource FillBrush}" BorderBrush="{DynamicResource HairBrush}"
+					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center">
+						<TextBlock Text="{Binding TizenBadgeText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
+					</Border>
 				</StackPanel>
 				<!-- the star: a favorite leads the Install screen's list -->
-				<Button Grid.Column="2" Classes="icon" Content="{Binding FavoriteGlyph}" FontSize="18" ToolTip.Tip="{Binding FavoriteText}"
+				<Button Grid.Column="3" Classes="icon" Content="{Binding FavoriteGlyph}" FontSize="18" ToolTip.Tip="{Binding FavoriteText}"
 				        Command="{Binding ToggleFavoriteCommand}" Width="36" Height="36" CornerRadius="18"/>
 			</Grid>
 
@@ -68,11 +97,30 @@
 			<!-- what the app is, from the catalog (#835); then the category line the list row shows -->
 			<TextBlock Text="{Binding Description}" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}" IsVisible="{Binding HasDescription}"/>
 			<TextBlock Text="{Binding Subline}" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+			<!-- where it comes from (#1018), as the list row shows it -->
+			<StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasSourceLine}" ToolTip.Tip="{Binding Source.Tip}">
+				<Path Width="14" Height="14" Stretch="Uniform" StrokeThickness="2.2" StrokeLineCap="Round" StrokeJoin="Round" VerticalAlignment="Center"
+				      IsVisible="{Binding IsRepositoryLine}" Stroke="{DynamicResource AccentBrush}"
+				      Data="M12,22 C12,22 20,18 20,12 L20,5 L12,2 L4,5 L4,12 C4,18 12,22 12,22 Z M9,12 L11,14 L15,10"/>
+				<Path Width="14" Height="14" Stretch="Uniform" StrokeThickness="2.2" StrokeLineCap="Round" VerticalAlignment="Center"
+				      IsVisible="{Binding IsUnverifiedLine}" Stroke="{DynamicResource WarnBrush}"
+				      Data="M12,3 A9,9 0 1 1 11.99,3 Z M12,8 L12,12 M12,16 L12,16.01"/>
+				<Path Width="14" Height="14" Stretch="Uniform" StrokeThickness="2.2" StrokeLineCap="Round" VerticalAlignment="Center"
+				      IsVisible="{Binding IsBlocked}" Stroke="{DynamicResource MutedBrush}"
+				      Data="M5,11 L19,11 L19,21 L5,21 Z M8,11 L8,7 A4,4 0 0 1 16,7 L16,11"/>
+				<TextBlock Text="{Binding Source.Text}" TextWrapping="Wrap" Classes.repo="{Binding IsRepositoryLine}"
+				           Classes.unverified="{Binding IsUnverifiedLine}" Foreground="{DynamicResource MutedBrush}"/>
+			</StackPanel>
+			<!-- self-updating (#1016): what the catalogue's scan covers -->
+			<TextBlock Text="{l:Localize lblSelfUpdatingDetails}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource WarnBrush}"
+			           IsVisible="{Binding IsSelfUpdating}"/>
 
 			<!-- who makes it and where its source, releases and licence live (#820) -->
 			<StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasSource}">
-				<TextBlock Text="{Binding AuthorText}" FontSize="13" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
-				<TextBlock Text="·" FontSize="13" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
+				<!-- the name is a link: every app by this developer, as a catalog search (#888) -->
+				<HyperlinkButton Content="{Binding AuthorText}" ToolTip.Tip="{Binding AuthorTip}" Click="OnAuthorClick"
+				                 IsVisible="{Binding HasAuthor}" Padding="0" MinHeight="0" FontSize="13" VerticalAlignment="Center"/>
+				<TextBlock Text="·" FontSize="13" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}" IsVisible="{Binding HasAuthor}"/>
 				<HyperlinkButton Content="{Binding SourceCodeText}" NavigateUri="{Binding SourceUri}" ToolTip.Tip="{Binding SourceUri}"
 				                 Padding="0" MinHeight="0" FontSize="13" VerticalAlignment="Center"/>
 			</StackPanel>
@@ -94,6 +142,15 @@
 				<ToggleSwitch Grid.Column="1" IsChecked="{Binding NewPackageId}" MinWidth="0" VerticalAlignment="Center"/>
 			</Grid>
 
+			<!-- back to the package's own id (#839): only for an app that was renamed on a TV before -->
+			<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="4,4,4,0" IsVisible="{Binding HasPackageIdRename}">
+				<StackPanel Spacing="2">
+					<TextBlock Text="{Binding OwnPackageIdText}" FontSize="13" Foreground="{DynamicResource InkBrush}"/>
+					<TextBlock Text="{Binding OwnPackageIdHint}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+				</StackPanel>
+				<ToggleSwitch Grid.Column="1" IsChecked="{Binding OwnPackageId}" MinWidth="0" VerticalAlignment="Center"/>
+			</Grid>
+
 			<Grid ColumnDefinitions="*,Auto" Margin="4,10,4,0">
 				<TextBlock Text="{Binding VersionsTitle}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"
 				           VerticalAlignment="Center"/>
@@ -110,16 +167,49 @@
 				         Background="Transparent" BorderThickness="0" MaxHeight="300">
 					<ListBox.ItemTemplate>
 						<DataTemplate x:DataType="models:Asset">
-							<Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Margin="16,11">
+							<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Margin="16,11">
 								<Border Classes="radio" VerticalAlignment="Center"/>
 								<TextBlock Grid.Column="1" Text="{Binding LongDisplayText}" TextWrapping="Wrap" VerticalAlignment="Center"
 								           Foreground="{DynamicResource InkBrush}"/>
+								<!-- the Tizen this build asks for, from the catalog (TV-Store#47) -->
+								<TextBlock Grid.Column="2" Text="{Binding RequiredVersionText}" IsVisible="{Binding HasRequiredVersion}" FontSize="12"
+								           VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/>
 							</Grid>
 						</DataTemplate>
 					</ListBox.ItemTemplate>
 				</ListBox>
 			</Border>
 
+			<!-- other sources offering an app of this name (#1018): each opens its own sheet -->
+			<StackPanel Spacing="6" IsVisible="{Binding HasAlsoOffered}">
+				<TextBlock Text="{Binding AlsoOfferedTitle}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"/>
+				<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
+					<ItemsControl ItemsSource="{Binding AlsoOffered}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate x:DataType="vm:AppDetailViewModel+OtherSource">
+								<Button Classes="row" Click="OnOtherSourceClick" Tag="{Binding Release}">
+									<Grid ColumnDefinitions="*,Auto">
+										<TextBlock Text="{Binding Name}" VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}"/>
+										<PathIcon Grid.Column="1" Width="8" Height="13" Opacity="0.35" VerticalAlignment="Center"
+										          Foreground="{DynamicResource InkBrush}" Data="M1,1 L7,6.5 L1,12"/>
+									</Grid>
+								</Button>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</Border>
+				<TextBlock Text="{Binding SourcesUpdateHint}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+			</StackPanel>
+
+			<!-- a repository that could not be checked now: listed, not installable (#1018) -->
+			<Border IsVisible="{Binding IsBlocked}" Background="{DynamicResource FillBrush}" CornerRadius="10" Padding="12,8">
+				<TextBlock Text="{Binding BlockedText}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+			</Border>
+
+			<!-- why Install is off: this TV is too old for the selected build (TV-Store#47) -->
+			<Border IsVisible="{Binding HasTizenHint}" Background="{DynamicResource WarnSoftBrush}" CornerRadius="10" Padding="12,8">
+				<TextBlock Text="{Binding TizenHint}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource WarnBrush}"/>
+			</Border>
 			<Button Classes="primary" Name="InstallButton" Content="{Binding InstallText}" IsEnabled="{Binding CanInstall}"
 			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12" Margin="0,6,0,0"
 			        Click="OnInstallClick"/>

@@ -40,6 +40,26 @@ These files are the property of Samsung Electronics Co., Ltd. and are distribute
 Tizen SDK / Tizen Studio. They are not covered by the Apps2Samsung MIT license, and no ownership
 over them is claimed.
 
+### Tizen SDK certificate-generator files
+
+The following files from Tizen Studio's `certificate-generator` tool (the same copies the VS Code
+Tizen extension ships) are redistributed **unmodified**, solely so that a Tizen certificate can be
+made the way Tizen Studio's Certificate Manager makes it:
+
+- `tizen-developer-ca.cer` and `tizen-developer-ca-privatekey.pem` (the Tizen Developers CA that
+  signs author certificates; the key's password is the SDK's own, from its `conf.ini`)
+- `tizen-distributor-signer-public.p12`, `tizen-distributor-signer-partner.p12` and
+  `tizen-distributor-signer-platform.p12` (the SDK's `sdk-public`, `sdk-partner` and `sdk-platform`
+  `tizen-distributor-signer-new.p12`)
+- `tizen-distributor-signer-public-legacy.p12` and `tizen-distributor-signer-partner-legacy.p12`
+  (the SDK's `distributor/tizen-distributor-signer.p12` and `sdk-partner/tizen-distributor-signer.p12`)
+
+Location: `Apps2Samsung.Core/Certificate/TizenSdk/`, embedded in `Apps2Samsung.Core`.
+
+These files are the property of Samsung Electronics Co., Ltd. / the Tizen project and are distributed
+as part of the Tizen SDK / Tizen Studio. They are not covered by the Apps2Samsung MIT license, and no
+ownership over them is claimed.
+
 ---
 
 ## 3. NuGet dependencies

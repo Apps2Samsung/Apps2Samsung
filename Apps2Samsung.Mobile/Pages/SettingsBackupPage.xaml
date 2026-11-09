@@ -27,6 +27,20 @@
                     </VerticalStackLayout>
                 </Border>
 
+                <!-- The signing certificate on its own (#921): no settings inside, for moving to another head. -->
+                <Label Text="{l:Localize lblCertificateArchive}" Style="{StaticResource GroupTitle}" Margin="4,16,4,0" />
+                <Border Style="{StaticResource Card}" Padding="16,12">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Style="{StaticResource RowHint}" Text="{l:Localize hintCertificateArchive}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Text="{l:Localize lblExportCertificate}" Style="{StaticResource SoftButton}"
+                                    CornerRadius="12" Clicked="OnExportCertificateClicked" />
+                            <Button Grid.Column="1" Text="{l:Localize lblImportCertificate}" Style="{StaticResource PlainButton}"
+                                    CornerRadius="12" Clicked="OnImportCertificateClicked" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
                 <Label Text="{l:Localize lblDiagnostics}" Style="{StaticResource GroupTitle}" Margin="4,16,4,0" />
                 <Border Style="{StaticResource Card}" Padding="16,12">
                     <VerticalStackLayout Spacing="10">
@@ -37,6 +51,11 @@
                             <Button Grid.Column="1" Text="{l:Localize lblShareDebugLog}" Style="{StaticResource PlainButton}"
                                     CornerRadius="12" Clicked="OnShareLogClicked" />
                         </Grid>
+                        <!-- TV-Store's own log from the selected TV (GET :8077/log.txt), handed to the share sheet. -->
+                        <Label Style="{StaticResource RowHint}" Text="{l:Localize hintGetTvStoreLog}" Margin="0,6,0,0" />
+                        <Button x:Name="TvStoreLogButton" Text="{l:Localize lblGetTvStoreLog}" Style="{StaticResource SoftButton}"
+                                CornerRadius="12" Clicked="OnGetTvStoreLogClicked" />
+                        <Label x:Name="TvStoreLogStatus" Style="{StaticResource RowHint}" IsVisible="False" />
                     </VerticalStackLayout>
                 </Border>
             </VerticalStackLayout>

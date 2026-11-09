@@ -27,7 +27,7 @@ internal sealed class SamsungCallbackListener : IDisposable
     }
 
     /// <summary>Where the SignInGate is told to send the token: this listener, over plain HTTP.</summary>
-    public static string RedirectUri => $"http://localhost:{SamsungOAuth.CallbackPort}{SamsungOAuth.CallbackPath}";
+    public static string RedirectUri => SamsungOAuth.LoopbackRedirectUri;
 
     /// <summary>
     /// Serves requests until a POST to the callback path carries a <c>code</c> field, and returns that
@@ -48,7 +48,7 @@ internal sealed class SamsungCallbackListener : IDisposable
                 var (method, path, body) = await ReadRequestAsync(stream, ct);
                 Trace.WriteLine($"[SamsungLogin] callback request: {method} {path}");
 
-                const string page = "Login captured — return to the app.";
+                const string page = "Login captured, return to the app.";
                 var resp = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n" +
                            $"Content-Length: {Encoding.UTF8.GetByteCount(page)}\r\nConnection: close\r\n\r\n{page}";
                 await stream.WriteAsync(Encoding.UTF8.GetBytes(resp), ct);

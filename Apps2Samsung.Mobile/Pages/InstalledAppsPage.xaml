@@ -8,7 +8,11 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <ContentPage.Resources>
+        <controls:IconSourceConverter x:Key="IconSource" />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
 
         <!-- The top bar (#755): the TV with ▾, how many apps and how much space (or what is going on),
              and ⋯ with Refresh / TV information / Remove leftover. -->
@@ -17,7 +21,23 @@
 
         <!-- The apps as a grouped list (#755): tile, name, version and size, a chevron; a row opens
              the app's sheet with Launch / Stop / Debug console / Uninstall. -->
-        <Border Grid.Row="1" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}"
+        <!-- apps on this TV that moved to their author's repository (#1018): filled in code, one card each -->
+        <VerticalStackLayout Grid.Row="1" Spacing="8">
+            <!-- Host PC IP 127.0.0.1 and TV-Store closed: the list comes through TV-Store's relay, so say
+                 so and open TV-Store on the TV from here (#1041 follow-up) -->
+            <Border x:Name="RelayNotice" IsVisible="False" Margin="16,4,16,0" Padding="14,12" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12" Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}">
+                <VerticalStackLayout Spacing="10">
+                    <Label x:Name="RelayNoticeLabel" FontSize="15" LineBreakMode="WordWrap" TextColor="{DynamicResource InkColor}"
+                           Text="{l:Localize lblOnTvRelayClosed}" />
+                    <Button x:Name="OpenTvStoreBtn" Style="{StaticResource PrimaryButton}" HeightRequest="44" MinimumHeightRequest="44"
+                            Text="{l:Localize lblOpenTvStore}" Clicked="OnOpenTvStoreClicked" />
+                </VerticalStackLayout>
+            </Border>
+            <VerticalStackLayout x:Name="MovedHost" Spacing="8" Margin="16,4,16,4" IsVisible="False" />
+        </VerticalStackLayout>
+
+        <Border Grid.Row="2" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}"
                 VerticalOptions="Start" Margin="16,4,16,0">
             <RefreshView x:Name="Refresher" Refreshing="OnPulledToRefresh" RefreshColor="{DynamicResource AccentColor}">
             <CollectionView x:Name="AppsList" SelectionMode="None" VerticalScrollBarVisibility="Never">
@@ -39,7 +59,7 @@
                                         <Label Text="{Binding Initials}" TextColor="{DynamicResource OnAccentColor}" FontSize="20" FontAttributes="Bold"
                                                HorizontalOptions="Center" VerticalOptions="Center" />
                                     </Border>
-                                    <Image Source="{Binding IconUrl}" Aspect="AspectFill" IsVisible="{Binding HasIcon}">
+                                    <Image Source="{Binding IconUrl, Converter={StaticResource IconSource}}" Aspect="AspectFill" IsVisible="{Binding HasIcon}">
                                         <Image.Clip>
                                             <RoundRectangleGeometry CornerRadius="11" Rect="0,0,44,44" />
                                         </Image.Clip>
@@ -49,8 +69,16 @@
                                     <Label Text="{Binding DisplayName}" FontAttributes="Bold" FontSize="15" LineBreakMode="TailTruncation" />
                                     <Label Text="{Binding Subline}" FontSize="13" TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
                                     <!-- What the catalog says about this app, when it is in there (#820). -->
-                                    <Label Text="{Binding CatalogLine}" IsVisible="{Binding HasCatalogLine}" FontSize="12"
-                                           TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
+                                    <!-- Removed from the catalogue (#1033, direction C): the same quiet line with an amber mark; the sheet says why. -->
+                                    <HorizontalStackLayout Spacing="5" IsVisible="{Binding HasCatalogLine}">
+                                        <Grid WidthRequest="12" HeightRequest="12" VerticalOptions="Center" IsVisible="{Binding IsRemoved}">
+                                            <Ellipse Stroke="{DynamicResource WarnBrush}" StrokeThickness="1.4" />
+                                            <Label Text="!" FontSize="9" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}"
+                                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Grid>
+                                        <Label Text="{Binding CatalogLine}" FontSize="12"
+                                               TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
+                                    </HorizontalStackLayout>
                                 </VerticalStackLayout>
                                 <Button Grid.Column="2" Text="{l:Localize lblUpdate}" IsVisible="{Binding HasUpdate}" Clicked="OnUpdateClicked"
                                         HeightRequest="32" MinimumHeightRequest="32" CornerRadius="16" Padding="12,0" FontSize="13" FontAttributes="Bold"
@@ -66,10 +94,10 @@
         </Border>
 
         <!-- Busy overlay -->
-        <ActivityIndicator Grid.Row="1" x:Name="Busy" IsRunning="False" IsVisible="False"
+        <ActivityIndicator Grid.Row="2" x:Name="Busy" IsRunning="False" IsVisible="False"
                            VerticalOptions="Center" HorizontalOptions="Center" Color="{DynamicResource AccentColor}" />
 
-        <Label Grid.Row="2" Text="{l:Localize lblPullToRefresh}" Style="{StaticResource Footnote}"
+        <Label Grid.Row="3" Text="{l:Localize lblPullToRefresh}" Style="{StaticResource Footnote}"
                HorizontalOptions="Center" Margin="0,4,0,12" />
 
     </Grid>

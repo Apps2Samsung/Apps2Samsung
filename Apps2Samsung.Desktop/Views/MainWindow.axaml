@@ -5,6 +5,7 @@
         xmlns:appicon="using:Apps2Samsung.Helpers"
         Icon="{x:Static appicon:AppIcon.Current}"
 		x:DataType="viewModels:MainWindowViewModel"
+        xmlns:design="clr-namespace:Apps2Samsung.Design;assembly=Apps2Samsung.Core"
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
 		xmlns:helpers="clr-namespace:Apps2Samsung.Helpers.Converters"
 		xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
@@ -74,6 +75,12 @@
 							<fa:SymbolIcon Symbol="ViewAll"/><TextBlock Text="{Binding LblOnTheTv}"/>
 						</StackPanel>
 					</ToggleButton>
+					<ToggleButton Classes="nav" IsChecked="{Binding IsTvStoreSection, Mode=OneWay}"
+					              Command="{Binding ShowSectionCommand}" CommandParameter="TvStore">
+						<StackPanel Orientation="Horizontal" Spacing="10">
+							<fa:SymbolIcon Symbol="Shop"/><TextBlock Text="{Binding LblTvStoreTab}"/>
+						</StackPanel>
+					</ToggleButton>
 					<ToggleButton Classes="nav" IsChecked="{Binding IsRemoteSection, Mode=OneWay}"
 					              Command="{Binding ShowSectionCommand}" CommandParameter="Remote">
 						<StackPanel Orientation="Horizontal" Spacing="10">
@@ -129,6 +136,13 @@
 								<MenuItem Header="{Binding Settings.Application.LblShowRootApps}" ToggleType="CheckBox"
 								          IsChecked="{Binding Settings.Application.ShowRootApps, Mode=TwoWay}"
 								          ToolTip.Tip="{l:Localize hintShowRootApps}"/>
+								<MenuItem Header="{Binding Settings.Application.LblShowClosedSourceApps}" ToggleType="CheckBox"
+								          IsChecked="{Binding Settings.Application.ShowClosedSourceApps, Mode=TwoWay}"
+								          ToolTip.Tip="{l:Localize hintShowClosedSourceApps}"/>
+								<!-- A source of the user's own (a repository, release or file link), listed from the next refresh. -->
+								<Separator/>
+								<MenuItem Header="{Binding Settings.Application.LblAddSource}" Command="{Binding Settings.Application.AddUserSourceCommand}"
+								          ToolTip.Tip="{l:Localize hintUserSources}"/>
 							</MenuFlyout>
 						</Button.Flyout>
 					</Button>
@@ -148,7 +162,25 @@
 						<!-- The TV: name, model + IP, an LED with the status line and the install bar (#755).
 						     Its actions live in the toolbar's ⋯ and the sidebar's TV picker. A TV that isn't
 						     ready yet: clicking the card opens the Developer Mode guide. -->
-						<controls:TvCard State="{Binding TvCard}" Command="{Binding OpenTvGuideCommand}"/>
+						<controls:TvCard State="{Binding TvCard}" Command="{Binding OpenTvGuideCommand}" RouteLabel="{Binding TvCardRouteText}">
+							<controls:TvCard.Actions>
+								<!-- the chips while the TV isn't ready: the way to the fix (TvCardStates.ActionsFor) -->
+								<ItemsControl ItemsSource="{Binding TvCardActions}" IsVisible="{Binding HasTvCardActions}">
+									<ItemsControl.ItemsPanel>
+										<ItemsPanelTemplate>
+											<WrapPanel Orientation="Horizontal"/>
+										</ItemsPanelTemplate>
+									</ItemsControl.ItemsPanel>
+									<ItemsControl.ItemTemplate>
+										<DataTemplate x:DataType="viewModels:MainWindowViewModel+TvCardActionItem">
+											<Button Classes="chip" Content="{Binding Label}" Margin="0,0,8,8"
+											        Command="{Binding $parent[ItemsControl].((viewModels:MainWindowViewModel)DataContext).RunTvCardActionCommand}"
+											        CommandParameter="{Binding}"/>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+							</controls:TvCard.Actions>
+						</controls:TvCard>
 
 						<!-- Cancel a running Samsung sign-in -->
 						<Button Classes="icon" HorizontalAlignment="Center"
@@ -199,25 +231,56 @@
 																	<Button Classes="row"
 																	        Command="{Binding $parent[ItemsControl;1].((viewModels:MainWindowViewModel)DataContext).OpenAppCommand}"
 																	        CommandParameter="{Binding}">
-																		<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-																			<Border Classes="tile" Background="{Binding TileBrush}">
-																				<TextBlock Text="{Binding Letter}" Foreground="{DynamicResource OnAccentBrush}"/>
-																			</Border>
+																		<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Opacity="{Binding RowOpacity}">
+																			<!-- the letter tile, replaced by the app's icon from the catalog once it is loaded (#1000) -->
+																			<Panel VerticalAlignment="Center">
+																				<Border Classes="tile" Background="{Binding TileBrush}" IsVisible="{Binding !HasIcon}">
+																					<TextBlock Text="{Binding Letter}" Foreground="{DynamicResource OnAccentBrush}"/>
+																				</Border>
+																				<Border Classes="tile" ClipToBounds="True" IsVisible="{Binding HasIcon}">
+																					<Image Source="{Binding Icon}" Stretch="UniformToFill"/>
+																				</Border>
+																			</Panel>
 																			<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-																				<StackPanel Orientation="Horizontal" Spacing="6">
-																					<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
-																					<!-- adult-only (#850): shown only once the user opted in under Settings > Installing -->
-																					<Border IsVisible="{Binding IsAdult}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
-																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblAdultOnly}">
-																						<TextBlock Text="{l:Localize lblAdultBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
-																					</Border>
-																					<!-- gains root on the TV: the install asks first -->
-																					<Border IsVisible="{Binding IsRoot}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
-																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblRootPackage}">
-																						<TextBlock Text="{l:Localize lblRootBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
-																					</Border>
+																				<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
+																				<!-- the tags (18+, root, self-updating, Needs Tizen X, closed source) open the grey line
+																				     (#1041 follow-up, option B): amber for a warning, grey for information. They never
+																				     shorten; the category and downloads after them do. -->
+																				<Grid ColumnDefinitions="Auto,*">
+																					<ItemsControl ItemsSource="{Binding Tags}">
+																						<ItemsControl.ItemsPanel>
+																							<ItemsPanelTemplate>
+																								<StackPanel Orientation="Horizontal"/>
+																							</ItemsPanelTemplate>
+																						</ItemsControl.ItemsPanel>
+																						<ItemsControl.ItemTemplate>
+																							<DataTemplate x:DataType="design:CatalogTag">
+																								<StackPanel Orientation="Horizontal" Background="Transparent" ToolTip.Tip="{Binding Tooltip}">
+																									<TextBlock Text="{Binding Text}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding IsWarning}"/>
+																									<TextBlock Text="{Binding Text}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}" IsVisible="{Binding !IsWarning}"/>
+																									<TextBlock Text=" · " FontSize="13" Foreground="{DynamicResource MutedBrush}"/>
+																								</StackPanel>
+																							</DataTemplate>
+																						</ItemsControl.ItemTemplate>
+																					</ItemsControl>
+																					<TextBlock Grid.Column="1" Text="{Binding Subline}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
+																				</Grid>
+																				<!-- where it comes from (#1018): nothing for the official catalog; a shield for a signed
+																				     repository, amber for an unverified source, a lock when the repository can't be checked now -->
+																				<StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding HasSourceLine}" ToolTip.Tip="{Binding Source.Tip}">
+																					<Path Width="12" Height="12" Stretch="Uniform" StrokeThickness="2.2" StrokeLineCap="Round" StrokeJoin="Round" VerticalAlignment="Center"
+																					      IsVisible="{Binding IsRepositoryLine}" Stroke="{DynamicResource AccentBrush}"
+																					      Data="M12,22 C12,22 20,18 20,12 L20,5 L12,2 L4,5 L4,12 C4,18 12,22 12,22 Z M9,12 L11,14 L15,10"/>
+																					<Path Width="12" Height="12" Stretch="Uniform" StrokeThickness="2.2" StrokeLineCap="Round" VerticalAlignment="Center"
+																					      IsVisible="{Binding IsUnverifiedLine}" Stroke="{DynamicResource WarnBrush}"
+																					      Data="M12,3 A9,9 0 1 1 11.99,3 Z M12,8 L12,12 M12,16 L12,16.01"/>
+																					<Path Width="12" Height="12" Stretch="Uniform" StrokeThickness="2.2" StrokeLineCap="Round" VerticalAlignment="Center"
+																					      IsVisible="{Binding IsBlockedLine}" Stroke="{DynamicResource MutedBrush}"
+																					      Data="M5,11 L19,11 L19,21 L5,21 Z M8,11 L8,7 A4,4 0 0 1 16,7 L16,11"/>
+																					<TextBlock Text="{Binding Source.Text}" FontSize="13" TextTrimming="CharacterEllipsis"
+																					           Classes.repo="{Binding IsRepositoryLine}" Classes.unverified="{Binding IsUnverifiedLine}"
+																					           Foreground="{DynamicResource MutedBrush}"/>
 																				</StackPanel>
-																				<TextBlock Text="{Binding Subline}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
 																			</StackPanel>
 																			<PathIcon Grid.Column="2" Width="8" Height="13" Opacity="0.35" VerticalAlignment="Center"
 																			          Foreground="{DynamicResource InkBrush}" Data="M1,1 L7,6.5 L1,12"/>
@@ -234,6 +297,20 @@
 									</ItemsControl.ItemTemplate>
 								</ItemsControl>
 
+								<!-- removed apps a search names (#1033, S2): a footnote, never a row to install -->
+								<StackPanel Spacing="6" Margin="4,0,4,8" IsVisible="{Binding HasRemovedSearchLines}">
+									<ItemsControl ItemsSource="{Binding RemovedSearchLines}">
+										<ItemsControl.ItemsPanel>
+											<ItemsPanelTemplate><StackPanel Spacing="6"/></ItemsPanelTemplate>
+										</ItemsControl.ItemsPanel>
+										<ItemsControl.ItemTemplate>
+											<DataTemplate x:DataType="x:String">
+												<TextBlock Text="{Binding}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+											</DataTemplate>
+										</ItemsControl.ItemTemplate>
+									</ItemsControl>
+									<TextBlock Text="{Binding LblRemovedSearchFooter}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+								</StackPanel>
 								<TextBlock Text="{Binding CatalogFoot}" FontSize="13" Margin="4,0" Foreground="{DynamicResource MutedBrush}"/>
 						</StackPanel>
 					</StackPanel>
@@ -284,9 +361,18 @@
 				</Panel>
 			</DockPanel>
 
+			<!-- TV-Store (#1041): the catalog on the TV, out of the toolbox -->
+			<DockPanel IsVisible="{Binding IsTvStoreSection}">
+				<Panel Margin="20,16,20,20">
+					<ContentControl Content="{Binding TvStoreVm}"/>
+					<TextBlock Text="{Binding LblSelectTvFirst}" Foreground="{DynamicResource MutedBrush}"
+					           IsVisible="{Binding TvStoreVm, Converter={x:Static ObjectConverters.IsNull}}"/>
+				</Panel>
+			</DockPanel>
+
 			<!-- Remote -->
 			<DockPanel IsVisible="{Binding IsRemoteSection}">
-				<Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10" Margin="20,16,20,0" MinHeight="36"
+				<Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="10" Margin="20,16,20,0" MinHeight="36"
 				      DataContext="{Binding RemoteVm}" x:DataType="viewModels:RemoteViewModel"
 				      IsVisible="{Binding Converter={x:Static ObjectConverters.IsNotNull}}">
 					<Panel Width="14" VerticalAlignment="Center">
@@ -303,10 +389,24 @@
 						<TextBlock Text="{l:Localize lblRemoteKeyboardHint}" FontSize="12" TextTrimming="CharacterEllipsis"
 						           Foreground="{DynamicResource MutedBrush}"/>
 					</StackPanel>
-					<Button Grid.Column="2" Classes="tool" Content="{l:Localize lblRemoteKeyboard}" IsEnabled="{Binding IsConnected}">
+					<!-- Live typing: the laptop keyboard is forwarded to the TV. d-pad mode presses every
+					     character on the app's own grid (works where typed text is ignored); direct mode
+					     sends text (fast, but only where the TV accepts it). Icons rather than words, and never
+					     focusable: with focus, Space toggled the very button that was forwarding it. -->
+					<ToggleButton Grid.Column="2" Classes="tool square" Content="✥" FontSize="17"
+					              Focusable="False"
+					              IsEnabled="{Binding IsConnected}"
+					              IsChecked="{Binding IsLiveDpad, Mode=TwoWay}"
+					              ToolTip.Tip="{l:Localize lblRemoteLiveDpad}"/>
+					<ToggleButton Grid.Column="3" Classes="tool square" Content="⌨" FontSize="17"
+					              Focusable="False"
+					              IsEnabled="{Binding IsConnected}"
+					              IsChecked="{Binding IsLiveDirect, Mode=TwoWay}"
+					              ToolTip.Tip="{l:Localize lblRemoteLiveDirect}"/>
+					<Button Grid.Column="4" Classes="tool" Focusable="False" Content="{l:Localize lblRemoteKeyboard}" IsEnabled="{Binding IsConnected}">
 						<Button.Flyout>
 							<Flyout Placement="BottomEdgeAlignedRight">
-								<StackPanel Spacing="8" Width="320">
+								<StackPanel Spacing="8" Width="380">
 									<TextBlock Text="{l:Localize lblRemoteTypeOnTv}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
 									<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
 										<TextBox Grid.Column="0" Classes="search" Text="{Binding TextToSend}"
@@ -314,12 +414,57 @@
 										<Button Grid.Column="1" Classes="primary" CornerRadius="10" Padding="16,8"
 										        Content="{l:Localize lblRemoteSend}" Command="{Binding SendTextCommand}"/>
 									</Grid>
+									<!-- Apps that paint their own keyboard (YouTube, Netflix, TizenTube) ignore typed text
+									     altogether, so the alternative is to press their keys with the d-pad. -->
+									<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+										<TextBlock Text="{l:Localize lblRemoteTypeOnAppKeyboard}" FontSize="12" TextWrapping="Wrap"
+										           VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}"/>
+										<ToggleSwitch Grid.Column="1" MinWidth="0" VerticalAlignment="Center"
+										              IsChecked="{Binding TypeOnAppKeyboard}"/>
+									</Grid>
+									<TextBlock Text="{l:Localize lblRemoteKeyboardModeHint}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+									<!-- Which app's keyboard: a grid walk is only correct for the app its profile was
+									     measured on, so the app is picked explicitly and remembered. -->
+									<Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+										<TextBlock Text="{l:Localize lblRemoteKeyboardProfile}" FontSize="12" VerticalAlignment="Center"
+										           Foreground="{DynamicResource InkBrush}"/>
+										<ComboBox Grid.Column="1" Classes="clean" HorizontalAlignment="Stretch"
+										          ItemsSource="{Binding KeyboardProfileChoices}"
+										          SelectedItem="{Binding SelectedKeyboardProfile, Mode=TwoWay}"/>
+									</Grid>
+									<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+										<TextBlock Text="{l:Localize lblRemoteKeyboardClearFirst}" FontSize="12" TextWrapping="Wrap"
+										           VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}"/>
+										<ToggleSwitch Grid.Column="1" MinWidth="0" VerticalAlignment="Center"
+										              IsChecked="{Binding ClearBeforeTyping}"/>
+									</Grid>
+									<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+										<TextBlock Text="{l:Localize lblRemoteKeyboardSubmitAfter}" FontSize="12" TextWrapping="Wrap"
+										           VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}"/>
+										<ToggleSwitch Grid.Column="1" MinWidth="0" VerticalAlignment="Center"
+										              IsChecked="{Binding SubmitAfterTyping}"/>
+									</Grid>
+									<Button Classes="tool" HorizontalAlignment="Left" CornerRadius="10" Padding="14,7"
+									        Content="{l:Localize lblRemoteKeyboardClear}"
+									        Command="{Binding ClearFieldCommand}"/>
+									<Expander Header="{l:Localize lblRemoteKeyboardProfileSave}" HorizontalAlignment="Stretch">
+										<StackPanel Spacing="6">
+											<TextBox Text="{Binding KeyboardProfileJson, Mode=TwoWay}"
+											         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="120" MaxHeight="220"
+											         FontFamily="monospace" FontSize="11"/>
+											<Button Classes="primary" CornerRadius="10" Padding="14,7" HorizontalAlignment="Right"
+											        Content="{l:Localize lblRemoteKeyboardProfileSave}"
+											        Command="{Binding SaveKeyboardProfileCommand}"/>
+											<TextBlock Text="{l:Localize lblRemoteKeyboardProfileHint}" FontSize="12" TextWrapping="Wrap"
+											           Foreground="{DynamicResource MutedBrush}"/>
+										</StackPanel>
+									</Expander>
 									<TextBlock Text="{l:Localize lblRemoteTextHint}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
 								</StackPanel>
 							</Flyout>
 						</Button.Flyout>
 					</Button>
-					<Button Grid.Column="3" Classes="tool square power" Content="⏻" FontSize="17" IsEnabled="{Binding !IsBusy}"
+					<Button Grid.Column="5" Classes="tool square power" Focusable="False" Content="⏻" FontSize="17" IsEnabled="{Binding !IsBusy}"
 					        Command="{Binding PowerOrWakeCommand}" ToolTip.Tip="{l:Localize lblRemotePowerWake}"/>
 				</Grid>
 				<Panel Margin="20,14,20,0">

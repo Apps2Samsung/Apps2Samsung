@@ -23,5 +23,21 @@ namespace Apps2Samsung.Views
         {
             Close((DataContext as AppDetailViewModel)?.SelectedAsset);
         }
+
+        // Another source of the same app (#1018): the main window opens that entry's sheet.
+        private void OnOtherSourceClick(object? sender, RoutedEventArgs e)
+        {
+            if (DataContext is AppDetailViewModel vm && sender is Button { Tag: Apps2Samsung.Models.GitHubRelease other })
+                vm.SwitchTo = other;
+            Close(null);
+        }
+
+        // The developer's name: nothing to install, the main window searches the catalog for them (#888).
+        private void OnAuthorClick(object? sender, RoutedEventArgs e)
+        {
+            if (DataContext is AppDetailViewModel vm)
+                vm.SearchAuthorRequested = true;
+            Close(null);
+        }
     }
 }

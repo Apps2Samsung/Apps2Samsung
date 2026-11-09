@@ -72,6 +72,61 @@ namespace Apps2Samsung.Models
         public bool IsRoot { get; set; }
 
         /// <summary>
+        /// Where this entry comes from (#1018): the official catalog, a signed repository, or an
+        /// unverified source the user added. Stamped by <c>AddLatestRelease</c> from the provider,
+        /// never serialized. Labels the entry in every head, and <see cref="CatalogSource.CanInstall"/>
+        /// is false for a repository listed from its last verified copy.
+        /// </summary>
+        [JsonIgnore]
+        public CatalogSource Source { get; set; } = CatalogSource.Official;
+
+        /// <summary>
+        /// True when the community catalog flags this app <c>closed-source</c> (#1016): its source is
+        /// not in the linked repository. A grouped app is closed source when any of its files is
+        /// (<see cref="Asset.IsClosedSource"/> says which); with "Show closed-source apps" off,
+        /// <c>CommunityAppList.Visible</c> drops only those files. Stamped from the catalog, never serialized.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsClosedSource { get; set; }
+
+        /// <summary>
+        /// True when the community catalog flags this app <c>self-updating</c> (#1016): it downloads
+        /// and runs newer versions of itself after install, which the catalogue's scan never sees.
+        /// A grouped app is self-updating when any of its files is. Stamped from the catalog, never serialized.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsSelfUpdating { get; set; }
+
+        // The same entry without its closed-source variants, built once by WithoutClosedSourceVariants
+        // so a re-filter hands out the same instance and a selection survives it.
+        private GitHubRelease? _openVariants;
+
+        /// <summary>
+        /// This grouped app with only its open-source variants (#1016), or null when every file is
+        /// closed source. The entry itself when none is. Shares everything but the asset list, so it
+        /// is only valid once the entry is fully stamped.
+        /// </summary>
+        public GitHubRelease? WithoutClosedSourceVariants()
+        {
+            var open = Assets.Where(a => !a.IsClosedSource).ToList();
+            if (open.Count == 0)
+                return null;
+            if (open.Count == Assets.Count)
+                return this;
+            if (_openVariants is null)
+            {
+                var copy = (GitHubRelease)MemberwiseClone();
+                copy._openVariants = null;
+                copy.Assets = open;
+                copy.HasVariants = HasVariants && open.Count > 1;
+                copy.IsClosedSource = false;
+                copy.IsSelfUpdating = open.Exists(a => a.IsSelfUpdating);
+                _openVariants = copy;
+            }
+            return _openVariants;
+        }
+
+        /// <summary>
         /// Download URL of the release's <c>catalog.json</c>, when the release ships one (the
         /// community bundle). Captured before the asset list is narrowed to .wgt/.tpk. Serialized
         /// (GitHub itself never sends a <c>catalog_url</c>) so the pre-resolved snapshot
@@ -108,6 +163,15 @@ namespace Apps2Samsung.Models
         [JsonIgnore]
         public long Downloads { get; set; }
 
+        /// <summary>
+        /// True when this entry comes from a source the user added themselves (<c>UserSources</c>):
+        /// a repository or file link of their own, not the manifest or the community bundle. Shown
+        /// with an "own source" badge so it is clear who vouches for it. Stamped by the heads from
+        /// <see cref="ProviderEntry.IsUserSource"/>, never serialized.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsUserSource { get; set; }
+
         public GitHubRelease()
         {
         }
@@ -132,6 +196,19 @@ namespace Apps2Samsung.Models
         /// </summary>
         [JsonPropertyName("digest")]
         public string? Digest { get; set; }
+
+        /// <summary>The repository this file's app moved to (#1018), from the community catalog; stamped, never serialized.</summary>
+        [JsonIgnore]
+        public MovedTo? MovedTo { get; set; }
+
+        /// <summary>
+        /// The catalog repository this file is listed for (<c>repo</c> in its tizen-community-packages
+        /// manifest, "owner/repo"). Part of the key the package id of a colliding install is derived
+        /// from (#1028), so TV-Store, reading the same catalog, arrives at the same id. Null outside the
+        /// community bundle; a group can span repositories, which is why it is per file.
+        /// </summary>
+        [JsonIgnore]
+        public string? CatalogRepo { get; set; }
 
         [JsonIgnore]
         public bool IsDefault => FileName.Equals("Jellyfin.wgt", StringComparison.OrdinalIgnoreCase);
@@ -158,6 +235,32 @@ namespace Apps2Samsung.Models
         [JsonPropertyName("package_id")]
         public string? PackageId { get; set; }
 
+        /// <summary>
+        /// The Tizen version the file asks for (config.xml <c>required_version</c> or tizen-manifest.xml
+        /// <c>api-version</c>), recorded next to the three above the same way (TV-Store#47). Null when
+        /// unknown; a TV below it refuses the package.
+        /// </summary>
+        [JsonPropertyName("required_version")]
+        public string? RequiredVersion { get; set; }
+
+        /// <summary>
+        /// The icon the package ships, published by the snapshot tool next to resolved.json for
+        /// TV-Store (#1000, TV-Store#66): <see cref="Icon"/> is its URL, <see cref="IconDigest"/> the
+        /// SHA-256 of the exact bytes served there as <c>sha256:&lt;hex&gt;</c>, and the file is named by
+        /// that hash so identical icons share one file. TV-Store shows an icon only when its bytes
+        /// hash to this. Both null when the package has no readable raster icon; never empty.
+        /// </summary>
+        [JsonPropertyName("icon")]
+        public string? Icon { get; set; }
+        [JsonPropertyName("icon_digest")]
+        public string? IconDigest { get; set; }
+
+        /// <summary>"Tizen 6.0+" for the version picker, empty when the catalog does not say.</summary>
+        [JsonIgnore]
+        public string RequiredVersionText => string.IsNullOrWhiteSpace(RequiredVersion) ? string.Empty : $"Tizen {RequiredVersion}+";
+        [JsonIgnore]
+        public bool HasRequiredVersion => !string.IsNullOrWhiteSpace(RequiredVersion);
+
         /// <summary>Label from the community catalog when this file is one variant of a grouped app.</summary>
         [JsonIgnore]
         public string? Variant { get; set; }
@@ -169,6 +272,12 @@ namespace Apps2Samsung.Models
         /// </summary>
         [JsonIgnore]
         public UserSettingsSpec? UserSettings { get; set; }
+
+        /// <summary>This file's <c>closed-source</c> and <c>self-updating</c> flags from the community catalog (#1016); stamped by <c>CommunityAppList</c>.</summary>
+        [JsonIgnore]
+        public bool IsClosedSource { get; set; }
+        [JsonIgnore]
+        public bool IsSelfUpdating { get; set; }
 
         /// <summary>The variant label, or the bare file name when the file is not part of a group.</summary>
         [JsonIgnore]

@@ -1,0 +1,16 @@
+#!/bin/sh
+# Apps2Samsung CLI launcher for Termux on Android (#975).
+#
+# The linux-bionic-arm64 tarball is framework-dependent: Microsoft's own bionic runtime pack
+# segfaults on start on .NET 9 and later (dotnet/runtime#111071), while Termux's dotnet packages
+# carry the fix. So this script runs the managed assemblies beside it on Termux's dotnet:
+#
+#   pkg install dotnet-runtime-10.0
+#
+# Termux's termux-exec rewrites the #!/bin/sh line to the Termux shell.
+dir=$(dirname "$0")
+if ! command -v dotnet >/dev/null 2>&1; then
+    echo "apps2samsung-cli: 'dotnet' was not found. In Termux run: pkg install dotnet-runtime-10.0" >&2
+    exit 127
+fi
+exec dotnet "$dir/apps2samsung-cli.dll" "$@"

@@ -20,24 +20,42 @@ public sealed class CatalogLoader
     private readonly AddLatestRelease _releases;
     private readonly DownloadStatsService _downloadStats;
     private readonly string _token;
+    private readonly Func<IReadOnlyList<UserSource>> _userSources;
+    private readonly Apps2Samsung.Catalog.Repositories.SignedRepositories _repositories;
+    private readonly Action<string>? _warn;
 
-    public CatalogLoader(HttpClient http, string token)
+    /// <param name="userSources">The sources the user added (stored plus --source), read on every load.</param>
+    /// <param name="warn">Where a signed repository's trouble is said (#1018): a changed key, a failed check.</param>
+    public CatalogLoader(HttpClient http, string token, Func<IReadOnlyList<UserSource>>? userSources = null, Action<string>? warn = null)
     {
+        _warn = warn;
+        _repositories = new Apps2Samsung.Catalog.Repositories.SignedRepositories(http, Path.Combine(CliPaths.CliDir, "repositories"));
         _http = http;
         _token = token;
+        _userSources = userSources ?? (() => Array.Empty<UserSource>());
         var snapshot = new ResolvedCatalogService(http, Path.Combine(CliPaths.CliDir, ResolvedCatalogService.CacheFileName));
         _releases = new AddLatestRelease(http, () => token, snapshot);
         _downloadStats = new DownloadStatsService(http, Path.Combine(CliPaths.CliDir, DownloadStatsService.CacheFileName));
     }
 
-    public sealed record Catalog(ProviderManifest Manifest, IReadOnlyList<GitHubRelease> Entries, int FailedProviders, IReadOnlySet<string> MultiVersionApps);
+    /// <param name="Removed">Apps the official catalog stopped distributing (#1033): never in <paramref name="Entries"/>,
+    /// only to flag an installed copy and to say why `install` will not find one.</param>
+    public sealed record Catalog(ProviderManifest Manifest, IReadOnlyList<GitHubRelease> Entries, int FailedProviders, IReadOnlySet<string> MultiVersionApps,
+        IReadOnlyList<CommunityCatalogRemoved>? Removed = null)
+    {
+        public IReadOnlyList<CommunityCatalogRemoved> RemovedApps => Removed ?? Array.Empty<CommunityCatalogRemoved>();
+    }
 
     /// <param name="allVersions">Keep every release of an app with a version history (Jellyfin) instead of the latest.</param>
     public async Task<Catalog> LoadAsync(bool allVersions, CancellationToken ct = default)
     {
         var manifest = await GetManifestAsync(ct);
-        var providers = manifest.Providers.Where(p => !string.IsNullOrWhiteSpace(p.Url)).ToList();
+        // The manifest's providers, then the sources the user added themselves (UserSources), feeds
+        // read and unfolded, as the apps do.
+        var providers = (await UserSources.ResolveAsync(_http, manifest.Providers, _userSources(), ct, _repositories, Report))
+            .Where(p => !string.IsNullOrWhiteSpace(p.Url)).ToList();
         var multiVersion = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var removed = new List<CommunityCatalogRemoved>();
         // Fetched alongside the providers; never fails, at worst there are no counts.
         var stats = _downloadStats.GetAsync(ct);
 
@@ -54,6 +72,9 @@ public sealed class CatalogLoader
                     ? await _releases.GetCommunityCatalogAsync(fetched.Releases[0].CatalogUrl)
                     : null);
                 entries.AddRange(CommunityAppList.Expand(fetched.Releases, catalog, requiresPartner));
+                // Only the official catalog says what it removed; a user's own source cannot (#1033).
+                if (RemovedApps.IsOfficial(provider))
+                    lock (removed) removed.AddRange(CommunityAppList.Removed(catalog));
             }
             else
             {
@@ -62,6 +83,7 @@ public sealed class CatalogLoader
                 {
                     r.RequiresPartner = requiresPartner;
                     r.Category = category;
+                    r.IsUserSource = provider.IsUserSource;
                     SourceRepo.StampFromApiUrl(r, provider.Url);
                     r.Description = provider.BuildInfo?.Description?.Trim() ?? string.Empty;
                     if (provider.Take > 1)
@@ -76,7 +98,25 @@ public sealed class CatalogLoader
         var results = await Task.WhenAll(tasks);
         var list = results.SelectMany(r => r.Entries).ToList();
         list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
-        return new Catalog(manifest, list, results.Count(r => !r.Ok), multiVersion);
+        return new Catalog(manifest, list, results.Count(r => !r.Ok), multiVersion, removed);
+    }
+
+    /// <summary>A repository that did not load cleanly, said once per load (#1018).</summary>
+    private void Report(Apps2Samsung.Catalog.Repositories.RepositoryLoad load)
+    {
+        var name = UserSources.DisplayName(load.Source);
+        switch (load.State)
+        {
+            case Apps2Samsung.Catalog.Repositories.RepositoryState.KeyChanged:
+                _warn?.Invoke($"{name}: the publisher's key changed (now {Apps2Samsung.Catalog.Repositories.RepositoryVerifier.FormatFingerprint(load.NewFingerprint!)}). Its apps are left out until you approve the new key: apps2samsung-cli sources add {load.Source.Url}");
+                break;
+            case Apps2Samsung.Catalog.Repositories.RepositoryState.Stale:
+                _warn?.Invoke($"{name} could not be verified ({load.Message}); its apps are listed from the last verified copy and cannot be installed until it verifies again");
+                break;
+            case Apps2Samsung.Catalog.Repositories.RepositoryState.Failed:
+                _warn?.Invoke($"{name} could not be verified ({load.Message}); its apps are missing from this list");
+                break;
+        }
     }
 
     // Remote, else the last copy that worked.
@@ -130,6 +170,9 @@ public sealed class CatalogLoader
             .GroupBy(e => e.Name, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.First())
             .ToList();
-        return partial.Count == 1 ? (partial[0], partial) : (null, partial);
+        // One name: every entry under it, so a caller sees each source that offers it (#1018).
+        return partial.Count == 1
+            ? (partial[0], all.Where(e => string.Equals(e.Name, partial[0].Name, StringComparison.OrdinalIgnoreCase)).ToList())
+            : (null, partial);
     }
 }

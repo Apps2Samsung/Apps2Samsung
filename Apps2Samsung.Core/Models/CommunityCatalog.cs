@@ -18,6 +18,49 @@ namespace Apps2Samsung.Models
         public Dictionary<string, string> Categories { get; set; } = new();
 
         public List<CommunityCatalogEntry> Apps { get; set; } = new();
+
+        /// <summary>
+        /// Apps the community catalog stopped distributing, with the reason (#1033). Never installable
+        /// and never in <see cref="Apps"/>: the heads only use them to flag an installed copy and to
+        /// answer a search for the name. Null in a bundle built before removed apps were listed;
+        /// written only when present, so the snapshot round-trips it as-is into resolved.json, where
+        /// TV-Store reads it.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public List<CommunityCatalogRemoved>? Removed { get; set; }
+    }
+
+    /// <summary>
+    /// One app under <c>removed</c> in <c>catalog.json</c> (#1033): what it was, why it is gone, and
+    /// the ids its files had while it shipped, which is what an installed copy is matched on.
+    /// </summary>
+    public sealed class CommunityCatalogRemoved
+    {
+        public string Name { get; set; } = "";
+        /// <summary>The community manifest's <c>repo</c> ("owner/repo"); with <see cref="Files"/> the key of the derived package id (#1028).</summary>
+        public string Repo { get; set; } = "";
+        public string Host { get; set; } = "github";
+        public string Category { get; set; } = "";
+        /// <summary>
+        /// <c>unlicensed-content</c>, <c>unlicensed-service</c>, <c>unlicensed-game-data</c>,
+        /// <c>takedown</c>, <c>superseded</c> or <c>upstream-gone</c>; anything else shows the
+        /// generic "Removed from the catalogue".
+        /// </summary>
+        public string Reason { get; set; } = "";
+        /// <summary>One neutral line of detail, English only. Never a link.</summary>
+        public string? Note { get; set; }
+        /// <summary>The file names the package shipped under in the bundle.</summary>
+        public List<string>? Files { get; set; }
+        /// <summary>The date it was first listed as removed (yyyy-MM-dd).</summary>
+        public string? Since { get; set; }
+
+        /// <summary>The package ids its files had in the last release that shipped them. Optional.</summary>
+        [JsonPropertyName("package_ids")]
+        public List<string>? PackageIds { get; set; }
+
+        /// <summary>The application ids its files had in the last release that shipped them. Optional.</summary>
+        [JsonPropertyName("app_ids")]
+        public List<string>? AppIds { get; set; }
     }
 
     public sealed class CommunityCatalogEntry
@@ -47,6 +90,15 @@ namespace Apps2Samsung.Models
         public string? PackageId { get; set; }
 
         /// <summary>
+        /// The Tizen version the file asks for (<c>required_version</c> in config.xml, <c>api-version</c>
+        /// in tizen-manifest.xml), read with the three above. A TV older than this refuses the package
+        /// with install failed[118, -19] (TV-Store#44), so TV-Store labels such an app and stops the
+        /// install before the push. Null in a bundle built before it was recorded.
+        /// </summary>
+        [JsonPropertyName("required_version")]
+        public string? RequiredVersion { get; set; }
+
+        /// <summary>
         /// Values the user has to supply before this file installs (a per-user API key, a server
         /// address), written into the package by <c>UserSettingsPatcher</c>. Null for the usual
         /// package that needs nothing (#791).
@@ -64,12 +116,36 @@ namespace Apps2Samsung.Models
         public bool Adult { get; set; }
 
         /// <summary>
-        /// Install-time properties the heads warn about before installing (<c>flags</c> in the
-        /// manifest). Null for the usual package; written only when present, so the snapshot
-        /// round-trips it as-is.
+        /// What the heads tell the user about the package (<c>flags</c> in the manifest): <c>root</c>
+        /// (confirmed before install), <c>self-updating</c> (a badge and a line on the app sheet) and
+        /// <c>closed-source</c> (a neutral badge; hidden while "Show closed-source apps" is off).
+        /// Unknown values are ignored. Null for the usual package; written only when present, so the
+        /// snapshot round-trips it as-is.
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public List<string>? Flags { get; set; }
+
+        /// <summary>
+        /// The certificate level the app needs to work (<c>cert_level</c> in the manifest, TV-Store
+        /// #50): "partner" for an app that uses partner-level rights or hooks into a Samsung native
+        /// package, which installs fine signed Public and then fails to run. Null for the usual
+        /// package; written only when present, so the snapshot round-trips it as-is and TV-Store
+        /// reads it from resolved.json.
+        /// </summary>
+        /// <summary>
+        /// The independent repository this app moved to (#1018), copied by build-catalog.sh onto each
+        /// of its files: the signed catalog vouches for that repository's key. Null when it did not move.
+        /// </summary>
+        [JsonPropertyName("moved_to")]
+        public MovedTo? MovedTo { get; set; }
+
+        [JsonPropertyName("cert_level")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? CertLevel { get; set; }
+
+        /// <summary>The app only works when signed with a Partner certificate (<c>cert_level: "partner"</c>).</summary>
+        [JsonIgnore]
+        public bool RequiresPartner => string.Equals(CertLevel, "partner", System.StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// The package gains root on the TV and runs a service from boot (<c>flags: ["root"]</c>).
@@ -77,7 +153,25 @@ namespace Apps2Samsung.Models
         /// PC out of SDB until it is set back, so the heads confirm first.
         /// </summary>
         [JsonIgnore]
-        public bool IsRoot => Flags?.Exists(f => string.Equals(f, "root", System.StringComparison.OrdinalIgnoreCase)) == true;
+        public bool IsRoot => HasFlag("root");
+
+        /// <summary>
+        /// The app's source is not in the linked repository (<c>flags: ["closed-source"]</c>, #1016);
+        /// the catalogue carries it because the author allows redistribution. A neutral badge, no
+        /// confirmation; hidden while "Show closed-source apps" is off.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsClosedSource => HasFlag("closed-source");
+
+        /// <summary>
+        /// The app downloads and runs newer code after install, outside the catalogue and its scan
+        /// (<c>flags: ["self-updating"]</c>, #1016). A badge and a line on the app sheet.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsSelfUpdating => HasFlag("self-updating");
+
+        private bool HasFlag(string flag) =>
+            Flags?.Exists(f => string.Equals(f, flag, System.StringComparison.OrdinalIgnoreCase)) == true;
     }
 
     /// <summary>
@@ -147,5 +241,15 @@ namespace Apps2Samsung.Models
         public List<long>? Disallow { get; set; }
 
         public bool IsNumber => string.Equals(Type, "number", System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Where a catalog app moved to (#1018): its repository's link and the key fingerprint the official catalog vouches for.</summary>
+    public sealed class MovedTo
+    {
+        [JsonPropertyName("url")]
+        public string Url { get; set; } = "";
+
+        [JsonPropertyName("fingerprint")]
+        public string Fingerprint { get; set; } = "";
     }
 }

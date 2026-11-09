@@ -16,6 +16,9 @@ name: Crowdin config
 # drifted silently: the server pattern was %two_letters_code%, so pt-BR/pt-PT and zh-CN/zh-TW
 # collided server-side and one language of each pair was dropped from every build. Run this after
 # changing the translation pattern in crowdin.yml so the two cannot part company again.
+#
+# "languages" adds target languages to the project (Crowdin ids, e.g. "sl" for Slovenian) so a
+# translator who asked for one can start. The next sync brings the file back as %locale%.json.
 
 on:
   workflow_dispatch:
@@ -28,18 +31,27 @@ on:
         description: 'Also write the export pattern. Off while this branch has a path beta does not.'
         type: boolean
         default: true
+      languages:
+        description: 'Target languages to add, Crowdin ids comma separated (e.g. "sl"). Empty = none.'
+        type: string
+        default: ''
 
 concurrency:
   # A build started mid-change would be half-renamed.
   group: crowdin-sync
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   config:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7.1.0
         with:
           python-version: '3.x'
       - name: Apply the Crowdin-side configuration
@@ -48,6 +60,7 @@ jobs:
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
           APPLY: ${{ inputs.apply }}
           PATTERN: ${{ inputs.pattern }}
+          LANGUAGES: ${{ inputs.languages }}
         run: |
           if [ -z "$CROWDIN_PROJECT_ID" ] || [ -z "$CROWDIN_PERSONAL_TOKEN" ]; then
             echo "::error::CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN are not set."
@@ -55,4 +68,5 @@ jobs:
           fi
           [ "$APPLY" = "true" ] && apply=--apply || apply=
           [ "$PATTERN" = "false" ] && leave=--leave-pattern || leave=
-          python3 .github/scripts/crowdin_apply_config.py $apply $leave | tee -a "$GITHUB_STEP_SUMMARY"
+          set -o pipefail
+          python3 .github/scripts/crowdin_apply_config.py $apply $leave --add-languages "$LANGUAGES" | tee -a "$GITHUB_STEP_SUMMARY"

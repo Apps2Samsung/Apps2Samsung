@@ -19,7 +19,9 @@ namespace Apps2Samsung.Catalog
     }
 
     /// <summary>An installed app's entry in the catalog: the listed app, the exact file, and how their versions compare.</summary>
-    public sealed record CatalogMatch(GitHubRelease Release, Asset Asset, CatalogVersionState State)
+    /// <param name="VariantRemembered">The file is the variant this TV got last time (#975,
+    /// <see cref="Apps2Samsung.Packaging.InstalledVariantStore"/>), not the app's default or a guess.</param>
+    public sealed record CatalogMatch(GitHubRelease Release, Asset Asset, CatalogVersionState State, bool VariantRemembered = false)
     {
         public bool HasUpdate => State is CatalogVersionState.UpdateAvailable or CatalogVersionState.Different;
         public string? CatalogVersion => Asset.PackageVersion;
@@ -43,7 +45,13 @@ namespace Apps2Samsung.Catalog
         /// </summary>
         /// <param name="packageIdRenamesJson">The heads' rename store (#839): an app installed under
         /// another id is matched by the id its package was built with, which is what the catalog records.</param>
-        public static CatalogMatch? Find(InstalledApp app, IEnumerable<GitHubRelease> catalog, string? packageIdRenamesJson = null)
+        /// <param name="installedVariantsJson">The heads' installed-variant store (#975): which of the
+        /// candidates this TV got last time. With a record, the comparison is against that one file,
+        /// so an app with several variants at one version reads as up to date or as an update of the
+        /// variant that is on the TV, never of the app's default file.</param>
+        /// <param name="tvIp">The TV the apps were read from, the store's key; <paramref name="tvDuid"/> when known.</param>
+        public static CatalogMatch? Find(InstalledApp app, IEnumerable<GitHubRelease> catalog, string? packageIdRenamesJson = null,
+            string? installedVariantsJson = null, string? tvIp = null, string? tvDuid = null)
         {
             if (app is null || string.IsNullOrWhiteSpace(app.TizenId))
                 return null;
@@ -60,6 +68,37 @@ namespace Apps2Samsung.Catalog
                         candidates.Add((release, asset));
                 }
             }
+            // Installed under an id derived from a catalog entry (#1028): that entry, whether this
+            // client renamed it (the record above maps it back) or TV-Store did (no record here). The
+            // forks that share the original id are then told apart: tacplayer's derived id is not the
+            // Jellyfin client's.
+            var derived = DerivedMatches(app.TizenId, catalog);
+            if (derived.Count > 0)
+                candidates = derived;
+            if (candidates.Count == 0)
+                return null;
+
+            // Updates come only from the source the app was installed from (#1018): never the newest
+            // across sources. Without a record of it (installed before sources were recorded, or by
+            // another tool) a signed repository never claims the app; the official catalog and the
+            // user's unverified sources compare as they always did.
+            var record = Apps2Samsung.Packaging.InstalledVariantStore.Find(installedVariantsJson, tvIp, catalogId, tvDuid);
+            // An app the official catalog says moved to a repository (moved_to) follows it there once
+            // the user added that repository: from the official catalog (or no record), its updates
+            // come from the repository the catalog named, and from nowhere else.
+            var movedTo = candidates
+                .Where(c => c.Release.Source.Kind == CatalogSourceKind.Official && c.Asset.MovedTo is not null)
+                .Select(c => c.Asset.MovedTo!.Url.Trim())
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var moved = candidates
+                .Where(c => c.Release.Source.Kind == CatalogSourceKind.Repository && c.Release.Source.Url is { } url && movedTo.Contains(url))
+                .ToList();
+            var fromOfficial = record?.Source is null or { Length: 0 } or "official";
+            candidates = fromOfficial && moved.Count > 0
+                ? moved
+                : record?.Source is { Length: > 0 } source
+                ? candidates.Where(c => string.Equals(c.Release.Source.Key, source, StringComparison.Ordinal)).ToList()
+                : candidates.Where(c => c.Release.Source.Kind != CatalogSourceKind.Repository).ToList();
             if (candidates.Count == 0)
                 return null;
 
@@ -73,14 +112,26 @@ namespace Apps2Samsung.Catalog
                 .Where(c => PublishedAt(c.Release) == newestPerApp[c.Release.Name ?? string.Empty])
                 .ToList();
 
+            // The variant this TV got last time (#975): that file is the one to compare with and to
+            // update to. Only among the candidates, so a variant the catalog dropped falls through.
+            if (record is { } remembered)
+            {
+                var same = candidates
+                    .Where(c => string.IsNullOrWhiteSpace(remembered.CatalogApp) ||
+                                string.Equals(c.Release.Name, remembered.CatalogApp, StringComparison.OrdinalIgnoreCase))
+                    .FirstOrDefault(c => Apps2Samsung.Packaging.InstalledVariantStore.IsSameVariant(remembered, c.Asset.FileName, c.Asset.Variant));
+                if (same.Asset is not null)
+                    return new CatalogMatch(same.Release, same.Asset, Compare(app.Version, same.Asset.PackageVersion), VariantRemembered: true);
+            }
+
             if (candidates.Count == 1)
                 return new CatalogMatch(candidates[0].Release, candidates[0].Asset, Compare(app.Version, candidates[0].Asset.PackageVersion));
 
             var states = candidates.Select(c => (c, State: Compare(app.Version, c.Asset.PackageVersion))).ToList();
-            var same = states.FirstOrDefault(x => x.State == CatalogVersionState.UpToDate &&
+            var installed = states.FirstOrDefault(x => x.State == CatalogVersionState.UpToDate &&
                 string.Equals(Normalize(app.Version), Normalize(x.c.Asset.PackageVersion), StringComparison.OrdinalIgnoreCase));
-            if (same.c.Asset is not null)
-                return new CatalogMatch(same.c.Release, same.c.Asset, CatalogVersionState.UpToDate);
+            if (installed.c.Asset is not null)
+                return new CatalogMatch(installed.c.Release, installed.c.Asset, CatalogVersionState.UpToDate);
 
             if (states.All(x => x.State == CatalogVersionState.UpdateAvailable))
             {
@@ -91,6 +142,30 @@ namespace Apps2Samsung.Catalog
             }
 
             return new CatalogMatch(candidates[0].Release, candidates[0].Asset, CatalogVersionState.Unknown);
+        }
+
+        // The catalog files whose derived package id (PackageIdCollisions.DerivedId of their catalog
+        // key) is the installed app's package, with the same application part ("Pkg.App"'s ".App").
+        private static List<(GitHubRelease Release, Asset Asset)> DerivedMatches(string tizenId, IEnumerable<GitHubRelease> catalog)
+        {
+            var found = new List<(GitHubRelease, Asset)>();
+            var dot = tizenId.IndexOf('.');
+            if (dot != Apps2Samsung.Install.PackageIdCollisions.IdLength)
+                return found;
+            var package = tizenId[..dot];
+            var appPart = tizenId[dot..];
+            foreach (var release in catalog)
+            {
+                foreach (var asset in release.Assets)
+                {
+                    if (string.IsNullOrWhiteSpace(asset.AppId) || !asset.AppId.EndsWith(appPart, StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    var key = Apps2Samsung.Install.PackageIdCollisions.CatalogKey(release, asset);
+                    if (key is not null && string.Equals(Apps2Samsung.Install.PackageIdCollisions.DerivedId(key), package, StringComparison.Ordinal))
+                        found.Add((release, asset));
+                }
+            }
+            return found;
         }
 
         /// <summary>

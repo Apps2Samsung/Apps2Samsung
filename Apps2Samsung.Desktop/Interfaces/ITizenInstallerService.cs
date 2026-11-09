@@ -26,7 +26,7 @@ namespace Apps2Samsung.Interfaces
         /// <param name="installProgress">Receives the percentage the TV reports while it installs the
         /// package (0–100), separate from the status lines in <paramref name="progress"/>. Reported on
         /// the engine's thread; a retry starts again from the TV's first report.</param>
-        Task<InstallResult> InstallPackageAsync(string packageUrl, string tvIpAddress, CancellationToken cancellationToken, ProgressCallback? progress = null, Action? onSamsungLoginStarted = null, bool? wasAlreadyInstalled = null, IProgress<int>? installProgress = null);
+        Task<InstallResult> InstallPackageAsync(string packageUrl, string tvIpAddress, CancellationToken cancellationToken, ProgressCallback? progress = null, Action? onSamsungLoginStarted = null, bool? wasAlreadyInstalled = null, IProgress<int>? installProgress = null, string? catalogKey = null);
 
         /// <summary>Lists the apps installed on the TV (queries the TV and parses the reply). Empty
         /// when the TV listed nothing; throws when it sent no listing at all.</summary>
@@ -47,7 +47,15 @@ namespace Apps2Samsung.Interfaces
         /// account page or a dialog), so the caller only reports <see cref="CertificatePreparation.Created"/>
         /// and <see cref="CertificatePreparation.Reused"/>.
         /// </summary>
-        Task<CertificatePreparation> PrepareCertificateAsync(string tvIpAddress, CancellationToken cancellationToken = default);
+        /// <param name="requirePartner">The certificate has to be Partner (the package to sign needs it, #979).</param>
+        Task<CertificatePreparation> PrepareCertificateAsync(string tvIpAddress, CancellationToken cancellationToken = default, bool requirePartner = false);
+
+        /// <summary>
+        /// The per-app modifications an install makes before signing (the registered patchers, the
+        /// values asked before install among them), on <paramref name="packagePath"/> in place, for a
+        /// package that is signed and installed elsewhere: TV-Store's upload page (#979).
+        /// </summary>
+        Task CustomizeAsync(string tvIpAddress, string packagePath);
 
         Task LaunchAppAsync(string tvIpAddress, string tizenId);
         Task StopAppAsync(string tvIpAddress, string tizenId);

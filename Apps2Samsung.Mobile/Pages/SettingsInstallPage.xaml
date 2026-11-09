@@ -3,11 +3,46 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.SettingsInstallPage"
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
 
     <ContentPage.Resources>
+        <!-- the Samsung / Tizen rows (#988): a tile, the name over a hint, a radio on the right -->
+        <Style x:Key="PickRow" TargetType="Border">
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 8" />
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+        </Style>
+        <Style x:Key="PickTile" TargetType="Border">
+            <Setter Property="WidthRequest" Value="30" />
+            <Setter Property="HeightRequest" Value="30" />
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 8" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style x:Key="PickIcon" TargetType="shapes:Path">
+            <Setter Property="Stroke" Value="{DynamicResource OnAccentBrush}" />
+            <Setter Property="StrokeThickness" Value="2.2" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="StrokeLineJoin" Value="Round" />
+            <Setter Property="WidthRequest" Value="18" />
+            <Setter Property="HeightRequest" Value="18" />
+            <Setter Property="Aspect" Value="Uniform" />
+            <Setter Property="HorizontalOptions" Value="Center" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+        <Style x:Key="PickRadio" TargetType="Border">
+            <Setter Property="WidthRequest" Value="20" />
+            <Setter Property="HeightRequest" Value="20" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 10" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="Stroke" Value="{DynamicResource HairColor}" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
         <!-- one third of the certificate switch -->
         <Style x:Key="Segment" TargetType="Button">
             <Setter Property="HeightRequest" Value="30" />
@@ -33,8 +68,52 @@
                 <Label Text="{l:Localize lblSigning}" Style="{StaticResource GroupTitle}" />
                 <Border Style="{StaticResource Card}">
                     <VerticalStackLayout>
+                        <!-- Samsung / Tizen (#988): the chosen row on the soft accent. A Tizen certificate is
+                             the SDK's, made on the phone with no account and no device ID; the TV says at
+                             the install when it only takes a Samsung one. -->
+                        <VerticalStackLayout Padding="6" Spacing="4">
+                            <Border x:Name="SamsungRow" Style="{StaticResource PickRow}">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnSamsungTapped" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="30,*,Auto" ColumnSpacing="12">
+                                    <Border Style="{StaticResource PickTile}" BackgroundColor="{DynamicResource AccentColor}">
+                                        <shapes:Path Style="{StaticResource PickIcon}" Data="M12,3 L19,6 L19,11 C19,15.5 16,19 12,21 C8,19 5,15.5 5,11 L5,6 Z M9,12 L11,14 L15,10" />
+                                    </Border>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                        <Label x:Name="SamsungLabel" Text="{l:Localize lblCertificateSamsung}" FontSize="16" />
+                                        <Label Style="{StaticResource RowHint}" Text="{l:Localize hintCertificateSamsung}" />
+                                    </VerticalStackLayout>
+                                    <Border x:Name="SamsungRadio" Grid.Column="2" Style="{StaticResource PickRadio}">
+                                        <shapes:Path x:Name="SamsungCheck" Data="M5,12.5 L9.5,17 L19,7" Stroke="{DynamicResource OnAccentBrush}" StrokeThickness="3.2"
+                                                     StrokeLineCap="Round" StrokeLineJoin="Round" WidthRequest="11" HeightRequest="11" Aspect="Uniform"
+                                                     HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+                            <Border x:Name="TizenRow" Style="{StaticResource PickRow}">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnTizenTapped" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="30,*,Auto" ColumnSpacing="12">
+                                    <Border Style="{StaticResource PickTile}" BackgroundColor="{DynamicResource TileToolsColor}">
+                                        <shapes:Path Style="{StaticResource PickIcon}" Data="M12,3 L19,6 L19,11 C19,15.5 16,19 12,21 C8,19 5,15.5 5,11 L5,6 Z M12,8 L12,13 M12,16 L12,16.5" />
+                                    </Border>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                        <Label x:Name="TizenLabel" Text="{l:Localize lblCertificateTizen}" FontSize="16" />
+                                        <Label Style="{StaticResource RowHint}" Text="{l:Localize hintCertificateTizen}" />
+                                    </VerticalStackLayout>
+                                    <Border x:Name="TizenRadio" Grid.Column="2" Style="{StaticResource PickRadio}">
+                                        <shapes:Path x:Name="TizenCheck" Data="M5,12.5 L9.5,17 L19,7" Stroke="{DynamicResource OnAccentBrush}" StrokeThickness="3.2"
+                                                     StrokeLineCap="Round" StrokeLineJoin="Round" WidthRequest="11" HeightRequest="11" Aspect="Uniform"
+                                                     HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </VerticalStackLayout>
+                        <BoxView Style="{StaticResource RowDivider}" />
                         <VerticalStackLayout Padding="16,12" Spacing="10">
-                            <Label Text="{l:Localize lblCertifcate}" FontSize="16" />
+                            <Label Text="{l:Localize lblCertificateLevel}" FontSize="16" />
                             <Border Padding="2" StrokeThickness="0" StrokeShape="RoundRectangle 9" BackgroundColor="{DynamicResource FillColor}">
                                 <Grid ColumnDefinitions="*,*,*" ColumnSpacing="2">
                                     <Button x:Name="CertAuto" Grid.Column="0" Style="{StaticResource Segment}"
@@ -43,7 +122,8 @@
                                     <Button x:Name="CertPartner" Grid.Column="2" Style="{StaticResource Segment}" Clicked="OnCertificateClicked" />
                                 </Grid>
                             </Border>
-                            <Label Style="{StaticResource RowHint}" Text="{l:Localize hintCertificateType}" />
+                            <Label x:Name="LevelHintSamsung" Style="{StaticResource RowHint}" Text="{l:Localize hintCertificateType}" />
+                            <Label x:Name="LevelHintTizen" Style="{StaticResource RowHint}" Text="{l:Localize hintCertificateTypeTizen}" IsVisible="False" />
                         </VerticalStackLayout>
                         <BoxView Style="{StaticResource RowDivider}" />
                         <Grid Style="{StaticResource SettingRow}">
@@ -56,6 +136,7 @@
                         </Grid>
                         <BoxView Style="{StaticResource RowDivider}" />
                         <VerticalStackLayout Padding="16,12" Spacing="10">
+                            <Label x:Name="CertificateStatus" Style="{StaticResource RowHint}" />
                             <Label Style="{StaticResource RowHint}" Text="{l:Localize hintPrepareCertificateNow}" />
                             <Button x:Name="PrepareBtn" Text="{l:Localize lblPrepareCertificateNow}" Style="{StaticResource SoftButton}"
                                     CornerRadius="12" HorizontalOptions="Start" Clicked="OnPrepareClicked" />
@@ -104,6 +185,24 @@
                     </VerticalStackLayout>
                 </Border>
                 <Label Style="{StaticResource Footnote}" Text="{l:Localize hintEveryInstall}" FontSize="12" />
+
+                <!-- Your sources: repositories, releases and file links the user added (UserSources). Listed
+                     in the catalog next to the manifest's providers; read again on every refresh. -->
+                <Label Text="{l:Localize lblUserSources}" Style="{StaticResource GroupTitle}" Margin="4,16,4,0" />
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout>
+                        <VerticalStackLayout Padding="16,12" Spacing="10">
+                            <Label Style="{StaticResource RowHint}" Text="{l:Localize hintUserSources}" />
+                        </VerticalStackLayout>
+                        <BoxView Style="{StaticResource RowDivider}" />
+                        <Label x:Name="NoSourcesLabel" Style="{StaticResource RowHint}" Padding="16,12" Text="{l:Localize lblUserSourcesEmpty}" />
+                        <VerticalStackLayout x:Name="SourceRows" />
+                        <VerticalStackLayout Padding="16,12" Spacing="10">
+                            <Button Text="{l:Localize lblAddSource}" Style="{StaticResource SoftButton}"
+                                    CornerRadius="12" HorizontalOptions="Start" Clicked="OnAddSourceClicked" />
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
 
             </VerticalStackLayout>
         </ScrollView>

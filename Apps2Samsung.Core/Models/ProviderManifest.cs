@@ -29,7 +29,7 @@ namespace Apps2Samsung.Models
         public bool ExpandAssets { get; set; }
         /// <summary>
         /// Optional required signing level for this app: "partner" for apps that use restricted
-        /// privileges (e.g. vpnservice — Tailscale). Empty/"public" (default) uses Public signing.
+        /// privileges (e.g. vpnservice, Tailscale). Empty/"public" (default) uses Public signing.
         /// The installer auto-requests this level for the package.
         /// </summary>
         public string CertLevel { get; set; } = "";
@@ -41,6 +41,26 @@ namespace Apps2Samsung.Models
         /// </summary>
         public string Category { get; set; } = "";
         public ProviderBuildInfo? BuildInfo { get; set; }
+        /// <summary>
+        /// True for a provider made from a source the user added (<c>UserSources.ToProvider</c>), never
+        /// for one read from the manifest. The heads badge its entries as the user's own.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        public bool IsUserSource { get; set; }
+
+        /// <summary>
+        /// Where this provider comes from (#1018); null for the official manifest's own providers, and
+        /// "Unverified" is assumed for a user source without one. Stamped onto every release.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        public CatalogSource? Source { get; set; }
+
+        /// <summary>
+        /// Releases already resolved and verified: a signed repository carries its own (#1018), so no
+        /// GitHub call is made for it. <c>AddLatestRelease</c> serves copies of these when set.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        public List<GitHubRelease>? Releases { get; set; }
     }
 
     public sealed class ProviderBuildInfo

@@ -8,6 +8,7 @@ using Apps2Samsung.Helpers.Tizen.Certificate;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
 using Apps2Samsung.Packaging;
+using Apps2Samsung.Localization;
 using Apps2Samsung.Sdb;
 using Avalonia.Threading;
 using System;
@@ -103,7 +104,7 @@ namespace Apps2Samsung.Services
                 if (expected.HasValue && actual != expected.Value)
                     throw new IOException($"Download incomplete: received {actual} of {expected.Value} bytes.");
 
-                // .wgt is a zip — if the trailer isn't there, the file is truncated/corrupt.
+                // .wgt is a zip, if the trailer isn't there, the file is truncated/corrupt.
                 if (!IsValidZipArchive(tempPath))
                     throw new InvalidDataException("Downloaded package is not a valid .wgt archive (corrupt or incomplete).");
 
@@ -219,12 +220,13 @@ namespace Apps2Samsung.Services
             ProgressCallback? progress = null,
             Action? onSamsungLoginStarted = null,
             bool? wasAlreadyInstalled = null,
-            IProgress<int>? installProgress = null)
+            IProgress<int>? installProgress = null,
+            string? catalogKey = null)
         {
             // Record whether the app was already on the TV BEFORE this run. This gates the fresh-install
             // partial cleanup in HandleInstallationResultAsync: we only clear a partial for an app that
             // wasn't there to begin with, never a pre-existing working app. If we can't tell, assume
-            // installed (fail safe — never uninstall).
+            // installed (fail safe, never uninstall).
             if (wasAlreadyInstalled is null)
             {
                 try
@@ -254,11 +256,20 @@ namespace Apps2Samsung.Services
                 WasAlreadyInstalled = wasAlreadyInstalled.Value,
                 SourcePackage = packageUrl,
                 InstallProgress = installProgress,
+                CatalogKey = catalogKey,
             };
 
             try
             {
-                return await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
+                var result = await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
+                // Renamed because another app on the TV has this id (#1028): the result says so.
+                if (result.Success && run.Rename?.CollidedWith is { } other)
+                {
+                    var note = string.Format("installedAsSeparateApp".Localized(), run.Rename.NewId, other);
+                    progress?.Invoke(note);
+                    return new InstallResult { Success = true, Note = note };
+                }
+                return result;
             }
             finally
             {
@@ -283,10 +294,12 @@ namespace Apps2Samsung.Services
 
             try
             {
-                // Step 1: Prepare device and check for existing installations
-                var prepareResult = await PrepareDeviceAsync(tvIpAddress, packagePath, progress, run);
-                if (!prepareResult.Success)
-                    return prepareResult;
+                // Updating TV-Store through TV-Store's own relay (#1005): the TV drops this
+                // connection while it replaces TV-Store, so the old copy is not removed first (that
+                // would take the relay down before the push) and the end of the install is read
+                // another way. Decided once per run, on the source package's own ids.
+                run.TvStoreSelfUpdate ??= await Apps2Samsung.TvStore.TvStoreSelfUpdate.AppliesAsync(
+                    tvIpAddress, run.SourcePackage, _appSettings.PackageIdRenamesJson, cancellationToken);
 
                 // Step 2: Connect and get device information
                 progress?.Invoke(Constants.LocalizationKeys.ConnectingToDevice.Localized());
@@ -310,18 +323,66 @@ namespace Apps2Samsung.Services
 
                 // Step 3b: another package id for this TV (#839): the sheet asked for a new one, or
                 // an earlier install on this TV already renamed this package and the update has to
-                // land on that tile. Not on the retry that keeps a [118]-renamed working copy, which
-                // already carries its new id.
+                // land on that tile, unless the sheet asked for the package's own id back. Not on
+                // the retry that keeps a [118]-renamed working copy, which already carries its new id.
+                // Also the automatic rename of a web package whose id another app on the TV has
+                // (#1028), and the Cancel/Replace question for a native one. All of it before Step 3c
+                // below, which removes an old copy by the package's id: that has to be the new id by
+                // then, or it removes the other app.
                 run.TvDuid = deviceInfo.Duid;
+                run.TvName = deviceInfo.Name;
                 if (!run.KeepWorkingPackage)
                 {
+                    var (_, ownPackageId) = await WgtManifest.ReadIdsAsync(packagePath);
+                    var ownId = AppSettings.Default.InstallUnderOwnPackageId;
+                    var forgotten = ownId
+                        ? Apps2Samsung.Packaging.PackageIdRenameStore.Find(_appSettings.PackageIdRenamesJson, deviceInfo.Duid, ownPackageId)
+                        : null;
+
+                    var installedApps = await ReadInstalledAppsAsync(tvIpAddress);
+                    if (installedApps is not null && run.TvStoreSelfUpdate != true && !ownId && run.ReplaceConfirmed is null)
+                    {
+                        var names = await WgtManifest.ReadNamesAsync(packagePath);
+                        if (names.IsNative && Apps2Samsung.Install.PackageIdCollisions.Find(installedApps, names) is { } collision)
+                        {
+                            run.ReplaceConfirmed = await Dispatcher.UIThread.InvokeAsync(() => _dialogService.ShowConfirmationAsync(
+                                string.Format("confirmReplaceOtherTitle".Localized(), collision.OccupantName),
+                                string.Format("confirmReplaceOther".Localized(), collision.OccupantName, collision.PackageName),
+                                "btnReplace".Localized(),
+                                Constants.LocalizationKeys.Cancel.Localized()));
+                            Trace.WriteLine($"[PackageId] Replacing '{collision.OccupantName}' with native '{collision.PackageName}' was {(run.ReplaceConfirmed == true ? "confirmed" : "declined")}.");
+                            if (run.ReplaceConfirmed != true)
+                            {
+                                var message = string.Format("replaceDeclined".Localized(), collision.OccupantName, collision.PackageName);
+                                progress?.Invoke(message);
+                                return InstallResult.FailureResult(message);
+                            }
+                        }
+                    }
+
                     var rename = await Apps2Samsung.Install.PackageIds.ApplyAsync(
                         packagePath,
-                        new Apps2Samsung.Install.PackageIdPolicy(deviceInfo.Duid, AppSettings.Default.InstallUnderNewPackageId),
-                        _appSettings);
+                        new Apps2Samsung.Install.PackageIdPolicy(deviceInfo.Duid, AppSettings.Default.InstallUnderNewPackageId, ownId, run.CatalogKey),
+                        _appSettings,
+                        installed: installedApps);
+                    if (forgotten is not null)
+                        progress?.Invoke(string.Format("statusPackageIdForgotten".Localized(), forgotten.OriginalPackageId, forgotten.NewPackageId));
+                    if (rename?.CollidedWith is { } other)
+                        progress?.Invoke(string.Format("statusPackageIdSeparateApp".Localized(), rename.NewId, other));
                     if (rename is not null)
+                    {
                         progress?.Invoke(string.Format("statusPackageIdRenamed".Localized(), rename.OldId, rename.NewId));
+                        // A retry re-applies the remembered rename, which no longer says why; keep the first.
+                        if (run.Rename is null || rename.CollidedWith is not null)
+                            run.Rename = rename;
+                    }
                 }
+
+                // Step 3c (was Step 1): prepare the device and remove an existing copy where the
+                // settings say so. After the rename above, so "existing copy" is this package's.
+                var prepareResult = await PrepareDeviceAsync(tvIpAddress, packagePath, progress, run);
+                if (!prepareResult.Success)
+                    return prepareResult;
 
                 // Step 4: Handle certificate selection/generation
                 var certificateResult = await HandleCertificateAsync(
@@ -339,7 +400,7 @@ namespace Apps2Samsung.Services
                 // Step 4b: the certificate we're about to sign with must already be inside its
                 // validity window. Tizen checks the signature against the TV's clock and refuses a
                 // certificate whose start date is still in the future ("Certificate in signature is
-                // not valid yet"); re-signing or overwriting can't help — only waiting. So hold the
+                // not valid yet"); re-signing or overwriting can't help, only waiting. So hold the
                 // install here and count down to the start date instead of pushing a doomed package.
                 // Loops because the certificate is re-checked after the wait: only a genuinely valid
                 // certificate gets past this point.
@@ -361,7 +422,7 @@ namespace Apps2Samsung.Services
 
                     if (!proceed)
                     {
-                        // Cancelled during the wait — a deliberate stop, not a failed install.
+                        // Cancelled during the wait, a deliberate stop, not a failed install.
                         progress?.Invoke(Constants.LocalizationKeys.CertificateWaitCancelled.Localized());
                         return InstallResult.CancelledResult(
                             Constants.LocalizationKeys.CertificateWaitCancelled.Localized());
@@ -434,7 +495,7 @@ namespace Apps2Samsung.Services
             {
                 progress?.Invoke($"Installation error: {ex}");
 
-                // Surface the innermost cause too — outer messages like "The SSL connection could
+                // Surface the innermost cause too, outer messages like "The SSL connection could
                 // not be established, see inner exception" are useless on their own (e.g. an old
                 // Windows 7 TLS stack rejecting GitHub's certificate chain).
                 var baseEx = ex.GetBaseException();
@@ -463,6 +524,11 @@ namespace Apps2Samsung.Services
             // While the overwrite retry is still available we push straight away and let the TV's
             // answer decide; only once that has been spent do we diagnose / remove the old copy.
             if (run.RetryAvailable)
+                return InstallResult.SuccessResult();
+
+            // TV-Store through its own relay (#1005): removing it first takes the relay down before
+            // the package can be pushed, and the install replaces the copy anyway.
+            if (run.TvStoreSelfUpdate == true)
                 return InstallResult.SuccessResult();
 
             progress?.Invoke(Constants.LocalizationKeys.DiagnoseTv.Localized());
@@ -518,11 +584,15 @@ namespace Apps2Samsung.Services
 
             string tvDuid = await GetTvDuidAsync(tvIpAddress);
             // Reject a malformed DUID (e.g. an SDB transport-error string) so it never ends up baked
-            // into the certificate's device-id SAN.
+            // into the certificate's device-id SAN. A Tizen certificate (#988) names no TV, so a TV
+            // that will not hand its DUID out only loses the package-id rename memory (#839), not
+            // the install.
             if (!TizenDuid.IsValid(tvDuid))
             {
                 Trace.WriteLine($"[Cert] Invalid TV DUID read from {tvIpAddress}: '{tvDuid}'");
-                return null;
+                if (!Apps2Samsung.Certificate.CertificateKind.IsTizen(_appSettings.CertificateKind))
+                    return null;
+                tvDuid = string.Empty;
             }
 
             var (tizenOs, sdkToolPath) = await FetchCapabilitiesAsync(tvIpAddress);
@@ -589,15 +659,25 @@ namespace Apps2Samsung.Services
             string authorp12, distributorp12, p12Password;
 
             // Public and Partner distributor certs are kept as separate profiles ("Jelly2Sams - Public"
-            // / "Jelly2Sams - Partner") so both can coexist and each is reused independently — switching
+            // / "Jelly2Sams - Partner") so both can coexist and each is reused independently, switching
             // level never clobbers the other.
             // The package requires Partner when the selected package's manifest declares it, OR the
             // package itself declares a partner-level privilege (e.g. vpnservice in a .wgt's
             // config.xml, drminfo in a .tpk's tizen-manifest.xml) or a Partner-only launch setting
-            // (on-boot="true" / auto-restart="true") — the automatic binding: a package that needs a
+            // (on-boot="true" / auto-restart="true"), the automatic binding: a package that needs a
             // restricted API or launch mode must declare it, so we don't track cert levels per package.
             var partnerPrivilege = Apps2Samsung.Packaging.WgtPrivileges.FindPartnerPrivilege(packagePath);
             bool requirePartner = _appSettings.RequiresPartnerSigning || partnerPrivilege is not null;
+
+            // A Tizen certificate (#988): the SDK's, made here, no account and no DUID. Its sheet's
+            // way out is a Samsung certificate: the setting is switched and the Samsung path below
+            // runs as if that had been the choice all along.
+            if (Apps2Samsung.Certificate.CertificateKind.IsTizen(_appSettings.CertificateKind))
+            {
+                var tizen = await HandleTizenCertificateAsync(tvIpAddress, deviceInfo, requirePartner, progress, cancellationToken, run);
+                if (tizen is not null)
+                    return tizen;
+            }
 
             // The package can only be installed Partner-signed, and there's no Partner certificate yet:
             // switch the Settings choice to Partner so one is actually created (and so the UI matches
@@ -618,7 +698,7 @@ namespace Apps2Samsung.Services
             var jelly2SamsDir = Path.Combine(AppSettings.CertificatePath, AutoCertProfileName(requestedLevel));
             bool hasAuthor = HasUsableAuthorCert(jelly2SamsDir);
 
-            // Older Tizen TVs use the shipped "Jellyfin" certificate (set just above) — it's always
+            // Older Tizen TVs use the shipped "Jellyfin" certificate (set just above), it's always
             // present and never regenerated, so it bypasses all Samsung-login / regeneration logic
             // and is just reused from disk (unless the user forces a fresh login).
             bool isBundledJellyfin = selectedCertificate == Constants.AppIdentifiers.JellyfinAppName;
@@ -627,7 +707,7 @@ namespace Apps2Samsung.Services
             // placeholder, or one of our generated "Jelly2Sams[ - Public/Partner]" profiles. In auto
             // mode we REUSE an existing valid profile for the requested level rather than logging in
             // again. Crucially, the "(default)"/empty placeholder must NOT force a fresh Samsung login
-            // when a usable level cert is already on disk — that placeholder was the cause of the
+            // when a usable level cert is already on disk, that placeholder was the cause of the
             // "sign in every time" bug (the dropdown often reverts to "(default)" even though
             // "Jelly2Sams - Public/Partner" exists).
             bool autoMode = string.IsNullOrEmpty(selectedCertificate) || IsAutoCertName(selectedCertificate);
@@ -642,7 +722,7 @@ namespace Apps2Samsung.Services
             if (!isBundledJellyfin && autoMode)
             {
                 var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
-                using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken);
+                using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken, deviceInfo.Duid);
                 try
                 {
                     var profile = await _provisioning.EnsureAsync(
@@ -712,7 +792,7 @@ namespace Apps2Samsung.Services
 
             if (needsFullProfile || needsDistributorOnly)
             {
-                using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken);
+                using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken, deviceInfo.Duid);
                 try
                 {
                     await sheet.OpenAsync(requestedLevel, sheet.Token);
@@ -743,7 +823,7 @@ namespace Apps2Samsung.Services
                     var certProgress = sheet.Progress(progress);
 
                     // Union of DUIDs the (re)generated distributor cert should cover: this TV first,
-                    // then manual entries, then already-covered ones — capped at Samsung's per-cert limit.
+                    // then manual entries, then already-covered ones, capped at Samsung's per-cert limit.
                     var duids = BuildDistributorDuids(deviceInfo.Duid, manualDuids, coveredDuids, progress);
 
                     if (needsFullProfile)
@@ -785,7 +865,7 @@ namespace Apps2Samsung.Services
             }
             else
             {
-                // Reuse in place. For the auto-generated cert, use THIS level's folder — the stored
+                // Reuse in place. For the auto-generated cert, use THIS level's folder, the stored
                 // ChosenCertificates path may point at the other level from a previous install.
                 // Bundled/imported certs keep using their stored path.
                 bool reuseAutoCert = !isBundledJellyfin && autoMode;
@@ -813,7 +893,72 @@ namespace Apps2Samsung.Services
             };
         }
 
-        // True when a generated author cert exists and is still valid — i.e. we can keep that
+        /// <summary>
+        /// The Tizen certificate for this install (#988): the profile on disk for the level the
+        /// Settings switch means, or a new one made on the spot behind the two-step sheet. Null when
+        /// the user chose a Samsung certificate on that sheet: the setting is switched by then and
+        /// the caller goes on with the Samsung path.
+        /// </summary>
+        private async Task<CertificateResult?> HandleTizenCertificateAsync(
+            string tvIpAddress,
+            DeviceInfo deviceInfo,
+            bool requirePartner,
+            ProgressCallback? progress,
+            CancellationToken cancellationToken,
+            InstallRun run)
+        {
+            var level = Apps2Samsung.Certificate.CertificateKind.TizenLevel(_appSettings.CertificatePreference, requirePartner);
+            var store = AppSettings.CertificatePath;
+            bool needsNew = run.ForceLogin || !TizenProfileStore.HasProfile(store, level);
+
+            using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken, deviceInfo.Duid);
+            try
+            {
+                if (needsNew)
+                {
+                    if (!await sheet.OpenTizenAsync(level))
+                    {
+                        Trace.WriteLine("[Cert] Samsung certificate chosen on the Tizen sheet; switching the setting.");
+                        _appSettings.UseSamsungCertificate();
+                        return null;
+                    }
+                    progress?.Invoke(Constants.LocalizationKeys.CreatingCertificateProfile.Localized());
+                }
+
+                var profile = await TizenProfileStore.EnsureAsync(store, level, force: run.ForceLogin, progress: sheet.Progress(progress));
+                await sheet.FinishAsync();
+
+                PackageCertificate = profile.ProfileName;
+                run.TizenProfile = profile;
+
+                // A Tizen profile has no device-profile.xml, so this is a no-op; kept for the day it has.
+                await Apps2Samsung.Sdb.TizenPermitInstall.EnsureAsync(
+                    _sdb, tvIpAddress, deviceInfo.TizenVersion, deviceInfo.SdkToolPath,
+                    Path.Combine(profile.ProfileDir, Constants.Certificate.DeviceProfileFileName));
+
+                return new CertificateResult
+                {
+                    Success = true,
+                    RequiresResign = true,
+                    AuthorP12 = profile.AuthorP12,
+                    DistributorP12 = profile.DistributorP12,
+                    P12Password = profile.Password
+                };
+            }
+            catch (OperationCanceledException ex)
+            {
+                // Cancel on the sheet: no sign-in was involved, so say the install was cancelled.
+                await sheet.EndAsync(ex);
+                Trace.WriteLine("[Cert] Tizen certificate sheet cancelled.");
+                return new CertificateResult { Success = false, InstallResult = InstallResult.CancelledResult("statusInstallCancelled".Localized()) };
+            }
+            catch (Exception ex)
+            {
+                return await EndCertificateRunAsync(sheet, ex);
+            }
+        }
+
+        // True when a generated author cert exists and is still valid, i.e. we can keep that
         // author identity and only regenerate the distributor cert for a new TV.
         private static bool HasUsableAuthorCert(string certDir)
         {
@@ -875,20 +1020,20 @@ namespace Apps2Samsung.Services
             $"{Constants.AppIdentifiers.Jelly2Sams} - {(level == CertificatePrivilegeLevel.Partner ? "Partner" : "Public")}";
 
         // True for any auto-generated Jelly2Sams profile ("Jelly2Sams", "Jelly2Sams (default)",
-        // "Jelly2Sams - Public/Partner") — as opposed to the bundled Jellyfin or a user-imported cert.
+        // "Jelly2Sams - Public/Partner"), as opposed to the bundled Jellyfin or a user-imported cert.
         private static bool IsAutoCertName(string? name) =>
             !string.IsNullOrEmpty(name) &&
             name.StartsWith(Constants.AppIdentifiers.Jelly2Sams, StringComparison.OrdinalIgnoreCase);
 
         // The DUID set a (re)generated distributor cert should cover: this TV first, then manual
-        // entries, then already-covered ones — capped at Samsung's per-cert limit (extras dropped).
+        // entries, then already-covered ones, capped at Samsung's per-cert limit (extras dropped).
         private static IReadOnlyCollection<string> BuildDistributorDuids(
             string currentDuid, HashSet<string> manual, HashSet<string> covered, ProgressCallback? progress)
         {
             var ordered = new List<string>();
             void Add(string d)
             {
-                // Only ever embed well-formed DUIDs — never a stray error string or typo'd manual entry.
+                // Only ever embed well-formed DUIDs, never a stray error string or typo'd manual entry.
                 if (TizenDuid.IsValid(d) && !ordered.Contains(d.Trim(), StringComparer.OrdinalIgnoreCase))
                     ordered.Add(d.Trim());
             }
@@ -922,7 +1067,7 @@ namespace Apps2Samsung.Services
             InstallRun run)
         {
             // Best-effort cleanup of a partial left behind by a FRESH failed install. Guarded on
-            // WasAlreadyInstalled: only clear a package that wasn't on the TV before this run — never
+            // WasAlreadyInstalled: only clear a package that wasn't on the TV before this run, never
             // uninstall a pre-existing working app on a failed reinstall. Swallows all errors.
             async Task ClearPartialIfFresh()
             {
@@ -939,9 +1084,35 @@ namespace Apps2Samsung.Services
 
             var installResults = await InstallPackageOnDeviceAsync(tvIpAddress, packagePath, sdkToolPath, run.InstallProgress);
 
+            // TV-Store updated through its own relay (#1005): the relay closed when the TV stopped
+            // TV-Store to replace it. Expected, not a failure: the new version is read over the TV's
+            // REST API, TV-Store is opened again the same way (which brings the relay back), and
+            // that is the install's result. Not retried: the push went through.
+            if (run.TvStoreSelfUpdate == true && Apps2Samsung.TvStore.TvStoreSelfUpdate.IsExpectedDrop(installResults))
+            {
+                Trace.WriteLine($"[Install] TV-Store self-update on {tvIpAddress}: the connection dropped as expected: {installResults.Output}");
+                var (installedAppId, _) = await WgtManifest.ReadIdsAsync(packagePath);
+                var expected = (await WgtManifest.ReadPackageInfoAsync(packagePath)).Version;
+                var restart = await Apps2Samsung.TvStore.TvStoreSelfUpdate.AwaitRestartAsync(
+                    tvIpAddress, installedAppId ?? Apps2Samsung.TvStore.TvStorePackage.AppId, expected, _sdb,
+                    line => progress?.Invoke(ProgressText.Localize(line, k => k.Localized())));
+                if (restart.CameBack)
+                {
+                    progress?.Invoke(string.Format("statusTvStoreRestarted".Localized(), restart.Version));
+                    progress?.Invoke(Constants.LocalizationKeys.InstallationSuccessful.Localized());
+                    return InstallResult.SuccessResult();
+                }
+
+                progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
+                var notBack = string.Format("statusTvStoreNotBack".Localized(),
+                    restart.Version is null ? "" : string.Format("statusTvStoreNotBackVersion".Localized(), restart.Version));
+                progress?.Invoke(notBack);
+                return InstallResult.FailureResult(notBack);
+            }
+
             // Transport / connection failure (e.g. "Unable to read data from the transport
-            // connection: Connection reset by peer"). Environmental — a VPN/proxy/firewall on
-            // the host capturing the route to the TV, or an unstable Wi-Fi link — not a packaging
+            // connection: Connection reset by peer"). Environmental, a VPN/proxy/firewall on
+            // the host capturing the route to the TV, or an unstable Wi-Fi link, not a packaging
             // problem, so retrying or overwriting can't help. Fail fast with an actionable hint
             // instead of looping a re-sign+re-push over the same broken route.
             if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsTransportLost(installResults.Output))
@@ -952,7 +1123,7 @@ namespace Apps2Samsung.Services
             }
 
             // [116] "download failed": the TV has no room for the package. A re-sign + re-push of the
-            // same file cannot create space, so don't loop through the overwrite retry — tell the user
+            // same file cannot create space, so don't loop through the overwrite retry, tell the user
             // straight away (#666). Same rule as the mobile head's WgtInstaller.
             if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsInsufficientSpace(installResults.Output))
             {
@@ -960,6 +1131,48 @@ namespace Apps2Samsung.Services
                 Trace.WriteLine($"[Install] Insufficient space on {tvIpAddress}: {installResults.Output}");
                 return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(),
                     Constants.LocalizationKeys.InsufficientSpace.Localized()));
+            }
+
+            // The TV refused the certificate itself ([118, -12] with a validator reason that isn't the
+            // installed-copy one, #907): removing a copy can't help, and there usually is none, so no
+            // prompt and no retry. The TV's clock or a new certificate are the fixes.
+            var rejection = Apps2Samsung.Sdb.TizenInstallDiagnostics.GetCertificateRejection(installResults.Output);
+
+            // The TV refused the Tizen certificate's chain (#988): it only takes a Samsung one. The
+            // sheet says so and offers the switch; a yes runs this install again, Samsung-signed.
+            if (rejection == Apps2Samsung.Sdb.CertificateRejection.InvalidChain && run.TizenProfile is { } tizenProfile)
+            {
+                progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
+                Trace.WriteLine($"[Install] Tizen certificate refused by {tvIpAddress}: {installResults.Output}");
+                var reason = Apps2Samsung.Sdb.TizenInstallDiagnostics.CertificateRejectionReason(installResults.Output);
+                var switchToSamsung = await _dialogService.ShowTizenCertificateRefusedAsync(
+                    run.TvName ?? tvIpAddress, tizenProfile.Level, tizenProfile.ProfileName, reason,
+                    CertificateProvisioningService.AuthorValidUntil(tizenProfile.ProfileDir));
+                if (switchToSamsung)
+                {
+                    _appSettings.UseSamsungCertificate();
+                    run.TizenProfile = null;
+                    return await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
+                }
+                var refused = string.Format("statusTizenCertificateRefused".Localized(), run.TvName ?? tvIpAddress);
+                progress?.Invoke(refused);
+                return InstallResult.ShownFailureResult(refused);
+            }
+
+            if (rejection != Apps2Samsung.Sdb.CertificateRejection.None)
+            {
+                progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
+                Trace.WriteLine($"[Install] Certificate rejected by {tvIpAddress} ({rejection}): {installResults.Output}");
+                var rejectedMessage = rejection switch
+                {
+                    Apps2Samsung.Sdb.CertificateRejection.InvalidFormat => Constants.LocalizationKeys.CertificateRejectedInvalidFormat.Localized(),
+                    Apps2Samsung.Sdb.CertificateRejection.NotYetValid => Constants.LocalizationKeys.CertificateRejectedNotYetValid.Localized(),
+                    Apps2Samsung.Sdb.CertificateRejection.Expired => Constants.LocalizationKeys.CertificateRejectedExpired.Localized(),
+                    _ => string.Format(Constants.LocalizationKeys.CertificateRejectedOther.Localized(),
+                        Apps2Samsung.Sdb.TizenInstallDiagnostics.CertificateRejectionReason(installResults.Output) ?? "[118, -12]"),
+                };
+                progress?.Invoke(rejectedMessage);
+                return InstallResult.FailureResult(rejectedMessage);
             }
 
             // Handle certificate mismatch: the installed copy was signed with a different
@@ -994,7 +1207,7 @@ namespace Apps2Samsung.Services
 
             // Handle API-version incompatibility ([118, -4] "Operation not allowed"): the package
             // targets a higher Tizen API level than this TV supports. Not a certificate or privilege
-            // problem, and re-signing/overwriting can't help — the TV simply can't run this build.
+            // problem, and re-signing/overwriting can't help, the TV simply can't run this build.
             // Give the user a clear reason instead of a raw error code.
             if (Apps2Samsung.Sdb.TizenInstallDiagnostics.IsApiVersionMismatch(installResults.Output))
             {
@@ -1057,7 +1270,7 @@ namespace Apps2Samsung.Services
                         return RemovalDeclined(packagePath, progress);
 
                     // Preferred remedy: remove the copy we collide with and reinstall under the
-                    // package's own id. Renaming works too, but keeping the id is strictly better —
+                    // package's own id. Renaming works too, but keeping the id is strictly better , 
                     // a package's service components (<tizen:service id="Pkg.Service">) and the app
                     // code that launches them by literal id are only valid while the id stays what
                     // the package was built with, and the TV keeps one app entry instead of two.
@@ -1065,7 +1278,7 @@ namespace Apps2Samsung.Services
                         return await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
 
                     // Fallback: give the package a new id and retry. Only retry if the rename actually
-                    // happened — if config.xml couldn't be read/modified (previously silent for any
+                    // happened, if config.xml couldn't be read/modified (previously silent for any
                     // non-".Jellyfin" variant like LiteFin, #400), retrying would hit the identical
                     // [118] conflict, so fall through to a clear failure instead.
                     var rename = await PackageIdRewriter.RandomizeAsync(packagePath);
@@ -1116,7 +1329,7 @@ namespace Apps2Samsung.Services
                     return await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
                 }
 
-                // Retries exhausted on a generic failure — clear any partial left by a fresh install.
+                // Retries exhausted on a generic failure, clear any partial left by a fresh install.
                 await ClearPartialIfFresh();
                 return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(), installResults.Output));
             }
@@ -1147,7 +1360,7 @@ namespace Apps2Samsung.Services
                 return await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
             }
 
-            // Retries exhausted on an unknown result — clear any partial left by a fresh install.
+            // Retries exhausted on an unknown result, clear any partial left by a fresh install.
             await ClearPartialIfFresh();
             return InstallResult.FailureResult(string.Format("statusInstallationFailedDetail".Localized(), installResults.Output));
         }
@@ -1237,7 +1450,7 @@ namespace Apps2Samsung.Services
 
         // Debug-mode launch + inspector tunnel live in Core (Sdb/TizenAppDebugger), shared with the
         // mobile head. Only what happens with the local port differs: here it is handed to Chrome's
-        // inspect page, which looks for 9222 specifically — hence the fixed port rather than a free one.
+        // inspect page, which looks for 9222 specifically, hence the fixed port rather than a free one.
         public async Task<(int LocalPort, IAsyncDisposable ForwardSession)> DebugAppAsync(
             string tvIpAddress, string tizenId, int localPort = 9222)
         {
@@ -1258,7 +1471,7 @@ namespace Apps2Samsung.Services
 
         private async Task<string> GetTvDuidAsync(string tvIpAddress)
         {
-            // Retry the read — old/slow TVs often return an empty reply or drop the connection on the
+            // Retry the read, old/slow TVs often return an empty reply or drop the connection on the
             // first try. Returns blank on total failure so the caller's IsValid check handles it.
             try
             {
@@ -1322,7 +1535,7 @@ namespace Apps2Samsung.Services
         /// <summary>
         /// Removes the package we collide with on a [118] id conflict, so the install can be retried
         /// under the package's own id instead of a renamed one. False when there was nothing to
-        /// remove or the TV refused — the caller then falls back to renaming.
+        /// remove or the TV refused, the caller then falls back to renaming.
         /// </summary>
         private async Task<bool> TryRemoveConflictingPackageAsync(
             string tvIpAddress, string packagePath, ProgressCallback? progress)
@@ -1354,6 +1567,22 @@ namespace Apps2Samsung.Services
             return true;
         }
 
+        /// <summary>The TV's installed apps for the package-id collision check (#1028), or null when they could not be read.</summary>
+        private async Task<IReadOnlyList<InstalledApp>?> ReadInstalledAppsAsync(string tvIpAddress)
+        {
+            try
+            {
+                var result = await _sdb.AppsAsync(tvIpAddress);
+                var apps = Apps2Samsung.Sdb.TizenInstalledApps.Parse(result?.Output);
+                return apps.Count > 0 || Apps2Samsung.Sdb.TizenInstalledApps.IsEmptyListing(result?.Output) ? apps : null;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[PackageId] Could not read the installed apps for the collision check: {ex.Message}");
+                return null;
+            }
+        }
+
         private async Task<(bool isInstalled, string? appId)> CheckForInstalledApp(string tvIpAddress, string packagePath)
         {
             var result = await _sdb.AppsAsync(tvIpAddress);
@@ -1370,7 +1599,7 @@ namespace Apps2Samsung.Services
                 return (true, wgtAppId);
             }
 
-            // Case 0: the app id the package declares is the reliable signal — look for it first.
+            // Case 0: the app id the package declares is the reliable signal, look for it first.
             // The title search below has to guess the title from the wgt filename, which misses
             // whenever the two differ ("NuvioTV-Tizen-1.0.4.wgt" vs the TV's "Nuvio TV"). That miss
             // reported a plainly-installed app as absent, so nothing was uninstalled and the install
@@ -1489,6 +1718,28 @@ namespace Apps2Samsung.Services
             /// <summary>The TV's DUID once Step 2 read it; the key of a package-id rename record (#839).</summary>
             public string? TvDuid { get; set; }
 
+            /// <summary>The TV's name once Step 2 read it, for the sheets.</summary>
+            public string? TvName { get; set; }
+
+            /// <summary>The catalog entry the package is from, which a colliding package's new id is derived from (#1028).</summary>
+            public string? CatalogKey { get; init; }
+
+            /// <summary>The rename the first attempt applied, if any; the result says why when another app had the id (#1028).</summary>
+            public Apps2Samsung.Packaging.PackageIdRename? Rename { get; set; }
+
+            /// <summary>The answer to "replace the other app that has this native package's id?" (#1028), asked once per run.</summary>
+            public bool? ReplaceConfirmed { get; set; }
+
+            /// <summary>
+            /// Whether this run updates TV-Store through TV-Store's own relay (#1005), decided once
+            /// on the first attempt: the connection is then expected to drop while TV-Store restarts.
+            /// </summary>
+            public bool? TvStoreSelfUpdate { get; set; }
+
+            /// <summary>Set when this attempt signed with a Tizen certificate (#988), with its profile: a
+            /// [118, -12] chain refusal then means the TV only takes a Samsung one.</summary>
+            public TizenCertificateProfile? TizenProfile { get; set; }
+
             /// <summary>
             /// Returns the file this attempt may rewrite: a fresh copy of <see cref="SourcePackage"/>,
             /// or the previous attempt's copy when <see cref="KeepWorkingPackage"/> says its edits
@@ -1508,7 +1759,25 @@ namespace Apps2Samsung.Services
             public void Dispose() => Working?.Dispose();
         }
 
-        public async Task<CertificatePreparation> PrepareCertificateAsync(string tvIpAddress, CancellationToken cancellationToken = default)
+        public async Task CustomizeAsync(string tvIpAddress, string packagePath)
+        {
+            // The same patchers an install runs (step 5 of RunInstallAsync), sharing one workspace so
+            // the package is unpacked and rezipped once. No TV is asked: the Tizen version is unknown
+            // here, and the patchers that need it read it from the workspace as absent.
+            var patchers = _packagePatchers.Where(p => p.CanHandle(packagePath)).ToList();
+            if (patchers.Count == 0)
+                return;
+
+            using var workspace = PackageWorkspace.Extract(packagePath, tvIpAddress);
+            foreach (var patcher in patchers)
+            {
+                Trace.WriteLine($"Applying configuration via {patcher.GetType().Name}");
+                await patcher.ApplyAsync(workspace);
+            }
+            workspace.RepackIfChanged();
+        }
+
+        public async Task<CertificatePreparation> PrepareCertificateAsync(string tvIpAddress, CancellationToken cancellationToken = default, bool requirePartner = false)
         {
             var deviceInfo = await GetDeviceInfoAsync(tvIpAddress);
             if (deviceInfo == null)
@@ -1517,12 +1786,42 @@ namespace Apps2Samsung.Services
                 return CertificatePreparation.Failed;
             }
 
+            // A Tizen certificate (#988): made here with no sign-in, or already there. Choosing a
+            // Samsung certificate on its sheet switches the setting and goes on below.
+            if (Apps2Samsung.Certificate.CertificateKind.IsTizen(_appSettings.CertificateKind))
+            {
+                var tizenLevel = Apps2Samsung.Certificate.CertificateKind.TizenLevel(
+                    _appSettings.CertificatePreference, _appSettings.RequiresPartnerSigning || requirePartner);
+                var store = AppSettings.CertificatePath;
+                bool needsNew = _appSettings.ForceSamsungLogin || !TizenProfileStore.HasProfile(store, tizenLevel);
+                using var tizenSheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken, deviceInfo.Duid);
+                try
+                {
+                    if (needsNew && !await tizenSheet.OpenTizenAsync(tizenLevel))
+                    {
+                        _appSettings.UseSamsungCertificate();
+                    }
+                    else
+                    {
+                        await TizenProfileStore.EnsureAsync(store, tizenLevel, force: _appSettings.ForceSamsungLogin, progress: tizenSheet.Progress(null));
+                        await tizenSheet.FinishAsync();
+                        return needsNew ? CertificatePreparation.Created : CertificatePreparation.Reused;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await EndCertificateRunAsync(tizenSheet, ex);
+                    return CertificatePreparation.Failed;
+                }
+            }
+
             // The level an install would sign with today (a package that needs Partner switches the
-            // choice by itself at install time, so Automatic means Public until then).
+            // choice by itself at install time, so Automatic means Public until then), or Partner
+            // when the caller has a package in hand that needs it (sign only, #979).
             var level = Apps2Samsung.Certificate.CertificatePreference.ResolveLevel(
-                _appSettings.CertificatePreference, _appSettings.RequiresPartnerSigning);
+                _appSettings.CertificatePreference, _appSettings.RequiresPartnerSigning || requirePartner);
             var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
-            using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken);
+            using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken, deviceInfo.Duid);
             try
             {
                 await _provisioning.EnsureAsync(
@@ -1583,13 +1882,15 @@ namespace Apps2Samsung.Services
         {
             private readonly IDialogService _dialogs;
             private readonly string _tvName;
+            private readonly string? _tvDuid;
             private readonly CancellationTokenSource _cancel;
             private CertificateSheet? _sheet;
 
-            public CertificateSheetRun(IDialogService dialogs, string tvName, CancellationToken outer)
+            public CertificateSheetRun(IDialogService dialogs, string tvName, CancellationToken outer, string? tvDuid = null)
             {
                 _dialogs = dialogs;
                 _tvName = tvName;
+                _tvDuid = tvDuid;
                 _cancel = CancellationTokenSource.CreateLinkedTokenSource(outer);
             }
 
@@ -1599,13 +1900,32 @@ namespace Apps2Samsung.Services
             /// <summary>Shows the sheet and waits for Sign in with Samsung; throws on Cancel.</summary>
             public async Task OpenAsync(CertificatePrivilegeLevel level, CancellationToken ct)
             {
-                _sheet = await _dialogs.OpenCertificateSheetAsync(_tvName, level);
+                _sheet = await _dialogs.OpenCertificateSheetAsync(_tvName, level, _tvDuid);
                 if (_sheet is null)
                     return;
                 _sheet.CancelRequested += (_, _) => _cancel.Cancel();
                 if (!await _sheet.SignInChosen)
                     _cancel.Cancel();
                 _cancel.Token.ThrowIfCancellationRequested();
+            }
+
+            /// <summary>
+            /// The Tizen sheet (#988): waits for Create the certificate (true) or Use a Samsung
+            /// certificate instead (false, the sheet is closed); throws on Cancel.
+            /// </summary>
+            public async Task<bool> OpenTizenAsync(TizenDistributorLevel level)
+            {
+                _sheet = await _dialogs.OpenTizenCertificateSheetAsync(_tvName, level);
+                if (_sheet is null)
+                    return true;
+                _sheet.CancelRequested += (_, _) => _cancel.Cancel();
+                if (!await _sheet.SignInChosen)
+                    _cancel.Cancel();
+                _cancel.Token.ThrowIfCancellationRequested();
+                if (!_sheet.SamsungInstead)
+                    return true;
+                _sheet = null;
+                return false;
             }
 
             /// <summary>The certificate service's progress keys: localized for the status line, and

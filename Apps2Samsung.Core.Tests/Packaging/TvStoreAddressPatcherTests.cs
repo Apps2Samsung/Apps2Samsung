@@ -66,4 +66,33 @@ public class TvStoreAddressPatcherTests
     [Fact]
     public void Ignores_other_packages() =>
         Assert.False(new TvStoreAddressPatcher().CanHandle(MakeWgt(Config.Replace("A2STVStore", "VetroTV001"))));
+
+    // An install under a new package id (#839) rewrites the ids before the patchers are picked. The
+    // widget id (the repository URL) and the name survive the rewrite, and either still says TV-Store.
+    [Theory]
+    [InlineData("<widget id=\"https://github.com/Apps2Samsung/TV-Store\">")]
+    [InlineData("<widget><name>Apps2Samsung TV-Store</name>")]
+    public void Handles_a_build_renamed_to_another_package_id(string widgetOpen)
+    {
+        var renamed = Config.Replace("A2STVStore", "KUW3HHjMUR").Replace("<widget>", widgetOpen);
+        Assert.DoesNotContain("A2STVStore", renamed);
+
+        Assert.True(new TvStoreAddressPatcher().CanHandle(MakeWgt(renamed)));
+    }
+
+    [Fact]
+    public async Task Renamed_build_gets_the_tv_ip_too()
+    {
+        var wgt = MakeWgt(Config.Replace("A2STVStore", "KUW3HHjMUR").Replace("<widget>", "<widget id=\"https://github.com/Apps2Samsung/TV-Store\">"));
+        var patcher = new TvStoreAddressPatcher();
+        Assert.True(patcher.CanHandle(wgt));
+
+        using (var ws = PackageWorkspace.Extract(wgt, "203.0.113.7"))
+        {
+            await patcher.ApplyAsync(ws);
+            ws.RepackIfChanged();
+        }
+
+        Assert.Contains("connect-src * http://203.0.113.7:8077", Read(wgt, "config.xml"));
+    }
 }

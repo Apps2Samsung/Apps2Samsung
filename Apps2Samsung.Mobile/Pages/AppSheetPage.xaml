@@ -11,9 +11,11 @@
         <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
             <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
                      Color="{DynamicResource HairColor}" />
-            <Grid ColumnDefinitions="*,Auto,32,32" ColumnSpacing="8" Margin="0,6,0,0">
-                <Label x:Name="TitleLabel" FontSize="20" FontAttributes="Bold" LineBreakMode="WordWrap" VerticalOptions="Center" />
-                <HorizontalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
+            <Grid ColumnDefinitions="Auto,*,Auto,32,32" ColumnSpacing="8" Margin="0,6,0,0">
+                <!-- the letter tile, or the app's icon from the catalog (#1000); filled in from code -->
+                <ContentView x:Name="TileSlot" VerticalOptions="Center" />
+                <Label Grid.Column="1" x:Name="TitleLabel" FontSize="20" FontAttributes="Bold" LineBreakMode="WordWrap" VerticalOptions="Center" />
+                <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
                     <!-- adult-only (#850) -->
                     <Border x:Name="AdultBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
                             Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="7,2" VerticalOptions="Center">
@@ -24,15 +26,33 @@
                             Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="7,2" VerticalOptions="Center">
                         <Label Text="{l:Localize lblRootBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}" />
                     </Border>
+                    <!-- downloads and runs newer versions of itself after install (#1016) -->
+                    <Border x:Name="SelfUpdatingBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
+                            Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="7,2" VerticalOptions="Center">
+                        <Label Text="{l:Localize lblSelfUpdatingBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}" />
+                    </Border>
+                    <!-- the source is not in the linked repository (#1016): informational, quiet colours -->
+                    <Border x:Name="ClosedSourceBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
+                            Stroke="{DynamicResource HairBrush}" BackgroundColor="{DynamicResource FillColor}" Padding="7,2" VerticalOptions="Center">
+                        <Label Text="{l:Localize lblClosedSourceBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource MutedColor}" />
+                    </Border>
+                    <!-- the Tizen the selected build asks for (TV-Store#47); warning colours when this TV is too old for it -->
+                    <Border x:Name="TizenBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
+                            Stroke="{DynamicResource HairBrush}" BackgroundColor="{DynamicResource FillColor}" Padding="7,2" VerticalOptions="Center">
+                        <Label x:Name="TizenBadgeLabel" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource MutedColor}" />
+                    </Border>
                 </HorizontalStackLayout>
                 <!-- the star: a favorite leads the Install tab's list -->
-                <Button Grid.Column="2" x:Name="FavoriteBtn" Text="☆" FontSize="18" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
+                <Button Grid.Column="3" x:Name="FavoriteBtn" Text="☆" FontSize="18" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
                         MinimumWidthRequest="32" MinimumHeightRequest="32"
                         BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnFavoriteClicked" />
-                <Button Grid.Column="3" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
+                <Button Grid.Column="4" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
                         MinimumWidthRequest="32" MinimumHeightRequest="32"
                         BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnCloseClicked" />
             </Grid>
+            <!-- where the app comes from (#1018): a signed repository, an unverified source, or one that
+                 could not be checked; nothing for the official catalog. Filled in from code. -->
+            <ContentView x:Name="SourceLineSlot" IsVisible="False" Margin="2,0,0,0" />
 
             <Border x:Name="PreviewFrame" IsVisible="False" StrokeThickness="0" StrokeShape="RoundRectangle 12"
                     BackgroundColor="{DynamicResource FillColor}" HeightRequest="190">
@@ -42,6 +62,9 @@
             <!-- what the app is, from the catalog (#835); then the category line the list row shows -->
             <Label x:Name="DescriptionLabel" TextColor="{DynamicResource InkColor}" LineBreakMode="WordWrap" IsVisible="False" />
             <Label x:Name="SublineLabel" TextColor="{DynamicResource MutedColor}" LineBreakMode="WordWrap" />
+            <!-- self-updating (#1016): what the catalogue's scan covers -->
+            <Label x:Name="SelfUpdatingLabel" Text="{l:Localize lblSelfUpdatingDetails}" FontSize="13" TextColor="{DynamicResource WarnColor}"
+                   LineBreakMode="WordWrap" IsVisible="False" />
             <!-- who makes it and where its source, releases and licence live (#820) -->
             <Label x:Name="SourceLabel" FontSize="13" TextColor="{DynamicResource MutedColor}" IsVisible="False" />
 
@@ -59,7 +82,16 @@
                     <Label Text="{l:Localize lblNewPackageId}" FontSize="13" />
                     <Label Text="{l:Localize lblNewPackageIdHint}" FontSize="12" TextColor="{DynamicResource MutedColor}" LineBreakMode="WordWrap" />
                 </VerticalStackLayout>
-                <Switch Grid.Column="1" x:Name="NewIdSwitch" OnColor="{DynamicResource AccentColor}" VerticalOptions="Center" />
+                <Switch Grid.Column="1" x:Name="NewIdSwitch" OnColor="{DynamicResource AccentColor}" VerticalOptions="Center" Toggled="OnNewIdToggled" />
+            </Grid>
+
+            <!-- back to the package's own id (#839): only for an app that was renamed on a TV before -->
+            <Grid x:Name="OwnIdRow" ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="4,4,4,0" IsVisible="False">
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="{l:Localize lblOwnPackageId}" FontSize="13" />
+                    <Label Text="{l:Localize lblOwnPackageIdHint}" FontSize="12" TextColor="{DynamicResource MutedColor}" LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+                <Switch Grid.Column="1" x:Name="OwnIdSwitch" OnColor="{DynamicResource AccentColor}" VerticalOptions="Center" Toggled="OnOwnIdToggled" />
             </Grid>
 
             <!-- the Version header; "Show all versions" on the right for an app that has older
@@ -78,6 +110,25 @@
                 <VerticalStackLayout x:Name="Versions" />
             </Border>
 
+            <!-- the same app from other sources (#1018): a row opens that copy's sheet instead -->
+            <VerticalStackLayout x:Name="AlsoOfferedSection" IsVisible="False" Spacing="8">
+                <Label Text="{l:Localize lblAlsoOfferedBy}" FontSize="15" FontAttributes="Bold" TextColor="{DynamicResource MutedColor}" Margin="4,10,4,0" />
+                <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
+                    <VerticalStackLayout x:Name="AlsoOfferedRows" />
+                </Border>
+                <Label Text="{l:Localize hintSourcesUpdate}" Style="{StaticResource Footnote}" LineBreakMode="WordWrap" />
+            </VerticalStackLayout>
+
+            <!-- why Install is off: the repository could not be checked just now (#1018) -->
+            <Border x:Name="BlockedHintFrame" IsVisible="False" StrokeThickness="0" StrokeShape="RoundRectangle 10"
+                    BackgroundColor="{DynamicResource FillColor}" Padding="12,8">
+                <Label x:Name="BlockedHint" FontSize="13" LineBreakMode="WordWrap" TextColor="{DynamicResource MutedColor}" />
+            </Border>
+            <!-- why Install is off: this TV is too old for the selected build (TV-Store#47) -->
+            <Border x:Name="TizenHintFrame" IsVisible="False" StrokeThickness="0" StrokeShape="RoundRectangle 10"
+                    BackgroundColor="{DynamicResource WarnSoftColor}" Padding="12,8">
+                <Label x:Name="TizenHint" FontSize="13" LineBreakMode="WordWrap" TextColor="{DynamicResource WarnColor}" />
+            </Border>
             <Button x:Name="InstallBtn" Clicked="OnInstallClicked" CornerRadius="12" HeightRequest="50" Margin="0,6,0,0" />
         </VerticalStackLayout>
     </ScrollView>

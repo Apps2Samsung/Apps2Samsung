@@ -536,10 +536,21 @@ namespace Apps2Samsung.Agent
                     Name: Str(item?["name"]) ?? string.Empty,
                     Path: Str(item?["path"]) ?? string.Empty,
                     Size: Num(item?["size"]),
-                    Modified: DateTimeOffset.TryParse(Str(item?["modified"]), null, System.Globalization.DateTimeStyles.RoundtripKind, out var m) ? m : null,
+                    Modified: ParseModified(Str(item?["modified"])),
                     IsPackage: item?["isPackage"]?.GetValue<bool>() ?? false))
                 .Where(f => f.Name.Length > 0)
                 .ToList();
+
+        // Some sets (a 2020 Tizen 5.5 TV, #975) hand tizen.filesystem files a modified time of 0, which
+        // the agent passes on as 1970-01-01T00:00:00Z and a western time zone shows as 1969-12-31.
+        // That is "unknown", not a date: no package was staged before the TV existed.
+        internal static DateTimeOffset? ParseModified(string? text) =>
+            DateTimeOffset.TryParse(text, null, System.Globalization.DateTimeStyles.RoundtripKind, out var m)
+            && m.UtcDateTime >= UnknownBefore
+                ? m
+                : null;
+
+        private static readonly DateTime UnknownBefore = new(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         private static IReadOnlyList<string> ParseStagingErrors(JsonNode? errors) =>
             (errors as JsonArray)?

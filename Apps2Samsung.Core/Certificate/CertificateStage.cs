@@ -35,7 +35,7 @@ namespace Apps2Samsung.Certificate
         public static CertificateStage? FromProgressKey(string key) => key switch
         {
             "GenPassword" or "GenKeyPair" or "CreateAuthorCsr" or "CreateDistributorCSR"
-                or "PostAuthorCSR" or "PostDistributorCSR" => CertificateStage.Create,
+                or "PostAuthorCSR" or "PostDistributorCSR" or "SignTizenAuthor" => CertificateStage.Create,
             "ExportPfxCertificates" => CertificateStage.Save,
             _ => null,
         };
@@ -43,5 +43,23 @@ namespace Apps2Samsung.Certificate
         /// <summary>The badge text next to the sheet's title.</summary>
         public static string LevelKey(CertificatePrivilegeLevel level) =>
             level == CertificatePrivilegeLevel.Partner ? "certLevelPartner" : "certLevelPublic";
+
+        /// <summary>
+        /// The Tizen certificate sheet's steps (#988): no device ID and no sign-in, so only making
+        /// the certificate and keeping it. The same keys as the Samsung sheet where the step is the same.
+        /// </summary>
+        public static readonly (CertificateStage Stage, string TitleKey)[] TizenSteps =
+        {
+            (CertificateStage.Create, "certStageCreate"),
+            (CertificateStage.Save, "certStageSaveTizen"),
+        };
+
+        /// <summary>The badge text next to the Tizen sheet's title: "Tizen · Public" or "Tizen · Partner".</summary>
+        public static string TizenLevelKey(TizenDistributorLevel level) => level switch
+        {
+            TizenDistributorLevel.Partner => "certLevelTizenPartner",
+            TizenDistributorLevel.Platform => "certLevelTizenPlatform",
+            _ => "certLevelTizenPublic",
+        };
     }
 }

@@ -36,8 +36,15 @@ its own. While a branch ahead of beta already carries a new path, run from that 
 --leave-pattern so the cleanup happens but beta's downloads keep working; write the pattern from
 beta once the path has merged there.
 
+It also adds target languages (--add-languages sl,sk). A translator can only work on a language
+the project has, and "Request new language" in the Crowdin UI lands with the owner, not anyone who
+can act on it from the repo. There is no local token, so this is the one place it can be done.
+Crowdin language ids are used (sl, not sl-SI); the file arrives as %locale%.json (sl-SI.json) and
+Core embeds every file in the folder, so nothing else needs changing.
+
   CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN in the environment; --apply to write;
-  --leave-pattern to report the export pattern but not write it.
+  --leave-pattern to report the export pattern but not write it;
+  --add-languages a,b to add Crowdin target language ids the project does not have yet.
 """
 import json
 import os
@@ -102,11 +109,30 @@ def wanted_pattern():
     return match.group(1).strip('"\'')
 
 
+def requested_languages(argv):
+    """Crowdin ids after --add-languages, comma or space separated, lowercased as Crowdin lists
+    them except for the region part (pt-PT, zh-TW)."""
+    if "--add-languages" not in argv:
+        return []
+    i = argv.index("--add-languages")
+    raw = argv[i + 1] if i + 1 < len(argv) else ""
+    out = []
+    for part in re.split(r"[,\s]+", raw.strip()):
+        if part:
+            head, _, region = part.partition("-")
+            lang = head.lower() + ("-" + region.upper() if region else "")
+            if lang not in out:
+                out.append(lang)
+    return out
+
+
 def main():
     if not TOKEN or not PROJECT:
         raise SystemExit("CROWDIN_PROJECT_ID / CROWDIN_PERSONAL_TOKEN are not set.")
-    apply = "--apply" in sys.argv[1:]
-    leave_pattern = "--leave-pattern" in sys.argv[1:]
+    argv = sys.argv[1:]
+    apply = "--apply" in argv
+    leave_pattern = "--leave-pattern" in argv
+    add_languages = requested_languages(argv)
 
     pattern = wanted_pattern()
     print(f"{CONFIG} wants: {pattern}")
@@ -140,6 +166,21 @@ def main():
 
     print(f"Crowdin has:  {current}")
     print(f"languageMapping: {json.dumps(mapping)}")
+
+    targets = project.get("targetLanguageIds") or []
+    missing = []
+    if add_languages:
+        known = {lang["id"]: lang["name"] for lang in listing("/languages")}
+        unknown = [lang for lang in add_languages if lang not in known]
+        if unknown:
+            raise SystemExit(f"Not a Crowdin language id: {', '.join(unknown)} "
+                             "(see https://developer.crowdin.com/language-codes/).")
+        for lang in add_languages:
+            if lang in targets:
+                print(f"Language:    {lang} ({known[lang]}) already a target")
+            else:
+                print(f"Language:    {lang} ({known[lang]}) to add")
+                missing.append(lang)
     for d in stale:
         print(f"Empty:       id={d['id']} {d['path']} (no file beneath it)")
 
@@ -155,6 +196,8 @@ def main():
         changes.append(f"{len(orphans)} orphaned source file(s) to delete")
     if stale:
         changes.append(f"{len(stale)} empty director(y/ies) to delete")
+    if missing:
+        changes.append(f"target language(s) to add: {', '.join(missing)}")
     if not changes:
         print("\nAlready correct - nothing to write.")
         return 0
@@ -173,6 +216,10 @@ def main():
         call(f"/projects/{PROJECT}", method="PATCH",
              body=[{"op": "replace", "path": "/languageMapping", "value": {}}])
         print("  languageMapping cleared")
+    if missing:
+        call(f"/projects/{PROJECT}", method="PATCH",
+             body=[{"op": "replace", "path": "/targetLanguageIds", "value": targets + missing}])
+        print(f"  target language(s) added: {', '.join(missing)}")
     for f in orphans:
         call(f"/projects/{PROJECT}/files/{f['id']}", method="DELETE")
         print(f"  deleted orphan id={f['id']} {f.get('path')}")

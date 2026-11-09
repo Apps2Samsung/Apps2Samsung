@@ -17,9 +17,11 @@ public partial class AppActionsSheetPage : ContentPage
 
 	public Task<AppAction?> Result => _result.Task;
 
-	public AppActionsSheetPage(InstalledApp app, bool inCatalog = false)
+	public AppActionsSheetPage(InstalledApp app, bool inCatalog = false, CommunityCatalogRemoved? removed = null)
 	{
 		InitializeComponent();
+		if (removed is not null)
+			ShowRemoved(removed);
 		TitleLabel.Text = app.DisplayName;
 		SubLabel.Text = $"v{app.Version} · {app.SizeDisplay}";
 		IdLabel.Text = app.TizenId;
@@ -53,6 +55,42 @@ public partial class AppActionsSheetPage : ContentPage
 		}
 	}
 
+	// The reason card (#1033): a Removed chip with the date, why, the catalog's note, and that the
+	// installed copy keeps working without updates. No Update, no link to the app.
+	private void ShowRemoved(CommunityCatalogRemoved removed)
+	{
+		var warn = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("Warn");
+		var ink = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("Ink");
+		var head = new HorizontalStackLayout { Spacing = 8 };
+		head.Add(new Border
+		{
+			StrokeThickness = 0, Padding = new Thickness(8, 2),
+			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 999 },
+			BackgroundColor = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("WarnSoft"),
+			Content = new Label { Text = L10n.Get(Apps2Samsung.Catalog.RemovedApps.BadgeKey), FontSize = 11, FontAttributes = FontAttributes.Bold, TextColor = warn },
+		});
+		if (Apps2Samsung.Catalog.RemovedApps.SinceText(removed.Since, System.Globalization.CultureInfo.CurrentUICulture) is { } date)
+			head.Add(new Label { Text = string.Format(L10n.Get(Apps2Samsung.Catalog.RemovedApps.OnDateKey), date), FontSize = 13,
+				TextColor = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("Muted"), VerticalOptions = LayoutOptions.Center });
+
+		var body = new VerticalStackLayout { Spacing = 6 };
+		body.Add(head);
+		body.Add(new Label { Text = L10n.Get(Apps2Samsung.Catalog.RemovedApps.ReasonKey(removed.Reason)), FontSize = 15, FontAttributes = FontAttributes.Bold,
+			TextColor = ink, LineBreakMode = LineBreakMode.WordWrap });
+		if (!string.IsNullOrWhiteSpace(removed.Note))
+			body.Add(new Label { Text = removed.Note.Trim(), FontSize = 13, TextColor = ink, LineBreakMode = LineBreakMode.WordWrap });
+		body.Add(new Label { Text = L10n.Get(Apps2Samsung.Catalog.RemovedApps.FooterKey), FontSize = 13, TextColor = ink, LineBreakMode = LineBreakMode.WordWrap });
+
+		RemovedHost.Add(new Border
+		{
+			StrokeThickness = 0, Padding = new Thickness(14, 12), Margin = new Thickness(0, 6, 0, 0),
+			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 12 },
+			BackgroundColor = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("WarnSoft"),
+			Content = body,
+		});
+		RemovedHost.IsVisible = true;
+	}
+
 	private static BoxView Hairline() => new() { HeightRequest = 1, Margin = new Thickness(16, 0, 0, 0), Color = DesignTheme.ColorOf("Hair") };
 
 	private View Row(string text, string pathData, string colorToken, AppAction action)
@@ -80,12 +118,21 @@ public partial class AppActionsSheetPage : ContentPage
 		grid.Add(label, 1, 0);
 		grid.Add(chevron, 2, 0);
 		var tap = new TapGestureRecognizer();
+		// Pop first, then hand back the choice (like MoreMenu, #818): the caller's continuation runs
+		// inline on TrySetResult, and View in catalog pushes the next modal from it. With the result
+		// set first that push raced this sheet's pop and crashed the app (#888).
 		tap.Tapped += async (_, _) =>
 		{
 			if (_chosen) return;
 			_chosen = true;
-			_result.TrySetResult(action);
-			await Navigation.PopModalAsync();
+			try
+			{
+				await Navigation.PopModalAsync();
+			}
+			finally
+			{
+				_result.TrySetResult(action);
+			}
 		};
 		grid.GestureRecognizers.Add(tap);
 		return grid;

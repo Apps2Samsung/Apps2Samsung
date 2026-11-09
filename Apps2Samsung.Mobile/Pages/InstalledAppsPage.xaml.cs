@@ -19,6 +19,8 @@ public partial class InstalledAppsPage : ContentPage
 {
 	private readonly ISdbEngine _sdb;
 	private readonly TvSelection _tv;
+	// The catalog's own icons (#1000), for the apps that came from the catalog.
+	private readonly Apps2Samsung.Catalog.CatalogIcons _icons;
 	// Installed app id → its catalog entry, for the row's Update button (#820).
 	private readonly Dictionary<string, Apps2Samsung.Catalog.CatalogMatch> _matches = new(StringComparer.OrdinalIgnoreCase);
 	// The TV this page is showing, read from the shared selection each time the tab appears.
@@ -26,11 +28,12 @@ public partial class InstalledAppsPage : ContentPage
 	private string _tvLabel = string.Empty;
 	private string? _loadedFor;
 
-	public InstalledAppsPage(ISdbEngine sdb, TvSelection tv)
+	public InstalledAppsPage(ISdbEngine sdb, TvSelection tv, Apps2Samsung.Catalog.CatalogIcons icons)
 	{
 		InitializeComponent();
 		_sdb = sdb;
 		_tv = tv;
+		_icons = icons;
 	}
 
 	protected override async void OnAppearing()
@@ -73,6 +76,75 @@ public partial class InstalledAppsPage : ContentPage
 		_loadedFor = _tv.Ip;
 		if (force || changed || AppsList.ItemsSource is null)
 			await LoadAsync();
+	}
+
+	/// <summary>
+	/// The icon of every app that came from the catalog (#1000): the store-icon list only knows
+	/// store apps, so Jellyfin, TizenTube and the community apps drew their letter. The catalog's
+	/// icon wins where both exist. Fetched after the list is on screen (cached files show at once,
+	/// a first download takes a moment); the list is shown again once they are in.
+	/// </summary>
+	private async Task ShowCatalogIconsAsync(List<InstalledApp> apps, string tvIp)
+	{
+		var wanted = apps
+			.Select((app, index) => (index, match: _matches.TryGetValue(app.TizenId, out var m) ? m : null))
+			.Where(x => x.match is not null)
+			.ToList();
+		if (wanted.Count == 0)
+			return;
+		var paths = await Task.WhenAll(wanted.Select(async x =>
+		{
+			try { return (x.index, path: await _icons.PathForAsync(x.match!.Release)); }
+			catch (Exception ex)
+			{
+				System.Diagnostics.Trace.WriteLine($"[installed] catalog icon for {x.match!.Release.Name}: {ex.Message}");
+				return (x.index, path: (string?)null);
+			}
+		}));
+		if (paths.All(p => p.path is null))
+			return;
+		await MainThread.InvokeOnMainThreadAsync(() =>
+		{
+			// Another TV, or another load, since: this list is stale.
+			if (tvIp != _tvIp || AppsList.ItemsSource is null)
+				return;
+			foreach (var (index, path) in paths)
+				if (path is not null)
+					apps[index] = apps[index] with { IconUrl = path };
+			AppsList.ItemsSource = InstalledAppSort.Sort(apps, MobileSettings.InstalledAppOrder).ToList();
+		});
+	}
+
+	private void ShowRelayNotice(bool show)
+	{
+		RelayNotice.IsVisible = show;
+		RelayNoticeLabel.Text = L10n.Get("lblOnTvRelayClosed");
+		OpenTvStoreBtn.IsEnabled = true;
+	}
+
+	// The relay's own answer: listening, or TV-Store not answering at all (closed).
+	private static async Task<bool> RelayListeningAsync(string tvIp)
+	{
+		try { return await Apps2Samsung.Sdb.SdbEndpoint.WaitForRelayAsync(tvIp, TimeSpan.Zero, untilReachable: true); }
+		catch { return false; }
+	}
+
+	/// <summary>Opens TV-Store on the TV (the TV's own app launch, no SDB), waits for its relay, then loads the list.</summary>
+	private async void OnOpenTvStoreClicked(object? sender, EventArgs e)
+	{
+		OpenTvStoreBtn.IsEnabled = false;
+		var tvIp = _tvIp;
+		var up = await Apps2Samsung.TvStore.TvStoreHandoff.OpenForRelayAsync(tvIp,
+			key => MainThread.BeginInvokeOnMainThread(() => RelayNoticeLabel.Text = L10n.Get(key)));
+		if (tvIp != _tvIp)
+			return;
+		if (!up)
+		{
+			RelayNoticeLabel.Text = L10n.Get("lblOnTvRelayNotUp");
+			OpenTvStoreBtn.IsEnabled = true;
+			return;
+		}
+		await LoadAsync();
 	}
 
 	private async void OnChangeTvClicked(object? sender, EventArgs e) => await TvPicker.ChooseAsync(this, _tv);
@@ -156,7 +228,7 @@ public partial class InstalledAppsPage : ContentPage
 	{
 		if (!_matches.TryGetValue(app.TizenId, out var match))
 			return;
-		await CatalogStore.OpenOnInstallTabAsync(new CatalogOpenRequest(match.Release, app.Version, match.HasUpdate));
+		await CatalogStore.OpenOnInstallTabAsync(new CatalogOpenRequest(match.Release, app.Version, match.HasUpdate, match.Asset));
 	}
 
 	private static string? CatalogLine(Apps2Samsung.Catalog.CatalogMatch match) => match.State switch
@@ -199,7 +271,7 @@ public partial class InstalledAppsPage : ContentPage
 		try
 		{
 			var result = await _sdb.UninstallAsync(_tvIp, id);
-			// Exit 0, or "failed[132]" (not installed / already gone) — both mean the leftover is cleared.
+			// Exit 0, or "failed[132]" (not installed / already gone) - both mean the leftover is cleared.
 			var ok = result.ExitCode == 0 ||
 					 (result.Output?.Contains("failed[132]", StringComparison.OrdinalIgnoreCase) ?? false);
 			if (!ok)
@@ -222,9 +294,10 @@ public partial class InstalledAppsPage : ContentPage
 
 	private async Task LoadAsync()
 	{
-		SetBusy(true, "Reading installed apps…");
+		SetBusy(true, L10n.Get("statusReadingInstalledApps"));
 		try
 		{
+			ShowRelayNotice(false);
 			var result = await _sdb.AppsAsync(_tvIp);
 			// An empty list is the TV's answer (a fresh emulator, a reset set); a failed read throws.
 			var apps = TizenInstalledApps.ParseOrThrow(result).ToList();
@@ -245,12 +318,25 @@ public partial class InstalledAppsPage : ContentPage
 			var catalog = CatalogStore.Releases;
 			for (int i = 0; i < apps.Count; i++)
 			{
-				if (Apps2Samsung.Catalog.InstalledAppUpdates.Find(apps[i], catalog, MobileSettings.PackageIdRenamesJson) is not { } match)
+				// An app the catalog removed (#1033, direction C): a quiet line, the reason on its sheet,
+				// and no catalog comparison, so no Update.
+				if (Apps2Samsung.Catalog.RemovedApps.Find(apps[i], CatalogStore.Removed, catalog, MobileSettings.PackageIdRenamesJson) is { } gone)
+				{
+					apps[i] = apps[i] with { CatalogLine = L10n.Get(Apps2Samsung.Catalog.RemovedApps.RowTapKey), Removed = gone };
+					continue;
+				}
+				// With the variant this TV got last time (#975), so an app with several files is
+				// compared with the right one and Update opens the sheet on that one.
+				if (Apps2Samsung.Catalog.InstalledAppUpdates.Find(apps[i], catalog, MobileSettings.PackageIdRenamesJson,
+						MobileSettings.InstalledVariantsJson, _tvIp) is not { } match)
 					continue;
 				_matches[apps[i].TizenId] = match;
 				apps[i] = apps[i] with { CatalogLine = CatalogLine(match), HasUpdate = match.HasUpdate };
 			}
 			AppsList.ItemsSource = InstalledAppSort.Sort(apps, MobileSettings.InstalledAppOrder).ToList();
+			_ = ShowCatalogIconsAsync(apps, _tvIp);
+			ShowMoved(Apps2Samsung.Catalog.Repositories.MovedApps.Hints(_matches.Values,
+				Apps2Samsung.Catalog.UserSources.Parse(MobileSettings.UserSourcesJson)));
 
 			var updates = apps.Count(a => a.HasUpdate);
 			if (apps.Count == 0)
@@ -269,12 +355,75 @@ public partial class InstalledAppsPage : ContentPage
 		catch (Exception ex)
 		{
 			AppsList.ItemsSource = null;
-			EmptyLabel.Text = $"Couldn't read the app list: {ex.Message}";
+			EmptyLabel.Text = string.Format(L10n.Get("statusReadAppListFailed"), ex.Message);
 			SetSubtitle(string.Empty, TopBarStatus.None);
+			// Through TV-Store's relay (Host PC IP 127.0.0.1) a closed TV-Store is the usual reason.
+			ShowRelayNotice(Apps2Samsung.Sdb.SdbEndpoint.UsesRelay(_tvIp) && !await RelayListeningAsync(_tvIp));
 		}
 		finally
 		{
 			SetBusy(false);
+		}
+	}
+
+	// ---- apps that moved to their author's repository (#1018, the official catalog's moved_to) ----
+
+	private static readonly System.Net.Http.HttpClient MovedHttp = new();
+
+	/// <summary>One card per repository apps on this TV moved to: what moved, and Add repository.</summary>
+	private void ShowMoved(System.Collections.Generic.IReadOnlyList<Apps2Samsung.Catalog.Repositories.MovedHint> hints)
+	{
+		MovedHost.Children.Clear();
+		foreach (var hint in hints)
+		{
+			var add = new Button { Text = L10n.Get("lblMovedAdd"), Style = (Style)Application.Current!.Resources["PrimaryButton"] };
+			add.Clicked += async (_, _) => await AddMovedAsync(hint, add);
+			MovedHost.Children.Add(new Border
+			{
+				StrokeThickness = 0,
+				StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 12 },
+				Padding = new Thickness(14, 12),
+				BackgroundColor = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("AccentSoft"),
+				Content = new VerticalStackLayout
+				{
+					Spacing = 6,
+					Children =
+					{
+						new Label { Text = L10n.Get("lblMovedTitle"), FontAttributes = FontAttributes.Bold, TextColor = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("Ink") },
+						new Label { Text = string.Format(L10n.Get("hintMoved"), string.Join(", ", hint.AppNames), hint.Domain), FontSize = 15,
+							LineBreakMode = LineBreakMode.WordWrap, TextColor = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("Ink") },
+						add,
+					},
+				},
+			});
+		}
+		MovedHost.IsVisible = hints.Count > 0;
+	}
+
+	/// <summary>Adds the repository with the key the official catalog named, then reloads the catalog and the list.</summary>
+	private async Task AddMovedAsync(Apps2Samsung.Catalog.Repositories.MovedHint hint, Button button)
+	{
+		button.IsEnabled = false;
+		try
+		{
+			var repositories = new Apps2Samsung.Catalog.Repositories.SignedRepositories(MovedHttp,
+				System.IO.Path.Combine(FileSystem.AppDataDirectory, "repositories"));
+			var (source, problem) = await Apps2Samsung.Catalog.Repositories.MovedApps.AdoptAsync(repositories, hint.To);
+			if (source is null)
+			{
+				await DisplayAlert(L10n.Get("lblMovedTitle"), string.Format(L10n.Get("errMovedNotAdded"), problem), L10n.Get("btn_Close"));
+				return;
+			}
+			var sources = Apps2Samsung.Catalog.UserSources.Parse(MobileSettings.UserSourcesJson);
+			sources.Add(source);
+			MobileSettings.UserSourcesJson = Apps2Samsung.Catalog.UserSources.Serialize(sources);
+			if (CatalogStore.Refresh is { } refresh)
+				await refresh();
+			await LoadAsync();
+		}
+		finally
+		{
+			button.IsEnabled = true;
 		}
 	}
 
@@ -292,7 +441,7 @@ public partial class InstalledAppsPage : ContentPage
 		try
 		{
 			var result = await _sdb.UninstallAsync(_tvIp, app.TizenId);
-			// The TV reports a not-installed code when the app is already gone — treat that as success.
+			// The TV reports a not-installed code when the app is already gone - treat that as success.
 			var ok = result.ExitCode == 0 ||
 					 (result.Output?.Contains("failed[132]", StringComparison.OrdinalIgnoreCase) ?? false);
 			if (!ok)
@@ -379,7 +528,7 @@ public partial class InstalledAppsPage : ContentPage
 	{
 		if ((sender as BindableObject)?.BindingContext is not InstalledApp app)
 			return;
-		var sheet = new AppActionsSheetPage(app, _matches.ContainsKey(app.TizenId));
+		var sheet = new AppActionsSheetPage(app, _matches.ContainsKey(app.TizenId), app.Removed);
 		await Navigation.PushModalAsync(sheet);
 		switch (await sheet.Result)
 		{

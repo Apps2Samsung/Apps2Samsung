@@ -40,7 +40,7 @@ namespace Apps2Samsung.Helpers
 
         // Downloaded-package (.wgt) cache. Not inside the install directory on macOS or Linux: writing
         // into the ad-hoc-signed .app bundle breaks signature validation (#498), and a Linux package
-        // can be installed read-only — root-owned under /opt, or a squashfs mount in an AppImage, where
+        // can be installed read-only, root-owned under /opt, or a squashfs mount in an AppImage, where
         // the download itself would fail (#589). Windows keeps it next to the binary (unchanged).
         public static readonly string DownloadPath =
             Apps2Samsung.Portability.UserPaths.Cache(FolderPath, "Downloads");
@@ -76,12 +76,36 @@ namespace Apps2Samsung.Helpers
         public string Certificate { get; set; } = Constants.AppIdentifiers.Jelly2SamsDefault;
         public bool DeletePreviousInstall { get; set; } = false;
         public string UserCustomIP { get; set; } = "";
+
+        /// <summary>
+        /// Which app's on-screen keyboard the remote types into. Grid walking is only correct for the
+        /// app its profile was measured on, so this is stored rather than guessed (see
+        /// SamsungRemoteKeyboardProfiles).
+        /// </summary>
+        public string KeyboardProfileAppId { get; set; } = Remote.SamsungRemoteKeyboardProfiles.DefaultAppId;
+
+        /// <summary>
+        /// User profiles for apps we don't ship, keyed by app id, stored as the editable JSON from
+        /// SamsungRemoteKeyboardJson. A built-in profile can be overridden by adding its app id here.
+        /// </summary>
+        public Dictionary<string, string> KeyboardProfiles { get; set; } = new();
+
+        /// <summary>Empty the app's search field before typing: these apps append, so without this a
+        /// second search becomes the two queries run together.</summary>
+        public bool KeyboardClearBeforeTyping { get; set; } = true;
+
+        /// <summary>Press the app's search cell after typing: typing alone only fills the box and shows
+        /// suggestions, it does not search.</summary>
+        public bool KeyboardSubmitAfterTyping { get; set; } = true;
         public string SavedNetworkInterfaceName { get; set; } = "";
         public bool ForceSamsungLogin { get; set; } = false;
         // Automatic / Public / Partner, the same choice as the phone (Core CertificatePreference).
         // Partner is only for apps with restricted privileges (e.g. vpnservice); some TVs may reject
         // partner-signed installs, and svdca may not issue Partner certs for individual accounts.
         public string CertificatePreference { get; set; } = Apps2Samsung.Certificate.CertificatePreference.Automatic;
+        // Samsung / Tizen (#988), the same choice as the phone (Core CertificateKind): a Tizen
+        // certificate is the SDK's, made here with no account and no DUID; some TVs refuse it.
+        public string CertificateKind { get; set; } = Apps2Samsung.Certificate.CertificateKind.Samsung;
         // The old on/off toggle, still in settings.json: an older build reads it, and a settings file
         // from before CertificatePreference turns it into Partner here. Only a real change moves the
         // preference, so reading it after CertificatePreference can't turn "Public" into "Automatic".
@@ -101,8 +125,14 @@ namespace Apps2Samsung.Helpers
         public bool ShowAdultApps { get; set; } = false;
         // Catalog entries flagged root (they gain root on the TV) are listed unless this is turned off.
         public bool ShowRootApps { get; set; } = true;
+        // Catalog files flagged closed-source (#1016) are listed unless this is turned off; then a
+        // grouped app keeps its open-source variants.
+        public bool ShowClosedSourceApps { get; set; } = true;
+        // Sources the user added themselves (UserSources): JSON array of { name, url, category, partner },
+        // listed in the catalog next to the manifest's providers on every load.
+        public string UserSourcesJson { get; set; } = "";
         // When on, the in-app update check offers beta (pre-release) versions too, and downloads that
-        // beta — not the older stable. Off by default on desktop (stable channel).
+        // beta, not the older stable. Off by default on desktop (stable channel).
         public bool IncludeBetaUpdates { get; set; } = false;
         public bool RTLReading { get; set; } = false;
         public string JellyfinIP { get; set; } = "";
@@ -157,14 +187,21 @@ namespace Apps2Samsung.Helpers
         public string TizenTubeProxyHost { get; set; } = "";  // host[:port] for that proxy; empty = the TV being installed to
         public bool TvAppUseOblongIcon { get; set; } = false;  // legacy: migrated into CustomAppIconsJson ("oblong")
         public bool LitefinUseOblongIcon { get; set; } = false;  // legacy: migrated into CustomAppIconsJson ("oblong")
+        // Settings > Advanced > Skip Developer Mode checks (#1026), for testing: install to a TV that
+        // reports Developer Mode off or whose install port didn't answer. Off by default.
+        public bool SkipDevModeChecks { get; set; } = false;
         public string ManualDuids { get; set; } = "";  // extra Tizen DUIDs to pre-authorize in the distributor cert (one per line / comma-separated)
         public string CustomAppIconsJson { get; set; } = "";  // JSON map { appKey -> "oblong" | custom launcher PNG path } applied to the wgt at install
         public string CustomAppTitlesJson { get; set; } = "";  // JSON map { appKey -> custom title } written into the wgt's config.xml <name> at install
         public string AppUserSettingsJson { get; set; } = "";
         public string PackageIdRenamesJson { get; set; } = "";  // JSON list of PackageIdRenameRecord: packages installed under another id, per TV (#839, PackageIdRenameStore)
+        public string InstalledVariantsJson { get; set; } = "";  // JSON list of InstalledVariantRecord: which file of an app with variants each TV got (#975, InstalledVariantStore); shared with the CLI
         /// <summary>The app sheet's "Install under a new package id" for the install that follows (#839). Runtime-only.</summary>
         [JsonIgnore]
-        public bool InstallUnderNewPackageId { get; set; }  // JSON map { package file -> the user's user_settings values + find/replace } written into the package at install (#791, UserSettingsStore)
+        public bool InstallUnderNewPackageId { get; set; }
+        /// <summary>The app sheet's "Back to its own package id" for the install that follows (#839): forget the rename remembered for this TV. Runtime-only.</summary>
+        [JsonIgnore]
+        public bool InstallUnderOwnPackageId { get; set; }  // JSON map { package file -> the user's user_settings values + find/replace } written into the package at install (#791, UserSettingsStore)
         // Remote control (#544), keyed by TV IP: the pairing token the TV handed back, and the MAC
         // read from /api/v2/ while it was awake (the only way to wake it later). See RemoteStore.
         public string RemoteTokensJson { get; set; } = "";
@@ -184,12 +221,12 @@ namespace Apps2Samsung.Helpers
         // ----- Application-scoped settings (readonly at runtime) -----
         // [JsonIgnore] so these always reflect the shipped code defaults. If they were
         // serialized, a preserved settings.json would freeze them at the value first
-        // written — e.g. an upgraded user would keep seeing their old AppVersion and
+        // written, e.g. an upgraded user would keep seeing their old AppVersion and
         // stale endpoint URLs after an update.
         [JsonIgnore]
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
         [JsonIgnore]
-        public string AppVersion { get; set; } = "v3.1.0";
+        public string AppVersion { get; set; } = "v3.2.0";
         [JsonIgnore]
         public string JellyfinAvReleaseFork { get; set; } = "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases";
         [JsonIgnore]
@@ -238,6 +275,23 @@ namespace Apps2Samsung.Helpers
             CertificatePreference = Apps2Samsung.Certificate.CertificatePreference.Partner;
             Save();
             PartnerSigningAutoEnabled?.Invoke();
+        }
+
+        /// <summary>
+        /// Raised when the app itself switches the certificate from Tizen to Samsung, after a TV
+        /// refused the Tizen one (#988), so an open Settings view shows the new choice.
+        /// </summary>
+        public static event Action? CertificateKindChanged;
+
+        /// <summary>Switches the certificate to Samsung and persists it, then notifies the UI (#988).</summary>
+        public void UseSamsungCertificate()
+        {
+            if (!Apps2Samsung.Certificate.CertificateKind.IsTizen(CertificateKind))
+                return;
+
+            CertificateKind = Apps2Samsung.Certificate.CertificateKind.Samsung;
+            Save();
+            CertificateKindChanged?.Invoke();
         }
 
         public void Save()
@@ -306,6 +360,7 @@ namespace Apps2Samsung.Helpers
         private static void MigrateCertificatePick(AppSettings s)
         {
             s.CertificatePreference = Apps2Samsung.Certificate.CertificatePreference.Normalize(s.CertificatePreference);
+            s.CertificateKind = Apps2Samsung.Certificate.CertificateKind.Normalize(s.CertificateKind);
             bool generatedPick = string.IsNullOrEmpty(s.Certificate) ||
                                  s.Certificate.StartsWith(Constants.AppIdentifiers.Jelly2Sams, StringComparison.OrdinalIgnoreCase);
             if (!generatedPick || s.Certificate == Constants.AppIdentifiers.Jelly2SamsDefault)
@@ -354,7 +409,7 @@ namespace Apps2Samsung.Helpers
         /// One-time move of the user's generated signing cert from the old in-bundle location
         /// (<see cref="BundledCertificatePath"/>/Jelly2Sams) to the per-user data dir, so it isn't
         /// lost on the next app/bundle update. The shipped default cert stays in the bundle.
-        /// On bundle-replacing updates the old copy may already be gone — then this is a no-op and
+        /// On bundle-replacing updates the old copy may already be gone, then this is a no-op and
         /// a fresh cert is generated once on the next install.
         /// </summary>
         private static void MigrateCertificatesIfNeeded()

@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using Apps2Samsung.Catalog;
+using Apps2Samsung.Catalog.Repositories;
 using Apps2Samsung.Mobile.Resources.Styles;
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Design;
 using Apps2Samsung.Install;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Sdb;
 using Apps2Samsung.Models;
 using Apps2Samsung.Services;
 using Apps2Samsung.Mobile.Catalog;
@@ -13,6 +15,8 @@ using Apps2Samsung.Mobile.Controls;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Packaging;
+using Apps2Samsung.TvStore;
+using Apps2Samsung.Localization;
 using Apps2Samsung.Update;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Storage;
@@ -31,6 +35,8 @@ public partial class InstallerPage : ContentPage
 	private readonly ISdbEngine _sdb;
 	// The TVs and the one in use, shared with the other tabs (the ▾ in every top bar picks from it).
 	private readonly TvSelection _tv;
+	// The catalog's app icons (#1000), for the list tiles and the app sheet.
+	private readonly CatalogIcons _icons;
 	// Every catalog entry; the list shows the slice in the chosen category that matches the search.
 	private IReadOnlyList<GitHubRelease> _allReleases = new List<GitHubRelease>();
 	private string _query = string.Empty;
@@ -62,10 +68,11 @@ public partial class InstallerPage : ContentPage
 
 	public InstallerPage(INetworkService networkService, ISamsungLoginService loginService,
 		CertificateFlow certFlow, WgtInstaller installer, CatalogService catalog,
-		UpdateFlow updates, SessionState session, ISdbEngine sdb, TvSelection tv)
+		UpdateFlow updates, SessionState session, ISdbEngine sdb, TvSelection tv, CatalogIcons icons)
 	{
 		InitializeComponent();
 		_tv = tv;
+		_icons = icons;
 		_networkService = networkService;
 		_loginService = loginService;
 		_certFlow = certFlow;
@@ -100,8 +107,16 @@ public partial class InstallerPage : ContentPage
 		UpdateTvCard();
 		if (_initialized)
 		{
+			// A source of the user's own added or removed under Settings > Installing while this tab
+			// was hidden: the catalog is read again with it.
+			if (_loadedSources != MobileSettings.UserSourcesJson)
+			{
+				_ = LoadCatalogAsync();
+				return;
+			}
 			// Show adult (18+) apps / Show root apps changed from another tab's ⋯ while this one was hidden (#850).
-			if (_listedAdult != MobileSettings.ShowAdultApps || _listedRoot != MobileSettings.ShowRootApps)
+			if (_listedAdult != MobileSettings.ShowAdultApps || _listedRoot != MobileSettings.ShowRootApps
+				|| _listedClosedSource != MobileSettings.ShowClosedSourceApps)
 				RebuildCatalog();
 			return;
 		}
@@ -109,7 +124,7 @@ public partial class InstallerPage : ContentPage
 		CatalogStore.Refresh = async () => { await LoadCatalogAsync(); };
 		// "Update" and "View in catalog" on the On the TV tab (#820, #888): that app's sheet, here
 		// where installs run.
-		CatalogStore.Open = request => OpenAppAsync(request.Release, SublineFor(request.Release), request.InstalledVersion, request.IsUpdate);
+		CatalogStore.Open = request => OpenAppAsync(request.Release, SublineFor(request.Release), request.InstalledVersion, request.IsUpdate, request.Asset);
 
 		await MobileSettings.InitAsync();
 		var catalog = await LoadCatalogAsync();
@@ -144,13 +159,14 @@ public partial class InstallerPage : ContentPage
 	{
 		SetStatus(L10n.Get("lblLoadingAppList"));
 		_catalogLoading = true;
+		_loadedSources = MobileSettings.UserSourcesJson;
 		RebuildCatalog();
 		CatalogService.CatalogResult? result = null;
 		try
 		{
 			result = await _catalog.LoadReleasesAsync();
 			_allReleases = result.Releases;
-			CatalogStore.Set(_allReleases);
+			CatalogStore.Set(_allReleases, result.Removed);
 			_catalogFailed = result.Failed;
 		}
 		catch (Exception ex)
@@ -180,9 +196,10 @@ public partial class InstallerPage : ContentPage
 	private bool HasSeveralReleases(string name) =>
 		_manifest?.Providers.Any(p => p.Take > 1 && string.Equals(p.DisplayName, name, StringComparison.OrdinalIgnoreCase)) ?? false;
 
-	// The releases of one app, newest first.
+	// The releases of one app from one source, newest first: another source's copy of the app is a
+	// row (and a sheet) of its own (#1018).
 	private List<GitHubRelease> VersionsOf(GitHubRelease release) => _allReleases
-		.Where(r => string.Equals(r.Name, release.Name, StringComparison.OrdinalIgnoreCase))
+		.Where(r => string.Equals(r.Name, release.Name, StringComparison.OrdinalIgnoreCase) && r.Source.Key == release.Source.Key)
 		.OrderByDescending(r => DateTime.TryParse(r.PublishedAt, out var d) ? d : DateTime.MinValue)
 		.ToList();
 
@@ -190,6 +207,12 @@ public partial class InstallerPage : ContentPage
 	private bool _listedAdult;
 	// The same for the root entries ("Show root apps").
 	private bool _listedRoot;
+	private bool _listedClosedSource;
+	// The user's own sources (UserSources) the catalog was last read with; a change reloads it.
+	private string _loadedSources = string.Empty;
+	// The last install on the selected TV failed: the card stays amber until the TV changes or the next install starts.
+	private bool _installFailed;
+	private string? _failedTvIp;
 
 	// The catalog as listed: an app with several releases once, as its newest; without the
 	// adult-only entries until the user opted in (#850).
@@ -199,11 +222,13 @@ public partial class InstallerPage : ContentPage
 		var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		_listedAdult = MobileSettings.ShowAdultApps;
 		_listedRoot = MobileSettings.ShowRootApps;
-		foreach (var release in CommunityAppList.Visible(_allReleases, _listedAdult, _listedRoot))
+		_listedClosedSource = MobileSettings.ShowClosedSourceApps;
+		// With Show closed-source apps off a grouped app keeps only its open-source variants (#1016).
+		foreach (var release in CommunityAppList.Visible(_allReleases, _listedAdult, _listedRoot, _listedClosedSource))
 		{
 			if (!HasSeveralReleases(release.Name))
 				listed.Add(release);
-			else if (seen.Add(release.Name))
+			else if (seen.Add(release.Name + "\n" + release.Source.Key))
 				listed.Add(VersionsOf(release)[0]);
 		}
 		return listed;
@@ -255,6 +280,16 @@ public partial class InstallerPage : ContentPage
 				Text = L10n.Get(listed.Count == 0 ? "statusCatalogEmpty" : "lblNoAppMatches"),
 				TextColor = DesignTheme.ColorOf("Muted"), Padding = new Thickness(16, 14),
 			}));
+		}
+		// Removed apps the search names (#1033, S2): a footnote under the results, never a row to install.
+		var gone = RemovedApps.Search(_query, CatalogStore.Removed);
+		if (gone.Count > 0)
+		{
+			var notes = new VerticalStackLayout { Spacing = 8, Margin = new Thickness(4, 14, 4, 0) };
+			foreach (var r in gone)
+				notes.Add(new Label { Text = RemovedApps.SearchLine(r, L10n.Get), FontSize = 13, LineBreakMode = LineBreakMode.WordWrap, TextColor = DesignTheme.ColorOf("Muted") });
+			notes.Add(new Label { Text = L10n.Get(RemovedApps.SearchFooterKey), FontSize = 13, LineBreakMode = LineBreakMode.WordWrap, TextColor = DesignTheme.ColorOf("Muted") });
+			CatalogList.Add(notes);
 		}
 		CatalogFoot.Text = _catalogFailed > 0
 			? string.Format(L10n.Get("lblCatalogFootFailed"), listed.Count, _catalogFailed)
@@ -310,29 +345,24 @@ public partial class InstallerPage : ContentPage
 
 	private static BoxView Hairline() => new() { HeightRequest = 1, Margin = new Thickness(16, 0, 0, 0), Color = DesignTheme.ColorOf("Hair") };
 
-	// One list row: the letter tile, name and subline, a chevron; tapping opens the app sheet.
+	// One list row: the letter tile (the app's icon once it is loaded, #1000), name and subline, the
+	// source line for an app that is not from the official catalog (#1018), a chevron; tapping opens
+	// the app sheet. A repository that could not be checked is listed faded: nothing installs from it.
 	private View CatalogRow(GitHubRelease release, string subline)
 	{
-		var tile = new Border
-		{
-			WidthRequest = 44, HeightRequest = 44, StrokeThickness = 0,
-			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 11 },
-			BackgroundColor = DesignTheme.ColorOf(AppTiles.ColorToken(release.Category, release.Name)),
-			Content = new Label
-			{
-				Text = AppTiles.Letter(release.Name), FontSize = 20, FontAttributes = FontAttributes.Bold,
-				TextColor = DesignTheme.ColorOf("OnAccent"), HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center,
-			},
-		};
+		var tile = AppTile(release, _icons);
 		var text = new VerticalStackLayout
 		{
 			Spacing = 1, VerticalOptions = LayoutOptions.Center,
 			Children =
 			{
-				NameLine(release),
-				new Label { Text = subline, FontSize = 13, TextColor = DesignTheme.ColorOf("Muted"), LineBreakMode = LineBreakMode.TailTruncation },
+				new Label { Text = release.Name, FontAttributes = FontAttributes.Bold, LineBreakMode = LineBreakMode.TailTruncation },
+				TaggedSubline(release, SelectedTvVersion, subline),
 			},
 		};
+		var sourceLine = CatalogSourceLabels.Line(release.Source, L10n.Get);
+		if (SourceLineView.Build(sourceLine) is { } source)
+			text.Children.Add(source);
 		var chevron = new Microsoft.Maui.Controls.Shapes.Path
 		{
 			Data = (Microsoft.Maui.Controls.Shapes.Geometry)new Microsoft.Maui.Controls.Shapes.PathGeometryConverter().ConvertFromInvariantString("M1,1 L7,6.5 L1,12")!,
@@ -347,55 +377,102 @@ public partial class InstallerPage : ContentPage
 		grid.Add(tile, 0, 0);
 		grid.Add(text, 1, 0);
 		grid.Add(chevron, 2, 0);
+		if (sourceLine.Kind == SourceLineKind.Blocked)
+			grid.Opacity = 0.6;
 		var tap = new TapGestureRecognizer();
 		tap.Tapped += async (_, _) => await OpenAppAsync(release, subline);
 		grid.GestureRecognizers.Add(tap);
 		return grid;
 	}
 
-	// The name, with the 18+ badge after it for an adult-only app (#850; such a row is only ever
-	// built once the user opted in under Settings > Installing) and the root badge for a package
-	// that gains root on the TV.
-	private static View NameLine(GitHubRelease release)
+	/// <summary>
+	/// The 44 px tile before an app's name: its letter on the category colour, replaced by the icon
+	/// from the catalog once that is on disk (#1000). A cached icon shows at once; none keeps the letter.
+	/// </summary>
+	internal static Border AppTile(GitHubRelease release, CatalogIcons? icons)
 	{
-		var name = new Label { Text = release.Name, FontAttributes = FontAttributes.Bold, LineBreakMode = LineBreakMode.TailTruncation };
-		if (!release.IsAdult && !release.IsRoot)
-			return name;
-		var line = new HorizontalStackLayout { Spacing = 6, Children = { name } };
-		if (release.IsAdult)
-			line.Children.Add(Badge("lblAdultBadge", fontSize: 11, padding: new Thickness(5, 0)));
-		if (release.IsRoot)
-			line.Children.Add(Badge("lblRootBadge", fontSize: 11, padding: new Thickness(5, 0)));
+		var letter = new Label
+		{
+			Text = AppTiles.Letter(release.Name), FontSize = 20, FontAttributes = FontAttributes.Bold,
+			TextColor = DesignTheme.ColorOf("OnAccent"), HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center,
+		};
+		var image = new Image { Aspect = Aspect.AspectFill, IsVisible = false };
+		var tile = new Border
+		{
+			WidthRequest = 44, HeightRequest = 44, StrokeThickness = 0,
+			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 11 },
+			BackgroundColor = DesignTheme.ColorOf(AppTiles.ColorToken(release.Category, release.Name)),
+			Content = new Grid { Children = { letter, image } },
+		};
+		if (icons is not null && CatalogIcons.IconAssetOf(release) is { } asset)
+			_ = ShowIconAsync(icons, asset, image, letter);
+		return tile;
+	}
+
+	private static async Task ShowIconAsync(CatalogIcons icons, Asset asset, Image image, Label letter)
+	{
+		var path = await icons.PathForAsync(asset);
+		if (path is null)
+			return;
+		await MainThread.InvokeOnMainThreadAsync(() =>
+		{
+			image.Source = ImageSource.FromFile(path);
+			image.IsVisible = true;
+			letter.IsVisible = false;
+		});
+	}
+
+	// The grey line under the name, opened by the row's tags (#1041 follow-up, option B; Core
+	// CatalogTags): amber for a warning, grey for information. The tags never shorten; the category
+	// and downloads after them do. The same tags as the desktop.
+	private static View TaggedSubline(GitHubRelease release, Version? tvVersion, string subline)
+	{
+		var rest = new Label { Text = subline, FontSize = 13, TextColor = DesignTheme.ColorOf("Muted"), LineBreakMode = LineBreakMode.TailTruncation };
+		var tags = Apps2Samsung.Design.CatalogTags.For(release, tvVersion, L10n.Get);
+		if (tags.Count == 0)
+			return rest;
+		var text = new FormattedString();
+		foreach (var tag in tags)
+		{
+			text.Spans.Add(new Span { Text = tag.Text, FontAttributes = FontAttributes.Bold, TextColor = DesignTheme.ColorOf(tag.IsWarning ? "Warn" : "Muted") });
+			text.Spans.Add(new Span { Text = " · ", TextColor = DesignTheme.ColorOf("Muted") });
+		}
+		var line = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star) } };
+		line.Add(new Label { FormattedText = text, FontSize = 13, LineBreakMode = LineBreakMode.NoWrap }, 0, 0);
+		line.Add(rest, 1, 0);
 		return line;
 	}
 
-	/// <summary>A warning pill after an app's name ("18+" (#850), "root").</summary>
-	internal static Border Badge(string textKey, double fontSize, Thickness padding) => new()
-	{
-		StrokeThickness = 1, Stroke = new SolidColorBrush(DesignTheme.ColorOf("Warn")),
-		BackgroundColor = DesignTheme.ColorOf("WarnSoft"), Padding = padding, VerticalOptions = LayoutOptions.Center,
-		StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 6 },
-		Content = new Label
-		{
-			Text = L10n.Get(textKey), FontSize = fontSize, FontAttributes = FontAttributes.Bold,
-			TextColor = DesignTheme.ColorOf("Warn"), VerticalOptions = LayoutOptions.Center,
-		},
-	};
+	// The catalog is rebuilt once typing pauses: a rebuild lays out every matching row, and one letter
+	// matches most of the catalog, so rebuilding per keystroke froze the field while typing.
+	private CancellationTokenSource? _searchPause;
+	private static readonly TimeSpan SearchPause = TimeSpan.FromMilliseconds(250);
 
-	private void OnSearchChanged(object? sender, TextChangedEventArgs e)
+	private async void OnSearchChanged(object? sender, TextChangedEventArgs e)
 	{
 		_query = (e.NewTextValue ?? string.Empty).Trim();
-		RebuildCatalog();
+		_searchPause?.Cancel();
+		var pause = _searchPause = new CancellationTokenSource();
+		// Clearing the field shows the groups again at once.
+		if (_query.Length > 0)
+		{
+			try { await Task.Delay(SearchPause, pause.Token); }
+			catch (TaskCanceledException) { return; }
+		}
+		if (!pause.IsCancellationRequested)
+			RebuildCatalog();
 	}
 
 	// The app sheet: preview, description, the version or variant to install, Install for the
 	// selected TV. Hands back the release and file, or null when closed.
-	private async Task OpenAppAsync(GitHubRelease release, string subline, string? installedVersion = null, bool isUpdate = false)
+	private async Task OpenAppAsync(GitHubRelease release, string subline, string? installedVersion = null, bool isUpdate = false, Asset? openOn = null)
 	{
 		if (_busy)
 			return;
 		var tvName = _tv.HasTv ? _tv.DisplayName : null;
-		var tvReady = _tv.HasTv && _tv.DebugPortOpen;
+		// Settings > Advanced > Skip Developer Mode checks (#1026): Install without the sdb port, so
+		// a tester sees where the install really fails.
+		var tvReady = _tv.HasTv && (_tv.DebugPortOpen || MobileSettings.SkipDevModeChecks);
 
 		var several = HasSeveralReleases(release.Name);
 		IReadOnlyList<GitHubRelease> versions = several ? VersionsOf(release) : new List<GitHubRelease> { release };
@@ -417,12 +494,28 @@ public partial class InstallerPage : ContentPage
 		if (!string.IsNullOrWhiteSpace(installedVersion))
 			subline = string.Format(L10n.Get("lblInstalledVersionOnTv"), installedVersion) + " · " + subline;
 		var sheet = new AppSheetPage(versions, CatalogPreviews.For(_manifest, release), subline, tvName, tvReady,
-			_favorites.Contains(release.Name), SetFavorite, showAll, isUpdate);
+			_favorites.Contains(release.Name), SetFavorite, showAll, isUpdate,
+			// The developer's name tapped: the search box takes it, and the list shows their apps (#888).
+			searchAuthor: author => SearchEntry.Text = author,
+			tvVersion: SelectedTvVersion,
+			// The variant the TV got (#975), when the sheet came from On the TV.
+			openOn: openOn,
+			icons: _icons,
+			// The same app from the other sources that list it (#1018): a tap opens that one's sheet.
+			alsoOffered: AlsoOffered(release),
+			openOther: other => _ = OpenAppAsync(other, SublineFor(other)));
 		await Navigation.PushModalAsync(sheet);
 		var choice = await sheet.Result;
 		if (choice is not null)
-			await InstallAsync(choice.Release, choice.Asset, null, choice.NewPackageId);
+			await InstallAsync(choice.Release, choice.Asset, null, choice.NewPackageId, choice.OwnPackageId);
 	}
+
+	// The newest copy of the app from every other source in the list (#1018), one per source.
+	private List<GitHubRelease> AlsoOffered(GitHubRelease release) => ListedReleases()
+		.Where(r => string.Equals(r.Name, release.Name, StringComparison.OrdinalIgnoreCase) && r.Source.Key != release.Source.Key)
+		.GroupBy(r => r.Source.Key)
+		.Select(g => g.First())
+		.ToList();
 
 	// "Your own package": a .wgt or .tpk from the phone, then the same install as a catalog app.
 	private async void OnOwnFileTapped(object? sender, TappedEventArgs e)
@@ -436,34 +529,7 @@ public partial class InstallerPage : ContentPage
 
 	// Lets the user pick a local .wgt or .tpk (the desktop takes both); copies it into the cache so re-signing/cleanup never touches
 	// their original file. Returns the cache copy's path, or null when nothing valid was picked.
-	private async Task<string?> PickCustomWgtAsync()
-	{
-		try
-		{
-			var picked = await LocalFilePicker.PickAsync();
-			if (picked is null)
-			{
-				SetStatus(L10n.Get("statusNoFileSelected"));
-				return null;
-			}
-			if (!picked.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) &&
-				!picked.FileName.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase))
-			{
-				SetStatus(L10n.Get("statusChooseWgt"));
-				return null;
-			}
-
-			var dest = Path.Combine(FileSystem.CacheDirectory, picked.FileName);
-			File.Copy(picked.LocalPath, dest, overwrite: true);
-			SetStatus(string.Format(L10n.Get("statusCustomPackageReady"), picked.FileName));
-			return dest;
-		}
-		catch (Exception ex)
-		{
-			SetStatus(string.Format(L10n.Get("statusFileUnreadable"), ex.Message));
-			return null;
-		}
-	}
+	private Task<string?> PickCustomWgtAsync() => TvToolHooks.PickPackageCopyAsync(SetStatus);
 
 	protected override void OnDisappearing()
 	{
@@ -477,7 +543,23 @@ public partial class InstallerPage : ContentPage
 	{
 		if (!_busy && !string.IsNullOrEmpty(_tv.Status))
 			_status = _tv.Status;
+		if (_tv.Ip != _failedTvIp)
+			_installFailed = false;
 		UpdateTvCard();
+		if (_tv.HasTv && _tv.DebugPortOpen && _tv.Selected is { } tv && TizenVersionCache.TryGet(tv.Ip) is null)
+			_ = ProbeTizenVersionAsync(tv.Ip);
+	}
+
+	/// <summary>The selected TV's Tizen version, once a capability report or a probe said it; null until then.</summary>
+	private Version? SelectedTvVersion => _tv.Selected is { } tv ? TizenVersionCache.TryGet(tv.Ip) : null;
+
+	// One capability round-trip when a ready TV is selected (TV-Store#47): the catalog can then say
+	// which apps this set is too old for. The list is rebuilt when the answer comes in.
+	private async Task ProbeTizenVersionAsync(string ip)
+	{
+		await TizenVersionCache.ProbeAsync(_sdb, ip);
+		if (TizenVersionCache.TryGet(ip) is not null && _tv.Selected?.Ip == ip)
+			MainThread.BeginInvokeOnMainThread(RebuildCatalog);
 	}
 
 	// The TV pill in the top bar (only with more than one TV): the Switch TV sheet.
@@ -505,6 +587,9 @@ public partial class InstallerPage : ContentPage
 		}
 		entries.Add((new(L10n.Get("lblShowAdultApps"), MoreMenu.IconShow, Checked: MobileSettings.ShowAdultApps), ToggleAdultAppsAsync));
 		entries.Add((new(L10n.Get("lblShowRootApps"), MoreMenu.IconShow, Checked: MobileSettings.ShowRootApps), ToggleRootAppsAsync));
+		entries.Add((new(L10n.Get("lblShowClosedSourceApps"), MoreMenu.IconShow, Checked: MobileSettings.ShowClosedSourceApps), ToggleClosedSourceAppsAsync));
+		// A source of the user's own (a repository, release or file link), listed from the next refresh.
+		entries.Add((new(L10n.Get("lblAddSource"), MoreMenu.IconAdd), AddSourceAsync));
 
 		var chosen = await MoreMenu.ShowAsync(this, entries.Select(entry => entry.Item).ToArray());
 		if (chosen >= 0)
@@ -528,6 +613,28 @@ public partial class InstallerPage : ContentPage
 		MobileSettings.ShowRootApps = !MobileSettings.ShowRootApps;
 		RebuildCatalog();
 		return Task.CompletedTask;
+	}
+
+	// Show closed-source apps (#1016): on by default, no confirmation; off hides only the closed files.
+	private Task ToggleClosedSourceAppsAsync()
+	{
+		MobileSettings.ShowClosedSourceApps = !MobileSettings.ShowClosedSourceApps;
+		RebuildCatalog();
+		return Task.CompletedTask;
+	}
+
+	// Add a source: the form, then the catalog is read again with the new source in it. The same
+	// list lives under Settings > Installing > Your sources, where a source is removed.
+	private async Task AddSourceAsync()
+	{
+		var sources = UserSources.Parse(MobileSettings.UserSourcesJson);
+		var added = await UserSourceSheetPage.AskAsync(Navigation, sources);
+		if (added is null)
+			return;
+		sources.Add(added);
+		MobileSettings.UserSourcesJson = UserSources.Serialize(sources);
+		if (!_catalogLoading)
+			await LoadCatalogAsync();
 	}
 
 	private async Task RescanAsync()
@@ -576,20 +683,32 @@ public partial class InstallerPage : ContentPage
 		Func<string, Action<string>, Task<bool>> installWgt = async (wgtPath, report) =>
 		{
 			var (cert, _) = await _certFlow.RunAsync(Navigation, tvIp, label, false, report, new CancellationTokenSource());
-			await _installer.InstallAsync(tvIp, wgtPath, cert, report,
-				confirmRemove: () => ConfirmRemoveAsync(Path.GetFileNameWithoutExtension(wgtPath)));
+			try
+			{
+				await _installer.InstallAsync(tvIp, wgtPath, cert, report,
+					confirmRemove: () => ConfirmRemoveAsync(Path.GetFileNameWithoutExtension(wgtPath)));
+			}
+			catch (CertificateChainRejectedException refused) when (cert.Tizen is { } tizen)
+			{
+				// The TV only takes a Samsung certificate (#988): offer it, then sign and push again.
+				report(string.Format(L10n.Get("statusTizenCertificateRefused"), label));
+				if (!await _certFlow.ShowTizenRefusedAsync(Navigation, label, tizen, refused.Reason))
+					return false;
+				(cert, _) = await _certFlow.RunAsync(Navigation, tvIp, label, false, report, new CancellationTokenSource());
+				await _installer.InstallAsync(tvIp, wgtPath, cert, report,
+					confirmRemove: () => ConfirmRemoveAsync(Path.GetFileNameWithoutExtension(wgtPath)));
+			}
 			return true;
 		};
 
-		// Arm TV-Store (#844) hands over the profile an install would sign with: the same
-		// certificate flow, sheet included, when none covers this TV yet.
-		Func<Action<string>, Task<Apps2Samsung.Install.SigningProfile?>> signingProfile = async report =>
-		{
-			var (cert, _) = await _certFlow.RunAsync(Navigation, tvIp, label, false, report, new CancellationTokenSource());
-			return new Apps2Samsung.Install.SigningProfile(cert.AuthorP12, cert.DistributorP12, cert.Password, cert.ProfileDir);
-		};
+		// Sign a package (#979) signs with the profile an install would use (TvToolHooks).
+		var signingProfile = TvToolHooks.SigningProfileFor(_certFlow, _sdb, Navigation, tvIp, label);
 
-		await Navigation.PushAsync(new TvToolboxPage(_sdb, tvIp, label, installWgt, signingProfile));
+		// The Package file section (#979): the same picker as "Your own package" (a cache copy, never
+		// the user's file).
+		Func<Task<string?>> pickPackage = PickCustomWgtAsync;
+
+		await Navigation.PushAsync(new TvToolboxPage(_sdb, tvIp, label, installWgt, signingProfile, pickPackage));
 	}
 
 	// Downloads (or takes the picked file), provisions the certificate, installs on the selected
@@ -627,7 +746,33 @@ public partial class InstallerPage : ContentPage
 
 	/// <param name="newPackageId">The sheet's "Install under a new package id" (#839); a rename made
 	/// earlier for this TV applies either way.</param>
-	private async Task InstallAsync(GitHubRelease? release, Asset? asset, string? customPath, bool newPackageId = false)
+	/// <param name="ownPackageId">The sheet's "Back to its own package id" (#839): forget the rename
+	/// remembered for this TV and install under the package's own id.</param>
+	/// <summary>
+	/// Writes down which of an app's files a TV got (#975, Core <c>InstalledVariantStore</c>): an app
+	/// with several variants ships them under one id and version, so the TV's own list cannot tell
+	/// them apart. Keyed by the catalog's app id, the id On the TV matches on.
+	/// </summary>
+	private static void RememberInstalledVariant(string tvIp, string? tvDuid, GitHubRelease release, Asset asset)
+	{
+		if (string.IsNullOrWhiteSpace(asset.AppId))
+			return;
+		MobileSettings.InstalledVariantsJson = Apps2Samsung.Packaging.InstalledVariantStore.Set(
+			MobileSettings.InstalledVariantsJson,
+			new Apps2Samsung.Packaging.InstalledVariantRecord
+			{
+				TvIp = tvIp,
+				TvDuid = string.IsNullOrWhiteSpace(tvDuid) ? null : tvDuid,
+				AppId = asset.AppId,
+				CatalogApp = release.Name,
+				Variant = asset.Variant,
+				PackageFile = asset.FileName,
+				InstalledAtUtc = DateTimeOffset.UtcNow,
+				Source = release.Source.Key,
+			});
+	}
+
+	private async Task InstallAsync(GitHubRelease? release, Asset? asset, string? customPath, bool newPackageId = false, bool ownPackageId = false)
 	{
 		if (_tv.Selected is not { } tv)
 		{
@@ -640,6 +785,8 @@ public partial class InstallerPage : ContentPage
 			SetStatus(L10n.Get("statusSelectAppFirst"));
 			return;
 		}
+		if (!custom && !await InstallAllowedAsync(release!))
+			return;
 
 		var tvIp = tv.Ip;
 
@@ -655,9 +802,31 @@ public partial class InstallerPage : ContentPage
 			new InstallGuardOptions
 			{
 				LocalIps = LocalIps(),
-				ConfiguredLocalIp = NetworkInfo.GetLocalIPv4(),
+				ConfiguredLocalIp = NetworkInfo.LocalIpFor(tv.Ip),
+				SkipDevModeChecks = MobileSettings.SkipDevModeChecks,
 			},
 			_networkService);
+		if (MobileSettings.SkipDevModeChecks)
+			System.Diagnostics.Trace.WriteLine("[install] Developer Mode checks skipped (setting)");
+
+		// The checks are about the developer connection; TV-Store's upload page needs none of it
+		// (#979). A TV the checks would stop that runs TV-Store gets the offer to take the package
+		// that way instead: TV-Store asks on the screen and signs it itself. Only when TV-Store is
+		// already up: nothing is started on the TV uninvited (the toolbox's button does that).
+		var offerTvIp = guardResult.CorrectedTvIp ?? tvIp;
+		if (guardResult.Guards.Count > 0 && await TvStoreUpload.IsAvailableAsync(offerTvIp))
+		{
+			var detail = string.Join("\n", guardResult.Guards.Select(g => L10n.Get(g.TitleKey)));
+			if (await DisplayAlert(
+					L10n.Get("tvStoreOfferTitle"),
+					$"{L10n.Get("tvStoreOfferBody")}\n\n{detail}",
+					L10n.Get("keySendToTvStore"),
+					L10n.Get("keyUseDeveloperConnection")))
+			{
+				await SendToTvStoreAsync(release, asset, customPath, offerTvIp);
+				return;
+			}
+		}
 
 		// The Developer-Mode guards share one answer: the guide, which re-checks the TV while it is
 		// open and turns into Continue once it is fixed. The rest stay a Continue/Stop question.
@@ -700,6 +869,20 @@ public partial class InstallerPage : ContentPage
 		if (!custom && !await CollectUserSettingsAsync(release!, asset!))
 			return;
 
+		// Updating TV-Store through TV-Store's own relay (#1005): say once, before the install, that
+		// the TV will drop this connection while it restarts TV-Store and that the update still goes
+		// through, so the drop is not read as a failed install. The catalog names the package id;
+		// a picked file is read for it.
+		if (await SdbEndpoint.ResolvePortAsync(tvIp) != SdbEndpoint.DirectPort)
+		{
+			var renames = MobileSettings.PackageIdRenamesJson;
+			var selfUpdate = custom
+				? await TvStoreSelfUpdate.AppliesAsync(tvIp, customPath!, renames)
+				: TvStoreSelfUpdate.IsTvStore(asset!.PackageId, null, renames);
+			if (selfUpdate)
+				await DisplayAlert(L10n.Get(TvStoreSelfUpdate.NoticeTitleKey), L10n.Get(TvStoreSelfUpdate.NoticeKey), L10n.Get("lblOk"));
+		}
+
 		var appName = custom ? Path.GetFileNameWithoutExtension(customPath!) : release!.Name;
 		var appTitle = custom || string.IsNullOrWhiteSpace(release!.TagName) || !HasSeveralReleases(release.Name)
 			? appName
@@ -708,6 +891,7 @@ public partial class InstallerPage : ContentPage
 		var requirePartner = !custom && release!.RequiresPartner;
 
 		_busy = true;
+		_installFailed = false;
 		_tv.IsLocked = true;
 		UpdateTvCard();
 		// Not disposed: it has no timer, and Cancel on a disposed source would throw from the sheet.
@@ -729,6 +913,12 @@ public partial class InstallerPage : ContentPage
 			wgtPath = custom ? customPath! : await _installer.DownloadAsync(asset!.DownloadUrl, SetStatus, cancel.Token);
 			downloading = false;
 			cancel.Token.ThrowIfCancellationRequested();
+			if (!custom && DigestProblem(release!, asset!, wgtPath) is { } digest)
+			{
+				wgtPath = null;
+				FailProgress(digest);
+				return;
+			}
 
 			// Partner if the manifest declared it OR the .wgt itself needs a partner-level privilege.
 			var needsPartner = requirePartner || WgtPrivileges.RequiresPartner(wgtPath);
@@ -742,13 +932,19 @@ public partial class InstallerPage : ContentPage
 			// rejects such a package ("Certificate in signature is not valid yet"). Hold the install
 			// behind a countdown to the moment it becomes valid instead of pushing something the TV
 			// will refuse; the loop re-runs the check once the user chooses to continue.
+			// The catalog entry a colliding package's new id is derived from (#1028); a picked file
+			// is keyed on its own id and name.
+			var catalogKey = custom ? null : PackageIdCollisions.CatalogKey(release, asset);
+			PackageIdRename? rename = null;
 			while (true)
 			{
 				try
 				{
 					await _installer.InstallAsync(tvIp, wgtPath, cert, SetStatus, SetStep, cancel.Token,
 						confirmRemove: () => ConfirmRemoveAsync(appName),
-						packageId: new PackageIdPolicy(cert.Duid, newPackageId));
+						packageId: new PackageIdPolicy(cert.Duid, newPackageId, ownPackageId, catalogKey),
+						confirmReplace: ConfirmReplaceAsync,
+						renamed: r => rename = r);
 					break;
 				}
 				catch (CertificateNotYetValidException notYetValid)
@@ -762,14 +958,33 @@ public partial class InstallerPage : ContentPage
 						return;
 					}
 				}
+				catch (CertificateChainRejectedException refused) when (cert.Tizen is { } tizen)
+				{
+					// The TV refused the Tizen certificate's chain (#988): it only takes a Samsung one.
+					// The sheet says so and offers the switch; a yes signs this package again, Samsung.
+					var message = string.Format(L10n.Get("statusTizenCertificateRefused"), _tv.DisplayName);
+					SetStatus(message);
+					if (!await _certFlow.ShowTizenRefusedAsync(Navigation, _tv.DisplayName, tizen, refused.Reason))
+					{
+						FailProgress(message);
+						return;
+					}
+					SetStep(InstallStep.Certificate);
+					(cert, _) = await _certFlow.RunAsync(Navigation, tvIp, _tv.DisplayName, needsPartner, SetStatus, cancel);
+					cancel.Token.ThrowIfCancellationRequested();
+				}
 			}
+
+			// Which file this TV got (#975): On the TV compares with it and its Update opens the sheet on it.
+			if (!custom)
+				RememberInstalledVariant(tvIp, cert.Duid, release!, asset!);
 
 			SetStatus("✓ " + string.Format(L10n.Get("statusInstalledOpenApps"), appName));
 			await CloseProgressAsync();
 			// The step only the user can take, now that the package is on the TV.
 			if (!custom && release!.IsRoot)
 				await DisplayAlert(string.Format(L10n.Get("lblRootAfterInstallTitle"), appName), L10n.Get("lblRootAfterInstallBody"), L10n.Get("lblOk"));
-			await Navigation.PushModalAsync(new InstallCompletePage(appName));
+			await Navigation.PushModalAsync(new InstallCompletePage(appName, SeparateAppNote(rename)));
 		}
 		catch (OperationCanceledException) when (cancel.IsCancellationRequested)
 		{
@@ -797,6 +1012,11 @@ public partial class InstallerPage : ContentPage
 				? string.Format(L10n.Get("statusUserSettingsFileMissing"), ex.PackageFile, ex.File)
 				: string.Format(L10n.Get("statusUserSettingsFindMissing"), ex.PackageFile, ex.Find, ex.File));
 		}
+		catch (ReplaceDeclinedException declined)
+		{
+			// The user kept the other app that has this native package's id (#1028): nothing changed.
+			FailProgress(string.Format(L10n.Get("replaceDeclined"), declined.Collision.OccupantName, declined.Collision.PackageName));
+		}
 		catch (RemovalDeclinedException)
 		{
 			// The user kept the installed copy (#825): the TV is as it was, say so without "failed".
@@ -815,6 +1035,12 @@ public partial class InstallerPage : ContentPage
 		{
 			System.Diagnostics.Trace.WriteLine($"[installer] Install failed: {ex}");
 			FailProgress(string.Format(L10n.Get("statusInstallFailed"), ex.Message));
+			// Re-read the TV so the card says what is wrong now (a relay just switched off, a Host PC
+			// IP changed since the scan), then keep it amber with the failure as its line.
+			_installFailed = true;
+			_failedTvIp = _tv.Ip;
+			try { await _tv.RefreshSelectedAsync(); } catch (Exception refresh) { System.Diagnostics.Trace.WriteLine($"[installer] Re-read after the failure failed: {refresh.Message}"); }
+			MainThread.BeginInvokeOnMainThread(UpdateTvCard);
 		}
 		finally
 		{
@@ -829,6 +1055,127 @@ public partial class InstallerPage : ContentPage
 			_busy = false;
 			_tv.IsLocked = false;
 			// A failed install leaves the sheet up with the reason and Close; it stops listening here.
+			_progress = null;
+			UpdateTvCard();
+		}
+	}
+
+	// A repository listed from its last verified copy (#1018): nothing is downloaded from it.
+	private async Task<bool> InstallAllowedAsync(GitHubRelease release)
+	{
+		if (SignedRepositories.InstallBlocked(release, L10n.Get) is not { } blocked)
+			return true;
+		SetStatus(blocked);
+		await DisplayAlert(release.Name, blocked, L10n.Get("lblOk"));
+		return false;
+	}
+
+	// A signed repository's file that does not hash to the digest it signed for (#1018): the file
+	// is deleted and nothing is installed. Null when the file is fine or not from a repository.
+	private static string? DigestProblem(GitHubRelease release, Asset asset, string path)
+	{
+		var problem = SignedRepositories.DigestProblem(release, asset, path, L10n.Get);
+		if (problem is null)
+			return null;
+		System.Diagnostics.Trace.WriteLine($"[installer] {problem}");
+		try { File.Delete(path); } catch (Exception ex) { System.Diagnostics.Trace.WriteLine($"[installer] Could not delete {path}: {ex.Message}"); }
+		return problem;
+	}
+
+	/// <summary>
+	/// The way in without the developer connection (#979): the package, customized as an install
+	/// would (the values asked before install included) but not signed, goes to TV-Store's upload
+	/// page on the TV. TV-Store comes to the front and asks there; the install happens when Install
+	/// is pressed on the TV, so the sheet closes on "waiting on the TV", not on "installed".
+	/// </summary>
+	private async Task SendToTvStoreAsync(GitHubRelease? release, Asset? asset, string? customPath, string tvIp)
+	{
+		var custom = customPath is not null;
+		if (!custom && !await InstallAllowedAsync(release!))
+			return;
+
+		// A package that gains root: what that means for this TV, before anything else.
+		if (!custom && release!.IsRoot && !await DisplayAlert(
+				string.Format(L10n.Get("lblRootConfirmTitle"), release.Name),
+				string.Format(L10n.Get("lblRootConfirmBody"), release.Name),
+				L10n.Get("lblRootConfirmYes"), L10n.Get("lblCancel")))
+		{
+			SetStatus(L10n.Get("statusInstallCancelled"));
+			return;
+		}
+
+		// A community package that needs the user's own values (#791): the sheet first.
+		if (!custom && !await CollectUserSettingsAsync(release!, asset!))
+			return;
+
+		var appName = custom ? Path.GetFileNameWithoutExtension(customPath!) : release!.Name;
+
+		_busy = true;
+		_installFailed = false;
+		_tv.IsLocked = true;
+		UpdateTvCard();
+		var cancel = new CancellationTokenSource();
+		_progress = new InstallProgressPage(appName, custom ? null : release!.Category, _tv.DisplayName, false);
+		_progress.CancelRequested += (_, _) => cancel.Cancel();
+		await Navigation.PushModalAsync(_progress);
+		DeviceDisplay.Current.KeepScreenOn = true;
+		string? wgtPath = null;
+		bool downloading = false;
+		try
+		{
+			SetStep(InstallStep.Download);
+			downloading = !custom;
+			wgtPath = custom ? customPath! : await _installer.DownloadAsync(asset!.DownloadUrl, SetStatus, cancel.Token);
+			downloading = false;
+			cancel.Token.ThrowIfCancellationRequested();
+			if (!custom && DigestProblem(release!, asset!, wgtPath) is { } digest)
+			{
+				wgtPath = null;
+				FailProgress(digest);
+				return;
+			}
+
+			// Core reports en.json keys; sentences here.
+			Action<string> report = line => SetStatus(ProgressText.Localize(line, L10n.Get));
+			await _installer.CustomizeAsync(tvIp, wgtPath, report);
+			SetStep(InstallStep.Install);
+			var sent = await TvStoreHandoff.SendAsync(tvIp, wgtPath, report, cancel.Token);
+			var body = string.Format(L10n.Get(sent.TvStoreOpened ? "tvStoreSentBody" : "tvStoreSentBodyClosed"), sent.Upload.Name);
+			SetStatus("✓ " + body);
+			await CloseProgressAsync();
+			await DisplayAlert(L10n.Get("tvStoreSentTitle"), body, L10n.Get("lblOk"));
+		}
+		catch (OperationCanceledException) when (cancel.IsCancellationRequested)
+		{
+			SetStatus(L10n.Get("statusInstallCancelled"));
+			await CloseProgressAsync();
+		}
+		catch (Exception ex) when (downloading && NetworkFailure.LocalizationKey(ex) is { } networkKey)
+		{
+			System.Diagnostics.Trace.WriteLine($"[installer] Download failed: {ex}");
+			FailProgress($"{L10n.Get("DownloadFailed")} {L10n.Get(networkKey)}");
+		}
+		catch (UserSettingsPatchException ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[UserSettings] {ex.Message}");
+			FailProgress(ex.Find is null
+				? string.Format(L10n.Get("statusUserSettingsFileMissing"), ex.PackageFile, ex.File)
+				: string.Format(L10n.Get("statusUserSettingsFindMissing"), ex.PackageFile, ex.Find, ex.File));
+		}
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[installer] Hand-off to TV-Store failed: {ex}");
+			FailProgress(string.Format(L10n.Get("lblToolboxTvStoreFailed"), ex.Message));
+		}
+		finally
+		{
+			DeviceDisplay.Current.KeepScreenOn = false;
+			if (wgtPath is not null && !MobileSettings.KeepWgtFile)
+			{
+				try { File.Delete(wgtPath); } catch { /* best-effort */ }
+			}
+			_busy = false;
+			_tv.IsLocked = false;
 			_progress = null;
 			UpdateTvCard();
 		}
@@ -858,6 +1205,23 @@ public partial class InstallerPage : ContentPage
 				L10n.Get("lblCancel"));
 		});
 
+	// A native package's id belongs to another app on the TV (#1028): replacing it erases that app,
+	// so the user decides. Shown from the progress sheet, like the question above.
+	private Task<bool> ConfirmReplaceAsync(PackageIdCollision collision) =>
+		MainThread.InvokeOnMainThreadAsync(() =>
+		{
+			Page host = _progress ?? (Page)this;
+			return host.DisplayAlert(
+				string.Format(L10n.Get("confirmReplaceOtherTitle"), collision.OccupantName),
+				string.Format(L10n.Get("confirmReplaceOther"), collision.OccupantName, collision.PackageName),
+				L10n.Get("btnReplace"),
+				L10n.Get("lblCancel"));
+		});
+
+	// "Installed as a separate app (…), because … already uses this id." when that is what happened (#1028).
+	private static string? SeparateAppNote(PackageIdRename? rename) =>
+		rename?.CollidedWith is { } other ? string.Format(L10n.Get("installedAsSeparateApp"), rename.NewId, other) : null;
+
 	private void FailProgress(string message)
 	{
 		System.Diagnostics.Trace.WriteLine($"[installer] {message}");
@@ -878,10 +1242,10 @@ public partial class InstallerPage : ContentPage
 			await MainThread.InvokeOnMainThreadAsync(sheet.CloseAsync);
 	}
 
-	// The IPs this phone answers on, what the guards compare the TV's Developer-Mode IP against.
-	// On Android interface enumeration classifies nothing, so this resolves to the socket-derived
-	// phone IP the scanner is configured with (empty when offline: the guards then skip the IP
-	// checks rather than guess).
+	// The IPs this phone answers on, what the guards compare the TV's Developer-Mode IP against:
+	// every LAN-side interface the scanner knows (Wi-Fi and the phone's own hotspot, #920), plus
+	// the socket-derived seed where that enumeration yields nothing. Empty when offline: the
+	// guards then skip the IP checks rather than guess.
 	private List<string> LocalIps()
 	{
 		try
@@ -935,10 +1299,61 @@ public partial class InstallerPage : ContentPage
 		if (_busy)
 			TopBar.Status = TopBarStatus.Busy;
 
+		// The last install on this TV failed (a refused connection, most often): amber with the
+		// failure as the line, until the TV changes or the next install starts.
+		var failed = !_busy && _installFailed && state.IsDevice;
 		TvCard.State = state with
 		{
-			Led = _busy ? TvLed.Busy : state.Led,
+			Led = _busy ? TvLed.Busy : failed && state.Led == TvLed.Ok ? TvLed.Warn : state.Led,
 			Message = string.IsNullOrWhiteSpace(_status) ? state.Message : _status,
+			Actions = _busy ? Array.Empty<TvCardAction>() : state.Actions,
 		};
+		TvCard.RouteText = TvCardStates.RouteText(TvCard.State, L10n.Get);
+		SyncTvCardActions(TvCard.State.Actions);
+	}
+
+	// The chips under the status line (TvCardStates.ActionsFor): rebuilt only when the set changes.
+	private IReadOnlyList<TvCardAction> _shownActions = Array.Empty<TvCardAction>();
+
+	private void SyncTvCardActions(IReadOnlyList<TvCardAction> actions)
+	{
+		if (_shownActions.SequenceEqual(actions) && (TvCard.Actions is not null) == (actions.Count > 0))
+			return;
+		_shownActions = actions;
+		if (actions.Count == 0)
+		{
+			TvCard.Actions = null;
+			return;
+		}
+		var row = new HorizontalStackLayout { Spacing = 0 };
+		foreach (var action in actions)
+		{
+			var button = new Button { Text = L10n.Get(TvCardStates.ActionLabelKey(action)), Style = (Style)Application.Current!.Resources["ChipButton"] };
+			var captured = action;
+			button.Clicked += async (_, _) => await RunTvCardActionAsync(captured);
+			row.Add(button);
+		}
+		TvCard.Actions = row;
+	}
+
+	// A chip on the card: the guide for a Developer Mode problem or the relay, a re-read of the TV
+	// for "Check again" and "I restarted it" (the debug port is probed again only when the scan saw
+	// it closed, which is the restart case).
+	private async Task RunTvCardActionAsync(TvCardAction action)
+	{
+		if (_busy || !_tv.HasTv)
+			return;
+		switch (action)
+		{
+			case TvCardAction.FixDeveloperMode:
+			case TvCardAction.TurnOnRelay:
+				OnTvCardTapped(this, EventArgs.Empty);
+				break;
+			case TvCardAction.CheckAgain:
+			case TvCardAction.Restarted:
+				_installFailed = false;
+				await _tv.RecheckSelectedAsync();
+				break;
+		}
 	}
 }

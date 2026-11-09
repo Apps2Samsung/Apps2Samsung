@@ -6,6 +6,12 @@ namespace Apps2Samsung.Models
         public string ErrorMessage { get; init; } = string.Empty;
 
         public static InstallResult SuccessResult() => new() { Success = true };
+
+        /// <summary>
+        /// One more line for the user on a successful install, such as why the app went in as a
+        /// separate app (#1028); null for none.
+        /// </summary>
+        public string? Note { get; init; }
         /// <summary>The user stopped it (Cancel on a sheet, the sign-in closed): no error to show.</summary>
         public bool Cancelled { get; init; }
 

@@ -130,4 +130,11 @@
 			</Animation>
 		</Style.Animations>
 	</Style>
+	<!-- an app's source line (#1018): a signed repository's name in the accent, an unverified source in amber -->
+	<Style Selector="TextBlock.repo">
+		<Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+	</Style>
+	<Style Selector="TextBlock.unverified">
+		<Setter Property="Foreground" Value="{DynamicResource WarnBrush}"/>
+	</Style>
 </Styles>

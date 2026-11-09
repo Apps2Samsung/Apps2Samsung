@@ -17,6 +17,10 @@
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
+  <!-- The independent-repository test vectors from tizen-community-packages spec/fixtures (#1018). -->
+  <ItemGroup>
+    <None Include="Catalog\Repositories\Fixtures\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Apps2Samsung.Core\Apps2Samsung.Core.csproj" />
   </ItemGroup>

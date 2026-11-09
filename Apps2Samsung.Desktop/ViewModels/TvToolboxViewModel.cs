@@ -4,6 +4,7 @@ using Apps2Samsung.Certificate;
 using Apps2Samsung.Install;
 using Apps2Samsung.TvStore;
 using Apps2Samsung.Models;
+using Apps2Samsung.Services;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
@@ -21,19 +22,19 @@ namespace Apps2Samsung.ViewModels
 {
     /// <summary>
     /// The TV toolbox (#635): opening an app by id, and sending a documented service-menu key
-    /// combination. The key combinations go over the remote channel, which needs no Developer Mode —
+    /// combination. The key combinations go over the remote channel, which needs no Developer Mode , 
     /// the point, since the sets this is for (hospitality firmware, a dead or numberless remote) may
     /// have none to switch on.
     /// <para>
     /// The system-app list is the exception: the TV's own menus were never store apps, so no deep link
-    /// addresses them — and, it turned out, SDB's launcher refuses them too (#641, then #34). They go
+    /// addresses them, and, it turned out, SDB's launcher refuses them too (#641, then #34). They go
     /// through the debug agent: a small app of ours on the TV that asks the platform directly. The
     /// agent also yields the one honest app list a hospitality set has, hidden flags and all.
     /// </para>
     /// <para>
     /// Its own screen rather than a panel under the remote's keys: these aren't remote buttons, and the
     /// app list is not the installed-apps list (that one goes over SDB, needs Developer Mode, and
-    /// reports what is really installed — this one launches by id whether the TV admits to the app or
+    /// reports what is really installed, this one launches by id whether the TV admits to the app or
     /// not).
     /// </para>
     /// </summary>
@@ -47,7 +48,7 @@ namespace Apps2Samsung.ViewModels
 
         private SamsungRemoteClient? _remote;
 
-        // How this head puts a .wgt on the TV — certificate, resign, push — so the agent installs
+        // How this head puts a .wgt on the TV, certificate, resign, push, so the agent installs
         // like any package. Null where the head can't (no installer wired up); the agent then has to
         // be on the set already.
         private readonly Func<string, Action<string>, Task<bool>>? _installWgt;
@@ -57,7 +58,10 @@ namespace Apps2Samsung.ViewModels
         // The head's certificate flow for this TV (#844): the signing profile an install would use,
         // made (with the Samsung sign-in) when none covers the set yet; null when that was cancelled.
         // What Arm TV-Store hands over. Null where the head has no certificate flow.
-        private readonly Func<Action<string>, Task<SigningProfile?>>? _signingProfile;
+        private readonly Func<bool, Action<string>, Task<SigningProfile?>>? _signingProfile;
+
+        // The Package file section's pickers and customization step, from the main window (#979).
+        private readonly TvToolboxPackageHooks? _packageHooks;
 
         // The full list behind the filtered one shown.
         private IReadOnlyList<SamsungRemoteLaunchTarget> _targets = Array.Empty<SamsungRemoteLaunchTarget>();
@@ -71,8 +75,8 @@ namespace Apps2Samsung.ViewModels
         public IReadOnlyList<ToolboxSequence> Sequences { get; }
 
         /// <summary>
-        /// The combinations that start from standby. No button can reach them — a sleeping set serves
-        /// nothing — so they are printed with <see cref="StandbySteps"/> for the physical remote (#639).
+        /// The combinations that start from standby. No button can reach them, a sleeping set serves
+        /// nothing, so they are printed with <see cref="StandbySteps"/> for the physical remote (#639).
         /// </summary>
         public IReadOnlyList<ToolboxSequence> StandbySequences { get; }
 
@@ -83,7 +87,7 @@ namespace Apps2Samsung.ViewModels
         public ObservableCollection<ToolboxApp> Apps { get; } = new();
 
         /// <summary>
-        /// The built-in apps a hospitality set hides — the hotel menu above all (#641). Fixed, not
+        /// The built-in apps a hospitality set hides, the hotel menu above all (#641). Fixed, not
         /// filtered: it is a short list of ids to try in order, not something to search.
         /// </summary>
         public IReadOnlyList<SamsungSystemAppRow> SystemApps { get; } =
@@ -109,14 +113,14 @@ namespace Apps2Samsung.ViewModels
         /// <summary>The staging folder's contents as the agent last listed them.</summary>
         public ObservableCollection<ToolboxStagedFile> StagedFiles { get; } = new();
 
-        /// <summary>Whether there is anything a clear would delete — what enables the Clear button.</summary>
+        /// <summary>Whether there is anything a clear would delete, what enables the Clear button.</summary>
         [ObservableProperty]
         private bool hasStagedPackages;
 
         [ObservableProperty]
         private string agentFilter = string.Empty;
 
-        /// <summary>Show only the apps the platform flags as hidden — the set the launcher won't.</summary>
+        /// <summary>Show only the apps the platform flags as hidden, the set the launcher won't.</summary>
         [ObservableProperty]
         private bool agentHiddenOnly;
 
@@ -153,7 +157,7 @@ namespace Apps2Samsung.ViewModels
 
         /// <summary>
         /// The probe says this is a hospitality set. Worth one line of its own: no Smart Hub means no
-        /// app store, which is the single most confusing thing about these TVs — the apps aren't
+        /// app store, which is the single most confusing thing about these TVs, the apps aren't
         /// hidden, there is no store to hide them in (#639).
         /// </summary>
         [ObservableProperty]
@@ -164,17 +168,46 @@ namespace Apps2Samsung.ViewModels
         [ObservableProperty]
         private bool isConsumer;
 
+        /// <summary>
+        /// The one tool card that is open (#1041); null, all closed, is how the window opens, so
+        /// every tool is in view as a row instead of the app list filling the screen.
+        /// </summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsAppsOpen), nameof(IsSystemAppsOpen),
+            nameof(IsPackageOpen), nameof(IsStagingOpen), nameof(IsSequencesOpen), nameof(IsStandbyOpen))]
+        private string? openSection;
+
+        public bool IsAppsOpen => OpenSection == "Apps";
+        public bool IsSystemAppsOpen => OpenSection == "SystemApps";
+        public bool IsPackageOpen => OpenSection == "Package";
+        public bool IsStagingOpen => OpenSection == "Staging";
+        public bool IsSequencesOpen => OpenSection == "Sequences";
+        public bool IsStandbyOpen => OpenSection == "Standby";
+
+        /// <summary>Opens a tool card, closing the one that was open; the open one's header closes it.</summary>
+        [RelayCommand]
+        private void ToggleSection(string? name) => OpenSection = OpenSection == name ? null : name;
+
+        /// <summary>
+        /// Open an app shows the agent's list (everything really installed) instead of the known
+        /// apps. Only reachable while the agent is attached; attaching switches to it.
+        /// </summary>
+        [ObservableProperty]
+        private bool showAgentApps;
+
         public event Action? OnRequestClose;
 
         public TvToolboxViewModel(
             string tvIp, string tvLabel, ISdbEngine? sdb = null, Func<string, Action<string>, Task<bool>>? installWgt = null,
-            Func<Action<string>, Task<SigningProfile?>>? signingProfile = null)
+            Func<bool, Action<string>, Task<SigningProfile?>>? signingProfile = null,
+            TvToolboxPackageHooks? packageHooks = null)
         {
             _tvIp = tvIp;
             TvLabel = tvLabel;
             _sdb = sdb;
             _installWgt = installWgt;
             _signingProfile = signingProfile;
+            _packageHooks = packageHooks;
             Sequences = SamsungRemoteSequences.Sendable.Select(s => new ToolboxSequence(s)).ToList();
             StandbySequences = SamsungRemoteSequences.StandbyOnly.Select(s => new ToolboxSequence(s)).ToList();
             StandbySteps = SamsungRemoteSequences.StandbyStepKeys.Select(k => k.Localized()).ToList();
@@ -215,7 +248,7 @@ namespace Apps2Samsung.ViewModels
             var progress = new Progress<string>(key => StatusText = key.Localized());
             var session = await RemoteSession.ConnectAsync(_tvIp, RemoteStore.Credentials.Instance, progress);
 
-            // Read off the probe, which happens even on the runs that then fail to open the channel —
+            // Read off the probe, which happens even on the runs that then fail to open the channel , 
             // a refused pairing still told us what kind of set this is.
             IsHospitality = session.Capability.Supported && session.Capability.IsHospitality;
             IsConsumer = session.Capability.Supported && session.Capability.IsConsumer;
@@ -232,7 +265,7 @@ namespace Apps2Samsung.ViewModels
 
             // Older sets answer "what have you got installed?"; Tizen dropped the query around 2020 and
             // most current firmware simply never replies, so this enriches the list rather than filling
-            // it — and it runs after the list is already on screen.
+            // it, and it runs after the list is already on screen.
             _ = AskTheTvAsync(session.Client!);
         }
 
@@ -340,7 +373,7 @@ namespace Apps2Samsung.ViewModels
         {
             var remote = _remote;
 
-            // A system app is launched over SDB, which is a different channel entirely — so an
+            // A system app is launched over SDB, which is a different channel entirely, so an
             // unpaired set only blocks the launches that actually need the remote one.
             if (remote is null && _sdb is null)
             {
@@ -360,7 +393,7 @@ namespace Apps2Samsung.ViewModels
                 StatusText = result switch
                 {
                     { Succeeded: true, Verified: true } => string.Format("lblToolboxLaunched".Localized(), target.Name),
-                    // The message went out and the set never says what became of it — common firmware
+                    // The message went out and the set never says what became of it, common firmware
                     // behaviour, and not something to dress up as a confirmed launch.
                     { Succeeded: true } => string.Format("lblToolboxLaunchSent".Localized(), target.Name),
                     // The launcher's own verdicts, in its words: no route below it can do better.
@@ -379,7 +412,7 @@ namespace Apps2Samsung.ViewModels
         }
 
         // ---------------------------------------------------------------------------------------
-        // Install leftovers — through the agent (sdbd's own "0 rmfile" deletes nothing on retail firmware)
+        // Install leftovers, through the agent (sdbd's own "0 rmfile" deletes nothing on retail firmware)
         // ---------------------------------------------------------------------------------------
 
         /// <summary>Reads the staging folder again. Read-only; the list and the status line follow.</summary>
@@ -525,67 +558,66 @@ namespace Apps2Samsung.ViewModels
         }
 
         // ---------------------------------------------------------------------------------------
-        // The debug agent (#34)
+        // Package file (#979), then the debug agent (#34)
         // ---------------------------------------------------------------------------------------
 
-        /// <summary>The TV-Store line: each step of arming, then the verdict (#844).</summary>
         [ObservableProperty]
-        private string tvStoreStatus = string.Empty;
+        private string packageStatus = string.Empty;
 
         /// <summary>
-        /// Hands the signing certificate to the TV-Store app on the TV (#844, phase 3): the profile
-        /// the head installs with, as PEM, over TV-Store's page in debug mode. Once armed, the TV
-        /// signs and installs catalog apps on its own. TV-Store has to be on the set already; it
-        /// is installed from the catalog like any package.
+        /// Sign a package… (#979): a .wgt/.tpk from disk, signed with the certificate that covers this
+        /// TV (made first when none does, the same sheet as an install) and saved where the user
+        /// says, without installing it. For tools that install another way. The input is never changed.
         /// </summary>
         [RelayCommand]
-        private async Task ArmTvStore()
+        private async Task SignPackage()
         {
+            if (_packageHooks is null || _signingProfile is null || IsBusy)
+                return;
             if (_sdb is null)
             {
-                TvStoreStatus = "lblToolboxAgentNeedsSdb".Localized();
+                PackageStatus = "lblToolboxAgentNeedsSdb".Localized();
                 return;
             }
 
-            if (IsBusy)
+            var input = await _packageHooks.PickPackage();
+            if (string.IsNullOrWhiteSpace(input))
+                return;
+            if (!PackageSigner.IsPackage(input))
+            {
+                PackageStatus = "statusChooseWgt".Localized();
+                return;
+            }
+            var output = await _packageHooks.PickSavePath(PackageSigner.SuggestedOutputName(input));
+            if (string.IsNullOrWhiteSpace(output))
                 return;
 
             IsBusy = true;
             try
             {
-                var state = await TvStorePackage.GetInstallStateAsync(_sdb, _tvIp);
-                if (state != TvStoreInstallState.Installed)
-                {
-                    TvStoreStatus = (state == TvStoreInstallState.Outdated ? "lblToolboxTvStoreOutdated" : "lblToolboxTvStoreNotInstalled").Localized();
-                    return;
-                }
-
-                TvStoreStatus = "lblToolboxTvStoreCertificate".Localized();
-                var profile = _signingProfile is null ? null : await _signingProfile(message => TvStoreStatus = message);
+                // Partner when the package needs it, as an install would; the status says so.
+                var needsPartner = Apps2Samsung.Packaging.WgtPrivileges.RequiresPartner(input);
+                PackageStatus = "lblToolboxTvStoreCertificate".Localized();
+                var profile = await _signingProfile(needsPartner, message => PackageStatus = message);
                 if (profile is null)
                 {
-                    TvStoreStatus = "lblToolboxTvStoreNoCertificate".Localized();
+                    PackageStatus = "lblToolboxTvStoreNoCertificate".Localized();
                     return;
                 }
-                var pem = SigningCertificatePem.FromProfile(profile);
 
-                var progress = new Progress<string>(key => TvStoreStatus = key.Localized());
-                await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress);
-                TvStoreStatus = "lblToolboxTvStoreArming".Localized();
-                await store.ArmAsync(pem);
-                var status = await store.StatusAsync();
-                TvStoreStatus = string.Format("lblToolboxTvStoreArmed".Localized(), store.Version, status.OwnIp ?? _tvIp);
+                PackageStatus = string.Format("lblToolboxPackageSigning".Localized(), System.IO.Path.GetFileName(input));
+                var signed = await PackageSigner.SignCopyAsync(_sdb, input, output, profile,
+                    line => PackageStatus = Apps2Samsung.Localization.ProgressText.Localize(line, k => k.Localized()));
+                PackageStatus = string.Format("lblToolboxPackageSigned".Localized(), System.IO.Path.GetFileName(input), TvLabel, signed.Path);
             }
-            catch (TvStoreUnreachableException ex)
+            catch (CertificateNotYetValidException ex)
             {
-                // The listing failed, so TV-Store may well be there: point at Developer Mode, not the catalog (#889).
-                System.Diagnostics.Trace.WriteLine($"[toolbox] arm TV-Store: no app listing: {ex.Reason}");
-                TvStoreStatus = string.Format("lblToolboxTvStoreUnreachable".Localized(), ex.Reason);
+                PackageStatus = ex.Message;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"[toolbox] arm TV-Store failed: {ex}");
-                TvStoreStatus = string.Format("lblToolboxTvStoreFailed".Localized(), ex.Message);
+                System.Diagnostics.Trace.WriteLine($"[toolbox] sign package failed: {ex}");
+                PackageStatus = string.Format("lblToolboxPackageSignFailed".Localized(), ex.Message);
             }
             finally
             {
@@ -625,6 +657,7 @@ namespace Apps2Samsung.ViewModels
                 ApplyAgentFilter();
 
                 IsAgentAttached = true;
+                ShowAgentApps = true;
                 AgentStatus = string.Format("lblToolboxAgentAttached".Localized(),
                     agent.AgentVersion, _agentApps.Count, _agentApps.Count(a => !a.Show), platform.Tizen ?? "?");
 
@@ -660,6 +693,7 @@ namespace Apps2Samsung.ViewModels
             var agent = _agent;
             _agent = null;
             IsAgentAttached = false;
+            ShowAgentApps = false;
             _agentApps = Array.Empty<DebugAgentApp>();
             AgentApps.Clear();
             StagedFiles.Clear();
@@ -870,7 +904,7 @@ namespace Apps2Samsung.ViewModels
             Name = sequence.NameKey.Localized();
             Description = sequence.DescriptionKey.Localized();
             Caveat = sequence.CaveatKey?.Localized() ?? string.Empty;
-            // "KEY_MUTE" reads as "MUTE" — the label on the physical remote, which is what the manuals
+            // "KEY_MUTE" reads as "MUTE", the label on the physical remote, which is what the manuals
             // that document these combinations print.
             Keys = string.Join(" · ", sequence.Keys.Select(k => k.StartsWith("KEY_", StringComparison.Ordinal) ? k[4..] : k));
         }

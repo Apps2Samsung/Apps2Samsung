@@ -23,37 +23,54 @@ on:
     paths:
       - 'Apps2Samsung.Core/Jellyfin/Plugins/**'
       - 'Apps2Samsung.Core/Core/EsbuildHelper.cs'
+      - 'Apps2Samsung.Core/Core/RegexPropertyEscapes.cs'
       - 'Apps2Samsung.Desktop/Assets/esbuild/**'
       - 'tools/plugin-es2015-check/**'
       - 'tools/PluginPatchRig/**'
+      - 'tools/RegexLower/**'
       - '.github/workflows/plugin-es2015-check.yml'
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   upstream:
     name: Upstream plugins transpile to ES2015
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v6.1.0
+        with:
+          dotnet-version: 10.0.x
 
       - name: Install acorn
         working-directory: tools/plugin-es2015-check
         run: npm ci
+
+      # The app runs esbuild's output through RegexPropertyEscapes.Lower; the check does the same.
+      - name: Build the regex pass
+        run: dotnet build tools/RegexLower/RegexLower.csproj -c Release
 
       # The binary is committed without the executable bit (EsbuildHelper sets it at runtime).
       - name: Run the check
         working-directory: tools/plugin-es2015-check
         run: |
           chmod +x ../../Apps2Samsung.Desktop/Assets/esbuild/linux-x64/esbuild
-          node check.mjs ../../Apps2Samsung.Desktop/Assets/esbuild/linux-x64/esbuild "$RUNNER_TEMP/plugin-sources"
+          node check.mjs ../../Apps2Samsung.Desktop/Assets/esbuild/linux-x64/esbuild "$RUNNER_TEMP/plugin-sources" ../RegexLower/bin/Release/net10.0/RegexLower.dll
 
   rig:
     name: Plugin patch rig
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-dotnet@v6
+      - uses: actions/setup-dotnet@v6.1.0
         with:
           dotnet-version: 10.0.x
 
@@ -74,7 +91,7 @@ jobs:
       # Per case: plugin_cache, the injected tags, the patcher's log and every request it made.
       - name: Upload the rig output
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: plugin-patch-rig
           path: ${{ runner.temp }}/rig-out
