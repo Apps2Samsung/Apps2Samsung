@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Apps2Samsung.Remote;
+using Apps2Samsung.Sdb;
 
 namespace Apps2Samsung.TvStore
 {
@@ -56,6 +57,24 @@ namespace Apps2Samsung.TvStore
             }
             return false;
         }
+
+        /// <summary>
+        /// For a TV whose Host PC IP is 127.0.0.1: every developer-connection call goes through
+        /// TV-Store's relay, which only runs while TV-Store does. Opens TV-Store with the TV's own app
+        /// launch (no SDB, see <see cref="EnsureRunningAsync"/>) and waits for its relay to listen.
+        /// True when the relay is up; false when TV-Store would not open or its relay did not come.
+        /// <paramref name="progress"/> gets en.json keys.
+        /// </summary>
+        public static async Task<bool> OpenForRelayAsync(string tvIp, Action<string>? progress = null, CancellationToken ct = default)
+        {
+            if (!await EnsureRunningAsync(tvIp, progress, ct).ConfigureAwait(false))
+                return false;
+            progress?.Invoke("statusWaitingForRelayUp");
+            return await SdbEndpoint.WaitForRelayAsync(tvIp, RelayWait, untilReachable: true, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>How long <see cref="OpenForRelayAsync"/> waits for the relay once TV-Store is up.</summary>
+        public static readonly TimeSpan RelayWait = TimeSpan.FromSeconds(20);
 
         /// <summary>
         /// Sends <paramref name="packagePath"/> to TV-Store on <paramref name="tvIp"/> and brings

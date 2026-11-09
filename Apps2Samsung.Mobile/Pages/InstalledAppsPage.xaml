@@ -22,7 +22,20 @@
         <!-- The apps as a grouped list (#755): tile, name, version and size, a chevron; a row opens
              the app's sheet with Launch / Stop / Debug console / Uninstall. -->
         <!-- apps on this TV that moved to their author's repository (#1018): filled in code, one card each -->
-        <VerticalStackLayout Grid.Row="1" x:Name="MovedHost" Spacing="8" Margin="16,4,16,4" IsVisible="False" />
+        <VerticalStackLayout Grid.Row="1" Spacing="8">
+            <!-- Host PC IP 127.0.0.1 and TV-Store closed: the list comes through TV-Store's relay, so say
+                 so and open TV-Store on the TV from here (#1041 follow-up) -->
+            <Border x:Name="RelayNotice" IsVisible="False" Margin="16,4,16,0" Padding="14,12" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12" Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}">
+                <VerticalStackLayout Spacing="10">
+                    <Label x:Name="RelayNoticeLabel" FontSize="15" LineBreakMode="WordWrap" TextColor="{DynamicResource InkColor}"
+                           Text="{l:Localize lblOnTvRelayClosed}" />
+                    <Button x:Name="OpenTvStoreBtn" Style="{StaticResource PrimaryButton}" HeightRequest="44" MinimumHeightRequest="44"
+                            Text="{l:Localize lblOpenTvStore}" Clicked="OnOpenTvStoreClicked" />
+                </VerticalStackLayout>
+            </Border>
+            <VerticalStackLayout x:Name="MovedHost" Spacing="8" Margin="16,4,16,4" IsVisible="False" />
+        </VerticalStackLayout>
 
         <Border Grid.Row="2" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}"
                 VerticalOptions="Start" Margin="16,4,16,0">

@@ -246,10 +246,27 @@ namespace Apps2Samsung.ViewModels
         public string LblSearchApps => L("lblSearchApps");
         public string LblNoAppMatches => L("lblNoAppMatches");
 
-        partial void OnSearchTextChanged(string value)
+        // The catalog is rebuilt once typing pauses: a rebuild lays out every matching row, and one
+        // letter matches most of the catalog, so rebuilding per keystroke froze the field while typing.
+        private CancellationTokenSource? _searchPause;
+        private static readonly TimeSpan SearchPause = TimeSpan.FromMilliseconds(250);
+
+        partial void OnSearchTextChanged(string value) => _ = SearchAfterPauseAsync(value);
+
+        private async Task SearchAfterPauseAsync(string value)
         {
+            _searchPause?.Cancel();
+            var pause = _searchPause = new CancellationTokenSource();
+            // Clearing the field shows the groups again at once.
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                try { await Task.Delay(SearchPause, pause.Token); }
+                catch (TaskCanceledException) { return; }
+            }
+            if (pause.IsCancellationRequested)
+                return;
             OnPropertyChanged(nameof(CatalogColumns));
-            RebuildCatalogRows();
+            RebuildCatalogRows(fromSearch: true);
         }
 
         /// <summary>The groups sit two across; a search is one flat list, so it gets the full width.</summary>
@@ -272,6 +289,8 @@ namespace Apps2Samsung.ViewModels
             Apps2Samsung.Catalog.SourceLine? Source = null)
             : System.ComponentModel.INotifyPropertyChanged
         {
+            /// <summary>The tags at the start of the grey line (#1041 follow-up, Core <c>CatalogTags</c>).</summary>
+            public IReadOnlyList<Apps2Samsung.Design.CatalogTag> Tags { get; init; } = Array.Empty<Apps2Samsung.Design.CatalogTag>();
             public bool HasSourceLine => Source?.IsVisible == true;
             public bool IsRepositoryLine => Source?.Kind == Apps2Samsung.Catalog.SourceLineKind.Repository;
             public bool IsUnverifiedLine => Source?.Kind == Apps2Samsung.Catalog.SourceLineKind.Unverified;
@@ -334,7 +353,10 @@ namespace Apps2Samsung.ViewModels
                 : null;
             var row = new CatalogRow(release, AppTiles.Letter(release.Name),
                 DesignTheme.Brush(AppTiles.ColorToken(release.Category, release.Name)), subline, needsTizen,
-                Apps2Samsung.Catalog.CatalogSourceLabels.Line(release.Source, L));
+                Apps2Samsung.Catalog.CatalogSourceLabels.Line(release.Source, L))
+            {
+                Tags = Apps2Samsung.Design.CatalogTags.For(release, SelectedTvVersion, L),
+            };
             // The icon arrives when it is on disk (a cached one at once); the letter tile holds the place.
             _ = LoadRowIconAsync(row);
             return row;
@@ -353,15 +375,29 @@ namespace Apps2Samsung.ViewModels
 
         // The catalog as short groups per category (Core's CatalogGroups), or one flat result
         // group while searching.
-        private void RebuildCatalogRows()
+        // The rows of the last rebuild by release, reused while only the search changes: a new row
+        // starts its own icon load and the list builds new controls for it.
+        private readonly Dictionary<GitHubRelease, CatalogRow> _rowCache = new(ReferenceEqualityComparer.Instance);
+
+        private CatalogRow CachedRowFor(GitHubRelease release)
         {
+            if (!_rowCache.TryGetValue(release, out var row))
+                _rowCache[release] = row = RowFor(release);
+            return row;
+        }
+
+        private void RebuildCatalogRows(bool fromSearch = false)
+        {
+            // Anything but the search (a new catalog, another TV, a setting) may change a row.
+            if (!fromSearch)
+                _rowCache.Clear();
             CatalogGroupsView.Clear();
             var all = VisibleReleases.Where(r => r != CustomEntry).ToList();
             var groups = CatalogGroups.Build(all, SearchText, _expandedCategories, L, _favorites);
             var any = false;
             foreach (var group in groups)
             {
-                var rows = group.Rows.Select(RowFor).ToList();
+                var rows = group.Rows.Select(CachedRowFor).ToList();
                 any |= rows.Count > 0;
                 CatalogGroupsView.Add(new CatalogGroupView(group, rows, L(group.IsExpanded ? "lblShowLess" : "lblShowAll")));
             }
@@ -722,7 +758,7 @@ namespace Apps2Samsung.ViewModels
                 return;
             await TizenVersionCache.ProbeAsync(_sdbEngine, ip);
             if (TizenVersionCache.TryGet(ip) is not null && SelectedDevice?.IpAddress == ip)
-                await Dispatcher.UIThread.InvokeAsync(RebuildCatalogRows);
+                await Dispatcher.UIThread.InvokeAsync(() => RebuildCatalogRows());
         }
 
         partial void OnSelectedDeviceChanged(NetworkDevice? value)

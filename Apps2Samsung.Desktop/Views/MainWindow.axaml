@@ -5,6 +5,7 @@
         xmlns:appicon="using:Apps2Samsung.Helpers"
         Icon="{x:Static appicon:AppIcon.Current}"
 		x:DataType="viewModels:MainWindowViewModel"
+        xmlns:design="clr-namespace:Apps2Samsung.Design;assembly=Apps2Samsung.Core"
         xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
 		xmlns:helpers="clr-namespace:Apps2Samsung.Helpers.Converters"
 		xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
@@ -241,35 +242,29 @@
 																				</Border>
 																			</Panel>
 																			<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-																				<StackPanel Orientation="Horizontal" Spacing="6">
-																					<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
-																					<!-- adult-only (#850): shown only once the user opted in under Settings > Installing -->
-																					<Border IsVisible="{Binding IsAdult}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
-																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblAdultOnly}">
-																						<TextBlock Text="{l:Localize lblAdultBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
-																					</Border>
-																					<!-- gains root on the TV: the install asks first -->
-																					<Border IsVisible="{Binding IsRoot}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
-																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblRootPackage}">
-																						<TextBlock Text="{l:Localize lblRootBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
-																					</Border>
-																					<!-- downloads and runs newer versions of itself after install (#1016) -->
-																					<Border IsVisible="{Binding IsSelfUpdating}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
-																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblSelfUpdatingPackage}">
-																						<TextBlock Text="{l:Localize lblSelfUpdatingBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
-																					</Border>
-																					<!-- the source is not in the linked repository (#1016): informational, no warning -->
-																					<Border IsVisible="{Binding IsClosedSource}" Background="{DynamicResource FillBrush}" BorderBrush="{DynamicResource HairBrush}"
-																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblClosedSourcePackage}">
-																						<TextBlock Text="{l:Localize lblClosedSourceBadge}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
-																					</Border>
-																					<!-- the selected TV runs none of the app's builds (TV-Store#47) -->
-																					<Border IsVisible="{Binding HasNeedsTizen}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
-																					        BorderThickness="1" CornerRadius="6" Padding="5,0" VerticalAlignment="Center">
-																						<TextBlock Text="{Binding NeedsTizen}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource WarnBrush}"/>
-																					</Border>
-																				</StackPanel>
-																				<TextBlock Text="{Binding Subline}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
+																				<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
+																				<!-- the tags (18+, root, self-updating, Needs Tizen X, closed source) open the grey line
+																				     (#1041 follow-up, option B): amber for a warning, grey for information. They never
+																				     shorten; the category and downloads after them do. -->
+																				<Grid ColumnDefinitions="Auto,*">
+																					<ItemsControl ItemsSource="{Binding Tags}">
+																						<ItemsControl.ItemsPanel>
+																							<ItemsPanelTemplate>
+																								<StackPanel Orientation="Horizontal"/>
+																							</ItemsPanelTemplate>
+																						</ItemsControl.ItemsPanel>
+																						<ItemsControl.ItemTemplate>
+																							<DataTemplate x:DataType="design:CatalogTag">
+																								<StackPanel Orientation="Horizontal" Background="Transparent" ToolTip.Tip="{Binding Tooltip}">
+																									<TextBlock Text="{Binding Text}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding IsWarning}"/>
+																									<TextBlock Text="{Binding Text}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}" IsVisible="{Binding !IsWarning}"/>
+																									<TextBlock Text=" · " FontSize="13" Foreground="{DynamicResource MutedBrush}"/>
+																								</StackPanel>
+																							</DataTemplate>
+																						</ItemsControl.ItemTemplate>
+																					</ItemsControl>
+																					<TextBlock Grid.Column="1" Text="{Binding Subline}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
+																				</Grid>
 																				<!-- where it comes from (#1018): nothing for the official catalog; a shield for a signed
 																				     repository, amber for an unverified source, a lock when the repository can't be checked now -->
 																				<StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding HasSourceLine}" ToolTip.Tip="{Binding Source.Tip}">
