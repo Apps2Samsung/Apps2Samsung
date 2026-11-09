@@ -1445,7 +1445,8 @@ namespace Apps2Samsung.ViewModels
                     catalog: () => Releases.ToList(),
                     removed: () => _removedApps,
                     update: UpdateFromCatalogAsync,
-                    refreshCatalog: () => LoadReleasesAsync());
+                    refreshCatalog: () => LoadReleasesAsync(),
+                    icons: _catalogIcons);
                 vm.OnRequestClose += () => SelectedSection = Section.Install;
                 InstalledAppsVm = vm;
             }

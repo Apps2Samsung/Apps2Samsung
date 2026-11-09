@@ -89,11 +89,11 @@
                                                         </MenuFlyout>
                                                     </Grid.ContextFlyout>
                                                     <Panel Width="38" Height="38" Margin="14,7,0,7" VerticalAlignment="Center">
-                                                        <Border CornerRadius="10" Background="{Binding App.FallbackColor}" IsVisible="{Binding App.MissingIcon}">
+                                                        <Border CornerRadius="10" Background="{Binding App.FallbackColor}" IsVisible="{Binding !HasIconBitmap}">
                                                             <TextBlock Text="{Binding App.Initials}" Foreground="{DynamicResource GlassInkBrush}" FontWeight="Bold" FontSize="17"
                                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Border>
-                                                        <Border CornerRadius="10" ClipToBounds="True" IsVisible="{Binding App.HasIcon}">
+                                                        <Border CornerRadius="10" ClipToBounds="True" IsVisible="{Binding HasIconBitmap}">
                                                             <Image Source="{Binding IconBitmap}" Stretch="UniformToFill"/>
                                                         </Border>
                                                     </Panel>

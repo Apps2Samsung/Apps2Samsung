@@ -19,6 +19,8 @@ public partial class InstalledAppsPage : ContentPage
 {
 	private readonly ISdbEngine _sdb;
 	private readonly TvSelection _tv;
+	// The catalog's own icons (#1000), for the apps that came from the catalog.
+	private readonly Apps2Samsung.Catalog.CatalogIcons _icons;
 	// Installed app id → its catalog entry, for the row's Update button (#820).
 	private readonly Dictionary<string, Apps2Samsung.Catalog.CatalogMatch> _matches = new(StringComparer.OrdinalIgnoreCase);
 	// The TV this page is showing, read from the shared selection each time the tab appears.
@@ -26,11 +28,12 @@ public partial class InstalledAppsPage : ContentPage
 	private string _tvLabel = string.Empty;
 	private string? _loadedFor;
 
-	public InstalledAppsPage(ISdbEngine sdb, TvSelection tv)
+	public InstalledAppsPage(ISdbEngine sdb, TvSelection tv, Apps2Samsung.Catalog.CatalogIcons icons)
 	{
 		InitializeComponent();
 		_sdb = sdb;
 		_tv = tv;
+		_icons = icons;
 	}
 
 	protected override async void OnAppearing()
@@ -73,6 +76,43 @@ public partial class InstalledAppsPage : ContentPage
 		_loadedFor = _tv.Ip;
 		if (force || changed || AppsList.ItemsSource is null)
 			await LoadAsync();
+	}
+
+	/// <summary>
+	/// The icon of every app that came from the catalog (#1000): the store-icon list only knows
+	/// store apps, so Jellyfin, TizenTube and the community apps drew their letter. The catalog's
+	/// icon wins where both exist. Fetched after the list is on screen (cached files show at once,
+	/// a first download takes a moment); the list is shown again once they are in.
+	/// </summary>
+	private async Task ShowCatalogIconsAsync(List<InstalledApp> apps, string tvIp)
+	{
+		var wanted = apps
+			.Select((app, index) => (index, match: _matches.TryGetValue(app.TizenId, out var m) ? m : null))
+			.Where(x => x.match is not null)
+			.ToList();
+		if (wanted.Count == 0)
+			return;
+		var paths = await Task.WhenAll(wanted.Select(async x =>
+		{
+			try { return (x.index, path: await _icons.PathForAsync(x.match!.Release)); }
+			catch (Exception ex)
+			{
+				System.Diagnostics.Trace.WriteLine($"[installed] catalog icon for {x.match!.Release.Name}: {ex.Message}");
+				return (x.index, path: (string?)null);
+			}
+		}));
+		if (paths.All(p => p.path is null))
+			return;
+		await MainThread.InvokeOnMainThreadAsync(() =>
+		{
+			// Another TV, or another load, since: this list is stale.
+			if (tvIp != _tvIp || AppsList.ItemsSource is null)
+				return;
+			foreach (var (index, path) in paths)
+				if (path is not null)
+					apps[index] = apps[index] with { IconUrl = path };
+			AppsList.ItemsSource = InstalledAppSort.Sort(apps, MobileSettings.InstalledAppOrder).ToList();
+		});
 	}
 
 	private async void OnChangeTvClicked(object? sender, EventArgs e) => await TvPicker.ChooseAsync(this, _tv);
@@ -261,6 +301,7 @@ public partial class InstalledAppsPage : ContentPage
 				apps[i] = apps[i] with { CatalogLine = CatalogLine(match), HasUpdate = match.HasUpdate };
 			}
 			AppsList.ItemsSource = InstalledAppSort.Sort(apps, MobileSettings.InstalledAppOrder).ToList();
+			_ = ShowCatalogIconsAsync(apps, _tvIp);
 			ShowMoved(Apps2Samsung.Catalog.Repositories.MovedApps.Hints(_matches.Values,
 				Apps2Samsung.Catalog.UserSources.Parse(MobileSettings.UserSourcesJson)));
 

@@ -8,6 +8,10 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
 
+    <ContentPage.Resources>
+        <controls:IconSourceConverter x:Key="IconSource" />
+    </ContentPage.Resources>
+
     <Grid RowDefinitions="Auto,Auto,*,Auto">
 
         <!-- The top bar (#755): the TV with ▾, how many apps and how much space (or what is going on),
@@ -42,7 +46,7 @@
                                         <Label Text="{Binding Initials}" TextColor="{DynamicResource OnAccentColor}" FontSize="20" FontAttributes="Bold"
                                                HorizontalOptions="Center" VerticalOptions="Center" />
                                     </Border>
-                                    <Image Source="{Binding IconUrl}" Aspect="AspectFill" IsVisible="{Binding HasIcon}">
+                                    <Image Source="{Binding IconUrl, Converter={StaticResource IconSource}}" Aspect="AspectFill" IsVisible="{Binding HasIcon}">
                                         <Image.Clip>
                                             <RoundRectangleGeometry CornerRadius="11" Rect="0,0,44,44" />
                                         </Image.Clip>

@@ -1,4 +1,5 @@
 using Apps2Samsung.Catalog;
+using Apps2Samsung.Models;
 using Apps2Samsung.Design;
 using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Resources.Styles;
@@ -37,18 +38,24 @@ public partial class SettingsAppsPage : ContentPage
 			() => new SettingsImmiTvPage());
 		Add(L10n.Get("lblCameraPip"), AppCategories.Tools,
 			L10n.Get("hintCameraPip"),
-			() => new SettingsCameraPipPage());
+			() => new SettingsCameraPipPage(), catalogName: "Camera PiP");
 	}
 
 	private static string Or(string? value, string fallback) => string.IsNullOrWhiteSpace(value) ? fallback : value;
 
-	// Letter tile, name over the summary, chevron; tapping pushes the app's page.
-	private void Add(string name, string category, string summary, Func<Page> page)
+	// The catalog's icon (#1000) when the catalog has this app, the letter tile otherwise; then the
+	// name over the summary and a chevron. Tapping pushes the app's page.
+	// catalogName: the app's name in the catalog when the row's own name is translated.
+	private void Add(string name, string category, string summary, Func<Page> page, string? catalogName = null)
 	{
 		if (AppRows.Children.Count > 0)
 			AppRows.Add(new BoxView { HeightRequest = 1, Margin = new Thickness(72, 0, 0, 0), Color = DesignTheme.ColorOf("Hair") });
 
-		var tile = new Border
+		var release = CatalogRelease(catalogName ?? name);
+		var icons = IPlatformApplication.Current?.Services.GetService<CatalogIcons>();
+		View tile = release is not null
+			? InstallerPage.AppTile(release, icons)
+			: new Border
 		{
 			WidthRequest = 44, HeightRequest = 44, StrokeThickness = 0, VerticalOptions = LayoutOptions.Center,
 			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 11 },
@@ -59,6 +66,7 @@ public partial class SettingsAppsPage : ContentPage
 				TextColor = DesignTheme.ColorOf("OnAccent"), HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center,
 			},
 		};
+		tile.VerticalOptions = LayoutOptions.Center;
 		var text = new VerticalStackLayout
 		{
 			Spacing = 1, VerticalOptions = LayoutOptions.Center,
@@ -87,6 +95,12 @@ public partial class SettingsAppsPage : ContentPage
 		grid.GestureRecognizers.Add(tap);
 		AppRows.Add(grid);
 	}
+
+	// The catalog entry for an app named here: the same name, else the first whose name starts with it
+	// ("Jellyfin" is listed per build, "Jellyfin - 2026-11-08 18:22"); TVApp is "TVapp" there.
+	private static GitHubRelease? CatalogRelease(string name) =>
+		CatalogStore.Releases.FirstOrDefault(r => string.Equals(r.Name, name, StringComparison.OrdinalIgnoreCase))
+		?? CatalogStore.Releases.FirstOrDefault(r => r.Name.StartsWith(name + " ", StringComparison.OrdinalIgnoreCase));
 
 	private async void OnAppIconsTapped(object? sender, TappedEventArgs e) =>
 		await Navigation.PushAsync(IPlatformApplication.Current!.Services.GetRequiredService<AppIconsPage>());
