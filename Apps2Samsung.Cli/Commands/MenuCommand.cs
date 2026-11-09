@@ -227,8 +227,7 @@ internal sealed class Menu
                 Act("Install an app", "from the catalog, or a .wgt/.tpk file", "install"),
                 Act("Installed apps", "with updates from the catalog", "installed"),
                 Act("Certificate", E(certNote), "cert"),
-                Act("TV-Store", "arm TV-Store on the TV with the certificate", "tvstore"),
-                Act("TV-Store log", "save TV-Store's own log for a bug report", "tvstorelog"),
+                Act("TV-Store", "setup check, arm, send sources, its log", "tvstore"),
                 Act("Install leftovers", "packages left in the TV's staging folder", "leftovers"),
                 Act("Developer Mode", tv.State.Ready ? "ready; the guide for this TV" : "the guide for this TV", "devmode"),
                 Act("Session log", "what this session did, for a bug report", "log"),
@@ -240,13 +239,7 @@ internal sealed class Menu
                 case "install": await InstallAsync(tv); break;
                 case "installed": await InstalledAsync(tv); break;
                 case "cert": await CertificateAsync(tv); break;
-                case "tvstore":
-                    if (await ConfirmAsync($"Hand the signing certificate to TV-Store on {E(ip)}? TV-Store must be installed and open on the TV."))
-                        await RunAsync("tvstore", "--tv", ip);
-                    break;
-                case "tvstorelog":
-                    await RunAsync("tvstore", "log", "--tv", ip);
-                    break;
+                case "tvstore": await TvStoreAsync(tv); break;
                 case "devmode":
                     tv = await DeveloperModeAsync(tv);
                     break;
@@ -301,6 +294,60 @@ internal sealed class Menu
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             return new[] { $"(could not read it: {ex.Message})" };
+        }
+    }
+
+    // ---- TV-Store ----
+
+    /// <summary>
+    /// TV-Store on this TV (#1041), as the apps' TV-Store section: the setup check on top (read off the
+    /// TV, nothing changed there), then Arm, Send sources and the log. The check runs again after
+    /// each action, since arming or a changed Host PC IP is what it reports on.
+    /// </summary>
+    private async Task TvStoreAsync(Tv tv)
+    {
+        var ip = tv.State.Ip;
+        while (true)
+        {
+            Screen();
+            Show(Views.TvCard(tv.State, _unicode));
+
+            _s.Out.Progress($"Checking TV-Store on {ip}{Ellipsis}");
+            TvStoreCommand.CheckResult? check = null;
+            try
+            {
+                check = await TvStoreCommand.ReadCheckAsync(_s, ip, _ct);
+                _s.Out.Idle();
+                Show(Views.TvStoreCheck(check.Lines.Select(l => (l.Level, l.Text)).ToList(), check.Note, _unicode));
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _s.Out.Warn($"TV-Store could not be checked: {E(ex.Message)}");
+                _s.Out.Idle(Glyph.Failed);
+            }
+            ShowLine(new[] { "tvstore", "status", "--tv", ip });
+            _con.WriteLine();
+
+            var items = new List<Item>
+            {
+                Act("Arm TV-Store", "hand it the signing certificate", "arm"),
+                Act("Send sources", "your signed repositories; the TV asks for each", "sources"),
+                Act("TV-Store log", "save TV-Store's own log for a bug report", "log"),
+                Act("Check again", "read the TV once more", "check"),
+                new(M($"{(_unicode ? "←" : "<-")} Back"), "back"),
+            };
+            var pick = await SelectAsync(M("TV-Store"), items);
+            switch (pick.Tag)
+            {
+                case "arm":
+                    if (await ConfirmAsync($"Hand the signing certificate to TV-Store on {E(ip)}? TV-Store must be installed and open on the TV."))
+                        await RunAsync("tvstore", "--tv", ip);
+                    break;
+                case "sources": await RunAsync("tvstore", "sources", "--tv", ip); break;
+                case "log": await RunAsync("tvstore", "log", "--tv", ip); break;
+                case "check": break;
+                default: return;
+            }
         }
     }
 

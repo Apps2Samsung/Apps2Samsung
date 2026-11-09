@@ -165,6 +165,36 @@ internal static class Views
         return new Rows(rows);
     }
 
+    // ---- the TV-Store setup check (#1041) ----
+
+    /// <summary>The mark in front of a setup-check line, as plain text.</summary>
+    public static string CheckMark(Apps2Samsung.TvStore.TvStoreCheckLevel level, bool unicode) => level switch
+    {
+        Apps2Samsung.TvStore.TvStoreCheckLevel.Ok => unicode ? "✓" : "+",
+        Apps2Samsung.TvStore.TvStoreCheckLevel.Warn => "!",
+        Apps2Samsung.TvStore.TvStoreCheckLevel.Bad => unicode ? "✗" : "x",
+        _ => "?",
+    };
+
+    /// <summary>The setup check: each line with its mark in the status colour, the note muted under them.</summary>
+    public static IRenderable TvStoreCheck(IReadOnlyList<(Apps2Samsung.TvStore.TvStoreCheckLevel Level, string Text)> lines, string note, bool unicode)
+    {
+        var rows = new List<IRenderable>();
+        foreach (var (level, text) in lines)
+        {
+            var hex = level switch
+            {
+                Apps2Samsung.TvStore.TvStoreCheckLevel.Ok => OkHex,
+                Apps2Samsung.TvStore.TvStoreCheckLevel.Warn => WarnHex,
+                Apps2Samsung.TvStore.TvStoreCheckLevel.Bad => BadHex,
+                _ => MutedHex,
+            };
+            rows.Add(new Markup($"[{hex}]{CheckMark(level, unicode)}[/] {Esc(text)}"));
+        }
+        rows.Add(new Markup(Muted(note)));
+        return new Rows(rows);
+    }
+
     /// <summary>A finished install: the headline in a green card, with the ids a script would want next.</summary>
     public static IRenderable Done(IReadOnlyList<string> lines, bool unicode, params (string Key, string? Value)[] details)
     {

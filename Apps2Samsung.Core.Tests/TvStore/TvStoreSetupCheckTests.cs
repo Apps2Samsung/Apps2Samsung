@@ -67,11 +67,32 @@ public class TvStoreSetupCheckTests
     }
 
     [Fact]
+    public void ATvThatDoesNotAnswerIsOneBlockingLineWithItsAddress()
+    {
+        var lines = TvStoreSetupCheck.Lines(new TvStoreOverview(null, null, null, null, null, TvAnswered: false), Tv, Here);
+
+        var line = Assert.Single(lines);
+        Assert.Equal("tvStoreCheckNoAnswer", line.Key);
+        Assert.Equal(TvStoreCheckLevel.Bad, line.Level);
+        Assert.Equal(Tv, line.Args[0]);
+    }
+
+    [Fact]
+    public void DeveloperModeOffBlocksAndSaysNothingAboutHostPcIp()
+    {
+        var lines = TvStoreSetupCheck.Lines(new TvStoreOverview(TvStoreInstallState.Installed, TvStorePackage.AppId, "0.3.14", null, null, DeveloperMode: false), Tv, Here);
+
+        Assert.Equal(new[] { "tvStoreCheckInstalled", "tvStoreCheckDevModeOff" }, lines.Select(l => l.Key));
+        Assert.Equal(TvStoreCheckLevel.Bad, lines[1].Level);
+    }
+
+    [Fact]
     public void EveryLineKeyIsInEnglish()
     {
         var english = new LocalizationCatalog();
         foreach (var key in new[] { "tvStoreCheckInstalled", "tvStoreCheckOutdated", "tvStoreCheckNotInstalled", "tvStoreCheckUnknown",
-                     "tvStoreCheckHostRelay", "tvStoreCheckHostTv", "tvStoreCheckHostThisDevice", "tvStoreCheckHostElsewhere", "tvStoreCheckHostUnknown" })
+                     "tvStoreCheckHostRelay", "tvStoreCheckHostTv", "tvStoreCheckHostThisDevice", "tvStoreCheckHostElsewhere", "tvStoreCheckHostUnknown",
+                     "tvStoreCheckNoAnswer", "tvStoreCheckDevModeOff" })
             Assert.NotEqual(key, english.GetString(key));
     }
 }
