@@ -535,34 +535,7 @@ public partial class InstallerPage : ContentPage
 
 	// Lets the user pick a local .wgt or .tpk (the desktop takes both); copies it into the cache so re-signing/cleanup never touches
 	// their original file. Returns the cache copy's path, or null when nothing valid was picked.
-	private async Task<string?> PickCustomWgtAsync()
-	{
-		try
-		{
-			var picked = await LocalFilePicker.PickAsync();
-			if (picked is null)
-			{
-				SetStatus(L10n.Get("statusNoFileSelected"));
-				return null;
-			}
-			if (!picked.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) &&
-				!picked.FileName.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase))
-			{
-				SetStatus(L10n.Get("statusChooseWgt"));
-				return null;
-			}
-
-			var dest = Path.Combine(FileSystem.CacheDirectory, picked.FileName);
-			File.Copy(picked.LocalPath, dest, overwrite: true);
-			SetStatus(string.Format(L10n.Get("statusCustomPackageReady"), picked.FileName));
-			return dest;
-		}
-		catch (Exception ex)
-		{
-			SetStatus(string.Format(L10n.Get("statusFileUnreadable"), ex.Message));
-			return null;
-		}
-	}
+	private Task<string?> PickCustomWgtAsync() => TvToolHooks.PickPackageCopyAsync(SetStatus);
 
 	protected override void OnDisappearing()
 	{
@@ -734,46 +707,14 @@ public partial class InstallerPage : ContentPage
 			return true;
 		};
 
-		// Arm TV-Store (#844) hands over the profile an install would sign with: the same
-		// certificate flow, sheet included, when none covers this TV yet. Sign a package (#979) asks
-		// the same, Partner when the package needs it, and falls back to the first manual DUID from
-		// Settings when the TV cannot be read over SDB (a Host PC IP that points elsewhere), as the
-		// CLI's --duids does.
-		Func<bool, Action<string>, Task<Apps2Samsung.Install.SigningProfile?>> signingProfile = async (requirePartner, report) =>
-		{
-			// A Tizen certificate (#988) names no TV: no DUID needed, the flow reads it only for the
-			// rename memory and goes on without it. Unless its sheet switches to Samsung.
-			if (MobileSettings.UsesTizenCertificate)
-			{
-				var (tizenCert, _) = await _certFlow.RunAsync(Navigation, tvIp, label, requirePartner, report, new CancellationTokenSource());
-				return new Apps2Samsung.Install.SigningProfile(tizenCert.AuthorP12, tizenCert.DistributorP12, tizenCert.Password, tizenCert.ProfileDir);
-			}
-			string? duid = null;
-			try
-			{
-				report(L10n.Get("statusReadingTvDuid"));
-				duid = await TizenDuidReader.ReadAsync(_sdb, tvIp, progress: report);
-			}
-			catch (Exception ex)
-			{
-				System.Diagnostics.Trace.WriteLine($"[toolbox] DUID over SDB failed, trying the manual DUIDs: {ex.Message}");
-				duid = MobileSettings.ParseDuids().FirstOrDefault();
-				if (duid is null)
-				{
-					report(L10n.Get("lblToolboxPackageNoDuid"));
-					return null;
-				}
-			}
-			var (cert, _) = await _certFlow.RunAsync(Navigation, tvIp, label, requirePartner, report, new CancellationTokenSource(), duid);
-			return new Apps2Samsung.Install.SigningProfile(cert.AuthorP12, cert.DistributorP12, cert.Password, cert.ProfileDir);
-		};
+		// Sign a package (#979) signs with the profile an install would use (TvToolHooks).
+		var signingProfile = TvToolHooks.SigningProfileFor(_certFlow, _sdb, Navigation, tvIp, label);
 
 		// The Package file section (#979): the same picker as "Your own package" (a cache copy, never
-		// the user's file) and the install's customization step.
+		// the user's file).
 		Func<Task<string?>> pickPackage = PickCustomWgtAsync;
-		Func<string, string, Action<string>?, Task> customize = (ip, path, report) => _installer.CustomizeAsync(ip, path, report);
 
-		await Navigation.PushAsync(new TvToolboxPage(_sdb, tvIp, label, installWgt, signingProfile, pickPackage, customize));
+		await Navigation.PushAsync(new TvToolboxPage(_sdb, tvIp, label, installWgt, signingProfile, pickPackage));
 	}
 
 	// Downloads (or takes the picked file), provisions the certificate, installs on the selected

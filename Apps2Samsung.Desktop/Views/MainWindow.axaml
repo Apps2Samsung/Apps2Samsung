@@ -74,6 +74,12 @@
 							<fa:SymbolIcon Symbol="ViewAll"/><TextBlock Text="{Binding LblOnTheTv}"/>
 						</StackPanel>
 					</ToggleButton>
+					<ToggleButton Classes="nav" IsChecked="{Binding IsTvStoreSection, Mode=OneWay}"
+					              Command="{Binding ShowSectionCommand}" CommandParameter="TvStore">
+						<StackPanel Orientation="Horizontal" Spacing="10">
+							<fa:SymbolIcon Symbol="Shop"/><TextBlock Text="{Binding LblTvStoreTab}"/>
+						</StackPanel>
+					</ToggleButton>
 					<ToggleButton Classes="nav" IsChecked="{Binding IsRemoteSection, Mode=OneWay}"
 					              Command="{Binding ShowSectionCommand}" CommandParameter="Remote">
 						<StackPanel Orientation="Horizontal" Spacing="10">
@@ -357,6 +363,15 @@
 					<ContentControl Content="{Binding InstalledAppsVm}"/>
 					<TextBlock Text="{Binding LblSelectTvFirst}" Foreground="{DynamicResource MutedBrush}"
 					           IsVisible="{Binding InstalledAppsVm, Converter={x:Static ObjectConverters.IsNull}}"/>
+				</Panel>
+			</DockPanel>
+
+			<!-- TV-Store (#1041): the catalog on the TV, out of the toolbox -->
+			<DockPanel IsVisible="{Binding IsTvStoreSection}">
+				<Panel Margin="20,16,20,20">
+					<ContentControl Content="{Binding TvStoreVm}"/>
+					<TextBlock Text="{Binding LblSelectTvFirst}" Foreground="{DynamicResource MutedBrush}"
+					           IsVisible="{Binding TvStoreVm, Converter={x:Static ObjectConverters.IsNull}}"/>
 				</Panel>
 			</DockPanel>
 

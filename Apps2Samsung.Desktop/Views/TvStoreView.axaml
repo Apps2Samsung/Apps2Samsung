@@ -1,0 +1,167 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Extensions"
+             xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+             x:Class="Apps2Samsung.Views.TvStoreView"
+             x:DataType="viewModels:TvStoreViewModel">
+    <!-- The TV-Store section (#1041, option A), hosted in the main window's content area under the
+         toolbar (Check again). A glass card with what the TV said about TV-Store, the setup check
+         that replaced the toolbox's long hint, the certificate hand-over, and what goes to TV-Store:
+         signed repositories and a package. -->
+    <UserControl.Styles>
+        <Style Selector="TextBlock.mark">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Width" Value="16"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+        </Style>
+        <Style Selector="TextBlock.rowtext">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+        </Style>
+        <Style Selector="TextBlock.report">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+        </Style>
+        <Style Selector="StackPanel.groupbody">
+            <Setter Property="Spacing" Value="10"/>
+            <Setter Property="Margin" Value="14,12"/>
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer>
+        <StackPanel Spacing="18" MaxWidth="980" HorizontalAlignment="Stretch" Margin="0,0,8,8">
+
+            <ProgressBar IsIndeterminate="True" Height="3" IsVisible="{Binding IsBusy}"/>
+
+            <!-- What the TV said: the name and version, the first check, and the way to the catalog
+                 when TV-Store is missing or too old (#888) -->
+            <Border Background="{DynamicResource GlassBrush}" BorderBrush="{DynamicResource BezelBrush}" BorderThickness="6"
+                    CornerRadius="18" Padding="20,18">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+                    <Border Width="56" Height="56" CornerRadius="13" Background="{DynamicResource TileMediaBrush}" VerticalAlignment="Center">
+                        <Viewbox Width="28" Height="28">
+                            <Canvas Width="24" Height="24">
+                                <Path Stroke="{DynamicResource GlassInkBrush}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                                      Data="M5,8 H19 L18,20 H6 Z M9,8 V6 A3,3 0 0 1 15,6 V8"/>
+                            </Canvas>
+                        </Viewbox>
+                    </Border>
+                    <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Headline}" FontSize="23" FontWeight="Bold" Foreground="{DynamicResource GlassInkBrush}"/>
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="7">
+                            <Ellipse Width="8" Height="8" Fill="{Binding LedBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Subline}" FontSize="13" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource GlassMutedBrush}"/>
+                        </Grid>
+                        <TextBlock Text="{Binding TvLabel}" FontSize="12" Foreground="{DynamicResource GlassMutedBrush}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Spacing="8" VerticalAlignment="Center">
+                        <Button Classes="chip solid" Content="{l:Localize lblToolboxTvStoreShowInCatalog}"
+                                Command="{Binding ShowTvStoreInCatalogCommand}" IsVisible="{Binding CanShowTvStoreInCatalog}"/>
+                        <Button Classes="chip" Content="{l:Localize lblTvStoreCheckAgain}"
+                                Command="{Binding LoadCommand}" IsEnabled="{Binding !IsChecking}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <TextBlock Classes="hint" Text="{l:Localize lblTvStoreIntro}"/>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
+
+                <!-- ============ Setup check ============ -->
+                <StackPanel Grid.Column="0" Spacing="6">
+                    <TextBlock Classes="grouptitle" Text="{l:Localize lblTvStoreSetupCheck}"/>
+                    <Border Classes="group">
+                        <StackPanel Classes="groupbody">
+                            <ItemsControl ItemsSource="{Binding Checks}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Spacing="10"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="viewModels:TvStoreCheckRow">
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                            <Panel>
+                                                <TextBlock Classes="mark" Text="✓" Foreground="{DynamicResource OkBrush}" IsVisible="{Binding IsOk}"/>
+                                                <TextBlock Classes="mark" Text="!" Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding IsWarn}"/>
+                                                <TextBlock Classes="mark" Text="✕" Foreground="{DynamicResource BadBrush}" IsVisible="{Binding IsBad}"/>
+                                                <TextBlock Classes="mark" Text="?" Foreground="{DynamicResource MutedBrush}" IsVisible="{Binding IsUnknown}"/>
+                                            </Panel>
+                                            <TextBlock Grid.Column="1" Classes="rowtext" Text="{Binding Text}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Classes="hint" Text="{l:Localize lblTvStoreCheckNote}"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ============ Certificate (Arm, #844) ============ -->
+                <StackPanel Grid.Column="1" Spacing="6">
+                    <TextBlock Classes="grouptitle" Text="{l:Localize lblTvStoreCertificate}"/>
+                    <Border Classes="group">
+                        <StackPanel Classes="groupbody">
+                            <TextBlock Classes="hint" Text="{l:Localize lblTvStoreArmHint}"/>
+                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxAgentNeedsSdb}" Foreground="{DynamicResource WarnBrush}"
+                                       IsVisible="{Binding !HasSdb}"/>
+                            <Button Classes="primary" HorizontalAlignment="Left"
+                                    Content="{l:Localize lblToolboxTvStoreArm}"
+                                    Command="{Binding ArmTvStoreCommand}" IsEnabled="{Binding HasSdb}"/>
+                            <TextBlock Classes="report" Text="{Binding TvStoreStatus}"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <!-- ============ Send to TV-Store ============ -->
+            <StackPanel Spacing="6">
+                <TextBlock Classes="grouptitle" Text="{l:Localize lblTvStoreSendGroup}"/>
+                <Border Classes="group">
+                    <StackPanel>
+                        <!-- Send sources to TV (#1018, TV-Store#82): the signed repositories of Your sources, with
+                             the keys approved here; the TV asks before adding each. Unsigned ones never go. -->
+                        <StackPanel Classes="groupbody">
+                            <TextBlock Classes="rowtext" FontWeight="SemiBold" Text="{l:Localize lblToolboxSendSources}"/>
+                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxSendSourcesHint}"/>
+                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxSendSourcesNone}" IsVisible="{Binding !HasTvSources}"/>
+                            <ItemsControl ItemsSource="{Binding TvSources}" IsVisible="{Binding HasTvSources}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="viewModels:TvStoreViewModel+TvSourceChoice">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                                            <CheckBox IsChecked="{Binding IsChecked}" IsEnabled="{Binding CanSend}"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding Note}" FontSize="12" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Classes="soft" HorizontalAlignment="Left" IsVisible="{Binding HasTvSources}" IsEnabled="{Binding HasSdb}"
+                                    Content="{l:Localize lblToolboxSendSources}"
+                                    Command="{Binding SendSourcesToTvCommand}"/>
+                            <TextBlock Classes="report" Text="{Binding SourcesStatus}"/>
+                        </StackPanel>
+
+                        <Border Classes="rowline"/>
+
+                        <!-- A package of the user's own (#979): to TV-Store's upload page on the TV, which
+                             asks on the screen and signs it itself. No developer connection on this side. -->
+                        <StackPanel Classes="groupbody">
+                            <TextBlock Classes="rowtext" FontWeight="SemiBold" Text="{l:Localize lblTvStoreSendPackage}"/>
+                            <TextBlock Classes="hint" Text="{l:Localize lblTvStoreSendPackageHint}"/>
+                            <Button Classes="soft" HorizontalAlignment="Left"
+                                    Content="{l:Localize lblToolboxSendToTvStore}"
+                                    Command="{Binding SendToTvStoreCommand}"/>
+                            <TextBlock Classes="report" Text="{Binding PackageStatus}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

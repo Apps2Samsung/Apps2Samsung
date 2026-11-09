@@ -140,11 +140,12 @@ namespace Apps2Samsung.ViewModels
         // The sections (#755): Install, On the TV, Remote and Settings live in the main window behind
         // a sidebar. The two TV-bound sections get a view model for the selected TV when first shown,
         // dropped when another TV is picked.
-        public enum Section { Install, OnTheTv, Remote, Settings }
+        public enum Section { Install, OnTheTv, TvStore, Remote, Settings }
         [ObservableProperty]
         private Section selectedSection = Section.Install;
         public bool IsInstallSection => SelectedSection == Section.Install;
         public bool IsOnTheTvSection => SelectedSection == Section.OnTheTv;
+        public bool IsTvStoreSection => SelectedSection == Section.TvStore;
         public bool IsRemoteSection => SelectedSection == Section.Remote;
         public bool IsSettingsSection => SelectedSection == Section.Settings;
         public SettingsViewModel Settings => _settingsViewModel;
@@ -152,11 +153,14 @@ namespace Apps2Samsung.ViewModels
         private InstalledAppsViewModel? installedAppsVm;
         [ObservableProperty]
         private RemoteViewModel? remoteVm;
+        [ObservableProperty]
+        private TvStoreViewModel? tvStoreVm;
         public bool HasSelectedTv => SelectedDevice is { } d && !string.IsNullOrWhiteSpace(d.IpAddress) && d.IpAddress != L("lblOther");
         private string SelectedTvLabel => SelectedDevice is null ? string.Empty
             : string.IsNullOrWhiteSpace(SelectedDevice.DisplayText) ? SelectedDevice.IpAddress : SelectedDevice.DisplayText;
         public string LblInstall => L("lblInstall");
         public string LblOnTheTv => L("lblOnTheTv");
+        public string LblTvStoreTab => L("lblToolboxTvStore");
         public string LblRemoteTab => L("lblRemote");
         public string LblSettingsTab => L("lblSettingsTab");
         public string LblSelectTvFirst => L("lblSelectTvFirst");
@@ -165,6 +169,7 @@ namespace Apps2Samsung.ViewModels
         {
             OnPropertyChanged(nameof(IsInstallSection));
             OnPropertyChanged(nameof(IsOnTheTvSection));
+            OnPropertyChanged(nameof(IsTvStoreSection));
             OnPropertyChanged(nameof(IsRemoteSection));
             OnPropertyChanged(nameof(IsSettingsSection));
         }
@@ -175,6 +180,7 @@ namespace Apps2Samsung.ViewModels
             switch (name)
             {
                 case nameof(Section.OnTheTv): await ShowInstalledAppsAsync(); break;
+                case nameof(Section.TvStore): await ShowTvStoreAsync(); break;
                 case nameof(Section.Remote): await ShowRemoteAsync(); break;
                 case nameof(Section.Settings): SelectedSection = Section.Settings; break;
                 default: SelectedSection = Section.Install; break;
@@ -186,6 +192,7 @@ namespace Apps2Samsung.ViewModels
         {
             InstalledAppsVm?.Dispose();
             InstalledAppsVm = null;
+            TvStoreVm = null;
             var remote = RemoteVm;
             RemoteVm = null;
             if (remote is not null)
@@ -651,6 +658,7 @@ namespace Apps2Samsung.ViewModels
             UpdateTvCard();
             OnPropertyChanged(nameof(LblInstall));
             OnPropertyChanged(nameof(LblOnTheTv));
+            OnPropertyChanged(nameof(LblTvStoreTab));
             OnPropertyChanged(nameof(LblRemoteTab));
             OnPropertyChanged(nameof(LblSettingsTab));
             OnPropertyChanged(nameof(LblSelectTvFirst));
@@ -737,6 +745,7 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(HasSelectedTv));
             DropTvSections();
             if (SelectedSection == Section.OnTheTv) _ = ShowInstalledAppsAsync();
+            else if (SelectedSection == Section.TvStore) _ = ShowTvStoreAsync();
             else if (SelectedSection == Section.Remote) _ = ShowRemoteAsync();
         }
 
@@ -1584,94 +1593,119 @@ namespace Apps2Samsung.ViewModels
                     return result.Success;
                 };
 
-                // Arm TV-Store (#844) hands over the profile an install would sign with: made or
-                // extended here first (the certificate sheet when a sign-in is needed), then read back
-                // from the store for the TV's DUID.
-                // Sign a package… (#979) asks the same, Partner when the package needs it, and falls
-                // back to the first manual DUID from Settings when the TV cannot be read over SDB (a
-                // Host PC IP that points elsewhere), as the CLI's --duids does.
-                Func<bool, Action<string>, Task<Apps2Samsung.Install.SigningProfile?>> signingProfile = async (requirePartner, report) =>
-                {
-                    // A Tizen certificate (#988) names no TV: no DUID to read, the profile is the
-                    // one on disk (made now when missing). Unless its sheet switched to Samsung.
-                    if (Apps2Samsung.Certificate.CertificateKind.IsTizen(AppSettings.Default.CertificateKind))
-                    {
-                        using var tizenTimeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-                        if (await _tizenInstaller.PrepareCertificateAsync(tvIp, tizenTimeout.Token, requirePartner) == CertificatePreparation.Failed)
-                            return null;
-                        if (Apps2Samsung.Certificate.CertificateKind.IsTizen(AppSettings.Default.CertificateKind))
-                        {
-                            var tizen = await Apps2Samsung.Certificate.TizenProfileStore.EnsureAsync(AppSettings.CertificatePath,
-                                Apps2Samsung.Certificate.CertificateKind.TizenLevel(AppSettings.Default.CertificatePreference, AppSettings.Default.RequiresPartnerSigning || requirePartner));
-                            return new Apps2Samsung.Install.SigningProfile(tizen.AuthorP12, tizen.DistributorP12, tizen.Password, tizen.ProfileDir);
-                        }
-                    }
-                    var preferred = requirePartner ? Apps2Samsung.Interfaces.CertificatePrivilegeLevel.Partner : (Apps2Samsung.Interfaces.CertificatePrivilegeLevel?)null;
-                    report(L("lblToolboxTvStoreReadingDuid"));
-                    string duid;
-                    try
-                    {
-                        duid = await Apps2Samsung.Sdb.TizenDuidReader.ReadAsync(_sdbEngine, tvIp, progress: report);
-                    }
-                    catch (Exception ex)
-                    {
-                        // No developer connection: a profile that already lists the manual DUID (made
-                        // from Settings, where the manual DUIDs go into the certificate) is what there is.
-                        Trace.WriteLine($"[toolbox] DUID over SDB failed, trying the manual DUIDs: {ex.Message}");
-                        var manual = AppSettings.Default.ManualDuids
-                            .Split(new[] { ',', ';', ' ', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                            .FirstOrDefault();
-                        if (manual is null)
-                        {
-                            report(L("lblToolboxPackageNoDuid"));
-                            return null;
-                        }
-                        return Apps2Samsung.Certificate.SigningCertificatePem.FindProfileCovering(AppSettings.CertificatePath, manual, preferred);
-                    }
-                    using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-                    if (await _tizenInstaller.PrepareCertificateAsync(tvIp, timeout.Token, requirePartner) == CertificatePreparation.Failed)
-                        return null;
-                    return Apps2Samsung.Certificate.SigningCertificatePem.FindProfileCovering(AppSettings.CertificatePath, duid, preferred);
-                };
+                var signingProfile = SigningProfileFor(tvIp);
+                var packageHooks = PackageHooksFor(desktop);
 
-                // The Package file section's pickers (this window's storage provider) and the
-                // install's customization step (#979).
-                var storage = desktop.MainWindow?.StorageProvider;
-                var packageHooks = storage is null ? null : new TvToolboxPackageHooks(
-                    PickPackage: async () =>
-                    {
-                        var picked = await _fileHelper.BrowseWgtFilesAsync(storage);
-                        return picked?.Split(';', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-                    },
-                    PickSavePath: async suggested =>
-                    {
-                        var ext = Path.GetExtension(suggested).TrimStart('.');
-                        var target = await storage.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
-                        {
-                            Title = L("lblSignedPackage"),
-                            SuggestedFileName = suggested,
-                            DefaultExtension = ext,
-                            FileTypeChoices = new[] { new Avalonia.Platform.Storage.FilePickerFileType(ext.ToUpperInvariant()) { Patterns = new[] { "*." + ext } } },
-                        });
-                        return target?.Path.LocalPath;
-                    },
-                    Customize: (ip, path) => _tizenInstaller.CustomizeAsync(ip, path));
-
-                // No (or an old) TV-Store on the set: the toolbox closes itself and TV-Store's sheet
-                // opens here, where installs run (#888). Only offered while the catalog lists it.
-                GitHubRelease? tvStoreToShow = null;
-                var tvStoreEntry = TvStore.TvStorePackage.FindInCatalog(_allReleases);
-                Action? showTvStoreInCatalog = tvStoreEntry is null ? null : () => tvStoreToShow = tvStoreEntry;
-
-                var vm = new TvToolboxViewModel(tvIp, label, _sdbEngine, installWgt, signingProfile, showTvStoreInCatalog, packageHooks);
+                var vm = new TvToolboxViewModel(tvIp, label, _sdbEngine, installWgt, signingProfile, packageHooks);
                 var window = new Views.TvToolboxWindow(vm);
                 await window.ShowDialog(desktop.MainWindow);
-                if (tvStoreToShow is not null)
-                    await OpenAppAsync(RowFor(tvStoreToShow));
             }
             catch (Exception ex)
             {
                 await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblToolbox"), ex));
+            }
+        }
+
+        // Arm TV-Store (#844) hands over the profile an install would sign with: made or
+        // extended here first (the certificate sheet when a sign-in is needed), then read back
+        // from the store for the TV's DUID.
+        // Sign a package… (#979) asks the same, Partner when the package needs it, and falls
+        // back to the first manual DUID from Settings when the TV cannot be read over SDB (a
+        // Host PC IP that points elsewhere), as the CLI's --duids does.
+        private Func<bool, Action<string>, Task<Apps2Samsung.Install.SigningProfile?>> SigningProfileFor(string tvIp) => async (requirePartner, report) =>
+        {
+            // A Tizen certificate (#988) names no TV: no DUID to read, the profile is the
+            // one on disk (made now when missing). Unless its sheet switched to Samsung.
+            if (Apps2Samsung.Certificate.CertificateKind.IsTizen(AppSettings.Default.CertificateKind))
+            {
+                using var tizenTimeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                if (await _tizenInstaller.PrepareCertificateAsync(tvIp, tizenTimeout.Token, requirePartner) == CertificatePreparation.Failed)
+                    return null;
+                if (Apps2Samsung.Certificate.CertificateKind.IsTizen(AppSettings.Default.CertificateKind))
+                {
+                    var tizen = await Apps2Samsung.Certificate.TizenProfileStore.EnsureAsync(AppSettings.CertificatePath,
+                        Apps2Samsung.Certificate.CertificateKind.TizenLevel(AppSettings.Default.CertificatePreference, AppSettings.Default.RequiresPartnerSigning || requirePartner));
+                    return new Apps2Samsung.Install.SigningProfile(tizen.AuthorP12, tizen.DistributorP12, tizen.Password, tizen.ProfileDir);
+                }
+            }
+            var preferred = requirePartner ? Apps2Samsung.Interfaces.CertificatePrivilegeLevel.Partner : (Apps2Samsung.Interfaces.CertificatePrivilegeLevel?)null;
+            report(L("lblToolboxTvStoreReadingDuid"));
+            string duid;
+            try
+            {
+                duid = await Apps2Samsung.Sdb.TizenDuidReader.ReadAsync(_sdbEngine, tvIp, progress: report);
+            }
+            catch (Exception ex)
+            {
+                // No developer connection: a profile that already lists the manual DUID (made
+                // from Settings, where the manual DUIDs go into the certificate) is what there is.
+                Trace.WriteLine($"[toolbox] DUID over SDB failed, trying the manual DUIDs: {ex.Message}");
+                var manual = AppSettings.Default.ManualDuids
+                    .Split(new[] { ',', ';', ' ', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .FirstOrDefault();
+                if (manual is null)
+                {
+                    report(L("lblToolboxPackageNoDuid"));
+                    return null;
+                }
+                return Apps2Samsung.Certificate.SigningCertificatePem.FindProfileCovering(AppSettings.CertificatePath, manual, preferred);
+            }
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+            if (await _tizenInstaller.PrepareCertificateAsync(tvIp, timeout.Token, requirePartner) == CertificatePreparation.Failed)
+                return null;
+            return Apps2Samsung.Certificate.SigningCertificatePem.FindProfileCovering(AppSettings.CertificatePath, duid, preferred);
+        };
+
+        // The package pickers (the main window's storage provider) and the install's customization
+        // step (#979), for the toolbox's Sign a package and the TV-Store section's Send a package.
+        private TvToolboxPackageHooks? PackageHooksFor(IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var storage = desktop.MainWindow?.StorageProvider;
+            return storage is null ? null : new TvToolboxPackageHooks(
+                PickPackage: async () =>
+                {
+                    var picked = await _fileHelper.BrowseWgtFilesAsync(storage);
+                    return picked?.Split(';', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+                },
+                PickSavePath: async suggested =>
+                {
+                    var ext = Path.GetExtension(suggested).TrimStart('.');
+                    var target = await storage.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
+                    {
+                        Title = L("lblSignedPackage"),
+                        SuggestedFileName = suggested,
+                        DefaultExtension = ext,
+                        FileTypeChoices = new[] { new Avalonia.Platform.Storage.FilePickerFileType(ext.ToUpperInvariant()) { Patterns = new[] { "*." + ext } } },
+                    });
+                    return target?.Path.LocalPath;
+                },
+                Customize: (ip, path) => _tizenInstaller.CustomizeAsync(ip, path));
+        }
+
+        /// <summary>
+        /// The TV-Store section (#1041): the catalog on the TV, out of the toolbox. Same lifetime as
+        /// the On the TV and Remote sections: built for the selected TV when first shown.
+        /// </summary>
+        [RelayCommand]
+        private async Task ShowTvStoreAsync()
+        {
+            SelectedSection = Section.TvStore;
+            if (TvStoreVm is not null || !HasSelectedTv)
+                return;
+            try
+            {
+                if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                    return;
+                var tvIp = SelectedDevice!.IpAddress;
+                // No (or an old) TV-Store on the set: its sheet in the catalog, where installs run (#888).
+                // Only offered while the catalog lists it.
+                var tvStoreEntry = TvStore.TvStorePackage.FindInCatalog(_allReleases);
+                Action? showTvStoreInCatalog = tvStoreEntry is null ? null : () => _ = OpenAppAsync(RowFor(tvStoreEntry));
+                TvStoreVm = new TvStoreViewModel(tvIp, SelectedTvLabel, _sdbEngine, SigningProfileFor(tvIp), PackageHooksFor(desktop), showTvStoreInCatalog);
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync(string.Format("statusOpenFailed".Localized(), L("lblToolboxTvStore"), ex));
             }
         }
 

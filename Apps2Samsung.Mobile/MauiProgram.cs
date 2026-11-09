@@ -145,6 +145,7 @@ public static class MauiProgram
 		// The TVs and the one in use, shared by every tab (the ▾ in each top bar), and the other tab roots.
 		builder.Services.AddSingleton<TvSelection>();
 		builder.Services.AddTransient<InstalledAppsPage>();
+		builder.Services.AddTransient<TvStorePage>();
 		builder.Services.AddTransient<RemotePage>();
 		builder.Services.AddTransient<SettingsPage>();
 		// The icon/title editor needs the catalog services injected (shared app list).

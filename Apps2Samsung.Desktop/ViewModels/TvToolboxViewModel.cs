@@ -173,13 +173,12 @@ namespace Apps2Samsung.ViewModels
         /// every tool is in view as a row instead of the app list filling the screen.
         /// </summary>
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsAppsOpen), nameof(IsSystemAppsOpen), nameof(IsTvStoreOpen),
+        [NotifyPropertyChangedFor(nameof(IsAppsOpen), nameof(IsSystemAppsOpen),
             nameof(IsPackageOpen), nameof(IsStagingOpen), nameof(IsSequencesOpen), nameof(IsStandbyOpen))]
         private string? openSection;
 
         public bool IsAppsOpen => OpenSection == "Apps";
         public bool IsSystemAppsOpen => OpenSection == "SystemApps";
-        public bool IsTvStoreOpen => OpenSection == "TvStore";
         public bool IsPackageOpen => OpenSection == "Package";
         public bool IsStagingOpen => OpenSection == "Staging";
         public bool IsSequencesOpen => OpenSection == "Sequences";
@@ -200,7 +199,7 @@ namespace Apps2Samsung.ViewModels
 
         public TvToolboxViewModel(
             string tvIp, string tvLabel, ISdbEngine? sdb = null, Func<string, Action<string>, Task<bool>>? installWgt = null,
-            Func<bool, Action<string>, Task<SigningProfile?>>? signingProfile = null, Action? showTvStoreInCatalog = null,
+            Func<bool, Action<string>, Task<SigningProfile?>>? signingProfile = null,
             TvToolboxPackageHooks? packageHooks = null)
         {
             _tvIp = tvIp;
@@ -209,7 +208,6 @@ namespace Apps2Samsung.ViewModels
             _installWgt = installWgt;
             _signingProfile = signingProfile;
             _packageHooks = packageHooks;
-            _showTvStoreInCatalog = showTvStoreInCatalog;
             Sequences = SamsungRemoteSequences.Sendable.Select(s => new ToolboxSequence(s)).ToList();
             StandbySequences = SamsungRemoteSequences.StandbyOnly.Select(s => new ToolboxSequence(s)).ToList();
             StandbySteps = SamsungRemoteSequences.StandbyStepKeys.Select(k => k.Localized()).ToList();
@@ -560,198 +558,8 @@ namespace Apps2Samsung.ViewModels
         }
 
         // ---------------------------------------------------------------------------------------
-        // The debug agent (#34)
+        // Package file (#979), then the debug agent (#34)
         // ---------------------------------------------------------------------------------------
-
-        /// <summary>The TV-Store line: each step of arming, then the verdict (#844).</summary>
-        [ObservableProperty]
-        private string tvStoreStatus = string.Empty;
-
-        // Set by the main window when the catalog lists TV-Store: the button under a "not installed"
-        // status closes the toolbox and the main window opens TV-Store's sheet (#888).
-        private readonly Action? _showTvStoreInCatalog;
-
-        [ObservableProperty]
-        private bool canShowTvStoreInCatalog;
-
-        [RelayCommand]
-        private void ShowTvStoreInCatalog()
-        {
-            if (_showTvStoreInCatalog is null)
-                return;
-            _showTvStoreInCatalog();
-            OnRequestClose?.Invoke();
-        }
-
-        /// <summary>
-        /// Hands the signing certificate to the TV-Store app on the TV (#844, phase 3): the profile
-        /// the head installs with, as PEM, over TV-Store's page in debug mode. Once armed, the TV
-        /// signs and installs catalog apps on its own. TV-Store has to be on the set already; it
-        /// is installed from the catalog like any package.
-        /// </summary>
-        [RelayCommand]
-        private async Task ArmTvStore()
-        {
-            if (_sdb is null)
-            {
-                TvStoreStatus = "lblToolboxAgentNeedsSdb".Localized();
-                return;
-            }
-
-            if (IsBusy)
-                return;
-
-            IsBusy = true;
-            CanShowTvStoreInCatalog = false;
-            try
-            {
-                // This device's package-id renames (#839): a TV-Store installed under a new id is TV-Store too.
-                var renames = Apps2Samsung.Helpers.AppSettings.Default.PackageIdRenamesJson;
-                var state = await TvStorePackage.GetInstallStateAsync(_sdb, _tvIp, renames);
-                if (state != TvStoreInstallState.Installed)
-                {
-                    TvStoreStatus = (state == TvStoreInstallState.Outdated ? "lblToolboxTvStoreOutdated" : "lblToolboxTvStoreNotInstalled").Localized();
-                    // The message stays; one more button takes the user to TV-Store's catalog sheet (#888).
-                    CanShowTvStoreInCatalog = _showTvStoreInCatalog is not null;
-                    return;
-                }
-
-                TvStoreStatus = "lblToolboxTvStoreCertificate".Localized();
-                var profile = _signingProfile is null ? null : await _signingProfile(false, message => TvStoreStatus = message);
-                if (profile is null)
-                {
-                    TvStoreStatus = "lblToolboxTvStoreNoCertificate".Localized();
-                    return;
-                }
-                // Every profile on this PC goes along, the covering one first (#44): the level
-                // profiles and imports under the certificate store, and the bundled one older sets
-                // get, so TV-Store can update an app whichever of them installed it.
-                var pems = SigningCertificatePem.OpenAll(profile,
-                    SigningCertificatePem.ProfilesIn(Apps2Samsung.Helpers.AppSettings.CertificatePath, Apps2Samsung.Helpers.AppSettings.BundledCertificatePath));
-
-                var progress = new Progress<string>(key => TvStoreStatus = key.Localized());
-                await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress, renames);
-                TvStoreStatus = "lblToolboxTvStoreArming".Localized();
-                await store.ArmAsync(pems);
-                var status = await store.StatusAsync();
-                // What is left to do depends on the Host PC IP the TV has right now (#960).
-                var tv = await TizenDeveloperInfo.ReadAsync(new NetworkDevice { IpAddress = _tvIp });
-                var next = TvStoreNextSteps.For(tv.DeveloperIP, status.OwnIp);
-                TvStoreStatus = string.Format(TvStoreNextSteps.MessageKey(next).Localized(), store.Version, status.OwnIp ?? _tvIp);
-            }
-            catch (TvStoreUnreachableException ex)
-            {
-                // The listing failed, so TV-Store may well be there: point at Developer Mode, not the catalog (#889).
-                System.Diagnostics.Trace.WriteLine($"[toolbox] arm TV-Store: no app listing: {ex.Reason}");
-                TvStoreStatus = string.Format("lblToolboxTvStoreUnreachable".Localized(), ex.Reason);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[toolbox] arm TV-Store failed: {ex}");
-                TvStoreStatus = string.Format("lblToolboxTvStoreFailed".Localized(), ex.Message);
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-
-        // ---- Send sources to TV (#1018, TV-Store#82) ----
-
-        /// <summary>One signed repository in the list, ticked to go to the TV; a changed key can't be sent until reviewed.</summary>
-        public sealed partial class TvSourceChoice : ObservableObject
-        {
-            public TvSourceChoice(Apps2Samsung.Catalog.UserSource source, bool canSend, string note)
-            {
-                Source = source;
-                Name = Apps2Samsung.Catalog.UserSources.DisplayName(source);
-                CanSend = canSend;
-                isChecked = canSend;
-                Note = note;
-            }
-            public Apps2Samsung.Catalog.UserSource Source { get; }
-            public string Name { get; }
-            public bool CanSend { get; }
-            [ObservableProperty]
-            private bool isChecked;
-            [ObservableProperty]
-            private string note;
-        }
-
-        public System.Collections.ObjectModel.ObservableCollection<TvSourceChoice> TvSources { get; } = new(LoadTvSources());
-        public bool HasTvSources => TvSources.Count > 0;
-
-        [ObservableProperty]
-        private string sourcesStatus = string.Empty;
-
-        // The approved signed repositories; one whose key changed since is listed but can't be ticked.
-        private static System.Collections.Generic.IEnumerable<TvSourceChoice> LoadTvSources() =>
-            Apps2Samsung.Catalog.UserSources.Parse(Apps2Samsung.Helpers.AppSettings.Default.UserSourcesJson)
-                .Where(Apps2Samsung.Catalog.UserSources.IsApprovedRepository)
-                .Select(src =>
-                {
-                    var keyChanged = Apps2Samsung.Catalog.Repositories.SignedRepositories.LastLoad(src.Url)?.State
-                        == Apps2Samsung.Catalog.Repositories.RepositoryState.KeyChanged;
-                    return new TvSourceChoice(src, !keyChanged, keyChanged ? "lblToolboxSendSourcesReview".Localized() : string.Empty);
-                });
-
-        /// <summary>
-        /// Hands the ticked signed repositories to TV-Store with the keys approved here; the TV asks
-        /// the person at it for each, and this waits for the answers (up to five minutes).
-        /// </summary>
-        [RelayCommand]
-        private async Task SendSourcesToTv()
-        {
-            if (_sdb is null)
-            {
-                SourcesStatus = "lblToolboxAgentNeedsSdb".Localized();
-                return;
-            }
-            var chosen = TvSources.Where(c => c.CanSend && c.IsChecked).Select(c => c.Source).ToList();
-            if (chosen.Count == 0)
-            {
-                SourcesStatus = "lblToolboxSendSourcesNone".Localized();
-                return;
-            }
-            if (IsBusy)
-                return;
-
-            IsBusy = true;
-            try
-            {
-                var renames = Apps2Samsung.Helpers.AppSettings.Default.PackageIdRenamesJson;
-                var progress = new Progress<string>(key => SourcesStatus = key.Localized());
-                await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress, renames);
-                SourcesStatus = "lblToolboxSendSourcesWaiting".Localized();
-                var results = await store.AddSourcesAsync(chosen);
-                foreach (var r in results)
-                {
-                    var choice = TvSources.FirstOrDefault(c => string.Equals(c.Source.RepositoryId, r.RepositoryId, StringComparison.Ordinal));
-                    if (choice is not null)
-                        choice.Note = r.Added ? "lblSourceOnTv".Localized() : r.Error ?? string.Empty;
-                }
-                var lines = new System.Collections.Generic.List<string> { string.Format("lblToolboxSendSourcesDone".Localized(), results.Count(r => r.Added), results.Count) };
-                lines.AddRange(results.Where(r => !r.Added).Select(r => string.Format("lblToolboxSendSourcesNotAdded".Localized(), r.Name ?? r.RepositoryId, r.Error)));
-                SourcesStatus = string.Join(Environment.NewLine, lines);
-            }
-            catch (TvStoreNotInstalledException ex)
-            {
-                SourcesStatus = (ex.IsOutdated ? "lblToolboxTvStoreOutdated" : "lblToolboxTvStoreNotInstalled").Localized();
-            }
-            catch (TvStoreUnreachableException ex)
-            {
-                SourcesStatus = string.Format("lblToolboxTvStoreUnreachable".Localized(), ex.Reason);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[toolbox] send sources failed: {ex}");
-                SourcesStatus = ex is NotSupportedException ? ex.Message : string.Format("lblToolboxTvStoreFailed".Localized(), ex.Message);
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
 
         [ObservableProperty]
         private string packageStatus = string.Empty;
@@ -810,54 +618,6 @@ namespace Apps2Samsung.ViewModels
             {
                 System.Diagnostics.Trace.WriteLine($"[toolbox] sign package failed: {ex}");
                 PackageStatus = string.Format("lblToolboxPackageSignFailed".Localized(), ex.Message);
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-
-        /// <summary>
-        /// Send to TV-Store… (#979): a .wgt/.tpk from disk goes to TV-Store's upload page on the TV,
-        /// customized as an install would (the values asked before install) but not signed; TV-Store
-        /// is opened on the TV when it is not running, asks on the screen and signs it itself. No
-        /// developer connection from this PC is involved, so it works while Host PC IP is 127.0.0.1.
-        /// </summary>
-        [RelayCommand]
-        private async Task SendToTvStore()
-        {
-            if (_packageHooks is null || IsBusy)
-                return;
-
-            var input = await _packageHooks.PickPackage();
-            if (string.IsNullOrWhiteSpace(input))
-                return;
-            if (!PackageSigner.IsPackage(input))
-            {
-                PackageStatus = "statusChooseWgt".Localized();
-                return;
-            }
-
-            IsBusy = true;
-            try
-            {
-                Action<string> report = line => PackageStatus = Apps2Samsung.Localization.ProgressText.Localize(line, k => k.Localized());
-                if (!await TvStoreHandoff.EnsureRunningAsync(_tvIp, report))
-                {
-                    PackageStatus = "tvStoreNotRunning".Localized();
-                    return;
-                }
-
-                // A copy: the customization edits the file in place, and the user's file stays as it was.
-                using var staged = Apps2Samsung.Helpers.Core.StagedPackage.Create(input);
-                await _packageHooks.Customize(_tvIp, staged.FilePath);
-                var sent = await TvStoreHandoff.SendAsync(_tvIp, staged.FilePath, report);
-                PackageStatus = string.Format((sent.TvStoreOpened ? "tvStoreSentBody" : "tvStoreSentBodyClosed").Localized(), sent.Upload.Name);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"[toolbox] send to TV-Store failed: {ex}");
-                PackageStatus = string.Format("lblToolboxTvStoreFailed".Localized(), ex.Message);
             }
             finally
             {
