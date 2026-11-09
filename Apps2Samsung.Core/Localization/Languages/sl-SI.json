@@ -1206,6 +1206,7 @@
   "tvStoreSelfUpdateBody": "TV-Store posodabljate prek lastne povezave TV-Store. Televizor bo prekinil to povezavo med ponovnim zagonom TV-Store; to je pričakovano, posodobitev pa se bo kljub temu izvedla.",
   "statusTvStoreRestarting": "Televizor je prekinil povezavo med ponovnim zagonom TV-Store; to je pričakovano. Čakamo, da se TV-Store ponovno vzpostavi…",
   "statusWaitingForRelay": "Čakam, da se ponovno vzpostavi povezava s TV-Store…",
+  "statusWaitingForRelayUp": "Čakam na TV-Storejev rele…",
   "statusTvStoreRestarted": "TV-Store se je ponovno zagnal v različici {0}.",
   "statusTvStoreNotBack": "TV-Store se po posodobitvi {0} ni ponovno vzpostavil. Odprite TV-Store na televizorju: če je tam, v nastavitvah vklopite možnost »Poveži iz Apps2Samsung«; če ga ni, ga ponovno namestite.",
   "statusTvStoreNotBackVersion": "(televizor še vedno prikazuje različico {0})",
