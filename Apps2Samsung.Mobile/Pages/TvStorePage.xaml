@@ -46,7 +46,7 @@
                                       Data="M5,8 L19,8 L18,20 L6,20 Z M9,8 L9,6 A3,3 0 0 1 15,6 L15,8" />
                             </Border>
                             <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
-                                <Label x:Name="HeadlineLabel" Text="TV-Store" FontSize="21" FontFamily="OpenSansSemibold"
+                                <Label x:Name="HeadlineLabel" Text="{l:Localize lblToolboxTvStore}" FontSize="21" FontFamily="OpenSansSemibold"
                                        TextColor="{DynamicResource GlassInkColor}" />
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="7">
                                     <shapes:Ellipse x:Name="Led" WidthRequest="8" HeightRequest="8" VerticalOptions="Center"
