@@ -371,67 +371,10 @@
                     </StackPanel>
                 </Border>
 
-                <!-- ============ TV-Store ============ -->
-                <!-- The catalog on the TV itself (#844): TV-Store installs through the set's own sdbd
-                     and signs with the certificate this head hands it once, here. Needs Developer Mode. -->
-                <Border Classes="group">
-                    <StackPanel>
-                        <Button Classes="sectionhead" Command="{Binding ToggleSectionCommand}" CommandParameter="TvStore">
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                <StackPanel Spacing="1">
-                                    <TextBlock Classes="headtitle" Text="{l:Localize lblToolboxTvStore}"/>
-                                    <TextBlock Classes="headsummary" Text="{l:Localize lblToolboxTvStoreRow}"/>
-                                </StackPanel>
-                                <Panel Grid.Column="1">
-                                    <TextBlock Classes="chevron" Text="›" IsVisible="{Binding !IsTvStoreOpen}"/>
-                                    <TextBlock Classes="chevron" Text="⌄" IsVisible="{Binding IsTvStoreOpen}"/>
-                                </Panel>
-                            </Grid>
-                        </Button>
-                        <StackPanel Classes="sectionbody" IsVisible="{Binding IsTvStoreOpen}">
-                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxTvStoreHint}"/>
-                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsEnabled="{Binding HasSdb}">
-                                <Button Grid.Column="0" Classes="action" Width="120"
-                                        Content="{l:Localize lblToolboxTvStoreArm}"
-                                        Command="{Binding ArmTvStoreCommand}"/>
-                                <TextBlock Grid.Column="1" Text="{Binding TvStoreStatus}" FontSize="12"
-                                           TextWrapping="Wrap" VerticalAlignment="Center"/>
-                            </Grid>
-                            <!-- No (or an old) TV-Store on the set: straight to its catalog sheet (#888) -->
-                            <Button Classes="action" HorizontalAlignment="Left" IsVisible="{Binding CanShowTvStoreInCatalog}"
-                                    Content="{l:Localize lblToolboxTvStoreShowInCatalog}"
-                                    Command="{Binding ShowTvStoreInCatalogCommand}"/>
-
-                            <!-- Send sources to TV (#1018, TV-Store#82): the signed repositories of Your sources, with
-                                 the keys approved here; the TV asks before adding each. Unsigned ones never go. -->
-                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxSendSourcesHint}" Margin="0,8,0,0"/>
-                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxSendSourcesNone}" IsVisible="{Binding !HasTvSources}"/>
-                            <ItemsControl ItemsSource="{Binding TvSources}" IsVisible="{Binding HasTvSources}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="viewModels:TvToolboxViewModel+TvSourceChoice">
-                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-                                            <CheckBox IsChecked="{Binding IsChecked}" IsEnabled="{Binding CanSend}"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center"/>
-                                            <TextBlock Grid.Column="2" Text="{Binding Note}" FontSize="12" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsEnabled="{Binding HasSdb}" IsVisible="{Binding HasTvSources}">
-                                <Button Grid.Column="0" Classes="action" Width="160"
-                                        Content="{l:Localize lblToolboxSendSources}"
-                                        Command="{Binding SendSourcesToTvCommand}"/>
-                                <TextBlock Grid.Column="1" Text="{Binding SourcesStatus}" FontSize="12"
-                                           TextWrapping="Wrap" VerticalAlignment="Center"/>
-                            </Grid>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-
                 <!-- ============ Package file ============ -->
                 <!-- A package of the user's own, without installing it from here (#979): signed with
-                     the certificate that covers this TV and saved, or sent to TV-Store's upload page
-                     on the TV (no Developer Mode needed on this side; TV-Store asks on the screen). -->
+                     the certificate that covers this TV and saved. Sending one to TV-Store lives in
+                     the TV-Store section now (#1041). -->
                 <Border Classes="group">
                     <StackPanel>
                         <Button Classes="sectionhead" Command="{Binding ToggleSectionCommand}" CommandParameter="Package">
@@ -448,15 +391,12 @@
                         </Button>
                         <StackPanel Classes="sectionbody" IsVisible="{Binding IsPackageOpen}">
                             <TextBlock Classes="hint" Text="{l:Localize lblToolboxPackageHint}"/>
-                            <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
                                 <Button Grid.Column="0" Classes="action" Width="140"
                                         Content="{l:Localize lblToolboxSignPackage}"
                                         Command="{Binding SignPackageCommand}"
                                         IsEnabled="{Binding HasSdb}"/>
-                                <Button Grid.Column="1" Width="140"
-                                        Content="{l:Localize lblToolboxSendToTvStore}"
-                                        Command="{Binding SendToTvStoreCommand}"/>
-                                <TextBlock Grid.Column="2" Text="{Binding PackageStatus}" FontSize="12"
+                                <TextBlock Grid.Column="1" Text="{Binding PackageStatus}" FontSize="12"
                                            TextWrapping="Wrap" VerticalAlignment="Center"/>
                             </Grid>
                         </StackPanel>

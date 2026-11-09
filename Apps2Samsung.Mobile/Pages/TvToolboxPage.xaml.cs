@@ -57,10 +57,8 @@ public partial class TvToolboxPage : ContentPage
 	// What Arm TV-Store hands over. Null where the caller has no certificate flow.
 	private readonly Func<bool, Action<string>, Task<SigningProfile?>>? _signingProfile;
 
-	// The Package file section (#979): a .wgt/.tpk from the phone (a cache copy, never the user's
-	// file), and the install's customization step for a package that goes to TV-Store.
+	// The Package file section (#979): a .wgt/.tpk from the phone (a cache copy, never the user's file).
 	private readonly Func<Task<string?>>? _pickPackage;
-	private readonly Func<string, string, Action<string>?, Task>? _customize;
 
 	// The full list behind the filtered one shown.
 	private IReadOnlyList<SamsungRemoteLaunchTarget> _targets = Array.Empty<SamsungRemoteLaunchTarget>();
@@ -74,7 +72,7 @@ public partial class TvToolboxPage : ContentPage
 
 	public TvToolboxPage(ISdbEngine? sdb, string tvIp, string tvLabel, Func<string, Action<string>, Task<bool>>? installWgt = null,
 		Func<bool, Action<string>, Task<SigningProfile?>>? signingProfile = null,
-		Func<Task<string?>>? pickPackage = null, Func<string, string, Action<string>?, Task>? customize = null)
+		Func<Task<string?>>? pickPackage = null)
 	{
 		InitializeComponent();
 		_tvIp = tvIp;
@@ -83,15 +81,10 @@ public partial class TvToolboxPage : ContentPage
 		_installWgt = installWgt;
 		_signingProfile = signingProfile;
 		_pickPackage = pickPackage;
-		_customize = customize;
 		SignPackageBtn.IsEnabled = sdb is not null && pickPackage is not null && signingProfile is not null;
-		SendToTvStoreBtn.IsEnabled = pickPackage is not null;
 		AgentChip.IsEnabled = sdb is not null;
 		StagingAttachBtn.IsEnabled = sdb is not null;
 		AgentNeedsSdbHint.IsVisible = sdb is null;
-		ArmTvStoreBtn.IsEnabled = sdb is not null;
-		TvStoreNeedsSdbHint.IsVisible = sdb is null;
-		ShowTvSources();
 		ExecuteManualBtn.IsEnabled = sdb is not null;
 
 		// The TV's own menus, addressed by id (#641). Fixed, not filtered: a short list to try in
@@ -114,7 +107,7 @@ public partial class TvToolboxPage : ContentPage
 			SamsungRemoteSequences.StandbyStepKeys.Select(L10n.Get).ToList());
 
 		// One tool open at a time (#1041): opening a card closes the one that was open.
-		var cards = new[] { AppsCard, SystemAppsCard, TvStoreCard, PackageCard, StagingCard, SequencesCard, StandbyCard };
+		var cards = new[] { AppsCard, SystemAppsCard, PackageCard, StagingCard, SequencesCard, StandbyCard };
 		foreach (var card in cards)
 			card.PropertyChanged += (_, e) =>
 			{
@@ -579,194 +572,12 @@ public partial class TvToolboxPage : ContentPage
 		}
 	}
 
-	// Hands the signing certificate to the TV-Store app on the TV (#844, phase 3): the profile this
-	// head installs with, as PEM, over TV-Store's page in debug mode. Once armed, the TV signs and
-	// installs catalog apps on its own. TV-Store has to be on the set already (installed from the
-	// catalog like any package).
-	private async void OnArmTvStoreClicked(object? sender, EventArgs e)
-	{
-		if (_sdb is null)
-		{
-			SetTvStoreStatus(L10n.Get("lblToolboxAgentNeedsSdb"));
-			return;
-		}
-
-		if (_busy)
-			return;
-
-		_busy = true;
-		ArmTvStoreBtn.IsEnabled = false;
-		ShowTvStoreBtn.IsVisible = false;
-		try
-		{
-			// This device's package-id renames (#839): a TV-Store installed under a new id is TV-Store too.
-			var renames = MobileSettings.PackageIdRenamesJson;
-			var state = await TvStorePackage.GetInstallStateAsync(_sdb, _tvIp, renames);
-			if (state != TvStoreInstallState.Installed)
-			{
-				SetTvStoreStatus(L10n.Get(state == TvStoreInstallState.Outdated ? "lblToolboxTvStoreOutdated" : "lblToolboxTvStoreNotInstalled"));
-				// The message stays; one more button takes the user to TV-Store's catalog sheet (#888).
-				_tvStoreEntry = TvStorePackage.FindInCatalog(CatalogStore.Releases);
-				_tvStoreOutdated = state == TvStoreInstallState.Outdated;
-				ShowTvStoreBtn.IsVisible = _tvStoreEntry is not null;
-				return;
-			}
-
-			SetTvStoreStatus(L10n.Get("lblToolboxTvStoreCertificate"));
-			var profile = _signingProfile is null
-				? null
-				: await _signingProfile(false, message => MainThread.BeginInvokeOnMainThread(() => SetTvStoreStatus(message)));
-			if (profile is null)
-			{
-				SetTvStoreStatus(L10n.Get("lblToolboxTvStoreNoCertificate"));
-				return;
-			}
-			// Every profile on this phone goes along, the covering one first (#44), so TV-Store can
-			// update an app whichever of them installed it. The store is the profile's parent folder.
-			var pems = SigningCertificatePem.OpenAll(profile, SigningCertificatePem.ProfilesIn(Path.GetDirectoryName(profile.ProfileDir)));
-
-			var progress = new Progress<string>(key => SetTvStoreStatus(L10n.Get(key)));
-			await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress, renames);
-			SetTvStoreStatus(L10n.Get("lblToolboxTvStoreArming"));
-			await store.ArmAsync(pems);
-			var status = await store.StatusAsync();
-			// What is left to do depends on the Host PC IP the TV has right now (#960).
-			var tv = await TizenDeveloperInfo.ReadAsync(new NetworkDevice { IpAddress = _tvIp });
-			var next = TvStoreNextSteps.For(tv.DeveloperIP, status.OwnIp);
-			SetTvStoreStatus(string.Format(L10n.Get(TvStoreNextSteps.MessageKey(next)), store.Version, status.OwnIp ?? _tvIp));
-		}
-		catch (OperationCanceledException)
-		{
-			// The certificate sheet was dismissed: nothing to hand over.
-			SetTvStoreStatus(L10n.Get("lblToolboxTvStoreNoCertificate"));
-		}
-		catch (TvStoreUnreachableException ex)
-		{
-			// The listing failed, so TV-Store may well be there: point at Developer Mode, not the catalog (#889).
-			System.Diagnostics.Trace.WriteLine($"[toolbox] arm TV-Store: no app listing: {ex.Reason}");
-			SetTvStoreStatus(string.Format(L10n.Get("lblToolboxTvStoreUnreachable"), ex.Reason));
-		}
-		catch (Exception ex)
-		{
-			System.Diagnostics.Trace.WriteLine($"[toolbox] arm TV-Store failed: {ex}");
-			SetTvStoreStatus(string.Format(L10n.Get("lblToolboxTvStoreFailed"), ex.Message));
-		}
-		finally
-		{
-			_busy = false;
-			ArmTvStoreBtn.IsEnabled = true;
-		}
-	}
-
-	private void SetTvStoreStatus(string message) => TvStoreStatusLabel.Text = message;
-
-	// ---- Send sources to TV (#1018, TV-Store#82) ----
-
-	/// <summary>One signed repository in the list: ticked to go to the TV unless its key changed since (review it first).</summary>
-	private sealed record TvSourceRow(UserSource Source, bool CanSend, CheckBox Check, Label Note);
-
-	private readonly List<TvSourceRow> _tvSources = new();
-
-	// The approved signed repositories of Your sources, ticked; one whose key changed is listed off with a note.
-	private void ShowTvSources()
-	{
-		TvSourceRows.Clear();
-		_tvSources.Clear();
-		foreach (var source in UserSources.Parse(MobileSettings.UserSourcesJson).Where(UserSources.IsApprovedRepository))
-		{
-			var keyChanged = Apps2Samsung.Catalog.Repositories.SignedRepositories.LastLoad(source.Url)?.State
-				== Apps2Samsung.Catalog.Repositories.RepositoryState.KeyChanged;
-			var check = new CheckBox { IsChecked = !keyChanged, IsEnabled = !keyChanged, VerticalOptions = LayoutOptions.Center };
-			var note = new Label
-			{
-				Text = keyChanged ? L10n.Get("lblToolboxSendSourcesReview") : string.Empty, FontSize = 12, LineBreakMode = LineBreakMode.WordWrap,
-				TextColor = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf("Muted"),
-			};
-			note.IsVisible = !string.IsNullOrEmpty(note.Text);
-			var row = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star) }, ColumnSpacing = 4 };
-			row.Add(check, 0, 0);
-			row.Add(new VerticalStackLayout
-			{
-				Spacing = 1, VerticalOptions = LayoutOptions.Center,
-				Children = { new Label { Text = UserSources.DisplayName(source), LineBreakMode = LineBreakMode.TailTruncation }, note },
-			}, 1, 0);
-			TvSourceRows.Add(row);
-			_tvSources.Add(new TvSourceRow(source, !keyChanged, check, note));
-		}
-		NoTvSourcesLabel.IsVisible = _tvSources.Count == 0;
-		TvSourceRows.IsVisible = SendSourcesBtn.IsVisible = _tvSources.Count > 0;
-		SendSourcesBtn.IsEnabled = _sdb is not null;
-	}
-
-	/// <summary>
-	/// Hands the ticked signed repositories to TV-Store with the keys approved here; the TV asks the
-	/// person at it for each, and this waits for the answers (up to five minutes).
-	/// </summary>
-	private async void OnSendSourcesClicked(object? sender, EventArgs e)
-	{
-		if (_sdb is null)
-		{
-			SourcesStatusLabel.Text = L10n.Get("lblToolboxAgentNeedsSdb");
-			return;
-		}
-		var chosen = _tvSources.Where(r => r.CanSend && r.Check.IsChecked).Select(r => r.Source).ToList();
-		if (chosen.Count == 0)
-		{
-			SourcesStatusLabel.Text = L10n.Get("lblToolboxSendSourcesNone");
-			return;
-		}
-		if (_busy)
-			return;
-
-		_busy = true;
-		SendSourcesBtn.IsEnabled = false;
-		try
-		{
-			var renames = MobileSettings.PackageIdRenamesJson;
-			var progress = new Progress<string>(key => SourcesStatusLabel.Text = L10n.Get(key));
-			await using var store = await TvStoreClient.AttachAsync(_sdb, _tvIp, progress, renames);
-			SourcesStatusLabel.Text = L10n.Get("lblToolboxSendSourcesWaiting");
-			var results = await store.AddSourcesAsync(chosen);
-			foreach (var result in results)
-			{
-				var row = _tvSources.FirstOrDefault(r => string.Equals(r.Source.RepositoryId, result.RepositoryId, StringComparison.Ordinal));
-				if (row is null)
-					continue;
-				row.Note.Text = result.Added ? L10n.Get("lblSourceOnTv") : result.Error ?? string.Empty;
-				row.Note.IsVisible = !string.IsNullOrEmpty(row.Note.Text);
-			}
-			var lines = new List<string> { string.Format(L10n.Get("lblToolboxSendSourcesDone"), results.Count(r => r.Added), results.Count) };
-			lines.AddRange(results.Where(r => !r.Added).Select(r => string.Format(L10n.Get("lblToolboxSendSourcesNotAdded"), r.Name ?? r.RepositoryId, r.Error)));
-			SourcesStatusLabel.Text = string.Join(Environment.NewLine, lines);
-		}
-		catch (TvStoreNotInstalledException ex)
-		{
-			SourcesStatusLabel.Text = L10n.Get(ex.IsOutdated ? "lblToolboxTvStoreOutdated" : "lblToolboxTvStoreNotInstalled");
-		}
-		catch (TvStoreUnreachableException ex)
-		{
-			SourcesStatusLabel.Text = string.Format(L10n.Get("lblToolboxTvStoreUnreachable"), ex.Reason);
-		}
-		catch (Exception ex)
-		{
-			System.Diagnostics.Trace.WriteLine($"[toolbox] send sources failed: {ex}");
-			// Too old a TV-Store says so in its own words.
-			SourcesStatusLabel.Text = ex is NotSupportedException ? ex.Message : string.Format(L10n.Get("lblToolboxTvStoreFailed"), ex.Message);
-		}
-		finally
-		{
-			_busy = false;
-			SendSourcesBtn.IsEnabled = true;
-		}
-	}
-
 	private void SetPackageStatus(string message) => PackageStatusLabel.Text = message;
 
 	private void SetPackageBusy(bool busy)
 	{
 		_busy = busy;
 		SignPackageBtn.IsEnabled = !busy && _sdb is not null && _pickPackage is not null && _signingProfile is not null;
-		SendToTvStoreBtn.IsEnabled = !busy && _pickPackage is not null;
 	}
 
 	/// <summary>
@@ -836,68 +647,6 @@ public partial class TvToolboxPage : ContentPage
 			try { File.Delete(input); } catch { /* the cache copy; best-effort */ }
 			SetPackageBusy(false);
 		}
-	}
-
-	/// <summary>
-	/// Send to TV-Store (#979): a .wgt/.tpk from the phone goes to TV-Store's upload page on the TV,
-	/// customized as an install would (the values asked before install) but not signed; TV-Store is
-	/// opened on the TV when it is not running, asks on the screen and signs it itself. No developer
-	/// connection from this phone is involved, so it works while Host PC IP is 127.0.0.1.
-	/// </summary>
-	private async void OnSendToTvStoreClicked(object? sender, EventArgs e)
-	{
-		if (_busy || _pickPackage is null)
-			return;
-
-		var input = await _pickPackage();
-		if (input is null)
-			return;
-		if (!PackageSigner.IsPackage(input))
-		{
-			SetPackageStatus(L10n.Get("statusChooseWgt"));
-			return;
-		}
-
-		SetPackageBusy(true);
-		try
-		{
-			Action<string> report = line => MainThread.BeginInvokeOnMainThread(() => SetPackageStatus(ProgressText.Localize(line, L10n.Get)));
-			if (!await TvStoreHandoff.EnsureRunningAsync(_tvIp, report))
-			{
-				SetPackageStatus(L10n.Get("tvStoreNotRunning"));
-				return;
-			}
-			// The picked file is the cache copy, so the customization may edit it in place.
-			if (_customize is not null)
-				await _customize(_tvIp, input, report);
-			var sent = await TvStoreHandoff.SendAsync(_tvIp, input, report);
-			SetPackageStatus(string.Format(L10n.Get(sent.TvStoreOpened ? "tvStoreSentBody" : "tvStoreSentBodyClosed"), sent.Upload.Name));
-		}
-		catch (Exception ex)
-		{
-			System.Diagnostics.Trace.WriteLine($"[toolbox] send to TV-Store failed: {ex}");
-			SetPackageStatus(string.Format(L10n.Get("lblToolboxTvStoreFailed"), ex.Message));
-		}
-		finally
-		{
-			try { File.Delete(input); } catch { /* the cache copy; best-effort */ }
-			SetPackageBusy(false);
-		}
-	}
-
-	// TV-Store's catalog entry and whether the TV runs an old one, from the last Arm attempt (#888).
-	private GitHubRelease? _tvStoreEntry;
-	private bool _tvStoreOutdated;
-
-	// Leaves the toolbox (it sits on the Install tab's stack) and opens TV-Store's sheet there, as
-	// an Update when the set has an old one. Install, then come back and arm.
-	private async void OnShowTvStoreClicked(object? sender, EventArgs e)
-	{
-		if (_tvStoreEntry is null || _busy)
-			return;
-		var request = new CatalogOpenRequest(_tvStoreEntry, null, _tvStoreOutdated);
-		await Navigation.PopAsync();
-		await CatalogStore.OpenOnInstallTabAsync(request);
 	}
 
 	private async void OnDetachAgentClicked(object? sender, EventArgs e)
