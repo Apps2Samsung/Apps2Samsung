@@ -21,6 +21,7 @@ public static class Help
           cert [--tv <ip>]             the signing certificates on this machine; --prepare makes one now,
                                        --export / --import move one between devices
           tvstore --tv <ip>            arm the TV-Store app on the TV: hand it the signing certificate once
+          tvstore status --tv <ip>     TV-Store's setup check: installed, version, what Host PC IP means for it
           tvstore log --tv <ip>        save TV-Store's own log from the TV (TV-Store open on the TV)
           tvstore sources --tv <ip>    hand your signed repositories to TV-Store; the TV asks before adding each
           leftovers --tv <ip>          the packages left in the TV's install staging folder; --clear deletes
@@ -180,6 +181,8 @@ public static class Help
 
     private const string TvStore = """
         usage: apps2samsung-cli tvstore --tv <ip> [--partner] [--force-login] [--json]
+               apps2samsung-cli tvstore status --tv <ip> [--json]
+               apps2samsung-cli tvstore sources --tv <ip> [name|id ...] [--json]
                apps2samsung-cli tvstore log --tv <ip> [-o <file>] [--json]
 
         Arms the Apps2Samsung TV-Store app on the TV: hands it the signing certificate this machine
@@ -192,6 +195,16 @@ public static class Help
         On the TV, Developer Mode's Host PC IP must be the TV's own address or 127.0.0.1 (TV-Store
         0.3.14 or newer), or its sdbd refuses the connection TV-Store makes to it. With 127.0.0.1 this
         machine reaches the TV through TV-Store's relay (port 26201), once it is turned on there.
+
+        tvstore status is the setup check the apps' TV-Store section shows, read off the TV without
+        changing anything: whether TV-Store is on it (the app list over the developer connection, else
+        the TV's REST API) and its version, and what the Host PC IP in Developer Mode means for it
+        (127.0.0.1, the TV itself, this machine, or another device). Whether TV-Store holds the
+        certificate only shows once it is armed. Exit 0 whenever the TV could be asked; "ready" in the
+        JSON is false while a line blocks TV-Store.
+
+        tvstore sources hands the signed repositories of `sources` (all, or those named) to TV-Store;
+        the TV asks the person at it before adding each. Unsigned sources never go to the TV.
 
         tvstore log saves TV-Store's own log (this run and the previous one) for a bug report, from
         http://<ip>:8077/log.txt, as tvstore_<ip>_<time>.log in the current folder or to -o

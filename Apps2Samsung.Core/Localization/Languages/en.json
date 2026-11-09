@@ -536,6 +536,8 @@
   "tvStoreCheckHostThisDevice": "Host PC IP is this device ({0}): arming works, but TV-Store's own installs need 127.0.0.1 or the TV's own address in Developer Mode.",
   "tvStoreCheckHostElsewhere": "Host PC IP is {0}, another device: neither this app nor TV-Store can use the TV's developer connection. Set it to 127.0.0.1 in Developer Mode.",
   "tvStoreCheckHostUnknown": "Could not read Host PC IP from the TV.",
+  "tvStoreCheckNoAnswer": "The TV at {0} did not answer. Is it on and on the same network as this device?",
+  "tvStoreCheckDevModeOff": "Developer Mode is off on the TV. TV-Store installs through the TV's developer connection, so switch it on (Apps, then 1 2 3 4 5 on the remote).",
   "lblToolboxTvStoreNotInstalled": "TV-Store is not installed on this TV. Install it from the catalog first.",
   "lblToolboxTvStoreOutdated": "An old TV-Store is installed on this TV. Update it from the catalog first.",
   "lblToolboxTvStoreUnreachable": "The TV's developer connection refused this device, so it can't tell whether TV-Store is installed ({0}). While arming, Developer Mode must be on and its Host PC IP must be this device's current IP address. If Host PC IP is 127.0.0.1, the connection goes through TV-Store's relay instead: open TV-Store on the TV and turn on \"Connect from Apps2Samsung\" in its Settings. Restart the TV after changing either.",

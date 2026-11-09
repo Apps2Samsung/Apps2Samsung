@@ -19,6 +19,8 @@ public static class TvStoreCommand
             return await LogAsync(s, ct);
         if (s.Options.Arguments.FirstOrDefault() is "sources" or "source")
             return await SourcesAsync(s, ct);
+        if (s.Options.Arguments.FirstOrDefault() is "status" or "check")
+            return await StatusAsync(s, ct);
 
         var ip = s.Options.Tv ?? s.Options.Arguments.FirstOrDefault();
         if (string.IsNullOrWhiteSpace(ip))
@@ -79,6 +81,61 @@ public static class TvStoreCommand
                 $"TV-Store v{store.Version} on {ip} is armed with {profileName} (DUID {duid}).",
                 nextStep,
             });
+    }
+
+    /// <summary>
+    /// <c>tvstore status --tv &lt;ip&gt;</c> (#1041): the TV-Store section's setup check, as both apps
+    /// show it. Read off the TV without changing anything: TV-Store on the TV (the app list over the
+    /// developer connection, else the TV's REST API) with its version, and what Developer Mode's Host
+    /// PC IP means for TV-Store. Whether TV-Store holds the certificate only shows once it is armed.
+    /// Exit 0 whenever the TV could be asked; <c>ready</c> in the JSON is false while a line blocks.
+    /// </summary>
+    private static async Task<int> StatusAsync(CliServices s, CancellationToken ct)
+    {
+        var ip = s.Options.Tv ?? s.Options.Arguments.Skip(1).FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(ip))
+            return s.Out.Fail("tvstore status needs --tv <ip>", Output.Usage);
+
+        s.Out.Progress($"Checking TV-Store on {ip}…");
+        var check = await ReadCheckAsync(s, ip, ct);
+        var lines = check.Lines.Select(l => $"{Views.CheckMark(l.Level, s.Out.Unicode)} {l.Text}").Append(check.Note).ToList();
+        return s.Out.Result(
+            new
+            {
+                ok = true,
+                tv = ip,
+                ready = check.Ready,
+                installed = check.Overview.State?.ToString(),
+                appId = check.Overview.AppId,
+                version = check.Overview.Version,
+                hostPcIp = check.Overview.HostPcIp,
+                hostPcIpMeans = check.HostIp.ToString(),
+                checks = check.Lines.Select(l => new { key = l.Key, level = l.Level.ToString(), text = l.Text }),
+            },
+            lines,
+            rich: Views.TvStoreCheck(check.Lines.Select(l => (l.Level, l.Text)).ToList(), check.Note, s.Out.Unicode));
+    }
+
+    /// <summary>One line of the setup check, in English.</summary>
+    public sealed record CheckLine(string Key, TvStoreCheckLevel Level, string Text);
+
+    /// <summary>What the setup check found, for <c>tvstore status</c> and the menu's TV-Store screen.</summary>
+    public sealed record CheckResult(TvStoreOverview Overview, TvStoreHostIp HostIp, IReadOnlyList<CheckLine> Lines, string Note)
+    {
+        /// <summary>No line blocks TV-Store (missing, too old, or a Host PC IP that keeps everyone out).</summary>
+        public bool Ready => Lines.All(l => l.Level != TvStoreCheckLevel.Bad);
+    }
+
+    /// <summary>Runs the setup check (Core <see cref="TvStoreSetupCheck"/>) and words it.</summary>
+    public static async Task<CheckResult> ReadCheckAsync(CliServices s, string ip, CancellationToken ct)
+    {
+        var overview = await TvStoreSetupCheck.ReadAsync(ip, s.Sdb, s.Config.PackageIdRenamesJson, ct);
+        var local = Apps2Samsung.Sdb.SdbEndpoint.LocalAddresses();
+        var lines = TvStoreSetupCheck.Lines(overview, ip, local)
+            .Select(l => new CheckLine(l.Key, l.Level, l.Args.Length == 0 ? s.Strings.GetString(l.Key) : string.Format(s.Strings.GetString(l.Key), l.Args)))
+            .ToList();
+        return new CheckResult(overview, TvStoreSetupCheck.ClassifyHostIp(overview.HostPcIp, ip, local), lines,
+            s.Strings.GetString("lblTvStoreCheckNote"));
     }
 
     /// <summary>

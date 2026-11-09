@@ -42,8 +42,11 @@ namespace Apps2Samsung.TvStore
     /// <param name="Version">TV-Store's version as the TV's REST API reports it, when it does.</param>
     /// <param name="HostPcIp">Developer Mode's Host PC IP as the TV reports it.</param>
     /// <param name="ListingError">Why the app list could not be read, when it could not.</param>
+    /// <param name="TvAnswered">The TV answered on the network at all; false for one that is off or elsewhere.</param>
+    /// <param name="DeveloperMode">Developer Mode as the TV reports it; null when it did not say.</param>
     public sealed record TvStoreOverview(
-        TvStoreInstallState? State, string? AppId, string? Version, string? HostPcIp, string? ListingError);
+        TvStoreInstallState? State, string? AppId, string? Version, string? HostPcIp, string? ListingError,
+        bool TvAnswered = true, bool? DeveloperMode = null);
 
     /// <summary>
     /// The TV-Store section's setup check (#1041): the long "how to set up TV-Store" hint the toolbox
@@ -74,6 +77,10 @@ namespace Apps2Samsung.TvStore
         public static IReadOnlyList<TvStoreCheck> Lines(TvStoreOverview overview, string tvIp, IReadOnlyCollection<string> localIps)
         {
             ArgumentNullException.ThrowIfNull(overview);
+            // Nothing answered: one line, the rest would only repeat "unknown".
+            if (!overview.TvAnswered)
+                return new[] { new TvStoreCheck("tvStoreCheckNoAnswer", TvStoreCheckLevel.Bad, tvIp ?? string.Empty) };
+
             var lines = new List<TvStoreCheck>
             {
                 overview.State switch
@@ -84,6 +91,14 @@ namespace Apps2Samsung.TvStore
                     _ => new TvStoreCheck("tvStoreCheckUnknown", TvStoreCheckLevel.Unknown, overview.ListingError ?? string.Empty),
                 },
             };
+
+            // Developer Mode off: TV-Store installs through the TV's developer connection, so that comes
+            // before anything Host PC IP could say (it is meaningless while Developer Mode is off).
+            if (overview.DeveloperMode == false)
+            {
+                lines.Add(new TvStoreCheck("tvStoreCheckDevModeOff", TvStoreCheckLevel.Bad));
+                return lines;
+            }
 
             var hostIp = overview.HostPcIp?.Trim() ?? string.Empty;
             lines.Add(ClassifyHostIp(overview.HostPcIp, tvIp, localIps) switch
@@ -105,12 +120,19 @@ namespace Apps2Samsung.TvStore
         public static async Task<TvStoreOverview> ReadAsync(
             string tvIp, ISdbEngine? sdb, string? packageIdRenamesJson, CancellationToken cancellationToken = default)
         {
-            var hostTask = ReadHostPcIpAsync(tvIp, cancellationToken);
+            // The two network answers first, side by side and quick (seconds): a TV that gives neither is
+            // off or elsewhere, and the developer connection's listing would only time out on it.
+            var hostTask = ReadDeveloperInfoAsync(tvIp, cancellationToken);
+            var restVersionTask = SamsungRemoteApps.GetVersionAsync(tvIp, TvStorePackage.AppId, cancellationToken);
+            var (answered, hostPcIp, developerMode) = await hostTask.ConfigureAwait(false);
+            var restVersion = await restVersionTask.ConfigureAwait(false);
+            if (!answered && restVersion is null)
+                return new TvStoreOverview(null, null, null, null, null, TvAnswered: false);
 
             TvStoreInstallState? state = null;
             string? appId = null;
             string? listingError = null;
-            if (sdb is not null)
+            if (sdb is not null && developerMode != false)
             {
                 try
                 {
@@ -127,23 +149,28 @@ namespace Apps2Samsung.TvStore
 
             // The REST API knows the version, and says whether TV-Store is there when the app list
             // could not (no developer connection, or one Host PC IP keeps out).
-            var version = await SamsungRemoteApps.GetVersionAsync(tvIp, appId ?? TvStorePackage.AppId, cancellationToken).ConfigureAwait(false);
+            var version = appId is null || string.Equals(appId, TvStorePackage.AppId, StringComparison.OrdinalIgnoreCase)
+                ? restVersion
+                : await SamsungRemoteApps.GetVersionAsync(tvIp, appId, cancellationToken).ConfigureAwait(false);
             if (state is null && version is not null)
             {
                 state = TvStoreInstallState.Installed;
                 appId ??= TvStorePackage.AppId;
             }
 
-            return new TvStoreOverview(state, appId, version, await hostTask.ConfigureAwait(false), listingError);
+            return new TvStoreOverview(state, appId, version, hostPcIp, listingError, TvAnswered: true, DeveloperMode: developerMode);
         }
 
-        private static async Task<string?> ReadHostPcIpAsync(string tvIp, CancellationToken cancellationToken)
+        // /api/v2/ on the TV: whether it answered at all, Host PC IP, and Developer Mode ("1" on).
+        private static async Task<(bool Answered, string? HostPcIp, bool? DeveloperMode)> ReadDeveloperInfoAsync(string tvIp, CancellationToken cancellationToken)
         {
             var device = await TizenDeveloperInfo.ReadAsync(new NetworkDevice { IpAddress = tvIp }, cancellationToken).ConfigureAwait(false);
+            var answered = !string.IsNullOrEmpty(device.ModelName) || !string.IsNullOrEmpty(device.Manufacturer) || !string.IsNullOrEmpty(device.DeveloperMode);
             var ip = device.DeveloperIP?.Trim();
             if (!string.IsNullOrEmpty(ip))
                 SdbEndpoint.Remember(tvIp, ip);
-            return string.IsNullOrEmpty(ip) ? null : ip;
+            bool? developerMode = string.IsNullOrEmpty(device.DeveloperMode) ? null : device.DeveloperMode.Trim() == "1";
+            return (answered, string.IsNullOrEmpty(ip) ? null : ip, developerMode);
         }
     }
 }
