@@ -11,433 +11,637 @@
         WindowStartupLocation="CenterOwner"
         xmlns:appicon="using:Apps2Samsung.Helpers"
         Icon="{x:Static appicon:AppIcon.Current}"
+        Background="{DynamicResource BgBrush}"
         Title="{l:Localize lblToolbox}">
 
     <Window.Styles>
         <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>
         <StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
         <StyleInclude Source="avares://Apps2Samsung/Styles/TextBlocks.axaml"/>
+        <StyleInclude Source="avares://Apps2Samsung/Styles/Sections.axaml"/>
 
         <Style Selector="Button.action">
             <Setter Property="Height" Value="34"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
         </Style>
         <Style Selector="TextBlock.section">
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Margin" Value="0,4,0,0"/>
         </Style>
-        <Style Selector="TextBlock.hint">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Opacity" Value="0.6"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
+
+        <!-- One tool per card (#1041): the header row opens and closes it, one open at a time, all
+             closed when the window opens. -->
+        <Style Selector="Button.sectionhead">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
         </Style>
+        <Style Selector="Button.sectionhead:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource FillBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+        </Style>
+        <Style Selector="TextBlock.headtitle">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+        </Style>
+        <Style Selector="TextBlock.headsummary">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+        <Style Selector="TextBlock.chevron">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="StackPanel.sectionbody">
+            <Setter Property="Spacing" Value="8"/>
+            <Setter Property="Margin" Value="14,2,14,14"/>
+        </Style>
+        <Style Selector="Border.inner">
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="2"/>
+            <Setter Property="Background" Value="{DynamicResource Surface2Brush}"/>
+        </Style>
+        <Style Selector="Border.row">
+            <Setter Property="Margin" Value="0,3"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Background" Value="{DynamicResource Surface2Brush}"/>
+        </Style>
+
+        <!-- The debug agent's chip in the header (#1041): soft accent once attached -->
+        <Style Selector="Button.agentchip">
+            <Setter Property="CornerRadius" Value="999"/>
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="MinHeight" Value="32"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource HairBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource FillBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.agentchip.on">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="Button.agentchip.on:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+
         <!-- Notices are read, not skimmed past, so they keep full opacity and get a border. -->
         <Style Selector="Border.notice">
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="10,8"/>
         </Style>
         <Style Selector="Border.notice > TextBlock">
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
         </Style>
     </Window.Styles>
 
-    <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" Padding="16">
-        <DockPanel LastChildFill="True">
+    <DockPanel LastChildFill="True" Margin="16">
 
-            <!-- Header: what this is, which TV, and whether the channel is up -->
-            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,4">
-                <StackPanel Grid.Column="0" Spacing="2">
-                    <TextBlock Text="{l:Localize lblToolbox}" FontSize="18" FontWeight="SemiBold"/>
-                    <TextBlock Text="{Binding TvLabel}" FontSize="12" Opacity="0.6"/>
-                </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
-                    <Button Content="↻" Command="{Binding LoadCommand}"
-                            ToolTip.Tip="{l:Localize lblRemoteReconnect}"/>
-                    <Button Content="✕" Command="{Binding CloseCommand}"/>
-                </StackPanel>
-            </Grid>
+        <!-- Header: what this is, which TV, the debug agent's chip, reload and close -->
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+            <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock Text="{l:Localize lblToolbox}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
+                <TextBlock Text="{Binding TvLabel}" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+                <!-- Not attached: one click attaches (installing the agent first when the TV has none) -->
+                <Button Classes="agentchip" Content="{l:Localize lblToolboxAgentChipAttach}"
+                        Command="{Binding AttachAgentCommand}"
+                        IsVisible="{Binding !IsAgentAttached}" IsEnabled="{Binding HasSdb}"
+                        ToolTip.Tip="{l:Localize lblToolboxAgentHint}"/>
+                <!-- Attached: the menu with what the agent itself offers -->
+                <Button Classes="agentchip on" IsVisible="{Binding IsAgentAttached}">
+                    <StackPanel Orientation="Horizontal" Spacing="7">
+                        <Ellipse Width="7" Height="7" Fill="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{l:Localize lblToolboxAgentChipAttached}" VerticalAlignment="Center"/>
+                        <TextBlock Text="▾" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedRight">
+                            <StackPanel Width="380" Spacing="8" Margin="4">
+                                <TextBlock Text="{l:Localize lblToolboxAgent}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
+                                <TextBlock Classes="hint" Text="{Binding AgentStatus}"/>
+                                <TextBlock Classes="hint" Text="{l:Localize lblToolboxAgentEvaluateHint}"/>
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                                    <TextBox Grid.Column="0" Text="{Binding AgentExpression}"
+                                             Watermark="{l:Localize lblToolboxAgentEvaluatePlaceholder}"/>
+                                    <Button Grid.Column="1" Classes="action" Width="90"
+                                            Content="{l:Localize lblToolboxAgentEvaluate}"
+                                            Command="{Binding EvaluateAgentCommand}"/>
+                                </Grid>
+                                <SelectableTextBlock Text="{Binding AgentExpressionResult}" FontSize="11" FontFamily="Consolas,Menlo,monospace"
+                                                     TextWrapping="Wrap" MaxHeight="160"/>
+                                <Button Classes="soft" HorizontalAlignment="Left"
+                                        Content="{l:Localize lblToolboxAgentDetach}"
+                                        Command="{Binding DetachAgentCommand}"/>
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+                <Button Classes="soft" Content="↻" Command="{Binding LoadCommand}"
+                        ToolTip.Tip="{l:Localize lblRemoteReconnect}"/>
+                <Button Classes="soft" Content="✕" Command="{Binding CloseCommand}"/>
+            </StackPanel>
+        </Grid>
 
-            <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" Height="3" Margin="0,8,0,8"
-                         IsVisible="{Binding IsBusy}"/>
+        <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" Height="3" Margin="0,8,0,8"
+                     IsVisible="{Binding IsBusy}"/>
 
-            <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" FontSize="12" Opacity="0.8"
-                       TextWrapping="Wrap" Margin="0,0,0,8"/>
+        <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" FontSize="12" Foreground="{DynamicResource InkBrush}"
+                   TextWrapping="Wrap" Margin="0,0,0,4"/>
+        <!-- The agent's own line while it attaches, and what went wrong when it did not -->
+        <TextBlock DockPanel.Dock="Top" Classes="hint" Text="{Binding AgentStatus}" Margin="0,0,0,4"
+                   IsVisible="{Binding !IsAgentAttached}"/>
+        <TextBlock DockPanel.Dock="Top" Classes="hint" Text="{l:Localize lblToolboxAgentNeedsSdb}" Margin="0,0,0,4"
+                   IsVisible="{Binding !HasSdb}"/>
 
-            <TextBlock DockPanel.Dock="Top" Classes="hint" Text="{l:Localize lblToolboxOwnerNote}"
-                       Margin="0,0,0,10"/>
+        <TextBlock DockPanel.Dock="Top" Classes="hint" Text="{l:Localize lblToolboxOwnerNote}"
+                   Margin="0,4,0,10"/>
 
-            <!-- Only on a set the probe called hospitality: no Smart Hub, so no app store (#639) -->
-            <Border DockPanel.Dock="Top" Classes="notice" BorderBrush="{DynamicResource WarnBrush}" Margin="0,0,0,10"
-                    IsVisible="{Binding IsHospitality}">
-                <TextBlock Text="{l:Localize lblToolboxHospitality}"/>
-            </Border>
+        <!-- Only on a set the probe called hospitality: no Smart Hub, so no app store (#639) -->
+        <Border DockPanel.Dock="Top" Classes="notice" BorderBrush="{DynamicResource WarnBrush}" Background="{DynamicResource WarnSoftBrush}"
+                Margin="0,0,0,10" IsVisible="{Binding IsHospitality}">
+            <TextBlock Text="{l:Localize lblToolboxHospitality}"/>
+        </Border>
 
-            <!-- The opposite case: an ordinary set with Smart Hub, on which the hospitality tools below
-                 are expected to open nothing. Said up front, so a dead Launch button isn't a mystery. -->
-            <Border DockPanel.Dock="Top" Classes="notice" BorderBrush="{DynamicResource AccentBrush}" Margin="0,0,0,10"
-                    IsVisible="{Binding IsConsumer}">
-                <TextBlock Text="{l:Localize lblToolboxConsumer}"/>
-            </Border>
+        <!-- The opposite case: an ordinary set with Smart Hub, on which the hospitality tools below
+             are expected to open nothing. Said up front, so a dead Launch button isn't a mystery. -->
+        <Border DockPanel.Dock="Top" Classes="notice" BorderBrush="{DynamicResource AccentBrush}" Background="{DynamicResource AccentSoftBrush}"
+                Margin="0,0,0,10" IsVisible="{Binding IsConsumer}">
+            <TextBlock Text="{l:Localize lblToolboxConsumer}"/>
+        </Border>
 
-            <ScrollViewer>
-                <StackPanel Spacing="8">
+        <ScrollViewer>
+            <StackPanel Spacing="10" Margin="0,0,8,8">
 
-                    <!-- ============ Open an app ============ -->
-                    <TextBlock Classes="section" Text="{l:Localize lblToolboxApps}"/>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxAppsHint}"/>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxAppsOffline}"
-                               IsVisible="{Binding IsCatalogueOffline}"/>
+                <!-- ============ Open an app ============ -->
+                <Border Classes="group">
+                    <StackPanel>
+                        <Button Classes="sectionhead" Command="{Binding ToggleSectionCommand}" CommandParameter="Apps">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <StackPanel Spacing="1">
+                                    <TextBlock Classes="headtitle" Text="{l:Localize lblToolboxApps}"/>
+                                    <TextBlock Classes="headsummary" Text="{l:Localize lblToolboxAppsRow}"/>
+                                </StackPanel>
+                                <Panel Grid.Column="1">
+                                    <TextBlock Classes="chevron" Text="›" IsVisible="{Binding !IsAppsOpen}"/>
+                                    <TextBlock Classes="chevron" Text="⌄" IsVisible="{Binding IsAppsOpen}"/>
+                                </Panel>
+                            </Grid>
+                        </Button>
+                        <StackPanel Classes="sectionbody" IsVisible="{Binding IsAppsOpen}">
+                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxAppsHint}"/>
+                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxAppsOffline}"
+                                       IsVisible="{Binding IsCatalogueOffline}"/>
 
-                    <TextBox Text="{Binding AppFilter}" Watermark="{l:Localize lblToolboxFilter}"/>
+                            <!-- With the agent attached, the TV's own list sits next to the known one -->
+                            <Border Background="{DynamicResource FillBrush}" CornerRadius="8" Padding="2"
+                                    IsVisible="{Binding IsAgentAttached}">
+                                <UniformGrid Columns="2">
+                                    <RadioButton Classes="segment" GroupName="toolboxApps" Content="{l:Localize lblToolboxAppsKnown}"
+                                                 IsChecked="{Binding !ShowAgentApps}"/>
+                                    <RadioButton Classes="segment" GroupName="toolboxApps" Content="{l:Localize lblToolboxAppsOnTv}"
+                                                 IsChecked="{Binding ShowAgentApps}"/>
+                                </UniformGrid>
+                            </Border>
 
-                    <!-- Fixed height so the list scrolls inside the screen instead of pushing the
-                         service-menu section off the bottom. -->
-                    <Border Height="260" CornerRadius="8" Padding="2"
-                            Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}">
-                        <ScrollViewer>
-                            <ItemsControl ItemsSource="{Binding Apps}" IsEnabled="{Binding IsConnected}">
+                            <!-- The known apps: the catalogue, plus what the TV reports -->
+                            <StackPanel Spacing="8" IsVisible="{Binding !ShowAgentApps}">
+                                <TextBox Text="{Binding AppFilter}" Watermark="{l:Localize lblToolboxFilter}"/>
+
+                                <!-- Fixed height so the list scrolls inside the card -->
+                                <Border Classes="inner" Height="260">
+                                    <ScrollViewer>
+                                        <ItemsControl ItemsSource="{Binding Apps}" IsEnabled="{Binding IsConnected}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="viewModels:ToolboxApp">
+                                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Margin="8,5">
+                                                        <Image Grid.Column="0" Width="28" Height="28" Stretch="UniformToFill"
+                                                               VerticalAlignment="Center" Source="{Binding IconBitmap}"/>
+                                                        <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
+                                                                       TextTrimming="CharacterEllipsis"/>
+                                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                <TextBlock Text="{Binding AppId}" FontSize="11" Foreground="{DynamicResource MutedBrush}"/>
+                                                                <TextBlock Text="{Binding Origin}" FontSize="11" Foreground="{DynamicResource MutedBrush}"
+                                                                           IsVisible="{Binding HasOrigin}"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                        <Button Grid.Column="2" FontSize="12" VerticalAlignment="Center"
+                                                                Content="{l:Localize lblToolboxLaunch}"
+                                                                Command="{ReflectionBinding $parent[Window].DataContext.LaunchAppCommand}"
+                                                                CommandParameter="{Binding}"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- The agent's list: everything really installed, hidden flags and all -->
+                            <StackPanel Spacing="8" IsVisible="{Binding ShowAgentApps}">
+                                <TextBlock Classes="hint" Text="{l:Localize lblToolboxAgentAppsHint}"/>
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <TextBox Grid.Column="0" Text="{Binding AgentFilter}" Watermark="{l:Localize lblToolboxFilter}"/>
+                                    <CheckBox Grid.Column="1" Content="{l:Localize lblToolboxAgentHiddenOnly}"
+                                              IsChecked="{Binding AgentHiddenOnly}" VerticalAlignment="Center"/>
+                                </Grid>
+                                <Border Classes="inner" Height="260">
+                                    <ScrollViewer>
+                                        <ItemsControl ItemsSource="{Binding AgentApps}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="viewModels:ToolboxAgentApp">
+                                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" Margin="8,5">
+                                                        <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center">
+                                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
+                                                                           TextTrimming="CharacterEllipsis"/>
+                                                                <TextBlock Text="{Binding HiddenLabel}" FontSize="11" Foreground="{DynamicResource WarnBrush}"
+                                                                           VerticalAlignment="Center" IsVisible="{Binding IsHidden}"/>
+                                                            </StackPanel>
+                                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                <TextBlock Text="{Binding AppId}" FontSize="11" Foreground="{DynamicResource MutedBrush}"/>
+                                                                <TextBlock Text="{Binding Version}" FontSize="11" Foreground="{DynamicResource MutedBrush}"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                        <Button Grid.Column="1" FontSize="12" VerticalAlignment="Center"
+                                                                Content="{l:Localize lblToolboxLaunch}"
+                                                                Command="{ReflectionBinding $parent[Window].DataContext.LaunchAgentAppCommand}"
+                                                                CommandParameter="{Binding}"/>
+                                                        <Button Grid.Column="2" FontSize="12" VerticalAlignment="Center"
+                                                                Content="{l:Localize lblToolboxAgentAppControl}"
+                                                                Command="{ReflectionBinding $parent[Window].DataContext.LaunchAgentAppControlCommand}"
+                                                                CommandParameter="{Binding}"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- An id from a forum post or a manual, for an app in neither list. Launch goes the
+                                 usual routes (remote channel / was_execute); "0 execute" is sdbd's other launcher
+                                 verb, which answers in the platform's own words, for a service, or an id Smart
+                                 Hub does not know. Needs Developer Mode. -->
+                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                                <TextBox Grid.Column="0" Text="{Binding ManualAppId}"
+                                         Watermark="{l:Localize lblToolboxManualPlaceholder}"/>
+                                <Button Grid.Column="1" Classes="action" Width="90"
+                                        Content="{l:Localize lblToolboxLaunch}"
+                                        Command="{Binding LaunchManualCommand}"
+                                        IsEnabled="{Binding IsConnected}"/>
+                                <Button Grid.Column="2" Width="90"
+                                        Content="{l:Localize lblToolboxExecute}"
+                                        Command="{Binding ExecuteManualCommand}"
+                                        IsEnabled="{Binding HasSdb}"
+                                        ToolTip.Tip="{l:Localize lblToolboxExecuteHint}"/>
+                            </Grid>
+                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxExecuteHint}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ============ Hidden system apps ============ -->
+                <!-- The TV's own menus, addressed by id because the key combination that used to open
+                     them has stopped answering. They launch through the debug agent when it is attached
+                     (#34); without it the SDB attempt still runs so the TV's own refusal is what the
+                     user reads (#641). -->
+                <Border Classes="group">
+                    <StackPanel>
+                        <Button Classes="sectionhead" Command="{Binding ToggleSectionCommand}" CommandParameter="SystemApps">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <StackPanel Spacing="1">
+                                    <TextBlock Classes="headtitle" Text="{l:Localize lblToolboxSystemApps}"/>
+                                    <TextBlock Classes="headsummary" Text="{l:Localize lblToolboxSystemAppsRow}"/>
+                                </StackPanel>
+                                <Panel Grid.Column="1">
+                                    <TextBlock Classes="chevron" Text="›" IsVisible="{Binding !IsSystemAppsOpen}"/>
+                                    <TextBlock Classes="chevron" Text="⌄" IsVisible="{Binding IsSystemAppsOpen}"/>
+                                </Panel>
+                            </Grid>
+                        </Button>
+                        <StackPanel Classes="sectionbody" IsVisible="{Binding IsSystemAppsOpen}">
+                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxSystemAppsHint}"/>
+                            <ItemsControl ItemsSource="{Binding SystemApps}">
                                 <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="viewModels:ToolboxApp">
-                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Margin="8,5">
-                                            <Image Grid.Column="0" Width="28" Height="28" Stretch="UniformToFill"
-                                                   VerticalAlignment="Center" Source="{Binding IconBitmap}"/>
-                                            <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
-                                                           TextTrimming="CharacterEllipsis"/>
-                                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                                    <TextBlock Text="{Binding AppId}" FontSize="11" Opacity="0.55"/>
-                                                    <TextBlock Text="{Binding Origin}" FontSize="11" Opacity="0.55"
-                                                               IsVisible="{Binding HasOrigin}"/>
+                                    <DataTemplate x:DataType="remote:SamsungSystemAppRow">
+                                        <Border Classes="row">
+                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                                <StackPanel Grid.Column="0" Spacing="2">
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
+                                                    <TextBlock Text="{Binding AppId}" FontSize="11" Foreground="{DynamicResource MutedBrush}"/>
+                                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource MutedBrush}"
+                                                               TextWrapping="Wrap"/>
+                                                    <TextBlock Text="{l:Localize lblToolboxSystemAppCaution}" FontSize="11"
+                                                               Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap"
+                                                               IsVisible="{Binding IsCaution}"/>
                                                 </StackPanel>
-                                            </StackPanel>
-                                            <Button Grid.Column="2" FontSize="12" VerticalAlignment="Center"
-                                                    Content="{l:Localize lblToolboxLaunch}"
-                                                    Command="{ReflectionBinding $parent[Window].DataContext.LaunchAppCommand}"
-                                                    CommandParameter="{Binding}"/>
+                                                <Button Grid.Column="1" Classes="action" Width="90" VerticalAlignment="Center"
+                                                        Content="{l:Localize lblToolboxLaunch}"
+                                                        Command="{ReflectionBinding $parent[Window].DataContext.LaunchSystemAppCommand}"
+                                                        CommandParameter="{Binding}"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ============ TV-Store ============ -->
+                <!-- The catalog on the TV itself (#844): TV-Store installs through the set's own sdbd
+                     and signs with the certificate this head hands it once, here. Needs Developer Mode. -->
+                <Border Classes="group">
+                    <StackPanel>
+                        <Button Classes="sectionhead" Command="{Binding ToggleSectionCommand}" CommandParameter="TvStore">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <StackPanel Spacing="1">
+                                    <TextBlock Classes="headtitle" Text="{l:Localize lblToolboxTvStore}"/>
+                                    <TextBlock Classes="headsummary" Text="{l:Localize lblToolboxTvStoreRow}"/>
+                                </StackPanel>
+                                <Panel Grid.Column="1">
+                                    <TextBlock Classes="chevron" Text="›" IsVisible="{Binding !IsTvStoreOpen}"/>
+                                    <TextBlock Classes="chevron" Text="⌄" IsVisible="{Binding IsTvStoreOpen}"/>
+                                </Panel>
+                            </Grid>
+                        </Button>
+                        <StackPanel Classes="sectionbody" IsVisible="{Binding IsTvStoreOpen}">
+                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxTvStoreHint}"/>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsEnabled="{Binding HasSdb}">
+                                <Button Grid.Column="0" Classes="action" Width="120"
+                                        Content="{l:Localize lblToolboxTvStoreArm}"
+                                        Command="{Binding ArmTvStoreCommand}"/>
+                                <TextBlock Grid.Column="1" Text="{Binding TvStoreStatus}" FontSize="12"
+                                           TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
+                            <!-- No (or an old) TV-Store on the set: straight to its catalog sheet (#888) -->
+                            <Button Classes="action" HorizontalAlignment="Left" IsVisible="{Binding CanShowTvStoreInCatalog}"
+                                    Content="{l:Localize lblToolboxTvStoreShowInCatalog}"
+                                    Command="{Binding ShowTvStoreInCatalogCommand}"/>
+
+                            <!-- Send sources to TV (#1018, TV-Store#82): the signed repositories of Your sources, with
+                                 the keys approved here; the TV asks before adding each. Unsigned ones never go. -->
+                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxSendSourcesHint}" Margin="0,8,0,0"/>
+                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxSendSourcesNone}" IsVisible="{Binding !HasTvSources}"/>
+                            <ItemsControl ItemsSource="{Binding TvSources}" IsVisible="{Binding HasTvSources}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="viewModels:TvToolboxViewModel+TvSourceChoice">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                                            <CheckBox IsChecked="{Binding IsChecked}" IsEnabled="{Binding CanSend}"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding Note}" FontSize="12" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
                                         </Grid>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                        </ScrollViewer>
-                    </Border>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsEnabled="{Binding HasSdb}" IsVisible="{Binding HasTvSources}">
+                                <Button Grid.Column="0" Classes="action" Width="160"
+                                        Content="{l:Localize lblToolboxSendSources}"
+                                        Command="{Binding SendSourcesToTvCommand}"/>
+                                <TextBlock Grid.Column="1" Text="{Binding SourcesStatus}" FontSize="12"
+                                           TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
 
-                    <!-- An id from a forum post or a manual, for an app in neither list. Launch goes the
-                         usual routes (remote channel / was_execute); "0 execute" is sdbd's other launcher
-                         verb, which answers in the platform's own words, for a service, or an id Smart
-                         Hub does not know. Needs Developer Mode. -->
-                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
-                        <TextBox Grid.Column="0" Text="{Binding ManualAppId}"
-                                 Watermark="{l:Localize lblToolboxManualPlaceholder}"/>
-                        <Button Grid.Column="1" Classes="action" Width="90"
-                                Content="{l:Localize lblToolboxLaunch}"
-                                Command="{Binding LaunchManualCommand}"
-                                IsEnabled="{Binding IsConnected}"/>
-                        <Button Grid.Column="2" Width="90"
-                                Content="{l:Localize lblToolboxExecute}"
-                                Command="{Binding ExecuteManualCommand}"
-                                IsEnabled="{Binding HasSdb}"
-                                ToolTip.Tip="{l:Localize lblToolboxExecuteHint}"/>
-                    </Grid>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxExecuteHint}"/>
+                <!-- ============ Package file ============ -->
+                <!-- A package of the user's own, without installing it from here (#979): signed with
+                     the certificate that covers this TV and saved, or sent to TV-Store's upload page
+                     on the TV (no Developer Mode needed on this side; TV-Store asks on the screen). -->
+                <Border Classes="group">
+                    <StackPanel>
+                        <Button Classes="sectionhead" Command="{Binding ToggleSectionCommand}" CommandParameter="Package">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <StackPanel Spacing="1">
+                                    <TextBlock Classes="headtitle" Text="{l:Localize lblToolboxPackage}"/>
+                                    <TextBlock Classes="headsummary" Text="{l:Localize lblToolboxPackageRow}"/>
+                                </StackPanel>
+                                <Panel Grid.Column="1">
+                                    <TextBlock Classes="chevron" Text="›" IsVisible="{Binding !IsPackageOpen}"/>
+                                    <TextBlock Classes="chevron" Text="⌄" IsVisible="{Binding IsPackageOpen}"/>
+                                </Panel>
+                            </Grid>
+                        </Button>
+                        <StackPanel Classes="sectionbody" IsVisible="{Binding IsPackageOpen}">
+                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxPackageHint}"/>
+                            <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
+                                <Button Grid.Column="0" Classes="action" Width="140"
+                                        Content="{l:Localize lblToolboxSignPackage}"
+                                        Command="{Binding SignPackageCommand}"
+                                        IsEnabled="{Binding HasSdb}"/>
+                                <Button Grid.Column="1" Width="140"
+                                        Content="{l:Localize lblToolboxSendToTvStore}"
+                                        Command="{Binding SendToTvStoreCommand}"/>
+                                <TextBlock Grid.Column="2" Text="{Binding PackageStatus}" FontSize="12"
+                                           TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
 
-                    <!-- ============ Hidden system apps ============ -->
-                    <!-- Not part of the list above: these are the TV's own menus, addressed by id
-                         because the key combination that used to open them has stopped answering.
-                         They launch through the debug agent below (#34); without it the SDB attempt
-                         still runs so the TV's own refusal is what the user reads (#641). -->
-                    <TextBlock Classes="section" Text="{l:Localize lblToolboxSystemApps}" Margin="0,12,0,0"/>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxSystemAppsHint}"/>
+                <!-- ============ Install leftovers ============ -->
+                <!-- sdbd pushes every package to /home/owner/share/tmp/sdk_tools and leaves it there;
+                     its own "0 rmfile" verb is accepted but deletes nothing on retail firmware. The
+                     agent runs as that folder's owner, so it lists and clears the folder itself. Clear
+                     takes package files only; any other file goes by its own ✕ (#681). Installed apps
+                     are not involved. Needs the agent attached. -->
+                <Border Classes="group">
+                    <StackPanel>
+                        <Button Classes="sectionhead" Command="{Binding ToggleSectionCommand}" CommandParameter="Staging">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <StackPanel Spacing="1">
+                                    <TextBlock Classes="headtitle" Text="{l:Localize lblToolboxStaging}"/>
+                                    <TextBlock Classes="headsummary" Text="{l:Localize lblToolboxStagingRow}"/>
+                                </StackPanel>
+                                <Panel Grid.Column="1">
+                                    <TextBlock Classes="chevron" Text="›" IsVisible="{Binding !IsStagingOpen}"/>
+                                    <TextBlock Classes="chevron" Text="⌄" IsVisible="{Binding IsStagingOpen}"/>
+                                </Panel>
+                            </Grid>
+                        </Button>
+                        <StackPanel Classes="sectionbody" IsVisible="{Binding IsStagingOpen}">
+                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxStagingHint}"/>
 
-                    <ItemsControl ItemsSource="{Binding SystemApps}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="remote:SamsungSystemAppRow">
-                                <Border Margin="0,3" Padding="10" CornerRadius="8"
-                                        Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}">
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                        <StackPanel Grid.Column="0" Spacing="2">
-                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
-                                            <TextBlock Text="{Binding AppId}" FontSize="11" Opacity="0.55"/>
-                                            <TextBlock Text="{Binding Description}" FontSize="11" Opacity="0.55"
-                                                       TextWrapping="Wrap"/>
-                                            <TextBlock Text="{l:Localize lblToolboxSystemAppCaution}" FontSize="11"
-                                                       Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap"
-                                                       IsVisible="{Binding IsCaution}"/>
-                                        </StackPanel>
-                                        <Button Grid.Column="1" Classes="action" Width="90" VerticalAlignment="Center"
-                                                Content="{l:Localize lblToolboxLaunch}"
-                                                Command="{ReflectionBinding $parent[Window].DataContext.LaunchSystemAppCommand}"
-                                                CommandParameter="{Binding}"/>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                            <!-- Not attached: say so, with the attach right here -->
+                            <StackPanel Spacing="8" IsVisible="{Binding !IsAgentAttached}">
+                                <TextBlock Classes="hint" Text="{l:Localize lblToolboxStagingNeedsAgent}" Foreground="{DynamicResource WarnBrush}"/>
+                                <Button Classes="action" HorizontalAlignment="Left"
+                                        Content="{l:Localize lblToolboxAgentChipAttach}"
+                                        Command="{Binding AttachAgentCommand}"
+                                        IsEnabled="{Binding HasSdb}"/>
+                            </StackPanel>
 
-                    <!-- ============ Debug agent ============ -->
-                    <!-- The route that reaches the rows above (#34): an app of ours on the TV, driven
-                         over the web inspector, asking the platform's own application manager. Also
-                         the one honest app list a hospitality set has. Needs Developer Mode. -->
-                    <TextBlock Classes="section" Text="{l:Localize lblToolboxAgent}" Margin="0,12,0,0"/>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxAgentHint}"/>
+                            <StackPanel Spacing="8" IsVisible="{Binding IsAgentAttached}">
+                                <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
+                                    <Button Grid.Column="0" Classes="action" Width="120"
+                                            Content="{l:Localize lblToolboxStagingClear}"
+                                            Command="{Binding ClearStagingCommand}"
+                                            IsEnabled="{Binding HasStagedPackages}"/>
+                                    <Button Grid.Column="1" Width="90"
+                                            Content="{l:Localize lblToolboxStagingRefresh}"
+                                            Command="{Binding RefreshStagingCommand}"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding StagingStatus}" FontSize="12"
+                                               TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                </Grid>
 
-                    <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8" IsEnabled="{Binding HasSdb}">
-                        <Button Grid.Column="0" Classes="action" Width="120"
-                                Content="{l:Localize lblToolboxAgentAttach}"
-                                Command="{Binding AttachAgentCommand}"/>
-                        <Button Grid.Column="1" Width="90"
-                                Content="{l:Localize lblToolboxAgentDetach}"
-                                Command="{Binding DetachAgentCommand}"
-                                IsEnabled="{Binding IsAgentAttached}"/>
-                        <TextBlock Grid.Column="2" Text="{Binding AgentStatus}" FontSize="12" Opacity="0.8"
-                                   TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    </Grid>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxAgentNeedsSdb}"
-                               IsVisible="{Binding !HasSdb}"/>
-
-                    <StackPanel Spacing="8" IsVisible="{Binding IsAgentAttached}">
-                        <TextBlock Classes="section" Text="{l:Localize lblToolboxAgentApps}"/>
-                        <TextBlock Classes="hint" Text="{l:Localize lblToolboxAgentAppsHint}"/>
-
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                            <TextBox Grid.Column="0" Text="{Binding AgentFilter}" Watermark="{l:Localize lblToolboxFilter}"/>
-                            <CheckBox Grid.Column="1" Content="{l:Localize lblToolboxAgentHiddenOnly}"
-                                      IsChecked="{Binding AgentHiddenOnly}" VerticalAlignment="Center"/>
-                        </Grid>
-
-                        <Border Height="300" CornerRadius="8" Padding="2"
-                                Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}">
-                            <ScrollViewer>
-                                <ItemsControl ItemsSource="{Binding AgentApps}">
+                                <ItemsControl ItemsSource="{Binding StagedFiles}">
                                     <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="viewModels:ToolboxAgentApp">
-                                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" Margin="8,5">
-                                                <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center">
-                                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                                        <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
-                                                                   TextTrimming="CharacterEllipsis"/>
-                                                        <TextBlock Text="{Binding HiddenLabel}" FontSize="11" Foreground="{DynamicResource WarnBrush}"
-                                                                   VerticalAlignment="Center" IsVisible="{Binding IsHidden}"/>
-                                                    </StackPanel>
-                                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                                        <TextBlock Text="{Binding AppId}" FontSize="11" Opacity="0.55"/>
-                                                        <TextBlock Text="{Binding Version}" FontSize="11" Opacity="0.55"/>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                                <Button Grid.Column="1" FontSize="12" VerticalAlignment="Center"
-                                                        Content="{l:Localize lblToolboxLaunch}"
-                                                        Command="{ReflectionBinding $parent[Window].DataContext.LaunchAgentAppCommand}"
-                                                        CommandParameter="{Binding}"/>
-                                                <Button Grid.Column="2" FontSize="12" VerticalAlignment="Center"
-                                                        Content="{l:Localize lblToolboxAgentAppControl}"
-                                                        Command="{ReflectionBinding $parent[Window].DataContext.LaunchAgentAppControlCommand}"
+                                        <DataTemplate x:DataType="viewModels:ToolboxStagedFile">
+                                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="8,2">
+                                                <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="12"
+                                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Detail}" FontSize="11" Foreground="{DynamicResource MutedBrush}"
+                                                           VerticalAlignment="Center"/>
+                                                <Button Grid.Column="2" Content="✕" FontSize="11" Padding="6,1"
+                                                        VerticalAlignment="Center"
+                                                        IsVisible="{Binding CanDelete}"
+                                                        ToolTip.Tip="{l:Localize lblToolboxStagingDelete}"
+                                                        Command="{ReflectionBinding $parent[Window].DataContext.DeleteStagedFileCommand}"
                                                         CommandParameter="{Binding}"/>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                            </ScrollViewer>
-                        </Border>
-
-                        <!-- Anything not a button yet, straight into the agent -->
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
-                            <TextBox Grid.Column="0" Text="{Binding AgentExpression}"
-                                     Watermark="{l:Localize lblToolboxAgentEvaluatePlaceholder}"/>
-                            <Button Grid.Column="1" Classes="action" Width="90"
-                                    Content="{l:Localize lblToolboxAgentEvaluate}"
-                                    Command="{Binding EvaluateAgentCommand}"/>
-                        </Grid>
-                        <TextBlock Classes="hint" Text="{l:Localize lblToolboxAgentEvaluateHint}"/>
-                        <SelectableTextBlock Text="{Binding AgentExpressionResult}" FontSize="11" FontFamily="Consolas,Menlo,monospace"
-                                             TextWrapping="Wrap" MaxHeight="160"/>
+                            </StackPanel>
+                        </StackPanel>
                     </StackPanel>
+                </Border>
 
-                    <!-- ============ TV-Store ============ -->
-                    <!-- The catalog on the TV itself (#844): TV-Store installs through the set's own sdbd
-                         and signs with the certificate this head hands it once, here. Needs Developer Mode. -->
-                    <TextBlock Classes="section" Text="{l:Localize lblToolboxTvStore}" Margin="0,12,0,0"/>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxTvStoreHint}"/>
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsEnabled="{Binding HasSdb}">
-                        <Button Grid.Column="0" Classes="action" Width="120"
-                                Content="{l:Localize lblToolboxTvStoreArm}"
-                                Command="{Binding ArmTvStoreCommand}"/>
-                        <TextBlock Grid.Column="1" Text="{Binding TvStoreStatus}" FontSize="12" Opacity="0.8"
-                                   TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    </Grid>
-                    <!-- No (or an old) TV-Store on the set: straight to its catalog sheet (#888) -->
-                    <Button Classes="action" HorizontalAlignment="Left" IsVisible="{Binding CanShowTvStoreInCatalog}"
-                            Content="{l:Localize lblToolboxTvStoreShowInCatalog}"
-                            Command="{Binding ShowTvStoreInCatalogCommand}"/>
+                <!-- ============ Service menu ============ -->
+                <Border Classes="group">
+                    <StackPanel>
+                        <Button Classes="sectionhead" Command="{Binding ToggleSectionCommand}" CommandParameter="Sequences">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <StackPanel Spacing="1">
+                                    <TextBlock Classes="headtitle" Text="{l:Localize lblToolboxSequences}"/>
+                                    <TextBlock Classes="headsummary" Text="{l:Localize lblToolboxSequencesRow}"/>
+                                </StackPanel>
+                                <Panel Grid.Column="1">
+                                    <TextBlock Classes="chevron" Text="›" IsVisible="{Binding !IsSequencesOpen}"/>
+                                    <TextBlock Classes="chevron" Text="⌄" IsVisible="{Binding IsSequencesOpen}"/>
+                                </Panel>
+                            </Grid>
+                        </Button>
+                        <StackPanel Classes="sectionbody" IsVisible="{Binding IsSequencesOpen}">
+                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxSequencesHint}"/>
 
-                    <!-- Send sources to TV (#1018, TV-Store#82): the signed repositories of Your sources, with
-                         the keys approved here; the TV asks before adding each. Unsigned ones never go. -->
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxSendSourcesHint}" Margin="0,8,0,0"/>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxSendSourcesNone}" IsVisible="{Binding !HasTvSources}"/>
-                    <ItemsControl ItemsSource="{Binding TvSources}" IsVisible="{Binding HasTvSources}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="viewModels:TvToolboxViewModel+TvSourceChoice">
-                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-                                    <CheckBox IsChecked="{Binding IsChecked}" IsEnabled="{Binding CanSend}"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding Note}" FontSize="12" Opacity="0.8" VerticalAlignment="Center"/>
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsEnabled="{Binding HasSdb}" IsVisible="{Binding HasTvSources}">
-                        <Button Grid.Column="0" Classes="action" Width="160"
-                                Content="{l:Localize lblToolboxSendSources}"
-                                Command="{Binding SendSourcesToTvCommand}"/>
-                        <TextBlock Grid.Column="1" Text="{Binding SourcesStatus}" FontSize="12" Opacity="0.8"
-                                   TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    </Grid>
+                            <ItemsControl ItemsSource="{Binding Sequences}" IsEnabled="{Binding IsConnected}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="viewModels:ToolboxSequence">
+                                        <Border Classes="row">
+                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                                <StackPanel Grid.Column="0" Spacing="2">
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
+                                                    <TextBlock Text="{Binding Keys}" FontSize="11"/>
+                                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource MutedBrush}"
+                                                               TextWrapping="Wrap"/>
+                                                    <TextBlock Text="{Binding Caveat}" FontSize="11"
+                                                               TextWrapping="Wrap" IsVisible="{Binding HasCaveat}"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="1" Classes="action" Width="90" VerticalAlignment="Center"
+                                                        Content="{l:Localize lblToolboxSend}"
+                                                        Command="{ReflectionBinding $parent[Window].DataContext.SendSequenceCommand}"
+                                                        CommandParameter="{Binding}"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
 
-                    <!-- ============ Package file ============ -->
-                    <!-- A package of the user's own, without installing it from here (#979): signed with
-                         the certificate that covers this TV and saved, or sent to TV-Store's upload page
-                         on the TV (no Developer Mode needed on this side; TV-Store asks on the screen). -->
-                    <TextBlock Classes="section" Text="{l:Localize lblToolboxPackage}" Margin="0,12,0,0"/>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxPackageHint}"/>
-                    <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
-                        <Button Grid.Column="0" Classes="action" Width="140"
-                                Content="{l:Localize lblToolboxSignPackage}"
-                                Command="{Binding SignPackageCommand}"
-                                IsEnabled="{Binding HasSdb}"/>
-                        <Button Grid.Column="1" Width="140"
-                                Content="{l:Localize lblToolboxSendToTvStore}"
-                                Command="{Binding SendToTvStoreCommand}"/>
-                        <TextBlock Grid.Column="2" Text="{Binding PackageStatus}" FontSize="12" Opacity="0.8"
-                                   TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    </Grid>
-
-                    <!-- ============ Install leftovers ============ -->
-                    <!-- sdbd pushes every package to /home/owner/share/tmp/sdk_tools and leaves it there;
-                         its own "0 rmfile" verb is accepted but deletes nothing on retail firmware. The
-                         agent runs as that folder's owner, so it lists and clears the folder itself. Clear
-                         takes package files only; any other file goes by its own ✕ (#681). Installed apps
-                         are not involved. Needs the agent attached. -->
-                    <TextBlock Classes="section" Text="{l:Localize lblToolboxStaging}" Margin="0,12,0,0"/>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxStagingHint}"/>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxStagingNeedsAgent}"
-                               IsVisible="{Binding !IsAgentAttached}"/>
-
-                    <StackPanel Spacing="8" IsVisible="{Binding IsAgentAttached}">
-                        <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
-                            <Button Grid.Column="0" Classes="action" Width="120"
-                                    Content="{l:Localize lblToolboxStagingClear}"
-                                    Command="{Binding ClearStagingCommand}"
-                                    IsEnabled="{Binding HasStagedPackages}"/>
-                            <Button Grid.Column="1" Width="90"
-                                    Content="{l:Localize lblToolboxStagingRefresh}"
-                                    Command="{Binding RefreshStagingCommand}"/>
-                            <TextBlock Grid.Column="2" Text="{Binding StagingStatus}" FontSize="12" Opacity="0.8"
-                                       TextWrapping="Wrap" VerticalAlignment="Center"/>
-                        </Grid>
-
-                        <ItemsControl ItemsSource="{Binding StagedFiles}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="viewModels:ToolboxStagedFile">
-                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="8,2">
-                                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="12"
-                                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="1" Text="{Binding Detail}" FontSize="11" Opacity="0.55"
-                                                   VerticalAlignment="Center"/>
-                                        <Button Grid.Column="2" Content="✕" FontSize="11" Padding="6,1"
-                                                VerticalAlignment="Center"
-                                                IsVisible="{Binding CanDelete}"
-                                                ToolTip.Tip="{l:Localize lblToolboxStagingDelete}"
-                                                Command="{ReflectionBinding $parent[Window].DataContext.DeleteStagedFileCommand}"
-                                                CommandParameter="{Binding}"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                            <!-- Timing is the whole reason for sending these over the network -->
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Margin="0,4,0,0"
+                                  IsEnabled="{Binding IsConnected}">
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource MutedBrush}"
+                                           Text="{l:Localize lblToolboxGap}"/>
+                                <Slider Grid.Column="1" Minimum="100" Maximum="600" TickFrequency="50"
+                                        IsSnapToTickEnabled="True" Value="{Binding GapMs}"/>
+                                <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="12"
+                                           Text="{Binding GapMs, StringFormat='{}{0:0} ms'}"/>
+                            </Grid>
+                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxGapHint}"/>
+                        </StackPanel>
                     </StackPanel>
+                </Border>
 
-                    <!-- ============ Service menu ============ -->
-                    <TextBlock Classes="section" Text="{l:Localize lblToolboxSequences}" Margin="0,12,0,0"/>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxSequencesHint}"/>
+                <!-- ============ Combinations that start from standby ============ -->
+                <!-- Printed rather than offered: a sleeping set serves no channel, so a button for
+                     one of these could never fire. They are also the sequences most likely to
+                     rescue a locked set, which is why they are here at all (#639). -->
+                <Border Classes="group">
+                    <StackPanel>
+                        <Button Classes="sectionhead" Command="{Binding ToggleSectionCommand}" CommandParameter="Standby">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <StackPanel Spacing="1">
+                                    <TextBlock Classes="headtitle" Text="{l:Localize lblToolboxStandbySequences}"/>
+                                    <TextBlock Classes="headsummary" Text="{l:Localize lblToolboxStandbyRow}"/>
+                                </StackPanel>
+                                <Panel Grid.Column="1">
+                                    <TextBlock Classes="chevron" Text="›" IsVisible="{Binding !IsStandbyOpen}"/>
+                                    <TextBlock Classes="chevron" Text="⌄" IsVisible="{Binding IsStandbyOpen}"/>
+                                </Panel>
+                            </Grid>
+                        </Button>
+                        <StackPanel Classes="sectionbody" IsVisible="{Binding IsStandbyOpen}">
+                            <TextBlock Classes="hint" Text="{l:Localize lblToolboxStandbyNote}"/>
 
-                    <ItemsControl ItemsSource="{Binding Sequences}" IsEnabled="{Binding IsConnected}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="viewModels:ToolboxSequence">
-                                <Border Margin="0,3" Padding="10" CornerRadius="8"
-                                        Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}">
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                        <StackPanel Grid.Column="0" Spacing="2">
-                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
-                                            <TextBlock Text="{Binding Keys}" FontSize="11" Opacity="0.75"/>
-                                            <TextBlock Text="{Binding Description}" FontSize="11" Opacity="0.55"
-                                                       TextWrapping="Wrap"/>
-                                            <TextBlock Text="{Binding Caveat}" FontSize="11" Opacity="0.75"
-                                                       TextWrapping="Wrap" IsVisible="{Binding HasCaveat}"/>
-                                        </StackPanel>
-                                        <Button Grid.Column="1" Classes="action" Width="90" VerticalAlignment="Center"
-                                                Content="{l:Localize lblToolboxSend}"
-                                                Command="{ReflectionBinding $parent[Window].DataContext.SendSequenceCommand}"
-                                                CommandParameter="{Binding}"/>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                            <ItemsControl ItemsSource="{Binding StandbySequences}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="viewModels:ToolboxSequence">
+                                        <Border Classes="row">
+                                            <StackPanel Spacing="2">
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
+                                                <TextBlock Text="{Binding Keys}" FontSize="11"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource MutedBrush}"
+                                                           TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
 
-                    <!-- Timing is the whole reason for sending these over the network -->
-                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Margin="0,4,0,0"
-                          IsEnabled="{Binding IsConnected}">
-                        <TextBlock Grid.Column="0" VerticalAlignment="Center" FontSize="12" Opacity="0.7"
-                                   Text="{l:Localize lblToolboxGap}"/>
-                        <Slider Grid.Column="1" Minimum="100" Maximum="600" TickFrequency="50"
-                                IsSnapToTickEnabled="True" Value="{Binding GapMs}"/>
-                        <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="12" Opacity="0.8"
-                                   Text="{Binding GapMs, StringFormat='{}{0:0} ms'}"/>
-                    </Grid>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxGapHint}"/>
+                            <TextBlock Text="{l:Localize lblToolboxStandbyHowTo}" FontSize="12" Margin="0,6,0,0"/>
+                            <ItemsControl ItemsSource="{Binding StandbySteps}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="x:String">
+                                        <TextBlock Text="{Binding}" FontSize="12" TextWrapping="Wrap" Margin="4,2"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
 
-                    <!-- ============ Combinations that start from standby ============ -->
-                    <!-- Printed rather than offered: a sleeping set serves no channel, so a button for
-                         one of these could never fire. They are also the sequences most likely to
-                         rescue a locked set, which is why they are here at all (#639). -->
-                    <TextBlock Classes="section" Text="{l:Localize lblToolboxStandbySequences}" Margin="0,12,0,0"/>
-                    <TextBlock Classes="hint" Text="{l:Localize lblToolboxStandbyNote}"/>
+                            <Border Classes="notice" BorderBrush="{DynamicResource BadBrush}" Background="{DynamicResource BadSoftBrush}" Margin="0,4,0,0">
+                                <TextBlock Text="{l:Localize lblToolboxStandbyWarning}"/>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
 
-                    <ItemsControl ItemsSource="{Binding StandbySequences}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="viewModels:ToolboxSequence">
-                                <Border Margin="0,3" Padding="10" CornerRadius="8"
-                                        Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}">
-                                    <StackPanel Spacing="2">
-                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
-                                        <TextBlock Text="{Binding Keys}" FontSize="11" Opacity="0.75"/>
-                                        <TextBlock Text="{Binding Description}" FontSize="11" Opacity="0.55"
-                                                   TextWrapping="Wrap"/>
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
 
-                    <TextBlock Text="{l:Localize lblToolboxStandbyHowTo}" FontSize="12" Margin="0,6,0,0"/>
-                    <ItemsControl ItemsSource="{Binding StandbySteps}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <TextBlock Text="{Binding}" FontSize="12" TextWrapping="Wrap" Margin="4,2"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-
-                    <Border Classes="notice" BorderBrush="{DynamicResource BadBrush}" Margin="0,4,0,8">
-                        <TextBlock Text="{l:Localize lblToolboxStandbyWarning}"/>
-                    </Border>
-
-                </StackPanel>
-            </ScrollViewer>
-
-        </DockPanel>
-    </Border>
+    </DockPanel>
 
 </Window>
