@@ -1,0 +1,4 @@
+# Executables, never touch line endings.
+* binary
+.gitattributes text
+README.md text
