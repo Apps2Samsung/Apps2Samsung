@@ -186,7 +186,7 @@ jobs:
           done
 
       # ---------------- RELEASE (UPDATE SAME TAG EVERY COMMIT) ----------------
-      - uses: softprops/action-gh-release@v3.0.3
+      - uses: softprops/action-gh-release@v3.0.4
         with:
           tag_name: ${{ env.VERSION_TAG }}
           target_commitish: ${{ github.sha }}
@@ -258,7 +258,7 @@ jobs:
           done
           ls -l dist
 
-      - uses: softprops/action-gh-release@v3.0.3
+      - uses: softprops/action-gh-release@v3.0.4
         with:
           tag_name: ${{ needs.beta-release.outputs.VERSION_TAG }}
           name: ${{ needs.beta-release.outputs.VERSION_TAG }}
@@ -416,7 +416,7 @@ jobs:
             -format UDZO \
             dist/${PRODUCT_NAME}-${{ needs.beta-release.outputs.VERSION_TAG }}-macos-x64.dmg
 
-      - uses: softprops/action-gh-release@v3.0.3
+      - uses: softprops/action-gh-release@v3.0.4
         with:
           tag_name: ${{ needs.beta-release.outputs.VERSION_TAG }}
           name: ${{ needs.beta-release.outputs.VERSION_TAG }}
@@ -469,7 +469,7 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - uses: actions/setup-java@v6.1.0
+      - uses: actions/setup-java@v6.2.0
         with:
           distribution: temurin
           java-version: '17'
@@ -530,7 +530,7 @@ jobs:
           .github/scripts/android-version-code.sh verify \
             "dist/${PRODUCT_NAME}-${{ needs.beta-release.outputs.VERSION_TAG }}-android.apk"
 
-      - uses: softprops/action-gh-release@v3.0.3
+      - uses: softprops/action-gh-release@v3.0.4
         with:
           tag_name: ${{ needs.beta-release.outputs.VERSION_TAG }}
           name: ${{ needs.beta-release.outputs.VERSION_TAG }}
@@ -571,7 +571,7 @@ jobs:
           build-number: ${{ needs.android-apk.outputs.VERSION_CODE }}
           output: dist/${{ env.PRODUCT_NAME }}-${{ needs.beta-release.outputs.VERSION_TAG }}-ios-unsigned.ipa
 
-      - uses: softprops/action-gh-release@v3.0.3
+      - uses: softprops/action-gh-release@v3.0.4
         with:
           tag_name: ${{ needs.beta-release.outputs.VERSION_TAG }}
           name: ${{ needs.beta-release.outputs.VERSION_TAG }}
