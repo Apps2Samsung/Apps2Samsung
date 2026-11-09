@@ -242,13 +242,13 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Packaging tools
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           sudo apt-get update
           sudo apt-get install -y librsvg2-bin dpkg-dev rpm
           rsvg-convert -w 256 -h 256 jellyfin-tizen-logo.svg -o jellyfin.png
-          curl -fsSL -o /usr/local/bin/appimagetool \
-            https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage
-          sudo chmod +x /usr/local/bin/appimagetool
+          bash .github/scripts/appimage-tools.sh
 
       # BOTH architectures, like the releases do. An earlier version of this job packaged x64 only,
       # on the assumption that arm64 differed by "three metadata strings", it doesn't: the aarch64

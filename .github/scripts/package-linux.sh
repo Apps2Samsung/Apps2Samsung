@@ -177,9 +177,13 @@ exec ./$PRODUCT "\$@"
 EOF
 chmod +x "$APP_DIR/AppRun"
 
-# appimagetool takes the target architecture from $ARCH (it embeds the matching runtime), and
-# --appimage-extract-and-run avoids needing FUSE, which CI runners don't have.
+# appimagetool takes the target architecture from $ARCH, and --appimage-extract-and-run avoids
+# needing FUSE, which CI runners don't have. The runtime is passed in rather than left for
+# appimagetool to download, so a GitHub 504 can't fail the build: appimage-tools.sh refreshes it,
+# falling back to the committed copy.
+RUNTIME_FILE="${APPIMAGE_RUNTIME_DIR:-$(dirname "$(realpath "$0")")/../tools/appimage}/runtime-$APPIMAGE_ARCH"
 env ARCH="$APPIMAGE_ARCH" "${APPIMAGETOOL:-appimagetool}" --appimage-extract-and-run \
+    --runtime-file "$RUNTIME_FILE" \
     "$APP_DIR" "$OUT_DIR/${PRODUCT}-${TAG}-linux-${ARCH}.AppImage" >/dev/null
 echo "✔ AppImage"
 
