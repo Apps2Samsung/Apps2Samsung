@@ -1,675 +1,675 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-09T04:22:22.0144331+00:00",
+  "generatedAt": "2026-11-10T04:20:26.0323709+00:00",
   "recentSince": "2026-10-27",
   "providers": {
     "jellyfin-tizen-builds": {
-      "total": 431095,
-      "recent": 67813
+      "total": 432530,
+      "recent": 69248
     },
     "moonfin": {
-      "total": 35484,
-      "recent": 3370
+      "total": 35695,
+      "recent": 3581
     },
     "litefin": {
-      "total": 14675,
-      "recent": 1273
+      "total": 14779,
+      "recent": 1377
     },
     "tizentube": {
-      "total": 79490,
-      "recent": 26401
+      "total": 81596,
+      "recent": 28507
     },
     "jellyfin-avplay": {
-      "total": 11528,
-      "recent": 1122
+      "total": 11571,
+      "recent": 1165
     },
     "jellyfin-avplay-smarthub": {
-      "total": 5179,
-      "recent": 787
+      "total": 5194,
+      "recent": 802
     },
     "jellyfin-legacy": {
-      "total": 8793,
-      "recent": 473
+      "total": 8845,
+      "recent": 525
     },
     "tizen-community": {
-      "total": 269369,
-      "recent": 80778,
+      "total": 277152,
+      "recent": 88561,
       "files": {
         "AerialScreensaver.wgt": {
-          "total": 1206,
-          "recent": 1071
+          "total": 1279,
+          "recent": 1144
         },
         "AIOStreams-Official.wgt": {
-          "total": 629,
-          "recent": 629
+          "total": 706,
+          "recent": 706
         },
         "AIOStreams-tizen6.wgt": {
-          "total": 965,
-          "recent": 392
+          "total": 991,
+          "recent": 418
         },
         "AirTizen.wgt": {
-          "total": 12403,
-          "recent": 761
+          "total": 12470,
+          "recent": 828
         },
         "AmbientTV.wgt": {
-          "total": 1215,
-          "recent": 733
+          "total": 1254,
+          "recent": 772
         },
         "AmorecoFlix.wgt": {
-          "total": 738,
-          "recent": 494
+          "total": 778,
+          "recent": 534
         },
         "AniUltimatiumLite.wgt": {
-          "total": 38,
-          "recent": 38
+          "total": 79,
+          "recent": 79
         },
         "Apex-TV.wgt": {
-          "total": 546,
-          "recent": 277
+          "total": 573,
+          "recent": 304
         },
         "APLLauncher-Tizen6.wgt": {
-          "total": 210,
-          "recent": 210
+          "total": 294,
+          "recent": 294
         },
         "APLLauncher.wgt": {
-          "total": 490,
-          "recent": 490
+          "total": 582,
+          "recent": 582
         },
         "APLTV.wgt": {
-          "total": 308,
-          "recent": 308
+          "total": 421,
+          "recent": 421
         },
         "AppManager.wgt": {
-          "total": 3155,
-          "recent": 1899
+          "total": 3295,
+          "recent": 2039
         },
         "AquaPlay-IPTV.wgt": {
-          "total": 7396,
-          "recent": 4268
+          "total": 7700,
+          "recent": 4572
         },
         "Arn0Launcher.wgt": {
-          "total": 2509,
-          "recent": 1861
+          "total": 2640,
+          "recent": 1992
         },
         "AudioRecorder.wgt": {
-          "total": 1212,
-          "recent": 128
+          "total": 1225,
+          "recent": 141
         },
         "Baobab.wgt": {
-          "total": 226,
-          "recent": 177
-        },
-        "Beam-TV.wgt": {
-          "total": 2469,
-          "recent": 548
-        },
-        "Bilibili.wgt": {
-          "total": 798,
-          "recent": 445
-        },
-        "CameraPip.wgt": {
-          "total": 592,
-          "recent": 338
-        },
-        "Chiaki-Tizen.wgt": {
-          "total": 1633,
-          "recent": 393
-        },
-        "Chouette-TV.wgt": {
-          "total": 973,
-          "recent": 692
-        },
-        "Copenhagen-Weather.wgt": {
-          "total": 237,
-          "recent": 193
-        },
-        "Crunchyroll.wgt": {
-          "total": 459,
-          "recent": 394
-        },
-        "DevNull-TV.wgt": {
-          "total": 2103,
-          "recent": 597
-        },
-        "Doom-tizen55.wgt": {
-          "total": 356,
-          "recent": 356
-        },
-        "Doom.wgt": {
-          "total": 4227,
-          "recent": 368
-        },
-        "Douyin.wgt": {
-          "total": 334,
-          "recent": 240
-        },
-        "EDuke32.wgt": {
-          "total": 58,
-          "recent": 58
-        },
-        "EN-IPTV_Player.wgt": {
-          "total": 2976,
-          "recent": 664
-        },
-        "F1TV.wgt": {
-          "total": 82,
-          "recent": 82
-        },
-        "FCastReceiver.wgt": {
-          "total": 2733,
-          "recent": 406
-        },
-        "Fladder.tpk": {
-          "total": 1744,
-          "recent": 216
-        },
-        "FLOH-IPTV.wgt": {
-          "total": 690,
-          "recent": 424
-        },
-        "Frame-Dashboard.wgt": {
-          "total": 331,
-          "recent": 199
-        },
-        "FreeMyTV.wgt": {
-          "total": 2590,
-          "recent": 1878
-        },
-        "FreeSerf.wgt": {
-          "total": 266,
-          "recent": 153
-        },
-        "GameBoy-Emulator.wgt": {
-          "total": 2639,
-          "recent": 400
-        },
-        "go2rtc-tizen.wgt": {
-          "total": 407,
-          "recent": 176
-        },
-        "HackTV.wgt": {
-          "total": 4694,
-          "recent": 1182
-        },
-        "Haven.wgt": {
-          "total": 233,
-          "recent": 233
-        },
-        "HyperTizen.tpk": {
-          "total": 2553,
-          "recent": 625
-        },
-        "ImmichTV.wgt": {
-          "total": 158,
-          "recent": 158
-        },
-        "ImmiTV.wgt": {
-          "total": 830,
-          "recent": 354
-        },
-        "inet-speed-old-tizen.wgt": {
-          "total": 566,
-          "recent": 362
-        },
-        "iperf3-TV.wgt": {
-          "total": 1400,
-          "recent": 415
-        },
-        "IPTV-Manager.wgt": {
-          "total": 4688,
-          "recent": 1086
-        },
-        "Jellyfin-Bonfire.wgt": {
-          "total": 1428,
-          "recent": 490
-        },
-        "JellyLean.wgt": {
-          "total": 94,
-          "recent": 94
-        },
-        "Kick.wgt": {
-          "total": 296,
-          "recent": 296
-        },
-        "KickTV-TR.wgt": {
-          "total": 38,
-          "recent": 38
-        },
-        "KickTV.wgt": {
-          "total": 2744,
-          "recent": 593
-        },
-        "KickTV20.wgt": {
-          "total": 927,
-          "recent": 309
-        },
-        "Kodi-Chorus.wgt": {
-          "total": 3000,
-          "recent": 737
-        },
-        "Kodi-Samsung.wgt": {
-          "total": 1902,
-          "recent": 866
-        },
-        "Kodi-TeX.wgt": {
-          "total": 1958,
-          "recent": 291
-        },
-        "KROMA.wgt": {
-          "total": 183,
-          "recent": 105
-        },
-        "Lampa.wgt": {
-          "total": 1158,
-          "recent": 765
-        },
-        "Lobby.wgt": {
-          "total": 78,
-          "recent": 78
-        },
-        "LumenTV.wgt": {
-          "total": 197,
-          "recent": 169
-        },
-        "MonoServer.wgt": {
-          "total": 214,
-          "recent": 214
-        },
-        "Moonfin-Lica-Fork.wgt": {
-          "total": 172,
-          "recent": 172
-        },
-        "Moonlight-AC3-fidoboy-ForceGM.wgt": {
-          "total": 478,
-          "recent": 321
-        },
-        "Moonlight-AC3-fidoboy.wgt": {
-          "total": 467,
-          "recent": 309
-        },
-        "Moonlight-Chrome-NoGame.wgt": {
-          "total": 1147,
-          "recent": 199
-        },
-        "Moonlight-Chrome-ToypoodleGaming.wgt": {
-          "total": 1108,
+          "total": 231,
           "recent": 182
         },
-        "Moonlight-Chrome.wgt": {
-          "total": 2744,
-          "recent": 231
-        },
-        "Moonlight-ForceGM-Tizen.wgt": {
-          "total": 5026,
-          "recent": 558
-        },
-        "Moonlight-Tizen.wgt": {
-          "total": 32718,
-          "recent": 3385
-        },
-        "NhaMinh.wgt": {
-          "total": 767,
-          "recent": 691
-        },
-        "Nuvio-Legacy-tizen4.tpk": {
-          "total": 3493,
-          "recent": 1836
-        },
-        "Nuvio-Legacy-tizen6.5.tpk": {
-          "total": 787,
-          "recent": 382
-        },
-        "Nuvio-Legacy-tizen6.tpk": {
-          "total": 840,
-          "recent": 451
-        },
-        "Nuvio-Legacy-tizen8.tpk": {
-          "total": 2204,
-          "recent": 1078
-        },
-        "Nuvio-Legacy.wgt": {
-          "total": 996,
-          "recent": 359
-        },
-        "NuvioTV-Official.wgt": {
-          "total": 13455,
-          "recent": 2139
-        },
-        "Nyx.wgt": {
-          "total": 236,
-          "recent": 236
-        },
-        "OmegaTube.tpk": {
-          "total": 1190,
-          "recent": 1190
-        },
-        "opencream-tv.wgt": {
-          "total": 172,
-          "recent": 172
-        },
-        "OpenIPTV.wgt": {
-          "total": 2955,
-          "recent": 823
-        },
-        "OsmTwich.wgt": {
-          "total": 168,
-          "recent": 166
-        },
-        "OTTplay-FOSS.wgt": {
-          "total": 3695,
-          "recent": 843
-        },
-        "Padthru.wgt": {
-          "total": 50,
-          "recent": 50
-        },
-        "pelagica-tizen.wgt": {
-          "total": 1050,
-          "recent": 204
-        },
-        "Phlix.wgt": {
-          "total": 108,
-          "recent": 98
-        },
-        "PlayerAVPlay.wgt": {
-          "total": 1609,
-          "recent": 227
-        },
-        "Plex-Flixor.wgt": {
-          "total": 1820,
-          "recent": 340
-        },
-        "Pley.wgt": {
-          "total": 89,
-          "recent": 89
-        },
-        "Prairie.tpk": {
-          "total": 141,
-          "recent": 94
-        },
-        "Reelo.wgt": {
-          "total": 1029,
-          "recent": 541
-        },
-        "Reiverr.wgt": {
-          "total": 1482,
-          "recent": 452
-        },
-        "ReolinkViewer-legacy.wgt": {
-          "total": 134,
-          "recent": 88
-        },
-        "ReolinkViewer.wgt": {
-          "total": 365,
-          "recent": 185
-        },
-        "RetroArch.wgt": {
-          "total": 1078,
-          "recent": 585
-        },
-        "RetroTV.wgt": {
-          "total": 614,
-          "recent": 397
-        },
-        "RTSP-Camera-Viewer.wgt": {
-          "total": 1203,
-          "recent": 508
-        },
-        "RUVKids.wgt": {
-          "total": 400,
-          "recent": 142
-        },
-        "RUVLive.wgt": {
-          "total": 430,
-          "recent": 122
-        },
-        "RUVMennta.wgt": {
-          "total": 197,
-          "recent": 86
-        },
-        "RUVUng.wgt": {
-          "total": 220,
-          "recent": 96
-        },
-        "RUVUtvarp.wgt": {
-          "total": 199,
-          "recent": 84
-        },
-        "RUVVod.wgt": {
-          "total": 315,
-          "recent": 108
-        },
-        "SamSUCKS.wgt": {
-          "total": 705,
-          "recent": 338
-        },
-        "SeanimeTV.wgt": {
-          "total": 880,
-          "recent": 476
-        },
-        "Sendspin-Cinema.wgt": {
-          "total": 277,
-          "recent": 203
-        },
-        "ShmupCup.wgt": {
-          "total": 189,
-          "recent": 175
-        },
-        "Shutter.wgt": {
-          "total": 102,
-          "recent": 102
-        },
-        "SKY-IPTV.wgt": {
-          "total": 835,
-          "recent": 471
-        },
-        "SmartSTBcloneV2.wgt": {
-          "total": 280,
-          "recent": 280
-        },
-        "SmartTV_Twitch.wgt": {
-          "total": 3033,
-          "recent": 786
-        },
-        "Snake-Game.wgt": {
-          "total": 590,
-          "recent": 394
-        },
-        "Sonance3-Oblong.wgt": {
-          "total": 235,
-          "recent": 129
-        },
-        "Sonance3.wgt": {
-          "total": 200,
-          "recent": 113
-        },
-        "Spelunkr.wgt": {
-          "total": 108,
-          "recent": 108
-        },
-        "Sportlink-Club-Viewer.wgt": {
-          "total": 961,
-          "recent": 151
-        },
-        "StashZen.wgt": {
-          "total": 667,
-          "recent": 617
-        },
-        "StreamixTV.wgt": {
-          "total": 315,
-          "recent": 258
-        },
-        "StreamVault-tizen5.wgt": {
-          "total": 444,
-          "recent": 225
-        },
-        "StreamVault.wgt": {
-          "total": 2521,
-          "recent": 283
-        },
-        "Stremio-Tizen4.wgt": {
-          "total": 6423,
-          "recent": 1658
-        },
-        "StremioK.wgt": {
-          "total": 1442,
-          "recent": 1003
-        },
-        "SubTizen.wgt": {
-          "total": 95,
-          "recent": 95
-        },
-        "tacplayer.wgt": {
-          "total": 632,
-          "recent": 133
-        },
-        "Tailscale.tpk": {
-          "total": 2063,
-          "recent": 306
-        },
-        "Telegram-Videos.wgt": {
-          "total": 599,
-          "recent": 357
-        },
-        "Tessel.wgt": {
-          "total": 2770,
-          "recent": 1258
-        },
-        "Tizen-IPTV-Player.wgt": {
-          "total": 197,
-          "recent": 197
-        },
-        "tizen-youtube-tizen-5.0.wgt": {
-          "total": 4701,
-          "recent": 1998
-        },
-        "tizen-youtube-tizen-5.5.wgt": {
-          "total": 6193,
-          "recent": 2257
-        },
-        "TizenAmbilight.tpk": {
-          "total": 449,
-          "recent": 291
-        },
-        "TizenBrew.wgt": {
-          "total": 15320,
-          "recent": 3129
-        },
-        "TizenDebugApp-tizen3.wgt": {
+        "Beam-TV.wgt": {
+          "total": 2519,
+          "recent": 598
+        },
+        "Bilibili.wgt": {
+          "total": 823,
+          "recent": 470
+        },
+        "CameraPip.wgt": {
+          "total": 616,
+          "recent": 362
+        },
+        "Chiaki-Tizen.wgt": {
+          "total": 1667,
+          "recent": 427
+        },
+        "Chouette-TV.wgt": {
+          "total": 1045,
+          "recent": 764
+        },
+        "Copenhagen-Weather.wgt": {
+          "total": 243,
+          "recent": 199
+        },
+        "Crunchyroll.wgt": {
+          "total": 500,
+          "recent": 435
+        },
+        "DevNull-TV.wgt": {
+          "total": 2141,
+          "recent": 635
+        },
+        "Doom-tizen55.wgt": {
+          "total": 396,
+          "recent": 396
+        },
+        "Doom.wgt": {
+          "total": 4260,
+          "recent": 401
+        },
+        "Douyin.wgt": {
           "total": 354,
-          "recent": 185
+          "recent": 260
         },
-        "TizenDebugApp.wgt": {
-          "total": 475,
-          "recent": 309
-        },
-        "TizenOsAmbilight.wgt": {
-          "total": 200,
-          "recent": 200
-        },
-        "TizenSteamLink.wgt": {
-          "total": 1260,
-          "recent": 807
-        },
-        "TizenTube-old-tizen.wgt": {
-          "total": 2006,
-          "recent": 1387
-        },
-        "TizenUtility.wgt": {
-          "total": 1691,
-          "recent": 933
-        },
-        "TorrStream-ffprobe.wgt": {
-          "total": 274,
-          "recent": 274
-        },
-        "TorrStream.wgt": {
-          "total": 261,
-          "recent": 261
-        },
-        "TorrStreaming.wgt": {
-          "total": 888,
-          "recent": 451
-        },
-        "TransportTycoonDeluxe.wgt": {
-          "total": 1142,
-          "recent": 151
-        },
-        "TubeArchivist-TV.wgt": {
-          "total": 241,
-          "recent": 178
-        },
-        "TV-Clock.wgt": {
-          "total": 608,
-          "recent": 374
-        },
-        "TV-Dashboard.wgt": {
-          "total": 567,
-          "recent": 469
-        },
-        "TV-Store.wgt": {
-          "total": 5014,
-          "recent": 5014
-        },
-        "TVApp.wgt": {
-          "total": 7140,
-          "recent": 1267
-        },
-        "Twitch-Old-Tizen.wgt": {
-          "total": 270,
-          "recent": 200
-        },
-        "UltimatiumTube-Tizen50.wgt": {
-          "total": 636,
-          "recent": 505
-        },
-        "UltimatiumTube-Tizen55.wgt": {
-          "total": 657,
-          "recent": 568
-        },
-        "UniFi-Cameras.wgt": {
-          "total": 268,
-          "recent": 192
-        },
-        "VeloVistrix.wgt": {
-          "total": 214,
-          "recent": 172
-        },
-        "velox.wgt": {
+        "EDuke32.wgt": {
           "total": 77,
           "recent": 77
         },
+        "EN-IPTV_Player.wgt": {
+          "total": 3024,
+          "recent": 712
+        },
+        "F1TV.wgt": {
+          "total": 115,
+          "recent": 115
+        },
+        "FCastReceiver.wgt": {
+          "total": 2760,
+          "recent": 433
+        },
+        "Fladder.tpk": {
+          "total": 1756,
+          "recent": 228
+        },
+        "FLOH-IPTV.wgt": {
+          "total": 734,
+          "recent": 468
+        },
+        "Frame-Dashboard.wgt": {
+          "total": 338,
+          "recent": 206
+        },
+        "FreeMyTV.wgt": {
+          "total": 2728,
+          "recent": 2016
+        },
+        "FreeSerf.wgt": {
+          "total": 272,
+          "recent": 159
+        },
+        "GameBoy-Emulator.wgt": {
+          "total": 2669,
+          "recent": 430
+        },
+        "go2rtc-tizen.wgt": {
+          "total": 415,
+          "recent": 184
+        },
+        "HackTV.wgt": {
+          "total": 4781,
+          "recent": 1269
+        },
+        "Haven.wgt": {
+          "total": 265,
+          "recent": 265
+        },
+        "HyperTizen.tpk": {
+          "total": 2597,
+          "recent": 669
+        },
+        "ImmichTV.wgt": {
+          "total": 182,
+          "recent": 182
+        },
+        "ImmiTV.wgt": {
+          "total": 849,
+          "recent": 373
+        },
+        "inet-speed-old-tizen.wgt": {
+          "total": 591,
+          "recent": 387
+        },
+        "iperf3-TV.wgt": {
+          "total": 1413,
+          "recent": 428
+        },
+        "IPTV-Manager.wgt": {
+          "total": 4754,
+          "recent": 1152
+        },
+        "Jellyfin-Bonfire.wgt": {
+          "total": 1459,
+          "recent": 521
+        },
+        "JellyLean.wgt": {
+          "total": 108,
+          "recent": 108
+        },
+        "Kick.wgt": {
+          "total": 316,
+          "recent": 316
+        },
+        "KickTV-TR.wgt": {
+          "total": 52,
+          "recent": 52
+        },
+        "KickTV.wgt": {
+          "total": 2778,
+          "recent": 627
+        },
+        "KickTV20.wgt": {
+          "total": 945,
+          "recent": 327
+        },
+        "Kodi-Chorus.wgt": {
+          "total": 3049,
+          "recent": 786
+        },
+        "Kodi-Samsung.wgt": {
+          "total": 1959,
+          "recent": 923
+        },
+        "Kodi-TeX.wgt": {
+          "total": 1973,
+          "recent": 306
+        },
+        "KROMA.wgt": {
+          "total": 189,
+          "recent": 111
+        },
+        "Lampa.wgt": {
+          "total": 1201,
+          "recent": 808
+        },
+        "Lobby.wgt": {
+          "total": 91,
+          "recent": 91
+        },
+        "LumenTV.wgt": {
+          "total": 213,
+          "recent": 185
+        },
+        "MonoServer.wgt": {
+          "total": 237,
+          "recent": 237
+        },
+        "Moonfin-Lica-Fork.wgt": {
+          "total": 193,
+          "recent": 193
+        },
+        "Moonlight-AC3-fidoboy-ForceGM.wgt": {
+          "total": 502,
+          "recent": 345
+        },
+        "Moonlight-AC3-fidoboy.wgt": {
+          "total": 493,
+          "recent": 335
+        },
+        "Moonlight-Chrome-NoGame.wgt": {
+          "total": 1158,
+          "recent": 210
+        },
+        "Moonlight-Chrome-ToypoodleGaming.wgt": {
+          "total": 1118,
+          "recent": 192
+        },
+        "Moonlight-Chrome.wgt": {
+          "total": 2764,
+          "recent": 251
+        },
+        "Moonlight-ForceGM-Tizen.wgt": {
+          "total": 5071,
+          "recent": 603
+        },
+        "Moonlight-Tizen.wgt": {
+          "total": 32944,
+          "recent": 3611
+        },
+        "NhaMinh.wgt": {
+          "total": 803,
+          "recent": 727
+        },
+        "Nuvio-Legacy-tizen4.tpk": {
+          "total": 3652,
+          "recent": 1995
+        },
+        "Nuvio-Legacy-tizen6.5.tpk": {
+          "total": 839,
+          "recent": 434
+        },
+        "Nuvio-Legacy-tizen6.tpk": {
+          "total": 872,
+          "recent": 483
+        },
+        "Nuvio-Legacy-tizen8.tpk": {
+          "total": 2308,
+          "recent": 1182
+        },
+        "Nuvio-Legacy.wgt": {
+          "total": 1027,
+          "recent": 390
+        },
+        "NuvioTV-Official.wgt": {
+          "total": 13714,
+          "recent": 2398
+        },
+        "Nyx.wgt": {
+          "total": 287,
+          "recent": 287
+        },
+        "OmegaTube.tpk": {
+          "total": 1318,
+          "recent": 1318
+        },
+        "opencream-tv.wgt": {
+          "total": 218,
+          "recent": 218
+        },
+        "OpenIPTV.wgt": {
+          "total": 3034,
+          "recent": 902
+        },
+        "OsmTwich.wgt": {
+          "total": 181,
+          "recent": 179
+        },
+        "OTTplay-FOSS.wgt": {
+          "total": 3757,
+          "recent": 905
+        },
+        "Padthru.wgt": {
+          "total": 60,
+          "recent": 60
+        },
+        "pelagica-tizen.wgt": {
+          "total": 1058,
+          "recent": 212
+        },
+        "Phlix.wgt": {
+          "total": 112,
+          "recent": 102
+        },
+        "PlayerAVPlay.wgt": {
+          "total": 1629,
+          "recent": 247
+        },
+        "Plex-Flixor.wgt": {
+          "total": 1864,
+          "recent": 384
+        },
+        "Pley.wgt": {
+          "total": 99,
+          "recent": 99
+        },
+        "Prairie.tpk": {
+          "total": 147,
+          "recent": 100
+        },
+        "Reelo.wgt": {
+          "total": 1062,
+          "recent": 574
+        },
+        "Reiverr.wgt": {
+          "total": 1491,
+          "recent": 461
+        },
+        "ReolinkViewer-legacy.wgt": {
+          "total": 141,
+          "recent": 95
+        },
+        "ReolinkViewer.wgt": {
+          "total": 386,
+          "recent": 206
+        },
+        "RetroArch.wgt": {
+          "total": 1130,
+          "recent": 637
+        },
+        "RetroTV.wgt": {
+          "total": 634,
+          "recent": 417
+        },
+        "RTSP-Camera-Viewer.wgt": {
+          "total": 1228,
+          "recent": 533
+        },
+        "RUVKids.wgt": {
+          "total": 412,
+          "recent": 154
+        },
+        "RUVLive.wgt": {
+          "total": 440,
+          "recent": 132
+        },
+        "RUVMennta.wgt": {
+          "total": 203,
+          "recent": 92
+        },
+        "RUVUng.wgt": {
+          "total": 225,
+          "recent": 101
+        },
+        "RUVUtvarp.wgt": {
+          "total": 207,
+          "recent": 92
+        },
+        "RUVVod.wgt": {
+          "total": 320,
+          "recent": 113
+        },
+        "SamSUCKS.wgt": {
+          "total": 716,
+          "recent": 349
+        },
+        "SeanimeTV.wgt": {
+          "total": 910,
+          "recent": 506
+        },
+        "Sendspin-Cinema.wgt": {
+          "total": 282,
+          "recent": 208
+        },
+        "ShmupCup.wgt": {
+          "total": 193,
+          "recent": 179
+        },
+        "Shutter.wgt": {
+          "total": 108,
+          "recent": 108
+        },
+        "SKY-IPTV.wgt": {
+          "total": 883,
+          "recent": 519
+        },
+        "SmartSTBcloneV2.wgt": {
+          "total": 346,
+          "recent": 346
+        },
+        "SmartTV_Twitch.wgt": {
+          "total": 3060,
+          "recent": 813
+        },
+        "Snake-Game.wgt": {
+          "total": 616,
+          "recent": 420
+        },
+        "Sonance3-Oblong.wgt": {
+          "total": 241,
+          "recent": 135
+        },
+        "Sonance3.wgt": {
+          "total": 207,
+          "recent": 120
+        },
+        "Spelunkr.wgt": {
+          "total": 117,
+          "recent": 117
+        },
+        "Sportlink-Club-Viewer.wgt": {
+          "total": 968,
+          "recent": 158
+        },
+        "StashZen.wgt": {
+          "total": 698,
+          "recent": 648
+        },
+        "StreamixTV.wgt": {
+          "total": 333,
+          "recent": 276
+        },
+        "StreamVault-tizen5.wgt": {
+          "total": 465,
+          "recent": 246
+        },
+        "StreamVault.wgt": {
+          "total": 2536,
+          "recent": 298
+        },
+        "Stremio-Tizen4.wgt": {
+          "total": 6541,
+          "recent": 1776
+        },
+        "StremioK.wgt": {
+          "total": 1532,
+          "recent": 1093
+        },
+        "SubTizen.wgt": {
+          "total": 106,
+          "recent": 106
+        },
+        "tacplayer.wgt": {
+          "total": 637,
+          "recent": 138
+        },
+        "Tailscale.tpk": {
+          "total": 2096,
+          "recent": 339
+        },
+        "Telegram-Videos.wgt": {
+          "total": 621,
+          "recent": 379
+        },
+        "Tessel.wgt": {
+          "total": 2870,
+          "recent": 1358
+        },
+        "Tizen-IPTV-Player.wgt": {
+          "total": 272,
+          "recent": 272
+        },
+        "tizen-youtube-tizen-5.0.wgt": {
+          "total": 4877,
+          "recent": 2174
+        },
+        "tizen-youtube-tizen-5.5.wgt": {
+          "total": 6434,
+          "recent": 2498
+        },
+        "TizenAmbilight.tpk": {
+          "total": 463,
+          "recent": 305
+        },
+        "TizenBrew.wgt": {
+          "total": 15579,
+          "recent": 3388
+        },
+        "TizenDebugApp-tizen3.wgt": {
+          "total": 364,
+          "recent": 195
+        },
+        "TizenDebugApp.wgt": {
+          "total": 492,
+          "recent": 326
+        },
+        "TizenOsAmbilight.wgt": {
+          "total": 226,
+          "recent": 226
+        },
+        "TizenSteamLink.wgt": {
+          "total": 1310,
+          "recent": 857
+        },
+        "TizenTube-old-tizen.wgt": {
+          "total": 2128,
+          "recent": 1509
+        },
+        "TizenUtility.wgt": {
+          "total": 1776,
+          "recent": 1018
+        },
+        "TorrStream-ffprobe.wgt": {
+          "total": 297,
+          "recent": 297
+        },
+        "TorrStream.wgt": {
+          "total": 276,
+          "recent": 276
+        },
+        "TorrStreaming.wgt": {
+          "total": 929,
+          "recent": 492
+        },
+        "TransportTycoonDeluxe.wgt": {
+          "total": 1149,
+          "recent": 158
+        },
+        "TubeArchivist-TV.wgt": {
+          "total": 248,
+          "recent": 185
+        },
+        "TV-Clock.wgt": {
+          "total": 619,
+          "recent": 385
+        },
+        "TV-Dashboard.wgt": {
+          "total": 589,
+          "recent": 491
+        },
+        "TV-Store.wgt": {
+          "total": 5628,
+          "recent": 5628
+        },
+        "TVApp.wgt": {
+          "total": 7233,
+          "recent": 1360
+        },
+        "Twitch-Old-Tizen.wgt": {
+          "total": 285,
+          "recent": 215
+        },
+        "UltimatiumTube-Tizen50.wgt": {
+          "total": 692,
+          "recent": 561
+        },
+        "UltimatiumTube-Tizen55.wgt": {
+          "total": 704,
+          "recent": 615
+        },
+        "UniFi-Cameras.wgt": {
+          "total": 274,
+          "recent": 198
+        },
+        "VeloVistrix.wgt": {
+          "total": 219,
+          "recent": 177
+        },
+        "velox.wgt": {
+          "total": 87,
+          "recent": 87
+        },
         "Velvet-TV.wgt": {
-          "total": 1162,
-          "recent": 358
+          "total": 1172,
+          "recent": 368
         },
         "Vemm.wgt": {
-          "total": 208,
-          "recent": 139
+          "total": 217,
+          "recent": 148
         },
         "Vetro.wgt": {
-          "total": 3087,
-          "recent": 3021
+          "total": 3335,
+          "recent": 3269
         },
         "VexonTV.wgt": {
-          "total": 1949,
-          "recent": 766
+          "total": 2006,
+          "recent": 823
         },
         "VideoPlayer.wgt": {
-          "total": 2930,
-          "recent": 317
+          "total": 2956,
+          "recent": 343
         },
         "Wall.wgt": {
-          "total": 441,
-          "recent": 214
+          "total": 462,
+          "recent": 235
         },
         "XtreamIPTV.wgt": {
-          "total": 1222,
-          "recent": 1039
+          "total": 1327,
+          "recent": 1144
         },
         "youtube-dummy.wgt": {
-          "total": 2268,
-          "recent": 1264
+          "total": 2372,
+          "recent": 1368
         }
       }
     }
