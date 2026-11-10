@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-10T09:56:03.5076529+00:00",
+  "generatedAt": "2026-11-10T09:58:56.3326495+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -4961,6 +4961,15 @@
           "casting": "Casting \u0026 cameras",
           "tools": "Tools \u0026 system",
           "other": "Other"
+        },
+        "category_colors": {
+          "media": "#2B59FF",
+          "iptv": "#E8590C",
+          "streaming": "#D6336C",
+          "games": "#7048E8",
+          "casting": "#0CA678",
+          "tools": "#5C677D",
+          "other": "#868E96"
         },
         "apps": [
           {

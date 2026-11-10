@@ -1,7 +1,7 @@
-DC/hF4dIA5QhPSzrujcjGPcPmG8KwSgSHOgKv8gjodWrY4prvTyqs1tVIZw8kJ/owNFXFFIGwLQXGtycsEVQbyo+t5VRW8WIzDKkta+e+B9iDeH7BqPqQBKNozCQv7uIYhHAhR3xDQtIVLPC2YDJ17MowNr4UwTR3ew/xxNrRAyRq1xE6XuU5GNUon7WKpjPdnQSWEFhoMPr1nsBZ/qqKHkuR1rsWqqu9U6w3ka6R+n7LjAKlBWy1lOQsG4tNmNM3J9WyimtnW6cHu8936jV0y84rN79yeorDDMBUZgqAiwj/5xxku/N1OMW1xjHF22+hilv/647RAL/SlPlxv6DuOXyA/48AJKttCq2QpQCWzYmN4gz0B+E+ZfFhL9+TpivxSqdM5nt23EpBwH+Cz5Atahdftb86H3lqbl0q9jgGSND3LO5RPaeosu7K7HQLAXcaTUfHsxgDCLpCWDmbQEYy28Z8FUQD8cveutE7U4BklGxvxy3p9kOLfM/cHICyBKp
+HU8JYo+5UbM3ITXZk9Ios9M9/mYlGNKd9rmB3FsSQXgE/zjP0atv/c0FjufkGdbU5ftS2WWvbsJC0R/ny/0BRgGbXZElE/zV6cT/LeZbFfku/qkJfmPvrTrMB+8Er1UtaOMDJagrAMo5zeOi1xMGgZ6m+8ixRDqYs6tJh9i9EGUn+Gk5y2yic3zxPvlIxmdOjH14kurp2i/GR+ZqK39SWbPsmkEUZIah33CfBcUJ3PsMOXtCne6WjuGhQ5SRy7Tn0mFBUu10eyqPkK2TSWlnLMgWW5iw+WZTSc3TnjNBKO0pZ6CvcjL0ru22Ebey3Cmrg5jZ6kkwQBcyzfUge+ZNU2wLU5NzOoLMkYmabG5gRQvwPlpcEB7wZqxxF4vTcDtVheeYICiMqvMU+FnoAOKLjpWOboUXw/L05/bZjydehdL3utF6fasFMMBNssqTH6qoAem2tqdT/VNaJRScddcm03TESzwyJHxqel6lSD/wix5iMsQQ3RZUx1L64m2Ydduw
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-10T09:56:03.5076529+00:00",
+  "generatedAt": "2026-11-10T09:58:56.3326495+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -4962,6 +4962,15 @@ DC/hF4dIA5QhPSzrujcjGPcPmG8KwSgSHOgKv8gjodWrY4prvTyqs1tVIZw8kJ/owNFXFFIGwLQXGtyc
           "casting": "Casting \u0026 cameras",
           "tools": "Tools \u0026 system",
           "other": "Other"
+        },
+        "category_colors": {
+          "media": "#2B59FF",
+          "iptv": "#E8590C",
+          "streaming": "#D6336C",
+          "games": "#7048E8",
+          "casting": "#0CA678",
+          "tools": "#5C677D",
+          "other": "#868E96"
         },
         "apps": [
           {
