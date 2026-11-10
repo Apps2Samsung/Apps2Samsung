@@ -62,5 +62,9 @@ namespace Apps2Samsung.Styles
             // Before the dictionary is registered (unit tests, design time): the light value.
             return new SolidColorBrush(Color.Parse(DesignTokens.Colors.All[token].Light));
         }
+
+        /// <summary>The letter tile's brush for an app: the catalog's category colour, else the built-in token (#1054).</summary>
+        public static IBrush TileBrush(string? category, string? name)
+            => new SolidColorBrush(Color.Parse(AppTiles.Color(category, name).Light));
     }
 }

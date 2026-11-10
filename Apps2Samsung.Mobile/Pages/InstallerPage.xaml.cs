@@ -401,7 +401,7 @@ public partial class InstallerPage : ContentPage
 		{
 			WidthRequest = 44, HeightRequest = 44, StrokeThickness = 0,
 			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 11 },
-			BackgroundColor = DesignTheme.ColorOf(AppTiles.ColorToken(release.Category, release.Name)),
+			BackgroundColor = DesignTheme.TileColor(release.Category, release.Name),
 			Content = new Grid { Children = { letter, image } },
 		};
 		if (icons is not null && CatalogIcons.IconAssetOf(release) is { } asset)

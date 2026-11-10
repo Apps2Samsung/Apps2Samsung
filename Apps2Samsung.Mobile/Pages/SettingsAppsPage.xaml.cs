@@ -59,7 +59,7 @@ public partial class SettingsAppsPage : ContentPage
 		{
 			WidthRequest = 44, HeightRequest = 44, StrokeThickness = 0, VerticalOptions = LayoutOptions.Center,
 			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 11 },
-			BackgroundColor = DesignTheme.ColorOf(AppTiles.ColorToken(category, name)),
+			BackgroundColor = DesignTheme.TileColor(category, name),
 			Content = new Label
 			{
 				Text = AppTiles.Letter(name), FontSize = 20, FontAttributes = FontAttributes.Bold,

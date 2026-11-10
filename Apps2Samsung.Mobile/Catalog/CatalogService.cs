@@ -96,11 +96,15 @@ public sealed class CatalogService
 					: null);
 				entries.AddRange(CommunityAppList.Expand(releases, catalog, requiresPartner));
 				if (RemovedApps.IsOfficial(provider))
+				{
 					lock (removed) removed.AddRange(CommunityAppList.Removed(catalog));
+					// The official catalog decides the categories, their order and tile colours (#1054).
+					AppCategories.Use(catalog);
+				}
 			}
 			else
 			{
-				var category = AppCategories.Normalize(provider.Category);
+				var category = AppCategories.Clean(provider.Category);
 				foreach (var r in releases)
 				{
 					r.RequiresPartner = requiresPartner;

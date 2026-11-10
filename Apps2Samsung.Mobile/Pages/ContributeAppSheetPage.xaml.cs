@@ -12,6 +12,8 @@ namespace Apps2Samsung.Mobile.Pages;
 /// </summary>
 public partial class ContributeAppSheetPage : ContentPage
 {
+	private readonly List<string> _categories;
+
 	public ContributeAppSheetPage()
 	{
 		InitializeComponent();
@@ -20,9 +22,11 @@ public partial class ContributeAppSheetPage : ContentPage
 		NotesLabel.Text = L10n.Get("lblContributeNotes") + optional;
 		WriteYourselfLink.Text = L10n.Get("lblContributeWriteYourself") + " ↗";
 
-		foreach (var id in AppCategories.Ordered)
+		// The catalog's categories (#1054), kept as shown so the picked index maps back to its id.
+		_categories = AppCategories.Ordered.ToList();
+		foreach (var id in _categories)
 			CategoryPicker.Items.Add(AppCategories.DisplayName(id, L10n.Get));
-		CategoryPicker.SelectedIndex = AppCategories.Ordered.Count - 1;
+		CategoryPicker.SelectedIndex = Math.Max(0, _categories.IndexOf(AppCategories.Other));
 		foreach (var source in AppContribution.Sources)
 			SourcePicker.Items.Add(L10n.Get(SourceKey(source)));
 		SourcePicker.SelectedIndex = 0;
@@ -46,7 +50,7 @@ public partial class ContributeAppSheetPage : ContentPage
 	{
 		Name = NameEntry.Text ?? string.Empty,
 		Description = DescriptionEntry.Text ?? string.Empty,
-		Category = CategoryPicker.SelectedIndex >= 0 ? AppCategories.Ordered[CategoryPicker.SelectedIndex] : AppCategories.Other,
+		Category = CategoryPicker.SelectedIndex >= 0 && CategoryPicker.SelectedIndex < _categories.Count ? _categories[CategoryPicker.SelectedIndex] : AppCategories.Other,
 		Repo = RepoEntry.Text ?? string.Empty,
 		Source = SourcePicker.SelectedIndex >= 0 ? AppContribution.Sources[SourcePicker.SelectedIndex] : AppContribution.SourceRelease,
 		Branch = BranchEntry.Text ?? string.Empty,

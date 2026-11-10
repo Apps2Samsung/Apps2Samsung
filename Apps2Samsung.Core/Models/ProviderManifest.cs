@@ -35,8 +35,8 @@ namespace Apps2Samsung.Models
         public string CertLevel { get; set; } = "";
         /// <summary>
         /// Category id this provider's entries are filed under in the installer's category filter
-        /// (see <c>AppCategories</c>: media, iptv, streaming, games, casting, tools, other). Empty
-        /// or unknown lands in "other". Ignored for a provider with <see cref="ExpandAssets"/>, whose
+        /// (see <c>AppCategories</c>: an id from the community catalog's <c>categories</c>). Empty
+        /// or unknown is shown under "other". Ignored for a provider with <see cref="ExpandAssets"/>, whose
         /// files carry their own category in the bundle's catalog.json.
         /// </summary>
         public string Category { get; set; } = "";

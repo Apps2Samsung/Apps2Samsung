@@ -53,8 +53,9 @@ public static class Help
 
         Lists the apps Apps2Samsung can install: name, category, description, the files or variants to
         choose from (with the version each would install) and where the source lives. Words narrow the
-        list to apps whose name or description contains all of them. Categories: media, iptv, streaming,
-        games, casting, tools, other. --all-versions keeps every release of an app with a version
+        list to apps whose name or description contains all of them. --category takes an id from the
+        community catalog (media, iptv, streaming, games, casting, tools, other, or any it adds); the
+        Category column shows each app's. --all-versions keeps every release of an app with a version
         history (Jellyfin) instead of only the newest. Apps the catalog marks adult-only are left out
         unless --adult is given; they are listed with (18+) then. Apps that gain root on the TV are
         listed with (root); `install` needs --allow-root for them. Each app shows its all-time downloads
@@ -267,7 +268,7 @@ public static class Help
         of link are labelled Unverified.
 
         --name is what the catalog lists it under (default: the repository or file name); --category is
-        one of media, iptv, streaming, games, casting, tools, other; --partner marks an app that needs the
+        a category id from the community catalog (media, iptv, ..., other; default other); --partner marks an app that needs the
         Partner certificate. `remove` takes the link as typed, the link in another spelling, or the name.
         For a single run without storing anything, pass --source <link> to `catalog` or `install`.
         """;

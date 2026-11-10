@@ -70,8 +70,10 @@ namespace Apps2Samsung.Views
             CancelText = localize("lblCancel");
             DataContext = this;
 
-            CategoryBox.ItemsSource = AppCategories.Ordered.Select(id => new Choice(id, AppCategories.DisplayName(id, localize))).ToList();
-            CategoryBox.SelectedIndex = AppCategories.Ordered.Count - 1;
+            // The catalog's categories (#1054), "Other" preselected wherever the catalog puts it.
+            var categories = AppCategories.Ordered;
+            CategoryBox.ItemsSource = categories.Select(id => new Choice(id, AppCategories.DisplayName(id, localize))).ToList();
+            CategoryBox.SelectedIndex = Math.Max(0, categories.ToList().IndexOf(AppCategories.Other));
             SourceBox.ItemsSource = AppContribution.Sources.Select(id => new Choice(id, localize(SourceKey(id)))).ToList();
             SourceBox.SelectedIndex = 0;
 

@@ -85,7 +85,9 @@ public class UserSourcesTests
     {
         Assert.Equal("repo", UserSources.ToProvider(new UserSource { Url = "owner/repo" })!.DisplayName);
         Assert.Equal("Nightly", UserSources.ToProvider(new UserSource { Url = "https://x.test/Nightly.wgt" })!.DisplayName);
-        Assert.Equal("other", UserSources.ToProvider(new UserSource { Url = "owner/repo", Category = "nonsense" })!.Category);
+        // Kept as written (#1054): the catalog may add the category later; unknown is shown under "other".
+        Assert.Equal("other", AppCategories.Normalize(UserSources.ToProvider(new UserSource { Url = "owner/repo", Category = "nonsense" })!.Category));
+        Assert.Equal("other", UserSources.ToProvider(new UserSource { Url = "owner/repo", Category = "Not An Id!" })!.Category);
     }
 
     [Fact]

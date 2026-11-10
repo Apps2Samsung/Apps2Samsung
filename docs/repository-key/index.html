@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Repository key: Apps2Samsung</title>
+    <meta
+      name="description"
+      content="Make the signing key for your own Apps2Samsung repository, in your browser. Nothing is uploaded."
+    />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="../favicon.ico" />
+    <!-- Everything happens in this page: no other scripts, no server, no storage. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #101212;
+        --surface: #1b1e1d;
+        --surface2: #252a28;
+        --text: #f0f3ef;
+        --muted: #a9b3ae;
+        --accent: #37ddbd;
+        --warn: #ffc56b;
+        --line: #2b302e;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.6 "Segoe UI", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      main {
+        width: min(720px, calc(100% - 32px));
+        margin: 48px auto 80px;
+      }
+      a {
+        color: var(--accent);
+        text-underline-offset: 4px;
+      }
+      h1 {
+        font-size: clamp(32px, 6vw, 48px);
+        line-height: 1.08;
+        letter-spacing: -0.04em;
+        margin: 0 0 16px;
+        font-weight: 650;
+      }
+      h2 {
+        font-size: 20px;
+        letter-spacing: -0.02em;
+        margin: 0 0 8px;
+        font-weight: 650;
+      }
+      p {
+        margin: 0 0 12px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 20px;
+        margin: 0 0 16px;
+      }
+      .step {
+        display: flex;
+        gap: 14px;
+      }
+      .num {
+        flex: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: var(--bg);
+        font-weight: 700;
+        display: grid;
+        place-items: center;
+      }
+      .step > div {
+        min-width: 0;
+        flex: 1;
+      }
+      label {
+        display: block;
+        font-size: 14px;
+        color: var(--muted);
+        margin: 0 0 6px;
+      }
+      input {
+        width: 100%;
+        font: inherit;
+        color: var(--text);
+        background: var(--surface2);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+      button,
+      .btn {
+        font: inherit;
+        font-weight: 600;
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 16px;
+        background: var(--accent);
+        color: var(--bg);
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+      }
+      button.ghost {
+        background: var(--surface2);
+        color: var(--text);
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: wait;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin: 8px 0;
+      }
+      code {
+        font: 14px/1.5 ui-monospace, Consolas, monospace;
+        background: var(--surface2);
+        border-radius: 6px;
+        padding: 2px 6px;
+        overflow-wrap: anywhere;
+      }
+      .warn {
+        color: var(--warn);
+      }
+      [hidden] {
+        display: none !important;
+      }
+      :focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Make the key for your repository</h1>
+      <p>
+        Your repository signs its list of apps with a key, so Apps2Samsung can tell the list really
+        comes from you. This page makes that key <b>in your own browser</b>. It is never sent
+        anywhere: the page has no server behind it and loads nothing else.
+      </p>
+      <p class="muted">
+        Don't have a repository yet? Start at
+        <a href="https://github.com/Apps2Samsung/repository-template">Apps2Samsung/repository-template</a>.
+      </p>
+
+      <div class="card">
+        <label for="repo">Your repository on GitHub (the one you made from the template)</label>
+        <input id="repo" placeholder="yourname/my-tizen-apps" autocomplete="off" spellcheck="false" />
+        <p id="repoError" class="warn" hidden>
+          That doesn't look like <code>yourname/repository-name</code>. You can paste the link too.
+        </p>
+        <div class="row">
+          <button id="make" type="button">Make my key</button>
+          <span id="busy" class="muted" hidden>Making the key, this takes a few seconds...</span>
+        </div>
+        <p id="noCrypto" class="warn" hidden>
+          This browser can't make keys. Open this page in a recent Chrome, Edge, Firefox or Safari.
+        </p>
+      </div>
+
+      <div id="done" hidden>
+        <div class="card step">
+          <span class="num">1</span>
+          <div>
+            <h2>Save a backup</h2>
+            <p>
+              Keep this file somewhere safe and private, for example in a password manager. Never
+              share it or put it in your repository. If you lose it, everyone who added your
+              repository has to approve a new key.
+            </p>
+            <div class="row"><button id="download" type="button">Download the backup</button></div>
+          </div>
+        </div>
+
+        <div class="card step">
+          <span class="num">2</span>
+          <div>
+            <h2>Put it in your repository as a secret</h2>
+            <p>
+              <a id="secretLink" class="btn" target="_blank" rel="noopener">Open the "New secret" page</a>
+              <span id="secretNoRepo" class="muted" hidden>
+                In your repository: Settings &gt; Secrets and variables &gt; Actions &gt; New repository secret.
+              </span>
+            </p>
+            <p>Fill it in like this, then click <b>Add secret</b>:</p>
+            <div class="row">
+              <span class="muted">Name:</span> <code>REPO_SIGNING_KEY</code>
+              <button class="ghost" type="button" data-copy="name">Copy</button>
+            </div>
+            <div class="row">
+              <span class="muted">Secret:</span> your key
+              <button class="ghost" type="button" data-copy="key">Copy the key</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card step">
+          <span class="num">3</span>
+          <div>
+            <h2>Publish</h2>
+            <p>
+              <a id="publishLink" class="btn" target="_blank" rel="noopener">Open Publish</a>
+              <span id="publishNoRepo" class="muted" hidden>In your repository: Actions &gt; Publish.</span>
+            </p>
+            <p>Click <b>Run workflow</b>, then the green <b>Run workflow</b> button.</p>
+            <p class="muted">
+              When it's green, its summary shows your repository's address. Your key fingerprint,
+              which Apps2Samsung shows people when they add your repository, is:
+            </p>
+            <p><code id="fp"></code></p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      (function () {
+        var $ = function (id) {
+          return document.getElementById(id);
+        };
+        var pem = "";
+        var repo = "";
+
+        function parseRepo(text) {
+          var m = /^(?:https?:\/\/)?(?:www\.)?(?:github\.com\/)?([A-Za-z0-9-]+)\/([A-Za-z0-9_.-]+?)(?:\.git)?(?:\/.*)?$/.exec(
+            (text || "").trim()
+          );
+          return m ? m[1] + "/" + m[2] : "";
+        }
+
+        var given = new URLSearchParams(location.search).get("repo");
+        if (given) $("repo").value = parseRepo(given) || given;
+
+        if (!(window.crypto && crypto.subtle && crypto.subtle.generateKey)) {
+          $("noCrypto").hidden = false;
+          $("make").disabled = true;
+        }
+
+        function b64(buf) {
+          var s = "",
+            bytes = new Uint8Array(buf);
+          for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+          return btoa(s);
+        }
+
+        function hex(buf) {
+          return Array.prototype.map
+            .call(new Uint8Array(buf), function (b) {
+              return ("0" + b.toString(16)).slice(-2);
+            })
+            .join("");
+        }
+
+        function link(id, noRepoId, path) {
+          if (repo) {
+            $(id).href = "https://github.com/" + repo + path;
+            $(id).hidden = false;
+            $(noRepoId).hidden = true;
+          } else {
+            $(id).hidden = true;
+            $(noRepoId).hidden = false;
+          }
+        }
+
+        $("make").addEventListener("click", function () {
+          var typed = $("repo").value.trim();
+          repo = parseRepo(typed);
+          $("repoError").hidden = !typed || !!repo;
+          if (typed && !repo) return;
+          $("make").disabled = true;
+          $("busy").hidden = false;
+          // RSA 3072 with SHA-256: what TV-Store can check on the TV (docs/repositories.md).
+          crypto.subtle
+            .generateKey(
+              {
+                name: "RSASSA-PKCS1-v1_5",
+                modulusLength: 3072,
+                publicExponent: new Uint8Array([1, 0, 1]),
+                hash: "SHA-256",
+              },
+              true,
+              ["sign", "verify"]
+            )
+            .then(function (pair) {
+              return Promise.all([
+                crypto.subtle.exportKey("pkcs8", pair.privateKey),
+                crypto.subtle.exportKey("spki", pair.publicKey).then(function (spki) {
+                  return crypto.subtle.digest("SHA-256", spki);
+                }),
+              ]);
+            })
+            .then(function (out) {
+              pem =
+                "-----BEGIN PRIVATE KEY-----\n" +
+                b64(out[0]).replace(/(.{64})/g, "$1\n").replace(/\n$/, "") +
+                "\n-----END PRIVATE KEY-----\n";
+              $("fp").textContent = hex(out[1]);
+              link("secretLink", "secretNoRepo", "/settings/secrets/actions/new");
+              link("publishLink", "publishNoRepo", "/actions/workflows/publish.yml");
+              $("done").hidden = false;
+              $("make").textContent = "Make a new key instead";
+              $("done").scrollIntoView({ behavior: "smooth" });
+            })
+            .catch(function (e) {
+              alert("Making the key failed: " + e);
+            })
+            .then(function () {
+              $("make").disabled = false;
+              $("busy").hidden = true;
+            });
+        });
+
+        $("download").addEventListener("click", function () {
+          var a = document.createElement("a");
+          a.href = URL.createObjectURL(new Blob([pem], { type: "application/x-pem-file" }));
+          a.download = (repo ? repo.split("/")[1] + "-" : "") + "repository-key.pem";
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(function () {
+            URL.revokeObjectURL(a.href);
+            a.remove();
+          }, 1000);
+        });
+
+        document.querySelectorAll("button[data-copy]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            var text = b.dataset.copy === "key" ? pem : "REPO_SIGNING_KEY";
+            var label = b.textContent;
+            var shown = function () {
+              b.textContent = "Copied";
+              setTimeout(function () {
+                b.textContent = label;
+              }, 1500);
+            };
+            if (navigator.clipboard) navigator.clipboard.writeText(text).then(shown, function () {
+              window.prompt("Copy this:", text);
+            });
+            else window.prompt("Copy this:", text);
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

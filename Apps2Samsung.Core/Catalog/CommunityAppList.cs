@@ -31,7 +31,7 @@ namespace Apps2Samsung.Catalog
                 foreach (var asset in r.Assets)
                 {
                     byFile.TryGetValue(asset.FileName, out var entry);
-                    var category = AppCategories.Normalize(entry?.Category);
+                    var category = AppCategories.Clean(entry?.Category);
                     // Kept only when this version can write it (UserSettingsSpec.IsUsable).
                     asset.UserSettings = entry?.UserSettings is { IsUsable: true } spec ? spec : null;
                     asset.PackageVersion = Clean(entry?.Version) ?? asset.PackageVersion;
@@ -150,7 +150,7 @@ namespace Apps2Samsung.Catalog
         public static IEnumerable<GitHubRelease> Filter(IEnumerable<GitHubRelease> entries, string category)
             => category == AppCategories.All
                 ? entries
-                : entries.Where(e => string.Equals(e.Category, category, StringComparison.OrdinalIgnoreCase));
+                : entries.Where(e => AppCategories.Normalize(e.Category) == AppCategories.Normalize(category));
 
         /// <summary>How many entries each category has, in dropdown order, with "All" first. Empty categories are left out.</summary>
         public static IReadOnlyList<(string Id, int Count)> Counts(IReadOnlyCollection<GitHubRelease> entries)
@@ -158,7 +158,7 @@ namespace Apps2Samsung.Catalog
             var counts = new List<(string, int)> { (AppCategories.All, entries.Count) };
             foreach (var id in AppCategories.Ordered)
             {
-                var n = entries.Count(e => string.Equals(e.Category, id, StringComparison.OrdinalIgnoreCase));
+                var n = entries.Count(e => AppCategories.Normalize(e.Category) == id);
                 if (n > 0)
                     counts.Add((id, n));
             }

@@ -352,7 +352,7 @@ namespace Apps2Samsung.ViewModels
                 ? string.Format(L("lblNeedsTizenBadge"), TizenRequirement.Lowest(release.Assets))
                 : null;
             var row = new CatalogRow(release, AppTiles.Letter(release.Name),
-                DesignTheme.Brush(AppTiles.ColorToken(release.Category, release.Name)), subline, needsTizen,
+                DesignTheme.TileBrush(release.Category, release.Name), subline, needsTizen,
                 Apps2Samsung.Catalog.CatalogSourceLabels.Line(release.Source, L))
             {
                 Tags = Apps2Samsung.Design.CatalogTags.For(release, SelectedTvVersion, L),
@@ -1889,13 +1889,17 @@ namespace Apps2Samsung.ViewModels
                             ?? await _addLatestRelease.GetCommunityCatalogAsync(release[0].CatalogUrl);
                         var apps = CommunityAppList.Expand(release, catalog, requiresPartner);
                         if (RemovedApps.IsOfficial(provider))
+                        {
                             removed.AddRange(CommunityAppList.Removed(catalog));
+                            // The official catalog decides the categories, their order and tile colours (#1054).
+                            AppCategories.Use(catalog);
+                        }
                         DownloadStatsService.Stamp(apps, provider, await stats);
                         list.AddRange(apps);
                     }
                     else
                     {
-                        var category = AppCategories.Normalize(provider.Category);
+                        var category = AppCategories.Clean(provider.Category);
                         foreach (var r in release)
                         {
                             r.RequiresPartner = requiresPartner;
