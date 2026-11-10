@@ -104,13 +104,27 @@ namespace Apps2Samsung.Update
                 XNamespace atom = "http://www.w3.org/2005/Atom";
 
                 // Stable-only unless prereleases are wanted (title carries "beta" for pre-releases).
-                var entry = doc.Descendants(atom + "entry").FirstOrDefault(e =>
+                // Of what is left, take the highest version rather than the first entry: the feed is
+                // ordered by date, and a re-published beta can sit above a newer stable.
+                XElement? entry = null;
+                var entryTag = string.Empty;
+                foreach (var candidate in doc.Descendants(atom + "entry"))
                 {
-                    if (includePrereleases)
-                        return true;
-                    var title = e.Element(atom + "title")?.Value ?? string.Empty;
-                    return !title.Contains("beta", StringComparison.OrdinalIgnoreCase);
-                });
+                    var title = candidate.Element(atom + "title")?.Value ?? string.Empty;
+                    if (!includePrereleases && title.Contains("beta", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    var tag = new GitHubAtomEntry
+                    {
+                        Id = candidate.Element(atom + "id")?.Value ?? string.Empty,
+                        Link = candidate.Element(atom + "link")?.Attribute("href")?.Value ?? string.Empty,
+                    }.TagName;
+                    if (entry == null || IsVersionGreater(tag, entryTag))
+                    {
+                        entry = candidate;
+                        entryTag = tag;
+                    }
+                }
 
                 if (entry == null)
                     return null;
@@ -183,30 +197,53 @@ namespace Apps2Samsung.Update
             }
         }
 
-        /// <summary>Compares two version strings (tolerant of a leading 'v' and -beta/-rc suffixes).</summary>
+        /// <summary>
+        /// True when <paramref name="latestVersion"/> is newer than <paramref name="currentVersion"/>.
+        /// Tolerates a leading 'v'. A -suffix marks a pre-release and ranks below the release with the
+        /// same number (semver), so v3.2.0 is an update for a running v3.2.0-beta, while v3.2.0-beta
+        /// is not one for v3.2.0. Two pre-releases of the same number compare by their suffix.
+        /// </summary>
         public static bool IsVersionGreater(string latestVersion, string currentVersion)
         {
-            var latestClean = CleanVersionString(latestVersion);
-            var currentClean = CleanVersionString(currentVersion);
+            var (latestCore, latestSuffix) = SplitVersion(latestVersion);
+            var (currentCore, currentSuffix) = SplitVersion(currentVersion);
 
-            if (Version.TryParse(latestClean, out var latest) && Version.TryParse(currentClean, out var current))
-                return latest > current;
+            int coreOrder;
+            if (Version.TryParse(latestCore, out var latest) && Version.TryParse(currentCore, out var current))
+                coreOrder = Normalize(latest).CompareTo(Normalize(current));
+            else
+                coreOrder = string.Compare(latestCore, currentCore, StringComparison.OrdinalIgnoreCase);
 
-            return string.Compare(latestClean, currentClean, StringComparison.OrdinalIgnoreCase) > 0;
+            if (coreOrder != 0)
+                return coreOrder > 0;
+
+            // Same number: the release beats any pre-release of it.
+            if (latestSuffix.Length == 0 || currentSuffix.Length == 0)
+                return latestSuffix.Length == 0 && currentSuffix.Length > 0;
+            return string.Compare(latestSuffix, currentSuffix, StringComparison.OrdinalIgnoreCase) > 0;
         }
 
-        private static string CleanVersionString(string version)
+        // "v3.2.0-beta" -> ("3.2.0", "beta"); "3.2.0" -> ("3.2.0", "").
+        private static (string Core, string Suffix) SplitVersion(string version)
         {
-            if (string.IsNullOrEmpty(version))
-                return "0.0.0";
+            if (string.IsNullOrWhiteSpace(version))
+                return ("0.0.0", string.Empty);
 
-            var cleaned = version.TrimStart('v', 'V');
+            var cleaned = version.Trim().TrimStart('v', 'V');
+            // Build metadata (+sha) never orders versions.
+            var plusIndex = cleaned.IndexOf('+');
+            if (plusIndex >= 0)
+                cleaned = cleaned.Substring(0, plusIndex);
+
             var dashIndex = cleaned.IndexOf('-');
-            if (dashIndex > 0)
-                cleaned = cleaned.Substring(0, dashIndex);
-
-            return cleaned;
+            return dashIndex > 0
+                ? (cleaned.Substring(0, dashIndex), cleaned.Substring(dashIndex + 1))
+                : (cleaned, string.Empty);
         }
+
+        // 3.2 and 3.2.0 are the same version; System.Version would call 3.2.0 the newer one.
+        private static Version Normalize(Version v) =>
+            new(v.Major, v.Minor, Math.Max(v.Build, 0), Math.Max(v.Revision, 0));
 
         // Turns GitHub's HTML release-notes into readable plain text for a dialog/banner.
         private static string RemoveMarkdownTable(string html)

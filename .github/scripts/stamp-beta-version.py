@@ -15,9 +15,9 @@ Not stamped, on purpose:
   * the macOS Info.plist (CFBundle*Version) and the .deb control `Version`, which are
     packaging fields that want a plain numeric version.
 
-The beta marker is cosmetic for update checks: GitHubUpdateChecker.CleanVersionString() drops
-any `-suffix` before comparing, so a running `v2.7.9-beta` is neither newer nor older than the
-`v2.7.9-beta` release it came from.
+The beta marker counts in update checks: GitHubUpdateChecker.IsVersionGreater() ranks a
+`-suffix` below the plain number, so a running `v2.7.9-beta` sees the `v2.7.9` stable as an
+update, and is neither newer nor older than the `v2.7.9-beta` release it came from.
 
 Idempotent: a version that already ends in the suffix is left alone. Exits non-zero when a
 target file or its version line is missing, so a rename can't silently ship an unmarked beta.
