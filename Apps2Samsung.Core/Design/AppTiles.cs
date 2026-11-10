@@ -6,8 +6,9 @@ namespace Apps2Samsung.Design
 {
     /// <summary>
     /// The letter tile in front of an app row (#755): the app's first letter on a colour that
-    /// says which category it is in. An app outside the known categories gets a stable colour
-    /// from its name, so the same app always looks the same.
+    /// says which category it is in. The community catalog can give a category its colour
+    /// (<c>category_colors</c>, #1054); without one the built-in seven keep their token, and any
+    /// other category gets a stable colour from the app's name, so the same app always looks the same.
     /// </summary>
     public static class AppTiles
     {
@@ -23,10 +24,21 @@ namespace Apps2Samsung.Design
             return first == default ? "?" : char.ToUpperInvariant(first).ToString();
         }
 
-        /// <summary>The colour token (a <c>DesignTokens.Colors</c> name) for the tile.</summary>
+        /// <summary>
+        /// The tile's colour: the catalog's colour for the category when it gives one, else the
+        /// <see cref="ColorToken(string?, string?)"/> value. Tiles look the same in both themes.
+        /// </summary>
+        public static ColorToken Color(string? category, string? name)
+        {
+            if (AppCategories.CatalogColor(category) is { } hex)
+                return new ColorToken(hex, hex);
+            return DesignTokens.Colors.All[ColorToken(category, name)];
+        }
+
+        /// <summary>The built-in colour token (a <c>DesignTokens.Colors</c> name) for the tile, ignoring the catalog's colours.</summary>
         public static string ColorToken(string? category, string? name)
         {
-            switch (AppCategories.Normalize(category ?? string.Empty))
+            switch (AppCategories.Normalize(category))
             {
                 case AppCategories.Media: return "TileMedia";
                 case AppCategories.Iptv: return "TileIptv";

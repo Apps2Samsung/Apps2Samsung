@@ -209,7 +209,7 @@ namespace Apps2Samsung.Catalog.Repositories
                     DisplayName = string.IsNullOrWhiteSpace(p.DisplayName) ? p.Id : p.DisplayName!,
                     Prefix = p.Prefix ?? string.Empty,
                     Take = Math.Max(1, p.Take),
-                    Category = AppCategories.Normalize(p.Category),
+                    Category = AppCategories.Clean(p.Category),
                     CertLevel = p.CertLevel ?? string.Empty,
                     BuildInfo = p.BuildInfo,
                     IsUserSource = true,

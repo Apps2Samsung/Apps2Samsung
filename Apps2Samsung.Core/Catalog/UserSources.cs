@@ -215,7 +215,7 @@ namespace Apps2Samsung.Catalog
                 Url = api,
                 DisplayName = DisplayName(source),
                 Take = 1,
-                Category = AppCategories.Normalize(source.Category),
+                Category = AppCategories.Clean(source.Category),
                 CertLevel = source.Partner ? "partner" : string.Empty,
                 IsUserSource = true,
                 Source = new CatalogSource(CatalogSourceKind.Unverified, DisplayName(source)),
@@ -330,7 +330,7 @@ namespace Apps2Samsung.Catalog
                     continue;
                 provider.Url = provider.Url.Trim();
                 provider.Id = $"{feedId}-{(string.IsNullOrWhiteSpace(provider.Id) ? index.ToString() : provider.Id.Trim())}";
-                provider.Category = AppCategories.Normalize(provider.Category);
+                provider.Category = AppCategories.Clean(provider.Category);
                 if (provider.Take < 1)
                     provider.Take = 1;
                 // A feed provider says Partner for itself; the feed's own flag covers the ones that don't.

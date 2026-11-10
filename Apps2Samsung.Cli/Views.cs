@@ -328,8 +328,7 @@ internal static class Views
 
     private static string Tile(CatalogCommand.Entry e)
     {
-        var token = AppTiles.ColorToken(e.Category, e.Name);
-        return $"[white on {Hex(DesignTokens.Colors.All[token].Dark)}] {Esc(AppTiles.Letter(e.Name))} [/]";
+        return $"[white on {Hex(AppTiles.Color(e.Category, e.Name).Dark)}] {Esc(AppTiles.Letter(e.Name))} [/]";
     }
 
     private static string Flags(CatalogCommand.Entry e)
