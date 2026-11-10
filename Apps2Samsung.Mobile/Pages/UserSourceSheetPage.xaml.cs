@@ -23,6 +23,7 @@ public partial class UserSourceSheetPage : ContentPage
 	private RepositoryProbe? _probe;
 	private UserSource? _probed;
 	private bool _probing;
+	private readonly List<string> _categories;
 
 	public Task<UserSource?> Result => _result.Task;
 
@@ -31,9 +32,11 @@ public partial class UserSourceSheetPage : ContentPage
 		InitializeComponent();
 		_existing = existing;
 		NameLabel.Text = $"{L10n.Get("lblUserSourceName")} ({L10n.Get("lblOptional")})";
-		foreach (var id in AppCategories.Ordered)
+		// The catalog's categories (#1054), kept as shown so the picked index maps back to its id.
+		_categories = AppCategories.Ordered.ToList();
+		foreach (var id in _categories)
 			CategoryPicker.Items.Add(AppCategories.DisplayName(id, L10n.Get));
-		CategoryPicker.SelectedIndex = AppCategories.Ordered.Count - 1;
+		CategoryPicker.SelectedIndex = Math.Max(0, _categories.IndexOf(AppCategories.Other));
 		UrlEntry.Placeholder = "github.com/yourname/your-app";
 	}
 
@@ -49,7 +52,7 @@ public partial class UserSourceSheetPage : ContentPage
 	{
 		Url = UrlEntry.Text?.Trim() ?? string.Empty,
 		Name = NameEntry.Text?.Trim() ?? string.Empty,
-		Category = CategoryPicker.SelectedIndex >= 0 ? AppCategories.Ordered[CategoryPicker.SelectedIndex] : AppCategories.Other,
+		Category = CategoryPicker.SelectedIndex >= 0 && CategoryPicker.SelectedIndex < _categories.Count ? _categories[CategoryPicker.SelectedIndex] : AppCategories.Other,
 		Partner = PartnerSwitch.IsToggled,
 	};
 
@@ -137,7 +140,7 @@ public partial class UserSourceSheetPage : ContentPage
 		var repository = probe.Manifest!.Repository;
 		var name = string.IsNullOrWhiteSpace(_probed?.Name) ? repository.Name : _probed!.Name;
 		RepoLetter.Text = AppTiles.Letter(name);
-		RepoTile.BackgroundColor = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf(AppTiles.ColorToken(AppCategories.Other, name));
+		RepoTile.BackgroundColor = Apps2Samsung.Mobile.Resources.Styles.DesignTheme.TileColor(AppCategories.Other, name);
 		RepoName.Text = name;
 		RepoBy.Text = string.Format(L10n.Get("lblRepoBy"), repository.Maintainer, probe.Manifest.Providers.Count);
 		RepoDomain.Text = probe.Domain;

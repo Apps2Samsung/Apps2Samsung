@@ -74,11 +74,15 @@ public sealed class CatalogLoader
                 entries.AddRange(CommunityAppList.Expand(fetched.Releases, catalog, requiresPartner));
                 // Only the official catalog says what it removed; a user's own source cannot (#1033).
                 if (RemovedApps.IsOfficial(provider))
+                {
                     lock (removed) removed.AddRange(CommunityAppList.Removed(catalog));
+                    // The official catalog decides the categories, their order and tile colours (#1054).
+                    AppCategories.Use(catalog);
+                }
             }
             else
             {
-                var category = AppCategories.Normalize(provider.Category);
+                var category = AppCategories.Clean(provider.Category);
                 foreach (var r in fetched.Releases)
                 {
                     r.RequiresPartner = requiresPartner;

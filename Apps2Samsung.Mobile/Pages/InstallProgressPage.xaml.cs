@@ -29,7 +29,7 @@ public partial class InstallProgressPage : ContentPage
 		InitializeComponent();
 		TitleLabel.Text = string.Format(L10n.Get("lblInstallingApp"), appTitle);
 		SubLabel.Text = string.Format(L10n.Get("lblOnTvName"), tvName);
-		Tile.BackgroundColor = DesignTheme.ColorOf(AppTiles.ColorToken(category, appTitle));
+		Tile.BackgroundColor = DesignTheme.TileColor(category, appTitle);
 		TileLetter.Text = AppTiles.Letter(appTitle);
 
 		var steps = new List<(InstallStep step, string key)>

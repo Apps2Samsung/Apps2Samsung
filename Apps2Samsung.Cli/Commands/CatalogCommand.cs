@@ -97,7 +97,7 @@ public static class CatalogCommand
                     f.Default, f.Min, f.Max, f.Disallow)).ToList(),
             string.IsNullOrWhiteSpace(a.RequiredVersion) ? null : a.RequiredVersion)).ToList();
         var published = DateTime.TryParse(r.PublishedAt, out var date) ? date.ToString("yyyy-MM-dd") : null;
-        return new Entry(r.Name, r.Category, r.Description, r.RequiresPartner, r.HasVariants, r.IsAdult, r.IsRoot,
+        return new Entry(r.Name, AppCategories.Normalize(r.Category), r.Description, r.RequiresPartner, r.HasVariants, r.IsAdult, r.IsRoot,
             string.IsNullOrWhiteSpace(r.TagName) ? null : r.TagName, published, r.Author, r.SourceUrl,
             r.Downloads > 0 ? r.Downloads : null, files, r.IsUserSource, r.IsClosedSource, r.IsSelfUpdating,
             SourcesCommand.Label(r.Source), r.Source.CanInstall);

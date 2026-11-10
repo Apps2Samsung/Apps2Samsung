@@ -14,8 +14,21 @@ namespace Apps2Samsung.Models
     {
         public int SchemaVersion { get; set; } = 1;
 
-        /// <summary>Category id → English display name, the fallback when a head has no translation for an id.</summary>
+        /// <summary>
+        /// Category id → English display name (#1054). The key order is the display order, so it is
+        /// kept as read and never sorted; the snapshot writes it back in that order. A head shows its
+        /// own translation for an id it has one for, else this name.
+        /// </summary>
         public Dictionary<string, string> Categories { get; set; } = new();
+
+        /// <summary>
+        /// Category id → tile colour ("#RRGGBB"), optional per id (#1054). Null in a bundle built
+        /// before the field existed; written only when present, so the snapshot round-trips it into
+        /// resolved.json, where TV-Store reads it.
+        /// </summary>
+        [JsonPropertyName("category_colors")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Dictionary<string, string>? CategoryColors { get; set; }
 
         public List<CommunityCatalogEntry> Apps { get; set; } = new();
 
@@ -69,7 +82,7 @@ namespace Apps2Samsung.Models
         public string File { get; set; } = "";
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
-        /// <summary>One of the ids in <see cref="AppCategories"/>; anything unknown lands in "other".</summary>
+        /// <summary>One of the catalog's <c>categories</c> ids, kept as written; the heads show anything unknown under "other".</summary>
         public string Category { get; set; } = "";
         /// <summary>When set, every file with the same group becomes one app entry with a variant picker.</summary>
         public string? Group { get; set; }

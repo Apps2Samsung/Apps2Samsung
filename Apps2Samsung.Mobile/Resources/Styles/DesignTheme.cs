@@ -60,4 +60,8 @@ public static class DesignTheme
             return color;
         return Microsoft.Maui.Graphics.Color.FromArgb(DesignTokens.Colors.All[token].Light);
     }
+
+    /// <summary>The letter tile's colour for an app: the catalog's category colour, else the built-in token (#1054).</summary>
+    public static Color TileColor(string? category, string? name)
+        => Microsoft.Maui.Graphics.Color.FromArgb(AppTiles.Color(category, name).Light);
 }

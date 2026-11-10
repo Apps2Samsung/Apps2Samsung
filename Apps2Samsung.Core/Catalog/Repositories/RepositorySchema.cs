@@ -23,7 +23,9 @@ namespace Apps2Samsung.Catalog.Repositories
         private static readonly Regex ProviderId = new("^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$", RegexOptions.Compiled);
         private static readonly Regex AssetName = new(@"^[^/\\]+[.](?:wgt|tpk)$", RegexOptions.Compiled);
         private static readonly Regex TizenVersion = new(@"^\d+(?:\.\d+)*$", RegexOptions.Compiled);
-        private static readonly string[] Categories = { "media", "iptv", "streaming", "games", "casting", "tools", "other" };
+        // Any id with the catalog contract's shape (#1054): the official catalog's categories decide
+        // which exist, and an id it does not list is shown under "other" rather than refused.
+        private static readonly Regex CategoryId = new("^[a-z0-9][a-z0-9_-]{0,31}$", RegexOptions.Compiled);
         private static readonly string[] Flags = { "root", "closed-source", "self-updating" };
         private static readonly string[] CertLevels = { "public", "partner" };
 
@@ -66,7 +68,7 @@ namespace Apps2Samsung.Catalog.Repositories
         {
             Require(p, at, "id", "category", "url", "releases");
             Str(p["id"], $"{at}/id", ProviderId);
-            Enum(p["category"], $"{at}/category", Categories);
+            Str(p["category"], $"{at}/category", CategoryId);
             Str(p["url"], $"{at}/url", HttpsUrl, max: 2048);
             OptStr(p, "displayName", at, OptionalLine, max: 80);
             OptStr(p, "prefix", at, null, max: 80);
