@@ -22,12 +22,12 @@
       "screenshots": [],
       "versions": [
         {
-          "version": "3.2.1",
-          "buildVersion": "11570",
-          "date": "2026-11-10T09:47:43Z",
-          "localizedDescription": "## 📦 v3.2.1-beta: 2026-11-10\n\n\n### 🚀 New features\n- feat(catalog): categories, order, names and tile colours from the community catalog (#1054) (#1056)\n### 🐛 Bug fixes\n- fix(update): offer the stable release to a beta of the same version (#1055)\n### 🧰 Maintenance & CI\n- chore: version 3.2.1 (#1057)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.2.0-beta...v3.2.1-beta",
-          "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.2.1-beta/Apps2Samsung-v3.2.1-beta-ios-unsigned.ipa",
-          "size": 43891981,
+          "version": "3.3.0",
+          "buildVersion": "11572",
+          "date": "2026-11-11T07:39:18Z",
+          "localizedDescription": "## 📦 v3.3.0-beta: 2026-11-11\n\n\n### 🔀 Other changes\n- chore: relicense to GPL-3.0-only + .mailmap (#1060)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.2.1-beta...v3.3.0-beta",
+          "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.3.0-beta/Apps2Samsung-v3.3.0-beta-ios-unsigned.ipa",
+          "size": 43890319,
           "minOSVersion": "15.0"
         }
       ],
@@ -37,11 +37,11 @@
           "NSLocalNetworkUsageDescription": "Apps2Samsung looks for Samsung TVs on your Wi-Fi network and talks to the TV you pick to install apps on it."
         }
       },
-      "version": "3.2.1",
-      "versionDate": "2026-11-10T09:47:43Z",
-      "versionDescription": "## 📦 v3.2.1-beta: 2026-11-10\n\n\n### 🚀 New features\n- feat(catalog): categories, order, names and tile colours from the community catalog (#1054) (#1056)\n### 🐛 Bug fixes\n- fix(update): offer the stable release to a beta of the same version (#1055)\n### 🧰 Maintenance & CI\n- chore: version 3.2.1 (#1057)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.2.0-beta...v3.2.1-beta",
-      "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.2.1-beta/Apps2Samsung-v3.2.1-beta-ios-unsigned.ipa",
-      "size": 43891981
+      "version": "3.3.0",
+      "versionDate": "2026-11-11T07:39:18Z",
+      "versionDescription": "## 📦 v3.3.0-beta: 2026-11-11\n\n\n### 🔀 Other changes\n- chore: relicense to GPL-3.0-only + .mailmap (#1060)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.2.1-beta...v3.3.0-beta",
+      "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.3.0-beta/Apps2Samsung-v3.3.0-beta-ios-unsigned.ipa",
+      "size": 43890319
     }
   ],
   "news": []
