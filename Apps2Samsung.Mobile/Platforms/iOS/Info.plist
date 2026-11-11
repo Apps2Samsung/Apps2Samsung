@@ -119,5 +119,10 @@
 			</dict>
 		</dict>
 	</array>
+	<!-- The automatic certificate backups in Documents show in Files › On My iPhone › Apps2Samsung (#1068). -->
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 </dict>
 </plist>

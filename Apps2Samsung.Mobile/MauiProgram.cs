@@ -155,6 +155,9 @@ public static class MauiProgram
 		builder.Logging.AddDebug();
 #endif
 
+		// Automatic certificate backups (#1068): Downloads on Android, Files on iOS.
+		CertificateBackupTargets.Configure();
+
 		return builder.Build();
 	}
 }

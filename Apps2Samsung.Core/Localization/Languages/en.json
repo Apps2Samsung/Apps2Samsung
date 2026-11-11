@@ -1290,5 +1290,7 @@
   "lblCertBackupGoesTo": "Backups go to",
   "hintCertBackupGoesTo": "{0} \u00b7 the last {1} are kept",
   "lblOpenFolder": "Open folder",
-  "statusCertBackupSaved": "Saved {0}"
+  "statusCertBackupSaved": "Saved {0}",
+  "lblCertBackupShare": "Share backup\u2026",
+  "hintCertBackupPhoneCopy": "Keep a copy off this phone as well: Share sends it to Drive, mail or another device."
 }
