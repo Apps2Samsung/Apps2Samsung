@@ -963,7 +963,6 @@
   "statusUserSettingsFileMissing": "{0} is upstream gewijzigd: {1} staat niet meer in het pakket, dus uw instellingen kunnen er niet in worden geschreven. Vraag om het pakket bij te werken.",
   "lblGoogleSignInUnavailable": "Aanmelden met Google is hier niet beschikbaar",
   "statusGoogleSignInUnavailable": "Google staat zijn aanmeldpagina niet toe binnen apps, en de aanmelding van Samsung werkt alleen binnen deze app, dus \"Aanmelden met Google\" kan niet op een telefoon worden gebruikt.\n\nVoeg eerst een wachtwoord toe aan uw Samsung-account: ga naar account.samsung.com, meld u aan met Google, open Beveiliging en privacy, dan Wachtwoord. Ontbreekt die optie, gebruik dan Wachtwoord vergeten met uw Google-e-mailadres.\n\nMeld u daarna hier aan met dat e-mailadres en wachtwoord.",
-  "lblMitLicense": "MIT-licentie",
   "lblByAuthor": "door {0}",
   "lblAppsByAuthor": "Alle apps van {0}",
   "lblSourceCode": "Broncode",

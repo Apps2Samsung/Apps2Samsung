@@ -27,8 +27,8 @@ yours. Missing a word, or your language? [Help translate on Crowdin](https://cro
 
 | Channel    | Version                                                             | Notes                        |
 |------------|---------------------------------------------------------------------|------------------------------|
-| **Stable** | [v3.2.0](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v3.2.0)                                        | Recommended for most users   |
-| **Beta**   | [v3.2.1-beta](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v3.2.1-beta)                                            | Includes new features        |
+| **Stable** | [v3.2.1](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v3.2.1)                                        | Recommended for most users   |
+| **Beta**   | [v3.3.0-beta](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v3.3.0-beta)                                            | Includes new features        |
 
 <!-- versions:end -->
 
@@ -102,7 +102,7 @@ whole thing.
 
 ## Command line
 
-Every release ships `apps2samsung-cli` as `Apps2Samsung-cli-<version>-<platform>.zip` or `.tar.gz`.
+Every release ships `apps2samsung-cli` as `Apps2Samsung.Cli-<version>-<platform>.zip` or `.tar.gz` (`Apps2Samsung-cli-…` before 3.3.0).
 It runs the same catalog, certificate and install pipeline as the apps, from a terminal, a script or
 an AI agent with a shell. Started without arguments on a terminal it opens a menu that shows the
 command for every step before it runs it.
@@ -161,6 +161,7 @@ If this tool helped you, you can support its development:
 
 ## License
 
-Apps2Samsung is released under the [MIT License](LICENSE). Third-party components redistributed in
+Apps2Samsung is released under the [GNU General Public License v3.0](LICENSE) (GPL-3.0-only).
+Releases up to and including v3.2.1 were MIT licensed. Third-party components redistributed in
 the builds (bundled binaries, Samsung CA certificates, NuGet dependencies, fonts and app artwork)
 are listed in [NOTICE.md](NOTICE.md).

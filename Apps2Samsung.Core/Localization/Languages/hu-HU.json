@@ -967,7 +967,6 @@
   "statusUserSettingsFileMissing": "A(z) {0} megváltozott az upstreamen: a(z) {1} már nincs a csomagban, ezért a beállításai nem írhatók bele. Kérje a csomag frissítését.",
   "lblGoogleSignInUnavailable": "A Google-bejelentkezés itt nem érhető el",
   "statusGoogleSignInUnavailable": "A Google nem engedi a bejelentkezési oldalát alkalmazásokon belül, a Samsung bejelentkezése pedig csak ebben az alkalmazásban működik, ezért a „Bejelentkezés Google-lal” nem használható telefonon.\n\nElőbb adjon jelszót a Samsung-fiókjához: menjen az account.samsung.com oldalra, jelentkezzen be Google-lal, nyissa meg a Biztonság és adatvédelem, majd a Jelszó részt. Ha ez a lehetőség hiányzik, használja az Elfelejtett jelszó funkciót a Google e-mail-címével.\n\nEzután itt jelentkezzen be azzal az e-mail-címmel és jelszóval.",
-  "lblMitLicense": "MIT licenc",
   "lblByAuthor": "Készítette: {0}",
   "lblAppsByAuthor": "{0} összes alkalmazása",
   "lblSourceCode": "Forráskód",

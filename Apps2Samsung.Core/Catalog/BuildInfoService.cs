@@ -115,7 +115,7 @@ namespace Apps2Samsung.Catalog
                     Name = p.Name,
                     Description = p.Description,
                     Version = p.Version,
-                    PreviewImageUrl = ResolvePreview(p.Name, communityPreviews),
+                    PreviewImageUrl = CatalogPreviews.Community(p.Name) ?? ResolvePreview(p.Name, communityPreviews),
                     IsCommunityApp = true,
                 })
                 .ToList();

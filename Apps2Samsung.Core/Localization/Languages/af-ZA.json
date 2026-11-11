@@ -958,7 +958,6 @@
   "statusUserSettingsFileMissing": "{0} het stroomop verander: {1} is nie meer in die pakket nie, so jou instellings kan nie ingeskryf word nie. Vra dat die pakket opgedateer word.",
   "lblGoogleSignInUnavailable": "Google-aanmelding is nie hier beskikbaar nie",
   "statusGoogleSignInUnavailable": "Google laat nie sy aanmeldbladsy binne programme toe nie, en Samsung se aanmelding werk net binne hierdie program, so \"Sign in with Google\" kan nie op 'n foon gebruik word nie.\n\nVoeg eers 'n wagwoord by jou Samsung-rekening: gaan na account.samsung.com, meld aan met Google, maak Security and privacy oop, dan Password. As daardie opsie ontbreek, gebruik Forgot password met jou Google-e-pos.\n\nMeld dan hier aan met daardie e-pos en wagwoord.",
-  "lblMitLicense": "MIT-lisensie",
   "lblByAuthor": "deur {0}",
   "lblAppsByAuthor": "Alle programme deur {0}",
   "lblSourceCode": "Bronkode",

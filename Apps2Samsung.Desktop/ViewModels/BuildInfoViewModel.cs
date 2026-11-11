@@ -275,7 +275,7 @@ namespace Apps2Samsung.ViewModels
                 var name = (app.FileName ?? string.Empty).Trim();
                 if (name.Length == 0) continue;
 
-                var url = communityPreviewUrls.FirstOrDefault(kvp =>
+                var url = CatalogPreviews.Community(name) ?? communityPreviewUrls.FirstOrDefault(kvp =>
                     name.Contains(kvp.Key, StringComparison.OrdinalIgnoreCase)).Value;
 
                 var bmp = url is not null ? await LoadBitmapAsync(url) : null;

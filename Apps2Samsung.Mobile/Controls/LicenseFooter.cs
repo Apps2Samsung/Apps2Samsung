@@ -4,7 +4,7 @@ using Apps2Samsung.Mobile.Localization;
 namespace Apps2Samsung.Mobile.Controls;
 
 /// <summary>
-/// The licence line closing the Install tab and Settings (#820): "MIT License" opens the licence,
+/// The licence line closing the Install tab and Settings (#820): the licence label opens the licence,
 /// the name opens the website.
 /// </summary>
 public sealed class LicenseFooter : Label
@@ -18,7 +18,7 @@ public sealed class LicenseFooter : Label
 		{
 			Spans =
 			{
-				Link(L10n.Get("lblMitLicense"), Constants.Links.License),
+				Link(L10n.Get("lblLicense"), Constants.Links.License),
 				new Span { Text = " · " },
 				Link(Constants.Links.AuthorName, Constants.Links.Website),
 			},

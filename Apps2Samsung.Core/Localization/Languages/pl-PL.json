@@ -966,7 +966,6 @@
   "statusUserSettingsFileMissing": "{0} zmieniło się u źródła: {1} nie ma już w pakiecie, więc Twoich ustawień nie można zapisać. Poproś o aktualizację pakietu.",
   "lblGoogleSignInUnavailable": "Logowanie przez Google nie jest tutaj dostępne",
   "statusGoogleSignInUnavailable": "Google nie pozwala na swoją stronę logowania wewnątrz aplikacji, a logowanie Samsung działa tylko wewnątrz tej aplikacji, więc \"Zaloguj się przez Google\" nie może być użyte na telefonie.\n\nNajpierw dodaj hasło do swojego konta Samsung: wejdź na account.samsung.com, zaloguj się przez Google, otwórz Bezpieczeństwo i prywatność, a potem Hasło. Jeśli tej opcji brak, użyj Nie pamiętam hasła z Twoim adresem e-mail Google.\n\nNastępnie zaloguj się tutaj tym adresem e-mail i hasłem.",
-  "lblMitLicense": "Licencja MIT",
   "lblByAuthor": "od {0}",
   "lblAppsByAuthor": "Wszystkie aplikacje od {0}",
   "lblSourceCode": "Kod źródłowy",
