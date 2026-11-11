@@ -557,7 +557,7 @@ namespace Apps2Samsung.ViewModels
         public string SelectWGT => _localizationService.GetString("SelectWGT");
         public static string FooterText =>
             $"{AppSettings.Default.AppVersion} " +
-            $"- Copyright (c) {DateTime.Now.Year} - MIT License - Patrick Stel";
+            $"- Copyright (c) {DateTime.Now.Year} - GPL-3.0 License - Patrick Stel";
         // The sidebar footer: the version, and the licence line (LicenseFooter) under it.
         public static string VersionText => $"Apps2Samsung {AppSettings.Default.AppVersion}";
 

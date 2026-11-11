@@ -91,7 +91,7 @@ We welcome pull requests! Please:
 
 ## 5. License
 
-This repository is licensed under the **MIT License**. By contributing, you agree that your work will be licensed under the same terms.
+This repository is licensed under the **GNU General Public License v3.0 only** (GPL-3.0-only). By contributing, you agree that your work will be licensed under the same terms.
 
 ---
 

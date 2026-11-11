@@ -161,6 +161,7 @@ If this tool helped you, you can support its development:
 
 ## License
 
-Apps2Samsung is released under the [MIT License](LICENSE). Third-party components redistributed in
+Apps2Samsung is released under the [GNU General Public License v3.0](LICENSE) (GPL-3.0-only).
+Releases up to and including v3.2.1 were MIT licensed. Third-party components redistributed in
 the builds (bundled binaries, Samsung CA certificates, NuGet dependencies, fonts and app artwork)
 are listed in [NOTICE.md](NOTICE.md).
