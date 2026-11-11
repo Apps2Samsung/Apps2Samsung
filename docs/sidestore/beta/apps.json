@@ -23,11 +23,11 @@
       "versions": [
         {
           "version": "3.3.0",
-          "buildVersion": "11573",
+          "buildVersion": "11574",
           "date": "2026-11-11T07:39:18Z",
-          "localizedDescription": "## 📦 v3.3.0-beta: 2026-11-11\n\n\n### 🌍 Translations\n- i18n: new translations from Crowdin (#1062)\n### 🔀 Other changes\n- chore: relicense to GPL-3.0-only + .mailmap (#1060)\n- Catalog: a community package's preview_image comes from catalog.json (#1061)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.2.1-beta...v3.3.0-beta",
+          "localizedDescription": "## 📦 v3.3.0-beta: 2026-11-11\n\n\n### 🐛 Bug fixes\n- fix(update): download the app's archive, not the CLI's (#1063)\n### 🌍 Translations\n- i18n: new translations from Crowdin (#1062)\n### 🔀 Other changes\n- chore: relicense to GPL-3.0-only + .mailmap (#1060)\n- Catalog: a community package's preview_image comes from catalog.json (#1061)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.2.1-beta...v3.3.0-beta",
           "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.3.0-beta/Apps2Samsung-v3.3.0-beta-ios-unsigned.ipa",
-          "size": 43897990,
+          "size": 43895688,
           "minOSVersion": "15.0"
         }
       ],
@@ -39,9 +39,9 @@
       },
       "version": "3.3.0",
       "versionDate": "2026-11-11T07:39:18Z",
-      "versionDescription": "## 📦 v3.3.0-beta: 2026-11-11\n\n\n### 🌍 Translations\n- i18n: new translations from Crowdin (#1062)\n### 🔀 Other changes\n- chore: relicense to GPL-3.0-only + .mailmap (#1060)\n- Catalog: a community package's preview_image comes from catalog.json (#1061)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.2.1-beta...v3.3.0-beta",
+      "versionDescription": "## 📦 v3.3.0-beta: 2026-11-11\n\n\n### 🐛 Bug fixes\n- fix(update): download the app's archive, not the CLI's (#1063)\n### 🌍 Translations\n- i18n: new translations from Crowdin (#1062)\n### 🔀 Other changes\n- chore: relicense to GPL-3.0-only + .mailmap (#1060)\n- Catalog: a community package's preview_image comes from catalog.json (#1061)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.2.1-beta...v3.3.0-beta",
       "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.3.0-beta/Apps2Samsung-v3.3.0-beta-ios-unsigned.ipa",
-      "size": 43897990
+      "size": 43895688
     }
   ],
   "news": []
