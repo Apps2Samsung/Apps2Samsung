@@ -1,6 +1,8 @@
 # Third-Party Notices
 
-Apps2Samsung is licensed under the [MIT License](LICENSE), Copyright (c) 2025 Patrick Stel.
+Apps2Samsung is licensed under the [GNU General Public License v3.0 only](LICENSE) (GPL-3.0-only),
+Copyright (C) 2025-2026 Patrick Stel and contributors. Releases up to and including v3.2.1 were
+licensed under the MIT License; see [Earlier releases (MIT)](#5-earlier-releases-mit) below.
 
 This file lists third-party material that is **redistributed inside Apps2Samsung builds**,
 together with the notices those components require. It does not restrict the Apps2Samsung
@@ -37,7 +39,7 @@ packages can be signed for and accepted by Samsung Tizen devices:
 Locations: `Apps2Samsung.Desktop/Assets/TizenProfile/ca/` and `Apps2Samsung.Mobile/Resources/Raw/ca/`.
 
 These files are the property of Samsung Electronics Co., Ltd. and are distributed as part of the
-Tizen SDK / Tizen Studio. They are not covered by the Apps2Samsung MIT license, and no ownership
+Tizen SDK / Tizen Studio. They are not covered by the Apps2Samsung license, and no ownership
 over them is claimed.
 
 ### Tizen SDK certificate-generator files
@@ -57,7 +59,7 @@ made the way Tizen Studio's Certificate Manager makes it:
 Location: `Apps2Samsung.Core/Certificate/TizenSdk/`, embedded in `Apps2Samsung.Core`.
 
 These files are the property of Samsung Electronics Co., Ltd. / the Tizen project and are distributed
-as part of the Tizen SDK / Tizen Studio. They are not covered by the Apps2Samsung MIT license, and no
+as part of the Tizen SDK / Tizen Studio. They are not covered by the Apps2Samsung license, and no
 ownership over them is claimed.
 
 ---
@@ -71,14 +73,15 @@ These packages are restored at build time and are linked into published (self-co
 | Avalonia, Avalonia.Desktop, Avalonia.Controls.DataGrid, Avalonia.Themes.Fluent, Avalonia.Fonts.Inter, Avalonia.Diagnostics | 11.3.x | MIT | AvaloniaUI OÜ |
 | FluentAvaloniaUI | 2.5.1 | MIT | amwx |
 | CommunityToolkit.Mvvm | 8.4.2 | MIT | .NET Foundation and Contributors |
-| Jint | 4.16.1 | BSD-2-Clause | 2013 Sebastien Ros |
+| Jint | 4.17.0 | BSD-2-Clause | 2013 Sebastien Ros |
 | Newtonsoft.Json | 13.0.4 | MIT | James Newton-King |
 | Fleck | 1.2.0 | MIT | 2010-2018 Jason Staten |
 | Portable.BouncyCastle | 1.9.0 | Bouncy Castle Licence (MIT-style) | The Legion of the Bouncy Castle Inc. |
 | Tmds.DBus.Protocol | 0.21.3 | MIT | Tom Deseyn |
-| Microsoft.AspNetCore, Microsoft.AspNetCore.Server.Kestrel.Core | 2.3.12 | MIT | .NET Foundation and Contributors |
+| Microsoft.AspNetCore, Microsoft.AspNetCore.Server.Kestrel.Core | 2.3.13 | MIT | .NET Foundation and Contributors |
 | Microsoft.Maui.Controls, Microsoft.Extensions.Logging.Debug, System.Security.Cryptography.Xml | — | MIT | .NET Foundation and Contributors |
-| TizenSdb.Core | 1.1.3 | MIT | Patrick Stel (Apps2Samsung) |
+| Spectre.Console | 0.57.2 | MIT | Patrik Svensson, Phil Scott, Nils Andresen |
+| TizenSdb.Core | 1.1.9 | MIT | Patrick Stel (Apps2Samsung) |
 
 ### Fonts
 
@@ -127,3 +130,35 @@ is present in Apps2Samsung:
 
 If you believe something is redistributed here without proper attribution, please open an issue at
 https://github.com/Apps2Samsung/Apps2Samsung/issues and it will be corrected.
+
+---
+
+## 5. Earlier releases (MIT)
+
+Releases up to and including **v3.2.1** were licensed under the MIT License. Contributions made
+under MIT remain available under MIT; their original notice is reproduced below. From the release
+after v3.2.1 onward, the project as a whole is licensed under GPL-3.0-only.
+
+```
+MIT License
+
+Copyright (c) 2025 Patrick Stel 
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
