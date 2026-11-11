@@ -124,6 +124,47 @@ namespace Apps2Samsung.Certificate
         }
 
         /// <summary>
+        /// Writes every usable profile folder in <paramref name="storePath"/> into <paramref name="zipOutput"/>:
+        /// the Samsung levels, the Tizen ones and any custom profile, the set an automatic backup needs
+        /// (#1068). The stream is left open. Throws <see cref="CertificateArchiveException"/> when there is
+        /// nothing usable.
+        /// </summary>
+        public static IReadOnlyList<CertificateArchiveProfile> ExportAll(Stream zipOutput, string storePath)
+        {
+            var exported = new List<CertificateArchiveProfile>();
+            using (var zip = new ZipArchive(zipOutput, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                foreach (var (dir, profile) in UsableProfiles(storePath))
+                {
+                    foreach (var file in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories))
+                    {
+                        var rel = Path.GetRelativePath(dir, file).Replace('\\', '/');
+                        zip.CreateEntryFromFile(file, CertPrefix + profile.ProfileName + "/" + rel, CompressionLevel.Optimal);
+                    }
+                    exported.Add(profile);
+                }
+            }
+
+            if (exported.Count == 0)
+                throw new CertificateArchiveException("There is no usable signing certificate to export.");
+            return exported;
+        }
+
+        /// <summary>Every complete profile folder in the store whose author certificate can still sign, by name.</summary>
+        public static IReadOnlyList<(string Directory, CertificateArchiveProfile Profile)> UsableProfiles(string storePath)
+        {
+            if (!Directory.Exists(storePath))
+                return Array.Empty<(string, CertificateArchiveProfile)>();
+
+            return Directory.EnumerateDirectories(storePath)
+                .OrderBy(d => Path.GetFileName(d), StringComparer.Ordinal)
+                .Select(d => (Directory: d, Profile: DescribeDirectory(d)))
+                .Where(p => p.Profile is { IsUsable: true })
+                .Select(p => (p.Directory, p.Profile!))
+                .ToList();
+        }
+
+        /// <summary>
         /// Reads the archive without writing anything: which profiles it holds, who they were issued
         /// to, how long they are valid, which TVs they cover, and which profiles in
         /// <paramref name="storePath"/> an import would replace.
@@ -184,6 +225,7 @@ namespace Apps2Samsung.Certificate
                 }
             }
 
+            CertificateBackups.Changed(); // an imported certificate is backed up too (#1068)
             return new CertificateArchiveImportResult(read.Select(r => r.Profile).ToList(), files);
         }
 

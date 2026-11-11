@@ -84,6 +84,8 @@ namespace Apps2Samsung.Backup
                 }
             }
 
+            if (certFiles > 0)
+                Apps2Samsung.Certificate.CertificateBackups.Changed(); // #1068
             return new BackupImportResult(settingsJson, certFiles);
         }
     }

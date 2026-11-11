@@ -1274,5 +1274,21 @@
   "lblRemovedRowTap": "Removed from the catalogue · tap for why",
   "lblRemovedRowClick": "Removed from the catalogue · click for why",
   "lblRemovedOn": "on {0}",
-  "lblRemovedSearchFooter": "These can't be installed. A copy already on your TV keeps working, without updates."
+  "lblRemovedSearchFooter": "These can't be installed. A copy already on your TV keeps working, without updates.",
+  "lblCertBackups": "Certificate backups",
+  "lblCertBackupSafe": "Your certificates are safe",
+  "lblCertBackupSafeHint": "Every certificate here is in the backup of {0}. A new or renewed certificate is backed up by itself.",
+  "lblCertBackupMissingOne": "1 certificate is in no backup",
+  "lblCertBackupMissingMany": "{0} certificates are in no backup",
+  "lblCertBackupMissingHint": "If this device breaks, the apps signed with it can only be updated after removing them from the TV.",
+  "lblCertBackupFailed": "The last automatic backup failed: {0}",
+  "lblCertBackupNone": "No certificate yet. The first one is backed up as soon as it is made.",
+  "lblCertBackupNow": "Back up now",
+  "lblCertBackupBackedUp": "Backed up {0}",
+  "lblCertBackupNotBackedUp": "Not backed up",
+  "lblCertBackupValidUntil": "Valid until {0}",
+  "lblCertBackupGoesTo": "Backups go to",
+  "hintCertBackupGoesTo": "{0} \u00b7 the last {1} are kept",
+  "lblOpenFolder": "Open folder",
+  "statusCertBackupSaved": "Saved {0}"
 }

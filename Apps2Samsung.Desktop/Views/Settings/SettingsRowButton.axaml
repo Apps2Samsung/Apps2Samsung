@@ -8,7 +8,7 @@
 	<Button Classes="settingsrow" Classes.selected="{Binding IsSelected}"
 	        Command="{Binding $parent[views:SettingsView].((viewModels:SettingsViewModel)DataContext).SelectPageCommand}"
 	        CommandParameter="{Binding}">
-		<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+		<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
 			<Border Classes="icontile" Background="{Binding TileBrush}" VerticalAlignment="Center">
 				<Viewbox Width="15" Height="15">
 					<Canvas Width="24" Height="24">
@@ -21,6 +21,8 @@
 				<TextBlock Text="{Binding Summary}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"
 				           IsVisible="{Binding Summary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 			</StackPanel>
+			<Ellipse Grid.Column="2" Width="8" Height="8" VerticalAlignment="Center" Fill="{DynamicResource WarnBrush}"
+			         IsVisible="{Binding NeedsAttention}"/>
 		</Grid>
 	</Button>
 </UserControl>

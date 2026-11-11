@@ -157,6 +157,7 @@ public static class Help
                apps2samsung-cli cert --prepare --tizen-cert [public|partner|platform] [--tizen-chain legacy|new] [--force-login]
                apps2samsung-cli cert --export <file> [--partner]
                apps2samsung-cli cert --import <file> [--tv <ip>] [--yes]
+               apps2samsung-cli cert backups [--json]
 
         Shows the Public and Partner signing certificates on this machine: whether one exists, until
         when it is valid and which TVs (DUIDs) it covers. With --tv, also whether that TV is covered.
@@ -178,6 +179,10 @@ public static class Help
         --import <file> shows what the file holds (level, account, validity, TVs covered; with --tv
         whether that TV is among them) and what it would replace here, then imports it. Replacing a
         certificate already on this machine needs --yes. An expired certificate is refused.
+        Every new, renewed or imported certificate is backed up by itself, into
+        Documents/Apps2Samsung/Certificate backups (the data folder when there is no Documents), the
+        same folder the desktop app uses. cert backups lists which certificates are in a backup and
+        writes one now when a certificate is in none.
         """;
 
     private const string TvStore = """
