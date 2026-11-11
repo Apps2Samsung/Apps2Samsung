@@ -19,6 +19,150 @@ public partial class SettingsBackupPage : ContentPage
 		InitializeComponent();
 	}
 
+	protected override void OnAppearing()
+	{
+		base.OnAppearing();
+		CertificateBackups.StatusChanged += OnBackupStatusChanged;
+		ShowCertificateBackups();
+	}
+
+	protected override void OnDisappearing()
+	{
+		CertificateBackups.StatusChanged -= OnBackupStatusChanged;
+		base.OnDisappearing();
+	}
+
+	private void OnBackupStatusChanged() => MainThread.BeginInvokeOnMainThread(ShowCertificateBackups);
+
+	// ---- Automatic certificate backups (#1068) ----
+
+	private static Color Token(string token) => Apps2Samsung.Mobile.Resources.Styles.DesignTheme.ColorOf(token);
+
+	private static Style? StyleOf(string key) =>
+		Application.Current?.Resources.TryGetValue(key, out var value) == true ? value as Style : null;
+
+	private void ShowCertificateBackups()
+	{
+		CertificateBackupStatus? status;
+		try { status = CertificateBackups.Status(); }
+		catch (Exception ex)
+		{
+			System.Diagnostics.Trace.WriteLine($"[CertBackup] Status failed: {ex.Message}");
+			status = null;
+		}
+
+		var has = status is { Profiles.Count: > 0 };
+		CertNoneCard.IsVisible = !has;
+		CertStatusCard.IsVisible = CertRowsCard.IsVisible = has;
+		CertLocation.IsVisible = status is not null;
+		if (status is null)
+			return;
+
+		CertLocation.Text = string.Format(L10n.Get("hintCertBackupGoesTo"), status.DisplayLocation, CertificateBackups.Keep);
+		if (!has)
+			return;
+
+		var missing = status.NotBackedUp.Count();
+		var safe = missing == 0;
+		CertStatusCard.BackgroundColor = Token(safe ? "OkSoft" : "WarnSoft");
+		CertStatusTile.BackgroundColor = Token(safe ? "Ok" : "Warn");
+		CertTick.IsVisible = safe;
+		CertBang.IsVisible = !safe;
+		CertStatusTitle.Text = safe
+			? L10n.Get("lblCertBackupSafe")
+			: missing == 1 ? L10n.Get("lblCertBackupMissingOne") : string.Format(L10n.Get("lblCertBackupMissingMany"), missing);
+		var text = safe && status.Latest is { } latest
+			? string.Format(L10n.Get("lblCertBackupSafeHint"), latest.CreatedUtc.ToLocalTime().ToString("d MMMM yyyy, HH:mm"))
+			  + " " + L10n.Get("hintCertBackupPhoneCopy")
+			: L10n.Get("lblCertBackupMissingHint");
+		if (status.LastError is { } error)
+			text += "\n" + string.Format(L10n.Get("lblCertBackupFailed"), error);
+		CertStatusText.Text = text;
+
+		CertBackUpNowButton.IsVisible = !safe;
+		Grid.SetColumn(CertShareButton, safe ? 0 : 1);
+		Grid.SetColumnSpan(CertShareButton, safe ? 2 : 1);
+
+		CertRows.Children.Clear();
+		var first = true;
+		foreach (var row in status.Profiles)
+		{
+			if (!first)
+				CertRows.Children.Add(new BoxView { Style = StyleOf("RowDivider") });
+			first = false;
+
+			var name = new VerticalStackLayout { Spacing = 2, VerticalOptions = LayoutOptions.Center };
+			name.Children.Add(new Label { Text = row.Profile.ProfileName, FontSize = 16 });
+			if (row.Profile.NotAfterUtc is { } until)
+				name.Children.Add(new Label
+				{
+					Text = string.Format(L10n.Get("lblCertBackupValidUntil"), until.ToLocalTime().ToString("d MMMM yyyy")),
+					Style = StyleOf("RowHint"),
+				});
+
+			var chip = new Border
+			{
+				StrokeThickness = 0,
+				StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 11 },
+				Padding = new Thickness(9, 4),
+				VerticalOptions = LayoutOptions.Center,
+				BackgroundColor = Token(row.IsBackedUp ? "OkSoft" : "WarnSoft"),
+				Content = new Label
+				{
+					Text = row.BackedUpUtc is { } at
+						? string.Format(L10n.Get("lblCertBackupBackedUp"), at.ToLocalTime().ToString("d MMM"))
+						: L10n.Get("lblCertBackupNotBackedUp"),
+					FontSize = 12,
+					FontAttributes = FontAttributes.Bold,
+				},
+			};
+
+			var grid = new Grid
+			{
+				ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+				ColumnSpacing = 12,
+				Padding = new Thickness(16, 10),
+				MinimumHeightRequest = 52,
+			};
+			grid.Add(name, 0);
+			grid.Add(chip, 1);
+			CertRows.Children.Add(grid);
+		}
+	}
+
+	private async void OnBackUpNowClicked(object? sender, EventArgs e)
+	{
+		try
+		{
+			CertificateBackups.BackUpNow();
+		}
+		catch (Exception ex)
+		{
+			await DisplayAlert(L10n.Get("lblCertBackups"), string.Format(L10n.Get("lblCertBackupFailed"), ex.Message), L10n.Get("btn_Close"));
+		}
+		ShowCertificateBackups();
+	}
+
+	// The backup off the phone: a fresh archive of the same certificates into the cache, handed to the
+	// share sheet (Drive, mail, another device). Downloads goes with a phone reset; this does not.
+	private async void OnShareCertBackupClicked(object? sender, EventArgs e)
+	{
+		try
+		{
+			var name = CertificateBackups.FilePrefix + DateTime.Now.ToString("yyyy-MM-dd-HHmmss") + CertificateArchive.FileExtension;
+			var path = Path.Combine(FileSystem.CacheDirectory, name);
+			using (var stream = File.Create(path))
+				CertificateArchive.ExportAll(stream, CertStorePath);
+			await Share.Default.RequestAsync(new ShareFileRequest(L10n.Get("lblCertBackups"), new ShareFile(path)));
+		}
+		catch (Exception ex)
+		{
+			await DisplayAlert(L10n.Get("lblCertBackups"),
+				string.Format(L10n.Get("statusCertificateExportFailed"), ErrorText.Describe(ex, "certificate/backup-share")),
+				L10n.Get("btn_Close"));
+		}
+	}
+
 	private async void OnViewLogClicked(object? sender, EventArgs e) => await Navigation.PushAsync(new LogViewerPage());
 
 	// Hands the current session's debug log to the OS share sheet. The file lives in private app

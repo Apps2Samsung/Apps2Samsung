@@ -89,7 +89,9 @@ namespace Apps2Samsung.Certificate
                     Path.Combine(dir, TizenLocalCertificateService.DistributorFileName),
                     password, dir, ProfileName(level, resolved), level, resolved);
             }
-            return await TizenLocalCertificateService.CreateProfileAsync(dir, level, resolved, commonName, progress);
+            var created = await TizenLocalCertificateService.CreateProfileAsync(dir, level, resolved, commonName, progress);
+            CertificateBackups.Changed(); // #1068
+            return created;
         }
     }
 }

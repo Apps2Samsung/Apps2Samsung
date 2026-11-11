@@ -91,6 +91,9 @@ public partial class CertificateSheetPage : ContentPage
 		var index = stage == CertificateStage.Done ? Steps.Count : _index[stage];
 		if (!IsTizen && index > _index[CertificateStage.SignIn])
 			Steps.SetDetail(_index[CertificateStage.SignIn], null);
+		// The Save step names the automatic backup it went into (#1068).
+		if (stage == CertificateStage.Done && CertificateBackups.LatestBackupDisplayPath() is { } backup)
+			Steps.SetDetail(_index[CertificateStage.Save], string.Format(L10n.Get("certStageSaveBackedUp"), backup));
 		Steps.SetCurrent(index);
 	}
 

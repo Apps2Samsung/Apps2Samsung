@@ -166,7 +166,12 @@
                                 <Label Text="{l:Localize lblBackupAndDiagnostics}" FontSize="16" />
                                 <Label Text="{l:Localize hintSettingsBackup}" Style="{StaticResource HubSummary}" />
                             </VerticalStackLayout>
-                            <shapes:Path Grid.Column="2" Style="{StaticResource Chevron}" Data="M1,1 L7,6.5 L1,12" />
+                            <HorizontalStackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
+                                <!-- Amber while a certificate is in no backup (#1068). -->
+                                <shapes:Ellipse x:Name="BackupDot" WidthRequest="8" HeightRequest="8" VerticalOptions="Center"
+                                         Fill="{DynamicResource WarnBrush}" IsVisible="False" />
+                                <shapes:Path Style="{StaticResource Chevron}" Data="M1,1 L7,6.5 L1,12" />
+                            </HorizontalStackLayout>
                         </Grid>
                         <BoxView Style="{StaticResource HubDivider}" />
                         <Grid Style="{StaticResource HubRow}">

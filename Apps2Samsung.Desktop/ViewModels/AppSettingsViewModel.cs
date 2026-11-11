@@ -287,6 +287,7 @@ namespace Apps2Samsung.ViewModels
             _themeService.ThemeChanged += OnThemeChanged;
             AppSettings.PartnerSigningAutoEnabled += OnPartnerSigningAutoEnabled;
             AppSettings.CertificateKindChanged += OnCertificateKindAutoChanged;
+            InitCertificateBackups();
 
             AvailableLanguages = new ObservableCollection<LanguageOption>(
                 _localizationService.AvailableLanguages

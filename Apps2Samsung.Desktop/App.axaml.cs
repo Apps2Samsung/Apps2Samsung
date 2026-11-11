@@ -43,6 +43,7 @@ namespace Apps2Samsung
             Resources.MergedDictionaries.Add(Apps2Samsung.Styles.DesignTheme.Build());
 
             ConfigureServices();
+            ConfigureCertificateBackups();
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
@@ -62,6 +63,19 @@ namespace Apps2Samsung
             themeService.ApplyTheme();
 
             base.OnFrameworkInitializationCompleted();
+        }
+
+        // Automatic certificate backups (#1068): into Documents, outside the data folder, so losing that
+        // folder (a reinstall, a new PC) does not take the certificate with it. The CLI shares the data
+        // folder and therefore the same index and backups. A certificate made before this existed is
+        // backed up on the first start.
+        private static void ConfigureCertificateBackups()
+        {
+            Apps2Samsung.Certificate.CertificateBackups.Configure(
+                AppSettings.CertificatePath,
+                System.IO.Path.Combine(AppSettings.DataFolderPath, Apps2Samsung.Certificate.CertificateBackups.IndexFileName),
+                new Apps2Samsung.Certificate.FolderBackupTarget(Apps2Samsung.Certificate.CertificateBackups.DefaultFolder(AppSettings.DataFolderPath)));
+            System.Threading.Tasks.Task.Run(Apps2Samsung.Certificate.CertificateBackups.Changed);
         }
 
         private void ConfigureServices()
