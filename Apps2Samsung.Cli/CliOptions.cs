@@ -23,6 +23,8 @@ public sealed class CliOptions
     // Catalog
     public string? Category { get; set; }
     public bool AllVersions { get; set; }
+    /// <summary>`update --all` (#1067): every app with a newer version in the catalog.</summary>
+    public bool All { get; set; }
     /// <summary>List the entries the catalog flags adult-only (#850); left out otherwise, as in the apps.</summary>
     public bool Adult { get; set; }
     /// <summary>Most downloaded first, as the apps' "Most downloaded" group, instead of A-Z.</summary>
@@ -136,6 +138,7 @@ public sealed class CliOptions
                 case "--data-dir": o.DataDir = Next(arg); if (o.DataDir is null) return (o, "--data-dir needs a path"); break;
                 case "--category": o.Category = Next(arg); if (o.Category is null) return (o, "--category needs a category id"); break;
                 case "--all-versions": o.AllVersions = true; break;
+                case "--all": o.All = true; break;
                 case "--adult": o.Adult = true; break;
                 case "--popular": o.Popular = true; break;
                 case "--github-token": o.GitHubToken = Next(arg) ?? string.Empty; break;

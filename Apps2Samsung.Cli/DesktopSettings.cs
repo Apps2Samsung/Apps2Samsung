@@ -34,6 +34,9 @@ public sealed class DesktopSettings
     /// <summary>Extra DUIDs to put in the distributor certificate.</summary>
     public string ManualDuids => Get("ManualDuids");
 
+    /// <summary>The values the desktop saved for packages that ask for some (#791); `update` reuses them (#1067).</summary>
+    public string AppUserSettingsJson => Get("AppUserSettingsJson");
+
     /// <summary>Automatic / Public / Partner, as Core's <c>CertificatePreference</c> reads it. Set after
     /// <c>cert --import</c>, so the desktop signs at the imported level too (#921).</summary>
     public string CertificatePreference

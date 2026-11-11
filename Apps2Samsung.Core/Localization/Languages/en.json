@@ -1296,5 +1296,14 @@
   "certStageSaveBackedUp": "Backed up to {0}",
   "certRestoreTitle": "Restore an older certificate for {0}?",
   "certRestoreMessage": "The TV has {0} signed with another certificate than the one on this computer. A backup from {1} holds an older {2} certificate, probably the one {0} was installed with.\n\nRestore it and try again? If the TV still refuses, the current certificate is put back.",
-  "certRestoreAndRetry": "Restore and retry"
+  "certRestoreAndRetry": "Restore and retry",
+  "lblUpdateAll": "Update all",
+  "lblUpdateAllOne": "1 app has an update",
+  "lblUpdateAllMany": "{0} apps have an update",
+  "lblUpdateAllProgress": "Updating {0} of {1} \u00b7 {2}",
+  "lblUpdateAllStop": "Stop after this one",
+  "lblUpdateAllDone": "{0} updated",
+  "lblUpdateAllDoneFailed": "{0} updated, {1} failed",
+  "lblUpdateAllNotStarted": "{0}: not started, Update all was stopped",
+  "lblUpdateAllSkippedRoot": "gains root, so it only updates on its own (Update on its row)"
 }

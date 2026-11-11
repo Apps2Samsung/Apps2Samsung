@@ -88,6 +88,7 @@ namespace Apps2Samsung.ViewModels
                 Groups.Add(new InstalledAppGroup("lblAppsGroupRemovable".Localized(), removableApps));
             if (builtInApps.Count > 0)
                 Groups.Add(new InstalledAppGroup("lblAppsGroupBuiltIn".Localized(), builtInApps));
+            RefreshUpdatesBanner();
         }
 
         /// <summary>The list as the section shows it: the apps that can be removed, then the TV's own.</summary>

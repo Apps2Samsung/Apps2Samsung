@@ -49,6 +49,54 @@
                        IsVisible="{Binding MovedStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
         </StackPanel>
 
+        <!-- Update all (#1067, mockup B): the banner while apps have a newer version, the run, then the summary. -->
+        <Border DockPanel.Dock="Top" IsVisible="{Binding ShowUpdatesBanner}" Background="{DynamicResource OkSoftBrush}"
+                CornerRadius="12" Padding="14,12" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                <Viewbox Width="22" Height="22" VerticalAlignment="Center">
+                    <Canvas Width="24" Height="24">
+                        <Path Data="M12 4v11M7 10l5 5 5-5M5 20h14" Stroke="{DynamicResource OkBrush}" StrokeThickness="2.2"
+                              StrokeLineCap="Round" StrokeJoin="Round"/>
+                    </Canvas>
+                </Viewbox>
+                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding UpdatesTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
+                    <TextBlock Text="{Binding UpdatesNames}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+                </StackPanel>
+                <Button Grid.Column="2" Classes="primary" VerticalAlignment="Center" Content="{l:Localize lblUpdateAll}"
+                        Command="{Binding UpdateAllCommand}"/>
+            </Grid>
+        </Border>
+        <Border DockPanel.Dock="Top" IsVisible="{Binding IsUpdatingAll}" Background="{DynamicResource OkSoftBrush}"
+                CornerRadius="12" Padding="14,12" Margin="0,0,0,12">
+            <StackPanel Spacing="8">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <TextBlock Text="{Binding UpdateAllProgressText}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
+                    <Button Grid.Column="1" Classes="secondary" VerticalAlignment="Center" Content="{l:Localize lblUpdateAllStop}"
+                            Command="{Binding StopUpdateAllCommand}" IsEnabled="{Binding !StopAfterCurrent}"/>
+                </Grid>
+                <ProgressBar Minimum="0" Maximum="100" Value="{Binding UpdateAllProgress}" Height="6"/>
+            </StackPanel>
+        </Border>
+        <Border DockPanel.Dock="Top" IsVisible="{Binding HasUpdateAllSummary}" Background="{DynamicResource OkSoftBrush}"
+                Classes.warn="{Binding UpdateAllSummaryWarn}" CornerRadius="12" Padding="14,12" Margin="0,0,0,12">
+            <Border.Styles>
+                <Style Selector="Border.warn">
+                    <Setter Property="Background" Value="{DynamicResource WarnSoftBrush}"/>
+                </Style>
+            </Border.Styles>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <StackPanel Spacing="3">
+                    <TextBlock Text="{Binding UpdateAllSummaryTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
+                    <TextBlock Text="{Binding UpdateAllSummaryText}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"
+                               IsVisible="{Binding UpdateAllSummaryText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                </StackPanel>
+                <Button Grid.Column="1" Classes="secondary" VerticalAlignment="Top" Content="{l:Localize btn_Close}"
+                        Command="{Binding DismissUpdateAllSummaryCommand}"/>
+            </Grid>
+        </Border>
+
         <ScrollViewer IsEnabled="{Binding !IsDebugging}">
             <ScrollViewer.Styles>
                 <Style Selector="ScrollViewer[IsEnabled=False]">
@@ -115,7 +163,16 @@
                                                                    Foreground="{DynamicResource MutedBrush}"/>
                                                         <!-- What the catalog says about this app, when it is in there (#820). -->
                                                         <TextBlock Text="{Binding App.CatalogLine}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                                                   IsVisible="{Binding ShowCatalogLine}" Foreground="{DynamicResource MutedBrush}"/>
+                                                                   IsVisible="{Binding ShowCatalogLine}" Foreground="{DynamicResource MutedBrush}"
+                                                                   Classes.update="{Binding App.HasUpdate}">
+                                                            <TextBlock.Styles>
+                                                                <!-- an update reads as the green version of mockup B (#1067) -->
+                                                                <Style Selector="TextBlock.update">
+                                                                    <Setter Property="Foreground" Value="{DynamicResource OkBrush}"/>
+                                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                                </Style>
+                                                            </TextBlock.Styles>
+                                                        </TextBlock>
                                                         <!-- removed from the catalogue (#1033, direction C): a quiet line; why opens under it.
                                                              No Update, no link to the app, no uninstall prompt. -->
                                                         <Button Classes="removedline" IsVisible="{Binding IsRemoved}" HorizontalAlignment="Left">

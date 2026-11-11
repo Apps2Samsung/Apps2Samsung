@@ -10,6 +10,7 @@ public static class Dispatch
         "catalog" or "search" or "apps" => CatalogCommand.RunAsync(s, ct),
         "installed" => InstalledCommand.RunAsync(s, ct),
         "install" => InstallCommand.RunAsync(s, ct),
+        "update" or "upgrade" => UpdateCommand.RunAsync(s, ct),
         "sign" => SignCommand.RunAsync(s, ct),
         "uninstall" or "remove" => UninstallCommand.RunAsync(s, ct),
         "launch" or "open" => LaunchCommand.RunAsync(s, ct),
