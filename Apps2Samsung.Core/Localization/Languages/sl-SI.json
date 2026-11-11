@@ -1044,7 +1044,6 @@
   "statusUserSettingsFileMissing": "{0} se je spremenilo v izvorni kodi: {1} ni več v paketu, zato vaših nastavitev ni mogoče shraniti. Zahtevajte posodobitev paketa.",
   "lblGoogleSignInUnavailable": "Prijava prek Googla tukaj ni na voljo",
   "statusGoogleSignInUnavailable": "Google ne dovoljuje uporabe svoje strani za prijavo znotraj aplikacij, prijava prek Samsunga pa deluje le znotraj te aplikacije, zato funkcije »Prijavi se z Google« ni mogoče uporabiti na telefonu.\n\nNajprej dodajte geslo za svoj Samsungov račun: odprite stran account.samsung.com, prijavite se z Googleom, odprite »Varnost in zasebnost«, nato pa »Geslo«. Če te možnosti ni, uporabite možnost »Pozabili ste geslo« s svojim Googleovim e-poštnim naslovom.\n\nNato se tukaj prijavite s tem e-poštnim naslovom in geslom.",
-  "lblMitLicense": "Licenca MIT",
   "lblByAuthor": "avtor {0}",
   "lblAppsByAuthor": "Vse aplikacije avtorja {0}",
   "lblSourceCode": "Izvorna koda",

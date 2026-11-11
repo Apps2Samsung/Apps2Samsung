@@ -960,7 +960,6 @@
   "statusUserSettingsFileMissing": "{0} cambió en origen: {1} ya no está en el paquete, así que tus ajustes no se pueden escribir. Pide que se actualice el paquete.",
   "lblGoogleSignInUnavailable": "El inicio de sesión con Google no está disponible aquí",
   "statusGoogleSignInUnavailable": "Google no permite su página de inicio de sesión dentro de aplicaciones, y el acceso de Samsung solo funciona dentro de esta aplicación, así que \"Iniciar sesión con Google\" no se puede usar en un teléfono.\n\nAñade primero una contraseña a tu cuenta de Samsung: ve a account.samsung.com, inicia sesión con Google, abre Seguridad y privacidad y luego Contraseña. Si falta esa opción, usa ¿Olvidaste tu contraseña? con tu correo de Google.\n\nDespués inicia sesión aquí con ese correo y esa contraseña.",
-  "lblMitLicense": "Licencia MIT",
   "lblByAuthor": "de {0}",
   "lblAppsByAuthor": "Todas las aplicaciones de {0}",
   "lblSourceCode": "Código fuente",

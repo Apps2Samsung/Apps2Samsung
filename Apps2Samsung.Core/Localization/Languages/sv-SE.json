@@ -960,7 +960,6 @@
   "statusUserSettingsFileMissing": "{0} ändrades uppströms: {1} finns inte längre i paketet, så dina inställningar kan inte skrivas in. Be om att paketet uppdateras.",
   "lblGoogleSignInUnavailable": "Google-inloggning är inte tillgänglig här",
   "statusGoogleSignInUnavailable": "Google tillåter inte sin inloggningssida i appar, och Samsungs inloggning fungerar bara i den här appen, så \"Logga in med Google\" kan inte användas på en telefon.\n\nLägg först till ett lösenord på ditt Samsung-konto: gå till account.samsung.com, logga in med Google, öppna Säkerhet och integritet, sedan Lösenord. Om alternativet saknas, använd Glömt lösenord med din Google-e-postadress.\n\nLogga sedan in här med den e-postadressen och det lösenordet.",
-  "lblMitLicense": "MIT-licens",
   "lblByAuthor": "av {0}",
   "lblAppsByAuthor": "Alla appar av {0}",
   "lblSourceCode": "Källkod",

@@ -967,7 +967,6 @@
   "statusUserSettingsFileMissing": "{0} је измењена у изворном пројекту: {1} више није у пакету, па се ваша подешавања не могу уписати. Затражите ажурирање пакета.",
   "lblGoogleSignInUnavailable": "Google пријава није доступна овде",
   "statusGoogleSignInUnavailable": "Google не дозвољава своју страницу за пријаву унутар апликација, а Samsung пријава ради само унутар ове апликације, па се „Sign in with Google“ не може користити на телефону.\n\nПрво додајте лозинку свом Samsung налогу: идите на account.samsung.com, пријавите се преко Google-а, отворите Security and privacy, па Password. Ако те опције нема, користите Forgot password са својом Google имејл адресом.\n\nЗатим се овде пријавите тим имејлом и лозинком.",
-  "lblMitLicense": "MIT лиценца",
   "lblByAuthor": "аутор: {0}",
   "lblAppsByAuthor": "Све апликације аутора {0}",
   "lblSourceCode": "Изворни код",

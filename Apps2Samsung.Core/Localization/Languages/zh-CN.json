@@ -972,7 +972,6 @@
   "statusUserSettingsFileMissing": "{0} 的上游已更改:{1} 已不在软件包中,因此无法写入您的设置。请要求更新软件包。",
   "lblGoogleSignInUnavailable": "此处无法使用 Google 登录",
   "statusGoogleSignInUnavailable": "Google 不允许在应用内使用其登录页面,而 Samsung 的登录只能在此应用内进行,所以手机上无法使用“使用 Google 登录”。\n\n请先为您的 Samsung 账户添加密码:访问 account.samsung.com,使用 Google 登录,打开“安全和隐私”,然后选择“密码”。如果没有该选项,请使用您的 Google 邮箱选择“忘记密码”。\n\n然后在这里使用该邮箱和密码登录。",
-  "lblMitLicense": "MIT 许可证",
   "lblByAuthor": "作者:{0}",
   "lblAppsByAuthor": "{0} 的所有应用",
   "lblSourceCode": "源代码",
