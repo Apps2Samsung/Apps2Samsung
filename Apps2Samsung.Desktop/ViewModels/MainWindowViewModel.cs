@@ -1484,6 +1484,7 @@ namespace Apps2Samsung.ViewModels
                     refreshCatalog: () => LoadReleasesAsync(),
                     icons: _catalogIcons);
                 vm.OnRequestClose += () => SelectedSection = Section.Install;
+                vm.UseUpdateAll(UpdateAllFromCatalogAsync);
                 InstalledAppsVm = vm;
             }
             catch (Exception ex)
@@ -1517,6 +1518,93 @@ namespace Apps2Samsung.ViewModels
 
         // "Update" on an installed app (#820): the catalog entry it came from, installed the same
         // way the app sheet does it. SelectedRelease first: changing it resets the asset.
+        /// <summary>
+        /// Update all (#1067): the apps one after the other, the way a single Update installs them
+        /// (same certificate, same variant, the saved values for a package that asks for some), but
+        /// with no Installation complete window and no error dialog in between: each failure is kept
+        /// for the summary and the run goes on. Questions that need the user (Developer Mode, removing
+        /// a copy, values not saved yet) still ask. A package that gains root is left for its own Update.
+        /// </summary>
+        private async Task<IReadOnlyList<UpdateAllOutcome>> UpdateAllFromCatalogAsync(
+            IReadOnlyList<(GitHubRelease Release, Asset Asset)> items, Action<int, string> onItem, Func<bool> stopRequested)
+        {
+            var outcomes = new List<UpdateAllOutcome>();
+            var device = SelectedDevice;
+            if (device is null)
+                return outcomes;
+
+            for (var i = 0; i < items.Count; i++)
+            {
+                var (release, asset) = items[i];
+                if (stopRequested())
+                {
+                    outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.NotStarted, null));
+                    continue;
+                }
+                onItem(i, release.Name);
+
+                if (release.IsRoot)
+                {
+                    outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.Skipped, L("lblUpdateAllSkippedRoot")));
+                    continue;
+                }
+                // Saved values that still pass are reused without the form; otherwise the form, as for a single Update.
+                if (asset.UserSettings is { Fields.Count: > 0 } spec)
+                {
+                    var saved = UserSettingsStore.Get(AppSettings.Default.AppUserSettingsJson, asset.FileName)?.Values;
+                    var complete = saved is not null && spec.Fields.All(f => UserSettingsStore.Validate(f, saved.TryGetValue(f.Key, out var v) ? v : null) is null);
+                    if (!complete && !await CollectUserSettingsAsync(release, asset))
+                    {
+                        outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.Skipped, L("statusInstallCancelled")));
+                        continue;
+                    }
+                }
+
+                string? failure = null;
+                AppSettings.Default.RequiresPartnerSigning = release.RequiresPartner;
+                var path = await _packageHelper.DownloadReleaseAsync(release, asset,
+                    message => Dispatcher.UIThread.Post(() => StatusBar = message), reportFailure: m => failure = m);
+                if (string.IsNullOrEmpty(path))
+                {
+                    outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.Failed, failure ?? L("DownloadFailed")));
+                    continue;
+                }
+
+                var installed = false;
+                _samsungLoginCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                ResetInstallProgress();
+                try
+                {
+                    installed = await _packageHelper.InstallPackageAsync(path, device, _samsungLoginCts.Token,
+                        message => Dispatcher.UIThread.Post(() => StatusBar = message),
+                        onSamsungLoginStarted: OnSamsungLoginStarted,
+                        installProgress: InstallProgressSink,
+                        catalogKey: Apps2Samsung.Install.PackageIdCollisions.CatalogKey(release, asset),
+                        reportFailure: m => failure = m);
+                }
+                finally
+                {
+                    ResetInstallProgress();
+                    IsSamsungLoginActive = false;
+                    _samsungLoginCts.Dispose();
+                    _samsungLoginCts = null;
+                }
+                if (!AppSettings.Default.KeepWGTFile)
+                    _packageHelper.CleanupDownloadedPackage(path);
+
+                if (installed)
+                {
+                    RememberInstalledVariant(device.IpAddress, release, asset);
+                    outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.Updated, asset.PackageVersion));
+                }
+                else
+                {
+                    outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.Failed, failure ?? L("statusInstallCancelled")));
+                }
+            }
+            return outcomes;
+        }
+
         private async Task UpdateFromCatalogAsync(GitHubRelease release, Asset asset)
         {
             SelectedSection = Section.Install;

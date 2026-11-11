@@ -15,6 +15,8 @@ public static class Help
           installed --tv <ip>          apps on the TV, with the catalog version next to the installed one
                                        (an app with several files is compared with the one this TV got)
           install <app|file> --tv <ip>  install a catalog app by name, or a local .wgt/.tpk file
+          update --all --tv <ip>       install every newer version the catalog has for apps on the TV, one by one;
+                                       `update <app>... --tv <ip>` updates only the named apps
           sign <file> -o <out> --tv <ip>  sign a local .wgt/.tpk for a TV without installing it
           uninstall <appId> --tv <ip>  remove an app; the app id as `installed` prints it
           launch <appId> --tv <ip>
@@ -150,6 +152,21 @@ public static class Help
         issue #988. Without the flag the desktop app's Samsung-or-Tizen setting decides;
         --samsung-cert overrides it for this run.
         The input file is never changed.
+        """;
+
+    private const string Update = """
+        usage: apps2samsung-cli update --all --tv <ip> [install options] [--json]
+               apps2samsung-cli update <app>... --tv <ip> [install options] [--json]
+
+        Installs the catalog's newer version of apps on the TV, one after the other, each exactly as
+        `install <app> --file <the file this TV got> --from <its source>` would: the same certificate
+        logic, the same variant, the same source. --all takes every app whose catalog version is higher
+        than the TV's (the "update-available" rows of `installed`); an app whose versions differ but
+        cannot be ordered ("different") is only updated when named. A package that asks for values
+        gets the ones given with --set, else the ones the desktop app saved. A failure does not stop
+        the run; the summary at the end says what was updated and what failed. Install options such
+        as --yes, --partner, --tizen-cert, --allow-remove, --allow-root and --local-ip apply to every app.
+        With --json: one document with each app's result and its install answer.
         """;
 
     private const string Cert = """
@@ -297,6 +314,7 @@ public static class Help
         "catalog" or "search" or "apps" => Catalog,
         "sources" or "source" => Sources,
         "install" => Install,
+        "update" or "upgrade" => Update,
         "sign" => Sign,
         "cert" or "certificate" => Cert,
         "tvstore" or "tv-store" => TvStore,

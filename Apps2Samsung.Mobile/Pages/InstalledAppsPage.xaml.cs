@@ -339,6 +339,7 @@ public partial class InstalledAppsPage : ContentPage
 				Apps2Samsung.Catalog.UserSources.Parse(MobileSettings.UserSourcesJson)));
 
 			var updates = apps.Count(a => a.HasUpdate);
+			ShowUpdatesCard();
 			if (apps.Count == 0)
 			{
 				EmptyLabel.Text = L10n.Get("statusNoInstalledApps");
@@ -568,5 +569,40 @@ public partial class InstalledAppsPage : ContentPage
 		_subtitleStatus = status;
 		TopBar.Subtitle = text;
 		TopBar.Status = status;
+	}
+
+	// ---- Update all (#1067) ----
+
+	// The apps Update all takes: a newer catalog version, in list order. "Different" keeps its own Update.
+	private List<(GitHubRelease Release, Asset Asset, string Name)> UpdateTargets() =>
+		(AppsList.ItemsSource as IEnumerable<InstalledApp> ?? Enumerable.Empty<InstalledApp>())
+			.Where(a => a.HasUpdate && _matches.TryGetValue(a.TizenId, out var m) && m.State == Apps2Samsung.Catalog.CatalogVersionState.UpdateAvailable)
+			.Select(a => (_matches[a.TizenId].Release, _matches[a.TizenId].Asset, a.DisplayName))
+			.ToList();
+
+	private void ShowUpdatesCard()
+	{
+		var targets = UpdateTargets();
+		if (!string.IsNullOrEmpty(_tvIp))
+			CatalogStore.SetUpdates(_tvIp, targets.Count);
+		UpdatesCard.IsVisible = targets.Count > 0 && CatalogStore.UpdateAll is not null;
+		UpdatesTitle.Text = targets.Count == 1 ? L10n.Get("lblUpdateAllOne") : string.Format(L10n.Get("lblUpdateAllMany"), targets.Count);
+		UpdatesNames.Text = string.Join(", ", targets.Select(t => t.Name));
+	}
+
+	// The installs run on the Install tab, which owns the pipeline and the progress sheet; back here
+	// afterwards, with the list read again.
+	private async void OnUpdateAllClicked(object? sender, EventArgs e)
+	{
+		if (CatalogStore.UpdateAll is not { } updateAll)
+			return;
+		var targets = UpdateTargets();
+		if (targets.Count == 0)
+			return;
+		UpdatesCard.IsVisible = false;
+		await Shell.Current.GoToAsync("//install");
+		await updateAll(targets.Select(t => (t.Release, t.Asset)).ToList());
+		await Shell.Current.GoToAsync("//apps");
+		await LoadAsync();
 	}
 }
