@@ -78,6 +78,7 @@ public sealed class CatalogLoader
                     lock (removed) removed.AddRange(CommunityAppList.Removed(catalog));
                     // The official catalog decides the categories, their order and tile colours (#1054).
                     AppCategories.Use(catalog);
+                    CatalogPreviews.Use(catalog);
                 }
             }
             else
