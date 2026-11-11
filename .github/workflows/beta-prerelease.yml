@@ -250,7 +250,9 @@ jobs:
                 -c Release -r "$RID" -p:SelfContained=true -p:PublishSingleFile=true \
                 -p:DebugType=none -p:Version="$VERSION" -o "$OUT"
             fi
-            NAME="${PRODUCT_NAME}-cli-${VERSION_TAG}-${RID}"
+            # "Apps2Samsung.Cli-", not "Apps2Samsung-cli-": GitHub lists assets by name, and the desktop
+            # updater of 3.2.1 and older takes the first archive that names its platform, which was this one.
+            NAME="${PRODUCT_NAME}.Cli-${VERSION_TAG}-${RID}"
             case "$RID" in
               win-*) (cd "publish/cli/$RID" && zip -q -r "../../../dist/${NAME}.zip" .) ;;
               *)     tar -C "publish/cli/$RID" -czf "dist/${NAME}.tar.gz" . ;;
