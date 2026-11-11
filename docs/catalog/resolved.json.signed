@@ -1,7 +1,7 @@
-LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK/SN0W9W2Td0iAVcm0G6YSPo4QlFlOP4Sl/ZxxS0e1c9gVldPmVBznpsPe6QtcCeUlg3et+dy0kGaXqS8OjUjCOmPMUzg3t4wy8nnODEiZEBybSgZoqJO9/E7OFhqzw8SAl71zEaMfRAEh1LCy57rm4q2E2UndcIRSzTpVGKk3UgWkZmeQTt9FrDSHaMfq9FfUa+SujNkNpFkaxqhkS5iTDOe9W8m+zMmgX3b9ZPYJkKiEFZY1WXTItMvjeMkPDcsdk8tpQeQJ24PWELchTGs2xqhgiIZgSAzkvwqPoB6eCfSpKlcK7jWmPMame5Q7Hb/oRbayBWpJ20y0NKri/dgrZ4buCrdhDNl6VxsOZI1COg/K2YiwJ150Ypht6om7Zp4j35mv1VnTtTUH+zHWhUHKnTL3cXmlMrSSOElmnEbP479dFIT
+DMiylKMeIivnNa0dMk35Vv+BTi97ZY6TjJhB6PfYAlVQ6D4ht1S0FlcumeSqGWGoq/FUFsMd+tS5hfBx0gOWlFJYc7p9HciVQFA/zdRmaaMoyb1X1RmhNWlO2bEDin0XyEo+Lu39m6Vuv1wCg3fcjOPnRGpZ3aa1dSs5AZ0XBblZmuHGx62AKJ5A99Yzl9hYKRwkMUWClljqpYCqSThANILQm+ILyo/SQxAf4UlN4jQspOHi4EXMGZHeacWikROfHjCaN/8kn2jTgRmCmGUMJSTUeo/dbIHrfq97BE8OzMlhwWeUyQ1xoaOnPQSysovNBA+eE4MxjTzsTWitE/bUWfi4dxFVfxw9jconO+OwBUZ4qb4tZLI09Z6UbafM8xU7+1QWtjbd56B9yQKUucNlBFMIYj4kjRmPmhWhDfmydmEBllFvTp1Np69m2TGsCBp1JN+lESKu91srYeqiTXR1p34tLZIl4cemyyneJxMKDJStPEEnReJMCl6F1dwThKsB
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-11T07:33:50.2956656+00:00",
+  "generatedAt": "2026-11-11T08:06:39.4695293+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -5472,7 +5472,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "1.21",
             "app_id": "doomwasm01.Doom",
             "package_id": "doomwasm01",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://raw.githubusercontent.com/dos-ise/doom-tizen/main/docs/doom-preview.jpeg"
           },
           {
             "file": "Doom.wgt",
@@ -5486,7 +5487,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "1.21",
             "app_id": "doomwasm01.Doom",
             "package_id": "doomwasm01",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://raw.githubusercontent.com/dos-ise/doom-tizen/main/docs/doom-preview.jpeg"
           },
           {
             "file": "Douyin.wgt",
@@ -5584,7 +5586,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "required_version": "3.0",
             "flags": [
               "self-updating"
-            ]
+            ],
+            "preview_image": "https://raw.githubusercontent.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/main/docs/gorseller/ayarlar.png"
           },
           {
             "file": "Fladder.tpk",
@@ -5681,7 +5684,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "1.2.1",
             "app_id": "gbemutzn01.GBEmu",
             "package_id": "gbemutzn01",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/C1IPcFV.md.png"
           },
           {
             "file": "go2rtc-tizen.wgt",
@@ -6084,7 +6088,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "1.2.3",
             "app_id": "MoonLightS.MoonlightWasm",
             "package_id": "MoonLightS",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/fsvn6mJ.png"
           },
           {
             "file": "Moonlight-AC3-fidoboy.wgt",
@@ -6098,7 +6103,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "1.2.3",
             "app_id": "MoonLightS.MoonlightWasm",
             "package_id": "MoonLightS",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/fsvn6mJ.png"
           },
           {
             "file": "Moonlight-Chrome-NoGame.wgt",
@@ -6112,7 +6118,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "1.2.1",
             "app_id": "MoonLightS.MoonlightWasm",
             "package_id": "MoonLightS",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/fsvn6mJ.png"
           },
           {
             "file": "Moonlight-Chrome-ToypoodleGaming.wgt",
@@ -6126,7 +6133,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "1.2.1",
             "app_id": "MoonLightS.MoonlightWasm",
             "package_id": "MoonLightS",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/fsvn6mJ.png"
           },
           {
             "file": "Moonlight-Chrome.wgt",
@@ -6140,7 +6148,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "1.2.1",
             "app_id": "MoonLightS.MoonlightWasm",
             "package_id": "MoonLightS",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/fsvn6mJ.png"
           },
           {
             "file": "Moonlight-ForceGM-Tizen.wgt",
@@ -6154,7 +6163,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "1.20.0",
             "app_id": "MoonLightS.MoonlightWasm",
             "package_id": "MoonLightS",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/fsvn6mJ.png"
           },
           {
             "file": "Moonlight-Tizen.wgt",
@@ -6168,7 +6178,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "1.20.0",
             "app_id": "MoonLightS.MoonlightWasm",
             "package_id": "MoonLightS",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/fsvn6mJ.png"
           },
           {
             "file": "NhaMinh.wgt",
@@ -6460,7 +6471,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "1.0.1",
             "app_id": "FlixTVApp1.Flixor",
             "package_id": "FlixTVApp1",
-            "required_version": "2.4"
+            "required_version": "2.4",
+            "preview_image": "https://iili.io/CfGjV44.webp"
           },
           {
             "file": "Pley.wgt",
@@ -6812,7 +6824,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "4.0.1",
             "app_id": "flbtxFhd64.SmartTV",
             "package_id": "flbtxFhd64",
-            "required_version": "2.3"
+            "required_version": "2.3",
+            "preview_image": "https://iili.io/fsvUNu2.md.gif"
           },
           {
             "file": "Snake-Game.wgt",
@@ -6879,7 +6892,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "1.1.0",
             "app_id": "Lt8KPyCeb1.SportlinkClubViewer",
             "package_id": "Lt8KPyCeb1",
-            "required_version": "2.3"
+            "required_version": "2.3",
+            "preview_image": "https://iili.io/fsviHQV.png"
           },
           {
             "file": "StashZen.wgt",
@@ -7029,7 +7043,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "1.35.0",
             "app_id": "madebypatk.vlcweb",
             "package_id": "madebypatk",
-            "required_version": "4.0"
+            "required_version": "4.0",
+            "preview_image": "https://iili.io/CfGNeqb.png"
           },
           {
             "file": "Tizen-IPTV-Player.wgt",
@@ -7300,7 +7315,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "15.3",
             "app_id": "NM5CXQae71.OpenTTD",
             "package_id": "NM5CXQae71",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/qFBP2vn.png"
           },
           {
             "file": "TubeArchivist-TV.wgt",
@@ -7381,7 +7397,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "1.0.0",
             "app_id": "wAKjt4yhqx.TVapp",
             "package_id": "wAKjt4yhqx",
-            "required_version": "2.3"
+            "required_version": "2.3",
+            "preview_image": "https://iili.io/fsvaHsn.png"
           },
           {
             "file": "Twitch-Old-Tizen.wgt",
@@ -7394,7 +7411,8 @@ LUCkzTPqscToj9VX7o6ThSzKeRsFTj2cWIPqhHkf626Hry6wWDIpNyCK5PGt8+xFN63EH9ZDllrHEPpK
             "version": "4.1.4",
             "app_id": "OldTzn405T.SmartTV",
             "package_id": "OldTzn405T",
-            "required_version": "2.3"
+            "required_version": "2.3",
+            "preview_image": "https://iili.io/fsvUNu2.md.gif"
           },
           {
             "file": "UltimatiumTube-Tizen50.wgt",

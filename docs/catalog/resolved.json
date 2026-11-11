@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-11T07:33:50.2956656+00:00",
+  "generatedAt": "2026-11-11T08:06:39.4695293+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -5471,7 +5471,8 @@
             "version": "1.21",
             "app_id": "doomwasm01.Doom",
             "package_id": "doomwasm01",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://raw.githubusercontent.com/dos-ise/doom-tizen/main/docs/doom-preview.jpeg"
           },
           {
             "file": "Doom.wgt",
@@ -5485,7 +5486,8 @@
             "version": "1.21",
             "app_id": "doomwasm01.Doom",
             "package_id": "doomwasm01",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://raw.githubusercontent.com/dos-ise/doom-tizen/main/docs/doom-preview.jpeg"
           },
           {
             "file": "Douyin.wgt",
@@ -5583,7 +5585,8 @@
             "required_version": "3.0",
             "flags": [
               "self-updating"
-            ]
+            ],
+            "preview_image": "https://raw.githubusercontent.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/main/docs/gorseller/ayarlar.png"
           },
           {
             "file": "Fladder.tpk",
@@ -5680,7 +5683,8 @@
             "version": "1.2.1",
             "app_id": "gbemutzn01.GBEmu",
             "package_id": "gbemutzn01",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/C1IPcFV.md.png"
           },
           {
             "file": "go2rtc-tizen.wgt",
@@ -6083,7 +6087,8 @@
             "version": "1.2.3",
             "app_id": "MoonLightS.MoonlightWasm",
             "package_id": "MoonLightS",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/fsvn6mJ.png"
           },
           {
             "file": "Moonlight-AC3-fidoboy.wgt",
@@ -6097,7 +6102,8 @@
             "version": "1.2.3",
             "app_id": "MoonLightS.MoonlightWasm",
             "package_id": "MoonLightS",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/fsvn6mJ.png"
           },
           {
             "file": "Moonlight-Chrome-NoGame.wgt",
@@ -6111,7 +6117,8 @@
             "version": "1.2.1",
             "app_id": "MoonLightS.MoonlightWasm",
             "package_id": "MoonLightS",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/fsvn6mJ.png"
           },
           {
             "file": "Moonlight-Chrome-ToypoodleGaming.wgt",
@@ -6125,7 +6132,8 @@
             "version": "1.2.1",
             "app_id": "MoonLightS.MoonlightWasm",
             "package_id": "MoonLightS",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/fsvn6mJ.png"
           },
           {
             "file": "Moonlight-Chrome.wgt",
@@ -6139,7 +6147,8 @@
             "version": "1.2.1",
             "app_id": "MoonLightS.MoonlightWasm",
             "package_id": "MoonLightS",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/fsvn6mJ.png"
           },
           {
             "file": "Moonlight-ForceGM-Tizen.wgt",
@@ -6153,7 +6162,8 @@
             "version": "1.20.0",
             "app_id": "MoonLightS.MoonlightWasm",
             "package_id": "MoonLightS",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/fsvn6mJ.png"
           },
           {
             "file": "Moonlight-Tizen.wgt",
@@ -6167,7 +6177,8 @@
             "version": "1.20.0",
             "app_id": "MoonLightS.MoonlightWasm",
             "package_id": "MoonLightS",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/fsvn6mJ.png"
           },
           {
             "file": "NhaMinh.wgt",
@@ -6459,7 +6470,8 @@
             "version": "1.0.1",
             "app_id": "FlixTVApp1.Flixor",
             "package_id": "FlixTVApp1",
-            "required_version": "2.4"
+            "required_version": "2.4",
+            "preview_image": "https://iili.io/CfGjV44.webp"
           },
           {
             "file": "Pley.wgt",
@@ -6811,7 +6823,8 @@
             "version": "4.0.1",
             "app_id": "flbtxFhd64.SmartTV",
             "package_id": "flbtxFhd64",
-            "required_version": "2.3"
+            "required_version": "2.3",
+            "preview_image": "https://iili.io/fsvUNu2.md.gif"
           },
           {
             "file": "Snake-Game.wgt",
@@ -6878,7 +6891,8 @@
             "version": "1.1.0",
             "app_id": "Lt8KPyCeb1.SportlinkClubViewer",
             "package_id": "Lt8KPyCeb1",
-            "required_version": "2.3"
+            "required_version": "2.3",
+            "preview_image": "https://iili.io/fsviHQV.png"
           },
           {
             "file": "StashZen.wgt",
@@ -7028,7 +7042,8 @@
             "version": "1.35.0",
             "app_id": "madebypatk.vlcweb",
             "package_id": "madebypatk",
-            "required_version": "4.0"
+            "required_version": "4.0",
+            "preview_image": "https://iili.io/CfGNeqb.png"
           },
           {
             "file": "Tizen-IPTV-Player.wgt",
@@ -7299,7 +7314,8 @@
             "version": "15.3",
             "app_id": "NM5CXQae71.OpenTTD",
             "package_id": "NM5CXQae71",
-            "required_version": "5.5"
+            "required_version": "5.5",
+            "preview_image": "https://iili.io/qFBP2vn.png"
           },
           {
             "file": "TubeArchivist-TV.wgt",
@@ -7380,7 +7396,8 @@
             "version": "1.0.0",
             "app_id": "wAKjt4yhqx.TVapp",
             "package_id": "wAKjt4yhqx",
-            "required_version": "2.3"
+            "required_version": "2.3",
+            "preview_image": "https://iili.io/fsvaHsn.png"
           },
           {
             "file": "Twitch-Old-Tizen.wgt",
@@ -7393,7 +7410,8 @@
             "version": "4.1.4",
             "app_id": "OldTzn405T.SmartTV",
             "package_id": "OldTzn405T",
-            "required_version": "2.3"
+            "required_version": "2.3",
+            "preview_image": "https://iili.io/fsvUNu2.md.gif"
           },
           {
             "file": "UltimatiumTube-Tizen50.wgt",
