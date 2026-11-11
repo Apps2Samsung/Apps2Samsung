@@ -97,6 +97,14 @@ namespace Apps2Samsung.Models
         [JsonIgnore]
         public bool IsSelfUpdating { get; set; }
 
+        /// <summary>
+        /// The screenshot the community catalog gives this app (<c>preview_image</c>), already checked
+        /// to be an absolute HTTPS URL. A grouped app takes the first of its files that has one.
+        /// Stamped from the catalog, never serialized; <see cref="Catalog.CatalogPreviews.For"/> prefers it.
+        /// </summary>
+        [JsonIgnore]
+        public string? PreviewImage { get; set; }
+
         // The same entry without its closed-source variants, built once by WithoutClosedSourceVariants
         // so a re-filter hands out the same instance and a selection survives it.
         private GitHubRelease? _openVariants;

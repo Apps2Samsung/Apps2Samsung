@@ -152,6 +152,15 @@ namespace Apps2Samsung.Models
         [JsonPropertyName("moved_to")]
         public MovedTo? MovedTo { get; set; }
 
+        /// <summary>
+        /// HTTPS URL of the app's 16:9 screenshot (<c>preview_image</c> in the manifest), copied onto
+        /// each of its files. Takes over from the name-matched <c>communityApps</c> list in
+        /// third-party-apps.json. Null when the package has none; written only when present.
+        /// </summary>
+        [JsonPropertyName("preview_image")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? PreviewImage { get; set; }
+
         [JsonPropertyName("cert_level")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? CertLevel { get; set; }

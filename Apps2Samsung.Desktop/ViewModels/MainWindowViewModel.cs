@@ -1893,6 +1893,7 @@ namespace Apps2Samsung.ViewModels
                             removed.AddRange(CommunityAppList.Removed(catalog));
                             // The official catalog decides the categories, their order and tile colours (#1054).
                             AppCategories.Use(catalog);
+                            CatalogPreviews.Use(catalog);
                         }
                         DownloadStatsService.Stamp(apps, provider, await stats);
                         list.AddRange(apps);

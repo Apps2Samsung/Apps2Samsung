@@ -62,6 +62,7 @@ namespace Apps2Samsung.Catalog
                                 Category = category,
                                 HasVariants = true,
                                 Description = Clean(entry.Description) ?? string.Empty,
+                                PreviewImage = CatalogPreviews.Https(entry.PreviewImage),
                             };
                             SourceRepo.Stamp(group, entry.Repo, entry.Host);
                             groups[entry.Group] = group;
@@ -74,6 +75,7 @@ namespace Apps2Samsung.Catalog
                         group.IsClosedSource |= entry.IsClosedSource;
                         group.IsSelfUpdating |= entry.IsSelfUpdating;
                         group.RequiresPartner |= entry.RequiresPartner;
+                        group.PreviewImage ??= CatalogPreviews.Https(entry.PreviewImage);
                         continue;
                     }
 
@@ -93,6 +95,7 @@ namespace Apps2Samsung.Catalog
                         IsRoot = entry?.IsRoot == true,
                         IsClosedSource = entry?.IsClosedSource == true,
                         IsSelfUpdating = entry?.IsSelfUpdating == true,
+                        PreviewImage = CatalogPreviews.Https(entry?.PreviewImage),
                     };
                     if (entry != null)
                         SourceRepo.Stamp(single, entry.Repo, entry.Host);
