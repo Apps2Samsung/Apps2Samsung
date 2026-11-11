@@ -14,4 +14,4 @@ Requirements:
 
 * A Samsung Tizen TV in Developer Mode, on the same local network as your phone.
 
-Desktop versions for Windows, macOS and Linux are also available. Apps2Samsung is free and open source (MIT).
+Desktop versions for Windows, macOS and Linux are also available. Apps2Samsung is free and open source (GPL-3.0).
