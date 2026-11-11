@@ -1181,6 +1181,11 @@ namespace Apps2Samsung.Services
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
 
+                // An older certificate in the automatic backups may be the one the TV knows (#1068):
+                // offered before removing anything, since it keeps the app's data on the TV.
+                if (await RetryWithOlderCertificateAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run, packagePath) is { } restored)
+                    return restored;
+
                 // On TVs that allow SDB uninstall, remove the old copy and reinstall automatically.
                 // Removing the old copy is the whole fix; the certificate we just signed with is fine,
                 // so the retry deliberately does NOT force a fresh Samsung login (that would mint yet
@@ -1227,6 +1232,11 @@ namespace Apps2Samsung.Services
             {
                 progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
                 Trace.WriteLine($"[Install] Package id blocked by the security manager ([118, -22]) on {tvIpAddress}: {installResults.Output}");
+
+                // The id is often still bound to an older author certificate: one in the automatic
+                // backups is the first thing to try, and it keeps the app's data on the TV (#1068).
+                if (await RetryWithOlderCertificateAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run, packagePath) is { } restored)
+                    return restored;
 
                 if (run.RetryAvailable && await GetTvDiagnoseAsync(tvIpAddress))
                 {
@@ -1519,6 +1529,79 @@ namespace Apps2Samsung.Services
             return confirmed;
         }
 
+        /// <summary>
+        /// The TV holds the app under another author certificate ([118, -22] or the mismatch error) and
+        /// the automatic backups (#1068) hold an older certificate of the profile this run signed with:
+        /// offer it, put it in place of the current one and run the install again. When the TV still
+        /// refuses, the current certificate goes back, so nothing else on the TV loses its updates.
+        /// Null when there is no such backup, it was tried already in this run, or the user said no.
+        /// </summary>
+        private async Task<InstallResult?> RetryWithOlderCertificateAsync(
+            string tvIpAddress, CancellationToken cancellationToken, ProgressCallback? progress,
+            Action? onSamsungLoginStarted, InstallRun run, string packagePath)
+        {
+            var profile = PackageCertificate;
+            if (run.OlderCertificateTried || string.IsNullOrEmpty(profile))
+                return null;
+            var older = Apps2Samsung.Certificate.CertificateBackups.OtherAuthors(profile).FirstOrDefault(e => File.Exists(e.Location));
+            if (older is null)
+                return null;
+            run.OlderCertificateTried = true;
+
+            var appTitle = GetPackageAppTitle(packagePath);
+            var confirmed = await Dispatcher.UIThread.InvokeAsync(() => _dialogService.ShowConfirmationAsync(
+                string.Format("certRestoreTitle".Localized(), appTitle),
+                string.Format("certRestoreMessage".Localized(), appTitle, older.CreatedUtc.ToLocalTime().ToString("d MMMM yyyy"), profile),
+                "certRestoreAndRetry".Localized(),
+                Constants.LocalizationKeys.Cancel.Localized()));
+            Trace.WriteLine($"[Install] Restoring {profile} from {older.Location} was {(confirmed ? "accepted" : "declined")}.");
+            if (!confirmed)
+                return null;
+
+            // Keep the current profile aside; it is in a backup too, but this puts it back without a picker.
+            var profileDir = Path.Combine(AppSettings.CertificatePath, profile);
+            var aside = Path.Combine(Path.GetTempPath(), "a2s-cert-aside-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                CopyDirectory(profileDir, aside);
+                await using (var stream = File.OpenRead(older.Location))
+                    Apps2Samsung.Certificate.CertificateArchive.Import(stream, AppSettings.CertificatePath, onlyProfile: profile);
+
+                run.ForceLogin = false; // a fresh sign-in would mint yet another author certificate
+                var result = await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
+                if (!result.Success)
+                {
+                    Trace.WriteLine($"[Install] The older {profile} did not help; putting the current one back.");
+                    if (Directory.Exists(profileDir))
+                        Directory.Delete(profileDir, recursive: true);
+                    CopyDirectory(aside, profileDir);
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[Install] Restoring the older certificate failed: {ex.Message}");
+                if (Directory.Exists(aside) && !Directory.Exists(profileDir))
+                    CopyDirectory(aside, profileDir);
+                return null;
+            }
+            finally
+            {
+                try { if (Directory.Exists(aside)) Directory.Delete(aside, recursive: true); } catch { /* temp */ }
+            }
+        }
+
+        private static void CopyDirectory(string from, string to)
+        {
+            Directory.CreateDirectory(to);
+            foreach (var file in Directory.EnumerateFiles(from, "*", SearchOption.AllDirectories))
+            {
+                var dest = Path.Combine(to, Path.GetRelativePath(from, file));
+                Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+                File.Copy(file, dest, overwrite: true);
+            }
+        }
+
         /// <summary>The user kept the installed copy: say so and stop, the TV is untouched.</summary>
         private static InstallResult RemovalDeclined(string packagePath, ProgressCallback? progress)
         {
@@ -1681,6 +1764,9 @@ namespace Apps2Samsung.Services
         {
             /// <summary>One-shot overwrite retry budget (seeded from the Overwrite existing version setting).</summary>
             public bool RetryAvailable { get; set; }
+
+            /// <summary>An older certificate from the automatic backups was offered once in this run (#1068).</summary>
+            public bool OlderCertificateTried { get; set; }
 
             /// <summary>Mint a fresh Samsung profile instead of reusing one (seeded from Force Samsung certificate).</summary>
             public bool ForceLogin { get; set; }

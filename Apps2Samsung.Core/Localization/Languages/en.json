@@ -1292,5 +1292,9 @@
   "lblOpenFolder": "Open folder",
   "statusCertBackupSaved": "Saved {0}",
   "lblCertBackupShare": "Share backup\u2026",
-  "hintCertBackupPhoneCopy": "Keep a copy off this phone as well: Share sends it to Drive, mail or another device."
+  "hintCertBackupPhoneCopy": "Keep a copy off this phone as well: Share sends it to Drive, mail or another device.",
+  "certStageSaveBackedUp": "Backed up to {0}",
+  "certRestoreTitle": "Restore an older certificate for {0}?",
+  "certRestoreMessage": "The TV has {0} signed with another certificate than the one on this computer. A backup from {1} holds an older {2} certificate, probably the one {0} was installed with.\n\nRestore it and try again? If the TV still refuses, the current certificate is put back.",
+  "certRestoreAndRetry": "Restore and retry"
 }

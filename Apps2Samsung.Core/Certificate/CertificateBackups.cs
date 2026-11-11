@@ -183,6 +183,24 @@ namespace Apps2Samsung.Certificate
         }
 
         /// <summary>
+        /// The newest backup as a path for the certificate sheet's Save step, when every certificate is
+        /// in a backup; null otherwise (not configured, nothing yet, or the automatic one failed).
+        /// </summary>
+        public static string? LatestBackupDisplayPath()
+        {
+            try
+            {
+                return Status() is { AllBackedUp: true, Latest: { } latest } status
+                    ? Path.Combine(status.DisplayLocation, latest.FileName)
+                    : null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// The backups that hold <paramref name="profileName"/> with another author certificate than the
         /// one on this device now, newest first: the candidates when a TV refuses an update because the
         /// app was signed with an older certificate.

@@ -186,9 +186,12 @@ namespace Apps2Samsung.Certificate
         /// certificate that has expired, or does not load, is refused with
         /// <see cref="CertificateArchiveException"/> before anything is written.
         /// </summary>
-        public static CertificateArchiveImportResult Import(Stream zipInput, string storePath)
+        /// <param name="onlyProfile">Import just this profile from the archive, the rest untouched (#1068's restore of an older certificate).</param>
+        public static CertificateArchiveImportResult Import(Stream zipInput, string storePath, string? onlyProfile = null)
         {
             var read = ReadProfiles(zipInput);
+            if (onlyProfile is not null)
+                read = read.Where(r => string.Equals(r.Profile.ProfileName, onlyProfile, StringComparison.Ordinal)).ToList();
             if (read.Count == 0)
                 throw new CertificateArchiveException("The file holds no signing certificate (no author.p12, distributor.p12 and password.txt in a Certificate/<profile>/ folder).");
 
