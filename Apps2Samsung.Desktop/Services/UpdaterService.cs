@@ -47,11 +47,9 @@ namespace Apps2Samsung.Services
             var result = await _checker.CheckForUpdateAsync(
                 CurrentVersion,
                 includePrereleases: AppSettings.Default.IncludeBetaUpdates,
-                assetMatcher: name => name.Contains(platformSuffix, StringComparison.OrdinalIgnoreCase) &&
-                    (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
-                     name.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase)),
-                assetFallbackMatcher: name => name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
-                    name.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase),
+                // The app's own archive, never the CLI's for the same platform (UpdateAssets).
+                assetMatcher: name => UpdateAssets.IsDesktopArchive(name, platformSuffix),
+                assetFallbackMatcher: UpdateAssets.IsAnyDesktopArchive,
                 cancellationToken: cancellationToken);
 
             if (result.IsSuccess && result.IsUpdateAvailable)

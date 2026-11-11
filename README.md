@@ -102,7 +102,7 @@ whole thing.
 
 ## Command line
 
-Every release ships `apps2samsung-cli` as `Apps2Samsung-cli-<version>-<platform>.zip` or `.tar.gz`.
+Every release ships `apps2samsung-cli` as `Apps2Samsung.Cli-<version>-<platform>.zip` or `.tar.gz` (`Apps2Samsung-cli-…` before 3.3.0).
 It runs the same catalog, certificate and install pipeline as the apps, from a terminal, a script or
 an AI agent with a shell. Started without arguments on a terminal it opens a menu that shows the
 command for every step before it runs it.
