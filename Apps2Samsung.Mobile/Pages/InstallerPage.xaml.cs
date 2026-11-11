@@ -125,6 +125,8 @@ public partial class InstallerPage : ContentPage
 		// "Update" and "View in catalog" on the On the TV tab (#820, #888): that app's sheet, here
 		// where installs run.
 		CatalogStore.Open = request => OpenAppAsync(request.Release, SublineFor(request.Release), request.InstalledVersion, request.IsUpdate, request.Asset);
+		CatalogStore.UpdateAll = UpdateAllAsync;
+		CatalogStore.UpdatesChanged += () => MainThread.BeginInvokeOnMainThread(ShowUpdatesRow);
 
 		await MobileSettings.InitAsync();
 		var catalog = await LoadCatalogAsync();
@@ -212,6 +214,19 @@ public partial class InstallerPage : ContentPage
 	private string _loadedSources = string.Empty;
 	// The last install on the selected TV failed: the card stays amber until the TV changes or the next install starts.
 	private bool _installFailed;
+
+	// Update all (#1067): set while InstallAsync runs as one app of the run. It then takes saved values
+	// without the sheet, says "Updating 2 of 3" on the progress sheet, shows no Install complete page,
+	// and a failure closes the sheet and is kept here instead of waiting on Close.
+	private sealed class BatchRun
+	{
+		public int Index;
+		public int Count;
+		public bool Succeeded;
+		public bool Stop;
+		public string? Failure;
+	}
+	private BatchRun? _batch;
 	private string? _failedTvIp;
 
 	// The catalog as listed: an app with several releases once, as its newest; without the
@@ -856,7 +871,7 @@ public partial class InstallerPage : ContentPage
 		tvIp = guardResult.CorrectedTvIp ?? tvIp;
 
 		// A package that gains root: what that means for this TV, before anything else.
-		if (!custom && release!.IsRoot && !await DisplayAlert(
+		if (!custom && _batch is null && release!.IsRoot && !await DisplayAlert(
 				string.Format(L10n.Get("lblRootConfirmTitle"), release.Name),
 				string.Format(L10n.Get("lblRootConfirmBody"), release.Name),
 				L10n.Get("lblRootConfirmYes"), L10n.Get("lblCancel")))
@@ -865,8 +880,9 @@ public partial class InstallerPage : ContentPage
 			return;
 		}
 
-		// A community package that needs the user's own values (#791): the sheet first.
-		if (!custom && !await CollectUserSettingsAsync(release!, asset!))
+		// A community package that needs the user's own values (#791): the sheet first. Update all
+		// reuses saved values that still pass, and asks only when something is missing (#1067).
+		if (!custom && !(_batch is not null && SavedValuesComplete(asset!)) && !await CollectUserSettingsAsync(release!, asset!))
 			return;
 
 		// Updating TV-Store through TV-Store's own relay (#1005): say once, before the install, that
@@ -887,6 +903,8 @@ public partial class InstallerPage : ContentPage
 		var appTitle = custom || string.IsNullOrWhiteSpace(release!.TagName) || !HasSeveralReleases(release.Name)
 			? appName
 			: $"{appName} {release.TagName}";
+		if (_batch is { } run)
+			appTitle = string.Format(L10n.Get("lblUpdateAllProgress"), run.Index + 1, run.Count, appName);
 		// Auto-request Partner signing if the selected app's manifest declares cert_level: partner.
 		var requirePartner = !custom && release!.RequiresPartner;
 
@@ -981,6 +999,11 @@ public partial class InstallerPage : ContentPage
 
 			SetStatus("✓ " + string.Format(L10n.Get("statusInstalledOpenApps"), appName));
 			await CloseProgressAsync();
+			if (_batch is { } done)
+			{
+				done.Succeeded = true;
+				return;
+			}
 			// The step only the user can take, now that the package is on the TV.
 			if (!custom && release!.IsRoot)
 				await DisplayAlert(string.Format(L10n.Get("lblRootAfterInstallTitle"), appName), L10n.Get("lblRootAfterInstallBody"), L10n.Get("lblOk"));
@@ -989,8 +1012,13 @@ public partial class InstallerPage : ContentPage
 		catch (OperationCanceledException) when (cancel.IsCancellationRequested)
 		{
 			// Cancel on the sheet: it stops before the old copy is removed or the package pushed, so the
-			// TV still has what it had and there is nothing to report but that.
+			// TV still has what it had and there is nothing to report but that. In Update all it stops the run.
 			SetStatus(L10n.Get("statusInstallCancelled"));
+			if (_batch is { } stopped)
+			{
+				stopped.Stop = true;
+				stopped.Failure = L10n.Get("statusInstallCancelled");
+			}
 			await CloseProgressAsync();
 		}
 		catch (Exception ex) when (downloading && NetworkFailure.LocalizationKey(ex) is { } networkKey)
@@ -1059,6 +1087,83 @@ public partial class InstallerPage : ContentPage
 			UpdateTvCard();
 		}
 	}
+
+	// Update all (#1067): saved values for a package that asks for some, still valid, so no sheet is needed.
+	private static bool SavedValuesComplete(Asset asset)
+	{
+		if (asset.UserSettings is not { Fields.Count: > 0 } spec)
+			return true;
+		var saved = UserSettingsStore.Get(MobileSettings.AppUserSettingsJson, asset.FileName)?.Values;
+		return saved is not null && spec.Fields.All(f => UserSettingsStore.Validate(f, saved.TryGetValue(f.Key, out var v) ? v : null) is null);
+	}
+
+	/// <summary>
+	/// Update all (#1067): the apps one after the other through <see cref="InstallAsync"/>, the same
+	/// pipeline as a single Update, on the selected TV. Cancel on a progress sheet stops the run after
+	/// that app. A package that gains root is left for its own Update (it needs its confirmation).
+	/// Ends with one alert that says what was updated and why anything was not.
+	/// </summary>
+	private async Task<IReadOnlyList<UpdateAllOutcome>> UpdateAllAsync(IReadOnlyList<(GitHubRelease Release, Asset Asset)> items)
+	{
+		var outcomes = new List<UpdateAllOutcome>();
+		if (_busy || _tv.Selected is null)
+			return outcomes;
+		var stop = false;
+		for (var i = 0; i < items.Count; i++)
+		{
+			var (release, asset) = items[i];
+			if (stop)
+			{
+				outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.NotStarted, null));
+				continue;
+			}
+			if (release.IsRoot)
+			{
+				outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.Skipped, L10n.Get("lblUpdateAllSkippedRoot")));
+				continue;
+			}
+			var run = new BatchRun { Index = i, Count = items.Count };
+			_batch = run;
+			try
+			{
+				await InstallAsync(release, asset, null);
+			}
+			finally
+			{
+				_batch = null;
+			}
+			stop = run.Stop;
+			outcomes.Add(run.Succeeded
+				? new UpdateAllOutcome(release.Name, UpdateAllState.Updated, asset.PackageVersion)
+				: run.Failure is { } why
+					? new UpdateAllOutcome(release.Name, UpdateAllState.Failed, why)
+					: new UpdateAllOutcome(release.Name, UpdateAllState.Skipped, L10n.Get("statusInstallCancelled")));
+		}
+
+		var updated = outcomes.Count(o => o.State == UpdateAllState.Updated);
+		var failed = outcomes.Count(o => o.State == UpdateAllState.Failed);
+		var title = failed == 0
+			? string.Format(L10n.Get("lblUpdateAllDone"), updated)
+			: string.Format(L10n.Get("lblUpdateAllDoneFailed"), updated, failed);
+		var lines = outcomes.Where(o => o.State != UpdateAllState.Updated).Select(o => o.State == UpdateAllState.NotStarted
+			? string.Format(L10n.Get("lblUpdateAllNotStarted"), o.Name)
+			: $"{o.Name}: {o.Detail}");
+		var body = string.Join("\n", lines);
+		if (_tv.Selected is { } tv)
+			CatalogStore.SetUpdates(tv.Ip, outcomes.Count(o => o.State != UpdateAllState.Updated));
+		await DisplayAlert(title, body.Length == 0 ? title : body, L10n.Get("btn_Close"));
+		return outcomes;
+	}
+
+	// The row under the TV card (#1067): how many apps had an update when On the TV last read this TV.
+	private void ShowUpdatesRow()
+	{
+		var count = _tv.Selected is { } tv && CatalogStore.UpdatesByTv.TryGetValue(tv.Ip, out var n) ? n : 0;
+		UpdatesRow.IsVisible = count > 0 && !_busy;
+		UpdatesRowLabel.Text = count == 1 ? L10n.Get("lblUpdateAllOneTv") : string.Format(L10n.Get("lblUpdateAllManyTv"), count);
+	}
+
+	private async void OnUpdatesRowTapped(object? sender, TappedEventArgs e) => await Shell.Current.GoToAsync("//apps");
 
 	// A repository listed from its last verified copy (#1018): nothing is downloaded from it.
 	private async Task<bool> InstallAllowedAsync(GitHubRelease release)
@@ -1226,6 +1331,15 @@ public partial class InstallerPage : ContentPage
 	{
 		System.Diagnostics.Trace.WriteLine($"[installer] {message}");
 		var sheet = _progress;
+		if (_batch is { } run)
+		{
+			// Update all goes on to the next app: the reason waits for the summary, the sheet goes.
+			run.Failure = message;
+			_progress = null;
+			if (sheet is not null)
+				MainThread.BeginInvokeOnMainThread(async () => await sheet.CloseAsync());
+			return;
+		}
 		MainThread.BeginInvokeOnMainThread(() =>
 		{
 			_status = message;
@@ -1280,6 +1394,7 @@ public partial class InstallerPage : ContentPage
 	/// </summary>
 	private void UpdateTvCard()
 	{
+		ShowUpdatesRow();
 		var state = _tv.CardState();
 		TopBar.ShowTv(_tv.HasTv || _tv.IsScanning ? state : state with { Name = L10n.Get("lblNoTvFound") });
 		TopBar.TvCount = _tv.Tvs.Count;

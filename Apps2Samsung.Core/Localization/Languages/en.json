@@ -1305,5 +1305,7 @@
   "lblUpdateAllDone": "{0} updated",
   "lblUpdateAllDoneFailed": "{0} updated, {1} failed",
   "lblUpdateAllNotStarted": "{0}: not started, Update all was stopped",
-  "lblUpdateAllSkippedRoot": "gains root, so it only updates on its own (Update on its row)"
+  "lblUpdateAllSkippedRoot": "gains root, so it only updates on its own (Update on its row)",
+  "lblUpdateAllOneTv": "1 update for this TV",
+  "lblUpdateAllManyTv": "{0} updates for this TV"
 }

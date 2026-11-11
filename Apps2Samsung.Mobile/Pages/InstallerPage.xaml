@@ -23,6 +23,21 @@
                      the top bar now (▾ picks another, ⋯ has Rescan / TV information / Toolbox). -->
                 <controls:TvCardView x:Name="TvCard" />
 
+                <!-- How many apps had an update when On the TV last read this TV (#1067); opens On the TV. -->
+                <Border x:Name="UpdatesRow" IsVisible="False" Padding="14,12" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                        BackgroundColor="{DynamicResource OkSoftColor}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnUpdatesRowTapped" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <shapes:Path Data="M12,4 L12,15 M7,10 L12,15 L17,10 M5,20 L19,20" Stroke="{DynamicResource OkBrush}" StrokeThickness="2.2"
+                                     StrokeLineCap="Round" StrokeLineJoin="Round" WidthRequest="24" HeightRequest="24" VerticalOptions="Center" />
+                        <Label x:Name="UpdatesRowLabel" Grid.Column="1" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" />
+                        <Label Grid.Column="2" Text="{l:Localize lblUpdateAll}" FontSize="14" FontAttributes="Bold"
+                               TextColor="{DynamicResource OkColor}" VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+
                 <!-- No TV after a scan: what to check, and the two ways forward. -->
                 <Border x:Name="NoTvCard" IsVisible="False" Padding="16,20" StrokeThickness="0" StrokeShape="RoundRectangle 16"
                         BackgroundColor="{DynamicResource SurfaceColor}">

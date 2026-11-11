@@ -35,6 +35,18 @@
                 </VerticalStackLayout>
             </Border>
             <VerticalStackLayout x:Name="MovedHost" Spacing="8" Margin="16,4,16,4" IsVisible="False" />
+            <!-- Update all (#1067): while apps have a newer version in the catalog. -->
+            <Border x:Name="UpdatesCard" IsVisible="False" Margin="16,4,16,0" Padding="14,12" StrokeThickness="0"
+                    StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource OkSoftColor}">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                        <Label x:Name="UpdatesTitle" FontSize="15" FontAttributes="Bold" TextColor="{DynamicResource InkColor}" />
+                        <Label x:Name="UpdatesNames" FontSize="13" LineBreakMode="WordWrap" TextColor="{DynamicResource MutedColor}" />
+                    </VerticalStackLayout>
+                    <Button Grid.Column="1" Style="{StaticResource PrimaryButton}" HeightRequest="44" MinimumHeightRequest="44"
+                            VerticalOptions="Center" Text="{l:Localize lblUpdateAll}" Clicked="OnUpdateAllClicked" />
+                </Grid>
+            </Border>
         </VerticalStackLayout>
 
         <Border Grid.Row="2" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}"
