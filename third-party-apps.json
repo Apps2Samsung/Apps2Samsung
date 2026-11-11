@@ -140,6 +140,10 @@
     {
       "matchName": "Flixor-Tizen",
       "previewImage": "https://iili.io/CfGjV44.webp"
+    },
+    {
+      "matchName": "Film Merkezi",
+      "previewImage": "https://raw.githubusercontent.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/main/docs/gorseller/ayarlar.png"
     }
   ]
 }
