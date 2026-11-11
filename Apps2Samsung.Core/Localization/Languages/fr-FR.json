@@ -959,7 +959,6 @@
   "statusUserSettingsFileMissing": "{0} a changé en amont : {1} n'est plus dans le paquet, vos paramètres ne peuvent donc pas y être écrits. Demandez la mise à jour du paquet.",
   "lblGoogleSignInUnavailable": "La connexion Google n'est pas disponible ici",
   "statusGoogleSignInUnavailable": "Google n'autorise pas sa page de connexion dans les applications, et la connexion Samsung ne fonctionne que dans cette application : « Se connecter avec Google » ne peut donc pas être utilisé sur un téléphone.\n\nAjoutez d'abord un mot de passe à votre compte Samsung : allez sur account.samsung.com, connectez-vous avec Google, ouvrez Sécurité et confidentialité, puis Mot de passe. Si cette option est absente, utilisez Mot de passe oublié avec votre e-mail Google.\n\nConnectez-vous ensuite ici avec cet e-mail et ce mot de passe.",
-  "lblMitLicense": "Licence MIT",
   "lblByAuthor": "par {0}",
   "lblAppsByAuthor": "Toutes les applications de {0}",
   "lblSourceCode": "Code source",

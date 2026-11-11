@@ -966,7 +966,6 @@
   "statusUserSettingsFileMissing": "{0} השתנתה במקור: {1} כבר לא נמצא בחבילה, ולכן אי אפשר לכתוב אליה את ההגדרות שלכם. בקשו לעדכן את החבילה.",
   "lblGoogleSignInUnavailable": "התחברות עם Google אינה זמינה כאן",
   "statusGoogleSignInUnavailable": "Google אינה מאפשרת את דף ההתחברות שלה בתוך אפליקציות, וההתחברות של Samsung עובדת רק בתוך האפליקציה הזו, ולכן אי אפשר להשתמש ב-\"Sign in with Google\" בטלפון.\n\nהוסיפו קודם סיסמה לחשבון Samsung שלכם: היכנסו ל-account.samsung.com, התחברו עם Google, פתחו Security and privacy, ואז Password. אם האפשרות הזו חסרה, השתמשו ב-Forgot password עם כתובת האימייל של Google.\n\nאחר כך התחברו כאן עם האימייל והסיסמה האלה.",
-  "lblMitLicense": "רישיון MIT",
   "lblByAuthor": "מאת {0}",
   "lblAppsByAuthor": "כל האפליקציות של {0}",
   "lblSourceCode": "קוד מקור",

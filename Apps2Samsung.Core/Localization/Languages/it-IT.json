@@ -946,7 +946,6 @@
   "statusUserSettingsFileMissing": "{0} è cambiato a monte: {1} non è più nel pacchetto, quindi le tue impostazioni non possono essere scritte. Chiedi di aggiornare il pacchetto.",
   "lblGoogleSignInUnavailable": "L'accesso con Google non è disponibile qui",
   "statusGoogleSignInUnavailable": "Google non consente la sua pagina di accesso dentro le app, e l'accesso a Samsung funziona solo dentro questa app, quindi \"Accedi con Google\" non può essere usato su un telefono.\n\nAggiungi prima una password al tuo account Samsung: vai su account.samsung.com, accedi con Google, apri Sicurezza e privacy, poi Password. Se manca questa opzione, usa Password dimenticata con la tua email Google.\n\nPoi accedi qui con quell'email e quella password.",
-  "lblMitLicense": "Licenza MIT",
   "lblByAuthor": "di {0}",
   "lblAppsByAuthor": "Tutte le app di {0}",
   "lblSourceCode": "Codice sorgente",

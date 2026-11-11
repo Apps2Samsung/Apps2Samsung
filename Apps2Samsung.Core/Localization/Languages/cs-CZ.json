@@ -1014,7 +1014,6 @@
   "statusUserSettingsFileMissing": "změna ve zdroji aplikace {0}: {1} již není součástí balíčku, takže nastavení nelze zapsat. Požádejte o aktualizaci balíčku.",
   "lblGoogleSignInUnavailable": "Přihlášení přes Google zde není k dispozici",
   "statusGoogleSignInUnavailable": "Google nepovoluje zobrazovat svou přihlašovací stránku uvnitř aplikací a přihlášení přes Samsung funguje pouze uvnitř této aplikace, takže na telefonu nelze použít možnost „Přihlásit se přes Google“.\n\nNejprve přidejte k účtu Samsung heslo: přejděte na account.samsung.com, přihlaste se pomocí účtu Google, otevřete část Zabezpečení a soukromí a potom položku Heslo. Pokud tato možnost chybí, použijte funkci „Zapomenuté heslo“ a zadejte e-mailovou adresu Google.\n\nPotom se zde přihlaste pomocí této e-mailové adresy a hesla.",
-  "lblMitLicense": "Licence MIT",
   "lblByAuthor": "vytvořil {0}",
   "lblAppsByAuthor": "Všechny aplikace od {0}",
   "lblSourceCode": "Zdrojový kód",

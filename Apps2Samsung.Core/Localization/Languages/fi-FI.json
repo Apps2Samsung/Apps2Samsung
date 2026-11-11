@@ -964,7 +964,6 @@
   "statusUserSettingsFileMissing": "{0} muuttui upstreamissa: {1} ei enää ole paketissa, joten asetuksiasi ei voi kirjoittaa sisään. Pyydä päivittämään paketti.",
   "lblGoogleSignInUnavailable": "Google-kirjautuminen ei ole käytettävissä täällä",
   "statusGoogleSignInUnavailable": "Google ei salli kirjautumissivuaan sovellusten sisällä, ja Samsungin kirjautuminen toimii vain tämän sovelluksen sisällä, joten \"Kirjaudu Googlella\" ei ole käytettävissä puhelimella.\n\nLisää ensin Samsung-tilillesi salasana: siirry osoitteeseen account.samsung.com, kirjaudu Googlella, avaa Tietoturva ja yksityisyys ja sitten Salasana. Jos vaihtoehtoa ei ole, käytä Unohtuiko salasana -toimintoa Google-sähköpostillasi.\n\nKirjaudu sitten tässä tuolla sähköpostilla ja salasanalla.",
-  "lblMitLicense": "MIT-lisenssi",
   "lblByAuthor": "tekijä {0}",
   "lblAppsByAuthor": "Kaikki tekijän {0} sovellukset",
   "lblSourceCode": "Lähdekoodi",

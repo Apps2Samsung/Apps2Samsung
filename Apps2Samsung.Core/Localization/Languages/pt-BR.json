@@ -968,7 +968,6 @@
   "statusUserSettingsFileMissing": "{0} mudou na origem: {1} não está mais no pacote, então suas configurações não podem ser gravadas. Peça que o pacote seja atualizado.",
   "lblGoogleSignInUnavailable": "O login com o Google não está disponível aqui",
   "statusGoogleSignInUnavailable": "O Google não permite sua página de login dentro de aplicativos, e o login da Samsung só funciona dentro deste aplicativo, então \"Entrar com o Google\" não pode ser usado em um celular.\n\nAdicione primeiro uma senha à sua conta Samsung: acesse account.samsung.com, entre com o Google, abra Segurança e privacidade e depois Senha. Se essa opção não aparecer, use Esqueci a senha com seu e-mail do Google.\n\nDepois faça login aqui com esse e-mail e essa senha.",
-  "lblMitLicense": "Licença MIT",
   "lblByAuthor": "por {0}",
   "lblAppsByAuthor": "Todos os aplicativos de {0}",
   "lblSourceCode": "Código-fonte",

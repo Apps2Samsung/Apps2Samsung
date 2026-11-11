@@ -969,7 +969,6 @@
   "statusUserSettingsFileMissing": "{0} kaynakta değişti: {1} artık pakette yok, bu yüzden ayarlarınız yazılamıyor. Paketin güncellenmesini isteyin.",
   "lblGoogleSignInUnavailable": "Google ile oturum açma burada kullanılamıyor",
   "statusGoogleSignInUnavailable": "Google, giriş sayfasının uygulamaların içinde açılmasına izin vermiyor ve Samsung'un girişi yalnızca bu uygulamanın içinde çalışıyor, bu yüzden telefonda \"Google ile oturum aç\" kullanılamaz.\n\nÖnce Samsung hesabınıza bir şifre ekleyin: account.samsung.com adresine gidin, Google ile oturum açın, Güvenlik ve gizlilik'i, sonra Şifre'yi açın. Bu seçenek yoksa Google e-postanızla Şifremi unuttum'u kullanın.\n\nSonra burada o e-posta ve şifreyle oturum açın.",
-  "lblMitLicense": "MIT Lisansı",
   "lblByAuthor": "{0} tarafından",
   "lblAppsByAuthor": "{0} tarafından tüm uygulamalar",
   "lblSourceCode": "Kaynak kodu",

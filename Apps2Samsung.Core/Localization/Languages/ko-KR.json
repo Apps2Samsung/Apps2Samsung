@@ -966,7 +966,6 @@
   "statusUserSettingsFileMissing": "{0}이(가) 업스트림에서 변경되었습니다. {1}이(가) 더 이상 패키지에 없으므로 설정을 기록할 수 없습니다. 패키지 업데이트를 요청하세요.",
   "lblGoogleSignInUnavailable": "여기서는 Google 로그인을 사용할 수 없습니다",
   "statusGoogleSignInUnavailable": "Google은 앱 안에서 로그인 페이지를 허용하지 않고, Samsung 로그인은 이 앱 안에서만 작동하므로 휴대폰에서는 \"Google로 로그인\"을 사용할 수 없습니다.\n\n먼저 Samsung 계정에 비밀번호를 추가하세요. account.samsung.com에서 Google로 로그인하고 보안 및 개인정보 보호, 비밀번호 순으로 여세요. 해당 옵션이 없으면 Google 이메일로 비밀번호 찾기를 사용하세요.\n\n그런 다음 여기서 해당 이메일과 비밀번호로 로그인하세요.",
-  "lblMitLicense": "MIT 라이선스",
   "lblByAuthor": "{0} 제작",
   "lblAppsByAuthor": "{0}의 모든 앱",
   "lblSourceCode": "소스 코드",

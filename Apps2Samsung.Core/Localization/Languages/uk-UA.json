@@ -969,7 +969,6 @@
   "statusUserSettingsFileMissing": "{0} змінилося в джерелі: {1} більше немає в пакеті, тож ваші налаштування не можна записати. Попросіть оновити пакет.",
   "lblGoogleSignInUnavailable": "Вхід через Google тут недоступний",
   "statusGoogleSignInUnavailable": "Google не дозволяє показувати свою сторінку входу всередині програм, а вхід Samsung працює лише всередині цієї програми, тож \"Sign in with Google\" на телефоні використати не можна.\n\nСпершу додайте пароль до свого облікового запису Samsung: перейдіть на account.samsung.com, увійдіть через Google, відкрийте Security and privacy, потім Password. Якщо цього пункту немає, скористайтеся Forgot password зі своєю електронною адресою Google.\n\nПотім увійдіть тут із цією адресою та паролем.",
-  "lblMitLicense": "Ліцензія MIT",
   "lblByAuthor": "від {0}",
   "lblAppsByAuthor": "Усі програми від {0}",
   "lblSourceCode": "Вихідний код",
