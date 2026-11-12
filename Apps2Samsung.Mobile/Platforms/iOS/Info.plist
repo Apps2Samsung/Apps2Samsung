@@ -31,6 +31,18 @@
 
 	<!-- The UIScene life cycle (SceneDelegate.cs): required for an app built with the iOS 27 SDK,
 	     which iOS otherwise stops right after launch. One window, MAUI's default configuration. -->
+	<!-- apps2samsung:// install links (#1066), handed in through SceneDelegate. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>nl.madebypatrick.apps2samsung.link</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>apps2samsung</string>
+			</array>
+		</dict>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

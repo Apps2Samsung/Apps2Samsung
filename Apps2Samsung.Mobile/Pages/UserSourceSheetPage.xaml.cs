@@ -27,9 +27,18 @@ public partial class UserSourceSheetPage : ContentPage
 
 	public Task<UserSource?> Result => _result.Task;
 
-	public UserSourceSheetPage(IReadOnlyList<UserSource> existing)
+	public UserSourceSheetPage(IReadOnlyList<UserSource> existing, string? fromLink = null)
 	{
 		InitializeComponent();
+		// From an install link (#1066): filled in, and the hint says where it came from; nothing is
+		// stored until Add (a signed repository goes straight to its key, as Add would).
+		if (fromLink is not null)
+		{
+			UrlEntry.Text = fromLink;
+			FormHint.Text = L10n.Get("hintAddSourceFromLink");
+			if (UserSources.IsSignedRepository(fromLink))
+				Loaded += async (_, _) => await ProbeAsync(Read());
+		}
 		_existing = existing;
 		NameLabel.Text = $"{L10n.Get("lblUserSourceName")} ({L10n.Get("lblOptional")})";
 		// The catalog's categories (#1054), kept as shown so the picked index maps back to its id.
@@ -41,9 +50,9 @@ public partial class UserSourceSheetPage : ContentPage
 	}
 
 	/// <summary>Opens the sheet and waits for its answer.</summary>
-	public static async Task<UserSource?> AskAsync(INavigation navigation, IReadOnlyList<UserSource> existing)
+	public static async Task<UserSource?> AskAsync(INavigation navigation, IReadOnlyList<UserSource> existing, string? fromLink = null)
 	{
-		var sheet = new UserSourceSheetPage(existing);
+		var sheet = new UserSourceSheetPage(existing, fromLink);
 		await navigation.PushModalAsync(sheet);
 		return await sheet.Result;
 	}
