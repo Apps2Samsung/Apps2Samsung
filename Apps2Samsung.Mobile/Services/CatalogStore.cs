@@ -14,6 +14,9 @@ public static class CatalogStore
 	/// <summary>Reloads the catalog from the network; set by the Install tab once it is up.</summary>
 	public static Func<Task>? Refresh { get; set; }
 
+	/// <summary>Puts a name in the Install tab's search box (#1066); set by the Install tab once it is up.</summary>
+	public static Action<string>? Search { get; set; }
+
 	/// <summary>Opens an app's sheet on the Install tab; set by the Install tab once it is up.</summary>
 	public static Func<CatalogOpenRequest, Task>? Open { get; set; }
 
@@ -65,8 +68,9 @@ public static class CatalogStore
 /// An app sheet asked for from another tab (#820, #888). <see cref="InstalledVersion"/> is what the
 /// TV runs, when it runs this app, and <see cref="IsUpdate"/> makes the sheet's button an Update.
 /// <see cref="Asset"/> is the file the sheet opens on: the variant the TV got (#975), when known.
+/// <see cref="FromLink"/>: an install link opened it (#1066), and the sheet says so.
 /// </summary>
-public sealed record CatalogOpenRequest(GitHubRelease Release, string? InstalledVersion = null, bool IsUpdate = false, Asset? Asset = null);
+public sealed record CatalogOpenRequest(GitHubRelease Release, string? InstalledVersion = null, bool IsUpdate = false, Asset? Asset = null, bool FromLink = false);
 
 public enum UpdateAllState { Updated, Failed, Skipped, NotStarted }
 

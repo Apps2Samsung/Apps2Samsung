@@ -124,7 +124,10 @@ public partial class InstallerPage : ContentPage
 		CatalogStore.Refresh = async () => { await LoadCatalogAsync(); };
 		// "Update" and "View in catalog" on the On the TV tab (#820, #888): that app's sheet, here
 		// where installs run.
-		CatalogStore.Open = request => OpenAppAsync(request.Release, SublineFor(request.Release), request.InstalledVersion, request.IsUpdate, request.Asset);
+		CatalogStore.Open = request => OpenAppAsync(request.Release, SublineFor(request.Release), request.InstalledVersion, request.IsUpdate, request.Asset, request.FromLink);
+		CatalogStore.Search = text => SearchEntry.Text = text;
+		// Install links (#1066), from now on and any that came while the app started.
+		InstallLinkInbox.Subscribe(link => _ = InstallLinkHandler.HandleAsync(link, Navigation, this));
 		CatalogStore.UpdateAll = UpdateAllAsync;
 		CatalogStore.UpdatesChanged += () => MainThread.BeginInvokeOnMainThread(ShowUpdatesRow);
 
@@ -483,7 +486,7 @@ public partial class InstallerPage : ContentPage
 
 	// The app sheet: preview, description, the version or variant to install, Install for the
 	// selected TV. Hands back the release and file, or null when closed.
-	private async Task OpenAppAsync(GitHubRelease release, string subline, string? installedVersion = null, bool isUpdate = false, Asset? openOn = null)
+	private async Task OpenAppAsync(GitHubRelease release, string subline, string? installedVersion = null, bool isUpdate = false, Asset? openOn = null, bool fromLink = false)
 	{
 		if (_busy)
 			return;
@@ -521,7 +524,8 @@ public partial class InstallerPage : ContentPage
 			icons: _icons,
 			// The same app from the other sources that list it (#1018): a tap opens that one's sheet.
 			alsoOffered: AlsoOffered(release),
-			openOther: other => _ = OpenAppAsync(other, SublineFor(other)));
+			openOther: other => _ = OpenAppAsync(other, SublineFor(other)),
+			fromLink: fromLink);
 		await Navigation.PushModalAsync(sheet);
 		var choice = await sheet.Result;
 		if (choice is not null)

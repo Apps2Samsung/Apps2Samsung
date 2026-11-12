@@ -52,7 +52,7 @@
                     <Label Grid.Column="1" Text="{l:Localize lblAddSourceTitle}" FontSize="17" FontAttributes="Bold" VerticalOptions="Center" />
                 </Grid>
 
-                <Label Text="{l:Localize hintAddSourceForm}" Style="{StaticResource Hint}" />
+                <Label x:Name="FormHint" Text="{l:Localize hintAddSourceForm}" Style="{StaticResource Hint}" />
 
                 <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}" Padding="16,14">
                     <VerticalStackLayout Spacing="12">

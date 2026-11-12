@@ -1,4 +1,5 @@
 using Apps2Samsung.Mobile.Resources.Styles;
+using Apps2Samsung.Mobile.Services;
 using Foundation;
 using UIKit;
 
@@ -17,6 +18,17 @@ public class SceneDelegate : MauiUISceneDelegate
 		base.WillConnect(scene, session, connectionOptions);
 		if (scene is UIWindowScene windowScene)
 			ReportTheme(windowScene.TraitCollection);
+		// Started by an apps2samsung:// install link (#1066).
+		foreach (var context in connectionOptions.UrlContexts ?? new NSSet<UIOpenUrlContext>())
+			InstallLinkInbox.Deliver(context.Url?.AbsoluteString);
+	}
+
+	// An install link while the app runs (#1066).
+	public override void OpenUrlContexts(UIScene scene, NSSet<UIOpenUrlContext> urlContexts)
+	{
+		base.OpenUrlContexts(scene, urlContexts);
+		foreach (var context in urlContexts)
+			InstallLinkInbox.Deliver(context.Url?.AbsoluteString);
 	}
 
 	public override void DidUpdateCoordinateSpace(UIWindowScene windowScene, IUICoordinateSpace previousCoordinateSpace,
