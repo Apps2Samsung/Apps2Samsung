@@ -1407,5 +1407,7 @@
   "lblSavedTvShare": "Share",
   "lblSavedTvShareTitle": "TV app list",
   "lblSavedTvPick": "Restore from a file",
-  "lblTvStoreSendSourcesButton": "Send sources to TV…"
+  "lblTvStoreSendSourcesButton": "Send sources to TV…",
+  "lblTvListReady": "Ready",
+  "lblTvListNeedsAttention": "Needs attention \u00b7 {0}"
 }

@@ -6,8 +6,9 @@ using Apps2Samsung.Models;
 
 namespace Apps2Samsung.Mobile.Pages;
 
-/// <summary>What the TV sheet hands back: the index of the TV to switch to.</summary>
-public sealed record TvSheetChoice(int Index);
+/// <summary>What the TV sheet hands back: the index of the TV to switch to, and whether its fix was asked for
+/// (the button under a TV that needs attention), which opens the Developer Mode guide for it.</summary>
+public sealed record TvSheetChoice(int Index, bool Fix = false);
 
 /// <summary>
 /// The Switch TV sheet: the TVs in <see cref="TvSelection"/> with their LED colours and the one in
@@ -27,21 +28,60 @@ public partial class TvSheetPage : ContentPage
 	{
 		InitializeComponent();
 		localIps ??= Array.Empty<string>();
+		var ready = 0;
+		var attention = 0;
 		for (var i = 0; i < tvs.Count; i++)
 		{
-			if (i > 0)
-				Rows.Add(Hairline(37));
 			var tv = tvs[i];
 			var localIp = NetworkInfo.LocalIpFor(tv.Ip);
 			var device = tv.Device ?? new NetworkDevice { IpAddress = tv.Ip };
 			var state = TvCardStates.ForDevice(device, localIps, localIp, L10n.Get);
-			// Name over "model · IP · where it stands": "via relay", "points at 192.168.1.20", "needs a restart".
 			var (led, detail) = TvCardStates.RowStatus(device, localIps, localIp, L10n.Get);
 			var index = i;
-			Rows.Add(TvRow(state.Name, string.IsNullOrEmpty(detail) ? state.Subline : $"{state.Subline} · {detail}", i == selected, led == TvLed.Ok,
-				() => Choose(new TvSheetChoice(index))));
+			if (led == TvLed.Ok)
+			{
+				// Name over "model · IP", with "via relay" where that is how it is reached.
+				if (ready++ > 0)
+					Rows.Add(Hairline(37));
+				Rows.Add(TvRow(state.Name, string.IsNullOrEmpty(detail) ? state.Subline : $"{state.Subline} · {detail}", i == selected, true,
+					() => Choose(new TvSheetChoice(index))));
+				continue;
+			}
+
+			// A TV that refuses this phone: the card's own sentence under it, and the way to the fix.
+			if (attention++ > 0)
+				AttentionRows.Add(Hairline(16));
+			var block = new VerticalStackLayout { Spacing = 0 };
+			block.Add(TvRow(state.Name, state.Subline, i == selected, false, () => Choose(new TvSheetChoice(index))));
+			block.Add(new Label
+			{
+				Text = state.Message, FontSize = 14, LineBreakMode = LineBreakMode.WordWrap,
+				Margin = new Thickness(37, 0, 16, 12),
+			});
+			var fixes = state.Actions.Where(a => a is TvCardAction.FixDeveloperMode or TvCardAction.TurnOnRelay).ToList();
+			if (fixes.Count > 0)
+			{
+				var fix = fixes[0];
+				var button = new Button
+				{
+					Text = L10n.Get(TvCardStates.ActionLabelKey(fix)), FontSize = 14, FontAttributes = FontAttributes.Bold,
+					HeightRequest = 44, MinimumHeightRequest = 44, CornerRadius = 12, Padding = new Thickness(16, 0),
+					HorizontalOptions = LayoutOptions.Start, Margin = new Thickness(37, 0, 16, 14),
+					BackgroundColor = C("WarnSoft"), TextColor = C("Ink"),
+				};
+				button.Clicked += (_, _) => Choose(new TvSheetChoice(index, Fix: true));
+				block.Add(button);
+			}
+			AttentionRows.Add(block);
 		}
-		FoundTitle.IsVisible = FoundCard.IsVisible = tvs.Count > 0;
+
+		FoundTitle.IsVisible = FoundCard.IsVisible = ready > 0;
+		AttentionTitle.IsVisible = AttentionCard.IsVisible = attention > 0;
+		if (attention > 0)
+		{
+			FoundTitle.Text = L10n.Get("lblTvListReady");
+			AttentionTitle.Text = string.Format(L10n.Get("lblTvListNeedsAttention"), attention);
+		}
 	}
 
 	private static Color C(string token) => DesignTheme.ColorOf(token);
@@ -88,8 +128,16 @@ public partial class TvSheetPage : ContentPage
 		if (_closedWithResult)
 			return;
 		_closedWithResult = true;
-		_result.TrySetResult(choice);
-		await Navigation.PopModalAsync();
+		// Pop first, then hand back the choice (like the app sheet, #888): the caller may open the
+		// Developer Mode guide from it, and a modal pushed while this one is still closing crashed.
+		try
+		{
+			await Navigation.PopModalAsync();
+		}
+		finally
+		{
+			_result.TrySetResult(choice);
+		}
 	}
 
 	private async void OnCloseClicked(object? sender, EventArgs e) => await Navigation.PopModalAsync();
