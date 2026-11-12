@@ -86,6 +86,13 @@ public static class SourcesCommand
     {
         if (s.Options.Arguments.Count < 2)
             return s.Out.Fail("sources add needs the link to add", Output.Usage);
+        // A source link from a website (#1066): the repository it names goes through the same checks below.
+        if (InstallLink.LooksLikeLink(s.Options.Arguments[1]))
+        {
+            if (!InstallLink.TryParse(s.Options.Arguments[1], out var link) || link!.Kind != InstallLinkKind.Source)
+                return s.Out.Fail("not a source link: an apps2samsung://source?url=<https link> link adds a source, an install link installs with `install <link>`", Output.Usage);
+            s.Options.Arguments[1] = link.SourceUrl!;
+        }
         if (UserSources.IsSignedRepository(s.Options.Arguments[1]))
             return await AddRepositoryAsync(s, s.Options.Arguments[1].Trim(), ct);
         var source = new UserSource

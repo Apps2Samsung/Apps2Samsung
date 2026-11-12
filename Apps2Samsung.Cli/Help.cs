@@ -72,6 +72,10 @@ public static class Help
         usage: apps2samsung-cli install <app|file> --tv <ip> [options]
 
           <app>                 a catalog name as `catalog` prints it (case does not matter; a unique part of it works)
+          <link>                an install link from a website or a README (issue #1066):
+                                apps2samsung://install?app=<name>[&file=<file>] or the same on
+                                https://apps2samsung.com/install; app is the exact catalog name, or a
+                                package id or app id from the catalog; the rest of the options still apply
           <file>                a local .wgt or .tpk instead of a catalog app
           --file <name>         which file or variant of the app, when it has several (default: the app's default file)
           --version <tag>       which release, for an app with a version history (implies --all-versions)
@@ -277,6 +281,9 @@ public static class Help
           https://host/path/repository.json.signed   a signed repository: a developer's own list of apps,
                                                       signed with their key (the format is docs/repositories.md
                                                       in tizen-community-packages)
+
+          apps2samsung://source?url=<https link>      a source link from a website (issue #1066): adds the
+                                                      link it carries, with the same checks
 
         Signed repositories: `add` shows the repository's name, domain, maintainer and its key's
         fingerprint and asks whether to trust that key (or takes --fingerprint <key>, that key and no
