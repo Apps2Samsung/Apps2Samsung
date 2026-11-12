@@ -173,6 +173,64 @@ namespace Apps2Samsung.Catalog
             Changed?.Invoke();
         }
 
+        /// <summary>Every saved list as one JSON text, for a backup; null when there is none or no head configured the store.</summary>
+        public static string? ExportJson()
+        {
+            lock (Gate)
+            {
+                if (_path is null)
+                    return null;
+                var all = Read();
+                return all.Count == 0 ? null : JsonSerializer.Serialize(new Store { Tvs = all }, Json);
+            }
+        }
+
+        /// <summary>
+        /// Takes the lists of a backup in: a TV this device does not know is added, a TV it knows is
+        /// replaced only when the backup read it more recently. Returns how many TVs came in. Text that
+        /// is not a list of saved TVs brings in nothing.
+        /// </summary>
+        public static int Merge(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return 0;
+            List<SavedTv> incoming;
+            try
+            {
+                incoming = JsonSerializer.Deserialize<Store>(json, Json)?.Tvs ?? new List<SavedTv>();
+            }
+            catch (JsonException)
+            {
+                return 0;
+            }
+            incoming.RemoveAll(t => t is null || string.IsNullOrWhiteSpace(t.Key) || t.Profile?.Apps is null);
+
+            var taken = 0;
+            lock (Gate)
+            {
+                if (_path is null)
+                    return 0;
+                var all = Read();
+                foreach (var tv in incoming)
+                {
+                    tv.Missing ??= new List<string>();
+                    tv.Profile = Without(tv.Profile);
+                    var known = Find(all, tv.Key);
+                    if (known is not null && known.LastSeenUtc >= tv.LastSeenUtc)
+                        continue;
+                    if (known is not null)
+                        all.Remove(known);
+                    all.Add(tv);
+                    taken++;
+                }
+                if (taken > 0)
+                    Write(all);
+            }
+            if (taken > 0)
+                Changed?.Invoke();
+            return taken;
+        }
+
         private static void Change(string? key, Action<SavedTv> change)
         {
             lock (Gate)
