@@ -23,6 +23,23 @@
                      the top bar now (▾ picks another, ⋯ has Rescan / TV information / Toolbox). -->
                 <controls:TvCardView x:Name="TvCard" />
 
+                <!-- The TV in use refuses this phone and another one is ready (#1079, mockup C): one tap switches. -->
+                <Border x:Name="OtherTvRow" IsVisible="False" Padding="14,12" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                        BackgroundColor="{DynamicResource SurfaceColor}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnOtherTvRowTapped" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" MinimumHeightRequest="28">
+                        <BoxView WidthRequest="9" HeightRequest="9" CornerRadius="5" VerticalOptions="Center" Color="{DynamicResource OkColor}" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                            <Label x:Name="OtherTvLabel" FontSize="15" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                            <Label Text="{l:Localize lblOtherTvUse}" FontSize="13" TextColor="{DynamicResource MutedColor}" />
+                        </VerticalStackLayout>
+                        <shapes:Path Grid.Column="2" Data="M1,1 L7,6.5 L1,12" Stroke="{DynamicResource InkBrush}" StrokeThickness="2"
+                                     Opacity="0.35" WidthRequest="8" HeightRequest="13" VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+
                 <!-- How many apps had an update when On the TV last read this TV (#1067); opens On the TV. -->
                 <Border x:Name="UpdatesRow" IsVisible="False" Padding="14,12" StrokeThickness="0" StrokeShape="RoundRectangle 12"
                         BackgroundColor="{DynamicResource OkSoftColor}">

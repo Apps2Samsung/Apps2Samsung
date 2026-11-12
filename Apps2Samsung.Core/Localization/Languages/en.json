@@ -1409,5 +1409,8 @@
   "lblSavedTvPick": "Restore from a file",
   "lblTvStoreSendSourcesButton": "Send sources to TV…",
   "lblTvListReady": "Ready",
-  "lblTvListNeedsAttention": "Needs attention \u00b7 {0}"
+  "lblTvListNeedsAttention": "Needs attention \u00b7 {0}",
+  "lblTvsNeedAttention": "{0} TVs found \u00b7 {1} need attention",
+  "lblOtherTvReady": "{0} is ready",
+  "lblOtherTvUse": "Use that TV instead"
 }
