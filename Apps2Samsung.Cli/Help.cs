@@ -11,6 +11,8 @@ public static class Help
           menu [--tv <ip>]             the menu: every step is one of the commands below, shown before it runs
           scan [--virtual]             find Samsung TVs on this network and whether each can be installed to
           tv <ip>                      check one TV: Developer Mode, debug port, Tizen version, DUID
+          tv save <file> --tv <ip>     write down the TV's catalog apps, to install them again after a reset
+          tv restore <file> --tv <ip>  install the apps of a saved file that the TV does not have, one by one
           catalog [words...]           list installable apps; words narrow the list by name or description
           installed --tv <ip>          apps on the TV, with the catalog version next to the installed one
                                        (an app with several files is compared with the one this TV got)
@@ -173,6 +175,29 @@ public static class Help
         With --json: one document with each app's result and its install answer.
         """;
 
+    private const string Tv = """
+        usage: apps2samsung-cli tv <ip>
+               apps2samsung-cli tv save <file> --tv <ip> [--with-settings] [--yes] [--json]
+               apps2samsung-cli tv restore <file> --tv <ip> [app...] [install options] [--json]
+
+        tv <ip> checks one TV: Developer Mode, debug port, Tizen version, DUID.
+
+        tv save writes a TV profile: the apps on the TV that are in the catalog or one of your
+        sources, each with its variant and the source it came from. Apps that are not (preinstalled,
+        from Samsung's store, installed from a file) and apps the catalog removed are left out and
+        counted. The values typed for packages that ask for some (a server address, an API key) are
+        only written with --with-settings; keep such a file private. --yes writes over an existing file.
+
+        tv restore installs the profile's apps on a TV, after a factory reset, a Smart Hub reset or
+        on a new set. Each app is installed exactly as `install <app> --file <its variant> --from
+        <its source>` would, in the catalog's current version. An app the TV has already is skipped;
+        one the catalog no longer has, or whose source is not added on this machine, is reported.
+        A package that asks for values gets them from --set, then from the profile, then from what
+        the desktop app saved; without them it is reported with the install line to run. Names
+        after the file restore only those apps. A failure does not stop the run. Install options
+        such as --yes, --partner, --tizen-cert, --allow-root and --local-ip apply to every app.
+        """;
+
     private const string Cert = """
         usage: apps2samsung-cli cert [--tv <ip>] [--partner] [--prepare] [--duids <DUID,...>] [--force-login] [--json]
                apps2samsung-cli cert --prepare --tizen-cert [public|partner|platform] [--tizen-chain legacy|new] [--force-login]
@@ -320,6 +345,7 @@ public static class Help
     {
         "catalog" or "search" or "apps" => Catalog,
         "sources" or "source" => Sources,
+        "tv" => Tv,
         "install" => Install,
         "update" or "upgrade" => Update,
         "sign" => Sign,
