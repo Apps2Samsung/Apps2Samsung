@@ -168,3 +168,101 @@ public class SavedTvsTests : IDisposable
         Assert.Empty(SavedTvs.All());
     }
 }
+
+// The saved lists travel in the Backup & restore zip (#1069).
+[Collection("SavedTvs")]
+public class SavedTvsBackupTests : IDisposable
+{
+    private static readonly DateTimeOffset Day1 = new(2026, 11, 3, 10, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset Day2 = new(2026, 11, 12, 10, 0, 0, TimeSpan.Zero);
+    private readonly string _dir = Path.Combine(Path.GetTempPath(), "a2s-savedtvs-zip-" + Guid.NewGuid().ToString("N"));
+
+    public SavedTvsBackupTests() => Use("a");
+
+    private void Use(string device) => SavedTvs.Configure(Path.Combine(_dir, device, SavedTvs.FileName));
+
+    public void Dispose()
+    {
+        SavedTvs.Reset();
+        try { Directory.Delete(_dir, recursive: true); } catch (IOException) { }
+    }
+
+    private static TvProfile Profile(params string[] names) => new()
+    {
+        TvName = "Living room",
+        Apps = names.Select(n => new TvProfileApp { Name = n, AppId = n + ".app", PackageFile = n + ".wgt" }).ToList(),
+    };
+
+    private byte[] Export()
+    {
+        using var zip = new MemoryStream();
+        Apps2Samsung.Backup.BackupService.Export(zip, "{}", Path.Combine(_dir, "no-certificates"));
+        return zip.ToArray();
+    }
+
+    private void Import(byte[] zip)
+    {
+        using var stream = new MemoryStream(zip);
+        Apps2Samsung.Backup.BackupService.Import(stream, Path.Combine(_dir, "certificates-in"));
+    }
+
+    [Fact]
+    public void A_backup_carries_the_saved_tvs_to_another_device()
+    {
+        SavedTvs.Remember("192.168.1.50", Profile("Jellyfin", "Litefin"), Day1);
+        var zip = Export();
+
+        Use("b");
+        Assert.Empty(SavedTvs.All());
+        Import(zip);
+
+        Assert.Equal(2, SavedTvs.Get("192.168.1.50")!.Profile.Apps.Count);
+    }
+
+    [Fact]
+    public void A_list_this_device_read_more_recently_is_kept()
+    {
+        SavedTvs.Remember("192.168.1.50", Profile("Jellyfin"), Day1);
+        var zip = Export();
+
+        Use("b");
+        SavedTvs.Remember("192.168.1.50", Profile("Jellyfin", "Litefin", "Moonlight"), Day2);
+        SavedTvs.Remember("192.168.1.51", Profile("Overscan"), Day2);
+        Import(zip);
+
+        Assert.Equal(3, SavedTvs.Get("192.168.1.50")!.Profile.Apps.Count);
+        Assert.Equal(2, SavedTvs.All().Count);
+    }
+
+    [Fact]
+    public void An_older_list_here_is_replaced_by_the_backups()
+    {
+        SavedTvs.Remember("192.168.1.50", Profile("Jellyfin", "Litefin"), Day2);
+        var zip = Export();
+
+        Use("b");
+        SavedTvs.Remember("192.168.1.50", Profile("Jellyfin"), Day1);
+        Import(zip);
+
+        Assert.Equal(2, SavedTvs.Get("192.168.1.50")!.Profile.Apps.Count);
+    }
+
+    [Fact]
+    public void A_backup_without_saved_tvs_has_no_entry_and_imports_cleanly()
+    {
+        var zip = Export();
+        using (var archive = new System.IO.Compression.ZipArchive(new MemoryStream(zip)))
+            Assert.DoesNotContain(archive.Entries, e => e.FullName == SavedTvs.FileName);
+
+        Import(zip);
+        Assert.Empty(SavedTvs.All());
+    }
+
+    [Fact]
+    public void Text_that_is_not_a_list_brings_in_nothing()
+    {
+        Assert.Equal(0, SavedTvs.Merge("{ not json"));
+        Assert.Equal(0, SavedTvs.Merge("[1,2,3]"));
+        Assert.Empty(SavedTvs.All());
+    }
+}

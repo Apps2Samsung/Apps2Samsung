@@ -19,6 +19,8 @@ namespace Apps2Samsung.Backup
     ///   • <c>Certificate/…</c>  — the generated signing profiles (the folder each head exposes as
     ///                             <see cref="Apps2Samsung.Configuration.IAppConfig.CertificateStorePath"/>),
     ///                             so the Samsung login + already-installed apps' signing survive the move.
+    ///   • <c>saved-tvs.json</c>: the app list of each TV (#1069, <see cref="Apps2Samsung.Catalog.SavedTvs"/>),
+    ///                             so a TV can be restored from the other device too. No typed values in it.
     /// Both heads store certs under the same relative <c>Certificate/</c> layout, so that half is uniform;
     /// only the settings mapping is head-specific and lives in each head.
     /// </summary>
@@ -26,6 +28,7 @@ namespace Apps2Samsung.Backup
     {
         public const string SettingsEntryName = "settings.json";
         private const string CertPrefix = "Certificate/";
+        public const string SavedTvsEntryName = Apps2Samsung.Catalog.SavedTvs.FileName;
 
         /// <summary>Write <paramref name="settingsJson"/> and the whole <paramref name="certificateStorePath"/>
         /// tree into <paramref name="zipOutput"/>. The stream is left open for the caller to dispose.</summary>
@@ -38,6 +41,14 @@ namespace Apps2Samsung.Backup
                 var entry = zip.CreateEntry(SettingsEntryName, CompressionLevel.Optimal);
                 using var writer = new StreamWriter(entry.Open());
                 writer.Write(settingsJson);
+            }
+
+            // The saved app lists (#1069), read from the store the head configured; nothing when it has none.
+            if (Apps2Samsung.Catalog.SavedTvs.ExportJson() is { } savedTvs)
+            {
+                var entry = zip.CreateEntry(SavedTvsEntryName, CompressionLevel.Optimal);
+                using var writer = new StreamWriter(entry.Open());
+                writer.Write(savedTvs);
             }
 
             if (Directory.Exists(certificateStorePath))
@@ -66,6 +77,12 @@ namespace Apps2Samsung.Backup
                 {
                     using var reader = new StreamReader(entry.Open());
                     settingsJson = reader.ReadToEnd();
+                }
+                else if (entry.FullName.Equals(SavedTvsEntryName, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Added to what this device has; a list it read more recently itself is kept.
+                    using var reader = new StreamReader(entry.Open());
+                    Apps2Samsung.Catalog.SavedTvs.Merge(reader.ReadToEnd());
                 }
                 else if (entry.FullName.StartsWith(CertPrefix, StringComparison.OrdinalIgnoreCase)
                          && !string.IsNullOrEmpty(entry.Name))

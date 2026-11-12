@@ -228,6 +228,7 @@ internal sealed class Menu
                 Act("Installed apps", "with updates from the catalog", "installed"),
                 Act("Certificate", E(certNote), "cert"),
                 Act("TV-Store", "setup check, arm, send sources, its log", "tvstore"),
+                Act("Save or restore", "this TV's app list as a file, to install it all again", "profile"),
                 Act("Install leftovers", "packages left in the TV's staging folder", "leftovers"),
                 Act("Developer Mode", tv.State.Ready ? "ready; the guide for this TV" : "the guide for this TV", "devmode"),
                 Act("Session log", "what this session did, for a bug report", "log"),
@@ -240,6 +241,7 @@ internal sealed class Menu
                 case "installed": await InstalledAsync(tv); break;
                 case "cert": await CertificateAsync(tv); break;
                 case "tvstore": await TvStoreAsync(tv); break;
+                case "profile": await TvProfileAsync(tv); break;
                 case "devmode":
                     tv = await DeveloperModeAsync(tv);
                     break;
@@ -346,6 +348,59 @@ internal sealed class Menu
                 case "sources": await RunAsync("tvstore", "sources", "--tv", ip); break;
                 case "log": await RunAsync("tvstore", "log", "--tv", ip); break;
                 case "check": break;
+                default: return;
+            }
+        }
+    }
+
+    // ---- the TV's app list as a file (#1069) ----
+
+    /// <summary>
+    /// Save this TV's apps to a file, or install a saved list again: `tv save` and `tv restore`, with
+    /// the file asked for here. Both commands print what they did, so this only asks and runs.
+    /// </summary>
+    private async Task TvProfileAsync(Tv tv)
+    {
+        var ip = tv.State.Ip;
+        while (true)
+        {
+            Screen();
+            Show(Views.TvCard(tv.State, _unicode));
+            var items = new List<Item>
+            {
+                Act("Save the app list", "the apps on this TV that came from the catalog", "save"),
+                Act("Restore from a file", "install a saved list on this TV; what is there is skipped", "restore"),
+                new(M($"{(_unicode ? "←" : "<-")} Back"), "back"),
+            };
+            var pick = await SelectAsync(M("Save or restore"), items);
+            switch (pick.Tag)
+            {
+                case "save":
+                {
+                    var file = (await AskAsync("File to write:", allowEmpty: true, defaultValue: $"tv-{ip}.a2stv")).Trim();
+                    if (file.Length == 0)
+                        break;
+                    var args = new List<string> { "tv", "save", file, "--tv", ip };
+                    if (await ConfirmAsync("Include the settings you typed for apps (server addresses, API keys)? Anyone with the file can read them.", defaultValue: false))
+                        args.Add("--with-settings");
+                    if (File.Exists(file))
+                    {
+                        if (!await ConfirmAsync($"{E(file)} exists already. Write over it?", defaultValue: false))
+                            break;
+                        args.Add("--yes");
+                    }
+                    await RunAsync(args.ToArray());
+                    break;
+                }
+                case "restore":
+                {
+                    var file = (await AskAsync("File to restore from:", allowEmpty: true)).Trim();
+                    if (file.Length == 0)
+                        break;
+                    if (await ConfirmAsync($"Install the apps of {E(file)} that are not on {E(ip)} yet?"))
+                        await RunAsync("tv", "restore", file, "--tv", ip);
+                    break;
+                }
                 default: return;
             }
         }
