@@ -1427,14 +1427,57 @@ public partial class InstallerPage : ContentPage
 		// The last install on this TV failed (a refused connection, most often): amber with the
 		// failure as the line, until the TV changes or the next install starts.
 		var failed = !_busy && _installFailed && state.IsDevice;
+		// The TV in use refuses this phone (#1079, mockup C): the card says why in its own words. The
+		// scan's line ("2 not ready: select one to see why") used to take this place, and the reason
+		// sat in the top bar, cut off. Now the reason is on the card and the count is in the top bar.
+		var ownProblem = !_busy && !failed && state.IsDevice && state.Problem != DevModeProblem.None;
+		ShowOtherTv(ownProblem);
+		if (ownProblem && _tv.Tvs.Count > 1)
+		{
+			var ips = LocalIps();
+			var attention = _tv.Tvs.Count(t => t.Device is { } d && DevModeGuide.Diagnose(d, ips) != DevModeProblem.None);
+			TopBar.Subtitle = string.Format(L10n.Get("lblTvsNeedAttention"), _tv.Tvs.Count, attention);
+		}
 		TvCard.State = state with
 		{
 			Led = _busy ? TvLed.Busy : failed && state.Led == TvLed.Ok ? TvLed.Warn : state.Led,
-			Message = string.IsNullOrWhiteSpace(_status) ? state.Message : _status,
+			Message = ownProblem || string.IsNullOrWhiteSpace(_status) ? state.Message : _status,
 			Actions = _busy ? Array.Empty<TvCardAction>() : state.Actions,
 		};
 		TvCard.RouteText = TvCardStates.RouteText(TvCard.State, L10n.Get);
 		SyncTvCardActions(TvCard.State.Actions);
+	}
+
+	// The row under the card: the first other TV that takes installs, while the one in use does not.
+	private int _otherTv = -1;
+
+	private void ShowOtherTv(bool ownProblem)
+	{
+		_otherTv = -1;
+		if (ownProblem)
+		{
+			var ips = LocalIps();
+			for (var i = 0; i < _tv.Tvs.Count && _otherTv < 0; i++)
+			{
+				var tv = _tv.Tvs[i];
+				if (i == _tv.SelectedIndex || tv.Device is not { } device)
+					continue;
+				var (led, _) = TvCardStates.RowStatus(device, ips, NetworkInfo.LocalIpFor(tv.Ip), L10n.Get);
+				if (led == TvLed.Ok)
+				{
+					_otherTv = i;
+					var name = string.IsNullOrWhiteSpace(device.DeviceName) ? tv.Ip : device.DeviceName;
+					OtherTvLabel.Text = string.Format(L10n.Get("lblOtherTvReady"), name);
+				}
+			}
+		}
+		OtherTvRow.IsVisible = _otherTv >= 0;
+	}
+
+	private void OnOtherTvRowTapped(object? sender, TappedEventArgs e)
+	{
+		if (!_busy && _otherTv >= 0 && _otherTv < _tv.Tvs.Count)
+			_tv.Select(_otherTv);
 	}
 
 	// The chips under the status line (TvCardStates.ActionsFor): rebuilt only when the set changes.
