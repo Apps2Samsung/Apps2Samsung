@@ -610,6 +610,18 @@ namespace Apps2Samsung.ViewModels
             _settingsViewModel.CheckForUpdatesHandler = () => CheckForUpdatesAsync(manual: true);
             // Settings > Installing > Prepare the certificate now: for the selected TV.
             _settingsViewModel.PrepareCertificateHandler = PrepareCertificateAsync;
+            // Settings > Backup > Saved TVs > Restore (#1069): the sheet opens in On the TV, against the selected TV.
+            _settingsViewModel.Application.RestoreProfile = async profile =>
+            {
+                if (!HasSelectedTv)
+                {
+                    await _dialogService.ShowErrorAsync(L("statusSavedTvNoTv"));
+                    return;
+                }
+                await ShowInstalledAppsAsync();
+                if (InstalledAppsVm is { } onTv)
+                    await onTv.RestoreProfileWhenLoadedAsync(profile);
+            };
             // The catalog ⋯ > Show adult (18+) apps (#850): the list follows at once.
             _settingsViewModel.Application.ShowAdultAppsChanged += () =>
             {
@@ -1495,7 +1507,9 @@ namespace Apps2Samsung.ViewModels
                     refreshCatalog: () => LoadReleasesAsync(),
                     icons: _catalogIcons);
                 vm.OnRequestClose += () => SelectedSection = Section.Install;
-                vm.UseUpdateAll(UpdateAllFromCatalogAsync);
+                vm.UseUpdateAll((items, onItem, stop) => UpdateAllFromCatalogAsync(items, onItem, stop));
+                // Restore a TV (#1069) is the same queue; an app that is not on the TV installs the way an update does.
+                vm.UseRestore(UpdateAllFromCatalogAsync, (release, asset) => CollectUserSettingsAsync(release, asset));
                 InstalledAppsVm = vm;
             }
             catch (Exception ex)
@@ -1537,15 +1551,18 @@ namespace Apps2Samsung.ViewModels
         /// a copy, values not saved yet) still ask. A package that gains root is left for its own Update.
         /// </summary>
         private async Task<IReadOnlyList<UpdateAllOutcome>> UpdateAllFromCatalogAsync(
-            IReadOnlyList<(GitHubRelease Release, Asset Asset)> items, Action<int, string> onItem, Func<bool> stopRequested)
+            IReadOnlyList<(GitHubRelease Release, Asset Asset)> items, Action<int, string> onItem, Func<bool> stopRequested,
+            Action<int, UpdateAllOutcome>? onOutcome = null)
         {
-            var outcomes = new List<UpdateAllOutcome>();
+            var results = new List<UpdateAllOutcome>();
             var device = SelectedDevice;
             if (device is null)
-                return outcomes;
+                return results;
+            var outcomes = new OutcomeSink(results, onOutcome);
 
             for (var i = 0; i < items.Count; i++)
             {
+                outcomes.Index = i;
                 var (release, asset) = items[i];
                 if (stopRequested())
                 {
@@ -1613,7 +1630,18 @@ namespace Apps2Samsung.ViewModels
                     outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.Failed, failure ?? L("statusInstallCancelled")));
                 }
             }
-            return outcomes;
+            return results;
+        }
+
+        // Keeps each outcome and tells the caller as it lands (the restore marks its rows with it).
+        private sealed class OutcomeSink(List<UpdateAllOutcome> results, Action<int, UpdateAllOutcome>? onOutcome)
+        {
+            public int Index { get; set; }
+            public void Add(UpdateAllOutcome outcome)
+            {
+                results.Add(outcome);
+                onOutcome?.Invoke(Index, outcome);
+            }
         }
 
         private async Task UpdateFromCatalogAsync(GitHubRelease release, Asset asset)

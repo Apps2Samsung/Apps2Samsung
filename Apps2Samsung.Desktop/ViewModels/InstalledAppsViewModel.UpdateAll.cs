@@ -58,13 +58,13 @@ namespace Apps2Samsung.ViewModels
             UpdatesCount = targets.Count;
             UpdatesTitle = targets.Count == 1 ? "lblUpdateAllOne".Localized() : string.Format("lblUpdateAllMany".Localized(), targets.Count);
             UpdatesNames = string.Join(", ", targets.Select(t => t.Name));
-            ShowUpdatesBanner = targets.Count > 0 && _updateAll is not null && !IsUpdatingAll && !HasUpdateAllSummary;
+            ShowUpdatesBanner = targets.Count > 0 && _updateAll is not null && !IsUpdatingAll && !IsRestoring && !HasUpdateAllSummary;
         }
 
         [RelayCommand]
         private async Task UpdateAll()
         {
-            if (_updateAll is null || IsUpdatingAll || IsBusy)
+            if (_updateAll is null || IsUpdatingAll || IsRestoring || IsBusy)
                 return;
             var targets = UpdateTargets();
             if (targets.Count == 0)
@@ -74,6 +74,7 @@ namespace Apps2Samsung.ViewModels
             StopAfterCurrent = false;
             IsUpdatingAll = true;
             ShowUpdatesBanner = false;
+            ShowRestoreCard = false;
             HasUpdateAllSummary = false;
             IReadOnlyList<UpdateAllOutcome> outcomes;
             try
@@ -111,10 +112,15 @@ namespace Apps2Samsung.ViewModels
         private void DismissUpdateAllSummary()
         {
             HasUpdateAllSummary = false;
+            RestoreRows.Clear();
+            OnPropertyChanged(nameof(HasRestoreRows));
             RefreshUpdatesBanner();
+            RefreshRestoreOffer();
         }
 
-        private void ShowSummary(IReadOnlyList<UpdateAllOutcome> outcomes)
+        // The restore (#1069) ends in the same summary, in its own words.
+        private void ShowSummary(IReadOnlyList<UpdateAllOutcome> outcomes, string doneKey = "lblUpdateAllDone",
+            string doneFailedKey = "lblUpdateAllDoneFailed", string notStartedKey = "lblUpdateAllNotStarted")
         {
             var updated = outcomes.Count(o => o.State == UpdateAllState.Updated);
             var failed = outcomes.Where(o => o.State == UpdateAllState.Failed).ToList();
@@ -122,14 +128,14 @@ namespace Apps2Samsung.ViewModels
 
             UpdateAllSummaryWarn = failed.Count > 0;
             UpdateAllSummaryTitle = failed.Count == 0
-                ? string.Format("lblUpdateAllDone".Localized(), updated)
-                : string.Format("lblUpdateAllDoneFailed".Localized(), updated, failed.Count);
+                ? string.Format(doneKey.Localized(), updated)
+                : string.Format(doneFailedKey.Localized(), updated, failed.Count);
             var lines = new List<string>();
             foreach (var f in failed)
                 lines.Add($"{f.Name}: {f.Detail}");
             foreach (var s in skipped)
                 lines.Add(s.State == UpdateAllState.NotStarted
-                    ? string.Format("lblUpdateAllNotStarted".Localized(), s.Name)
+                    ? string.Format(notStartedKey.Localized(), s.Name)
                     : $"{s.Name}: {s.Detail}");
             UpdateAllSummaryText = string.Join("\n", lines);
             HasUpdateAllSummary = true;

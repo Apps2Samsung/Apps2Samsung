@@ -31,6 +31,8 @@ namespace Apps2Samsung.Views
                 if (TopLevel.GetTopLevel(this) is Window owner)
                     new DebugConsoleWindow(console).Show(owner);
             };
+            vm.OnRequestRestoreSheet += async sheet =>
+                TopLevel.GetTopLevel(this) is Window owner && await new RestoreTvWindow(sheet).ShowDialog<bool>(owner);
             await vm.LoadCommand.ExecuteAsync(null);
         }
 
