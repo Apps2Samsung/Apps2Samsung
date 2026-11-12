@@ -1011,5 +1011,6 @@
   "lblUserSourceCategory": "الفئة",
   "tvCardActionCheckAgain": "تحقق مرة أخرى",
   "infoPortOpen": "فتح",
-  "lblRemovedOn": "على {0}"
+  "lblRemovedOn": "على {0}",
+  "lblLinkClose": "إغلاق"
 }

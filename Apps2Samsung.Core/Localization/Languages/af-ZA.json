@@ -1000,5 +1000,6 @@
   "lblUserSourceCategory": "Kategorie",
   "tvCardActionCheckAgain": "Kontroleer weer",
   "infoPortOpen": "Maak oop",
-  "lblRemovedOn": "op {0}"
+  "lblRemovedOn": "op {0}",
+  "lblLinkClose": "Maak toe"
 }

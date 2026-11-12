@@ -1002,5 +1002,6 @@
   "lblUserSourceCategory": "Kategori",
   "tvCardActionCheckAgain": "Kontrollera igen",
   "infoPortOpen": "Öppna",
-  "lblRemovedOn": "på {0}"
+  "lblRemovedOn": "på {0}",
+  "lblLinkClose": "Stäng"
 }

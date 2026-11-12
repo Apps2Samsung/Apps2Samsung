@@ -1002,5 +1002,6 @@
   "lblUserSourceCategory": "Categoría",
   "tvCardActionCheckAgain": "Comprobar de nuevo",
   "infoPortOpen": "Abrir",
-  "lblRemovedOn": "en {0}"
+  "lblRemovedOn": "en {0}",
+  "lblLinkClose": "Cerrar"
 }

@@ -1006,5 +1006,6 @@
   "lblUserSourceCategory": "Danh mục",
   "tvCardActionCheckAgain": "Kiểm tra lại",
   "infoPortOpen": "Mở",
-  "lblRemovedOn": "trên {0}"
+  "lblRemovedOn": "trên {0}",
+  "lblLinkClose": "Đóng"
 }

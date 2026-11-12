@@ -987,5 +987,6 @@
   "lblUserSourceCategory": "Categoria",
   "tvCardActionCheckAgain": "Controlla di nuovo",
   "infoPortOpen": "Apri",
-  "lblRemovedOn": "su {0}"
+  "lblRemovedOn": "su {0}",
+  "lblLinkClose": "Chiudi"
 }
