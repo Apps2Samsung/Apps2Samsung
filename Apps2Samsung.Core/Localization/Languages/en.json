@@ -1307,5 +1307,6 @@
   "lblUpdateAllNotStarted": "{0}: not started, Update all was stopped",
   "lblUpdateAllSkippedRoot": "gains root, so it only updates on its own (Update on its row)",
   "lblUpdateAllOneTv": "1 update for this TV",
-  "lblUpdateAllManyTv": "{0} updates for this TV"
+  "lblUpdateAllManyTv": "{0} updates for this TV",
+  "lblCatalogSchemaNewer": "The catalog uses a newer format (version {0}) than this version of Apps2Samsung knows; update Apps2Samsung if something looks missing."
 }

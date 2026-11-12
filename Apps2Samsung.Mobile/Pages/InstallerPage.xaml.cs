@@ -309,6 +309,9 @@ public partial class InstallerPage : ContentPage
 		CatalogFoot.Text = _catalogFailed > 0
 			? string.Format(L10n.Get("lblCatalogFootFailed"), listed.Count, _catalogFailed)
 			: string.Format(L10n.Get("lblCatalogFoot"), listed.Count);
+		// A catalog in a newer format than this build knows: said under the list.
+		if (CatalogSchema.Notice(L10n.Get) is { } newer)
+			CatalogFoot.Text += " " + newer;
 	}
 
 	private static Border GroupBorder(View content) => new()

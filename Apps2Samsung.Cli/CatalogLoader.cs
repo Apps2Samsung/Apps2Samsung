@@ -79,6 +79,7 @@ public sealed class CatalogLoader
                     // The official catalog decides the categories, their order and tile colours (#1054).
                     AppCategories.Use(catalog);
                     CatalogPreviews.Use(catalog);
+                    CatalogSchema.Use(catalog);
                 }
             }
             else
