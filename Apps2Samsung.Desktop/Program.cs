@@ -15,6 +15,16 @@ namespace Apps2Samsung
             // DefaultLogDirectory keeps logs OUT of the .app bundle on macOS (see FileLog / issue #498).
             Apps2Samsung.Diagnostics.FileLog.Initialize(Apps2Samsung.Diagnostics.FileLog.DefaultLogDirectory);
 
+            // An install link (#1066): handed to the Apps2Samsung that already runs, if one does;
+            // else this start opens it once the catalog is in, and takes later links itself.
+            var link = Apps2Samsung.Services.InstallLinkRelay.FromArgs(args);
+            if (link is not null && Apps2Samsung.Services.InstallLinkRelay.TrySend(link))
+                return;
+            if (link is not null)
+                Apps2Samsung.Services.InstallLinkRelay.Deliver(link);
+            Apps2Samsung.Services.InstallLinkRelay.StartListening();
+            Apps2Samsung.Services.UrlSchemeRegistration.EnsureRegistered();
+
 
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args);

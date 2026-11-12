@@ -387,14 +387,98 @@ namespace Apps2Samsung.Services
                     await new ContributeAppWindow(Localize).ShowDialog(window);
             });
 
-        public Task<Apps2Samsung.Catalog.UserSource?> ShowAddUserSourceAsync(System.Collections.Generic.IReadOnlyList<Apps2Samsung.Catalog.UserSource> existing) =>
+        public Task<Apps2Samsung.Catalog.UserSource?> ShowAddUserSourceAsync(System.Collections.Generic.IReadOnlyList<Apps2Samsung.Catalog.UserSource> existing, string? fromLink = null) =>
             Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 var window = GetMainWindow();
                 if (window == null)
                     return null;
-                return await new UserSourceWindow(Localize, existing, ProbeRepository).ShowDialog<Apps2Samsung.Catalog.UserSource?>(window);
+                return await new UserSourceWindow(Localize, existing, ProbeRepository, fromLink: fromLink).ShowDialog<Apps2Samsung.Catalog.UserSource?>(window);
             });
+
+        // ---- install links (#1066) ----
+
+        public Task<GitHubRelease?> ShowLinkSourcePickerAsync(string title, string message,
+            IReadOnlyList<(GitHubRelease Release, string Label, string Detail)> choices, string cancelText) =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var window = GetMainWindow();
+                if (window == null)
+                    return null;
+                GitHubRelease? picked = null;
+                var panel = new StackPanel { Spacing = 8 };
+                panel.Children.Add(LinkText(message));
+                var buttons = new List<(Button Button, GitHubRelease Release)>();
+                foreach (var choice in choices)
+                {
+                    var content = new StackPanel { Spacing = 2 };
+                    content.Children.Add(new TextBlock { Text = choice.Label, FontWeight = FontWeight.SemiBold, FontSize = 14, TextWrapping = TextWrapping.Wrap });
+                    content.Children.Add(new TextBlock { Text = choice.Detail, FontSize = 12, Foreground = DesignTheme.Brush("Muted"), TextWrapping = TextWrapping.Wrap });
+                    var button = new Button
+                    {
+                        Content = content,
+                        HorizontalAlignment = HorizontalAlignment.Stretch,
+                        HorizontalContentAlignment = HorizontalAlignment.Left,
+                        Padding = new Thickness(14, 10),
+                        CornerRadius = new CornerRadius(10),
+                    };
+                    buttons.Add((button, choice.Release));
+                    panel.Children.Add(button);
+                }
+                var cancel = LinkButton(cancelText, primary: false);
+                cancel.HorizontalAlignment = HorizontalAlignment.Right;
+                panel.Children.Add(cancel);
+                var dialog = CreateStyledDialog(title, panel);
+                foreach (var (button, release) in buttons)
+                    button.Click += (_, _) => { picked = release; Dispatcher.UIThread.Post(dialog.Close); };
+                cancel.Click += (_, _) => Dispatcher.UIThread.Post(dialog.Close);
+                await dialog.ShowDialog(window);
+                return picked;
+            });
+
+        public Task<bool> ShowLinkProblemAsync(string title, string message, string actionText, string closeText) =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var window = GetMainWindow();
+                if (window == null)
+                    return false;
+                var act = false;
+                var panel = new StackPanel { Spacing = 14 };
+                panel.Children.Add(LinkText(message));
+                var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right };
+                var close = LinkButton(closeText, primary: false);
+                var action = LinkButton(actionText, primary: true);
+                row.Children.Add(close);
+                row.Children.Add(action);
+                panel.Children.Add(row);
+                var dialog = CreateStyledDialog(title, panel);
+                close.Click += (_, _) => Dispatcher.UIThread.Post(dialog.Close);
+                action.Click += (_, _) => { act = true; Dispatcher.UIThread.Post(dialog.Close); };
+                await dialog.ShowDialog(window);
+                return act;
+            });
+
+        private static TextBlock LinkText(string text) => new()
+        {
+            Text = text,
+            TextWrapping = TextWrapping.Wrap,
+            FontSize = 14,
+            Foreground = GetThemeBrush("SystemControlForegroundBaseHighBrush", AppSettings.Default.DarkMode),
+        };
+
+        // Sized to the label: these say more than Yes/No.
+        private static Button LinkButton(string text, bool primary) => new()
+        {
+            Content = text,
+            MinWidth = 90,
+            Height = 35,
+            Padding = new Thickness(16, 0),
+            Background = DesignTheme.Brush(primary ? "Accent" : "Muted"),
+            Foreground = DesignTheme.Brush("OnAccent"),
+            CornerRadius = new CornerRadius(8),
+            HorizontalContentAlignment = HorizontalAlignment.Center,
+            VerticalContentAlignment = VerticalAlignment.Center,
+        };
 
         public Task<Apps2Samsung.Catalog.UserSource?> ShowReviewRepositoryKeyAsync(Apps2Samsung.Catalog.UserSource source) =>
             Dispatcher.UIThread.InvokeAsync(async () =>
