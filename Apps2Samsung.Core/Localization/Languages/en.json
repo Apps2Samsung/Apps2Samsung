@@ -1396,5 +1396,15 @@
   "lblSavedTvFromFile": "Restore a TV from a file",
   "hintSavedTvFromFile": "An app list saved here, on another computer or by the CLI (tv save)",
   "lblSavedTvChooseFile": "Choose a file…",
-  "statusSavedTvNoTv": "Select a TV first: the apps are installed on the selected TV."
+  "statusSavedTvNoTv": "Select a TV first: the apps are installed on the selected TV.",
+  "lblRestoreProgressApp": "Restoring {0} of {1} · {2}",
+  "lblRestoreNamesMore": "{0} and {1} more",
+  "lblRestoreNoneMissing": "Nothing is missing: every app of this TV's saved list is on it.",
+  "lblRestoreValuesAsked": "asks for its settings when it installs",
+  "lblRestoreBlockedSourcePhone": "From a source that is not added on this phone ({0})",
+  "errRestoreNoList": "The apps on this TV could not be read, so there is nothing to compare the list with. Refresh first.",
+  "hintSavedTvsPhone": "The app list of a TV is saved by itself each time On the TV reads it. A restore installs the apps again from the catalog, on the selected TV. The settings you typed for an app stay on this phone unless you share them.",
+  "lblSavedTvShare": "Share",
+  "lblSavedTvShareTitle": "TV app list",
+  "lblSavedTvPick": "Restore from a file"
 }
