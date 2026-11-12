@@ -19,7 +19,7 @@ namespace Apps2Samsung.Backup
     ///   • <c>Certificate/…</c>  — the generated signing profiles (the folder each head exposes as
     ///                             <see cref="Apps2Samsung.Configuration.IAppConfig.CertificateStorePath"/>),
     ///                             so the Samsung login + already-installed apps' signing survive the move.
-    ///   • <c>saved-tvs.json</c> — the app list of each TV (#1069, <see cref="Apps2Samsung.Catalog.SavedTvs"/>),
+    ///   • <c>saved-tvs.json</c>: the app list of each TV (#1069, <see cref="Apps2Samsung.Catalog.SavedTvs"/>),
     ///                             so a TV can be restored from the other device too. No typed values in it.
     /// Both heads store certs under the same relative <c>Certificate/</c> layout, so that half is uniform;
     /// only the settings mapping is head-specific and lives in each head.
