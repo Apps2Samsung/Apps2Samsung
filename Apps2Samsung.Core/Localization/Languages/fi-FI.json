@@ -1007,5 +1007,8 @@
   "tvCardActionCheckAgain": "Tarkista uudelleen",
   "infoPortOpen": "Avaa",
   "lblRemovedOn": "kohteessa {0}",
-  "lblLinkClose": "Sulje"
+  "lblLinkClose": "Sulje",
+  "lblRestoreStateInstalling": "Asennus",
+  "lblRestoreChipSettings": "Asetukset",
+  "lblSavedTvShare": "Jaa"
 }
