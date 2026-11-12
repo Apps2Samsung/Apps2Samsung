@@ -1009,5 +1009,8 @@
   "tvCardActionCheckAgain": "בדוק שוב",
   "infoPortOpen": "פתח",
   "lblRemovedOn": "ב-{0}",
-  "lblLinkClose": "סגירה"
+  "lblLinkClose": "סגירה",
+  "lblRestoreStateInstalling": "התקנה",
+  "lblRestoreChipSettings": "הגדרות",
+  "lblSavedTvShare": "שתף"
 }
