@@ -1012,5 +1012,8 @@
   "tvCardActionCheckAgain": "Перевірити знову",
   "infoPortOpen": "Відкрити",
   "lblRemovedOn": "на {0}",
-  "lblLinkClose": "Закрити"
+  "lblLinkClose": "Закрити",
+  "lblRestoreStateInstalling": "Встановлення",
+  "lblRestoreChipSettings": "Налаштування",
+  "lblSavedTvShare": "Поділитися"
 }

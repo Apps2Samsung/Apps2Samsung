@@ -1005,5 +1005,8 @@
   "tvCardActionCheckAgain": "Opnieuw controleren",
   "infoPortOpen": "Openen",
   "lblRemovedOn": "op {0}",
-  "lblLinkClose": "Sluiten"
+  "lblLinkClose": "Sluiten",
+  "lblRestoreStateInstalling": "Installeren",
+  "lblRestoreChipSettings": "Instellingen",
+  "lblSavedTvShare": "Delen"
 }
