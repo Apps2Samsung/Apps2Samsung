@@ -23,10 +23,11 @@ public class SceneDelegate : MauiUISceneDelegate
 			InstallLinkInbox.Deliver(context.Url?.AbsoluteString);
 	}
 
-	// An install link while the app runs (#1066).
-	public override void OpenUrlContexts(UIScene scene, NSSet<UIOpenUrlContext> urlContexts)
+	// An install link while the app runs (#1066). MauiUISceneDelegate does not implement this
+	// UISceneDelegate method, so it is exported here under its Objective-C selector.
+	[Export("scene:openURLContexts:")]
+	public void OpenUrlContexts(UIScene scene, NSSet<UIOpenUrlContext> urlContexts)
 	{
-		base.OpenUrlContexts(scene, urlContexts);
 		foreach (var context in urlContexts)
 			InstallLinkInbox.Deliver(context.Url?.AbsoluteString);
 	}
