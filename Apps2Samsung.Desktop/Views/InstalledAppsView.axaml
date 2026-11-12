@@ -97,6 +97,125 @@
             </Grid>
         </Border>
 
+        <!-- Restore a TV (#1069, mockup A): apps of this TV's saved list are gone, so offer them again. -->
+        <Border DockPanel.Dock="Top" IsVisible="{Binding ShowRestoreCard}" Background="{DynamicResource GlassBrush}"
+                BorderBrush="{DynamicResource BezelBrush}" BorderThickness="6" CornerRadius="18" Padding="20,16" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="14">
+                <Border Width="48" Height="48" CornerRadius="12" Background="{DynamicResource GlassChipBrush}" VerticalAlignment="Center">
+                    <Viewbox Width="24" Height="24">
+                        <Canvas Width="24" Height="24">
+                            <Path Data="M3 12a9 9 0 1 0 9-9 9.7 9.7 0 0 0-6.4 2.6L3 8M3 3v5h5M12 7v5l3 2" Stroke="{DynamicResource AccentBrush}"
+                                  StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"/>
+                        </Canvas>
+                    </Viewbox>
+                </Border>
+                <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding RestoreCardTitle}" FontSize="19" FontWeight="Bold" Foreground="{DynamicResource GlassInkBrush}"/>
+                    <TextBlock Text="{Binding RestoreCardText}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource GlassMutedBrush}"/>
+                </StackPanel>
+                <Button Grid.Column="2" Classes="chip" VerticalAlignment="Center" Content="{l:Localize lblRestoreNotNow}"
+                        Command="{Binding DismissRestoreCommand}"/>
+                <Button Grid.Column="3" Classes="chip solid" VerticalAlignment="Center" Content="{Binding RestoreCardButton}"
+                        Command="{Binding RestoreAppsCommand}" IsVisible="{Binding RestoreCardCanRestore}"/>
+                <Button Grid.Column="3" Classes="chip" VerticalAlignment="Center" Content="{l:Localize lblRestoreSeeWhy}"
+                        Command="{Binding RestoreAppsCommand}" IsVisible="{Binding !RestoreCardCanRestore}"/>
+            </Grid>
+        </Border>
+
+        <!-- The restore running: the Update all queue, with each app's state (#1069). -->
+        <Border DockPanel.Dock="Top" IsVisible="{Binding IsRestoring}" Background="{DynamicResource GlassBrush}"
+                BorderBrush="{DynamicResource BezelBrush}" BorderThickness="6" CornerRadius="18" Padding="20,16" Margin="0,0,0,12">
+            <StackPanel Spacing="12">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+                    <StackPanel Spacing="3" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding RestoreProgressTitle}" FontSize="19" FontWeight="Bold" Foreground="{DynamicResource GlassInkBrush}"/>
+                        <TextBlock Text="{Binding RestoreProgressText}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource GlassMutedBrush}"/>
+                    </StackPanel>
+                    <Button Grid.Column="1" Classes="chip" VerticalAlignment="Center" Content="{l:Localize lblUpdateAllStop}"
+                            Command="{Binding StopRestoreCommand}" IsEnabled="{Binding !StopRestoreAfterCurrent}"/>
+                </Grid>
+                <ProgressBar Minimum="0" Maximum="100" Value="{Binding RestoreProgress}" Height="6"/>
+            </StackPanel>
+        </Border>
+        <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,16" IsVisible="{Binding HasRestoreRows}">
+            <TextBlock Classes="grouptitle" Text="{l:Localize lblRestoreGroup}"/>
+            <Border Classes="group">
+                <ScrollViewer MaxHeight="280">
+                    <ItemsControl ItemsSource="{Binding RestoreRows}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="viewModels:RestoreRunRow">
+                                <StackPanel Classes.waiting="{Binding IsWaiting}">
+                                    <StackPanel.Styles>
+                                        <Style Selector="StackPanel.waiting">
+                                            <Setter Property="Opacity" Value="0.6"/>
+                                        </Style>
+                                    </StackPanel.Styles>
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                        <Border Width="38" Height="38" Margin="14,7,0,7" CornerRadius="10" Background="{Binding Color}" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Initials}" Foreground="{DynamicResource GlassInkBrush}" FontWeight="Bold" FontSize="17"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis"
+                                                       Foreground="{DynamicResource InkBrush}"/>
+                                            <TextBlock Text="{Binding Detail}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"
+                                                       IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2" Text="{Binding State}" FontSize="13" FontWeight="SemiBold" Margin="0,0,16,0"
+                                                   VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"
+                                                   Classes.done="{Binding IsDone}" Classes.failed="{Binding IsFailed}" Classes.running="{Binding IsRunning}">
+                                            <TextBlock.Styles>
+                                                <Style Selector="TextBlock.done">
+                                                    <Setter Property="Foreground" Value="{DynamicResource OkBrush}"/>
+                                                </Style>
+                                                <Style Selector="TextBlock.failed">
+                                                    <Setter Property="Foreground" Value="{DynamicResource BadBrush}"/>
+                                                </Style>
+                                                <Style Selector="TextBlock.running">
+                                                    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                                </Style>
+                                            </TextBlock.Styles>
+                                        </TextBlock>
+                                    </Grid>
+                                    <Border Classes="rowline" Margin="64,0,0,0"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+        </StackPanel>
+
+        <!-- What was here when the list was last complete (#1069); shown with the offer above. -->
+        <StackPanel DockPanel.Dock="Bottom" Spacing="6" Margin="0,16,0,0" IsVisible="{Binding ShowRestoreCard}">
+            <TextBlock Classes="grouptitle" Text="{Binding MissingHeader}"/>
+            <Border Classes="group" Opacity="0.62">
+                <ScrollViewer MaxHeight="190">
+                    <ItemsControl ItemsSource="{Binding MissingApps}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="viewModels:MissingAppRow">
+                                <StackPanel>
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                        <Border Width="38" Height="38" Margin="14,7,0,7" CornerRadius="10" Background="{Binding Color}" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Initials}" Foreground="{DynamicResource GlassInkBrush}" FontWeight="Bold" FontSize="17"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis"
+                                                       Foreground="{DynamicResource InkBrush}"/>
+                                            <TextBlock Text="{Binding Detail}" FontSize="12" Foreground="{DynamicResource MutedBrush}"
+                                                       IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Border Classes="rowline" Margin="64,0,0,0"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+        </StackPanel>
+
         <ScrollViewer IsEnabled="{Binding !IsDebugging}">
             <ScrollViewer.Styles>
                 <Style Selector="ScrollViewer[IsEnabled=False]">

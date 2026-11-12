@@ -158,6 +158,7 @@ namespace Apps2Samsung.ViewModels
             SelectedPage = row.Page;
             if (row.Page == Page.Backup)
                 Application.RefreshCertificateBackups(); // a backup deleted by hand shows at once (#1068)
+                Application.RefreshSavedTvs();
         }
 
         [RelayCommand]
