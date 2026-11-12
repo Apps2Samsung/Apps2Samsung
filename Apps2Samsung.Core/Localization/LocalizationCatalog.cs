@@ -244,7 +244,7 @@ namespace Apps2Samsung.Localization
             }
 
             if (_languages.Count == 0)
-                Trace.WriteLine("[i18n] no language resources found — every string will fall back to its key.");
+                Trace.WriteLine("[i18n] no language resources found, every string will fall back to its key.");
         }
 
         private void TryLoad(Assembly assembly, string resourceName, string languageCode)

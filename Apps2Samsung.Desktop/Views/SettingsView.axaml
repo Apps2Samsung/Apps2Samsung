@@ -98,7 +98,6 @@
 								</DataTemplate>
 							</ItemsControl.ItemTemplate>
 						</ItemsControl>
-						<controls:LicenseFooter Margin="8,0"/>
 					</StackPanel>
 				</ScrollViewer>
 			</Border>

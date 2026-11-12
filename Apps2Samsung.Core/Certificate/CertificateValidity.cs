@@ -156,7 +156,7 @@ namespace Apps2Samsung.Certificate
             var when = result.ValidFromLocal?.ToString("f", CultureInfo.CurrentCulture);
 
             return "Your signing certificate isn't valid yet" +
-                   (when is null ? "" : $" — it only becomes valid on {when}") +
+                   (when is null ? "" : $": it only becomes valid on {when}") +
                    ". A Samsung TV refuses a package signed with a certificate whose validity period " +
                    "hasn't started, so the install has to wait until the countdown reaches zero. If " +
                    "that time looks wrong, this device's clock is off: correct the date, time and time " +

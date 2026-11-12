@@ -38,7 +38,7 @@ namespace Apps2Samsung.Remote
             var mac = ParseMac(macAddress);
             if (mac is null)
             {
-                Trace.WriteLine($"[wake] '{macAddress}' is not a MAC address — cannot wake.");
+                Trace.WriteLine($"[wake] '{macAddress}' is not a MAC address, cannot wake.");
                 return false;
             }
 
