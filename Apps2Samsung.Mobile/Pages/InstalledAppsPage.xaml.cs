@@ -41,13 +41,17 @@ public partial class InstalledAppsPage : ContentPage
 		base.OnAppearing();
 		_tv.Changed -= OnTvChanged;
 		_tv.Changed += OnTvChanged;
+		RestoreFlow.Requested -= OnRestoreRequested;
+		RestoreFlow.Requested += OnRestoreRequested;
 		await ShowSelectedTvAsync(force: false);
+		await OpenPendingRestoreAsync();
 	}
 
 	protected override void OnDisappearing()
 	{
 		base.OnDisappearing();
 		_tv.Changed -= OnTvChanged;
+		RestoreFlow.Requested -= OnRestoreRequested;
 	}
 
 	// Another TV picked with the ▾ (here or, while this tab was hidden, elsewhere): load its apps.
@@ -157,7 +161,19 @@ public partial class InstalledAppsPage : ContentPage
 			new MoreMenuItem(L10n.Get("lblCheckForUpdates"), MoreMenu.IconRescan),
 			new MoreMenuItem(string.Format(L10n.Get("lblSortBy"), OrderLabel(MobileSettings.InstalledAppOrder)), MoreMenu.IconSort),
 			new MoreMenuItem(L10n.Get("lblTvInformation"), MoreMenu.IconInfo),
+			// Restore a TV (#1069): this TV's saved list, also after "Not now".
+			new MoreMenuItem(L10n.Get("lblRestoreApps"), MoreMenu.IconRescan),
 			new MoreMenuItem(L10n.Get("lblRemoveLeftover"), MoreMenu.IconDelete, Destructive: true));
+		if (choice == 4)
+		{
+			if (_saved is { Missing.Count: > 0 } saved)
+				await RestoreAsync(saved.Profile);
+			else
+				await DisplayAlert(L10n.Get("lblRestoreApps"), L10n.Get("lblRestoreNoneMissing"), L10n.Get("lblOk"));
+			return;
+		}
+		if (choice == 5)
+			choice = 4;
 		if (choice == 2)
 		{
 			await ChooseOrderAsync();
@@ -335,6 +351,8 @@ public partial class InstalledAppsPage : ContentPage
 			}
 			AppsList.ItemsSource = InstalledAppSort.Sort(apps, MobileSettings.InstalledAppOrder).ToList();
 			_ = ShowCatalogIconsAsync(apps, _tvIp);
+			// The list as it is now, written down for this TV; apps gone since last time are offered again (#1069).
+			SnapshotTv(apps);
 			ShowMoved(Apps2Samsung.Catalog.Repositories.MovedApps.Hints(_matches.Values,
 				Apps2Samsung.Catalog.UserSources.Parse(MobileSettings.UserSourcesJson)));
 
@@ -356,6 +374,8 @@ public partial class InstalledAppsPage : ContentPage
 		catch (Exception ex)
 		{
 			AppsList.ItemsSource = null;
+			_onTv = null;
+			RestoreCard.IsVisible = false;
 			EmptyLabel.Text = string.Format(L10n.Get("statusReadAppListFailed"), ex.Message);
 			SetSubtitle(string.Empty, TopBarStatus.None);
 			// Through TV-Store's relay (Host PC IP 127.0.0.1) a closed TV-Store is the usual reason.
@@ -460,6 +480,9 @@ public partial class InstalledAppsPage : ContentPage
 			return;
 		}
 
+		// Removed on purpose: not an app to offer again after the next read (#1069).
+		if (_matches.TryGetValue(app.TizenId, out var removedMatch))
+			Apps2Samsung.Catalog.SavedTvs.RemoveApp(_tvIp, removedMatch.Release.Name, removedMatch.Release.Source.Key);
 		// Refresh so the removed app drops off the list.
 		await LoadAsync();
 	}
@@ -602,6 +625,112 @@ public partial class InstalledAppsPage : ContentPage
 		UpdatesCard.IsVisible = false;
 		await Shell.Current.GoToAsync("//install");
 		await updateAll(targets.Select(t => (t.Release, t.Asset)).ToList());
+		await Shell.Current.GoToAsync("//apps");
+		await LoadAsync();
+	}
+
+	// ---- Restore a TV (#1069) ----
+
+	// What the TV listed at the last read (null while it could not be read), and what is kept for it.
+	private List<InstalledApp>? _onTv;
+	private Apps2Samsung.Catalog.SavedTv? _saved;
+
+	// Nothing is written down without a catalog: every app would look like one the catalog does not have.
+	private void SnapshotTv(List<InstalledApp> apps)
+	{
+		_onTv = apps;
+		_saved = null;
+		var catalog = CatalogStore.Releases;
+		if (catalog.Count > 0)
+		{
+			try
+			{
+				var fresh = Apps2Samsung.Catalog.TvProfiles.Save(apps, catalog, CatalogStore.Removed, MobileSettings.PackageIdRenamesJson,
+					MobileSettings.InstalledVariantsJson, _tvIp, null, null, includeSettings: false, DateTimeOffset.UtcNow, tvName: _tvLabel);
+				_saved = Apps2Samsung.Catalog.SavedTvs.Remember(_tvIp, fresh.Profile, DateTimeOffset.UtcNow);
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Trace.WriteLine($"[restore] Could not save the app list of {_tvIp}: {ex.Message}");
+			}
+		}
+		ShowRestoreCard();
+	}
+
+	private void ShowRestoreCard()
+	{
+		var saved = _saved;
+		var missing = saved is null
+			? new List<Apps2Samsung.Catalog.TvProfileApp>()
+			: saved.Profile.Apps.Where(a => saved.Missing.Contains(Apps2Samsung.Catalog.SavedTvs.AppKey(a))).ToList();
+		RestoreCard.IsVisible = saved is { OfferRestore: true } && missing.Count > 0 && CatalogStore.Restore is not null;
+		if (!RestoreCard.IsVisible)
+			return;
+
+		var date = saved!.Profile.SavedAtUtc.ToLocalTime().ToString("d MMMM");
+		RestoreTitle.Text = missing.Count == 1 ? L10n.Get("lblRestoreMissingOne") : string.Format(L10n.Get("lblRestoreMissingMany"), missing.Count);
+		RestoreText.Text = string.Format(L10n.Get("lblRestoreMissingText"), date, saved.Profile.Apps.Count);
+		var names = missing.Take(4).Select(a => a.Name).ToList();
+		RestoreNames.Text = missing.Count > names.Count
+			? string.Format(L10n.Get("lblRestoreNamesMore"), string.Join(", ", names), missing.Count - names.Count)
+			: string.Join(", ", names);
+		RestoreButton.Text = missing.Count == 1 ? L10n.Get("lblRestoreAppsOne") : string.Format(L10n.Get("lblRestoreAppsMany"), missing.Count);
+	}
+
+	private void OnRestoreNotNowClicked(object? sender, EventArgs e)
+	{
+		Apps2Samsung.Catalog.SavedTvs.Dismiss(_tvIp);
+		_saved = Apps2Samsung.Catalog.SavedTvs.Get(_tvIp);
+		ShowRestoreCard();
+	}
+
+	private async void OnRestoreClicked(object? sender, EventArgs e)
+	{
+		if (_saved is { } saved)
+			await RestoreAsync(saved.Profile);
+	}
+
+	// Settings › Backup handed over a saved list while this tab was already showing.
+	private async void OnRestoreRequested() => await OpenPendingRestoreAsync();
+
+	private async Task OpenPendingRestoreAsync()
+	{
+		if (RestoreFlow.Take() is { } profile)
+			await RestoreAsync(profile);
+	}
+
+	/// <summary>The sheet for <paramref name="profile"/> against this TV, then the run on the Install tab, then the list again.</summary>
+	private async Task RestoreAsync(Apps2Samsung.Catalog.TvProfile profile)
+	{
+		if (!_tv.HasTv || _onTv is null)
+		{
+			await DisplayAlert(L10n.Get("lblRestoreApps"), L10n.Get(_tv.HasTv ? "errRestoreNoList" : "statusSelectTvFirst"), L10n.Get("lblOk"));
+			return;
+		}
+		var catalog = CatalogStore.Releases;
+		if (catalog.Count == 0 || CatalogStore.Restore is not { } restore)
+		{
+			await DisplayAlert(L10n.Get("lblRestoreApps"), L10n.Get("errRestoreNoCatalog"), L10n.Get("lblOk"));
+			return;
+		}
+
+		var plan = Apps2Samsung.Catalog.TvProfiles.Plan(profile, catalog, _onTv, MobileSettings.PackageIdRenamesJson, MobileSettings.InstalledVariantsJson, _tvIp);
+		var sheet = new RestoreTvSheetPage(profile, plan, catalog, _tvLabel);
+		await Navigation.PushModalAsync(sheet);
+		if (await sheet.Result is not { Count: > 0 } picked)
+			return;
+
+		// Values a list file carries go where an install reads them, unless this phone has its own.
+		foreach (var pick in picked)
+		{
+			if (pick.App.Settings is { Count: > 0 } carried && pick.Asset.UserSettings is { } spec &&
+				Apps2Samsung.Packaging.UserSettingsStore.Get(MobileSettings.AppUserSettingsJson, pick.Asset.FileName) is null)
+				MobileSettings.AppUserSettingsJson = Apps2Samsung.Packaging.UserSettingsStore.Set(MobileSettings.AppUserSettingsJson, pick.Asset.FileName, spec, carried);
+		}
+
+		RestoreCard.IsVisible = false;
+		await Shell.Current.GoToAsync("//install");
+		await restore(picked.Select(p => (p.Release, p.Asset)).ToList());
 		await Shell.Current.GoToAsync("//apps");
 		await LoadAsync();
 	}

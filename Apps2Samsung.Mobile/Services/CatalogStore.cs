@@ -27,6 +27,12 @@ public static class CatalogStore
 	public static Func<IReadOnlyList<(GitHubRelease Release, Asset Asset)>, Task<IReadOnlyList<UpdateAllOutcome>>>? UpdateAll { get; set; }
 
 	/// <summary>
+	/// Restore a TV (#1069): the same run as <see cref="UpdateAll"/>, worded as a restore; set by the
+	/// Install tab once it is up.
+	/// </summary>
+	public static Func<IReadOnlyList<(GitHubRelease Release, Asset Asset)>, Task<IReadOnlyList<UpdateAllOutcome>>>? Restore { get; set; }
+
+	/// <summary>
 	/// How many apps had an update on each TV when On the TV last read it (#1067), keyed by IP: the
 	/// row under the TV card. Not a live check; it is as old as that read.
 	/// </summary>

@@ -128,7 +128,8 @@ public partial class InstallerPage : ContentPage
 		CatalogStore.Search = text => SearchEntry.Text = text;
 		// Install links (#1066), from now on and any that came while the app started.
 		InstallLinkInbox.Subscribe(link => _ = InstallLinkHandler.HandleAsync(link, Navigation, this));
-		CatalogStore.UpdateAll = UpdateAllAsync;
+		CatalogStore.UpdateAll = items => UpdateAllAsync(items);
+		CatalogStore.Restore = items => UpdateAllAsync(items, restore: true);
 		CatalogStore.UpdatesChanged += () => MainThread.BeginInvokeOnMainThread(ShowUpdatesRow);
 
 		await MobileSettings.InitAsync();
@@ -225,6 +226,8 @@ public partial class InstallerPage : ContentPage
 	{
 		public int Index;
 		public int Count;
+		// Restore a TV (#1069): the same run, worded as a restore.
+		public bool Restore;
 		public bool Succeeded;
 		public bool Stop;
 		public string? Failure;
@@ -911,7 +914,7 @@ public partial class InstallerPage : ContentPage
 			? appName
 			: $"{appName} {release.TagName}";
 		if (_batch is { } run)
-			appTitle = string.Format(L10n.Get("lblUpdateAllProgress"), run.Index + 1, run.Count, appName);
+			appTitle = string.Format(L10n.Get(run.Restore ? "lblRestoreProgressApp" : "lblUpdateAllProgress"), run.Index + 1, run.Count, appName);
 		// Auto-request Partner signing if the selected app's manifest declares cert_level: partner.
 		var requirePartner = !custom && release!.RequiresPartner;
 
@@ -1110,7 +1113,7 @@ public partial class InstallerPage : ContentPage
 	/// that app. A package that gains root is left for its own Update (it needs its confirmation).
 	/// Ends with one alert that says what was updated and why anything was not.
 	/// </summary>
-	private async Task<IReadOnlyList<UpdateAllOutcome>> UpdateAllAsync(IReadOnlyList<(GitHubRelease Release, Asset Asset)> items)
+	private async Task<IReadOnlyList<UpdateAllOutcome>> UpdateAllAsync(IReadOnlyList<(GitHubRelease Release, Asset Asset)> items, bool restore = false)
 	{
 		var outcomes = new List<UpdateAllOutcome>();
 		if (_busy || _tv.Selected is null)
@@ -1126,10 +1129,10 @@ public partial class InstallerPage : ContentPage
 			}
 			if (release.IsRoot)
 			{
-				outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.Skipped, L10n.Get("lblUpdateAllSkippedRoot")));
+				outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.Skipped, L10n.Get(restore ? "lblRestoreBlockedRoot" : "lblUpdateAllSkippedRoot")));
 				continue;
 			}
-			var run = new BatchRun { Index = i, Count = items.Count };
+			var run = new BatchRun { Index = i, Count = items.Count, Restore = restore };
 			_batch = run;
 			try
 			{
@@ -1150,13 +1153,13 @@ public partial class InstallerPage : ContentPage
 		var updated = outcomes.Count(o => o.State == UpdateAllState.Updated);
 		var failed = outcomes.Count(o => o.State == UpdateAllState.Failed);
 		var title = failed == 0
-			? string.Format(L10n.Get("lblUpdateAllDone"), updated)
-			: string.Format(L10n.Get("lblUpdateAllDoneFailed"), updated, failed);
+			? string.Format(L10n.Get(restore ? "lblRestoreDone" : "lblUpdateAllDone"), updated)
+			: string.Format(L10n.Get(restore ? "lblRestoreDoneFailed" : "lblUpdateAllDoneFailed"), updated, failed);
 		var lines = outcomes.Where(o => o.State != UpdateAllState.Updated).Select(o => o.State == UpdateAllState.NotStarted
-			? string.Format(L10n.Get("lblUpdateAllNotStarted"), o.Name)
+			? string.Format(L10n.Get(restore ? "lblRestoreNotStarted" : "lblUpdateAllNotStarted"), o.Name)
 			: $"{o.Name}: {o.Detail}");
 		var body = string.Join("\n", lines);
-		if (_tv.Selected is { } tv)
+		if (!restore && _tv.Selected is { } tv)
 			CatalogStore.SetUpdates(tv.Ip, outcomes.Count(o => o.State != UpdateAllState.Updated));
 		await DisplayAlert(title, body.Length == 0 ? title : body, L10n.Get("btn_Close"));
 		return outcomes;

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
+             x:Class="Apps2Samsung.Mobile.Pages.RestoreTvSheetPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource BgColor}">
+    <!-- Restore a TV (#1069): a saved app list against today's catalog and the selected TV. Tick what
+         comes back; what cannot come back says why. Hands back what was ticked; the tab runs it. -->
+    <Grid RowDefinitions="*,Auto">
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="16,8,16,12" Spacing="6">
+                <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
+                         Color="{DynamicResource HairColor}" />
+                <Label x:Name="TitleLabel" FontSize="21" FontAttributes="Bold" LineBreakMode="WordWrap" Margin="4,10,4,0" />
+                <Label x:Name="SubLabel" FontSize="13" TextColor="{DynamicResource MutedColor}" LineBreakMode="WordWrap" Margin="4,0" />
+
+                <Label x:Name="NothingLabel" FontSize="15" LineBreakMode="WordWrap" Margin="4,14,4,0" IsVisible="False" />
+
+                <Label x:Name="ReadyTitle" Style="{StaticResource GroupTitle}" Margin="4,14,4,0" />
+                <Border x:Name="ReadyCard" Style="{StaticResource Card}">
+                    <VerticalStackLayout x:Name="ReadyRows" />
+                </Border>
+
+                <Label x:Name="BlockedTitle" Style="{StaticResource GroupTitle}" Margin="4,14,4,0" IsVisible="False" />
+                <Border x:Name="BlockedCard" Style="{StaticResource Card}" Opacity="0.75" IsVisible="False">
+                    <VerticalStackLayout x:Name="BlockedRows" />
+                </Border>
+
+                <Label x:Name="SkippedLabel" Style="{StaticResource RowHint}" Margin="4,10,4,0" IsVisible="False" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <VerticalStackLayout Grid.Row="1" Padding="16,8,16,20" Spacing="6">
+            <Button x:Name="RestoreButton" Style="{StaticResource PrimaryButton}" CornerRadius="14" HeightRequest="50"
+                    Clicked="OnRestoreClicked" />
+            <Button Text="{l:Localize lblCancel}" Style="{StaticResource PlainButton}" CornerRadius="14" Clicked="OnCancelClicked" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

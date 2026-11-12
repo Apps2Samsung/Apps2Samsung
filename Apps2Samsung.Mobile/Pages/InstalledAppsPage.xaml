@@ -35,6 +35,22 @@
                 </VerticalStackLayout>
             </Border>
             <VerticalStackLayout x:Name="MovedHost" Spacing="8" Margin="16,4,16,4" IsVisible="False" />
+            <!-- Restore a TV (#1069): apps of this TV's saved list are gone, so offer them again. -->
+            <Border x:Name="RestoreCard" IsVisible="False" Margin="16,4,16,0" Padding="16" StrokeThickness="5"
+                    StrokeShape="RoundRectangle 18" Stroke="{DynamicResource BezelBrush}" BackgroundColor="{DynamicResource GlassColor}">
+                <VerticalStackLayout Spacing="4">
+                    <Label x:Name="RestoreTitle" FontSize="17" FontAttributes="Bold" TextColor="{DynamicResource GlassInkColor}" />
+                    <Label x:Name="RestoreText" FontSize="13" LineBreakMode="WordWrap" TextColor="{DynamicResource GlassMutedColor}" />
+                    <Label x:Name="RestoreNames" FontSize="13" LineBreakMode="WordWrap" TextColor="{DynamicResource GlassMutedColor}" />
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" Margin="0,10,0,0">
+                        <Button Grid.Column="0" Text="{l:Localize lblRestoreNotNow}" HeightRequest="44" MinimumHeightRequest="44" CornerRadius="12"
+                                Padding="16,0" BackgroundColor="Transparent" BorderWidth="1" BorderColor="{DynamicResource GlassMutedColor}"
+                                TextColor="{DynamicResource GlassInkColor}" Clicked="OnRestoreNotNowClicked" />
+                        <Button x:Name="RestoreButton" Grid.Column="1" Style="{StaticResource PrimaryButton}" HeightRequest="44"
+                                MinimumHeightRequest="44" CornerRadius="12" Clicked="OnRestoreClicked" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
             <!-- Update all (#1067): while apps have a newer version in the catalog. -->
             <Border x:Name="UpdatesCard" IsVisible="False" Margin="16,4,16,0" Padding="14,12" StrokeThickness="0"
                     StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource OkSoftColor}">
