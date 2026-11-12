@@ -1010,5 +1010,8 @@
   "tvCardActionCheckAgain": "Ellenőrzés újra",
   "infoPortOpen": "Megnyitás",
   "lblRemovedOn": "ezen: {0}",
-  "lblLinkClose": "Bezárás"
+  "lblLinkClose": "Bezárás",
+  "lblRestoreStateInstalling": "Telepítés",
+  "lblRestoreChipSettings": "Beállítások",
+  "lblSavedTvShare": "Megosztás"
 }

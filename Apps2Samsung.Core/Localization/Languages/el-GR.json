@@ -1001,5 +1001,8 @@
   "tvCardActionCheckAgain": "Έλεγχος ξανά",
   "infoPortOpen": "Άνοιγμα",
   "lblRemovedOn": "στο {0}",
-  "lblLinkClose": "Κλείσιμο"
+  "lblLinkClose": "Κλείσιμο",
+  "lblRestoreStateInstalling": "Εγκατάσταση",
+  "lblRestoreChipSettings": "Ρυθμίσεις",
+  "lblSavedTvShare": "Κοινοποίηση"
 }

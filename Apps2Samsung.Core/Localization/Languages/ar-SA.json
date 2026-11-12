@@ -1012,5 +1012,8 @@
   "tvCardActionCheckAgain": "تحقق مرة أخرى",
   "infoPortOpen": "فتح",
   "lblRemovedOn": "على {0}",
-  "lblLinkClose": "إغلاق"
+  "lblLinkClose": "إغلاق",
+  "lblRestoreStateInstalling": "التثبيت",
+  "lblRestoreChipSettings": "الإعدادات",
+  "lblSavedTvShare": "مشاركة"
 }

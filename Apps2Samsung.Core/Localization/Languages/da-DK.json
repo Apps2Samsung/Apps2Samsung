@@ -990,5 +990,8 @@
   "tvCardActionCheckAgain": "Tjek igen",
   "infoPortOpen": "Åbn",
   "lblRemovedOn": "på {0}",
-  "lblLinkClose": "Luk"
+  "lblLinkClose": "Luk",
+  "lblRestoreStateInstalling": "Installation",
+  "lblRestoreChipSettings": "Indstillinger",
+  "lblSavedTvShare": "Del"
 }
