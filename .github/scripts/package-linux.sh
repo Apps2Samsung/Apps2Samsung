@@ -125,9 +125,14 @@ URL:            https://github.com/Apps2Samsung/Apps2Samsung
 Provides:       jellyfin2samsung
 # Versioned, or rpm warns: this replaces any jellyfin2samsung up to the rename.
 Obsoletes:      jellyfin2samsung < $VERSION
-# The payload is a self-contained .NET build: no runtime dependency to declare, and letting rpm
-# auto-scan the bundled native libraries only invents requires the distro can't satisfy.
+# The payload is a self-contained .NET build, and letting rpm auto-scan the bundled native libraries
+# only invents requires the distro can't satisfy. The one thing the runtime does not bring along is
+# OpenSSL: it loads libssl.so.3 (or 1.1) from the system and aborts at startup with "No usable
+# version of libssl was found" when there is neither. Fedora 45 ships OpenSSL 4 and keeps 3 in an
+# optional compat package (#1082), so ask for the library by soname and dnf installs whichever
+# package carries it on that distro.
 AutoReqProv:    no
+Requires:       (libssl.so.3()(64bit) or libssl.so.1.1()(64bit))
 
 %description
 Apps2Samsung installs Jellyfin and other community apps onto Samsung Tizen TVs over the
