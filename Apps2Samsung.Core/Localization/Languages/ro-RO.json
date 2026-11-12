@@ -1001,5 +1001,6 @@
   "lblUserSourceCategory": "Categorie",
   "tvCardActionCheckAgain": "Verifică din nou",
   "infoPortOpen": "Deschide",
-  "lblRemovedOn": "pe {0}"
+  "lblRemovedOn": "pe {0}",
+  "lblLinkClose": "Închide"
 }

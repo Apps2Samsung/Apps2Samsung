@@ -1011,5 +1011,6 @@
   "lblUserSourceCategory": "分類",
   "tvCardActionCheckAgain": "再次檢查",
   "infoPortOpen": "開啟",
-  "lblRemovedOn": "在 {0} 上"
+  "lblRemovedOn": "在 {0} 上",
+  "lblLinkClose": "關閉"
 }

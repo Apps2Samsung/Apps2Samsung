@@ -1000,5 +1000,6 @@
   "lblUserSourceCategory": "Κατηγορία",
   "tvCardActionCheckAgain": "Έλεγχος ξανά",
   "infoPortOpen": "Άνοιγμα",
-  "lblRemovedOn": "στο {0}"
+  "lblRemovedOn": "στο {0}",
+  "lblLinkClose": "Κλείσιμο"
 }

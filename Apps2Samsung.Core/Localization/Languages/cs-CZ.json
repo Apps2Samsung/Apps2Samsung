@@ -1128,5 +1128,6 @@
   "lblToolboxPackageSigned": "Podepsáno {0} pro {1}: {2}",
   "lblToolboxPackageSignFailed": "Podepisování se nezdařilo: {0}",
   "lblSignedPackage": "Podepsaný balíček",
-  "lblRemovedOn": "na {0}"
+  "lblRemovedOn": "na {0}",
+  "lblLinkClose": "Zavřít"
 }

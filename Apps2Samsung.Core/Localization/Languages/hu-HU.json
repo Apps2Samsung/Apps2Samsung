@@ -1009,5 +1009,6 @@
   "lblUserSourceCategory": "Kategória",
   "tvCardActionCheckAgain": "Ellenőrzés újra",
   "infoPortOpen": "Megnyitás",
-  "lblRemovedOn": "ezen: {0}"
+  "lblRemovedOn": "ezen: {0}",
+  "lblLinkClose": "Bezárás"
 }

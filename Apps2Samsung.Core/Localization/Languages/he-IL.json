@@ -1008,5 +1008,6 @@
   "lblUserSourceCategory": "קטגוריה",
   "tvCardActionCheckAgain": "בדוק שוב",
   "infoPortOpen": "פתח",
-  "lblRemovedOn": "ב-{0}"
+  "lblRemovedOn": "ב-{0}",
+  "lblLinkClose": "סגירה"
 }

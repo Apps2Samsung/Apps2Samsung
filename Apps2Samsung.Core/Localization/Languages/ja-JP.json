@@ -1009,5 +1009,6 @@
   "lblUserSourceCategory": "カテゴリ",
   "tvCardActionCheckAgain": "再確認",
   "infoPortOpen": "開く",
-  "lblRemovedOn": "{0} に"
+  "lblRemovedOn": "{0} に",
+  "lblLinkClose": "閉じる"
 }

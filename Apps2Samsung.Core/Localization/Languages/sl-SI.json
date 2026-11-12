@@ -1239,5 +1239,6 @@
   "lblRemovedRowTap": "Odstranjeno iz kataloga · tapnite za razlog",
   "lblRemovedRowClick": "Odstranjeno iz kataloga · kliknite za razlog",
   "lblRemovedOn": "na {0}",
-  "lblRemovedSearchFooter": "Te aplikacije ni mogoče namestiti. Kopija, ki je že na vašem televizorju, še naprej deluje, vendar brez posodobitev."
+  "lblRemovedSearchFooter": "Te aplikacije ni mogoče namestiti. Kopija, ki je že na vašem televizorju, še naprej deluje, vendar brez posodobitev.",
+  "lblLinkClose": "Zapri"
 }

@@ -1009,5 +1009,6 @@
   "lblUserSourceCategory": "Categoria",
   "tvCardActionCheckAgain": "Verificar novamente",
   "infoPortOpen": "Abrir",
-  "lblRemovedOn": "em {0}"
+  "lblRemovedOn": "em {0}",
+  "lblLinkClose": "Fechar"
 }
