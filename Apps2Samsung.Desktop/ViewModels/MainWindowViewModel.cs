@@ -403,6 +403,9 @@ namespace Apps2Samsung.ViewModels
             }
             IsCatalogEmpty = !any && !IsLoading;
             CatalogFoot = string.Format(L("lblCatalogFoot"), all.Count);
+            // A catalog in a newer format than this build knows: said under the list.
+            if (CatalogSchema.Notice(L) is { } newer)
+                CatalogFoot += " " + newer;
             RemovedSearchLines = RemovedApps.Search(SearchText, _removedApps).Select(r => RemovedApps.SearchLine(r, L)).ToList();
         }
 
@@ -1982,6 +1985,7 @@ namespace Apps2Samsung.ViewModels
                             // The official catalog decides the categories, their order and tile colours (#1054).
                             AppCategories.Use(catalog);
                             CatalogPreviews.Use(catalog);
+                            CatalogSchema.Use(catalog);
                         }
                         DownloadStatsService.Stamp(apps, provider, await stats);
                         list.AddRange(apps);
