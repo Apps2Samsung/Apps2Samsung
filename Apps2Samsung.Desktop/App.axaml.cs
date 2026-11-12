@@ -45,6 +45,14 @@ namespace Apps2Samsung
             ConfigureServices();
             ConfigureCertificateBackups();
 
+            // macOS hands apps2samsung:// install links (#1066) to the running app, not as an argument.
+            if (TryGetFeature(typeof(IActivatableLifetime)) is IActivatableLifetime activatable)
+                activatable.Activated += (_, e) =>
+                {
+                    if (e is ProtocolActivatedEventArgs { Kind: ActivationKind.OpenUri } p && p.Uri is { } uri)
+                        Apps2Samsung.Services.InstallLinkRelay.Deliver(uri.OriginalString);
+                };
+
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 DisableAvaloniaDataAnnotationValidation();

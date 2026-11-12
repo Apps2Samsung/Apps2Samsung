@@ -54,16 +54,18 @@ chmod +x "$PUBLISH_DIR/$PRODUCT"
 # the window belongs to this entry and shows a generic icon in the taskbar/dock instead of Icon= above
 # (#627). Avalonia takes WM_CLASS from Application.Name, which App.axaml pins to the same string as
 # $PRODUCT — keep the two in step.
+# %u and the MimeType line hand apps2samsung:// install links to the app (#1066).
 desktop_entry() {
     cat <<EOF
 [Desktop Entry]
 Type=Application
 Name=Apps2Samsung
 Comment=Install apps on Samsung Tizen TVs
-Exec=$1
+Exec=$1 %u
 Icon=$APP_ID
 Terminal=false
 Categories=Utility;
+MimeType=x-scheme-handler/apps2samsung;
 StartupWMClass=$PRODUCT
 EOF
 }

@@ -44,14 +44,15 @@ namespace Apps2Samsung.Views
         }
 
         public UserSourceWindow(Func<string, string> localize, IReadOnlyList<UserSource> existing,
-            Func<string, Task<RepositoryProbe>>? probe = null, UserSource? reviewing = null) : this()
+            Func<string, Task<RepositoryProbe>>? probe = null, UserSource? reviewing = null, string? fromLink = null) : this()
         {
             _probe = probe;
             _reviewing = reviewing;
             _localize = localize;
             _existing = existing;
             TitleText = localize("lblAddSourceTitle");
-            HintText = localize("hintAddSourceForm");
+            // From an install link (#1066): the link says where it came from; nothing is added until Add.
+            HintText = fromLink is null ? localize("hintAddSourceForm") : localize("hintAddSourceFromLink");
             UrlLabel = localize("lblUserSourceUrl");
             UrlHint = localize("hintUserSourceUrl");
             NameLabel = localize("lblUserSourceName") + $" ({localize("lblOptional")})";
@@ -70,6 +71,16 @@ namespace Apps2Samsung.Views
 
             Opened += async (_, _) =>
             {
+                if (_reviewing is null && fromLink is not null)
+                {
+                    UrlBox.Text = fromLink;
+                    // A signed repository goes straight to its name and key, as Add would.
+                    if (_probe is not null && UserSources.IsSignedRepository(fromLink))
+                        await ProbeAndShowKeyAsync(fromLink.Trim());
+                    else
+                        NameBox.Focus();
+                    return;
+                }
                 if (_reviewing is null)
                 {
                     UrlBox.Focus();

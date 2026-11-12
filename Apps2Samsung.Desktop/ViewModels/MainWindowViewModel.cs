@@ -437,7 +437,11 @@ namespace Apps2Samsung.ViewModels
 
         /// <summary>Opens the app sheet (description, category line, versions); installs the asset it hands back.</summary>
         [RelayCommand]
-        private async Task OpenAppAsync(CatalogRow? row)
+        private Task OpenAppAsync(CatalogRow? row) => OpenAppCoreAsync(row, linkFile: null, fromLink: false);
+
+        /// <param name="linkFile">The file an install link names (#1066), selected in the sheet.</param>
+        /// <param name="fromLink">The sheet says it was opened by a link.</param>
+        private async Task OpenAppCoreAsync(CatalogRow? row, string? linkFile, bool fromLink)
         {
             if (row is null || Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
                 return;
@@ -458,7 +462,9 @@ namespace Apps2Samsung.ViewModels
                 SelectedTvVersion,
                 row.TileBrush,
                 _catalogIcons,
-                OtherSourcesOf(row.Release));
+                OtherSourcesOf(row.Release),
+                linkFile,
+                fromLink);
             var showAllBefore = AppSettings.Default.ShowAllJellyfinVersions;
             var asset = await new Views.AppDetailWindow(sheet).ShowDialog<Asset?>(desktop.MainWindow);
             if (asset is not null)
@@ -637,6 +643,8 @@ namespace Apps2Samsung.ViewModels
                 else
                     _ = LoadReleasesAsync();
             };
+            // Install links (#1066) from a browser or another tool, this start's own included.
+            Apps2Samsung.Services.InstallLinkRelay.Subscribe(link => Dispatcher.UIThread.Post(() => _ = OpenInstallLinkAsync(link)));
             _httpClient = httpClient;
             _catalogIcons = new CatalogIcons(httpClient, Path.Combine(ProviderManifestService.CacheDirectory, "catalog-icons"));
 

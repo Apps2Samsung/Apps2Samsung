@@ -922,6 +922,17 @@ namespace Apps2Samsung.ViewModels
             SaveOwnSources(sources);
         }
 
+        /// <summary>A source link (#1066): the Add a source form, filled in with it; stored only when the user adds it.</summary>
+        public async Task AddUserSourceFromLinkAsync(string url)
+        {
+            var sources = Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson);
+            var added = await _dialogService.ShowAddUserSourceAsync(sources, url);
+            if (added is null)
+                return;
+            sources.Add(added);
+            SaveOwnSources(sources);
+        }
+
         /// <summary>A repository whose key changed (#1018): the new key, to trust or not; trusted, it replaces the stored one.</summary>
         [RelayCommand]
         private async Task ReviewUserSourceAsync(UserSourceRow? row)
