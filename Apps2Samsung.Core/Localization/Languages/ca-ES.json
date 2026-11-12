@@ -1307,5 +1307,7 @@
   "lblUpdateAllSkippedRoot": "obté accés root, així que només s'actualitza individualment («Actualitza» a la seva fila)",
   "lblUpdateAllOneTv": "1 actualització per a aquest televisor",
   "lblUpdateAllManyTv": "{0} actualitzacions per a aquest televisor",
-  "lblLinkClose": "Tanca"
+  "lblLinkClose": "Tanca",
+  "lblRestoreStateInstalling": "Instal·lació",
+  "lblRestoreChipSettings": "Configuració"
 }

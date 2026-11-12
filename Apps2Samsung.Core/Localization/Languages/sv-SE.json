@@ -1003,5 +1003,7 @@
   "tvCardActionCheckAgain": "Kontrollera igen",
   "infoPortOpen": "Öppna",
   "lblRemovedOn": "på {0}",
-  "lblLinkClose": "Stäng"
+  "lblLinkClose": "Stäng",
+  "lblRestoreStateInstalling": "Installation",
+  "lblRestoreChipSettings": "Inställningar"
 }

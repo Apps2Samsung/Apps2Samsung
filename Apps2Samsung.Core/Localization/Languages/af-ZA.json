@@ -1001,5 +1001,7 @@
   "tvCardActionCheckAgain": "Kontroleer weer",
   "infoPortOpen": "Maak oop",
   "lblRemovedOn": "op {0}",
-  "lblLinkClose": "Maak toe"
+  "lblLinkClose": "Maak toe",
+  "lblRestoreStateInstalling": "Installeer",
+  "lblRestoreChipSettings": "Instellings"
 }

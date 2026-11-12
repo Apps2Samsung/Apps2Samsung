@@ -1002,5 +1002,7 @@
   "tvCardActionCheckAgain": "Vérifier à nouveau",
   "infoPortOpen": "Ouvrir",
   "lblRemovedOn": "sur {0}",
-  "lblLinkClose": "Fermer"
+  "lblLinkClose": "Fermer",
+  "lblRestoreStateInstalling": "Installation",
+  "lblRestoreChipSettings": "Réglages"
 }

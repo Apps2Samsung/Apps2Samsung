@@ -1012,5 +1012,7 @@
   "tvCardActionCheckAgain": "再次檢查",
   "infoPortOpen": "開啟",
   "lblRemovedOn": "在 {0} 上",
-  "lblLinkClose": "關閉"
+  "lblLinkClose": "關閉",
+  "lblRestoreStateInstalling": "安裝",
+  "lblRestoreChipSettings": "設定"
 }

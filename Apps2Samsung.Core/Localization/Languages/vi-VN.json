@@ -1007,5 +1007,7 @@
   "tvCardActionCheckAgain": "Kiểm tra lại",
   "infoPortOpen": "Mở",
   "lblRemovedOn": "trên {0}",
-  "lblLinkClose": "Đóng"
+  "lblLinkClose": "Đóng",
+  "lblRestoreStateInstalling": "Việc cài đặt",
+  "lblRestoreChipSettings": "Cài đặt"
 }

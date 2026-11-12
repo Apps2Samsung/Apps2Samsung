@@ -1004,5 +1004,7 @@
   "tvCardActionCheckAgain": "Sjekk igjen",
   "infoPortOpen": "Åpne",
   "lblRemovedOn": "på {0}",
-  "lblLinkClose": "Lukk"
+  "lblLinkClose": "Lukk",
+  "lblRestoreStateInstalling": "Installasjon",
+  "lblRestoreChipSettings": "Innstillinger"
 }

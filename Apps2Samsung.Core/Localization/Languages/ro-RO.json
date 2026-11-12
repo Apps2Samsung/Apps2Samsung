@@ -1002,5 +1002,7 @@
   "tvCardActionCheckAgain": "Verifică din nou",
   "infoPortOpen": "Deschide",
   "lblRemovedOn": "pe {0}",
-  "lblLinkClose": "Închide"
+  "lblLinkClose": "Închide",
+  "lblRestoreStateInstalling": "Instalare",
+  "lblRestoreChipSettings": "Setări"
 }

@@ -988,5 +988,7 @@
   "tvCardActionCheckAgain": "Controlla di nuovo",
   "infoPortOpen": "Apri",
   "lblRemovedOn": "su {0}",
-  "lblLinkClose": "Chiudi"
+  "lblLinkClose": "Chiudi",
+  "lblRestoreStateInstalling": "Installazione",
+  "lblRestoreChipSettings": "Impostazioni"
 }

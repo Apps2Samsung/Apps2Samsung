@@ -1010,5 +1010,7 @@
   "tvCardActionCheckAgain": "Провери поново",
   "infoPortOpen": "Отвори",
   "lblRemovedOn": "на {0}",
-  "lblLinkClose": "Затвори"
+  "lblLinkClose": "Затвори",
+  "lblRestoreStateInstalling": "Инсталирање",
+  "lblRestoreChipSettings": "Подешавања"
 }

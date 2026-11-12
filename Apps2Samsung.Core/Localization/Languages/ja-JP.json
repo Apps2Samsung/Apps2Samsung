@@ -1010,5 +1010,7 @@
   "tvCardActionCheckAgain": "再確認",
   "infoPortOpen": "開く",
   "lblRemovedOn": "{0} に",
-  "lblLinkClose": "閉じる"
+  "lblLinkClose": "閉じる",
+  "lblRestoreStateInstalling": "インストール",
+  "lblRestoreChipSettings": "設定"
 }

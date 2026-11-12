@@ -1012,5 +1012,7 @@
   "tvCardActionCheckAgain": "Yeniden denetle",
   "infoPortOpen": "Aç",
   "lblRemovedOn": "{0} üzerinde",
-  "lblLinkClose": "Kapat"
+  "lblLinkClose": "Kapat",
+  "lblRestoreStateInstalling": "Kurulum",
+  "lblRestoreChipSettings": "Ayarlar"
 }
