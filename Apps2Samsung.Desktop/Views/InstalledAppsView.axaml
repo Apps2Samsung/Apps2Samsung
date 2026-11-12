@@ -279,7 +279,8 @@
                                                         <TextBlock Text="{Binding App.DisplayName}" FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis"
                                                                    Foreground="{DynamicResource InkBrush}"/>
                                                         <TextBlock Text="{Binding App.Subline}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                                                   Foreground="{DynamicResource MutedBrush}"/>
+                                                                   Foreground="{DynamicResource MutedBrush}"
+                                                                   IsVisible="{Binding App.Subline, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                                                         <!-- What the catalog says about this app, when it is in there (#820). -->
                                                         <TextBlock Text="{Binding App.CatalogLine}" FontSize="12" TextTrimming="CharacterEllipsis"
                                                                    IsVisible="{Binding ShowCatalogLine}" Foreground="{DynamicResource MutedBrush}"

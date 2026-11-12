@@ -1403,8 +1403,9 @@
   "lblRestoreValuesAsked": "asks for its settings when it installs",
   "lblRestoreBlockedSourcePhone": "From a source that is not added on this phone ({0})",
   "errRestoreNoList": "The apps on this TV could not be read, so there is nothing to compare the list with. Refresh first.",
-  "hintSavedTvsPhone": "The app list of a TV is saved by itself each time On the TV reads it. A restore installs the apps again from the catalog, on the selected TV. The settings you typed for an app stay on this phone unless you share them.",
+  "hintSavedTvsPhone": "The app list of a TV is saved by itself each time On the TV reads it. A restore installs the apps again from the catalog, on the selected TV. The settings you typed for an app stay on this phone.",
   "lblSavedTvShare": "Share",
   "lblSavedTvShareTitle": "TV app list",
-  "lblSavedTvPick": "Restore from a file"
+  "lblSavedTvPick": "Restore from a file",
+  "lblTvStoreSendSourcesButton": "Send sources to TV…"
 }

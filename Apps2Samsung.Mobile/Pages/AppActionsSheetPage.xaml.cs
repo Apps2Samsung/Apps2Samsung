@@ -23,7 +23,7 @@ public partial class AppActionsSheetPage : ContentPage
 		if (removed is not null)
 			ShowRemoved(removed);
 		TitleLabel.Text = app.DisplayName;
-		SubLabel.Text = $"v{app.Version} · {app.SizeDisplay}";
+		SubLabel.Text = app.Subline;
 		IdLabel.Text = app.TizenId;
 		if (app.HasIcon)
 		{

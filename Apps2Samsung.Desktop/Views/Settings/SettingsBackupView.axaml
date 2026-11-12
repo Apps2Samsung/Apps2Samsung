@@ -101,32 +101,35 @@
 						<ItemsControl.ItemTemplate>
 							<DataTemplate x:DataType="viewModels:SavedTvRow">
 								<StackPanel>
-									<Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="10" Margin="14,10">
-										<Border Width="36" Height="36" CornerRadius="9" Background="{DynamicResource AccentSoftBrush}" VerticalAlignment="Center">
-											<Viewbox Width="19" Height="17">
-												<Canvas Width="28" Height="24">
-													<Path Data="M4.5 2h19a2.5 2.5 0 0 1 2.5 2.5v10a2.5 2.5 0 0 1-2.5 2.5h-19A2.5 2.5 0 0 1 2 14.5v-10A2.5 2.5 0 0 1 4.5 2zM10 21h8"
-													      Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.6"/>
-												</Canvas>
-											</Viewbox>
-										</Border>
-										<StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-											<StackPanel Orientation="Horizontal" Spacing="8">
-												<TextBlock Text="{Binding Name}" FontSize="14" Foreground="{DynamicResource InkBrush}" VerticalAlignment="Center"/>
-												<Border CornerRadius="10" Padding="8,2" VerticalAlignment="Center" Background="{DynamicResource WarnSoftBrush}"
-												        IsVisible="{Binding HasMissing}">
-													<TextBlock Text="{Binding Chip}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
-												</Border>
+									<StackPanel Spacing="10" Margin="14,12">
+										<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+											<Border Width="36" Height="36" CornerRadius="9" Background="{DynamicResource AccentSoftBrush}" VerticalAlignment="Top">
+												<Viewbox Width="19" Height="17">
+													<Canvas Width="28" Height="24">
+														<Path Data="M4.5 2h19a2.5 2.5 0 0 1 2.5 2.5v10a2.5 2.5 0 0 1-2.5 2.5h-19A2.5 2.5 0 0 1 2 14.5v-10A2.5 2.5 0 0 1 4.5 2zM10 21h8"
+														      Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.6"/>
+													</Canvas>
+												</Viewbox>
+											</Border>
+											<StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+												<TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+												           Foreground="{DynamicResource InkBrush}"/>
+												<TextBlock Classes="hint" Text="{Binding Detail}" TextWrapping="Wrap"/>
 											</StackPanel>
-											<TextBlock Classes="hint" Text="{Binding Detail}" TextWrapping="Wrap"/>
-										</StackPanel>
-										<Button Grid.Column="2" Classes="plain" Padding="12,7" VerticalAlignment="Center" Content="{l:Localize lblSavedTvForget}"
-										        Command="{Binding $parent[UserControl].((viewModels:AppSettingsViewModel)DataContext).ForgetSavedTvCommand}" CommandParameter="{Binding}"/>
-										<Button Grid.Column="3" Classes="plain" Padding="12,7" VerticalAlignment="Center" Content="{l:Localize lblSavedTvToFile}"
-										        Command="{Binding $parent[UserControl].((viewModels:AppSettingsViewModel)DataContext).SaveSavedTvToFileCommand}" CommandParameter="{Binding}"/>
-										<Button Grid.Column="4" Classes="primary" Padding="12,7" VerticalAlignment="Center" Content="{Binding RestoreText}"
-										        Command="{Binding $parent[UserControl].((viewModels:AppSettingsViewModel)DataContext).RestoreSavedTvCommand}" CommandParameter="{Binding}"/>
-									</Grid>
+											<Border Grid.Column="2" CornerRadius="10" Padding="8,3" VerticalAlignment="Top" Background="{DynamicResource WarnSoftBrush}"
+											        IsVisible="{Binding HasMissing}">
+												<TextBlock Text="{Binding Chip}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
+											</Border>
+										</Grid>
+										<WrapPanel HorizontalAlignment="Right">
+											<Button Classes="plain" Padding="12,7" Margin="8,0,0,0" Content="{l:Localize lblSavedTvForget}"
+											        Command="{Binding $parent[UserControl].((viewModels:AppSettingsViewModel)DataContext).ForgetSavedTvCommand}" CommandParameter="{Binding}"/>
+											<Button Classes="plain" Padding="12,7" Margin="8,0,0,0" Content="{l:Localize lblSavedTvToFile}"
+											        Command="{Binding $parent[UserControl].((viewModels:AppSettingsViewModel)DataContext).SaveSavedTvToFileCommand}" CommandParameter="{Binding}"/>
+											<Button Classes="primary" Padding="12,7" Margin="8,0,0,0" Content="{Binding RestoreText}"
+											        Command="{Binding $parent[UserControl].((viewModels:AppSettingsViewModel)DataContext).RestoreSavedTvCommand}" CommandParameter="{Binding}"/>
+										</WrapPanel>
+									</StackPanel>
 									<Border Classes="rowline"/>
 								</StackPanel>
 							</DataTemplate>

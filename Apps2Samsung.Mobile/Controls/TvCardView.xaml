@@ -11,9 +11,11 @@
                 StrokeShape="RoundRectangle 18" Padding="7">
             <Border BackgroundColor="{DynamicResource GlassColor}" StrokeThickness="0"
                     StrokeShape="RoundRectangle 12" MinimumHeightRequest="150" Padding="18,18,18,16">
-                <Grid>
+                <!-- Two rows: the route pill has a row of its own above the screen's text, so a long TV
+                     name that fills the card can never run under it. The row is empty without a pill. -->
+                <Grid RowDefinitions="Auto,*">
                     <!-- glass reflection -->
-                    <Border InputTransparent="True" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                    <Border Grid.RowSpan="2" InputTransparent="True" StrokeThickness="0" StrokeShape="RoundRectangle 12"
                             Margin="-18,-18,-18,-16">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -30,11 +32,11 @@
                          answers, amber while it does not -->
                     <Border x:Name="RoutePill" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 6"
                             Stroke="{DynamicResource GlassMutedBrush}" BackgroundColor="Transparent" Padding="6,1"
-                            HorizontalOptions="End" VerticalOptions="Start" Margin="0,-4,-4,0" ZIndex="1">
+                            Grid.Row="0" HorizontalOptions="End" VerticalOptions="Start" Margin="0,-4,-4,6">
                         <Label x:Name="RouteLabel" FontSize="11" FontAttributes="Bold" TextColor="{DynamicResource GlassMutedColor}" />
                     </Border>
 
-                    <VerticalStackLayout x:Name="Screen" VerticalOptions="End" Spacing="4" AnchorY="1">
+                    <VerticalStackLayout x:Name="Screen" Grid.Row="1" VerticalOptions="End" Spacing="4" AnchorY="1">
                         <Label x:Name="NameLabel" FontSize="23" FontAttributes="Bold" LineBreakMode="WordWrap"
                                TextColor="{DynamicResource GlassInkColor}" />
                         <!-- model and IP get the full width; the route pill sits in the screen's corner (#1041 follow-up) -->
