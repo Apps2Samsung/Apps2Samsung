@@ -7,6 +7,10 @@ public static class TvCommand
 {
     public static async Task<int> RunAsync(CliServices s, CancellationToken ct)
     {
+        // `tv save <file>` and `tv restore <file>` (#1069): the TV's app list as a file, and back.
+        if (s.Options.Arguments.FirstOrDefault()?.ToLowerInvariant() is "save" or "restore")
+            return await TvProfileCommand.RunAsync(s, ct);
+
         var ip = s.Options.Arguments.FirstOrDefault() ?? s.Options.Tv;
         if (string.IsNullOrWhiteSpace(ip))
             return s.Out.Fail("usage: apps2samsung-cli tv <ip>", Output.Usage);

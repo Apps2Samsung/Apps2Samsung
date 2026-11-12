@@ -92,11 +92,21 @@ public static class UpdateCommand
     }
 
     // The `install` line for one app, with the options of this run that matter to an install.
-    private static List<string> InstallArgs(CliServices s, string ip, Target t)
+    private static List<string> InstallArgs(CliServices s, string ip, Target t) =>
+        InstallLine(s, ip, t.Name, t.Asset, t.From);
+
+    /// <summary>
+    /// The `install` line that puts <paramref name="asset"/> of the catalog app <paramref name="name"/>
+    /// on the TV, carrying this run's install options: what `update` and `tv restore` (#1069) run per app.
+    /// A package that asks for values gets --set from this line first, then <paramref name="values"/>
+    /// (a TV profile's), then what the desktop saved (#791).
+    /// </summary>
+    internal static List<string> InstallLine(CliServices s, string ip, string name, Asset asset, string? from,
+        IReadOnlyDictionary<string, string>? values = null)
     {
         var o = s.Options;
-        var args = new List<string> { "install", t.Name, "--tv", ip, "--file", t.Asset.FileName };
-        if (t.From is not null) args.AddRange(new[] { "--from", t.From });
+        var args = new List<string> { "install", name, "--tv", ip, "--file", asset.FileName };
+        if (from is not null) args.AddRange(new[] { "--from", from });
         if (o.Json) args.Add("--json");
         if (o.Quiet) args.Add("--quiet");
         if (o.Plain) args.Add("--plain");
@@ -113,18 +123,26 @@ public static class UpdateCommand
         if (o.Keep) args.Add("--keep");
         if (o.Adult) args.Add("--adult");
 
-        // Values the package asks for: --set on this line first, else what the desktop saved (#791).
-        if (t.Asset.UserSettings is { Fields.Count: > 0 } spec)
-        {
-            var saved = UserSettingsStore.Get(s.Desktop.AppUserSettingsJson, t.Asset.FileName)?.Values;
-            foreach (var field in spec.Fields)
-            {
-                var value = o.Settings.TryGetValue(field.Key, out var given) ? given
-                    : saved is not null && saved.TryGetValue(field.Key, out var kept) ? kept : null;
-                if (value is not null)
-                    args.AddRange(new[] { "--set", $"{field.Key}={value}" });
-            }
-        }
+        foreach (var (key, value) in SettingValues(s, asset, values))
+            args.AddRange(new[] { "--set", $"{key}={value}" });
         return args;
+    }
+
+    /// <summary>The value each field of a package that asks for some would get, in spec order; a field without one is left out.</summary>
+    internal static List<(string Key, string Value)> SettingValues(CliServices s, Asset asset, IReadOnlyDictionary<string, string>? values = null)
+    {
+        var found = new List<(string, string)>();
+        if (asset.UserSettings is not { Fields.Count: > 0 } spec)
+            return found;
+        var saved = UserSettingsStore.Get(s.Desktop.AppUserSettingsJson, asset.FileName)?.Values;
+        foreach (var field in spec.Fields)
+        {
+            var value = s.Options.Settings.TryGetValue(field.Key, out var given) ? given
+                : values is not null && values.TryGetValue(field.Key, out var carried) ? carried
+                : saved is not null && saved.TryGetValue(field.Key, out var kept) ? kept : null;
+            if (value is not null)
+                found.Add((field.Key, value));
+        }
+        return found;
     }
 }
