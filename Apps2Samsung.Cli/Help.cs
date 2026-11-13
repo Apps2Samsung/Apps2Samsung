@@ -31,6 +31,8 @@ public static class Help
           leftovers --tv <ip>          the packages left in the TV's install staging folder; --clear deletes
                                        them, --delete <file> one file (the toolbox's Install leftovers)
           logs [show]                  where the session logs are; `logs show` prints the newest, for a bug report
+          self-update                  replace this CLI with the newest release; --check only says whether
+                                       there is one, --channel stable|beta picks which releases count
           sources [add|remove ...]     your own sources: a GitHub repository, a release, a .wgt/.tpk link or a
                                        .json feed, listed by `catalog` next to the community apps
 
@@ -341,6 +343,23 @@ public static class Help
         In the menu, "Session log" shows the log the menu is writing right now.
         """;
 
+    private const string SelfUpdate = """
+        usage: apps2samsung-cli self-update [--check] [--channel stable|beta] [--json]
+
+        Downloads the newest release of the CLI for this platform and puts it over this copy, in the
+        folder it runs from. The next start runs the new version. Nothing else in that folder is touched.
+
+          self-update                  update when a newer release exists
+          self-update --check          only say whether one exists (JSON: updateAvailable)
+          --channel stable|beta        which releases count, remembered from then on. It is the desktop
+                                       app's "Include beta updates" setting, so the two follow the same.
+
+        Without a choice, a beta build follows the betas and a stable build the stable releases. A beta
+        is built again under the same version; self-update notices that by the build's commit.
+        A copy in a folder this user cannot write to (installed by a package) is left alone.
+        In the menu: "Update Apps2Samsung" in the list of TVs.
+        """;
+
     public static string For(string command) => command switch
     {
         "catalog" or "search" or "apps" => Catalog,
@@ -353,6 +372,7 @@ public static class Help
         "tvstore" or "tv-store" => TvStore,
         "leftovers" or "staging" => Leftovers,
         "logs" or "log" => Logs,
+        "self-update" or "selfupdate" => SelfUpdate,
         _ => Usage,
     };
 }

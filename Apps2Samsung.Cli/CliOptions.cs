@@ -96,6 +96,11 @@ public sealed class CliOptions
     /// <summary><c>tv save --with-settings</c> (#1069): put the values typed for packages that ask for some (server addresses, API keys) in the profile too.</summary>
     public bool WithSettings { get; set; }
 
+    /// <summary><c>self-update --check</c>: say whether a newer CLI exists, change nothing.</summary>
+    public bool Check { get; set; }
+    /// <summary><c>self-update --channel stable|beta</c>: which releases to follow from now on.</summary>
+    public string? Channel { get; set; }
+
     public bool Help { get; set; }
     public bool ShowVersion { get; set; }
     /// <summary>Every option as typed, except --tv, --help and --version: the menu (#975) appends them to the command lines it runs, so `menu --data-dir x --adult` carries through.</summary>
@@ -208,6 +213,14 @@ public sealed class CliOptions
                 case "--export": o.ExportPath = Next(arg); if (o.ExportPath is null) return (o, "--export needs a file to write"); break;
                 case "--import": o.ImportPath = Next(arg); if (o.ImportPath is null) return (o, "--import needs a file to read"); break;
                 case "-o" or "--output": o.OutputPath = Next(arg); if (o.OutputPath is null) return (o, "-o needs the file to write"); break;
+                case "--check": o.Check = true; break;
+                case "--channel":
+                {
+                    var v = Next(arg)?.ToLowerInvariant();
+                    if (v is not ("stable" or "beta")) return (o, "--channel needs stable or beta");
+                    o.Channel = v;
+                    break;
+                }
                 case "--clear": o.Clear = true; break;
                 case "--with-settings": o.WithSettings = true; break;
                 case "--delete": o.DeleteFile = Next(arg); if (o.DeleteFile is null) return (o, "--delete needs the file's name as `leftovers` lists it"); break;

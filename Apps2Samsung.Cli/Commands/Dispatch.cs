@@ -20,6 +20,7 @@ public static class Dispatch
         "menu" => MenuCommand.RunAsync(s, ct),
         "leftovers" or "staging" => LeftoversCommand.RunAsync(s, ct),
         "logs" or "log" => LogsCommand.RunAsync(s, ct),
+        "self-update" or "selfupdate" => SelfUpdateCommand.RunAsync(s, ct),
         _ => Task.FromResult(s.Out.Fail($"unknown command '{s.Options.Command}'\n{Help.Usage}", Output.Usage)),
     };
 
