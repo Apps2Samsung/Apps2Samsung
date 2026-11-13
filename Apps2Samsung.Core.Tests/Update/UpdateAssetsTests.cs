@@ -62,4 +62,28 @@ public class UpdateAssetsTests
         Assert.False(UpdateAssets.IsDesktopArchive(name, "win-x64"));
         Assert.False(UpdateAssets.IsAnyDesktopArchive(name));
     }
+
+    private static readonly string[] V331Beta =
+    {
+        "Apps2Samsung-v3.3.1-beta-linux-arm64.tar.gz",
+        "Apps2Samsung-v3.3.1-beta-linux-x64.tar.gz",
+        "Apps2Samsung-v3.3.1-beta-win-x64.zip",
+        "Apps2Samsung.Cli-v3.3.1-beta-linux-arm64.tar.gz",
+        "Apps2Samsung.Cli-v3.3.1-beta-linux-bionic-arm64.tar.gz",
+        "Apps2Samsung.Cli-v3.3.1-beta-linux-x64.tar.gz",
+        "Apps2Samsung.Cli-v3.3.1-beta-osx-arm64.tar.gz",
+        "Apps2Samsung.Cli-v3.3.1-beta-win-arm64.zip",
+        "Apps2Samsung.Cli-v3.3.1-beta-win-x64.zip",
+    };
+
+    [Theory]
+    [InlineData("linux-arm64", "Apps2Samsung.Cli-v3.3.1-beta-linux-arm64.tar.gz")]
+    [InlineData("linux-bionic-arm64", "Apps2Samsung.Cli-v3.3.1-beta-linux-bionic-arm64.tar.gz")]
+    [InlineData("linux-x64", "Apps2Samsung.Cli-v3.3.1-beta-linux-x64.tar.gz")]
+    [InlineData("osx-arm64", "Apps2Samsung.Cli-v3.3.1-beta-osx-arm64.tar.gz")]
+    [InlineData("win-x64", "Apps2Samsung.Cli-v3.3.1-beta-win-x64.zip")]
+    public void CliArchive_IsTheCliOneForExactlyThatPlatform(string rid, string expected)
+    {
+        Assert.Equal(new[] { expected }, V331Beta.Where(n => UpdateAssets.IsCliArchive(n, rid)));
+    }
 }

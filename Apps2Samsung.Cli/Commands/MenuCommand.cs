@@ -44,6 +44,9 @@ internal sealed class Menu
     private readonly List<Tv> _tvs = new();
     private readonly string? _localIp;
     private readonly bool _unicode;
+    // The update check, started with the menu and never waited for: the TV list only names a newer
+    // version when the answer is in by the time it is drawn.
+    private Task<SelfUpdateCommand.State?> _update = Task.FromResult<SelfUpdateCommand.State?>(null);
 
     public Menu(CliServices s, CancellationToken ct)
     {
@@ -68,6 +71,7 @@ internal sealed class Menu
     {
         // Whether the TV list is already on screen: after a scan it is, after a TV's menu it is not.
         var listed = false;
+        _update = CheckForUpdateQuietlyAsync();
 
         // --tv on the command line: straight into that TV's menu, no scan.
         if (!string.IsNullOrWhiteSpace(_s.Options.Tv))
@@ -168,6 +172,9 @@ internal sealed class Menu
         items.Add(new Item($"{A("+")} Another address{Ellipsis}", "address"));
         items.Add(new Item($"{A("↻".Length == 1 && _unicode ? "↻" : "*")} Scan again", "scan"));
         items.Add(new Item(M("Session log"), "log"));
+        items.Add(new Item(_update.IsCompletedSuccessfully && _update.Result is { Available: true } newer
+            ? $"{A("Update Apps2Samsung")}  {M(E(newer.Rebuilt ? "a newer build of " + newer.Latest : newer.Latest + " is available"))}"
+            : M("Update Apps2Samsung"), "update"));
         items.Add(new Item(M("Quit"), "quit"));
 
         while (true)
@@ -192,6 +199,11 @@ internal sealed class Menu
                     return await PickTvAsync(listed: true);
                 case "log":
                     await SessionLogAsync();
+                    return await PickTvAsync();
+                case "update":
+                    // Updated: this copy is the old one, so the menu ends here.
+                    if (await SelfUpdateAsync())
+                        return null;
                     return await PickTvAsync();
                 default:
                     return null;
@@ -248,6 +260,82 @@ internal sealed class Menu
                 case "leftovers": await LeftoversAsync(tv); break;
                 case "log": await SessionLogAsync(); break;
                 default: return;
+            }
+        }
+    }
+
+    // ---- this CLI's own update ----
+
+    private async Task<SelfUpdateCommand.State?> CheckForUpdateQuietlyAsync()
+    {
+        try
+        {
+            var state = await SelfUpdateCommand.CheckAsync(_s, _ct);
+            return state.Error is null ? state : null;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>The CLI's own update (#975): the check, then Update and which releases to follow. True when it updated.</summary>
+    private async Task<bool> SelfUpdateAsync()
+    {
+        while (true)
+        {
+            Screen();
+            _con.MarkupLine("[bold]Update Apps2Samsung[/]");
+            _s.Out.Progress($"Checking for a newer version{Ellipsis}");
+            var state = await SelfUpdateCommand.CheckAsync(_s, _ct);
+            _update = Task.FromResult<SelfUpdateCommand.State?>(state.Error is null ? state : null);
+            if (state.Error is not null)
+            {
+                _s.Out.Warn(state.Error);
+                _s.Out.Idle(Glyph.Failed);
+                await PauseAsync();
+                return false;
+            }
+            _s.Out.Idle();
+            foreach (var line in SelfUpdateCommand.Describe(state).Take(1))
+                _con.MarkupLine(E(line));
+            ShowLine(new[] { "self-update", "--check" });
+            _con.WriteLine();
+
+            var items = new List<Item>();
+            if (state.Available)
+                items.Add(Act("Update now", $"to {E(state.Latest)}: download it and replace this copy", "update"));
+            items.Add(state.Beta
+                ? Act("Stable releases only", "stop following the beta builds", "stable")
+                : Act("Beta builds too", "follow the beta builds as well", "beta"));
+            items.Add(new(M($"{(_unicode ? "←" : "<-")} Back to the TVs"), "back"));
+
+            var pick = await SelectAsync(M(state.Beta ? "Following stable and beta releases" : "Following stable releases"), items);
+            switch (pick.Tag)
+            {
+                case "update":
+                {
+                    var line = new[] { "self-update" };
+                    ShowLine(line);
+                    _con.WriteLine();
+                    var code = await Dispatch.RunLineAsync(line.Concat(_s.Options.Passthrough).ToList(), _ct, _s.Sdb);
+                    _con.WriteLine();
+                    if (code != Output.Ok)
+                    {
+                        await PauseAsync();
+                        break;
+                    }
+                    _con.Markup(M("any key to quit; start apps2samsung-cli again for the new version "));
+                    await _con.Input.ReadKeyAsync(true, _ct);
+                    _con.WriteLine();
+                    return true;
+                }
+                case "stable" or "beta":
+                    // Saved by the command; the next round of this screen checks again with it.
+                    await RunAsync("self-update", "--check", "--channel", (string)pick.Tag);
+                    break;
+                default:
+                    return false;
             }
         }
     }

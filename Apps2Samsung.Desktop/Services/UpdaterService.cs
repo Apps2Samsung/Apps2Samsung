@@ -5,9 +5,7 @@ using Apps2Samsung.Models;
 using Apps2Samsung.Update;
 using System;
 using System.Diagnostics;
-using System.Formats.Tar;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
@@ -106,21 +104,8 @@ namespace Apps2Samsung.Services
                     Directory.Delete(updateDir, true);
                 Directory.CreateDirectory(updateDir);
 
-                // Extract update. Windows ships .zip, Linux/macOS ship .tar.gz.
-                if (downloadedFilePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Off the UI thread: an 87 MB archive takes seconds, and a frozen window reads as stuck.
-                    await Task.Run(() => ZipFile.ExtractToDirectory(downloadedFilePath, updateDir), cancellationToken);
-                }
-                else if (downloadedFilePath.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase) ||
-                         downloadedFilePath.EndsWith(".tgz", StringComparison.OrdinalIgnoreCase))
-                {
-                    await ExtractTarGzAsync(downloadedFilePath, updateDir, cancellationToken);
-                }
-                else
-                {
-                    throw new NotSupportedException("Only ZIP and TAR.GZ archives are supported for automatic updates.");
-                }
+                // Extract update. Windows ships .zip, Linux/macOS ship .tar.gz (Core, shared with the CLI).
+                await UpdateFiles.ExtractAsync(downloadedFilePath, updateDir, cancellationToken);
 
                 // Find the actual application directory (might be in a subfolder)
                 var extractedAppDir = FindApplicationDirectory(updateDir);
@@ -147,14 +132,6 @@ namespace Apps2Samsung.Services
                 Trace.WriteLine($"Failed to apply update: {ex}");
                 throw;
             }
-        }
-
-        private static async Task ExtractTarGzAsync(string archivePath, string destinationDir, CancellationToken cancellationToken)
-        {
-            await using var fileStream = File.OpenRead(archivePath);
-            await using var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress);
-            // TarFile preserves Unix file permissions (e.g. the executable bit) on extraction.
-            await TarFile.ExtractToDirectoryAsync(gzipStream, destinationDir, overwriteFiles: true, cancellationToken);
         }
 
         /// <summary>
