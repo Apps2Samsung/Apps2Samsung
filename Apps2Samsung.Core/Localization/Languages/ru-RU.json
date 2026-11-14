@@ -1024,5 +1024,9 @@
   "lblUserSourceCategory": "Категории",
   "tvCardActionCheckAgain": "Проверить ещё раз",
   "infoPortOpen": "Открыть",
-  "lblRemovedOn": "на {0}"
+  "lblRemovedOn": "на {0}",
+  "lblLinkClose": "Закрыть",
+  "lblRestoreStateInstalling": "Устанавливается",
+  "lblRestoreChipSettings": "Настройки",
+  "lblSavedTvShare": "Поделиться"
 }

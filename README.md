@@ -27,8 +27,8 @@ yours. Missing a word, or your language? [Help translate on Crowdin](https://cro
 
 | Channel    | Version                                                             | Notes                        |
 |------------|---------------------------------------------------------------------|------------------------------|
-| **Stable** | [v3.2.1](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v3.2.1)                                        | Recommended for most users   |
-| **Beta**   | [v3.3.0-beta](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v3.3.0-beta)                                            | Includes new features        |
+| **Stable** | [v3.3.0](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v3.3.0)                                        | Recommended for most users   |
+| **Beta**   | [v3.3.1-beta](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v3.3.1-beta)                                            | Includes new features        |
 
 <!-- versions:end -->
 
@@ -115,6 +115,7 @@ apps2samsung-cli installed --tv 192.168.1.50            # what is on the TV, wit
 apps2samsung-cli cert --tv 192.168.1.50                 # which certificate covers this TV
 apps2samsung-cli sign app.wgt -o signed.wgt --tv 192.168.1.50   # sign only, for installing another way
 apps2samsung-cli sources add github.com/owner/repo      # a source of your own, listed by catalog
+apps2samsung-cli self-update                            # replace the CLI with the newest release (--channel beta for betas)
 ```
 
 - `--json` prints one JSON document on stdout, progress stays on stderr. Exit codes: 0 done,

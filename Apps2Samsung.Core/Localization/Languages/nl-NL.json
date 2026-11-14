@@ -1004,5 +1004,9 @@
   "lblUserSourceCategory": "Categorie",
   "tvCardActionCheckAgain": "Opnieuw controleren",
   "infoPortOpen": "Openen",
-  "lblRemovedOn": "op {0}"
+  "lblRemovedOn": "op {0}",
+  "lblLinkClose": "Sluiten",
+  "lblRestoreStateInstalling": "Installeren",
+  "lblRestoreChipSettings": "Instellingen",
+  "lblSavedTvShare": "Delen"
 }

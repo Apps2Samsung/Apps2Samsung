@@ -347,6 +347,11 @@
 									          IsChecked="{Binding InstalledAppsVm.IsSortNewest, Mode=OneWay}"
 									          Command="{Binding InstalledAppsVm.SortCommand}" CommandParameter="Newest"/>
 								</MenuItem>
+								<!-- Restore a TV (#1069): this TV's saved list, and the list as a file. -->
+								<MenuItem Header="{l:Localize lblRestoreApps}" Command="{Binding InstalledAppsVm.RestoreAppsCommand}"
+								          IsEnabled="{Binding InstalledAppsVm.CanRestoreSaved}"/>
+								<MenuItem Header="{l:Localize lblRestoreSaveList}" Command="{Binding InstalledAppsVm.SaveAppListCommand}"/>
+								<MenuItem Header="{l:Localize lblRestoreFromFile}" Command="{Binding InstalledAppsVm.RestoreFromFileCommand}"/>
 								<MenuItem Header="{l:Localize lblRemoveLeftover}" Command="{Binding InstalledAppsVm.RemoveLeftoverCommand}"
 								          IsEnabled="{Binding !InstalledAppsVm.IsDebugging}" ToolTip.Tip="{l:Localize lblRemoveLeftoverHint}"/>
 								<MenuItem Header="{l:Localize lblTvInformation}" Command="{Binding ShowDeviceInfoCommand}"/>

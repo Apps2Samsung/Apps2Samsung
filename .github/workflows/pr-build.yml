@@ -283,7 +283,7 @@ jobs:
             # which installs happily and then cannot run. Compare against the published binary.
             EXPECTED=$(stat -c%s "publish/linux-$ARCH/Apps2Samsung")
             IN_DEB=$(awk '$6=="./opt/apps2samsung/Apps2Samsung"{print $3}' "deb-$ARCH.txt")
-            IN_RPM=$(rpm -qp --qf '[%{FILENAMES} %{FILESIZES}\n]' dist/*-linux-$ARCH.rpm \
+            IN_RPM=$(rpm -qp --qf '[%{FILENAMES} %{LONGFILESIZES}\n]' dist/*-linux-$ARCH.rpm \
               | awk '$1=="/opt/apps2samsung/Apps2Samsung"{print $2}')
             echo "$ARCH: published=$EXPECTED deb=$IN_DEB rpm=$IN_RPM"
             test "$IN_DEB" = "$EXPECTED"

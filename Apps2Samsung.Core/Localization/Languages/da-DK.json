@@ -989,5 +989,9 @@
   "lblUserSourceCategory": "Kategori",
   "tvCardActionCheckAgain": "Tjek igen",
   "infoPortOpen": "Åbn",
-  "lblRemovedOn": "på {0}"
+  "lblRemovedOn": "på {0}",
+  "lblLinkClose": "Luk",
+  "lblRestoreStateInstalling": "Installation",
+  "lblRestoreChipSettings": "Indstillinger",
+  "lblSavedTvShare": "Del"
 }

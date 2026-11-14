@@ -11,6 +11,11 @@
         <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
             <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
                      Color="{DynamicResource HairColor}" />
+            <!-- opened by an install link from a website or another app (#1066) -->
+            <Border x:Name="FromLinkChip" IsVisible="False" HorizontalOptions="Start" StrokeThickness="0"
+                    StrokeShape="RoundRectangle 8" Padding="10,5" BackgroundColor="{DynamicResource AccentSoftColor}">
+                <Label Text="{l:Localize lblOpenedFromLink}" FontSize="13" FontAttributes="Bold" TextColor="{DynamicResource AccentColor}" />
+            </Border>
             <Grid ColumnDefinitions="Auto,*,Auto,32,32" ColumnSpacing="8" Margin="0,6,0,0">
                 <!-- the letter tile, or the app's icon from the catalog (#1000); filled in from code -->
                 <ContentView x:Name="TileSlot" VerticalOptions="Center" />

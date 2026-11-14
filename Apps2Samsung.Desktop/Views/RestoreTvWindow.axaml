@@ -1,0 +1,113 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:Apps2Samsung.Extensions"
+        xmlns:viewModels="clr-namespace:Apps2Samsung.ViewModels"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        x:Class="Apps2Samsung.Views.RestoreTvWindow"
+        x:DataType="viewModels:RestoreTvViewModel"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        Title="{Binding Title}"
+        Width="640" Height="720" MinWidth="520" MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource BgBrush}">
+	<!-- Restore a TV (#1069): a saved app list against today's catalog and the selected TV. Tick what
+	     comes back; what cannot come back says why. Closes with true on Restore. -->
+	<Window.Styles>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Sections.axaml"/>
+	</Window.Styles>
+
+	<DockPanel Margin="24,20,24,20">
+		<StackPanel DockPanel.Dock="Top" Spacing="3" Margin="0,0,0,14">
+			<TextBlock Text="{Binding Title}" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
+			<TextBlock Text="{Binding Subtitle}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+		</StackPanel>
+
+		<Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" Margin="0,16,0,0">
+			<TextBlock Text="{l:Localize lblRestoreFooter}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"
+			           Foreground="{DynamicResource MutedBrush}"/>
+			<Button Grid.Column="1" Classes="secondary" Content="{l:Localize lblCancel}" Click="OnCancelClick" IsCancel="True"/>
+			<Button Grid.Column="2" Classes="primary" Content="{Binding RestoreText}" Click="OnRestoreClick"
+			        IsEnabled="{Binding CanRestore}" IsVisible="{Binding HasReady}" IsDefault="True"/>
+		</Grid>
+
+		<ScrollViewer>
+			<StackPanel Spacing="16">
+				<TextBlock Text="{Binding NothingText}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"
+				           IsVisible="{Binding HasNothing}"/>
+
+				<StackPanel Spacing="6" IsVisible="{Binding HasReady}">
+					<TextBlock Classes="grouptitle" Text="{Binding ReadyHeader}"/>
+					<Border Classes="group">
+						<ItemsControl ItemsSource="{Binding Ready}">
+							<ItemsControl.ItemTemplate>
+								<DataTemplate x:DataType="viewModels:RestoreTvRow">
+									<StackPanel>
+										<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="12" Margin="14,7">
+											<CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" MinWidth="0"
+											          ToolTip.Tip="{Binding Name}"/>
+											<Border Grid.Column="1" Width="36" Height="36" CornerRadius="9" Background="{Binding Color}" VerticalAlignment="Center">
+												<TextBlock Text="{Binding Initials}" Foreground="{DynamicResource GlassInkBrush}" FontWeight="Bold" FontSize="16"
+												           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+											</Border>
+											<StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center">
+												<TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis"
+												           Foreground="{DynamicResource InkBrush}"/>
+												<TextBlock Text="{Binding Detail}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"
+												           IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+											</StackPanel>
+											<!-- The build on the TV was a guess: pick the right one here. -->
+											<ComboBox Grid.Column="3" ItemsSource="{Binding Builds}" SelectedItem="{Binding Build}" IsVisible="{Binding PickBuild}"
+											          VerticalAlignment="Center" MinWidth="120" DisplayMemberBinding="{Binding Label}"/>
+											<Button Grid.Column="4" Classes="plain" Padding="10,5" VerticalAlignment="Center" Content="{l:Localize lblRestoreFillIn}"
+											        Command="{Binding FillInCommand}" IsVisible="{Binding NeedsValues}"/>
+											<Border Grid.Column="5" CornerRadius="10" Padding="8,3" VerticalAlignment="Center" IsVisible="{Binding HasChip}"
+											        Background="{DynamicResource AccentSoftBrush}" Classes.warn="{Binding ChipWarn}">
+												<Border.Styles>
+													<Style Selector="Border.warn">
+														<Setter Property="Background" Value="{DynamicResource WarnSoftBrush}"/>
+													</Style>
+												</Border.Styles>
+												<TextBlock Text="{Binding Chip}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
+											</Border>
+										</Grid>
+										<Border Classes="rowline" Margin="14,0,0,0"/>
+									</StackPanel>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+					</Border>
+				</StackPanel>
+
+				<StackPanel Spacing="6" IsVisible="{Binding HasBlocked}">
+					<TextBlock Classes="grouptitle" Text="{Binding BlockedHeader}"/>
+					<Border Classes="group" Opacity="0.75">
+						<ItemsControl ItemsSource="{Binding Blocked}">
+							<ItemsControl.ItemTemplate>
+								<DataTemplate x:DataType="viewModels:RestoreBlockedRow">
+									<StackPanel>
+										<Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Margin="14,7">
+											<Border Width="36" Height="36" CornerRadius="9" Background="{DynamicResource HairBrush}" VerticalAlignment="Center">
+												<TextBlock Text="{Binding Initials}" Foreground="{DynamicResource MutedBrush}" FontWeight="Bold" FontSize="16"
+												           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+											</Border>
+											<StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+												<TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis"
+												           Foreground="{DynamicResource InkBrush}"/>
+												<TextBlock Text="{Binding Reason}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+											</StackPanel>
+										</Grid>
+										<Border Classes="rowline" Margin="14,0,0,0"/>
+									</StackPanel>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+					</Border>
+				</StackPanel>
+
+				<TextBlock Text="{Binding SkippedText}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"
+				           IsVisible="{Binding HasSkipped}"/>
+			</StackPanel>
+		</ScrollViewer>
+	</DockPanel>
+</Window>

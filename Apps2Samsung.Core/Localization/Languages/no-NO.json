@@ -1003,5 +1003,9 @@
   "lblUserSourceCategory": "Kategori",
   "tvCardActionCheckAgain": "Sjekk igjen",
   "infoPortOpen": "Åpne",
-  "lblRemovedOn": "på {0}"
+  "lblRemovedOn": "på {0}",
+  "lblLinkClose": "Lukk",
+  "lblRestoreStateInstalling": "Installasjon",
+  "lblRestoreChipSettings": "Innstillinger",
+  "lblSavedTvShare": "Del"
 }

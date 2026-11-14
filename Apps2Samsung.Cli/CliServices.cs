@@ -43,6 +43,13 @@ public sealed class CliServices : IAsyncDisposable
         Out = new Output(options);
         CliPaths.Use(options.DataDir);
         Directory.CreateDirectory(CliPaths.CliDir);
+        // Automatic certificate backups (#1068): the desktop's folder and index, since the CLI shares its
+        // certificate store. A certificate made before this existed is backed up on the first run.
+        Apps2Samsung.Certificate.CertificateBackups.Configure(
+            CliPaths.CertificateStore,
+            Path.Combine(CliPaths.DataDir, Apps2Samsung.Certificate.CertificateBackups.IndexFileName),
+            new Apps2Samsung.Certificate.FolderBackupTarget(Apps2Samsung.Certificate.CertificateBackups.DefaultFolder(CliPaths.DataDir)));
+        Apps2Samsung.Certificate.CertificateBackups.Changed();
         // The session log (#975), except for `logs` itself, which would only list its own new file.
         if (options.Command is not ("logs" or "log"))
             CliLog.Start(Out, options);

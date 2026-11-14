@@ -1011,5 +1011,9 @@
   "lblUserSourceCategory": "Kategori",
   "tvCardActionCheckAgain": "Yeniden denetle",
   "infoPortOpen": "Aç",
-  "lblRemovedOn": "{0} üzerinde"
+  "lblRemovedOn": "{0} üzerinde",
+  "lblLinkClose": "Kapat",
+  "lblRestoreStateInstalling": "Kurulum",
+  "lblRestoreChipSettings": "Ayarlar",
+  "lblSavedTvShare": "Paylaş"
 }

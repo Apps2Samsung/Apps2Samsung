@@ -88,6 +88,7 @@ namespace Apps2Samsung.ViewModels
                 Groups.Add(new InstalledAppGroup("lblAppsGroupRemovable".Localized(), removableApps));
             if (builtInApps.Count > 0)
                 Groups.Add(new InstalledAppGroup("lblAppsGroupBuiltIn".Localized(), builtInApps));
+            RefreshUpdatesBanner();
         }
 
         /// <summary>The list as the section shows it: the apps that can be removed, then the TV's own.</summary>
@@ -254,6 +255,9 @@ namespace Apps2Samsung.ViewModels
                     viewModels.Add(new InstalledAppViewModel(apps[i]));
                 }
 
+                // The list as it is now, written down for this TV; apps gone since last time are offered again (#1069).
+                SnapshotTv(apps, catalog, removed);
+
                 var hints = Apps2Samsung.Catalog.Repositories.MovedApps.Hints(_matches.Values,
                     Apps2Samsung.Catalog.UserSources.Parse(Apps2Samsung.Helpers.AppSettings.Default.UserSourcesJson));
                 await Dispatcher.UIThread.InvokeAsync(() =>
@@ -314,6 +318,7 @@ namespace Apps2Samsung.ViewModels
             finally
             {
                 IsBusy = false;
+                _firstLoad.TrySetResult();
             }
         }
 
@@ -381,6 +386,9 @@ namespace Apps2Samsung.ViewModels
                         string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() ?? "lblUninstallFailed".Localized() : result.Error);
                     return;
                 }
+                // Removed on purpose: not an app to offer again after the next read (#1069).
+                if (_matches.TryGetValue(app.TizenId, out var removedMatch))
+                    Apps2Samsung.Catalog.SavedTvs.RemoveApp(_tvIp, removedMatch.Release.Name, removedMatch.Release.Source.Key);
             }
             catch (Exception ex)
             {

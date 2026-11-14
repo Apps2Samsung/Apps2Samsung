@@ -42,7 +42,12 @@
 	<ScrollViewer>
 		<StackPanel Margin="16,8,16,16" Spacing="10">
 			<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
-			<Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+			<!-- opened by an install link from a website or another tool (#1066) -->
+			<Border IsVisible="{Binding FromLink}" HorizontalAlignment="Left" CornerRadius="8" Padding="10,5"
+			        Background="{DynamicResource AccentSoftBrush}">
+				<TextBlock Text="{Binding FromLinkText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+			</Border>
+			<Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
 				<!-- the letter tile, or the app's icon from the catalog (#1000), as in the list -->
 				<Panel Width="44" Height="44" VerticalAlignment="Center">
 					<Border CornerRadius="11" Background="{Binding TileBrush}" IsVisible="{Binding !HasIcon}">
@@ -88,7 +93,23 @@
 				<!-- the star: a favorite leads the Install screen's list -->
 				<Button Grid.Column="3" Classes="icon" Content="{Binding FavoriteGlyph}" FontSize="18" ToolTip.Tip="{Binding FavoriteText}"
 				        Command="{Binding ToggleFavoriteCommand}" Width="36" Height="36" CornerRadius="18"/>
+				<!-- ⋯: the app's install link for a README or a chat (#1066) -->
+				<Button Grid.Column="4" Classes="icon" Content="⋯" FontSize="18" ToolTip.Tip="{Binding MoreText}"
+				        Width="36" Height="36" CornerRadius="18">
+					<Button.Flyout>
+						<MenuFlyout Placement="BottomEdgeAlignedRight">
+							<MenuItem Header="{Binding CopyLinkText}" Click="OnCopyLinkClick"/>
+							<MenuItem Header="{Binding CopyVersionLinkText}" IsVisible="{Binding HasVersionLink}" Click="OnCopyVersionLinkClick"/>
+						</MenuFlyout>
+					</Button.Flyout>
+				</Button>
 			</Grid>
+			<Border IsVisible="{Binding HasCopiedLink}" CornerRadius="10" Padding="12,8" Background="{DynamicResource FillBrush}">
+				<StackPanel Spacing="2">
+					<TextBlock Text="{Binding LinkCopiedText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
+					<SelectableTextBlock Text="{Binding CopiedLink}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+				</StackPanel>
+			</Border>
 
 			<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource FillBrush}" IsVisible="{Binding HasPreview}">
 				<Image Source="{Binding Preview}" Stretch="UniformToFill" MaxHeight="240"/>

@@ -54,4 +54,36 @@ public class ScanDiagnosticsTests
         Assert.Contains("verdict=PowerCycle", line);
         Assert.DoesNotContain("127.0.0.1", line);
     }
+
+    [Fact]
+    public void AnOpenPortIsNotReadyWhenHostPcIpNamesAnotherMachine()
+    {
+        // #1079: the TV accepts the Windows PC (.55); the phone (.76) sees the port open and is refused.
+        var line = ScanDiagnostics.Describe(
+            configuredLocalIp: "192.168.178.76",
+            defaultRouteIp: "192.168.178.76",
+            localIps: new[] { "192.168.178.76" },
+            devices: new[]
+            {
+                new NetworkDevice { IpAddress = "192.168.178.40", DeveloperMode = "1", DeveloperIP = "192.168.178.55", DebugPortOpen = true },
+            });
+
+        Assert.Contains("debugPort=open verdict=IpMismatch", line);
+        Assert.DoesNotContain("verdict=Ready", line);
+    }
+
+    [Fact]
+    public void AnOpenPortThroughTheRelayIsReady()
+    {
+        var line = ScanDiagnostics.Describe(
+            configuredLocalIp: "192.168.178.76",
+            defaultRouteIp: "192.168.178.76",
+            localIps: new[] { "192.168.178.76" },
+            devices: new[]
+            {
+                new NetworkDevice { IpAddress = "192.168.178.40", DeveloperMode = "1", DeveloperIP = "127.0.0.1", DebugPortOpen = true, RelayPortOpen = true },
+            });
+
+        Assert.Contains("verdict=Ready", line);
+    }
 }

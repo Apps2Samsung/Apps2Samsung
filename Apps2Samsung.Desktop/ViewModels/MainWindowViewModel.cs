@@ -403,6 +403,9 @@ namespace Apps2Samsung.ViewModels
             }
             IsCatalogEmpty = !any && !IsLoading;
             CatalogFoot = string.Format(L("lblCatalogFoot"), all.Count);
+            // A catalog in a newer format than this build knows: said under the list.
+            if (CatalogSchema.Notice(L) is { } newer)
+                CatalogFoot += " " + newer;
             RemovedSearchLines = RemovedApps.Search(SearchText, _removedApps).Select(r => RemovedApps.SearchLine(r, L)).ToList();
         }
 
@@ -434,7 +437,11 @@ namespace Apps2Samsung.ViewModels
 
         /// <summary>Opens the app sheet (description, category line, versions); installs the asset it hands back.</summary>
         [RelayCommand]
-        private async Task OpenAppAsync(CatalogRow? row)
+        private Task OpenAppAsync(CatalogRow? row) => OpenAppCoreAsync(row, linkFile: null, fromLink: false);
+
+        /// <param name="linkFile">The file an install link names (#1066), selected in the sheet.</param>
+        /// <param name="fromLink">The sheet says it was opened by a link.</param>
+        private async Task OpenAppCoreAsync(CatalogRow? row, string? linkFile, bool fromLink)
         {
             if (row is null || Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
                 return;
@@ -455,7 +462,9 @@ namespace Apps2Samsung.ViewModels
                 SelectedTvVersion,
                 row.TileBrush,
                 _catalogIcons,
-                OtherSourcesOf(row.Release));
+                OtherSourcesOf(row.Release),
+                linkFile,
+                fromLink);
             var showAllBefore = AppSettings.Default.ShowAllJellyfinVersions;
             var asset = await new Views.AppDetailWindow(sheet).ShowDialog<Asset?>(desktop.MainWindow);
             if (asset is not null)
@@ -601,6 +610,18 @@ namespace Apps2Samsung.ViewModels
             _settingsViewModel.CheckForUpdatesHandler = () => CheckForUpdatesAsync(manual: true);
             // Settings > Installing > Prepare the certificate now: for the selected TV.
             _settingsViewModel.PrepareCertificateHandler = PrepareCertificateAsync;
+            // Settings > Backup > Saved TVs > Restore (#1069): the sheet opens in On the TV, against the selected TV.
+            _settingsViewModel.Application.RestoreProfile = async profile =>
+            {
+                if (!HasSelectedTv)
+                {
+                    await _dialogService.ShowErrorAsync(L("statusSavedTvNoTv"));
+                    return;
+                }
+                await ShowInstalledAppsAsync();
+                if (InstalledAppsVm is { } onTv)
+                    await onTv.RestoreProfileWhenLoadedAsync(profile);
+            };
             // The catalog ⋯ > Show adult (18+) apps (#850): the list follows at once.
             _settingsViewModel.Application.ShowAdultAppsChanged += () =>
             {
@@ -634,6 +655,8 @@ namespace Apps2Samsung.ViewModels
                 else
                     _ = LoadReleasesAsync();
             };
+            // Install links (#1066) from a browser or another tool, this start's own included.
+            Apps2Samsung.Services.InstallLinkRelay.Subscribe(link => Dispatcher.UIThread.Post(() => _ = OpenInstallLinkAsync(link)));
             _httpClient = httpClient;
             _catalogIcons = new CatalogIcons(httpClient, Path.Combine(ProviderManifestService.CacheDirectory, "catalog-icons"));
 
@@ -1484,6 +1507,9 @@ namespace Apps2Samsung.ViewModels
                     refreshCatalog: () => LoadReleasesAsync(),
                     icons: _catalogIcons);
                 vm.OnRequestClose += () => SelectedSection = Section.Install;
+                vm.UseUpdateAll((items, onItem, stop) => UpdateAllFromCatalogAsync(items, onItem, stop));
+                // Restore a TV (#1069) is the same queue; an app that is not on the TV installs the way an update does.
+                vm.UseRestore(UpdateAllFromCatalogAsync, (release, asset) => CollectUserSettingsAsync(release, asset));
                 InstalledAppsVm = vm;
             }
             catch (Exception ex)
@@ -1517,6 +1543,107 @@ namespace Apps2Samsung.ViewModels
 
         // "Update" on an installed app (#820): the catalog entry it came from, installed the same
         // way the app sheet does it. SelectedRelease first: changing it resets the asset.
+        /// <summary>
+        /// Update all (#1067): the apps one after the other, the way a single Update installs them
+        /// (same certificate, same variant, the saved values for a package that asks for some), but
+        /// with no Installation complete window and no error dialog in between: each failure is kept
+        /// for the summary and the run goes on. Questions that need the user (Developer Mode, removing
+        /// a copy, values not saved yet) still ask. A package that gains root is left for its own Update.
+        /// </summary>
+        private async Task<IReadOnlyList<UpdateAllOutcome>> UpdateAllFromCatalogAsync(
+            IReadOnlyList<(GitHubRelease Release, Asset Asset)> items, Action<int, string> onItem, Func<bool> stopRequested,
+            Action<int, UpdateAllOutcome>? onOutcome = null)
+        {
+            var results = new List<UpdateAllOutcome>();
+            var device = SelectedDevice;
+            if (device is null)
+                return results;
+            var outcomes = new OutcomeSink(results, onOutcome);
+
+            for (var i = 0; i < items.Count; i++)
+            {
+                outcomes.Index = i;
+                var (release, asset) = items[i];
+                if (stopRequested())
+                {
+                    outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.NotStarted, null));
+                    continue;
+                }
+                onItem(i, release.Name);
+
+                if (release.IsRoot)
+                {
+                    outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.Skipped, L("lblUpdateAllSkippedRoot")));
+                    continue;
+                }
+                // Saved values that still pass are reused without the form; otherwise the form, as for a single Update.
+                if (asset.UserSettings is { Fields.Count: > 0 } spec)
+                {
+                    var saved = UserSettingsStore.Get(AppSettings.Default.AppUserSettingsJson, asset.FileName)?.Values;
+                    var complete = saved is not null && spec.Fields.All(f => UserSettingsStore.Validate(f, saved.TryGetValue(f.Key, out var v) ? v : null) is null);
+                    if (!complete && !await CollectUserSettingsAsync(release, asset))
+                    {
+                        outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.Skipped, L("statusInstallCancelled")));
+                        continue;
+                    }
+                }
+
+                string? failure = null;
+                AppSettings.Default.RequiresPartnerSigning = release.RequiresPartner;
+                var path = await _packageHelper.DownloadReleaseAsync(release, asset,
+                    message => Dispatcher.UIThread.Post(() => StatusBar = message), reportFailure: m => failure = m);
+                if (string.IsNullOrEmpty(path))
+                {
+                    outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.Failed, failure ?? L("DownloadFailed")));
+                    continue;
+                }
+
+                var installed = false;
+                _samsungLoginCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                ResetInstallProgress();
+                try
+                {
+                    installed = await _packageHelper.InstallPackageAsync(path, device, _samsungLoginCts.Token,
+                        message => Dispatcher.UIThread.Post(() => StatusBar = message),
+                        onSamsungLoginStarted: OnSamsungLoginStarted,
+                        installProgress: InstallProgressSink,
+                        catalogKey: Apps2Samsung.Install.PackageIdCollisions.CatalogKey(release, asset),
+                        reportFailure: m => failure = m);
+                }
+                finally
+                {
+                    ResetInstallProgress();
+                    IsSamsungLoginActive = false;
+                    _samsungLoginCts.Dispose();
+                    _samsungLoginCts = null;
+                }
+                if (!AppSettings.Default.KeepWGTFile)
+                    _packageHelper.CleanupDownloadedPackage(path);
+
+                if (installed)
+                {
+                    RememberInstalledVariant(device.IpAddress, release, asset);
+                    outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.Updated, asset.PackageVersion));
+                }
+                else
+                {
+                    outcomes.Add(new UpdateAllOutcome(release.Name, UpdateAllState.Failed, failure ?? L("statusInstallCancelled")));
+                }
+            }
+            return results;
+        }
+
+        // Keeps each outcome and tells the caller as it lands (the restore marks its rows with it).
+        private sealed class OutcomeSink(List<UpdateAllOutcome> results, Action<int, UpdateAllOutcome>? onOutcome)
+        {
+            public int Index { get; set; }
+            public void Add(UpdateAllOutcome outcome)
+            {
+                results.Add(outcome);
+                onOutcome?.Invoke(Index, outcome);
+            }
+        }
+
         private async Task UpdateFromCatalogAsync(GitHubRelease release, Asset asset)
         {
             SelectedSection = Section.Install;
@@ -1894,6 +2021,7 @@ namespace Apps2Samsung.ViewModels
                             // The official catalog decides the categories, their order and tile colours (#1054).
                             AppCategories.Use(catalog);
                             CatalogPreviews.Use(catalog);
+                            CatalogSchema.Use(catalog);
                         }
                         DownloadStatsService.Stamp(apps, provider, await stats);
                         list.AddRange(apps);

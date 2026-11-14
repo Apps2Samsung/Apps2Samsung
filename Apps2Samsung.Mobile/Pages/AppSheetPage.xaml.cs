@@ -56,9 +56,10 @@ public partial class AppSheetPage : ContentPage
 		bool isFavorite = false, Action<string, bool>? setFavorite = null,
 		Func<bool, Task<IReadOnlyList<GitHubRelease>>>? showAllVersions = null, bool isUpdate = false,
 		Action<string>? searchAuthor = null, Version? tvVersion = null, Asset? openOn = null, CatalogIcons? icons = null,
-		IReadOnlyList<GitHubRelease>? alsoOffered = null, Action<GitHubRelease>? openOther = null)
+		IReadOnlyList<GitHubRelease>? alsoOffered = null, Action<GitHubRelease>? openOther = null, bool fromLink = false)
 	{
 		InitializeComponent();
+		FromLinkChip.IsVisible = fromLink;
 		_tvVersion = tvVersion;
 		_openOn = openOn;
 		var release = versions[0];

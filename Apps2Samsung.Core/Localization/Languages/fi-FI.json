@@ -1006,5 +1006,9 @@
   "lblUserSourceCategory": "Luokka",
   "tvCardActionCheckAgain": "Tarkista uudelleen",
   "infoPortOpen": "Avaa",
-  "lblRemovedOn": "kohteessa {0}"
+  "lblRemovedOn": "kohteessa {0}",
+  "lblLinkClose": "Sulje",
+  "lblRestoreStateInstalling": "Asennus",
+  "lblRestoreChipSettings": "Asetukset",
+  "lblSavedTvShare": "Jaa"
 }

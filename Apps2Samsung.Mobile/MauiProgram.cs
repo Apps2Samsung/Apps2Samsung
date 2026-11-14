@@ -155,6 +155,11 @@ public static class MauiProgram
 		builder.Logging.AddDebug();
 #endif
 
+		// Automatic certificate backups (#1068): Downloads on Android, Files on iOS.
+		CertificateBackupTargets.Configure();
+		// The app list of each TV, kept by itself (#1069).
+		Apps2Samsung.Catalog.SavedTvs.Configure(Path.Combine(FileSystem.AppDataDirectory, Apps2Samsung.Catalog.SavedTvs.FileName));
+
 		return builder.Build();
 	}
 }

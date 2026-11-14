@@ -23,11 +23,21 @@ public static class InstallCommand
         if (string.IsNullOrWhiteSpace(target) || string.IsNullOrWhiteSpace(ip))
             return s.Out.Fail("usage: apps2samsung-cli install <app|file> --tv <ip>   (`install --help` for the options)", Output.Usage);
 
+        // An install link from a website or another tool (#1066): it names a catalog app, never a file to fetch.
+        InstallLink? link = null;
+        if (InstallLink.LooksLikeLink(target))
+        {
+            if (!InstallLink.TryParse(target, out link))
+                return s.Out.Fail("not an install link Apps2Samsung reads: apps2samsung://install?app=<catalog name, package id or app id>[&file=<file or variant>]", Output.Usage);
+            if (link!.Kind == InstallLinkKind.Source)
+                return s.Out.Fail($"that link adds a source, it does not install an app: `apps2samsung-cli sources add {link.SourceUrl}` adds it", Output.Usage);
+        }
+
         // ---- What to install: a local file, or a catalog app and one of its files ----
         GitHubRelease? release = null;
         Asset? asset = null;
         string? localFile = null;
-        if (File.Exists(target) && (target.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) || target.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase)))
+        if (link is null && File.Exists(target) && (target.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) || target.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase)))
         {
             localFile = Path.GetFullPath(target);
         }
@@ -41,6 +51,21 @@ public static class InstallCommand
             // Several sources can offer one app (#1018): --from picks one; they are never merged.
             if (!string.IsNullOrWhiteSpace(s.Options.From))
                 visible = visible.Where(e => SourcesCommand.Matches(e.Source, s.Options.From)).ToList();
+            if (link is not null)
+            {
+                // Exact only: a name, a package id or an app id, never a part of a name.
+                var named = InstallLink.Resolve(link, visible);
+                if (named is null)
+                    return InstallLink.Resolve(link, catalog.Entries) is { } hidden && !s.Options.Adult && hidden.Entries.All(e => e.IsAdult)
+                        ? s.Out.Fail($"The link names {hidden.Name}, an 18+ app: rerun with --adult to install it.", Output.Usage, new { link = link.ToSchemeUrl() })
+                        : s.Out.Fail($"The link names '{link.App}', which is not in the catalog{(string.IsNullOrWhiteSpace(s.Options.From) ? "" : $" from {s.Options.From}")}. `apps2samsung-cli catalog` lists the apps.",
+                            details: new { link = link.ToSchemeUrl() });
+                target = named.Name;
+                if (named.FileMissing)
+                    s.Out.Warn($"{named.Name} no longer has the file '{link.File}' the link names; installing its default file.");
+                else if (named.File is not null && string.IsNullOrWhiteSpace(s.Options.File))
+                    s.Options.File = named.File;
+            }
             var (match, candidates) = CatalogLoader.Find(visible, target);
             if (match is null)
             {

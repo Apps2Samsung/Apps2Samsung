@@ -82,8 +82,11 @@
         <!-- The debug agent's chip in the header (#1041): soft accent once attached -->
         <Style Selector="Button.agentchip">
             <Setter Property="CornerRadius" Value="999"/>
-            <Setter Property="Padding" Value="12,5"/>
-            <Setter Property="MinHeight" Value="32"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="BorderThickness" Value="1"/>
@@ -91,6 +94,18 @@
             <Setter Property="Background" Value="{DynamicResource FillBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
             <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <!-- Reload and close: square, the chip's height -->
+        <Style Selector="Button.headertool">
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="MinWidth" Value="36"/>
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
         <Style Selector="Button.agentchip.on">
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
@@ -118,12 +133,16 @@
     <DockPanel LastChildFill="True" Margin="16">
 
         <!-- Header: what this is, which TV, the debug agent's chip, reload and close -->
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,4">
-            <StackPanel Grid.Column="0" Spacing="2">
-                <TextBlock Text="{l:Localize lblToolbox}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
-                <TextBlock Text="{Binding TvLabel}" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
+        <!-- The TV's name is cut off with an ellipsis instead of running under the buttons, and the
+             three controls share one height and one centre line. -->
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,0,0,4">
+            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                <TextBlock Text="{l:Localize lblToolbox}" FontSize="20" FontWeight="Bold" TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource InkBrush}"/>
+                <TextBlock Text="{Binding TvLabel}" FontSize="12" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding TvLabel}"
+                           Foreground="{DynamicResource MutedBrush}"/>
             </StackPanel>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                 <!-- Not attached: one click attaches (installing the agent first when the TV has none) -->
                 <Button Classes="agentchip" Content="{l:Localize lblToolboxAgentChipAttach}"
                         Command="{Binding AttachAgentCommand}"
@@ -158,9 +177,10 @@
                         </Flyout>
                     </Button.Flyout>
                 </Button>
-                <Button Classes="soft" Content="↻" Command="{Binding LoadCommand}"
+                <Button Classes="soft headertool" Content="↻" Command="{Binding LoadCommand}"
                         ToolTip.Tip="{l:Localize lblRemoteReconnect}"/>
-                <Button Classes="soft" Content="✕" Command="{Binding CloseCommand}"/>
+                <Button Classes="soft headertool" Content="✕" Command="{Binding CloseCommand}"
+                        ToolTip.Tip="{l:Localize btn_Close}"/>
             </StackPanel>
         </Grid>
 

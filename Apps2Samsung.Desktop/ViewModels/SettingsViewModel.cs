@@ -134,8 +134,13 @@ namespace Apps2Samsung.ViewModels
             AppIconsRow = new SettingsAppRow(() => AppIcons.LblAppIcons, appIcons);
 
             RefreshRows();
+            // The amber dot on Backup when a certificate is in no backup (#1068).
+            var backupRow = MoreRows.First(r => r.Page == Page.Backup);
+            backupRow.NeedsAttention = Application.CertificatesNeedBackup;
             Application.PropertyChanged += (_, e) =>
             {
+                if (e.PropertyName is nameof(AppSettingsViewModel.CertificatesNeedBackup))
+                    backupRow.NeedsAttention = Application.CertificatesNeedBackup;
                 if (e.PropertyName is nameof(AppSettingsViewModel.SelectedLanguage))
                     RefreshRows();
             };
@@ -151,6 +156,9 @@ namespace Apps2Samsung.ViewModels
                 return;
             PushedPage = null;
             SelectedPage = row.Page;
+            if (row.Page == Page.Backup)
+                Application.RefreshCertificateBackups(); // a backup deleted by hand shows at once (#1068)
+                Application.RefreshSavedTvs();
         }
 
         [RelayCommand]
@@ -288,6 +296,10 @@ namespace Apps2Samsung.ViewModels
 
         [ObservableProperty]
         private bool isSelected;
+
+        /// <summary>An amber dot after the name: something on that page needs the user (#1068).</summary>
+        [ObservableProperty]
+        private bool needsAttention;
 
         public SettingsRow(SettingsViewModel.Page page, string labelKey, string? summaryKey, string tileToken, string iconData)
         {

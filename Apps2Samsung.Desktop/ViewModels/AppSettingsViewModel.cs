@@ -287,6 +287,8 @@ namespace Apps2Samsung.ViewModels
             _themeService.ThemeChanged += OnThemeChanged;
             AppSettings.PartnerSigningAutoEnabled += OnPartnerSigningAutoEnabled;
             AppSettings.CertificateKindChanged += OnCertificateKindAutoChanged;
+            InitCertificateBackups();
+            InitSavedTvs();
 
             AvailableLanguages = new ObservableCollection<LanguageOption>(
                 _localizationService.AvailableLanguages
@@ -915,6 +917,17 @@ namespace Apps2Samsung.ViewModels
         {
             var sources = Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson);
             var added = await _dialogService.ShowAddUserSourceAsync(sources);
+            if (added is null)
+                return;
+            sources.Add(added);
+            SaveOwnSources(sources);
+        }
+
+        /// <summary>A source link (#1066): the Add a source form, filled in with it; stored only when the user adds it.</summary>
+        public async Task AddUserSourceFromLinkAsync(string url)
+        {
+            var sources = Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson);
+            var added = await _dialogService.ShowAddUserSourceAsync(sources, url);
             if (added is null)
                 return;
             sources.Add(added);

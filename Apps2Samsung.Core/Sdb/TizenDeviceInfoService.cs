@@ -31,9 +31,7 @@ namespace Apps2Samsung.Sdb
             try
             {
                 var d = await sdb.DuidAsync(ip);
-                duid = d.Output?.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? string.Empty;
-                if (!TizenDuid.IsValid(duid))
-                    duid = string.Empty;
+                duid = TizenDuid.FromSdbOutput(d.Output);
             }
             catch { /* leave blank */ }
 

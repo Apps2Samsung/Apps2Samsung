@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Linq;
 
 namespace Apps2Samsung.Models
 {
@@ -54,21 +55,25 @@ namespace Apps2Samsung.Models
             }
         }
 
-        /// <summary>Human-readable install size for this app ("—" when unknown/0).</summary>
-        public string SizeDisplay => FormatSize(SizeBytes);
-
-        /// <summary>The list row's second line: "v1.2.3 · 12.3 MB".</summary>
-        public string Subline => string.IsNullOrWhiteSpace(Version) ? SizeDisplay : $"v{Version} · {SizeDisplay}";
+        /// <summary>Human-readable install size for this app; empty when the TV did not report one.</summary>
+        public string SizeDisplay => SizeBytes > 0 ? FormatSize(SizeBytes) : string.Empty;
 
         /// <summary>
-        /// Formats a byte count as a human-readable size ("—" when 0 or negative, else one decimal
+        /// The list row's second line: "v1.2.3 · 12.3 MB". What the TV did not report is left out,
+        /// never shown as a placeholder; empty when it reported neither.
+        /// </summary>
+        public string Subline => string.Join(" · ", new[] { string.IsNullOrWhiteSpace(Version) ? string.Empty : $"v{Version}", SizeDisplay }
+            .Where(part => part.Length > 0));
+
+        /// <summary>
+        /// Formats a byte count as a human-readable size ("0 KB" when 0 or negative, else one decimal
         /// KB/MB/GB, e.g. "12.6 MB"). Invariant so the decimal separator is always a dot. Shared for
         /// per-app sizes and for the per-TV total used space.
         /// </summary>
         public static string FormatSize(long bytes)
         {
             if (bytes <= 0)
-                return "—";
+                return "0 KB";
 
             const double kb = 1024, mb = kb * 1024, gb = mb * 1024;
             var c = CultureInfo.InvariantCulture;

@@ -998,5 +998,9 @@
   "lblUserSourceCategory": "Kategorie",
   "tvCardActionCheckAgain": "Erneut prüfen",
   "infoPortOpen": "Öffnen",
-  "lblRemovedOn": "auf {0}"
+  "lblRemovedOn": "auf {0}",
+  "lblLinkClose": "Schließen",
+  "lblRestoreStateInstalling": "Installation",
+  "lblRestoreChipSettings": "Einstellungen",
+  "lblSavedTvShare": "Teilen"
 }
