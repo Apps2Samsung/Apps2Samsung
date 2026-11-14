@@ -354,7 +354,9 @@ namespace Apps2Samsung.Helpers.Core
                     break;
                 }
 
-                var success = await InstallPackageAsync(filePath, device, cancellationToken, installProgress: installProgress);
+                // The status line and the Samsung sign-in hint go along (#1100): without them the last text
+                // on screen stayed the percentage, "Installing package on device... 100%", after the TV was done.
+                var success = await InstallPackageAsync(filePath, device, cancellationToken, message => onProgress(message), onSamsungLoginStarted, installProgress: installProgress);
                 if (!success)
                 {
                     allSuccessful = false;
