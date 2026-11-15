@@ -251,6 +251,20 @@
                         <BoxView Style="{StaticResource HubDivider}" />
                         <Grid Style="{StaticResource HubRow}">
                             <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnLinkTapped" CommandParameter="reddit" />
+                            </Grid.GestureRecognizers>
+                            <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource TileIptvColor}">
+                                <shapes:Path Style="{StaticResource HubIcon}" Data="M12,4 A8,7 0 1 0 12,18 A8,7 0 1 0 12,4 M9,10.5 L9,10.6 M15,10.5 L15,10.6 M9,13.5 C11,15 13,15 15,13.5" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                <Label Text="{l:Localize lblContributeReddit}" FontSize="16" />
+                                <Label Text="{l:Localize hintContributeReddit}" Style="{StaticResource HubSummary}" />
+                            </VerticalStackLayout>
+                            <shapes:Path Grid.Column="2" Style="{StaticResource ExternalLink}" />
+                        </Grid>
+                        <BoxView Style="{StaticResource HubDivider}" />
+                        <Grid Style="{StaticResource HubRow}">
+                            <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="OnLinkTapped" CommandParameter="donate" />
                             </Grid.GestureRecognizers>
                             <Border Style="{StaticResource HubTile}" BackgroundColor="{DynamicResource BadColor}">

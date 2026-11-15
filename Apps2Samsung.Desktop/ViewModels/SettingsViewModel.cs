@@ -126,6 +126,8 @@ namespace Apps2Samsung.ViewModels
                 "M4 4h16v16H4zM12 8v8M8 12h8", Constants.Links.ContributeApp));
             ContributeRows.Add(new SettingsLinkRow("lblContributeDiscord", "hintContributeDiscord", "TileMedia",
                 "M4 5h16v11H10l-4 4v-4H4z", Constants.Links.Discord));
+            ContributeRows.Add(new SettingsLinkRow("lblContributeReddit", "hintContributeReddit", "TileIptv",
+                "M12 4a8 7 0 1 0 0 14a8 7 0 1 0 0-14M9 10.5v.1M15 10.5v.1M9 13.5c2 1.5 4 1.5 6 0", Constants.Links.Reddit));
             ContributeRows.Add(new SettingsLinkRow("lblContributeDonate", "hintContributeDonate", "Bad",
                 "M12 20C5 15 3 11 3 8.5a4.5 4.5 0 0 1 9-1.5a4.5 4.5 0 0 1 9 1.5C21 11 19 15 12 20z", Constants.Links.Donate));
 

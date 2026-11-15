@@ -1086,6 +1086,8 @@
   "hintContributeApp": "Suggest a Tizen app for the catalog",
   "lblContributeDiscord": "Join the Discord",
   "hintContributeDiscord": "Questions, testing and news",
+  "lblContributeReddit": "Join the subreddit",
+  "hintContributeReddit": "Questions, tips and news on r/Apps2Samsung",
   "lblContributeDonate": "Support the app",
   "hintContributeDonate": "Buy me a coffee on Ko-fi",
   "lblContributeAppTitle": "Add an app to the catalog",
