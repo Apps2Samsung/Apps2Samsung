@@ -17,8 +17,25 @@ public static class Certificates
     public static async Task<(SigningProfile Profile, string Duid, CertificateProfile Raw)> EnsureAsync(
         CliServices s, string tvIp, CertificatePrivilegeLevel level, CancellationToken ct)
     {
+        var manualDuids = s.Config.ManualDuids
+            .Split(new[] { ',', ';', ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
         s.Out.Progress("Reading the TV's DUID…");
-        var duid = await TizenDuidReader.ReadAsync(s.Sdb, tvIp, progress: s.Out.Progress);
+        string duid;
+        try
+        {
+            duid = await TizenDuidReader.ReadAsync(s.Sdb, tvIp, progress: s.Out.Progress);
+        }
+        catch (InvalidOperationException) when (manualDuids.Length > 0)
+        {
+            // Some firmwares answer "0 getduid" with a warning line, or close the stream
+            // mid-handshake, and never hand back the DUID (Tizen 8.0 after the 2026-11 update).
+            // The DUID is still readable by hand ("sdb shell 0 getduid") and is printed on the TV
+            // under Support > About The TV, so honour a DUID the user supplied rather than
+            // failing the whole install.
+            duid = manualDuids[0];
+            s.Out.Progress($"The TV did not return its DUID over sdb; using the supplied {duid}.");
+        }
         return await EnsureForDuidAsync(s, duid, level, ct);
     }
 
