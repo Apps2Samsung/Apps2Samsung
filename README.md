@@ -19,7 +19,7 @@ Apps2Samsung side-loads apps onto Samsung devices that run Tizen OS: Smart TVs, 
 smart monitors. [Jellyfin](https://jellyfin.org), Moonfin, Litefin, TizenTube, the
 [community catalog](https://github.com/Apps2Samsung/tizen-community-packages) of 130+ apps, or your
 own `.wgt` or `.tpk`. It finds the TV, makes the signing certificate and installs, so you never open
-Tizen Studio. It runs on Windows, Linux, macOS, Android and iPhone, in 30 languages, and starts in
+Tizen Studio. It runs on Windows, Linux, macOS, Android and iPhone, in 31 languages, and starts in
 yours. Missing a word, or your language? [Help translate on Crowdin](https://crowdin.com/project/jellyfin2samsung).
 
 ## Versions
