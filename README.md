@@ -12,6 +12,7 @@ Install any app on your Samsung TV.
   <img src="https://img.shields.io/badge/OS-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-brightgreen?style=for-the-badge" />
   <img src="https://img.shields.io/badge/since-May%202025-lightgrey?style=for-the-badge" alt="Since May 2025" />
   <a href="https://discord.gg/7mga3zh8Cv"><img src="https://img.shields.io/badge/Discord-Community-7289DA?style=for-the-badge&logo=discord&logoColor=white" /></a>
+  <a href="https://www.reddit.com/r/Apps2Samsung/"><img src="https://img.shields.io/badge/Reddit-r%2FApps2Samsung-FF4500?style=for-the-badge&logo=reddit&logoColor=white" /></a>
   <a href="https://score.getplumber.io/github.com/Apps2Samsung/Apps2Samsung"><img src="https://score.getplumber.io/github.com/Apps2Samsung/Apps2Samsung.svg?style=for-the-badge" alt="Plumber Score" /></a>
 </p>
 
@@ -142,7 +143,8 @@ apps2samsung-cli self-update                            # replace the CLI with t
 ## Contributing
 
 Bug reports and feature requests go to [Issues](../../issues), ideas and questions to
-[Discussions](../../discussions) or [Discord](https://discord.gg/7mga3zh8Cv). Code is welcome, see
+[Discussions](../../discussions), [Discord](https://discord.gg/7mga3zh8Cv) or
+[Reddit](https://www.reddit.com/r/Apps2Samsung/). Code is welcome, see
 [CONTRIBUTING.md](.github/CONTRIBUTING.md); translations happen on
 [Crowdin](https://crowdin.com/project/jellyfin2samsung) and sync back here by themselves.
 

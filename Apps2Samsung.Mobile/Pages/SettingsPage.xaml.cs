@@ -117,6 +117,7 @@ public partial class SettingsPage : ContentPage
 			"code" => Constants.Links.SourceCode,
 			"translate" => Constants.Links.Translate,
 			"discord" => Constants.Links.Discord,
+			"reddit" => Constants.Links.Reddit,
 			"donate" => Constants.Links.Donate,
 			_ => null,
 		};

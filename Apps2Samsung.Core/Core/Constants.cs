@@ -245,6 +245,7 @@ namespace Apps2Samsung.Helpers.Core
             /// <summary>How the package files work, for what the Add an app form doesn't ask (several files, build steps, user settings).</summary>
             public const string PackagesReadme = "https://github.com/Apps2Samsung/tizen-community-packages/blob/main/packages/README.md";
             public const string Discord = "https://discord.gg/7mga3zh8Cv";
+            public const string Reddit = "https://www.reddit.com/r/Apps2Samsung/";
             public const string Donate = "https://ko-fi.com/patrickst";
         }
 
