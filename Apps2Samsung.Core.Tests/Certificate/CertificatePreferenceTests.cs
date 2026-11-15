@@ -32,6 +32,19 @@ public class CertificatePreferenceTests
     }
 
     [Theory]
+    [InlineData("6.0", "Automatic", false, true)]
+    [InlineData("6.0", "Public", false, true)]
+    // The shipped certificate is Public only (#1107).
+    [InlineData("6.0", "Partner", false, false)]
+    [InlineData("6.0", "Automatic", true, false)]
+    [InlineData("4.0", "Automatic", false, false)]
+    [InlineData("7.0", "Automatic", false, false)]
+    public void ShippedCertificateApplies(string tizen, string preference, bool requirePartner, bool expected)
+    {
+        Assert.Equal(expected, CertificatePreference.ShippedCertificateApplies(new Version(tizen), preference, requirePartner));
+    }
+
+    [Theory]
     [InlineData("Automatic", true, false, true)]
     [InlineData("Public", true, false, true)]
     [InlineData("Partner", true, false, false)]
