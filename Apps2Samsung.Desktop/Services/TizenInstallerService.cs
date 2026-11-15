@@ -642,10 +642,22 @@ namespace Apps2Samsung.Services
             string selectedCertificate = _appSettings.Certificate;
             var chosenCertificate = _appSettings.ChosenCertificates;
 
-            // Handle intermediate Tizen versions that don't need Samsung cert
-            if (deviceInfo.TizenVersion < certVersion &&
-                deviceInfo.TizenVersion > pushVersion &&
-                selectedCertificate == Constants.AppIdentifiers.Jelly2SamsDefault)
+            // Public and Partner distributor certs are kept as separate profiles ("Jelly2Sams - Public"
+            // / "Jelly2Sams - Partner") so both can coexist and each is reused independently, switching
+            // level never clobbers the other.
+            // The package requires Partner when the selected package's manifest declares it, OR the
+            // package itself declares a partner-level privilege (e.g. vpnservice in a .wgt's
+            // config.xml, drminfo in a .tpk's tizen-manifest.xml) or a Partner-only launch setting
+            // (on-boot="true" / auto-restart="true"), the automatic binding: a package that needs a
+            // restricted API or launch mode must declare it, so we don't track cert levels per package.
+            var partnerPrivilege = Apps2Samsung.Packaging.WgtPrivileges.FindPartnerPrivilege(packagePath);
+            bool requirePartner = _appSettings.RequiresPartnerSigning || partnerPrivilege is not null;
+
+            // Intermediate Tizen versions take the shipped certificate, no Samsung sign-in. It is
+            // Public only, so a Partner choice or a package that needs Partner skips it (#1107).
+            if (selectedCertificate == Constants.AppIdentifiers.Jelly2SamsDefault &&
+                Apps2Samsung.Certificate.CertificatePreference.ShippedCertificateApplies(
+                    deviceInfo.TizenVersion, _appSettings.CertificatePreference, requirePartner))
             {
                 selectedCertificate = Constants.AppIdentifiers.JellyfinAppName;
                 chosenCertificate = new ExistingCertificates
@@ -657,17 +669,6 @@ namespace Apps2Samsung.Services
             }
 
             string authorp12, distributorp12, p12Password;
-
-            // Public and Partner distributor certs are kept as separate profiles ("Jelly2Sams - Public"
-            // / "Jelly2Sams - Partner") so both can coexist and each is reused independently, switching
-            // level never clobbers the other.
-            // The package requires Partner when the selected package's manifest declares it, OR the
-            // package itself declares a partner-level privilege (e.g. vpnservice in a .wgt's
-            // config.xml, drminfo in a .tpk's tizen-manifest.xml) or a Partner-only launch setting
-            // (on-boot="true" / auto-restart="true"), the automatic binding: a package that needs a
-            // restricted API or launch mode must declare it, so we don't track cert levels per package.
-            var partnerPrivilege = Apps2Samsung.Packaging.WgtPrivileges.FindPartnerPrivilege(packagePath);
-            bool requirePartner = _appSettings.RequiresPartnerSigning || partnerPrivilege is not null;
 
             // A Tizen certificate (#988): the SDK's, made here, no account and no DUID. Its sheet's
             // way out is a Samsung certificate: the setting is switched and the Samsung path below
