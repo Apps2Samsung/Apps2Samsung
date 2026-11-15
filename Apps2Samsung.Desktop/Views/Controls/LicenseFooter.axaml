@@ -23,5 +23,7 @@
 		<HyperlinkButton x:Name="LicenseLink" Content="{l:Localize lblLicense}"/>
 		<TextBlock Text=" · "/>
 		<HyperlinkButton x:Name="AuthorLink"/>
+		<TextBlock Text=" · "/>
+		<TextBlock Text="{l:Localize lblSinceMay2025}"/>
 	</WrapPanel>
 </UserControl>

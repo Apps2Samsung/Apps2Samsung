@@ -55,6 +55,28 @@
                     </Grid>
                 </Border>
 
+                <!-- 13 May: the app's birthday, until its cross is tapped (hidden for that year). -->
+                <Border x:Name="BirthdayRow" IsVisible="False" Padding="14,6,0,6" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                        BackgroundColor="{DynamicResource AccentSoftColor}">
+                    <Grid ColumnDefinitions="Auto,*,44" ColumnSpacing="10">
+                        <shapes:Path Data="M4,20 L20,20 L20,13 A2,2 0 0 0 18,11 L6,11 A2,2 0 0 0 4,13 Z M4,16 L20,16 M9,11 L9,8 M15,11 L15,8 M9,4.5 L9,5 M15,4.5 L15,5"
+                                     Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"
+                                     StrokeLineCap="Round" StrokeLineJoin="Round" WidthRequest="24" HeightRequest="24" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" Padding="0,6" VerticalOptions="Center">
+                            <Label x:Name="BirthdayRowLabel" FontSize="15" FontAttributes="Bold" />
+                            <Label Text="{l:Localize lblBirthdayHint}" FontSize="13" TextColor="{DynamicResource MutedColor}" />
+                        </VerticalStackLayout>
+                        <Grid Grid.Column="2" MinimumHeightRequest="44" SemanticProperties.Description="{l:Localize lblBirthdayDismiss}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnBirthdayDismissTapped" />
+                            </Grid.GestureRecognizers>
+                            <shapes:Path Data="M2,2 L12,12 M12,2 L2,12" Stroke="{DynamicResource MutedBrush}" StrokeThickness="2"
+                                         StrokeLineCap="Round" WidthRequest="14" HeightRequest="14"
+                                         HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Grid>
+                    </Grid>
+                </Border>
+
                 <!-- No TV after a scan: what to check, and the two ways forward. -->
                 <Border x:Name="NoTvCard" IsVisible="False" Padding="16,20" StrokeThickness="0" StrokeShape="RoundRectangle 16"
                         BackgroundColor="{DynamicResource SurfaceColor}">

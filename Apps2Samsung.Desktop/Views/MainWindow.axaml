@@ -182,6 +182,25 @@
 							</controls:TvCard.Actions>
 						</controls:TvCard>
 
+						<!-- 13 May: the app's birthday, until its cross is clicked (hidden for that year). -->
+						<Border Background="{DynamicResource AccentSoftBrush}" CornerRadius="12" Padding="14,6,6,6"
+						        IsVisible="{Binding HasBirthday}">
+							<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+								<Path Grid.Column="0" Width="24" Height="24" VerticalAlignment="Center"
+								      Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+								      Data="M4,20 L20,20 L20,13 A2,2 0 0 0 18,11 L6,11 A2,2 0 0 0 4,13 Z M4,16 L20,16 M9,11 L9,8 M15,11 L15,8 M9,4.5 L9,5 M15,4.5 L15,5"/>
+								<StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+									<TextBlock Text="{Binding BirthdayTitle}" FontSize="15" FontWeight="Bold" TextWrapping="Wrap"/>
+									<TextBlock Text="{l:Localize lblBirthdayHint}" FontSize="13" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/>
+								</StackPanel>
+								<Button Grid.Column="2" Classes="icon" VerticalAlignment="Center" Command="{Binding DismissBirthdayCommand}"
+								        ToolTip.Tip="{l:Localize lblBirthdayDismiss}" AutomationProperties.Name="{l:Localize lblBirthdayDismiss}">
+									<Path Width="12" Height="12" Stroke="{DynamicResource MutedBrush}" StrokeThickness="2" StrokeLineCap="Round"
+									      Data="M1,1 L11,11 M11,1 L1,11"/>
+								</Button>
+							</Grid>
+						</Border>
+
 						<!-- Cancel a running Samsung sign-in -->
 						<Button Classes="icon" HorizontalAlignment="Center"
 						        IsVisible="{Binding IsSamsungLoginActive}"
