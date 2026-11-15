@@ -1,3 +1,4 @@
+using Apps2Samsung.Helpers.Core;
 using System.Collections.Generic;
 using System.Linq;
 using Apps2Samsung.Catalog;
@@ -1175,6 +1176,21 @@ public partial class InstallerPage : ContentPage
 
 	private async void OnUpdatesRowTapped(object? sender, TappedEventArgs e) => await Shell.Current.GoToAsync("//apps");
 
+	// The row under the TV card on 13 May: how old the app is today, until its cross is tapped.
+	private void ShowBirthdayRow()
+	{
+		var age = Birthday.AgeToday();
+		BirthdayRow.IsVisible = age is not null && MobileSettings.BirthdayDismissedYear != DateTime.Now.Year;
+		if (age is { } years)
+			BirthdayRowLabel.Text = string.Format(L10n.Get("lblBirthdayTitle"), years);
+	}
+
+	private void OnBirthdayDismissTapped(object? sender, TappedEventArgs e)
+	{
+		MobileSettings.BirthdayDismissedYear = DateTime.Now.Year;
+		BirthdayRow.IsVisible = false;
+	}
+
 	// A repository listed from its last verified copy (#1018): nothing is downloaded from it.
 	private async Task<bool> InstallAllowedAsync(GitHubRelease release)
 	{
@@ -1405,6 +1421,7 @@ public partial class InstallerPage : ContentPage
 	private void UpdateTvCard()
 	{
 		ShowUpdatesRow();
+		ShowBirthdayRow();
 		var state = _tv.CardState();
 		TopBar.ShowTv(_tv.HasTv || _tv.IsScanning ? state : state with { Name = L10n.Get("lblNoTvFound") });
 		TopBar.TvCount = _tv.Tvs.Count;

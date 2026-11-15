@@ -1,3 +1,4 @@
+using Apps2Samsung.Helpers.Core;
 using System.Reflection;
 using Apps2Samsung.Agent;
 using Apps2Samsung.Catalog;
@@ -106,6 +107,9 @@ internal sealed class Menu
         var version = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
         version = version.Split('+')[0];
         Show(new Markup($"[bold]Apps2Samsung[/] {M($"{E(version)} {Dot} this {(OperatingSystem.IsAndroid() ? "phone" : "machine")} is {E(_localIp ?? "not on a network")}")}"));
+        // 13 May: one line saying how old the app is. Only here, so plain and piped output never changes.
+        if (Birthday.AgeToday() is { } age)
+            Show(new Markup(A(E(string.Format(_s.Strings.GetString("lblBirthdayCli"), age)))));
         Show(new Markup(M($"{(_unicode ? "↑↓" : "up/down")} move {Dot} enter choose {Dot} ctrl+c quit")));
         _con.WriteLine();
     }

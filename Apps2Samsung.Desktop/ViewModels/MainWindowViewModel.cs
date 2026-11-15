@@ -520,6 +520,19 @@ namespace Apps2Samsung.ViewModels
                 SetStatus(IsSelectedDeviceReady ? "Ready" : "NoDevicesFound");
         }
 
+        // The row under the TV card on 13 May: how old the app is today, until its cross is clicked.
+        public bool HasBirthday => Birthday.AgeToday() is not null
+            && AppSettings.Default.BirthdayDismissedYear != DateTime.Now.Year;
+        public string BirthdayTitle => string.Format(L("lblBirthdayTitle"), Birthday.AgeToday() ?? 0);
+
+        [RelayCommand]
+        private void DismissBirthday()
+        {
+            AppSettings.Default.BirthdayDismissedYear = DateTime.Now.Year;
+            AppSettings.Default.Save();
+            OnPropertyChanged(nameof(HasBirthday));
+        }
+
         public bool HasVpnWarning => !string.IsNullOrEmpty(VpnWarning);
 
         partial void OnVpnWarningChanged(string value) => OnPropertyChanged(nameof(HasVpnWarning));
@@ -714,6 +727,7 @@ namespace Apps2Samsung.ViewModels
 
         private void RefreshLocalizedProperties()
         {
+            OnPropertyChanged(nameof(BirthdayTitle));
             UpdateTvCard();
             OnPropertyChanged(nameof(LblInstall));
             OnPropertyChanged(nameof(LblOnTheTv));
