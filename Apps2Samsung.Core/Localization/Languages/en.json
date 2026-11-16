@@ -1017,7 +1017,7 @@
   "devGuideStatusReadyRelay": "Host PC IP is 127.0.0.1, so installs go through TV-Store's relay on the TV, and it answers.",
   "devGuideStatusRelayDown": "Host PC IP is 127.0.0.1, so installs go through TV-Store's relay on the TV, but the relay does not answer. On the TV, open TV-Store, go to Settings and turn on \"Connect from Apps2Samsung\" (TV-Store 0.3.14 or newer).",
   "devGuideStepOpenApps": "Open Apps on the TV",
-  "devGuideStepOpenAppsHint": "Home button, then Apps.",
+  "devGuideStepOpenAppsHint": "Home button, then Apps. On Tizen 10, scroll down to App Settings in Apps.",
   "devGuideStepTypeCode": "Type 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "With the number keys, or the on-screen number pad on a remote without them.",
   "devGuideStepSwitchOn": "Switch Developer Mode on",
