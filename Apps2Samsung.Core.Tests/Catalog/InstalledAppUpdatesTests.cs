@@ -191,3 +191,149 @@ public class InstalledAppUpdatesTests
         Assert.Equal(CatalogSourceKind.Official, match.Release.Source.Kind);
     }
 }
+
+// Every Jellyfin build declares 0.1.0, so an installed Jellyfin is compared on the jellyfin-web
+// version the catalog reads out of the file and the head wrote down at install (#1113).
+public class InstalledJellyfinUpdatesTests
+{
+    private const string AppId = "AprZAARz4r.Jellyfin";
+    private const string Tv = "192.168.1.8";
+
+    private static Asset Build(string name, string webVersion) => new()
+    {
+        FileName = name,
+        DownloadUrl = $"https://example.test/{name}",
+        PackageVersion = "0.1.0",
+        AppId = AppId,
+        WebVersion = webVersion,
+    };
+
+    private static GitHubRelease[] Catalog(string release, string branch, string master = "13.0.0") => new[]
+    {
+        new GitHubRelease
+        {
+            Name = "Jellyfin",
+            TagName = "2026-11-15-1045",
+            PublishedAt = "2026-11-15T10:54:41Z",
+            Assets = new List<Asset>
+            {
+                Build("Jellyfin.wgt", release),
+                Build("Jellyfin-12.z.wgt", branch),
+                Build("Jellyfin-master.wgt", master),
+            },
+        },
+    };
+
+    private static InstalledApp OnTv() => new("Jellyfin", null, AppId, "0.1.0", "2026-10-23", true);
+
+    private static string Installed(string file, string? webVersion, string ip = Tv) =>
+        InstalledVariantStore.Set(null, new InstalledVariantRecord
+        {
+            TvIp = ip,
+            AppId = AppId,
+            CatalogApp = "Jellyfin",
+            PackageFile = file,
+            WebVersion = webVersion,
+        });
+
+    [Fact]
+    public void ANewerWebVersion_IsAnUpdate_OfTheFileTheTvHas()
+    {
+        var match = InstalledAppUpdates.Find(OnTv(), Catalog("12.5.0", "12.5.0"), null, Installed("Jellyfin-12.z.wgt", "12.4.0"), Tv);
+
+        Assert.NotNull(match);
+        Assert.Equal(CatalogVersionState.UpdateAvailable, match!.State);
+        Assert.True(match.HasUpdate);
+        Assert.Equal("Jellyfin-12.z.wgt", match.Asset.FileName);
+        Assert.Equal("12.5.0", match.CatalogVersion);
+        Assert.Equal("12.4.0", match.InstalledVersion);
+        Assert.False(match.InstalledVersionUnknown);
+    }
+
+    [Fact]
+    public void TheSameWebVersion_IsUpToDate_HoweverOftenItWasRebuilt()
+    {
+        var match = InstalledAppUpdates.Find(OnTv(), Catalog("12.4.0", "12.4.0"), null, Installed("Jellyfin.wgt", "12.4.0"), Tv);
+
+        Assert.Equal(CatalogVersionState.UpToDate, match!.State);
+        Assert.False(match.HasUpdate);
+    }
+
+    [Fact]
+    public void Master_StaysUpToDate_UntilItsVersionIsRaised()
+    {
+        var match = InstalledAppUpdates.Find(OnTv(), Catalog("12.5.0", "12.5.0"), null, Installed("Jellyfin-master.wgt", "13.0.0"), Tv);
+
+        Assert.Equal("Jellyfin-master.wgt", match!.Asset.FileName);
+        Assert.Equal(CatalogVersionState.UpToDate, match.State);
+    }
+
+    [Fact]
+    public void WithoutARecord_TheInstalledVersionIsNotKnown_AndNothingIsOffered()
+    {
+        var match = InstalledAppUpdates.Find(OnTv(), Catalog("12.5.0", "12.5.0"), null, null, Tv);
+
+        Assert.NotNull(match);
+        Assert.Equal(CatalogVersionState.Unknown, match!.State);
+        Assert.True(match.InstalledVersionUnknown);
+        Assert.False(match.HasUpdate);
+        Assert.Null(match.InstalledVersion);
+    }
+
+    [Fact]
+    public void ARecordFromBeforeTheVersionWasKept_ReadsAsNotKnown()
+    {
+        var match = InstalledAppUpdates.Find(OnTv(), Catalog("12.5.0", "12.5.0"), null, Installed("Jellyfin.wgt", null), Tv);
+
+        Assert.Equal(CatalogVersionState.Unknown, match!.State);
+        Assert.True(match.InstalledVersionUnknown);
+        Assert.Equal("Jellyfin.wgt", match.Asset.FileName);
+        Assert.Equal("12.5.0", match.CatalogVersion);
+    }
+
+    [Fact]
+    public void RecordsOfTwoOtherTvsThatDisagree_SayNothingAboutThisOne()
+    {
+        // One record under another address is taken for this TV's (it changed address), as the
+        // store does for the variant; two that name different files are not.
+        var records = InstalledVariantStore.Set(Installed("Jellyfin.wgt", "12.4.0", "192.168.1.9"), new InstalledVariantRecord
+        {
+            TvIp = "192.168.1.10", TvDuid = "OTHER", AppId = AppId, CatalogApp = "Jellyfin", PackageFile = "Jellyfin-12.z.wgt", WebVersion = "12.4.0",
+        });
+
+        var match = InstalledAppUpdates.Find(OnTv(), Catalog("12.5.0", "12.5.0"), null, records, Tv);
+
+        Assert.Equal(CatalogVersionState.Unknown, match!.State);
+        Assert.True(match.InstalledVersionUnknown);
+    }
+
+    [Fact]
+    public void ACatalogWithoutWebVersions_ComparesOnTheManifestAsBefore()
+    {
+        var catalog = Catalog("12.5.0", "12.5.0");
+        foreach (var asset in catalog[0].Assets)
+            asset.WebVersion = null;
+
+        var match = InstalledAppUpdates.Find(OnTv(), catalog, null, Installed("Jellyfin.wgt", "12.4.0"), Tv);
+
+        Assert.Equal(CatalogVersionState.UpToDate, match!.State);
+        Assert.False(match.InstalledVersionUnknown);
+        Assert.Equal("0.1.0", match.CatalogVersion);
+    }
+
+    [Fact]
+    public void TheRecordKeepsTheWebVersionAndTheConfiguredMark()
+    {
+        var json = InstalledVariantStore.Set(null, new InstalledVariantRecord
+        {
+            TvIp = Tv, AppId = AppId, PackageFile = "Jellyfin.wgt", WebVersion = "12.4.0", Configured = true,
+        });
+
+        var record = InstalledVariantStore.Find(json, Tv, AppId);
+
+        Assert.Equal("12.4.0", record!.WebVersion);
+        Assert.True(record.Configured);
+        // A record of another app carries neither field.
+        Assert.DoesNotContain("webVersion", InstalledVariantStore.Set(null, new InstalledVariantRecord { TvIp = Tv, AppId = "x.y", PackageFile = "x.wgt" }));
+    }
+}

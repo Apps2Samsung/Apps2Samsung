@@ -407,6 +407,7 @@ public static class InstallCommand
                 PackageFile = asset.FileName,
                 InstalledAtUtc = DateTimeOffset.UtcNow,
                 Source = release.Source.Key,
+                WebVersion = string.IsNullOrWhiteSpace(asset.WebVersion) ? null : asset.WebVersion,
             });
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException or UnauthorizedAccessException)

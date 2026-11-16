@@ -18,6 +18,9 @@
 // And it takes the icon out of the package (WgtManifest.ReadIconAsync) and publishes it through
 // IconStore, named by its SHA-256, with the URL and hash on the asset: TV-Store shows an icon only
 // when its bytes hash to icon_digest (TV-Store#66), so the two always come from one file in one run.
+//
+// A Jellyfin build also gets the jellyfin-web version it was made from (Asset.WebVersion, #1113):
+// all of them declare 0.1.0 in their manifest, so that is the version the heads compare on.
 
 using System.Diagnostics;
 using Apps2Samsung.Models;
@@ -32,7 +35,9 @@ internal static class ManifestInfo
 
     /// <param name="rereadMissingIcons">Read every asset without an icon again, as the first icon
     /// pass did: for a run after the icon reader learned a new place to look (#1000).</param>
-    public static async Task FillAsync(HttpClient downloads, string providerId, List<GitHubRelease> releases, ResolvedProvider? previous, IconStore icons, bool rereadMissingIcons = false)
+    /// <param name="rereadWebVersions">Read every Jellyfin build without a jellyfin-web version
+    /// again: the one run after that field was added, or after its reader changed (#1113).</param>
+    public static async Task FillAsync(HttpClient downloads, string providerId, List<GitHubRelease> releases, ResolvedProvider? previous, IconStore icons, bool rereadMissingIcons = false, bool rereadWebVersions = false)
     {
         var known = (previous?.Releases ?? new List<GitHubRelease>())
             .SelectMany(r => r.Assets)
@@ -48,7 +53,7 @@ internal static class ManifestInfo
         // ok:false during that first run still gets its icons when it is back.)
         var iconPassDone = !rereadMissingIcons && known.Values.Any(a => a.Icon is not null);
 
-        int downloaded = 0, reused = 0, failed = 0, skipped = 0, withIcon = 0;
+        int downloaded = 0, reused = 0, failed = 0, skipped = 0, withIcon = 0, withWebVersion = 0;
         var sw = Stopwatch.StartNew();
         var toRead = new List<(GitHubRelease Release, Asset Asset)>();
         foreach (var release in releases)
@@ -67,7 +72,8 @@ internal static class ManifestInfo
                 // URL is never a dead link.
                 if (known.TryGetValue(asset.DownloadUrl, out var old) && old.Size == asset.Size &&
                     (asset.Digest is not null || old.Digest is not null) &&
-                    (old.Icon is not null ? icons.Has(old.Icon) : iconPassDone))
+                    (old.Icon is not null ? icons.Has(old.Icon) : iconPassDone) &&
+                    !(rereadWebVersions && old.WebVersion is null && IsJellyfin(name)))
                 {
                     asset.PackageVersion = old.PackageVersion;
                     asset.AppId = old.AppId;
@@ -75,10 +81,13 @@ internal static class ManifestInfo
                     asset.RequiredVersion = old.RequiredVersion;
                     asset.Icon = old.Icon;
                     asset.IconDigest = old.IconDigest;
+                    asset.WebVersion = old.WebVersion;
                     asset.Digest ??= old.Digest;
                     reused++;
                     if (asset.Icon is not null)
                         withIcon++;
+                    if (asset.WebVersion is not null)
+                        withWebVersion++;
                     continue;
                 }
 
@@ -119,6 +128,15 @@ internal static class ManifestInfo
                 if (info.Version is null && info.ApplicationId is null)
                     Console.WriteLine($"::warning::{providerId}: {name} has no readable manifest; no version recorded");
 
+                if (IsJellyfin(name))
+                {
+                    asset.WebVersion = JellyfinWebVersion.Read(tmp);
+                    if (asset.WebVersion is null)
+                        Console.WriteLine($"{providerId}: {name} has no jellyfin-web version in its main bundle; none recorded");
+                    else
+                        Interlocked.Increment(ref withWebVersion);
+                }
+
                 var icon = await WgtManifest.ReadIconAsync(tmp);
                 if (icon is null)
                     Console.WriteLine($"{providerId}: {name} has no readable PNG/JPEG/GIF/WebP icon; none published");
@@ -141,6 +159,10 @@ internal static class ManifestInfo
             }
         });
 
-        Console.WriteLine($"{providerId,-28} manifests: {downloaded} downloaded, {reused} carried over, {failed} failed, {skipped} skipped, {withIcon} with an icon ({sw.Elapsed.TotalSeconds:0}s)");
+        Console.WriteLine($"{providerId,-28} manifests: {downloaded} downloaded, {reused} carried over, {failed} failed, {skipped} skipped, {withIcon} with an icon, {withWebVersion} with a jellyfin-web version ({sw.Elapsed.TotalSeconds:0}s)");
     }
+
+    // The rule JellyfinPackagePatcher goes by: the heads treat these files as a Jellyfin client.
+    private static bool IsJellyfin(string fileName) =>
+        fileName.Contains(Apps2Samsung.Helpers.Core.Constants.AppIdentifiers.JellyfinAppName, StringComparison.OrdinalIgnoreCase);
 }

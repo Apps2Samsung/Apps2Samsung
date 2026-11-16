@@ -252,6 +252,8 @@ public partial class InstalledAppsPage : ContentPage
 		Apps2Samsung.Catalog.CatalogVersionState.UpdateAvailable => string.Format(L10n.Get("lblCatalogUpdateAvailable"), match.CatalogVersion),
 		Apps2Samsung.Catalog.CatalogVersionState.Different => string.Format(L10n.Get("lblCatalogDifferentVersion"), match.CatalogVersion),
 		Apps2Samsung.Catalog.CatalogVersionState.UpToDate => L10n.Get("lblCatalogUpToDate"),
+		// A Jellyfin this app did not install, or installed before it kept the version (#1113).
+		_ when match.InstalledVersionUnknown => string.Format(L10n.Get("lblCatalogInstalledUnknown"), match.CatalogVersion),
 		_ => null,
 	};
 

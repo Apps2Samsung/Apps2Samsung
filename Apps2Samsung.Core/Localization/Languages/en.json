@@ -917,6 +917,7 @@
   "lblCatalogUpdateAvailable": "Version {0} is available in the catalog",
   "lblCatalogDifferentVersion": "The catalog has version {0}",
   "lblCatalogUpToDate": "Same version as the catalog",
+  "lblCatalogInstalledUnknown": "Version on the TV not known, the catalog has version {0}",
   "statusUpdatesAvailable": "{0} app(s) have a newer version in the catalog",
   "statusNoUpdates": "Every app from the catalog is up to date",
   "lblUpdateNotChecked": "Not checked yet",

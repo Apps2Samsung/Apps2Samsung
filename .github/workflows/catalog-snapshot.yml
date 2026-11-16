@@ -45,6 +45,10 @@ on:
         description: 'Read every asset without an icon once more (after a change to the icon reader, #1000)'
         type: boolean
         default: false
+      reread_web_versions:
+        description: 'Read every Jellyfin build without a jellyfin-web version once more (#1113)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -100,6 +104,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           A2S_REREAD_MISSING_ICONS: ${{ inputs.reread_icons && '1' || '' }}
+          A2S_REREAD_WEB_VERSIONS: ${{ inputs.reread_web_versions && '1' || '' }}
         run: |
           set -euo pipefail
           dotnet run --project tools/CatalogSnapshot -c Release -- "$RUNNER_TEMP/third-party-apps.json" "$SNAPSHOT"

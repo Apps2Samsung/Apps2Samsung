@@ -327,6 +327,8 @@ namespace Apps2Samsung.ViewModels
             Apps2Samsung.Catalog.CatalogVersionState.UpdateAvailable => string.Format("lblCatalogUpdateAvailable".Localized(), match.CatalogVersion),
             Apps2Samsung.Catalog.CatalogVersionState.Different => string.Format("lblCatalogDifferentVersion".Localized(), match.CatalogVersion),
             Apps2Samsung.Catalog.CatalogVersionState.UpToDate => "lblCatalogUpToDate".Localized(),
+            // A Jellyfin this app did not install, or installed before it kept the version (#1113).
+            _ when match.InstalledVersionUnknown => string.Format("lblCatalogInstalledUnknown".Localized(), match.CatalogVersion),
             _ => null,
         };
 
