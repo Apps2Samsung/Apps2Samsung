@@ -917,7 +917,6 @@
   "devGuideStatusRestart": "開發者模式已開啟。電視需要重新啟動才會接受安裝。",
   "devGuideStatusReady": "電視接受來自這個裝置的安裝。",
   "devGuideStepOpenApps": "在電視上開啟 Apps",
-  "devGuideStepOpenAppsHint": "按首頁鍵，然後選 Apps。",
   "devGuideStepTypeCode": "輸入 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "使用數字鍵，或在沒有數字鍵的遙控器上使用螢幕上的數字鍵盤。",
   "devGuideStepSwitchOn": "將 Developer Mode 切換為開啟",

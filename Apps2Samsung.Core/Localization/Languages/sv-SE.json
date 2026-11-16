@@ -909,7 +909,6 @@
   "devGuideStatusRestart": "Utvecklarläget är på. TV:n behöver startas om innan den tar emot installationer.",
   "devGuideStatusReady": "TV:n tar emot installationer från den här enheten.",
   "devGuideStepOpenApps": "Öppna Appar på TV:n",
-  "devGuideStepOpenAppsHint": "Hemknappen, sedan Appar.",
   "devGuideStepTypeCode": "Skriv 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Med sifferknapparna, eller sifferpanelen på skärmen på en fjärrkontroll utan dem.",
   "devGuideStepSwitchOn": "Slå på utvecklarläge",
