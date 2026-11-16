@@ -1,7 +1,7 @@
-fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7ECTFbqjV59lS4j7W6qPx/AlvDA0ssyYwRc2gZ0t5+qa1vdIWKGHjrwuOn06eTQIHqimQMV+fKyrHpFx9NY898nVSKTo0iB3OfSt71yV9lWNiQsGgQZx0UP+u2uISerzJ3lOIdLN5+TDHa9JPBEc15nBO8XFDrm+9c5m/Ab5KM+63Mjyd43TYV8o19KnDm8UIrAvXbsl1NhlegFwuILp8Dd2HpaeZkDhF2+e669JeOg7/0xfstQjBZ3F8t7NqxfgZuKT5zsWwiT1WOrLfev1uzCDTr8BonmjnGaxzi2oB6NnE6nBhexoCo1XP2K2SkduDL3GHWlz/BDlQYaD/EXsOtCz+mXLqAXkD9lc8KJ8nOeOWP5t3tFOEeYBOEs2g1uX54/jO9wpireUNdi4fLW3+osBuf4dyau2PHqhApjXwqRFsGig6
+U59ZDc3iBPVG0fMZO04Wrl8U0dfAPtOXGcQ8I/hq+YVqqiTmj6rc4ZwFlC7SFPd7Lkapa+JmjTPkDb0ppq/dEObHFkjqohsoRRm43GSKeiRp0aKnrxe1dR4Hkhp0uVXeAlhwoV3lwGtA1ZnffCJrhkKPFiTUjZiWeVhu7Da3BUZrph/7BIZl0QbzkBM5zZwDrCHTWRbQrbpzkgYH/HlTmEQjbE76lh/gKCyBtem1kmSXPTqJLo29CTeBeX1eB136OGo1c92uCL9bjMdq8mmgiOgG4KAy1U6sKkz7xgVieDBU0EbOVwcYKTMCTJ2j/XkQG8JZ4XUIjHyPlrCO/fJ7ett0QJek74/QLb0RBWExUacKLBJcnsQpfQsa1SAxZP9XCPGb8dDX9TyURkQgquJulhWpJVCXdpT2wAq/yYVbbpyVJoThGEH5Fqr6Jeu++YXAI2kYM1XZCCQt8SrbUID6VkSCdfsXDXpTz40ziJ0ddUknVjCtnv2ibnEdckuezAlT
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-16T08:59:24.104636+00:00",
+  "generatedAt": "2026-11-16T10:28:50.6465212+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -27,7 +27,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-OblongIcon.wgt",
@@ -39,7 +40,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-OSA.wgt",
@@ -51,7 +53,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
@@ -63,7 +66,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-secondary.wgt",
@@ -75,7 +79,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-SmartHub.wgt",
@@ -87,7 +92,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-TrailerFix.wgt",
@@ -99,7 +105,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z.wgt",
@@ -111,7 +118,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-12.z-GrayFix.wgt",
@@ -123,7 +131,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-OblongIcon.wgt",
@@ -135,7 +144,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-OSA.wgt",
@@ -147,7 +157,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
@@ -159,7 +170,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-secondary.wgt",
@@ -171,7 +183,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-SmartHub.wgt",
@@ -183,7 +196,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-TrailerFix.wgt",
@@ -195,7 +209,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z.wgt",
@@ -207,7 +222,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-GrayFix.wgt",
@@ -219,7 +235,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-master-GrayFix.wgt",
@@ -231,7 +248,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-OblongIcon.wgt",
@@ -243,7 +261,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-OSA.wgt",
@@ -255,7 +274,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-secondary-TrailerFix.wgt",
@@ -267,7 +287,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-secondary.wgt",
@@ -279,7 +300,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-SmartHub.wgt",
@@ -291,7 +313,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-TrailerFix.wgt",
@@ -303,7 +326,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master.wgt",
@@ -315,7 +339,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-OblongIcon.wgt",
@@ -327,7 +352,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-OSA.wgt",
@@ -339,7 +365,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-GrayFix.wgt",
@@ -351,7 +378,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-OblongIcon.wgt",
@@ -363,7 +391,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-OSA.wgt",
@@ -375,7 +404,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
@@ -387,7 +417,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-secondary.wgt",
@@ -399,7 +430,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-SmartHub.wgt",
@@ -411,7 +443,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-TrailerFix.wgt",
@@ -423,7 +456,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease.wgt",
@@ -435,7 +469,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-secondary-TrailerFix.wgt",
@@ -447,7 +482,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-secondary.wgt",
@@ -459,7 +495,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-SmartHub.wgt",
@@ -471,7 +508,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-TrailerFix.wgt",
@@ -483,7 +521,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin.wgt",
@@ -495,7 +534,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             }
           ]
         },
@@ -516,7 +556,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-OblongIcon.wgt",
@@ -528,7 +569,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-OSA.wgt",
@@ -540,7 +582,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
@@ -552,7 +595,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-secondary.wgt",
@@ -564,7 +608,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-SmartHub.wgt",
@@ -576,7 +621,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-TrailerFix.wgt",
@@ -588,7 +634,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z.wgt",
@@ -600,7 +647,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-12.z-GrayFix.wgt",
@@ -612,7 +660,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-OblongIcon.wgt",
@@ -624,7 +673,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-OSA.wgt",
@@ -636,7 +686,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
@@ -648,7 +699,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-secondary.wgt",
@@ -660,7 +712,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-SmartHub.wgt",
@@ -672,7 +725,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-TrailerFix.wgt",
@@ -684,7 +738,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z.wgt",
@@ -696,7 +751,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-GrayFix.wgt",
@@ -708,7 +764,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-master-GrayFix.wgt",
@@ -720,7 +777,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-OblongIcon.wgt",
@@ -732,7 +790,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-OSA.wgt",
@@ -744,7 +803,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-secondary-TrailerFix.wgt",
@@ -756,7 +816,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-secondary.wgt",
@@ -768,7 +829,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-SmartHub.wgt",
@@ -780,7 +842,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-TrailerFix.wgt",
@@ -792,7 +855,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master.wgt",
@@ -804,7 +868,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-OblongIcon.wgt",
@@ -816,7 +881,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-OSA.wgt",
@@ -828,7 +894,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-GrayFix.wgt",
@@ -840,7 +907,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-OblongIcon.wgt",
@@ -852,7 +920,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-OSA.wgt",
@@ -864,7 +933,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
@@ -876,7 +946,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-secondary.wgt",
@@ -888,7 +959,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-SmartHub.wgt",
@@ -900,7 +972,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-TrailerFix.wgt",
@@ -912,7 +985,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease.wgt",
@@ -924,7 +998,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-secondary-TrailerFix.wgt",
@@ -936,7 +1011,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-secondary.wgt",
@@ -948,7 +1024,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-SmartHub.wgt",
@@ -960,7 +1037,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-TrailerFix.wgt",
@@ -972,7 +1050,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin.wgt",
@@ -984,7 +1063,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             }
           ]
         },
@@ -1005,7 +1085,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-OblongIcon.wgt",
@@ -1017,7 +1098,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-OSA.wgt",
@@ -1029,7 +1111,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
@@ -1041,7 +1124,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-secondary.wgt",
@@ -1053,7 +1137,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-SmartHub.wgt",
@@ -1065,7 +1150,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-TrailerFix.wgt",
@@ -1077,7 +1163,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z.wgt",
@@ -1089,7 +1176,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-12.z-GrayFix.wgt",
@@ -1101,7 +1189,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-OblongIcon.wgt",
@@ -1113,7 +1202,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-OSA.wgt",
@@ -1125,7 +1215,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
@@ -1137,7 +1228,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-secondary.wgt",
@@ -1149,7 +1241,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-SmartHub.wgt",
@@ -1161,7 +1254,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-TrailerFix.wgt",
@@ -1173,7 +1267,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z.wgt",
@@ -1185,7 +1280,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-GrayFix.wgt",
@@ -1197,7 +1293,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-master-GrayFix.wgt",
@@ -1209,7 +1306,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-OblongIcon.wgt",
@@ -1221,7 +1319,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-OSA.wgt",
@@ -1233,7 +1332,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-secondary-TrailerFix.wgt",
@@ -1245,7 +1345,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-secondary.wgt",
@@ -1257,7 +1358,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-SmartHub.wgt",
@@ -1269,7 +1371,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-TrailerFix.wgt",
@@ -1281,7 +1384,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master.wgt",
@@ -1293,7 +1397,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-OblongIcon.wgt",
@@ -1305,7 +1410,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-OSA.wgt",
@@ -1317,7 +1423,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-GrayFix.wgt",
@@ -1329,7 +1436,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-OblongIcon.wgt",
@@ -1341,7 +1449,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-OSA.wgt",
@@ -1353,7 +1462,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
@@ -1365,7 +1475,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-secondary.wgt",
@@ -1377,7 +1488,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-SmartHub.wgt",
@@ -1389,7 +1501,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-TrailerFix.wgt",
@@ -1401,7 +1514,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease.wgt",
@@ -1413,7 +1527,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-secondary-TrailerFix.wgt",
@@ -1425,7 +1540,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-secondary.wgt",
@@ -1437,7 +1553,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-SmartHub.wgt",
@@ -1449,7 +1566,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-TrailerFix.wgt",
@@ -1461,7 +1579,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin.wgt",
@@ -1473,7 +1592,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             }
           ]
         },
@@ -1494,7 +1614,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-OblongIcon.wgt",
@@ -1506,7 +1627,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-OSA.wgt",
@@ -1518,7 +1640,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
@@ -1530,7 +1653,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-secondary.wgt",
@@ -1542,7 +1666,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-SmartHub.wgt",
@@ -1554,7 +1679,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-TrailerFix.wgt",
@@ -1566,7 +1692,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z.wgt",
@@ -1578,7 +1705,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-12.z-GrayFix.wgt",
@@ -1590,7 +1718,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-OblongIcon.wgt",
@@ -1602,7 +1731,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-OSA.wgt",
@@ -1614,7 +1744,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
@@ -1626,7 +1757,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-secondary.wgt",
@@ -1638,7 +1770,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-SmartHub.wgt",
@@ -1650,7 +1783,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-TrailerFix.wgt",
@@ -1662,7 +1796,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z.wgt",
@@ -1674,7 +1809,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-GrayFix.wgt",
@@ -1686,7 +1822,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-master-GrayFix.wgt",
@@ -1698,7 +1835,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-OblongIcon.wgt",
@@ -1710,7 +1848,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-OSA.wgt",
@@ -1722,7 +1861,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-secondary-TrailerFix.wgt",
@@ -1734,7 +1874,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-secondary.wgt",
@@ -1746,7 +1887,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-SmartHub.wgt",
@@ -1758,7 +1900,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-TrailerFix.wgt",
@@ -1770,7 +1913,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master.wgt",
@@ -1782,7 +1926,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-OblongIcon.wgt",
@@ -1794,7 +1939,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-OSA.wgt",
@@ -1806,7 +1952,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-GrayFix.wgt",
@@ -1818,7 +1965,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-OblongIcon.wgt",
@@ -1830,7 +1978,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-OSA.wgt",
@@ -1842,7 +1991,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
@@ -1854,7 +2004,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-secondary.wgt",
@@ -1866,7 +2017,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-SmartHub.wgt",
@@ -1878,7 +2030,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-TrailerFix.wgt",
@@ -1890,7 +2043,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease.wgt",
@@ -1902,7 +2056,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-secondary-TrailerFix.wgt",
@@ -1914,7 +2069,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-secondary.wgt",
@@ -1926,7 +2082,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-SmartHub.wgt",
@@ -1938,7 +2095,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-TrailerFix.wgt",
@@ -1950,7 +2108,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin.wgt",
@@ -1962,7 +2121,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             }
           ]
         },
@@ -1983,7 +2143,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-OblongIcon.wgt",
@@ -1995,7 +2156,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-OSA.wgt",
@@ -2007,7 +2169,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-secondary-TrailerFix.wgt",
@@ -2019,7 +2182,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-secondary.wgt",
@@ -2031,7 +2195,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-SmartHub.wgt",
@@ -2043,7 +2208,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z-TrailerFix.wgt",
@@ -2055,7 +2221,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-10.11.z.wgt",
@@ -2067,7 +2234,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.11"
             },
             {
               "name": "Jellyfin-12.z-GrayFix.wgt",
@@ -2079,7 +2247,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-OblongIcon.wgt",
@@ -2091,7 +2260,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-OSA.wgt",
@@ -2103,7 +2273,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-secondary-TrailerFix.wgt",
@@ -2115,7 +2286,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-secondary.wgt",
@@ -2127,7 +2299,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-SmartHub.wgt",
@@ -2139,7 +2312,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z-TrailerFix.wgt",
@@ -2151,7 +2325,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-12.z.wgt",
@@ -2163,7 +2338,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-GrayFix.wgt",
@@ -2175,7 +2351,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-master-GrayFix.wgt",
@@ -2187,7 +2364,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-OblongIcon.wgt",
@@ -2199,7 +2377,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-OSA.wgt",
@@ -2211,7 +2390,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-secondary-TrailerFix.wgt",
@@ -2223,7 +2403,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-secondary.wgt",
@@ -2235,7 +2416,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-SmartHub.wgt",
@@ -2247,7 +2429,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master-TrailerFix.wgt",
@@ -2259,7 +2442,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-master.wgt",
@@ -2271,7 +2455,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             },
             {
               "name": "Jellyfin-OblongIcon.wgt",
@@ -2283,7 +2468,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-OSA.wgt",
@@ -2295,7 +2481,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-GrayFix.wgt",
@@ -2307,7 +2494,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-OblongIcon.wgt",
@@ -2319,7 +2507,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-OSA.wgt",
@@ -2331,7 +2520,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-secondary-TrailerFix.wgt",
@@ -2343,7 +2533,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-secondary.wgt",
@@ -2355,7 +2546,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-SmartHub.wgt",
@@ -2367,7 +2559,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease-TrailerFix.wgt",
@@ -2379,7 +2572,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-prerelease.wgt",
@@ -2391,7 +2585,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-secondary-TrailerFix.wgt",
@@ -2403,7 +2598,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-secondary.wgt",
@@ -2415,7 +2611,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-SmartHub.wgt",
@@ -2427,7 +2624,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin-TrailerFix.wgt",
@@ -2439,7 +2637,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             },
             {
               "name": "Jellyfin.wgt",
@@ -2451,7 +2650,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.4.0"
             }
           ]
         }
@@ -2675,7 +2875,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "13.0.0"
             }
           ]
         }
@@ -2704,7 +2905,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6.png",
-              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6"
+              "icon_digest": "sha256:011abee5d334fe35ac801ec0243d36bd0f6d4aa046ae23027b627e4e30b313b6",
+              "web_version": "10.10.7"
             }
           ]
         }
@@ -2733,7 +2935,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.10.0"
             },
             {
               "name": "Jellyfin-10.10.z-secondary-intros.wgt",
@@ -2745,7 +2948,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.10.0"
             },
             {
               "name": "Jellyfin-10.10.z-secondary.wgt",
@@ -2757,7 +2961,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.10.0"
             },
             {
               "name": "Jellyfin-10.10.z-TrueHD.wgt",
@@ -2769,7 +2974,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.10.0"
             },
             {
               "name": "Jellyfin-10.10.z.wgt",
@@ -2781,7 +2987,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.10.0"
             },
             {
               "name": "Jellyfin-10.8.z-OblongIcon.wgt",
@@ -2829,7 +3036,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.9.11"
             },
             {
               "name": "Jellyfin-10.9.z-OblongIcon.wgt",
@@ -2841,7 +3049,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/3b748d09c39af01bb096f63e3769a6b1c202d332996330b1db23efbf8834e64d.png",
-              "icon_digest": "sha256:3b748d09c39af01bb096f63e3769a6b1c202d332996330b1db23efbf8834e64d"
+              "icon_digest": "sha256:3b748d09c39af01bb096f63e3769a6b1c202d332996330b1db23efbf8834e64d",
+              "web_version": "10.9.11"
             },
             {
               "name": "Jellyfin-10.9.z-secondary-intros.wgt",
@@ -2853,7 +3062,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.9.11"
             },
             {
               "name": "Jellyfin-10.9.z-secondary.wgt",
@@ -2865,7 +3075,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.9.11"
             },
             {
               "name": "Jellyfin-10.9.z-TrueHD.wgt",
@@ -2877,7 +3088,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.9.11"
             },
             {
               "name": "Jellyfin-10.9.z.wgt",
@@ -2889,7 +3101,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.9.11"
             },
             {
               "name": "Jellyfin-intros-OblongIcon.wgt",
@@ -2913,7 +3126,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.10.0"
             },
             {
               "name": "Jellyfin-intros.wgt",
@@ -2925,7 +3139,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.10.0"
             },
             {
               "name": "Jellyfin-master-OblongIcon.wgt",
@@ -2937,7 +3152,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/3b748d09c39af01bb096f63e3769a6b1c202d332996330b1db23efbf8834e64d.png",
-              "icon_digest": "sha256:3b748d09c39af01bb096f63e3769a6b1c202d332996330b1db23efbf8834e64d"
+              "icon_digest": "sha256:3b748d09c39af01bb096f63e3769a6b1c202d332996330b1db23efbf8834e64d",
+              "web_version": "10.11.0"
             },
             {
               "name": "Jellyfin-master-TrueHD.wgt",
@@ -2949,7 +3165,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.0"
             },
             {
               "name": "Jellyfin-master.wgt",
@@ -2961,7 +3178,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.11.0"
             },
             {
               "name": "Jellyfin-OblongIcon.wgt",
@@ -2973,7 +3191,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/3b748d09c39af01bb096f63e3769a6b1c202d332996330b1db23efbf8834e64d.png",
-              "icon_digest": "sha256:3b748d09c39af01bb096f63e3769a6b1c202d332996330b1db23efbf8834e64d"
+              "icon_digest": "sha256:3b748d09c39af01bb096f63e3769a6b1c202d332996330b1db23efbf8834e64d",
+              "web_version": "10.10.0"
             },
             {
               "name": "Jellyfin-secondary-intros.wgt",
@@ -2985,7 +3204,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.10.0"
             },
             {
               "name": "Jellyfin-secondary.wgt",
@@ -2997,7 +3217,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JepZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3.png",
-              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3"
+              "icon_digest": "sha256:60241b123a5b64bfee20b26eaebf724bbeb605b1236efbd5fbb2279b9aaa49b3",
+              "web_version": "10.10.0"
             },
             {
               "name": "Jellyfin-TrueHD.wgt",
@@ -3009,7 +3230,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.10.0"
             },
             {
               "name": "Jellyfin.wgt",
@@ -3021,7 +3243,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "AprZAARz4r",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "10.10.0"
             }
           ]
         }
@@ -3622,7 +3845,8 @@ fNFqe2fz6GOIGLDZBwszU4H8zCTlrsIxlY6F3MJjoGukVmME8PsZKvtzQ6K+J58PfxsvQB7WhHFdf8l7
               "package_id": "JellyBnfir",
               "required_version": "2.3",
               "icon": "https://apps2samsung.com/catalog/icons/fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b.png",
-              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b"
+              "icon_digest": "sha256:fe3c2a0bb677b3bd74a79b5667f1bfcbfff88c789955d88bfa32dac5593b1a0b",
+              "web_version": "12.2.0"
             },
             {
               "name": "JellyLean.wgt",
