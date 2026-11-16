@@ -15,7 +15,7 @@ namespace Apps2Samsung.Cli.Commands;
 /// </summary>
 public static class UpdateCommand
 {
-    private sealed record Target(string Name, GitHubRelease Release, Asset Asset, string? From, string? Installed);
+    private sealed record Target(string Name, GitHubRelease Release, Asset Asset, string? From, string? Installed, string? To);
 
     public static async Task<int> RunAsync(CliServices s, CancellationToken ct)
     {
@@ -34,6 +34,7 @@ public static class UpdateCommand
 
         var targets = new List<Target>();
         var notFound = new List<string>();
+        var leftToDesktop = new List<string>();
         foreach (var app in apps)
         {
             if (RemovedApps.Find(app, removed, catalog.Entries, s.Config.PackageIdRenamesJson) is not null)
@@ -44,17 +45,37 @@ public static class UpdateCommand
                                        || string.Equals(n, app.DisplayName, StringComparison.OrdinalIgnoreCase)
                                        || string.Equals(n, app.TizenId, StringComparison.OrdinalIgnoreCase));
             var wanted = named ? match.HasUpdate : s.Options.All && match.State == CatalogVersionState.UpdateAvailable;
-            if (wanted)
-                targets.Add(new Target(match.Release.Name, match.Release, match.Asset, SourcesCommand.FromValue(match.Release.Source),
-                    string.IsNullOrWhiteSpace(app.Version) ? null : app.Version));
+            if (!wanted)
+                continue;
+            // A Jellyfin the desktop app built with its settings (server, sign-in, plugins, #1113):
+            // this tool has none of them, so its update would put the plain package in its place.
+            var catalogId = PackageIdRenameStore.OriginalAppIdOf(s.Config.PackageIdRenamesJson, app.TizenId) ?? app.TizenId;
+            if (InstalledVariantStore.Find(variants, ip, catalogId) is { Configured: true })
+            {
+                leftToDesktop.Add(match.Release.Name);
+                continue;
+            }
+            // A Jellyfin build is compared on its jellyfin-web version; the TV says 0.1.0 for all of them.
+            targets.Add(new Target(match.Release.Name, match.Release, match.Asset, SourcesCommand.FromValue(match.Release.Source),
+                match.InstalledVersion ?? (string.IsNullOrWhiteSpace(app.Version) ? null : app.Version), match.CatalogVersion));
         }
         foreach (var n in names)
-            if (!targets.Any(t => string.Equals(t.Name, n, StringComparison.OrdinalIgnoreCase)))
+            if (!targets.Any(t => string.Equals(t.Name, n, StringComparison.OrdinalIgnoreCase)) &&
+                !leftToDesktop.Any(l => string.Equals(l, n, StringComparison.OrdinalIgnoreCase)))
                 notFound.Add(n);
+        var desktopLines = leftToDesktop
+            .Select(n => $"{n}: installed by the desktop app with your Jellyfin settings (server, plugins); update it there to keep them.")
+            .ToList();
 
         if (targets.Count == 0)
-            return s.Out.Result(new { ok = true, tv = ip, updated = Array.Empty<object>(), notFound },
-                new[] { notFound.Count > 0 ? $"No update for: {string.Join(", ", notFound)}." : $"Every app on {ip} is up to date with the catalog." });
+        {
+            var nothing = new List<string>(desktopLines);
+            if (notFound.Count > 0)
+                nothing.Add($"No update for: {string.Join(", ", notFound)}.");
+            if (nothing.Count == 0)
+                nothing.Add($"Every app on {ip} is up to date with the catalog.");
+            return s.Out.Result(new { ok = true, tv = ip, updated = Array.Empty<object>(), notFound, leftToDesktop }, nothing);
+        }
 
         var results = new List<object>();
         var lines = new List<string>();
@@ -62,7 +83,7 @@ public static class UpdateCommand
         for (var i = 0; i < targets.Count; i++)
         {
             var t = targets[i];
-            s.Out.Progress($"Updating {i + 1} of {targets.Count}: {t.Name} {t.Installed} → {t.Asset.PackageVersion}");
+            s.Out.Progress($"Updating {i + 1} of {targets.Count}: {t.Name} {t.Installed} → {t.To}");
             var args = InstallArgs(s, ip, t);
             int exit;
             JsonElement? answer = null;
@@ -81,14 +102,15 @@ public static class UpdateCommand
 
             if (exit != Output.Ok)
                 failed++;
-            lines.Add($"{t.Name}: {(exit == Output.Ok ? $"updated to {t.Asset.PackageVersion}" : "failed (see above)")}");
-            results.Add(new { app = t.Name, from = t.Installed, to = t.Asset.PackageVersion, ok = exit == Output.Ok, exit, install = answer });
+            lines.Add($"{t.Name}: {(exit == Output.Ok ? $"updated to {t.To}" : "failed (see above)")}");
+            results.Add(new { app = t.Name, from = t.Installed, to = t.To, ok = exit == Output.Ok, exit, install = answer });
         }
 
         lines.Insert(0, failed == 0 ? $"{targets.Count - failed} updated on {ip}." : $"{targets.Count - failed} updated, {failed} failed on {ip}.");
+        lines.AddRange(desktopLines);
         if (notFound.Count > 0)
             lines.Add($"No update for: {string.Join(", ", notFound)}.");
-        return s.Out.Result(new { ok = failed == 0, tv = ip, updated = results, notFound }, lines, failed == 0 ? Output.Ok : Output.Failed);
+        return s.Out.Result(new { ok = failed == 0, tv = ip, updated = results, notFound, leftToDesktop }, lines, failed == 0 ? Output.Ok : Output.Failed);
     }
 
     // The `install` line for one app, with the options of this run that matter to an install.

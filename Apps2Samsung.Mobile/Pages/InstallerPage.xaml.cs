@@ -795,6 +795,7 @@ public partial class InstallerPage : ContentPage
 				PackageFile = asset.FileName,
 				InstalledAtUtc = DateTimeOffset.UtcNow,
 				Source = release.Source.Key,
+				WebVersion = string.IsNullOrWhiteSpace(asset.WebVersion) ? null : asset.WebVersion,
 			});
 	}
 

@@ -1551,6 +1551,10 @@ namespace Apps2Samsung.ViewModels
                     PackageFile = asset.FileName,
                     InstalledAtUtc = DateTimeOffset.UtcNow,
                     Source = release.Source.Key,
+                    WebVersion = string.IsNullOrWhiteSpace(asset.WebVersion) ? null : asset.WebVersion,
+                    // What JellyfinPackagePatcher goes by: a Jellyfin package and a server to put in it.
+                    Configured = asset.FileName.Contains(Constants.AppIdentifiers.JellyfinAppName, StringComparison.OrdinalIgnoreCase) &&
+                                 !string.IsNullOrEmpty(AppSettings.Default.JellyfinFullUrl),
                 });
             AppSettings.Default.Save();
         }
