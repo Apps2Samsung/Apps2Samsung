@@ -915,7 +915,6 @@
   "devGuideStatusRestart": "A Developer Mode be van kapcsolva. A TV-t újra kell indítani, mielőtt elfogadja a telepítéseket.",
   "devGuideStatusReady": "A TV elfogadja a telepítéseket erről a készülékről.",
   "devGuideStepOpenApps": "Nyissa meg az Alkalmazásokat a TV-n",
-  "devGuideStepOpenAppsHint": "Home gomb, majd Alkalmazások.",
   "devGuideStepTypeCode": "Írja be: 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "A számbillentyűkkel, vagy a nélkülük készült távirányítón a képernyőn megjelenő számbillentyűzettel.",
   "devGuideStepSwitchOn": "Kapcsolja be a Developer Mode-ot",

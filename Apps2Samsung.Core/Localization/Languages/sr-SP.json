@@ -915,7 +915,6 @@
   "devGuideStatusRestart": "Developer Mode је укључен. Телевизору је потребан рестарт пре него што прихвати инсталације.",
   "devGuideStatusReady": "Телевизор прихвата инсталације са овог уређаја.",
   "devGuideStepOpenApps": "Отворите Apps на телевизору",
-  "devGuideStepOpenAppsHint": "Home дугме, па Apps.",
   "devGuideStepTypeCode": "Укуцајте 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Бројчаним тастерима, или бројчаником на екрану на даљинском без њих.",
   "devGuideStepSwitchOn": "Укључите Developer Mode",

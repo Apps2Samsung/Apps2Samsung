@@ -909,7 +909,6 @@
   "devGuideStatusRestart": "Le mode développeur est activé. Le téléviseur doit redémarrer avant d'accepter des installations.",
   "devGuideStatusReady": "Le téléviseur accepte les installations depuis cet appareil.",
   "devGuideStepOpenApps": "Ouvrez Apps sur le téléviseur",
-  "devGuideStepOpenAppsHint": "Bouton Accueil, puis Apps.",
   "devGuideStepTypeCode": "Tapez 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Avec les touches numériques, ou le pavé numérique à l'écran sur une télécommande qui n'en a pas.",
   "devGuideStepSwitchOn": "Activez le mode développeur",

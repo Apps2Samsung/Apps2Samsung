@@ -908,7 +908,6 @@
   "devGuideStatusRestart": "Developer Mode este activ. Televizorul trebuie repornit înainte să accepte instalări.",
   "devGuideStatusReady": "Televizorul acceptă instalări de pe acest dispozitiv.",
   "devGuideStepOpenApps": "Deschideți Apps pe televizor",
-  "devGuideStepOpenAppsHint": "Butonul Home, apoi Apps.",
   "devGuideStepTypeCode": "Tastați 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Cu tastele numerice sau cu tastatura numerică de pe ecran, la o telecomandă fără ele.",
   "devGuideStepSwitchOn": "Activați Developer Mode",

@@ -917,7 +917,6 @@
   "devGuideStatusRestart": "Режим розробника ввімкнено. Телевізору потрібен перезапуск, перш ніж він прийматиме встановлення.",
   "devGuideStatusReady": "Телевізор приймає встановлення з цього пристрою.",
   "devGuideStepOpenApps": "Відкрийте Apps на телевізорі",
-  "devGuideStepOpenAppsHint": "Кнопка Home, потім Apps.",
   "devGuideStepTypeCode": "Введіть 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Цифровими клавішами або екранною цифровою панеллю на пульті без них.",
   "devGuideStepSwitchOn": "Увімкніть Developer Mode",

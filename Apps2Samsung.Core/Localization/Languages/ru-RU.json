@@ -936,7 +936,6 @@
   "devGuideStatusReady": "Телевизор принимает установку с данного устройства.",
   "devGuideRelayStepOpen": "Открыть TV-Store на телевизоре",
   "devGuideStepOpenApps": "Открывать приложения на телевизоре",
-  "devGuideStepOpenAppsHint": "Кнопка Домой, затем раздел Приложения.",
   "devGuideStepTypeCode": "Набрать 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "С помощью цифровых клавиш или экранной цифровой клавиатуры, если на пульте такие клавиши отсутствуют.",
   "devGuideStepSwitchOn": "Включить режим разработчика",

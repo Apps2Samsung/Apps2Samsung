@@ -914,7 +914,6 @@
   "devGuideStatusRestart": "개발자 모드가 켜져 있습니다. 설치를 받으려면 TV를 다시 시작해야 합니다.",
   "devGuideStatusReady": "TV가 이 기기의 설치를 받습니다.",
   "devGuideStepOpenApps": "TV에서 앱 열기",
-  "devGuideStepOpenAppsHint": "홈 버튼을 누른 다음 앱.",
   "devGuideStepTypeCode": "1 2 3 4 5 입력",
   "devGuideStepTypeCodeHint": "숫자 키로 입력하거나, 숫자 키가 없는 리모컨에서는 화면의 숫자 패드로 입력합니다.",
   "devGuideStepSwitchOn": "개발자 모드 켜기",

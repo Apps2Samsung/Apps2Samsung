@@ -919,7 +919,6 @@
   "devGuideStatusRestart": "O Modo de Desenvolvedor está ativado. A TV precisa de ser reiniciada antes de aceitar instalações.",
   "devGuideStatusReady": "A TV aceita instalações deste dispositivo.",
   "devGuideStepOpenApps": "Abra as Aplicações na TV",
-  "devGuideStepOpenAppsHint": "Botão Home e depois Aplicações.",
   "devGuideStepTypeCode": "Escreva 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Com as teclas numéricas, ou o teclado numérico no ecrã num comando que não as tenha.",
   "devGuideStepSwitchOn": "Ative o Modo de Desenvolvedor",
