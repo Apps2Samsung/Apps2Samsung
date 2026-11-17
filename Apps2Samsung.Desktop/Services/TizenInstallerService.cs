@@ -1482,7 +1482,9 @@ namespace Apps2Samsung.Services
         private async Task<string> GetTvDuidAsync(string tvIpAddress)
         {
             // Retry the read, old/slow TVs often return an empty reply or drop the connection on the
-            // first try. Returns blank on total failure so the caller's IsValid check handles it.
+            // first try. When it fails, a DUID typed into Settings names the TV instead (only when
+            // exactly one is set, as ManualDuid.Only explains); blank leaves it to the caller's
+            // IsValid check.
             try
             {
                 return await TizenDuidReader.ReadAsync(_sdb, tvIpAddress);
@@ -1490,7 +1492,7 @@ namespace Apps2Samsung.Services
             catch (Exception ex)
             {
                 Trace.WriteLine($"[Cert] DUID read failed for {tvIpAddress}: {ex.Message}");
-                return string.Empty;
+                return ManualDuid.Only(_appSettings.ManualDuids) ?? string.Empty;
             }
         }
 
