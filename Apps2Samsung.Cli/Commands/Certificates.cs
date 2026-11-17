@@ -3,6 +3,7 @@ using Apps2Samsung.Certificate;
 using Apps2Samsung.Helpers.Core;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Install;
+using Apps2Samsung.Models;
 using Apps2Samsung.Sdb;
 
 namespace Apps2Samsung.Cli.Commands;
@@ -17,8 +18,7 @@ public static class Certificates
     public static async Task<(SigningProfile Profile, string Duid, CertificateProfile Raw)> EnsureAsync(
         CliServices s, string tvIp, CertificatePrivilegeLevel level, CancellationToken ct)
     {
-        var manualDuids = s.Config.ManualDuids
-            .Split(new[] { ',', ';', ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var manualDuid = ManualDuid.Only(s.Config.ManualDuids);
 
         s.Out.Progress("Reading the TV's DUID…");
         string duid;
@@ -26,16 +26,14 @@ public static class Certificates
         {
             duid = await TizenDuidReader.ReadAsync(s.Sdb, tvIp, progress: s.Out.Progress);
         }
-        catch (InvalidOperationException) when (manualDuids.Length == 1)
+        catch (InvalidOperationException) when (manualDuid is not null)
         {
             // Some firmwares answer "0 getduid" with a warning line, or close the stream
             // mid-handshake, and never hand back the DUID (Tizen 8.0 after the 2026-11 update).
             // The DUID is still readable by hand ("sdb shell 0 getduid") and is printed on the TV
             // under Support > About The TV, so honour a DUID the user supplied rather than
-            // failing the whole install.
-            // Only when exactly one is supplied: this setting also lists extra TVs to authorize,
-            // so with two or more we cannot tell which one is the TV being installed to.
-            duid = manualDuids[0];
+            // failing the whole install (ManualDuid.Only explains the single-entry rule).
+            duid = manualDuid;
             s.Out.Progress($"The TV did not return its DUID over sdb; using the supplied {duid}.");
         }
         return await EnsureForDuidAsync(s, duid, level, ct);

@@ -116,7 +116,17 @@ public sealed class CertificateProvisioner
 			progress?.Invoke(L10n.Get("statusReadingTvDuid"));
 			// Retry the read: old/slow TVs often hand back an empty reply or drop the connection mid-command
 			// on the first try, then answer on a retry. A validated DUID is returned; anything else throws.
-			duid = await TizenDuidReader.ReadAsync(_sdb, tvIp, progress: progress);
+			try
+			{
+				duid = await TizenDuidReader.ReadAsync(_sdb, tvIp, progress: progress);
+			}
+			catch (InvalidOperationException) when (ManualDuid.Only(MobileSettings.ManualDuids) is { } manual)
+			{
+				// The TV refused the read: a Host PC IP that points elsewhere, or a firmware that closes
+				// the channel instead of answering 0 getduid. The DUID typed into Settings names it (#1102),
+				// and ManualDuid.Only keeps this to the case where exactly one is set.
+				duid = manual;
+			}
 		}
 
 		var caPath = await MaterializeCaAsync();

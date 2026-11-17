@@ -1,6 +1,7 @@
 using Apps2Samsung.Install;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Mobile.Localization;
+using Apps2Samsung.Models;
 using Apps2Samsung.Sdb;
 using Microsoft.Maui.Storage;
 
@@ -39,7 +40,7 @@ public static class TvToolHooks
 		catch (Exception ex)
 		{
 			System.Diagnostics.Trace.WriteLine($"[toolbox] DUID over SDB failed, trying the manual DUIDs: {ex.Message}");
-			duid = MobileSettings.ParseDuids().FirstOrDefault();
+			duid = ManualDuid.Only(MobileSettings.ManualDuids);
 			if (duid is null)
 			{
 				report(L10n.Get("lblToolboxPackageNoDuid"));
