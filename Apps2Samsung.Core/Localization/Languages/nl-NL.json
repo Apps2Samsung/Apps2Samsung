@@ -912,7 +912,6 @@
   "devGuideStatusRestart": "Ontwikkelaarsmodus staat aan. De TV moet herstarten voordat hij installaties accepteert.",
   "devGuideStatusReady": "De TV accepteert installaties van dit apparaat.",
   "devGuideStepOpenApps": "Open Apps op de TV",
-  "devGuideStepOpenAppsHint": "Home-knop, dan Apps.",
   "devGuideStepTypeCode": "Typ 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Met de cijfertoetsen, of het cijferpaneel op het scherm bij een afstandsbediening zonder.",
   "devGuideStepSwitchOn": "Zet Developer Mode aan",
@@ -1004,5 +1003,9 @@
   "lblUserSourceCategory": "Categorie",
   "tvCardActionCheckAgain": "Opnieuw controleren",
   "infoPortOpen": "Openen",
-  "lblRemovedOn": "op {0}"
+  "lblRemovedOn": "op {0}",
+  "lblLinkClose": "Sluiten",
+  "lblRestoreStateInstalling": "Installeren",
+  "lblRestoreChipSettings": "Instellingen",
+  "lblSavedTvShare": "Delen"
 }

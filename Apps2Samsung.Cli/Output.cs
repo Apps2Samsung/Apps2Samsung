@@ -60,6 +60,23 @@ public sealed class Output : IDisposable
         s_stdErr ??= Console.Error;
     }
 
+    /// <summary>
+    /// Sends what this class writes to stdout into <paramref name="writer"/> until disposed: `update --json`
+    /// (#1067) runs one `install --json` per app and keeps each answer for its own single JSON document.
+    /// </summary>
+    internal static IDisposable CaptureStdOut(TextWriter writer)
+    {
+        KeepStandardWriters();
+        var previous = s_stdOut;
+        s_stdOut = writer;
+        return new Restore(() => s_stdOut = previous);
+    }
+
+    private sealed class Restore(Action undo) : IDisposable
+    {
+        public void Dispose() => undo();
+    }
+
     public bool AsJson { get; }
     public bool Quiet { get; }
     /// <summary>Colours, cards and a live step line: stdout and stderr are both a terminal that takes ANSI, and nothing asked for plain text.</summary>

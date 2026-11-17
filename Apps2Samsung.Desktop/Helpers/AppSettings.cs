@@ -218,6 +218,10 @@ namespace Apps2Samsung.Helpers
         public string SkippedUpdateVersion { get; set; } = string.Empty;
         public DateTime? LastUpdateCheck { get; set; } = null;
 
+        /// <summary>The year whose birthday row (13 May, under the TV card) was hidden with its
+        /// cross; the row comes back the next year.</summary>
+        public int BirthdayDismissedYear { get; set; }
+
         // ----- Application-scoped settings (readonly at runtime) -----
         // [JsonIgnore] so these always reflect the shipped code defaults. If they were
         // serialized, a preserved settings.json would freeze them at the value first
@@ -226,7 +230,7 @@ namespace Apps2Samsung.Helpers
         [JsonIgnore]
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
         [JsonIgnore]
-        public string AppVersion { get; set; } = "v3.3.0";
+        public string AppVersion { get; set; } = "v3.3.1";
         [JsonIgnore]
         public string JellyfinAvReleaseFork { get; set; } = "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases";
         [JsonIgnore]

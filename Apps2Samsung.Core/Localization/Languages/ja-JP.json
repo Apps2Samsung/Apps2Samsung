@@ -915,7 +915,6 @@
   "devGuideStatusRestart": "開発者モードはオンです。インストールを受け付けるには、テレビの再起動が必要です。",
   "devGuideStatusReady": "テレビはこのデバイスからのインストールを受け付けます。",
   "devGuideStepOpenApps": "テレビでアプリを開く",
-  "devGuideStepOpenAppsHint": "ホームボタンを押してから、アプリを選びます。",
   "devGuideStepTypeCode": "1 2 3 4 5 と入力",
   "devGuideStepTypeCodeHint": "数字キーで入力します。数字キーのないリモコンでは、画面上のテンキーを使います。",
   "devGuideStepSwitchOn": "開発者モードをオンにする",
@@ -1009,5 +1008,9 @@
   "lblUserSourceCategory": "カテゴリ",
   "tvCardActionCheckAgain": "再確認",
   "infoPortOpen": "開く",
-  "lblRemovedOn": "{0} に"
+  "lblRemovedOn": "{0} に",
+  "lblLinkClose": "閉じる",
+  "lblRestoreStateInstalling": "インストール",
+  "lblRestoreChipSettings": "設定",
+  "lblSavedTvShare": "共有"
 }

@@ -164,6 +164,8 @@ namespace Apps2Samsung.Certificate
                 password = File.ReadAllText(Path.Combine(profileDir, PasswordFileName)).Trim();
             }
 
+            // A new or renewed certificate is saved outside the app right away (#1068).
+            CertificateBackups.Changed();
             return new CertificateProfile(authorP12, distributorP12, password, profileDir, profileName, level);
         }
 

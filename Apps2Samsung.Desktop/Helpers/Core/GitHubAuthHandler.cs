@@ -192,7 +192,7 @@ namespace Apps2Samsung.Helpers.Core
             }
 
             // 4. No token available — unauthenticated requests
-            Trace.TraceInformation("[GitHubAuth] No token found — using unauthenticated requests");
+            Trace.TraceInformation("[GitHubAuth] No token found, using unauthenticated requests");
             return null;
         }
     }

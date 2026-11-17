@@ -199,7 +199,7 @@ namespace Apps2Samsung.Services
                             // (name, developerMode, developerIP).
                             else if (ports.ApiPortOpen)
                             {
-                                Trace.WriteLine($"[Scan] {ip}: debug port {TizenDevPort} closed, REST API {SamsungTvApiPort} open — listed as not ready.");
+                                Trace.WriteLine($"[Scan] {ip}: debug port {TizenDevPort} closed, REST API {SamsungTvApiPort} open, listed as not ready.");
                                 var device = new NetworkDevice
                                 {
                                     IpAddress = ip,
@@ -215,7 +215,7 @@ namespace Apps2Samsung.Services
                         {
                             // Don't let one host's failure abort the sweep, but no longer swallow it
                             // silently — log so a systematic failure (e.g. an OS-level block) is visible.
-                            Trace.WriteLine($"[Scan] host probe failed: {ex.GetType().Name} — {ex.Message}");
+                            Trace.WriteLine($"[Scan] host probe failed: {ex.GetType().Name}: {ex.Message}");
                         }
                         finally
                         {

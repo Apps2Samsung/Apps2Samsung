@@ -199,6 +199,15 @@ public static class MobileSettings
 		set => Preferences.Set(KeySkippedUpdate, value ?? string.Empty);
 	}
 
+	private const string KeyBirthdayDismissedYear = "birthday_dismissed_year";
+	/// <summary>The year whose birthday row (13 May, Install tab) was hidden with its cross; the row
+	/// comes back the next year.</summary>
+	public static int BirthdayDismissedYear
+	{
+		get => Preferences.Get(KeyBirthdayDismissedYear, 0);
+		set => Preferences.Set(KeyBirthdayDismissedYear, value);
+	}
+
 	/// <summary>Extra TV DUIDs to pre-authorize in the signing cert (one per line/comma-separated).</summary>
 	public static string ManualDuids
 	{

@@ -398,6 +398,12 @@ jobs:
             <key>NSLocalNetworkUsageDescription</key>
             <string>Apps2Samsung scans your local network to find Samsung TVs in Developer Mode.</string>
             <key>CFBundleIconFile</key><string>jellyfin.icns</string>
+            <!-- apps2samsung:// install links (#1066) -->
+            <key>CFBundleURLTypes</key>
+            <array><dict>
+              <key>CFBundleURLName</key><string>org.madebypatrick.apps2samsung.link</string>
+              <key>CFBundleURLSchemes</key><array><string>apps2samsung</string></array>
+            </dict></array>
           </dict>
           </plist>
           EOF
@@ -450,6 +456,12 @@ jobs:
             <key>NSLocalNetworkUsageDescription</key>
             <string>Apps2Samsung scans your local network to find Samsung TVs in Developer Mode.</string>
             <key>CFBundleIconFile</key><string>jellyfin.icns</string>
+            <!-- apps2samsung:// install links (#1066) -->
+            <key>CFBundleURLTypes</key>
+            <array><dict>
+              <key>CFBundleURLName</key><string>org.madebypatrick.apps2samsung.link</string>
+              <key>CFBundleURLSchemes</key><array><string>apps2samsung</string></array>
+            </dict></array>
           </dict>
           </plist>
           EOF

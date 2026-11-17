@@ -8,6 +8,148 @@
              x:DataType="viewModels:AppSettingsViewModel">
 	<!-- Settings > Backup and diagnostics: export / import settings and certificates, and the logs. -->
 	<StackPanel Spacing="18">
+		<!-- Automatic certificate backups (#1068): a status card, then each profile with whether it is in a backup. -->
+		<StackPanel Spacing="6">
+			<TextBlock Classes="grouptitle" Text="{l:Localize lblCertBackups}"/>
+			<Border Classes="group" Padding="14,12" IsVisible="{Binding !HasCertificates}">
+				<TextBlock Classes="hint" Text="{l:Localize lblCertBackupNone}" TextWrapping="Wrap"/>
+			</Border>
+			<Border CornerRadius="12" Padding="14" IsVisible="{Binding HasCertificates}"
+			        Background="{DynamicResource OkSoftBrush}"
+			        Classes.warn="{Binding CertificatesNeedBackup}">
+				<Border.Styles>
+					<Style Selector="Border.warn">
+						<Setter Property="Background" Value="{DynamicResource WarnSoftBrush}"/>
+					</Style>
+				</Border.Styles>
+				<StackPanel Spacing="12">
+					<Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+						<Border Width="36" Height="36" CornerRadius="9" VerticalAlignment="Top"
+						        Background="{DynamicResource OkBrush}" Classes.warn="{Binding CertificatesNeedBackup}">
+							<Border.Styles>
+								<Style Selector="Border.warn">
+									<Setter Property="Background" Value="{DynamicResource WarnBrush}"/>
+								</Style>
+							</Border.Styles>
+							<Viewbox Width="18" Height="18">
+								<Canvas Width="24" Height="24">
+									<Path Data="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z" Stroke="White" StrokeThickness="2.2" StrokeJoin="Round"/>
+									<Path Data="M9 12l2 2 4-4" Stroke="White" StrokeThickness="2.2" StrokeLineCap="Round" StrokeJoin="Round"
+									      IsVisible="{Binding CertificatesSafe}"/>
+									<Path Data="M12 8v5M12 16v.5" Stroke="White" StrokeThickness="2.2" StrokeLineCap="Round"
+									      IsVisible="{Binding CertificatesNeedBackup}"/>
+								</Canvas>
+							</Viewbox>
+						</Border>
+						<StackPanel Grid.Column="1" Spacing="3">
+							<TextBlock Text="{Binding CertificateBackupTitle}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
+							<TextBlock Text="{Binding CertificateBackupText}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+						</StackPanel>
+					</Grid>
+					<Button Classes="primary" HorizontalAlignment="Right" Content="{l:Localize lblCertBackupNow}"
+					        Command="{Binding BackUpCertificatesNowCommand}" IsVisible="{Binding CertificatesNeedBackup}"/>
+				</StackPanel>
+			</Border>
+			<Border Classes="group" IsVisible="{Binding HasCertificates}">
+				<StackPanel>
+					<ItemsControl ItemsSource="{Binding CertificateBackupRows}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate x:DataType="viewModels:CertificateBackupRow">
+								<StackPanel>
+									<Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="14,10">
+										<StackPanel Spacing="2" VerticalAlignment="Center">
+											<TextBlock Text="{Binding Name}" FontSize="14" Foreground="{DynamicResource InkBrush}"/>
+											<TextBlock Classes="hint" Text="{Binding Detail}"
+											           IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+										</StackPanel>
+										<Border Grid.Column="1" CornerRadius="10" Padding="8,3" VerticalAlignment="Center"
+										        Background="{DynamicResource OkSoftBrush}" Classes.warn="{Binding !IsBackedUp}">
+											<Border.Styles>
+												<Style Selector="Border.warn">
+													<Setter Property="Background" Value="{DynamicResource WarnSoftBrush}"/>
+												</Style>
+											</Border.Styles>
+											<TextBlock Text="{Binding Chip}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
+										</Border>
+									</Grid>
+									<Border Classes="rowline"/>
+								</StackPanel>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="14,10">
+						<StackPanel Spacing="2" VerticalAlignment="Center">
+							<TextBlock Text="{l:Localize lblCertBackupGoesTo}" FontSize="14" Foreground="{DynamicResource InkBrush}"/>
+							<TextBlock Classes="hint" Text="{Binding CertificateBackupLocation}" TextWrapping="Wrap"/>
+						</StackPanel>
+						<Button Grid.Column="1" Classes="plain" Padding="12,7" VerticalAlignment="Center"
+						        Content="{l:Localize lblOpenFolder}" Command="{Binding OpenCertificateBackupFolderCommand}"/>
+					</Grid>
+					<TextBlock Classes="hint" Margin="14,0,14,10" Text="{Binding CertificateBackupNote}" TextWrapping="Wrap"
+					           IsVisible="{Binding CertificateBackupNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+				</StackPanel>
+			</Border>
+		</StackPanel>
+
+		<!-- Saved TVs (#1069, mockup B): the app list of each TV, kept by itself; restore one onto the selected TV. -->
+		<StackPanel Spacing="6">
+			<TextBlock Classes="grouptitle" Text="{l:Localize lblSavedTvs}"/>
+			<Border Classes="group">
+				<StackPanel>
+					<TextBlock Classes="hint" Margin="14,12" Text="{l:Localize lblSavedTvsNone}" TextWrapping="Wrap" IsVisible="{Binding !HasSavedTvs}"/>
+					<ItemsControl ItemsSource="{Binding SavedTvRows}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate x:DataType="viewModels:SavedTvRow">
+								<StackPanel>
+									<StackPanel Spacing="10" Margin="14,12">
+										<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+											<Border Width="36" Height="36" CornerRadius="9" Background="{DynamicResource AccentSoftBrush}" VerticalAlignment="Top">
+												<Viewbox Width="19" Height="17">
+													<Canvas Width="28" Height="24">
+														<Path Data="M4.5 2h19a2.5 2.5 0 0 1 2.5 2.5v10a2.5 2.5 0 0 1-2.5 2.5h-19A2.5 2.5 0 0 1 2 14.5v-10A2.5 2.5 0 0 1 4.5 2zM10 21h8"
+														      Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.6"/>
+													</Canvas>
+												</Viewbox>
+											</Border>
+											<StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+												<TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+												           Foreground="{DynamicResource InkBrush}"/>
+												<TextBlock Classes="hint" Text="{Binding Detail}" TextWrapping="Wrap"/>
+											</StackPanel>
+											<Border Grid.Column="2" CornerRadius="10" Padding="8,3" VerticalAlignment="Top" Background="{DynamicResource WarnSoftBrush}"
+											        IsVisible="{Binding HasMissing}">
+												<TextBlock Text="{Binding Chip}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
+											</Border>
+										</Grid>
+										<WrapPanel HorizontalAlignment="Right">
+											<Button Classes="plain" Padding="12,7" Margin="8,0,0,0" Content="{l:Localize lblSavedTvForget}"
+											        Command="{Binding $parent[UserControl].((viewModels:AppSettingsViewModel)DataContext).ForgetSavedTvCommand}" CommandParameter="{Binding}"/>
+											<Button Classes="plain" Padding="12,7" Margin="8,0,0,0" Content="{l:Localize lblSavedTvToFile}"
+											        Command="{Binding $parent[UserControl].((viewModels:AppSettingsViewModel)DataContext).SaveSavedTvToFileCommand}" CommandParameter="{Binding}"/>
+											<Button Classes="primary" Padding="12,7" Margin="8,0,0,0" Content="{Binding RestoreText}"
+											        Command="{Binding $parent[UserControl].((viewModels:AppSettingsViewModel)DataContext).RestoreSavedTvCommand}" CommandParameter="{Binding}"/>
+										</WrapPanel>
+									</StackPanel>
+									<Border Classes="rowline"/>
+								</StackPanel>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+					<Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="14,10">
+						<StackPanel Spacing="2" VerticalAlignment="Center">
+							<TextBlock Text="{l:Localize lblSavedTvFromFile}" FontSize="14" Foreground="{DynamicResource InkBrush}"/>
+							<TextBlock Classes="hint" Text="{l:Localize hintSavedTvFromFile}" TextWrapping="Wrap"/>
+						</StackPanel>
+						<Button Grid.Column="1" Classes="plain" Padding="12,7" VerticalAlignment="Center"
+						        Content="{l:Localize lblSavedTvChooseFile}" Command="{Binding RestoreTvFromFileCommand}"/>
+					</Grid>
+					<TextBlock Classes="hint" Margin="14,0,14,10" Text="{Binding SavedTvsStatus}" TextWrapping="Wrap"
+					           IsVisible="{Binding SavedTvsStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+				</StackPanel>
+			</Border>
+			<TextBlock Classes="hint" Margin="4,0" Text="{l:Localize hintSavedTvs}" TextWrapping="Wrap"/>
+		</StackPanel>
+
 		<StackPanel Spacing="6">
 			<TextBlock Classes="grouptitle" Text="{l:Localize lblBackupRestore}"/>
 			<Border Classes="group" Padding="14,12">

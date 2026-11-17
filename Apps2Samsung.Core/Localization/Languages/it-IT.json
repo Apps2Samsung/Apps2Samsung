@@ -895,7 +895,6 @@
   "devGuideStatusRestart": "La modalità sviluppatore è attiva. La TV deve essere riavviata prima di accettare installazioni.",
   "devGuideStatusReady": "La TV accetta installazioni da questo dispositivo.",
   "devGuideStepOpenApps": "Apri Apps sulla TV",
-  "devGuideStepOpenAppsHint": "Tasto Home, poi Apps.",
   "devGuideStepTypeCode": "Digita 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Con i tasti numerici, o con il tastierino numerico a schermo su un telecomando che non li ha.",
   "devGuideStepSwitchOn": "Attiva la modalità sviluppatore",
@@ -987,5 +986,9 @@
   "lblUserSourceCategory": "Categoria",
   "tvCardActionCheckAgain": "Controlla di nuovo",
   "infoPortOpen": "Apri",
-  "lblRemovedOn": "su {0}"
+  "lblRemovedOn": "su {0}",
+  "lblLinkClose": "Chiudi",
+  "lblRestoreStateInstalling": "Installazione",
+  "lblRestoreChipSettings": "Impostazioni",
+  "lblSavedTvShare": "Condividi"
 }

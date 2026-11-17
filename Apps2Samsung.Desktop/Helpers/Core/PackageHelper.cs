@@ -28,15 +28,24 @@ namespace Apps2Samsung.Helpers.Core
         private readonly IDialogService _dialogService = dialogService;
         private readonly INetworkService _networkService = networkService;
 
-        public async Task<string?> DownloadReleaseAsync(GitHubRelease release, Asset? selectedAsset, ProgressCallback? progress = null)
+        /// <param name="reportFailure">Update all (#1067): a failure goes here instead of an error dialog, so the run goes on.</param>
+        public async Task<string?> DownloadReleaseAsync(GitHubRelease release, Asset? selectedAsset, ProgressCallback? progress = null, Action<string>? reportFailure = null)
         {
+            Task Fail(string message)
+            {
+                if (reportFailure is null)
+                    return _dialogService.ShowErrorAsync(message);
+                reportFailure(message);
+                return Task.CompletedTask;
+            }
+
             if (release?.PrimaryDownloadUrl == null) return null;
             if (selectedAsset?.DownloadUrl == null) return null;
 
             // A signed repository that could not be checked now: listed, never installed from (#1018).
             if (Apps2Samsung.Catalog.Repositories.SignedRepositories.InstallBlocked(release, key => key.Localized()) is { } blocked)
             {
-                await _dialogService.ShowErrorAsync(blocked);
+                await Fail(blocked);
                 return null;
             }
 
@@ -48,7 +57,7 @@ namespace Apps2Samsung.Helpers.Core
                 {
                     try { File.Delete(downloadPath); } catch (IOException) { /* best-effort */ }
                     progress?.Invoke("DownloadFailed".Localized());
-                    await _dialogService.ShowErrorAsync(digest);
+                    await Fail(digest);
                     return null;
                 }
                 progress?.Invoke("DownloadCompleted".Localized());
@@ -62,16 +71,18 @@ namespace Apps2Samsung.Helpers.Core
                 if (Apps2Samsung.Services.NetworkFailure.LocalizationKey(ex) is { } key)
                 {
                     Trace.WriteLine($"[Download] {selectedAsset.DownloadUrl}: {ex}");
-                    await _dialogService.ShowErrorAsync($"{"DownloadFailed".Localized()} {key.Localized()}");
+                    await Fail($"{"DownloadFailed".Localized()} {key.Localized()}");
                 }
                 else
-                    await _dialogService.ShowErrorAsync($"{"DownloadFailed".Localized()} {ex}");
+                    await Fail(reportFailure is null ? $"{"DownloadFailed".Localized()} {ex}" : $"{"DownloadFailed".Localized()} {ex.Message}");
                 return null;
             }
         }
         /// <param name="catalogKey">The catalog entry the package is from (PackageIdCollisions.CatalogKey), which a
         /// colliding package's new id is derived from (#1028); null for a picked file.</param>
-        public async Task<bool> InstallPackageAsync(string? packagePath, NetworkDevice selectedDevice, CancellationToken cancellationToken, ProgressCallback? progress = null, Action? onSamsungLoginStarted = null, IProgress<int>? installProgress = null, string? catalogKey = null)
+        /// <param name="reportFailure">Update all (#1067): no Installation complete window, and a failure goes here
+        /// instead of an error dialog, so the run goes on to the next app. Questions (Developer Mode, removing a copy) still ask.</param>
+        public async Task<bool> InstallPackageAsync(string? packagePath, NetworkDevice selectedDevice, CancellationToken cancellationToken, ProgressCallback? progress = null, Action? onSamsungLoginStarted = null, IProgress<int>? installProgress = null, string? catalogKey = null, Action<string>? reportFailure = null)
         {
             if (string.IsNullOrEmpty(packagePath) || !File.Exists(packagePath))
             {
@@ -178,6 +189,8 @@ namespace Apps2Samsung.Helpers.Core
                     installProgress: installProgress,
                     catalogKey: catalogKey);
 
+                if (result.Success && reportFailure is not null)
+                    return true;
                 if (result.Success)
                 {
                     var win = App.Services.GetRequiredService<InstallationCompleteWindow>();
@@ -202,13 +215,17 @@ namespace Apps2Samsung.Helpers.Core
                 {
                     // A sheet or dialog already said what happened (or the user cancelled).
                     progress?.Invoke(result.ErrorMessage);
+                    reportFailure?.Invoke(result.ErrorMessage);
                     return false;
                 }
                 else
                 {
                     progress?.Invoke("InstallationFailed".Localized());
                     await NoteInstallFailureAsync(selectedDevice, result.ErrorMessage ?? "InstallationFailed".Localized());
-                    await _dialogService.ShowErrorAsync($"{"InstallationFailed".Localized()}: {result.ErrorMessage}");
+                    if (reportFailure is not null)
+                        reportFailure(result.ErrorMessage ?? "InstallationFailed".Localized());
+                    else
+                        await _dialogService.ShowErrorAsync($"{"InstallationFailed".Localized()}: {result.ErrorMessage}");
                     return false;
                 }
             }
@@ -216,7 +233,10 @@ namespace Apps2Samsung.Helpers.Core
             {
                 progress?.Invoke("InstallationFailed".Localized());
                 await NoteInstallFailureAsync(selectedDevice, ex.Message);
-                await _dialogService.ShowErrorAsync($"{"InstallationFailed".Localized()}: {ex}");
+                if (reportFailure is not null)
+                    reportFailure(ex.Message);
+                else
+                    await _dialogService.ShowErrorAsync($"{"InstallationFailed".Localized()}: {ex}");
                 return false;
             }
         }
@@ -334,7 +354,9 @@ namespace Apps2Samsung.Helpers.Core
                     break;
                 }
 
-                var success = await InstallPackageAsync(filePath, device, cancellationToken, installProgress: installProgress);
+                // The status line and the Samsung sign-in hint go along (#1100): without them the last text
+                // on screen stayed the percentage, "Installing package on device... 100%", after the TV was done.
+                var success = await InstallPackageAsync(filePath, device, cancellationToken, message => onProgress(message), onSamsungLoginStarted, installProgress: installProgress);
                 if (!success)
                 {
                     allSuccessful = false;

@@ -8,7 +8,10 @@ namespace Apps2Samsung.Catalog
     /// <summary>How the catalog's copy of an installed app compares to the one on the TV.</summary>
     public enum CatalogVersionState
     {
-        /// <summary>The catalog carries no version for this file (a bundle built before versions were recorded).</summary>
+        /// <summary>
+        /// The catalog carries no version for this file (a bundle built before versions were recorded),
+        /// or the version on the TV is not known (<see cref="CatalogMatch.InstalledVersionUnknown"/>).
+        /// </summary>
         Unknown,
         /// <summary>Same version on the TV and in the catalog, or the TV is ahead of the catalog.</summary>
         UpToDate,
@@ -21,10 +24,17 @@ namespace Apps2Samsung.Catalog
     /// <summary>An installed app's entry in the catalog: the listed app, the exact file, and how their versions compare.</summary>
     /// <param name="VariantRemembered">The file is the variant this TV got last time (#975,
     /// <see cref="Apps2Samsung.Packaging.InstalledVariantStore"/>), not the app's default or a guess.</param>
-    public sealed record CatalogMatch(GitHubRelease Release, Asset Asset, CatalogVersionState State, bool VariantRemembered = false)
+    /// <param name="InstalledVersion">The version on the TV when it is not the one the TV reports: a
+    /// Jellyfin build's jellyfin-web version, as this head wrote it down at install (#1113).</param>
+    /// <param name="InstalledVersionUnknown">The catalog has such a version for the file but nothing
+    /// says which one the TV got (installed by another device, or before it was recorded): the state
+    /// is <see cref="CatalogVersionState.Unknown"/> and one more install settles it.</param>
+    public sealed record CatalogMatch(GitHubRelease Release, Asset Asset, CatalogVersionState State, bool VariantRemembered = false,
+        string? InstalledVersion = null, bool InstalledVersionUnknown = false)
     {
         public bool HasUpdate => State is CatalogVersionState.UpdateAvailable or CatalogVersionState.Different;
-        public string? CatalogVersion => Asset.PackageVersion;
+        /// <summary>The version the comparison is with: a Jellyfin build's jellyfin-web version, else the manifest's.</summary>
+        public string? CatalogVersion => string.IsNullOrWhiteSpace(Asset.WebVersion) ? Asset.PackageVersion : Asset.WebVersion;
     }
 
     /// <summary>
@@ -52,6 +62,26 @@ namespace Apps2Samsung.Catalog
         /// <param name="tvIp">The TV the apps were read from, the store's key; <paramref name="tvDuid"/> when known.</param>
         public static CatalogMatch? Find(InstalledApp app, IEnumerable<GitHubRelease> catalog, string? packageIdRenamesJson = null,
             string? installedVariantsJson = null, string? tvIp = null, string? tvDuid = null)
+        {
+            var match = FindByManifest(app, catalog, packageIdRenamesJson, installedVariantsJson, tvIp, tvDuid);
+            if (match is null || string.IsNullOrWhiteSpace(match.Asset.WebVersion))
+                return match;
+
+            // A Jellyfin build (#1113): the TV reports 0.1.0 whatever jellyfin-web is inside, so the
+            // manifest comparison above always reads "same version". The web version decides, and
+            // only this head's own record of the install says which one the TV has. Without it (or
+            // with the record pointing at a file the catalog no longer lists) nothing is claimed.
+            var catalogId = Apps2Samsung.Packaging.PackageIdRenameStore.OriginalAppIdOf(packageIdRenamesJson, app.TizenId) ?? app.TizenId;
+            var installed = match.VariantRemembered
+                ? Apps2Samsung.Packaging.InstalledVariantStore.Find(installedVariantsJson, tvIp, catalogId, tvDuid)?.WebVersion
+                : null;
+            return string.IsNullOrWhiteSpace(installed)
+                ? match with { State = CatalogVersionState.Unknown, InstalledVersionUnknown = true }
+                : match with { State = Compare(installed, match.Asset.WebVersion), InstalledVersion = installed };
+        }
+
+        private static CatalogMatch? FindByManifest(InstalledApp app, IEnumerable<GitHubRelease> catalog, string? packageIdRenamesJson,
+            string? installedVariantsJson, string? tvIp, string? tvDuid)
         {
             if (app is null || string.IsNullOrWhiteSpace(app.TizenId))
                 return null;

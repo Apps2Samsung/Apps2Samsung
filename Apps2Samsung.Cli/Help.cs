@@ -11,10 +11,14 @@ public static class Help
           menu [--tv <ip>]             the menu: every step is one of the commands below, shown before it runs
           scan [--virtual]             find Samsung TVs on this network and whether each can be installed to
           tv <ip>                      check one TV: Developer Mode, debug port, Tizen version, DUID
+          tv save <file> --tv <ip>     write down the TV's catalog apps, to install them again after a reset
+          tv restore <file> --tv <ip>  install the apps of a saved file that the TV does not have, one by one
           catalog [words...]           list installable apps; words narrow the list by name or description
           installed --tv <ip>          apps on the TV, with the catalog version next to the installed one
                                        (an app with several files is compared with the one this TV got)
           install <app|file> --tv <ip>  install a catalog app by name, or a local .wgt/.tpk file
+          update --all --tv <ip>       install every newer version the catalog has for apps on the TV, one by one;
+                                       `update <app>... --tv <ip>` updates only the named apps
           sign <file> -o <out> --tv <ip>  sign a local .wgt/.tpk for a TV without installing it
           uninstall <appId> --tv <ip>  remove an app; the app id as `installed` prints it
           launch <appId> --tv <ip>
@@ -27,6 +31,8 @@ public static class Help
           leftovers --tv <ip>          the packages left in the TV's install staging folder; --clear deletes
                                        them, --delete <file> one file (the toolbox's Install leftovers)
           logs [show]                  where the session logs are; `logs show` prints the newest, for a bug report
+          self-update                  replace this CLI with the newest release; --check only says whether
+                                       there is one, --channel stable|beta picks which releases count
           sources [add|remove ...]     your own sources: a GitHub repository, a release, a .wgt/.tpk link or a
                                        .json feed, listed by `catalog` next to the community apps
 
@@ -70,6 +76,10 @@ public static class Help
         usage: apps2samsung-cli install <app|file> --tv <ip> [options]
 
           <app>                 a catalog name as `catalog` prints it (case does not matter; a unique part of it works)
+          <link>                an install link from a website or a README (issue #1066):
+                                apps2samsung://install?app=<name>[&file=<file>] or the same on
+                                https://apps2samsung.com/install; app is the exact catalog name, or a
+                                package id or app id from the catalog; the rest of the options still apply
           <file>                a local .wgt or .tpk instead of a catalog app
           --file <name>         which file or variant of the app, when it has several (default: the app's default file)
           --version <tag>       which release, for an app with a version history (implies --all-versions)
@@ -152,11 +162,50 @@ public static class Help
         The input file is never changed.
         """;
 
+    private const string Update = """
+        usage: apps2samsung-cli update --all --tv <ip> [install options] [--json]
+               apps2samsung-cli update <app>... --tv <ip> [install options] [--json]
+
+        Installs the catalog's newer version of apps on the TV, one after the other, each exactly as
+        `install <app> --file <the file this TV got> --from <its source>` would: the same certificate
+        logic, the same variant, the same source. --all takes every app whose catalog version is higher
+        than the TV's (the "update-available" rows of `installed`); an app whose versions differ but
+        cannot be ordered ("different") is only updated when named. A package that asks for values
+        gets the ones given with --set, else the ones the desktop app saved. A failure does not stop
+        the run; the summary at the end says what was updated and what failed. Install options such
+        as --yes, --partner, --tizen-cert, --allow-remove, --allow-root and --local-ip apply to every app.
+        With --json: one document with each app's result and its install answer.
+        """;
+
+    private const string Tv = """
+        usage: apps2samsung-cli tv <ip>
+               apps2samsung-cli tv save <file> --tv <ip> [--with-settings] [--yes] [--json]
+               apps2samsung-cli tv restore <file> --tv <ip> [app...] [install options] [--json]
+
+        tv <ip> checks one TV: Developer Mode, debug port, Tizen version, DUID.
+
+        tv save writes a TV profile: the apps on the TV that are in the catalog or one of your
+        sources, each with its variant and the source it came from. Apps that are not (preinstalled,
+        from Samsung's store, installed from a file) and apps the catalog removed are left out and
+        counted. The values typed for packages that ask for some (a server address, an API key) are
+        only written with --with-settings; keep such a file private. --yes writes over an existing file.
+
+        tv restore installs the profile's apps on a TV, after a factory reset, a Smart Hub reset or
+        on a new set. Each app is installed exactly as `install <app> --file <its variant> --from
+        <its source>` would, in the catalog's current version. An app the TV has already is skipped;
+        one the catalog no longer has, or whose source is not added on this machine, is reported.
+        A package that asks for values gets them from --set, then from the profile, then from what
+        the desktop app saved; without them it is reported with the install line to run. Names
+        after the file restore only those apps. A failure does not stop the run. Install options
+        such as --yes, --partner, --tizen-cert, --allow-root and --local-ip apply to every app.
+        """;
+
     private const string Cert = """
         usage: apps2samsung-cli cert [--tv <ip>] [--partner] [--prepare] [--duids <DUID,...>] [--force-login] [--json]
                apps2samsung-cli cert --prepare --tizen-cert [public|partner|platform] [--tizen-chain legacy|new] [--force-login]
                apps2samsung-cli cert --export <file> [--partner]
                apps2samsung-cli cert --import <file> [--tv <ip>] [--yes]
+               apps2samsung-cli cert backups [--json]
 
         Shows the Public and Partner signing certificates on this machine: whether one exists, until
         when it is valid and which TVs (DUIDs) it covers. With --tv, also whether that TV is covered.
@@ -178,6 +227,10 @@ public static class Help
         --import <file> shows what the file holds (level, account, validity, TVs covered; with --tv
         whether that TV is among them) and what it would replace here, then imports it. Replacing a
         certificate already on this machine needs --yes. An expired certificate is refused.
+        Every new, renewed or imported certificate is backed up by itself, into
+        Documents/Apps2Samsung/Certificate backups (the data folder when there is no Documents), the
+        same folder the desktop app uses. cert backups lists which certificates are in a backup and
+        writes one now when a certificate is in none.
         """;
 
     private const string TvStore = """
@@ -256,6 +309,9 @@ public static class Help
                                                       signed with their key (the format is docs/repositories.md
                                                       in tizen-community-packages)
 
+          apps2samsung://source?url=<https link>      a source link from a website (issue #1066): adds the
+                                                      link it carries, with the same checks
+
         Signed repositories: `add` shows the repository's name, domain, maintainer and its key's
         fingerprint and asks whether to trust that key (or takes --fingerprint <key>, that key and no
         other, or --yes). From then on every catalog load checks the repository against that stored
@@ -287,16 +343,36 @@ public static class Help
         In the menu, "Session log" shows the log the menu is writing right now.
         """;
 
+    private const string SelfUpdate = """
+        usage: apps2samsung-cli self-update [--check] [--channel stable|beta] [--json]
+
+        Downloads the newest release of the CLI for this platform and puts it over this copy, in the
+        folder it runs from. The next start runs the new version. Nothing else in that folder is touched.
+
+          self-update                  update when a newer release exists
+          self-update --check          only say whether one exists (JSON: updateAvailable)
+          --channel stable|beta        which releases count, remembered from then on. It is the desktop
+                                       app's "Include beta updates" setting, so the two follow the same.
+
+        Without a choice, a beta build follows the betas and a stable build the stable releases. A beta
+        is built again under the same version; self-update notices that by the build's commit.
+        A copy in a folder this user cannot write to (installed by a package) is left alone.
+        In the menu: "Update Apps2Samsung" in the list of TVs.
+        """;
+
     public static string For(string command) => command switch
     {
         "catalog" or "search" or "apps" => Catalog,
         "sources" or "source" => Sources,
+        "tv" => Tv,
         "install" => Install,
+        "update" or "upgrade" => Update,
         "sign" => Sign,
         "cert" or "certificate" => Cert,
         "tvstore" or "tv-store" => TvStore,
         "leftovers" or "staging" => Leftovers,
         "logs" or "log" => Logs,
+        "self-update" or "selfupdate" => SelfUpdate,
         _ => Usage,
     };
 }

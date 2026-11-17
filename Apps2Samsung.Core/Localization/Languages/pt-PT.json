@@ -37,6 +37,7 @@
   "lblRescan": "Procurar novamente",
   "categoryMedia": "Servidores e leitores multimédia",
   "categoryIptv": "IPTV e TV em direto",
+  "categoryStreaming": "Streaming",
   "categoryGames": "Jogos e emuladores",
   "categoryCasting": "Transmissão e câmaras",
   "categoryTools": "Ferramentas e sistema",
@@ -159,6 +160,8 @@
   "lblOwnPackageIdHint": "Esta aplicação foi instalada com outro ID de pacote numa TV. Instale-a novamente com o seu próprio ID e esqueça o outro. A TV mostra-a então como um novo bloco; remova a cópia antiga manualmente.",
   "statusPackageIdRenamed": "ID de pacote {0} → {1} nesta TV (memorizado para atualizações).",
   "statusPackageIdForgotten": "ID de pacote {0} novamente nesta TV; a mudança para {1} foi esquecida.",
+  "confirmReplaceOtherTitle": "Já instalado {0}",
+  "btnReplace": "Substituir",
   "confirmRemoveTitle": "Substituir {0}?",
   "confirmRemove": "A sua TV recusa atualizar {0} no local: a cópia instalada foi assinada com um certificado diferente, ou o seu ID de pacote entra em conflito com esta versão. O Apps2Samsung pode remover a cópia instalada e instalar a nova, mas a remoção apaga as definições, a sessão iniciada e os dados locais da aplicação na TV.",
   "keyRemoveAndInstall": "Remover e instalar",
@@ -490,6 +493,7 @@
   "lblTvStoreCheckAgain": "Verificar novamente",
   "lblTvStoreChecking": "A verificar a TV...",
   "lblTvStoreCertificate": "Certificado",
+  "tvStoreCheckDevModeOff": "O modo de desenvolvimento está desativado na TV. A TV-Store instala através da ligação em modo desenvolvimento da TV, pf ativar (Apps, depois em 1 3 4 4 5 no controle remoto).",
   "lblToolboxTvStoreNotInstalled": "O TV-Store não está instalado nesta TV. Instale-o primeiro a partir do catálogo.",
   "lblToolboxTvStoreOutdated": "Está instalado um TV-Store antigo nesta TV. Atualize-o primeiro a partir do catálogo.",
   "lblToolboxTvStoreShowInCatalog": "Mostrar o TV-Store no catálogo",
@@ -915,7 +919,6 @@
   "devGuideStatusRestart": "O Modo de Desenvolvedor está ativado. A TV precisa de ser reiniciada antes de aceitar instalações.",
   "devGuideStatusReady": "A TV aceita instalações deste dispositivo.",
   "devGuideStepOpenApps": "Abra as Aplicações na TV",
-  "devGuideStepOpenAppsHint": "Botão Home e depois Aplicações.",
   "devGuideStepTypeCode": "Escreva 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Com as teclas numéricas, ou o teclado numérico no ecrã num comando que não as tenha.",
   "devGuideStepSwitchOn": "Ative o Modo de Desenvolvedor",
@@ -1009,5 +1012,9 @@
   "lblUserSourceCategory": "Categoria",
   "tvCardActionCheckAgain": "Verificar novamente",
   "infoPortOpen": "Abrir",
-  "lblRemovedOn": "em {0}"
+  "lblRemovedOn": "em {0}",
+  "lblLinkClose": "Fechar",
+  "lblRestoreStateInstalling": "Instalação",
+  "lblRestoreChipSettings": "Confirgurações",
+  "lblSavedTvShare": "Partilhar"
 }

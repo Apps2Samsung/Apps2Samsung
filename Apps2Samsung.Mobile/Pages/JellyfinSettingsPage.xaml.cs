@@ -91,7 +91,7 @@ public partial class JellyfinSettingsPage : ContentPage
 			var api = new JellyfinApiClient(http);
 			var info = await api.GetPublicSystemInfoAsync(url);
 			if (info is not null && !string.IsNullOrEmpty(info.Id))
-				ShowTest(string.IsNullOrEmpty(info.ServerName) ? "✓ Reachable." : $"✓ Reachable — {info.ServerName}.", isError: false);
+				ShowTest(string.IsNullOrEmpty(info.ServerName) ? "✓ Reachable." : $"✓ Reachable: {info.ServerName}.", isError: false);
 			else
 				ShowTest("Couldn't reach a Jellyfin server at that address.", isError: true);
 		}

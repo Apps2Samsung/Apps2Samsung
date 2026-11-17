@@ -43,6 +43,23 @@ namespace Apps2Samsung.Packaging
         /// </summary>
         [JsonPropertyName("source")]
         public string? Source { get; set; }
+        /// <summary>
+        /// The file's jellyfin-web version as the catalog gave it at install time (#1113,
+        /// <see cref="Models.Asset.WebVersion"/>). The TV reports 0.1.0 for every Jellyfin build, so
+        /// this is the only reading of what is on it. Null for other apps, and on a record written
+        /// before the catalog carried it: the installed version then reads as not known.
+        /// </summary>
+        [JsonPropertyName("webVersion")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? WebVersion { get; set; }
+        /// <summary>
+        /// The desktop app put its Jellyfin settings into the package (server, sign-in, plugins,
+        /// custom CSS). The CLI shares this store but has none of those, so it leaves such an app to
+        /// the desktop app instead of replacing it with the plain package.
+        /// </summary>
+        [JsonPropertyName("configured")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool Configured { get; set; }
     }
 
     /// <summary>

@@ -263,6 +263,15 @@ namespace Apps2Samsung.Models
         [JsonPropertyName("icon_digest")]
         public string? IconDigest { get; set; }
 
+        /// <summary>
+        /// The jellyfin-web version a Jellyfin build was made from (#1113), read out of the package by
+        /// the snapshot tool (<c>JellyfinWebVersion</c>). Every Jellyfin build declares 0.1.0 as its
+        /// <see cref="PackageVersion"/>, so this is the version an installed Jellyfin is compared on,
+        /// against what the head wrote down when it installed the file. Null for every other app.
+        /// </summary>
+        [JsonPropertyName("web_version")]
+        public string? WebVersion { get; set; }
+
         /// <summary>"Tizen 6.0+" for the version picker, empty when the catalog does not say.</summary>
         [JsonIgnore]
         public string RequiredVersionText => string.IsNullOrWhiteSpace(RequiredVersion) ? string.Empty : $"Tizen {RequiredVersion}+";

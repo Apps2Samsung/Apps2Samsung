@@ -915,7 +915,6 @@
   "devGuideStatusRestart": "Tryb deweloperski jest włączony. Telewizor wymaga ponownego uruchomienia, zanim zacznie przyjmować instalacje.",
   "devGuideStatusReady": "Telewizor przyjmuje instalacje z tego urządzenia.",
   "devGuideStepOpenApps": "Otwórz Aplikacje w telewizorze",
-  "devGuideStepOpenAppsHint": "Przycisk Home, potem Aplikacje.",
   "devGuideStepTypeCode": "Wpisz 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Klawiszami numerycznymi lub ekranową klawiaturą numeryczną na pilocie bez nich.",
   "devGuideStepSwitchOn": "Włącz tryb deweloperski",
@@ -1008,5 +1007,9 @@
   "lblUserSourceCategory": "Kategoria",
   "tvCardActionCheckAgain": "Sprawdź ponownie",
   "infoPortOpen": "Otwórz",
-  "lblRemovedOn": "na {0}"
+  "lblRemovedOn": "na {0}",
+  "lblLinkClose": "Zamknij",
+  "lblRestoreStateInstalling": "Instalowanie",
+  "lblRestoreChipSettings": "Ustawienia",
+  "lblSavedTvShare": "Udostępnij"
 }

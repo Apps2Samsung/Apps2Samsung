@@ -9,7 +9,7 @@
     <key>CFBundleIdentifier</key>
     <string>com.madebypatrick.apps2samsung</string>
     <key>CFBundleVersion</key>
-    <string>3.3.0</string>
+    <string>3.3.1</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleSignature</key>
@@ -20,6 +20,18 @@
     <string>jelly2sams.icns</string>
     <key>LSMinimumSystemVersion</key>
     <string>10.15</string>
+    <!-- apps2samsung:// install links (#1066): macOS hands them to the running app (App.axaml.cs). -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.madebypatrick.apps2samsung.link</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>apps2samsung</string>
+            </array>
+        </dict>
+    </array>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSSupportsAutomaticGraphicsSwitching</key>

@@ -50,13 +50,13 @@
                         </Viewbox>
                     </Border>
                     <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding Headline}" FontSize="23" FontWeight="Bold" Foreground="{DynamicResource GlassInkBrush}"/>
+                        <TextBlock Text="{Binding Headline}" FontSize="23" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource GlassInkBrush}"/>
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="7">
                             <Ellipse Width="8" Height="8" Fill="{Binding LedBrush}" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="1" Text="{Binding Subline}" FontSize="13" TextWrapping="Wrap"
                                        Foreground="{DynamicResource GlassMutedBrush}"/>
                         </Grid>
-                        <TextBlock Text="{Binding TvLabel}" FontSize="12" Foreground="{DynamicResource GlassMutedBrush}"/>
+                        <TextBlock Text="{Binding TvLabel}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource GlassMutedBrush}"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2" Spacing="8" VerticalAlignment="Center">
                         <Button Classes="chip solid" Content="{l:Localize lblToolboxTvStoreShowInCatalog}"
@@ -69,7 +69,8 @@
 
             <TextBlock Classes="hint" Text="{l:Localize lblTvStoreIntro}"/>
 
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
+            <!-- Side by side on a wide window, one under the other on a narrow one (the code-behind switches). -->
+            <Grid x:Name="Columns" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="20" RowSpacing="18">
 
                 <!-- ============ Setup check ============ -->
                 <StackPanel Grid.Column="0" Spacing="6">
@@ -102,7 +103,7 @@
                 </StackPanel>
 
                 <!-- ============ Certificate (Arm, #844) ============ -->
-                <StackPanel Grid.Column="1" Spacing="6">
+                <StackPanel x:Name="CertificateColumn" Grid.Column="1" Spacing="6">
                     <TextBlock Classes="grouptitle" Text="{l:Localize lblTvStoreCertificate}"/>
                     <Border Classes="group">
                         <StackPanel Classes="groupbody">
@@ -140,8 +141,9 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <Button Classes="soft" HorizontalAlignment="Left" IsVisible="{Binding HasTvSources}" IsEnabled="{Binding HasSdb}"
-                                    Content="{l:Localize lblToolboxSendSources}"
+                            <!-- Always there, like Send a package's button; greyed out until there is a signed repository to send. -->
+                            <Button Classes="soft" HorizontalAlignment="Left" IsEnabled="{Binding CanSendSources}"
+                                    Content="{l:Localize lblTvStoreSendSourcesButton}"
                                     Command="{Binding SendSourcesToTvCommand}"/>
                             <TextBlock Classes="report" Text="{Binding SourcesStatus}"/>
                         </StackPanel>

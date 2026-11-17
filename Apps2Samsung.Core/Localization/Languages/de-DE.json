@@ -907,7 +907,6 @@
   "devGuideStatusRestart": "Der Entwicklermodus ist an. Der TV braucht einen Neustart, bevor er Installationen annimmt.",
   "devGuideStatusReady": "Der TV nimmt Installationen von diesem Gerät an.",
   "devGuideStepOpenApps": "Apps am TV öffnen",
-  "devGuideStepOpenAppsHint": "Home-Taste, dann Apps.",
   "devGuideStepTypeCode": "1 2 3 4 5 eingeben",
   "devGuideStepTypeCodeHint": "Mit den Zifferntasten oder dem Bildschirm-Zahlenblock bei einer Fernbedienung ohne diese.",
   "devGuideStepSwitchOn": "Entwicklermodus einschalten",
@@ -998,5 +997,9 @@
   "lblUserSourceCategory": "Kategorie",
   "tvCardActionCheckAgain": "Erneut prüfen",
   "infoPortOpen": "Öffnen",
-  "lblRemovedOn": "auf {0}"
+  "lblRemovedOn": "auf {0}",
+  "lblLinkClose": "Schließen",
+  "lblRestoreStateInstalling": "Installation",
+  "lblRestoreChipSettings": "Einstellungen",
+  "lblSavedTvShare": "Teilen"
 }

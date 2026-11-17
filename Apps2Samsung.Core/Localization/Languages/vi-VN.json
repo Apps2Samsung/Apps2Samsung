@@ -912,7 +912,6 @@
   "devGuideStatusRestart": "Chế độ nhà phát triển đang bật. TV cần khởi động lại trước khi nhận cài đặt.",
   "devGuideStatusReady": "TV chấp nhận cài đặt từ thiết bị này.",
   "devGuideStepOpenApps": "Mở Ứng dụng trên TV",
-  "devGuideStepOpenAppsHint": "Nút Home, rồi Ứng dụng.",
   "devGuideStepTypeCode": "Nhập 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Bằng phím số, hoặc bàn phím số trên màn hình với điều khiển không có phím số.",
   "devGuideStepSwitchOn": "Bật Developer Mode",
@@ -1006,5 +1005,9 @@
   "lblUserSourceCategory": "Danh mục",
   "tvCardActionCheckAgain": "Kiểm tra lại",
   "infoPortOpen": "Mở",
-  "lblRemovedOn": "trên {0}"
+  "lblRemovedOn": "trên {0}",
+  "lblLinkClose": "Đóng",
+  "lblRestoreStateInstalling": "Việc cài đặt",
+  "lblRestoreChipSettings": "Cài đặt",
+  "lblSavedTvShare": "Chia sẻ"
 }

@@ -22,12 +22,12 @@
       "screenshots": [],
       "versions": [
         {
-          "version": "3.2.1",
-          "buildVersion": "11571",
-          "date": "2026-11-10T10:37:52Z",
-          "localizedDescription": "# Apps2Samsung 3.2.1\n\nA small follow-up to 3.2.\n\n## ✨ Highlights\n\n### 🔔 Beta users hear about the stable release\nWith beta updates on, a beta like 3.2.0-beta was never told about 3.2.0 stable, because the update check treated the two as the same version. A beta now sees the stable release of its own number as an update. (#1055)\n\n### 🏷️ Categories come from the community catalog\nThe categories in the catalog, their order, names and tile colours now come from the community catalog itself, so a new category shows up without waiting for an Apps2Samsung release. Apps without a category of their own stay under **Other**. (#1054, #1056)\n\n## What changed\n\n### 🚀 New features\n- feat(catalog): categories, order, names and tile colours from the community catalog (#1054) (#1056)\n### 🐛 Bug fixes\n- fix(update): offer the stable release to a beta of the same version (#1055)\n### 🧰 Maintenance & CI\n- chore: version 3.2.1 (#1057)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.2.0...v3.2.1\n\n---\n\n### 🛡️ Security Notice\nAntivirus warnings may occur and are likely **false positives**.",
-          "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.2.1/Apps2Samsung-v3.2.1-ios-unsigned.ipa",
-          "size": 43891553,
+          "version": "3.3.0",
+          "buildVersion": "11575",
+          "date": "2026-11-11T10:03:56Z",
+          "localizedDescription": "## 📦 v3.3.0 - 2026-11-11\n\n\n### 🐛 Bug fixes\n- fix(update): download the app's archive, not the CLI's (#1063)\n### 🌍 Translations\n- i18n: new translations from Crowdin (#1062)\n### 🔀 Other changes\n- chore: relicense to GPL-3.0-only + .mailmap (#1060)\n- Catalog: a community package's preview_image comes from catalog.json (#1061)\n- Release v3.3.0 (beta → master) (#1064)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.2.1...v3.3.0",
+          "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.3.0/Apps2Samsung-v3.3.0-ios-unsigned.ipa",
+          "size": 43895685,
           "minOSVersion": "15.0"
         }
       ],
@@ -37,11 +37,11 @@
           "NSLocalNetworkUsageDescription": "Apps2Samsung looks for Samsung TVs on your Wi-Fi network and talks to the TV you pick to install apps on it."
         }
       },
-      "version": "3.2.1",
-      "versionDate": "2026-11-10T10:37:52Z",
-      "versionDescription": "# Apps2Samsung 3.2.1\n\nA small follow-up to 3.2.\n\n## ✨ Highlights\n\n### 🔔 Beta users hear about the stable release\nWith beta updates on, a beta like 3.2.0-beta was never told about 3.2.0 stable, because the update check treated the two as the same version. A beta now sees the stable release of its own number as an update. (#1055)\n\n### 🏷️ Categories come from the community catalog\nThe categories in the catalog, their order, names and tile colours now come from the community catalog itself, so a new category shows up without waiting for an Apps2Samsung release. Apps without a category of their own stay under **Other**. (#1054, #1056)\n\n## What changed\n\n### 🚀 New features\n- feat(catalog): categories, order, names and tile colours from the community catalog (#1054) (#1056)\n### 🐛 Bug fixes\n- fix(update): offer the stable release to a beta of the same version (#1055)\n### 🧰 Maintenance & CI\n- chore: version 3.2.1 (#1057)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.2.0...v3.2.1\n\n---\n\n### 🛡️ Security Notice\nAntivirus warnings may occur and are likely **false positives**.",
-      "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.2.1/Apps2Samsung-v3.2.1-ios-unsigned.ipa",
-      "size": 43891553
+      "version": "3.3.0",
+      "versionDate": "2026-11-11T10:03:56Z",
+      "versionDescription": "## 📦 v3.3.0 - 2026-11-11\n\n\n### 🐛 Bug fixes\n- fix(update): download the app's archive, not the CLI's (#1063)\n### 🌍 Translations\n- i18n: new translations from Crowdin (#1062)\n### 🔀 Other changes\n- chore: relicense to GPL-3.0-only + .mailmap (#1060)\n- Catalog: a community package's preview_image comes from catalog.json (#1061)\n- Release v3.3.0 (beta → master) (#1064)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.2.1...v3.3.0",
+      "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.3.0/Apps2Samsung-v3.3.0-ios-unsigned.ipa",
+      "size": 43895685
     }
   ],
   "news": []

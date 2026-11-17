@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
@@ -42,18 +41,18 @@ namespace Apps2Samsung.Sdb
 
                 if (result is not null)
                 {
-                    var duid = (result.Output ?? string.Empty)
-                        .Split('\n', StringSplitOptions.RemoveEmptyEntries)
-                        .FirstOrDefault()?.Trim() ?? string.Empty;
+                    // The DUID is not always the first line: some firmware prints a warning ahead of it.
+                    var duid = TizenDuid.FromSdbOutput(result.Output);
 
-                    if (result.ExitCode == 0 && TizenDuid.IsValid(duid))
+                    if (result.ExitCode == 0 && duid.Length > 0)
                         return duid;
 
-                    // ExitCode 0 with a bad DUID = an empty/truncated reply from a slow TV; a non-zero
+                    // ExitCode 0 without a DUID = an empty/truncated reply from a slow TV; a non-zero
                     // exit carries the transport error. Both are retryable, so drop and try again.
+                    var got = TizenDuid.FirstLine(result.Output);
                     lastReason = !string.IsNullOrWhiteSpace(result.Error) ? result.Error
-                        : string.IsNullOrEmpty(duid) ? "empty response"
-                        : $"unexpected response '{duid}'";
+                        : got.Length == 0 ? "empty response"
+                        : $"unexpected response '{got}'";
                     await SafeDisconnectAsync(sdb, tvIp).ConfigureAwait(false);
                 }
 

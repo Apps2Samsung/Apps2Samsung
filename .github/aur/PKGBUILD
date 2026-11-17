@@ -70,10 +70,11 @@ package() {
 	Type=Application
 	Name=Apps2Samsung
 	Comment=Install apps on Samsung Tizen TVs
-	Exec=/opt/$pkgname/Apps2Samsung
+	Exec=/opt/$pkgname/Apps2Samsung %u
 	Icon=$pkgname
 	Terminal=false
 	Categories=Utility;
+	MimeType=x-scheme-handler/apps2samsung;
 	StartupWMClass=Apps2Samsung
 	DESKTOP
 }

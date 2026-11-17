@@ -962,7 +962,6 @@
   "devGuideRelayStepToggle": "Zapnout \"Připojit z Apps2Samsung\"",
   "devGuideRelayStepToggleHint": "Pokud je již zapnuto, vypni a poté opět zapni.",
   "devGuideStepOpenApps": "Otevřít Aplikace na televizoru",
-  "devGuideStepOpenAppsHint": "Tlačítko Domů, poté Aplikace.",
   "devGuideStepTypeCode": "Zadejte 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Pomocí číselných tlačítek, nebo pomocí číselníku na obrazovce u ovladače, který tato tlačítka nemá.",
   "devGuideStepSwitchOn": "Zapněte Režim pro vývojáře",
@@ -1128,5 +1127,9 @@
   "lblToolboxPackageSigned": "Podepsáno {0} pro {1}: {2}",
   "lblToolboxPackageSignFailed": "Podepisování se nezdařilo: {0}",
   "lblSignedPackage": "Podepsaný balíček",
-  "lblRemovedOn": "na {0}"
+  "lblRemovedOn": "na {0}",
+  "lblLinkClose": "Zavřít",
+  "lblRestoreStateInstalling": "Instalace",
+  "lblRestoreChipSettings": "Nastavení",
+  "lblSavedTvShare": "Sdílet"
 }

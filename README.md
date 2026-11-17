@@ -10,7 +10,9 @@ Install any app on your Samsung TV.
   <img src="https://img.shields.io/github/v/release/Apps2Samsung/Apps2Samsung?include_prereleases&label=beta&style=for-the-badge" />
   <img src="https://img.shields.io/badge/Tizen-TVs%20%7C%20projectors%20%7C%20monitors-blue?style=for-the-badge" />
   <img src="https://img.shields.io/badge/OS-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android%20%7C%20iOS-brightgreen?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/since-May%202025-lightgrey?style=for-the-badge" alt="Since May 2025" />
   <a href="https://discord.gg/7mga3zh8Cv"><img src="https://img.shields.io/badge/Discord-Community-7289DA?style=for-the-badge&logo=discord&logoColor=white" /></a>
+  <a href="https://www.reddit.com/r/Apps2Samsung/"><img src="https://img.shields.io/badge/Reddit-r%2FApps2Samsung-FF4500?style=for-the-badge&logo=reddit&logoColor=white" /></a>
   <a href="https://score.getplumber.io/github.com/Apps2Samsung/Apps2Samsung"><img src="https://score.getplumber.io/github.com/Apps2Samsung/Apps2Samsung.svg?style=for-the-badge" alt="Plumber Score" /></a>
 </p>
 
@@ -18,7 +20,7 @@ Apps2Samsung side-loads apps onto Samsung devices that run Tizen OS: Smart TVs, 
 smart monitors. [Jellyfin](https://jellyfin.org), Moonfin, Litefin, TizenTube, the
 [community catalog](https://github.com/Apps2Samsung/tizen-community-packages) of 130+ apps, or your
 own `.wgt` or `.tpk`. It finds the TV, makes the signing certificate and installs, so you never open
-Tizen Studio. It runs on Windows, Linux, macOS, Android and iPhone, in 30 languages, and starts in
+Tizen Studio. It runs on Windows, Linux, macOS, Android and iPhone, in 31 languages, and starts in
 yours. Missing a word, or your language? [Help translate on Crowdin](https://crowdin.com/project/jellyfin2samsung).
 
 ## Versions
@@ -27,8 +29,8 @@ yours. Missing a word, or your language? [Help translate on Crowdin](https://cro
 
 | Channel    | Version                                                             | Notes                        |
 |------------|---------------------------------------------------------------------|------------------------------|
-| **Stable** | [v3.2.1](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v3.2.1)                                        | Recommended for most users   |
-| **Beta**   | [v3.3.0-beta](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v3.3.0-beta)                                            | Includes new features        |
+| **Stable** | [v3.3.0](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v3.3.0)                                        | Recommended for most users   |
+| **Beta**   | [v3.3.1-beta](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v3.3.1-beta)                                            | Includes new features        |
 
 <!-- versions:end -->
 
@@ -115,6 +117,7 @@ apps2samsung-cli installed --tv 192.168.1.50            # what is on the TV, wit
 apps2samsung-cli cert --tv 192.168.1.50                 # which certificate covers this TV
 apps2samsung-cli sign app.wgt -o signed.wgt --tv 192.168.1.50   # sign only, for installing another way
 apps2samsung-cli sources add github.com/owner/repo      # a source of your own, listed by catalog
+apps2samsung-cli self-update                            # replace the CLI with the newest release (--channel beta for betas)
 ```
 
 - `--json` prints one JSON document on stdout, progress stays on stderr. Exit codes: 0 done,
@@ -140,7 +143,8 @@ apps2samsung-cli sources add github.com/owner/repo      # a source of your own, 
 ## Contributing
 
 Bug reports and feature requests go to [Issues](../../issues), ideas and questions to
-[Discussions](../../discussions) or [Discord](https://discord.gg/7mga3zh8Cv). Code is welcome, see
+[Discussions](../../discussions), [Discord](https://discord.gg/7mga3zh8Cv) or
+[Reddit](https://www.reddit.com/r/Apps2Samsung/). Code is welcome, see
 [CONTRIBUTING.md](.github/CONTRIBUTING.md); translations happen on
 [Crowdin](https://crowdin.com/project/jellyfin2samsung) and sync back here by themselves.
 

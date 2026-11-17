@@ -164,6 +164,9 @@ namespace Apps2Samsung.Views
                 WaitPanel.IsVisible = false;
                 Steps[_index[CertificateStage.SignIn]].Detail = null;
             }
+            // The Save step names the automatic backup it went into (#1068).
+            if (stage == CertificateStage.Done && Apps2Samsung.Certificate.CertificateBackups.LatestBackupDisplayPath() is { } backup)
+                Steps[_index[CertificateStage.Save]].Detail = string.Format(_localize("certStageSaveBackedUp"), backup);
             StepList.SetCurrent(Steps, index);
         }
 

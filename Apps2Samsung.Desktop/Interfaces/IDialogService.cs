@@ -54,7 +54,15 @@ namespace Apps2Samsung.Interfaces
         Task ShowContributeAppAsync();
 
         /// <summary>Add a source of your own (a repository, release or file link); null when cancelled.</summary>
-        Task<Apps2Samsung.Catalog.UserSource?> ShowAddUserSourceAsync(System.Collections.Generic.IReadOnlyList<Apps2Samsung.Catalog.UserSource> existing);
+        /// <param name="fromLink">An install link's source (#1066): the form opens filled in, a signed repository straight on its key.</param>
+        Task<Apps2Samsung.Catalog.UserSource?> ShowAddUserSourceAsync(System.Collections.Generic.IReadOnlyList<Apps2Samsung.Catalog.UserSource> existing, string? fromLink = null);
+
+        /// <summary>An install link names an app several sources offer (#1066): which one; null when cancelled.</summary>
+        Task<Apps2Samsung.Models.GitHubRelease?> ShowLinkSourcePickerAsync(string title, string message,
+            System.Collections.Generic.IReadOnlyList<(Apps2Samsung.Models.GitHubRelease Release, string Label, string Detail)> choices, string cancelText);
+
+        /// <summary>An install link that names nothing to open (#1066): the message, and true when the user takes the action.</summary>
+        Task<bool> ShowLinkProblemAsync(string title, string message, string actionText, string closeText);
         /// <summary>A signed repository whose key changed (#1018): its new key, to trust or not; the source to store instead, or null.</summary>
         Task<Apps2Samsung.Catalog.UserSource?> ShowReviewRepositoryKeyAsync(Apps2Samsung.Catalog.UserSource source);
 

@@ -914,7 +914,6 @@
   "devGuideStatusRestart": "Developer Mode פעיל. הטלוויזיה צריכה הפעלה מחדש לפני שהיא מקבלת התקנות.",
   "devGuideStatusReady": "הטלוויזיה מקבלת התקנות מההתקן הזה.",
   "devGuideStepOpenApps": "פתחו את Apps בטלוויזיה",
-  "devGuideStepOpenAppsHint": "לחצן Home, ואז Apps.",
   "devGuideStepTypeCode": "הקלידו 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "במקשי המספרים, או בלוח המספרים שעל המסך בשלט שאין בו מקשים כאלה.",
   "devGuideStepSwitchOn": "הפעילו את Developer Mode",
@@ -1008,5 +1007,9 @@
   "lblUserSourceCategory": "קטגוריה",
   "tvCardActionCheckAgain": "בדוק שוב",
   "infoPortOpen": "פתח",
-  "lblRemovedOn": "ב-{0}"
+  "lblRemovedOn": "ב-{0}",
+  "lblLinkClose": "סגירה",
+  "lblRestoreStateInstalling": "התקנה",
+  "lblRestoreChipSettings": "הגדרות",
+  "lblSavedTvShare": "שתף"
 }

@@ -910,7 +910,6 @@
   "devGuideStatusRestart": "Utviklermodus er på. TV-en må startes på nytt før den godtar installasjoner.",
   "devGuideStatusReady": "TV-en godtar installasjoner fra denne enheten.",
   "devGuideStepOpenApps": "Åpne Apper på TV-en",
-  "devGuideStepOpenAppsHint": "Hjem-knappen, deretter Apper.",
   "devGuideStepTypeCode": "Skriv 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Med talltastene, eller talltastaturet på skjermen på en fjernkontroll uten dem.",
   "devGuideStepSwitchOn": "Slå på utviklermodus",
@@ -1003,5 +1002,9 @@
   "lblUserSourceCategory": "Kategori",
   "tvCardActionCheckAgain": "Sjekk igjen",
   "infoPortOpen": "Åpne",
-  "lblRemovedOn": "på {0}"
+  "lblRemovedOn": "på {0}",
+  "lblLinkClose": "Lukk",
+  "lblRestoreStateInstalling": "Installasjon",
+  "lblRestoreChipSettings": "Innstillinger",
+  "lblSavedTvShare": "Del"
 }

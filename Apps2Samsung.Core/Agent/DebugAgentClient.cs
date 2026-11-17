@@ -622,7 +622,7 @@ namespace Apps2Samsung.Agent
 
         private static DebugAgentUnresponsiveException Unresponsive() => new(
             $"The debug agent did not answer within {EvaluateTimeout.TotalSeconds:0} s. " +
-            "If another app has just taken the screen, the platform has suspended the agent — attach again to continue.");
+            "If another app has just taken the screen, the platform has suspended the agent. Attach again to continue.");
 
         // A JSON string literal is a valid JavaScript string literal, escapes and all.
         private static string Js(string value) => JsonSerializer.Serialize(value);

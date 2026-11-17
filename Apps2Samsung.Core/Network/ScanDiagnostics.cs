@@ -30,6 +30,9 @@ namespace Apps2Samsung.Services
             sb.Append(" default-route=").Append(Show(defaultRouteIp));
             sb.Append(" interfaces=[").Append(string.Join(", ", localIps)).Append(']');
 
+            // The verdict is the head's own diagnosis (the TV card's line), not just the debug port: a
+            // TV whose Host PC IP names another machine has the port open and still refuses this one (#1079).
+            var mine = localIps.ToList();
             var any = false;
             foreach (var device in devices)
             {
@@ -38,9 +41,12 @@ namespace Apps2Samsung.Services
                 sb.Append(": developerMode=").Append(Show(device.DeveloperMode));
                 sb.Append(" developerIP=").Append(Show(device.DeveloperIP));
                 sb.Append(" debugPort=").Append(device.DebugPortOpen ? "open" : "closed");
-                sb.Append(" verdict=").Append(device.DebugPortOpen
-                    ? "Ready"
-                    : TizenDeviceReadiness.WhyNotReady(device, configuredLocalIp).ToString());
+                var problem = Apps2Samsung.Design.DevModeGuide.Diagnose(device, mine);
+                sb.Append(" verdict=").Append(!device.DebugPortOpen
+                    ? TizenDeviceReadiness.WhyNotReady(device, configuredLocalIp).ToString()
+                    : problem == Apps2Samsung.Design.DevModeProblem.None
+                        ? "Ready"
+                        : problem.ToString());
             }
 
             if (!any)

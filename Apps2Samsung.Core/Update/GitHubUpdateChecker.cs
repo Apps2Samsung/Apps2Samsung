@@ -96,6 +96,44 @@ namespace Apps2Samsung.Update
             }
         }
 
+        /// <summary>
+        /// Fills in the download for the release in <paramref name="result"/> (its
+        /// <see cref="UpdateCheckResult.LatestVersion"/>), for a caller that decides by itself that
+        /// the release is worth taking: a beta that was rebuilt under the tag it already had.
+        /// </summary>
+        public Task ResolveDownloadAsync(
+            UpdateCheckResult result,
+            Func<string, bool> assetMatcher,
+            Func<string, bool>? assetFallbackMatcher = null,
+            CancellationToken cancellationToken = default) =>
+            EnrichWithDownloadUrlAsync(result, assetMatcher, assetFallbackMatcher, cancellationToken);
+
+        /// <summary>
+        /// The commit a release tag points at, null when GitHub did not say. The beta workflow
+        /// moves the one <c>v&lt;version&gt;-beta</c> tag to every new build, so the version alone cannot
+        /// tell two betas apart; the commit can.
+        /// </summary>
+        public async Task<string?> TagCommitAsync(string tag, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get,
+                    $"https://api.github.com/repos/{_owner}/{_repo}/commits/{Uri.EscapeDataString(tag)}");
+                request.Headers.Accept.ParseAdd("application/vnd.github.sha");
+                request.Headers.UserAgent.ParseAdd("Apps2Samsung");
+                using var response = await _http.SendAsync(request, cancellationToken);
+                if (!response.IsSuccessStatusCode)
+                    return null;
+                var sha = (await response.Content.ReadAsStringAsync(cancellationToken)).Trim();
+                return sha.Length == 40 && sha.All(Uri.IsHexDigit) ? sha : null;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException && !cancellationToken.IsCancellationRequested)
+            {
+                Trace.WriteLine($"Tag commit lookup failed: {ex}");
+                return null;
+            }
+        }
+
         private static GitHubAtomEntry? ParseAtomFeed(string atomXml, bool includePrereleases)
         {
             try

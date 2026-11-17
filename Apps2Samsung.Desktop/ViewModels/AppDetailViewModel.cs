@@ -100,6 +100,28 @@ namespace Apps2Samsung.ViewModels
         /// <summary>Set when the user picked another source: the main window opens its sheet.</summary>
         public GitHubRelease? SwitchTo { get; set; }
 
+        // ---- install links (#1066) ----
+
+        /// <summary>The sheet was opened by an install link: a line at the top says so.</summary>
+        public bool FromLink { get; }
+        public string FromLinkText { get; }
+        /// <summary>"Copy install link": the app by its catalog name, the https form a README can use.</summary>
+        public string InstallLinkUrl => new InstallLink(InstallLinkKind.Install, App: Release.Name).ToWebUrl();
+        /// <summary>The same, pinned to the selected file; offered when the app has more than one.</summary>
+        public string VersionLinkUrl => SelectedAsset is { } a
+            ? new InstallLink(InstallLinkKind.Install, App: Release.Name, File: a.FileName).ToWebUrl()
+            : InstallLinkUrl;
+        public bool HasVersionLink => Assets.Count > 1;
+        public string CopyLinkText { get; }
+        public string CopyVersionLinkText => string.Format(_localize("lblCopyVersionLink"), SelectedAsset?.VariantLabel ?? string.Empty);
+        public string MoreText { get; }
+        /// <summary>"Link copied" and the link, under the title for a few seconds.</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasCopiedLink))]
+        private string copiedLink = string.Empty;
+        public bool HasCopiedLink => CopiedLink.Length > 0;
+        public string LinkCopiedText { get; }
+
         public string PartnerNeededTitle { get; }
         public string PartnerNeededBody { get; }
 
@@ -172,7 +194,8 @@ namespace Apps2Samsung.ViewModels
             string? tvName, bool tvReady, HttpClient http, Func<string, string> localize,
             bool isFavorite = false, Action<string, bool>? setFavorite = null, bool canShowAllVersions = false,
             Version? tvVersion = null, Avalonia.Media.IBrush? tileBrush = null, CatalogIcons? icons = null,
-            System.Collections.Generic.IReadOnlyList<GitHubRelease>? otherSources = null)
+            System.Collections.Generic.IReadOnlyList<GitHubRelease>? otherSources = null,
+            string? linkFile = null, bool fromLink = false)
         {
             Source = Apps2Samsung.Catalog.CatalogSourceLabels.Line(release.Source, localize);
             BlockedText = Apps2Samsung.Catalog.Repositories.SignedRepositories.InstallBlocked(release, localize) ?? string.Empty;
@@ -208,6 +231,14 @@ namespace Apps2Samsung.ViewModels
             Assets = new ObservableCollection<Asset>(release.Assets);
             // Land on a build this TV runs when the default is too new for it (TV-Store#47).
             SelectedAsset = TizenRequirement.FirstFitting(Assets, Assets.FirstOrDefault(a => a.IsDefault) ?? Assets.FirstOrDefault(), tvVersion);
+            // The file an install link names (#1066) is the one selected, even where the TV may be too old for it: the sheet then says so.
+            if (linkFile is not null && Assets.FirstOrDefault(a => string.Equals(a.FileName, linkFile, StringComparison.OrdinalIgnoreCase)) is { } linked)
+                SelectedAsset = linked;
+            FromLink = fromLink;
+            FromLinkText = localize("lblOpenedFromLink");
+            CopyLinkText = localize("lblCopyInstallLink");
+            MoreText = localize("lblMore");
+            LinkCopiedText = localize("lblLinkCopied");
             _tvCanInstall = tvReady && !string.IsNullOrEmpty(tvName);
             InstallText = string.IsNullOrEmpty(tvName) ? localize("lblChooseTvFirst") : string.Format(localize("lblInstallOn"), tvName);
             PartnerNeededTitle = localize("lblPartnerNeededTitle");
@@ -230,6 +261,8 @@ namespace Apps2Samsung.ViewModels
             OnPropertyChanged(nameof(HasTizenBadgeMute));
             OnPropertyChanged(nameof(TizenHint));
             OnPropertyChanged(nameof(HasTizenHint));
+            OnPropertyChanged(nameof(VersionLinkUrl));
+            OnPropertyChanged(nameof(CopyVersionLinkText));
         }
 
         // One or the other: a fresh id and the package's own id exclude each other.

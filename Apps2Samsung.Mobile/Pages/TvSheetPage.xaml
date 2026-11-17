@@ -20,9 +20,19 @@
                         BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnCloseClicked" />
             </Grid>
 
+            <!-- The TVs that take installs. "Found on your network" while every TV is ready, "Ready" once
+                 the group below exists. -->
             <Label x:Name="FoundTitle" Text="{l:Localize lblFoundOnNetwork}" Style="{StaticResource GroupTitle}" />
             <Border x:Name="FoundCard" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}">
                 <VerticalStackLayout x:Name="Rows" />
+            </Border>
+
+            <!-- Needs attention (#1079, mockup B): a TV that refuses this phone says why in a full
+                 sentence, with the way to the fix, instead of a reason cut off at the end of its line. -->
+            <Label x:Name="AttentionTitle" Style="{StaticResource GroupTitle}" IsVisible="False" />
+            <Border x:Name="AttentionCard" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}"
+                    IsVisible="False">
+                <VerticalStackLayout x:Name="AttentionRows" />
             </Border>
 
         </VerticalStackLayout>

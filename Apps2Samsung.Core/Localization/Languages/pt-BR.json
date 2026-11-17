@@ -917,7 +917,6 @@
   "devGuideStatusRestart": "O Modo de Desenvolvedor está ativado. A TV precisa reiniciar antes de aceitar instalações.",
   "devGuideStatusReady": "A TV aceita instalações deste dispositivo.",
   "devGuideStepOpenApps": "Abra Apps na TV",
-  "devGuideStepOpenAppsHint": "Botão Home e depois Apps.",
   "devGuideStepTypeCode": "Digite 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Com as teclas numéricas, ou com o teclado numérico na tela em um controle remoto sem elas.",
   "devGuideStepSwitchOn": "Ative o Modo de Desenvolvedor",
@@ -1009,5 +1008,9 @@
   "lblUserSourceCategory": "Categoria",
   "tvCardActionCheckAgain": "Verificar novamente",
   "infoPortOpen": "Abrir",
-  "lblRemovedOn": "em {0}"
+  "lblRemovedOn": "em {0}",
+  "lblLinkClose": "Fechar",
+  "lblRestoreStateInstalling": "Instalação",
+  "lblRestoreChipSettings": "Configurações",
+  "lblSavedTvShare": "Compartilhar"
 }

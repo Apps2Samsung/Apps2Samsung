@@ -20,6 +20,16 @@ namespace Apps2Samsung.Update
         /// <summary>Any desktop archive, for when none matches the platform (the old fallback, without the CLI).</summary>
         public static bool IsAnyDesktopArchive(string? name) => IsArchive(name) && !IsCli(name!);
 
+        /// <summary>
+        /// True for the CLI's archive for <paramref name="rid"/>, as the release workflows name it
+        /// ("win-x64", "linux-arm64", "linux-bionic-arm64", "osx-arm64"):
+        /// <c>Apps2Samsung.Cli-v&lt;version&gt;-&lt;rid&gt;.zip</c> or <c>.tar.gz</c>. The rid is matched whole,
+        /// so "linux-arm64" never takes the Termux "linux-bionic-arm64" build.
+        /// </summary>
+        public static bool IsCliArchive(string? name, string rid) =>
+            IsArchive(name) && IsCli(name!)
+            && name!.EndsWith("-" + rid + Extension(name), StringComparison.OrdinalIgnoreCase);
+
         /// <summary>A CLI archive, under either naming.</summary>
         public static bool IsCli(string name) =>
             name.StartsWith("Apps2Samsung.Cli-", StringComparison.OrdinalIgnoreCase)

@@ -917,7 +917,6 @@
   "devGuideStatusRestart": "Geliştirici Modu açık. TV, kurulumları kabul etmeden önce yeniden başlatılmalı.",
   "devGuideStatusReady": "TV bu cihazdan kurulumları kabul ediyor.",
   "devGuideStepOpenApps": "TV'de Uygulamalar'ı açın",
-  "devGuideStepOpenAppsHint": "Ana sayfa düğmesi, sonra Uygulamalar.",
   "devGuideStepTypeCode": "1 2 3 4 5 yazın",
   "devGuideStepTypeCodeHint": "Sayı tuşlarıyla veya sayı tuşu olmayan bir kumandada ekrandaki sayı tuş takımıyla.",
   "devGuideStepSwitchOn": "Geliştirici Modu'nu açın",
@@ -1011,5 +1010,9 @@
   "lblUserSourceCategory": "Kategori",
   "tvCardActionCheckAgain": "Yeniden denetle",
   "infoPortOpen": "Aç",
-  "lblRemovedOn": "{0} üzerinde"
+  "lblRemovedOn": "{0} üzerinde",
+  "lblLinkClose": "Kapat",
+  "lblRestoreStateInstalling": "Kurulum",
+  "lblRestoreChipSettings": "Ayarlar",
+  "lblSavedTvShare": "Paylaş"
 }

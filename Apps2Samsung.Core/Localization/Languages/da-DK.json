@@ -897,7 +897,6 @@
   "devGuideStatusRestart": "Developer Mode er slået til. TV'et skal genstartes, før det accepterer installationer.",
   "devGuideStatusReady": "TV'et accepterer installationer fra denne enhed.",
   "devGuideStepOpenApps": "Åbn Apps på TV'et",
-  "devGuideStepOpenAppsHint": "Hjem-knappen, derefter Apps.",
   "devGuideStepTypeCode": "Skriv 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Med taltasterne, eller det numeriske tastatur på skærmen på en fjernbetjening uden dem.",
   "devGuideStepSwitchOn": "Slå Developer Mode til",
@@ -989,5 +988,9 @@
   "lblUserSourceCategory": "Kategori",
   "tvCardActionCheckAgain": "Tjek igen",
   "infoPortOpen": "Åbn",
-  "lblRemovedOn": "på {0}"
+  "lblRemovedOn": "på {0}",
+  "lblLinkClose": "Luk",
+  "lblRestoreStateInstalling": "Installation",
+  "lblRestoreChipSettings": "Indstillinger",
+  "lblSavedTvShare": "Del"
 }

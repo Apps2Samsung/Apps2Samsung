@@ -246,6 +246,8 @@ namespace Apps2Samsung.ViewModels
 
         public ObservableCollection<TvSourceChoice> TvSources { get; } = new(LoadTvSources());
         public bool HasTvSources => TvSources.Count > 0;
+        /// <summary>The Send button is always shown; it works once there is a signed repository and a connection.</summary>
+        public bool CanSendSources => HasTvSources && HasSdb;
 
         // The approved signed repositories; one whose key changed since is listed but can't be ticked.
         private static System.Collections.Generic.IEnumerable<TvSourceChoice> LoadTvSources() =>

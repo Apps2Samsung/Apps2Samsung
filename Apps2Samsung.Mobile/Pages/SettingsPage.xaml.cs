@@ -34,6 +34,8 @@ public partial class SettingsPage : ContentPage
 		InstallingSummary.Text = CertificateName(MobileSettings.CertificatePreference);
 		LanguageSummary.Text = L10n.GetDisplayName(L10n.CurrentLanguage);
 		ShowUpdateState();
+		try { BackupDot.IsVisible = Apps2Samsung.Certificate.CertificateBackups.Status() is { Profiles.Count: > 0, AllBackedUp: false }; }
+		catch { BackupDot.IsVisible = false; }
 		_loaded = true;
 	}
 
@@ -115,6 +117,7 @@ public partial class SettingsPage : ContentPage
 			"code" => Constants.Links.SourceCode,
 			"translate" => Constants.Links.Translate,
 			"discord" => Constants.Links.Discord,
+			"reddit" => Constants.Links.Reddit,
 			"donate" => Constants.Links.Donate,
 			_ => null,
 		};

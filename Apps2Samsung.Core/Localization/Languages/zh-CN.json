@@ -920,7 +920,6 @@
   "devGuideStatusRestart": "开发者模式已开启。电视需要重启后才会接受安装。",
   "devGuideStatusReady": "电视接受来自此设备的安装。",
   "devGuideStepOpenApps": "在电视上打开应用",
-  "devGuideStepOpenAppsHint": "按主页键,然后选择应用。",
   "devGuideStepTypeCode": "输入 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "使用数字键,或在没有数字键的遥控器上使用屏幕上的数字键盘。",
   "devGuideStepSwitchOn": "将开发者模式切换为开",
@@ -1014,5 +1013,9 @@
   "lblUserSourceCategory": "分类",
   "tvCardActionCheckAgain": "重新检查",
   "infoPortOpen": "打开",
-  "lblRemovedOn": "在 {0} 上"
+  "lblRemovedOn": "在 {0} 上",
+  "lblLinkClose": "关闭",
+  "lblRestoreStateInstalling": "安装",
+  "lblRestoreChipSettings": "设置",
+  "lblSavedTvShare": "分享"
 }

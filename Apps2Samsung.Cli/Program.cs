@@ -33,6 +33,10 @@ if (options.Help || options.Command.Length == 0)
     }
 }
 
+// What `self-update` could not delete while the old copy was still running (Windows only).
+if (OperatingSystem.IsWindows())
+    Apps2Samsung.Update.UpdateFiles.RemoveLeftovers(AppContext.BaseDirectory);
+
 using var cancel = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) => { e.Cancel = true; cancel.Cancel(); };
 

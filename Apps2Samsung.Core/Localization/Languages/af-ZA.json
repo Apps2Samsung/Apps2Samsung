@@ -906,7 +906,6 @@
   "devGuideStatusRestart": "Developer Mode is aan. Die TV moet herbegin voordat dit installasies aanvaar.",
   "devGuideStatusReady": "Die TV aanvaar installasies vanaf hierdie toestel.",
   "devGuideStepOpenApps": "Maak Apps op die TV oop",
-  "devGuideStepOpenAppsHint": "Tuis-knoppie, dan Apps.",
   "devGuideStepTypeCode": "Tik 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Met die nommersleutels, of die nommerblok op die skerm op 'n afstandbeheer daarsonder.",
   "devGuideStepSwitchOn": "Skakel Developer Mode aan",
@@ -1000,5 +999,9 @@
   "lblUserSourceCategory": "Kategorie",
   "tvCardActionCheckAgain": "Kontroleer weer",
   "infoPortOpen": "Maak oop",
-  "lblRemovedOn": "op {0}"
+  "lblRemovedOn": "op {0}",
+  "lblLinkClose": "Maak toe",
+  "lblRestoreStateInstalling": "Installeer",
+  "lblRestoreChipSettings": "Instellings",
+  "lblSavedTvShare": "Deel"
 }

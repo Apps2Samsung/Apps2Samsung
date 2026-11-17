@@ -8,6 +8,9 @@ public static class CertCommand
 {
     public static async Task<int> RunAsync(CliServices s, CancellationToken ct)
     {
+        if (string.Equals(s.Options.Arguments.FirstOrDefault(), "backups", StringComparison.OrdinalIgnoreCase))
+            return Backups(s);
+
         var ip = s.Options.Tv ?? s.Options.Arguments.FirstOrDefault();
         var level = Certificates.Level(s);
 
@@ -67,6 +70,13 @@ public static class CertCommand
         {
             var window = p.ValidFrom is null ? "unreadable" : $"valid {p.ValidFrom} to {p.ValidUntil}{(p.Usable ? "" : " (expired or unreadable)")}";
             text.Add($"{p.Level}: {window}, no TV named in it (Tizen certificate, --tizen-cert)");
+        }
+        if (CertificateBackups.Status() is { Profiles.Count: > 0 } backups)
+        {
+            var missing = backups.NotBackedUp.Count();
+            text.Add(missing == 0
+                ? $"Backups: every certificate is in one ({backups.DisplayLocation}). cert backups lists them."
+                : $"Backups: {missing} certificate(s) in no backup. Run: cert backups");
         }
         if (tvDuid is not null)
         {
@@ -174,4 +184,38 @@ public static class CertCommand
         validUntil = p.NotAfterUtc?.ToString("yyyy-MM-dd"),
         duids = p.Duids,
     };
+
+    // cert backups (#1068): the automatic backups, and one now when a certificate is in none.
+    private static int Backups(CliServices s)
+    {
+        var status = CertificateBackups.Status();
+        if (status is { AllBackedUp: false })
+        {
+            // The automatic one at startup failed or the file was deleted: try once more, and say why if not.
+            try { CertificateBackups.BackUpNow(); }
+            catch (Exception ex) { return s.Out.Fail($"could not write the backup to {status.DisplayLocation}: {ex.Message}", Output.Failed); }
+            status = CertificateBackups.Status();
+        }
+        if (status is null || status.Profiles.Count == 0)
+            return s.Out.Result(new { ok = true, folder = status?.DisplayLocation, profiles = Array.Empty<object>() },
+                new[] { "No certificate on this machine yet. The first one is backed up as soon as it is made." });
+
+        var text = new List<string> { $"Backups go to {status.DisplayLocation} (the last {CertificateBackups.Keep} are kept)." };
+        foreach (var p in status.Profiles)
+            text.Add(p.BackedUpUtc is { } at
+                ? $"{p.Profile.ProfileName}: backed up {at.ToLocalTime():yyyy-MM-dd HH:mm}"
+                : $"{p.Profile.ProfileName}: NOT in a backup{(status.LastError is { } e ? $" ({e})" : "")}");
+        if (status.Latest is { } latest)
+            text.Add($"Newest: {latest.Location}");
+        return s.Out.Result(
+            new
+            {
+                ok = status.AllBackedUp,
+                folder = status.DisplayLocation,
+                latest = status.Latest?.Location,
+                profiles = status.Profiles.Select(p => new { name = p.Profile.ProfileName, backedUp = p.BackedUpUtc }),
+                error = status.LastError,
+            },
+            text);
+    }
 }

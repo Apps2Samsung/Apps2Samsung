@@ -26,6 +26,9 @@ public static class CatalogCommand
         var catalog = await s.Catalog.LoadAsync(s.Options.AllVersions, ct);
         if (catalog.FailedProviders > 0)
             s.Out.Warn($"{catalog.FailedProviders} source(s) could not be read; their apps are missing from this list");
+        // A catalog in a newer format than this build knows (tizen-community-packages docs/catalog.md).
+        if (CatalogSchema.Notice(s.Strings.GetString) is { } newer)
+            s.Out.Warn(newer);
 
         // Adult-only entries are left out unless asked for, as the apps do until the user opts in (#850).
         // Closed-source apps are listed, as in the apps by default (#1016), with a "closed source" flag.

@@ -34,6 +34,9 @@ public sealed class DesktopSettings
     /// <summary>Extra DUIDs to put in the distributor certificate.</summary>
     public string ManualDuids => Get("ManualDuids");
 
+    /// <summary>The values the desktop saved for packages that ask for some (#791); `update` reuses them (#1067).</summary>
+    public string AppUserSettingsJson => Get("AppUserSettingsJson");
+
     /// <summary>Automatic / Public / Partner, as Core's <c>CertificatePreference</c> reads it. Set after
     /// <c>cert --import</c>, so the desktop signs at the imported level too (#921).</summary>
     public string CertificatePreference
@@ -76,8 +79,18 @@ public sealed class DesktopSettings
         set => Set(UserSourcesKey, value ?? string.Empty, "the source");
     }
 
+    /// <summary>The desktop's "Include beta updates" (Settings): the CLI's `self-update` follows the
+    /// same releases and `--channel` sets it. Null when nothing chose yet (no desktop on this device).</summary>
+    public bool? IncludeBetaUpdates
+    {
+        get => Root["IncludeBetaUpdates"] is JsonValue v && v.TryGetValue<bool>(out var beta) ? beta : null;
+        set => Set("IncludeBetaUpdates", JsonValue.Create(value ?? false), "the update channel");
+    }
+
+    private void Set(string key, string value, string what) => Set(key, JsonValue.Create(value), what);
+
     // One key, written atomically; a file that did not parse is never written over.
-    private void Set(string key, string value, string what)
+    private void Set(string key, JsonNode value, string what)
     {
         _ = Root;
         if (!_writable)

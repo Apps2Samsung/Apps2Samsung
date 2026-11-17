@@ -19,8 +19,18 @@ public static class TvPicker
 		var sheet = new TvSheetPage(tv.Tvs, tv.SelectedIndex, tv.LocalIps());
 		await page.Navigation.PushModalAsync(sheet);
 		var choice = await sheet.Result;
-		if (choice is not null)
-			tv.Select(choice.Index);
+		if (choice is null)
+			return;
+		tv.Select(choice.Index);
+
+		// "Show me how" under a TV that needs attention (#1079): that TV is now the one in use, and
+		// the Developer Mode guide opens for it.
+		if (choice.Fix && DevModeGuidePage.IsNeeded(tv, tv.LocalIps()))
+		{
+			var guide = new DevModeGuidePage(tv, tv.LocalIps, fromInstall: false);
+			await page.Navigation.PushModalAsync(guide);
+			await guide.Completion;
+		}
 	}
 
 	public static async Task AddByIpAsync(Page page, TvSelection tv)

@@ -21,6 +21,7 @@ public sealed class LicenseFooter : Label
 				Link(L10n.Get("lblLicense"), Constants.Links.License),
 				new Span { Text = " · " },
 				Link(Constants.Links.AuthorName, Constants.Links.Website),
+				new Span { Text = " · " + L10n.Get("lblSinceMay2025") },
 			},
 		};
 	}

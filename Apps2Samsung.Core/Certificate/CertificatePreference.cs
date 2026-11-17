@@ -34,6 +34,17 @@ namespace Apps2Samsung.Certificate
                 : CertificatePrivilegeLevel.Public;
 
         /// <summary>
+        /// True when an install may sign with the shipped certificate instead of a Samsung one: the TV
+        /// is newer than the push installs and older than the Tizen that insists on a Samsung
+        /// certificate, and the install signs as Public. The shipped certificate is Public only, so
+        /// a Partner choice or a package that needs Partner always gets a Samsung certificate (#1107).
+        /// </summary>
+        public static bool ShippedCertificateApplies(Version tizenVersion, string? preference, bool requirePartner) =>
+            tizenVersion > new Version(Apps2Samsung.Helpers.Core.Constants.TizenVersions.PushInstallMax) &&
+            tizenVersion < new Version(Apps2Samsung.Helpers.Core.Constants.TizenVersions.CertificateRequired) &&
+            ResolveLevel(preference, requirePartner) == CertificatePrivilegeLevel.Public;
+
+        /// <summary>
         /// True when the package can only be installed Partner-signed and there is no Partner
         /// certificate yet: the caller switches the preference to Partner, so one is actually created
         /// and Settings shows the level the app is signed with. The user can switch back afterwards.

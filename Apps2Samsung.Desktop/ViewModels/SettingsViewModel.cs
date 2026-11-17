@@ -126,6 +126,8 @@ namespace Apps2Samsung.ViewModels
                 "M4 4h16v16H4zM12 8v8M8 12h8", Constants.Links.ContributeApp));
             ContributeRows.Add(new SettingsLinkRow("lblContributeDiscord", "hintContributeDiscord", "TileMedia",
                 "M4 5h16v11H10l-4 4v-4H4z", Constants.Links.Discord));
+            ContributeRows.Add(new SettingsLinkRow("lblContributeReddit", "hintContributeReddit", "TileIptv",
+                "M12 4a8 7 0 1 0 0 14a8 7 0 1 0 0-14M9 10.5v.1M15 10.5v.1M9 13.5c2 1.5 4 1.5 6 0", Constants.Links.Reddit));
             ContributeRows.Add(new SettingsLinkRow("lblContributeDonate", "hintContributeDonate", "Bad",
                 "M12 20C5 15 3 11 3 8.5a4.5 4.5 0 0 1 9-1.5a4.5 4.5 0 0 1 9 1.5C21 11 19 15 12 20z", Constants.Links.Donate));
 
@@ -134,8 +136,13 @@ namespace Apps2Samsung.ViewModels
             AppIconsRow = new SettingsAppRow(() => AppIcons.LblAppIcons, appIcons);
 
             RefreshRows();
+            // The amber dot on Backup when a certificate is in no backup (#1068).
+            var backupRow = MoreRows.First(r => r.Page == Page.Backup);
+            backupRow.NeedsAttention = Application.CertificatesNeedBackup;
             Application.PropertyChanged += (_, e) =>
             {
+                if (e.PropertyName is nameof(AppSettingsViewModel.CertificatesNeedBackup))
+                    backupRow.NeedsAttention = Application.CertificatesNeedBackup;
                 if (e.PropertyName is nameof(AppSettingsViewModel.SelectedLanguage))
                     RefreshRows();
             };
@@ -151,6 +158,9 @@ namespace Apps2Samsung.ViewModels
                 return;
             PushedPage = null;
             SelectedPage = row.Page;
+            if (row.Page == Page.Backup)
+                Application.RefreshCertificateBackups(); // a backup deleted by hand shows at once (#1068)
+                Application.RefreshSavedTvs();
         }
 
         [RelayCommand]
@@ -288,6 +298,10 @@ namespace Apps2Samsung.ViewModels
 
         [ObservableProperty]
         private bool isSelected;
+
+        /// <summary>An amber dot after the name: something on that page needs the user (#1068).</summary>
+        [ObservableProperty]
+        private bool needsAttention;
 
         public SettingsRow(SettingsViewModel.Page page, string labelKey, string? summaryKey, string tileToken, string iconData)
         {

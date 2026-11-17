@@ -32,6 +32,24 @@ namespace Apps2Samsung.Views
             Close(null);
         }
 
+        // ⋯ > Copy install link (#1066): the https form, which works in a README too.
+        private void OnCopyLinkClick(object? sender, RoutedEventArgs e) =>
+            CopyLink((DataContext as AppDetailViewModel)?.InstallLinkUrl);
+
+        private void OnCopyVersionLinkClick(object? sender, RoutedEventArgs e) =>
+            CopyLink((DataContext as AppDetailViewModel)?.VersionLinkUrl);
+
+        private async void CopyLink(string? link)
+        {
+            if (link is null || DataContext is not AppDetailViewModel vm || TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard)
+                return;
+            await clipboard.SetTextAsync(link);
+            vm.CopiedLink = link;
+            await System.Threading.Tasks.Task.Delay(4000);
+            if (vm.CopiedLink == link)
+                vm.CopiedLink = string.Empty;
+        }
+
         // The developer's name: nothing to install, the main window searches the catalog for them (#888).
         private void OnAuthorClick(object? sender, RoutedEventArgs e)
         {

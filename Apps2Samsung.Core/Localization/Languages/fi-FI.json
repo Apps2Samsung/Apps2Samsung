@@ -913,7 +913,6 @@
   "devGuideStatusRestart": "Developer Mode on päällä. TV tarvitsee uudelleenkäynnistyksen, ennen kuin se hyväksyy asennuksia.",
   "devGuideStatusReady": "TV hyväksyy asennukset tältä laitteelta.",
   "devGuideStepOpenApps": "Avaa Sovellukset TV:ssä",
-  "devGuideStepOpenAppsHint": "Home-painike, sitten Sovellukset.",
   "devGuideStepTypeCode": "Kirjoita 1 2 3 4 5",
   "devGuideStepTypeCodeHint": "Numeronäppäimillä tai näytön numeronäppäimistöllä kaukosäätimessä, jossa niitä ei ole.",
   "devGuideStepSwitchOn": "Kytke Developer Mode päälle",
@@ -1006,5 +1005,9 @@
   "lblUserSourceCategory": "Luokka",
   "tvCardActionCheckAgain": "Tarkista uudelleen",
   "infoPortOpen": "Avaa",
-  "lblRemovedOn": "kohteessa {0}"
+  "lblRemovedOn": "kohteessa {0}",
+  "lblLinkClose": "Sulje",
+  "lblRestoreStateInstalling": "Asennus",
+  "lblRestoreChipSettings": "Asetukset",
+  "lblSavedTvShare": "Jaa"
 }

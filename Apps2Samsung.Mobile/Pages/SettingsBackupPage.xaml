@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:l="clr-namespace:Apps2Samsung.Mobile.Localization"
              xmlns:controls="clr-namespace:Apps2Samsung.Mobile.Controls"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
              x:Class="Apps2Samsung.Mobile.Pages.SettingsBackupPage"
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource BgColor}">
@@ -14,7 +15,54 @@
 
         <ScrollView Grid.Row="1">
             <VerticalStackLayout Padding="16,4,16,20" Spacing="6">
-                <Label Text="{l:Localize lblBackup}" Style="{StaticResource GroupTitle}" />
+                <!-- Automatic certificate backups (#1068): the status card, then each certificate with
+                     whether it is in a backup. Filled in from Core CertificateBackups in the code-behind. -->
+                <Label Text="{l:Localize lblCertBackups}" Style="{StaticResource GroupTitle}" />
+                <Border x:Name="CertNoneCard" Style="{StaticResource Card}" Padding="16,12" IsVisible="False">
+                    <Label Style="{StaticResource RowHint}" Text="{l:Localize lblCertBackupNone}" />
+                </Border>
+                <Border x:Name="CertStatusCard" StrokeThickness="0" StrokeShape="RoundRectangle 16" Padding="16,18" IsVisible="False">
+                    <VerticalStackLayout Spacing="8">
+                        <Border x:Name="CertStatusTile" WidthRequest="56" HeightRequest="56" StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14" HorizontalOptions="Center">
+                            <Grid WidthRequest="24" HeightRequest="24" HorizontalOptions="Center" VerticalOptions="Center">
+                                <shapes:Path Data="M12,3 L19,6 L19,11 C19,15.5 16,19 12,21 C8,19 5,15.5 5,11 L5,6 Z" Stroke="White"
+                                      StrokeThickness="2.2" StrokeLineJoin="Round" />
+                                <shapes:Path x:Name="CertTick" Data="M9,12 L11,14 L15,10" Stroke="White" StrokeThickness="2.2"
+                                      StrokeLineCap="Round" StrokeLineJoin="Round" />
+                                <shapes:Path x:Name="CertBang" Data="M12,8 L12,13 M12,16 L12,16.5" Stroke="White" StrokeThickness="2.2"
+                                      StrokeLineCap="Round" />
+                            </Grid>
+                        </Border>
+                        <Label x:Name="CertStatusTitle" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                        <Label x:Name="CertStatusText" FontSize="13" HorizontalTextAlignment="Center" LineBreakMode="WordWrap" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,6,0,0">
+                            <Button x:Name="CertBackUpNowButton" Grid.Column="0" Text="{l:Localize lblCertBackupNow}"
+                                    Style="{StaticResource PrimaryButton}" CornerRadius="12" Clicked="OnBackUpNowClicked" />
+                            <Button x:Name="CertShareButton" Grid.Column="1" Text="{l:Localize lblCertBackupShare}"
+                                    Style="{StaticResource PlainButton}" CornerRadius="12" Clicked="OnShareCertBackupClicked" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+                <Border x:Name="CertRowsCard" Style="{StaticResource Card}" IsVisible="False">
+                    <VerticalStackLayout x:Name="CertRows" />
+                </Border>
+                <Label x:Name="CertLocation" Style="{StaticResource RowHint}" Margin="4,0" />
+
+                <!-- Saved TVs (#1069): the app list of each TV, kept by itself; a row restores it onto the
+                     selected TV, shares it or forgets it. Filled in from Core SavedTvs in the code-behind. -->
+                <Label Text="{l:Localize lblSavedTvs}" Style="{StaticResource GroupTitle}" Margin="4,16,4,0" />
+                <Border x:Name="SavedTvsNoneCard" Style="{StaticResource Card}" Padding="16,12" IsVisible="False">
+                    <Label Style="{StaticResource RowHint}" Text="{l:Localize lblSavedTvsNone}" />
+                </Border>
+                <Border x:Name="SavedTvsCard" Style="{StaticResource Card}" IsVisible="False">
+                    <VerticalStackLayout x:Name="SavedTvRows" />
+                </Border>
+                <Button Text="{l:Localize lblSavedTvPick}" Style="{StaticResource PlainButton}" CornerRadius="12"
+                        Clicked="OnRestoreTvFromFileClicked" />
+                <Label Style="{StaticResource RowHint}" Margin="4,0" Text="{l:Localize hintSavedTvsPhone}" />
+
+                <Label Text="{l:Localize lblBackup}" Style="{StaticResource GroupTitle}" Margin="4,16,4,0" />
                 <Border Style="{StaticResource Card}" Padding="16,12">
                     <VerticalStackLayout Spacing="10">
                         <Label Style="{StaticResource RowHint}" Text="{l:Localize hintBackup}" />
