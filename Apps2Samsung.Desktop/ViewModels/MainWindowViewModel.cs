@@ -1804,9 +1804,10 @@ namespace Apps2Samsung.ViewModels
                 // No developer connection: a profile that already lists the manual DUID (made
                 // from Settings, where the manual DUIDs go into the certificate) is what there is.
                 Trace.WriteLine($"[toolbox] DUID over SDB failed, trying the manual DUIDs: {ex.Message}");
-                var manual = AppSettings.Default.ManualDuids
-                    .Split(new[] { ',', ';', ' ', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                    .FirstOrDefault();
+                // Only when exactly one DUID is configured: this setting also lists extra TVs to
+                // authorize in the certificate, so taking the first of many would build a profile
+                // for the wrong device.
+                var manual = Apps2Samsung.Models.ManualDuid.Only(AppSettings.Default.ManualDuids);
                 if (manual is null)
                 {
                     report(L("lblToolboxPackageNoDuid"));
