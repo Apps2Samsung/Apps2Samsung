@@ -26,13 +26,15 @@ public static class Certificates
         {
             duid = await TizenDuidReader.ReadAsync(s.Sdb, tvIp, progress: s.Out.Progress);
         }
-        catch (InvalidOperationException) when (manualDuids.Length > 0)
+        catch (InvalidOperationException) when (manualDuids.Length == 1)
         {
             // Some firmwares answer "0 getduid" with a warning line, or close the stream
             // mid-handshake, and never hand back the DUID (Tizen 8.0 after the 2026-11 update).
             // The DUID is still readable by hand ("sdb shell 0 getduid") and is printed on the TV
             // under Support > About The TV, so honour a DUID the user supplied rather than
             // failing the whole install.
+            // Only when exactly one is supplied: this setting also lists extra TVs to authorize,
+            // so with two or more we cannot tell which one is the TV being installed to.
             duid = manualDuids[0];
             s.Out.Progress($"The TV did not return its DUID over sdb; using the supplied {duid}.");
         }
