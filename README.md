@@ -29,8 +29,8 @@ yours. Missing a word, or your language? [Help translate on Crowdin](https://cro
 
 | Channel    | Version                                                             | Notes                        |
 |------------|---------------------------------------------------------------------|------------------------------|
-| **Stable** | [v3.3.0](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v3.3.0)                                        | Recommended for most users   |
-| **Beta**   | [v3.3.1-beta](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v3.3.1-beta)                                            | Includes new features        |
+| **Stable** | [v3.3.1](https://github.com/Apps2Samsung/Apps2Samsung/releases/tag/v3.3.1)                                        | Recommended for most users   |
+| **Beta**   | [N/A](#)                                            | Includes new features        |
 
 <!-- versions:end -->
 
