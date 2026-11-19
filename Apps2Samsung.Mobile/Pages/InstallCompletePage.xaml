@@ -7,6 +7,8 @@
              Title="{l:Localize InstallationSuccessful}"
              BackgroundColor="{DynamicResource BgColor}">
 
+    <!-- Scrolls (#1127): in landscape the QR code pushed Close off the screen. -->
+    <ScrollView>
     <Grid Padding="20" VerticalOptions="Center">
         <Border Padding="20" StrokeThickness="1"
                 StrokeShape="RoundRectangle 8"
@@ -42,5 +44,6 @@
             </VerticalStackLayout>
         </Border>
     </Grid>
+    </ScrollView>
 
 </ContentPage>

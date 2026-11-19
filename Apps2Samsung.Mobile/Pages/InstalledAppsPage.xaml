@@ -22,7 +22,10 @@
         <!-- The apps as a grouped list (#755): tile, name, version and size, a chevron; a row opens
              the app's sheet with Launch / Stop / Debug console / Uninstall. -->
         <!-- apps on this TV that moved to their author's repository (#1018): filled in code, one card each -->
-        <VerticalStackLayout Grid.Row="1" Spacing="8">
+        <!-- The notices get at most 260 of the height and scroll inside it (#1127): two or three of
+             them, or a phone on its side, left the app list a sliver. -->
+        <ScrollView Grid.Row="1" MaximumHeightRequest="260" VerticalScrollBarVisibility="Never">
+        <VerticalStackLayout Spacing="8" Padding="0,0,0,6">
             <!-- Host PC IP 127.0.0.1 and TV-Store closed: the list comes through TV-Store's relay, so say
                  so and open TV-Store on the TV from here (#1041 follow-up) -->
             <Border x:Name="RelayNotice" IsVisible="False" Margin="16,4,16,0" Padding="14,12" StrokeThickness="1"
@@ -64,6 +67,7 @@
                 </Grid>
             </Border>
         </VerticalStackLayout>
+        </ScrollView>
 
         <Border Grid.Row="2" StrokeThickness="0" StrokeShape="RoundRectangle 12" BackgroundColor="{DynamicResource SurfaceColor}"
                 VerticalOptions="Start" Margin="16,4,16,0">
@@ -109,7 +113,7 @@
                                     </HorizontalStackLayout>
                                 </VerticalStackLayout>
                                 <Button Grid.Column="2" Text="{l:Localize lblUpdate}" IsVisible="{Binding HasUpdate}" Clicked="OnUpdateClicked"
-                                        HeightRequest="32" MinimumHeightRequest="32" CornerRadius="16" Padding="12,0" FontSize="13" FontAttributes="Bold"
+                                        HeightRequest="40" MinimumHeightRequest="40" CornerRadius="20" Padding="14,0" FontSize="13" FontAttributes="Bold"
                                         BackgroundColor="{DynamicResource AccentColor}" TextColor="{DynamicResource OnAccentColor}" VerticalOptions="Center" />
                                 <Path Grid.Column="3" Data="M1,1 L7,6.5 L1,12" Stroke="{DynamicResource InkBrush}" StrokeThickness="2"
                                       Opacity="0.35" WidthRequest="8" HeightRequest="13" VerticalOptions="Center" />

@@ -2,6 +2,7 @@ using Apps2Samsung.Mobile.Localization;
 using System;
 using System.Threading.Tasks;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Models;
 using Apps2Samsung.Mobile.Services;
 using Apps2Samsung.Sdb;
 
@@ -58,6 +59,14 @@ public partial class DeviceInfoPage : ContentPage
 		{
 			SetBusy(false);
 		}
+	}
+
+	private async void OnRowTapped(object? sender, TappedEventArgs e)
+	{
+		if (sender is not BindableObject { BindingContext: DeviceInfoRow row } || string.IsNullOrWhiteSpace(row.Value))
+			return;
+		await Clipboard.Default.SetTextAsync(row.Value);
+		CountLabel.Text = $"{row.Label}: {L10n.Get("lblCopied")}";
 	}
 
 	private void SetBusy(bool busy, string? status = null)

@@ -11,7 +11,7 @@
         <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
             <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
                      Color="{DynamicResource HairColor}" />
-            <Grid ColumnDefinitions="44,*,32" ColumnSpacing="12" Margin="0,6,0,0">
+            <Grid ColumnDefinitions="44,*,44" ColumnSpacing="12" Margin="0,6,0,0">
                 <Grid Grid.Column="0" WidthRequest="44" HeightRequest="44" VerticalOptions="Center">
                     <Border x:Name="LetterTile" StrokeThickness="0" StrokeShape="RoundRectangle 11">
                         <Label x:Name="LetterLabel" TextColor="{DynamicResource OnAccentColor}" FontSize="20" FontAttributes="Bold"
@@ -27,11 +27,11 @@
                     <Label x:Name="TitleLabel" FontSize="20" FontAttributes="Bold" LineBreakMode="TailTruncation" />
                     <Label x:Name="SubLabel" FontSize="13" TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
                 </VerticalStackLayout>
-                <Button Grid.Column="2" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
-                        MinimumWidthRequest="32" MinimumHeightRequest="32" VerticalOptions="Center"
+                <Button Grid.Column="2" Text="✕" FontSize="13" SemanticProperties.Description="{l:Localize btn_Close}" WidthRequest="44" HeightRequest="44" CornerRadius="22" Padding="0"
+                        MinimumWidthRequest="44" MinimumHeightRequest="44" VerticalOptions="Center"
                         BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnCloseClicked" />
             </Grid>
-            <Label x:Name="IdLabel" FontSize="12" FontFamily="monospace" TextColor="{DynamicResource MutedColor}" Margin="4,0" />
+            <Label x:Name="IdLabel" FontSize="12" FontFamily="{StaticResource MonoFont}" TextColor="{DynamicResource MutedColor}" Margin="4,0" />
             <!-- removed from the catalogue (#1033): why, since when, and that the copy keeps working; filled in code -->
             <VerticalStackLayout x:Name="RemovedHost" IsVisible="False" />
 

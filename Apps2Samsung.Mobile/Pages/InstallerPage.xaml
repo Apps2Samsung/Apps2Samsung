@@ -16,7 +16,10 @@
         <controls:TopBarView x:Name="TopBar" Grid.Row="0" ShowLogo="True" TvTitle="True" Action="More"
                              TitleTapped="OnChangeTvClicked" MoreTapped="OnMoreClicked" />
 
-        <ScrollView Grid.Row="1">
+        <!-- Pull down to read the catalog again (#1127): after a failed load (offline, GitHub's rate
+             limit) the list stayed empty until the app was restarted. -->
+        <RefreshView Grid.Row="1" x:Name="CatalogRefresher" Refreshing="OnCatalogPulled" RefreshColor="{DynamicResource AccentColor}">
+        <ScrollView>
             <VerticalStackLayout Padding="16,4,16,20" Spacing="14">
 
                 <!-- The TV: name, model + IP, an LED with the status line. What to do with it sits in
@@ -138,6 +141,7 @@
 
             </VerticalStackLayout>
         </ScrollView>
+        </RefreshView>
     </Grid>
 
 </ContentPage>

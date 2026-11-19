@@ -24,7 +24,7 @@
                                 <Entry x:Name="TokenEntry" IsPassword="True" Placeholder="ghp_xxxxxxxxxxxxxxxxx"
                                        BackgroundColor="Transparent" Unfocused="OnTokenUnfocused" />
                             </Border>
-                            <Button Grid.Column="1" x:Name="TokenEyeBtn" Text="👁" FontSize="16"
+                            <Button Grid.Column="1" x:Name="TokenEyeBtn" Text="👁" SemanticProperties.Description="{l:Localize lblShowHideToken}" FontSize="16"
                                     BackgroundColor="Transparent" BorderWidth="1"
                                     BorderColor="{DynamicResource HairColor}"
                                     TextColor="{DynamicResource InkColor}"
@@ -41,7 +41,7 @@
                         <Border Padding="8,4" StrokeThickness="1" StrokeShape="RoundRectangle 6"
                                 Stroke="{DynamicResource HairBrush}"
                                 BackgroundColor="{DynamicResource Surface2Color}">
-                            <Editor x:Name="DuidsEditor" HeightRequest="90" Placeholder="{l:Localize lblDuidsWatermark}"
+                            <Editor x:Name="DuidsEditor" Keyboard="Plain" HeightRequest="90" Placeholder="{l:Localize lblDuidsWatermark}"
                                     BackgroundColor="Transparent" Unfocused="OnDuidsUnfocused" />
                         </Border>
                         <Label Style="{StaticResource RowHint}"

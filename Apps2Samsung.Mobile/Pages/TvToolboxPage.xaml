@@ -74,8 +74,8 @@
         </Style>
         <!-- one half of Open an app's list switch -->
         <Style x:Key="Segment" TargetType="Button">
-            <Setter Property="HeightRequest" Value="30" />
-            <Setter Property="MinimumHeightRequest" Value="30" />
+            <Setter Property="HeightRequest" Value="36" />
+            <Setter Property="MinimumHeightRequest" Value="36" />
             <Setter Property="CornerRadius" Value="7" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="BorderWidth" Value="0" />
@@ -94,7 +94,7 @@
 
         <!-- the top bar (#755): Back, the title, reload -->
         <controls:TopBarView Grid.Row="0" Margin="-16,0" Title="{l:Localize lblToolbox}" BackText="{l:Localize lblNavBack}"
-                             BackTapped="OnBackClicked" Action="Glyph" Glyph="⟳" GlyphTapped="OnReloadClicked" />
+                             BackTapped="OnBackClicked" Action="Glyph" Glyph="⟳" GlyphDescription="{l:Localize lblRefresh}" GlyphTapped="OnReloadClicked" />
 
         <!-- which TV, and whether the channel is up -->
         <Label Grid.Row="1" x:Name="StatusLabel" Style="{StaticResource Hint}" Margin="4,0"
@@ -216,7 +216,7 @@
                              platform's own words - for a service, or an ID Smart Hub does not know. -->
                         <BoxView Style="{StaticResource Hairline}" />
                         <Border Style="{StaticResource Field}" Margin="0,6,0,0">
-                            <Entry x:Name="ManualAppIdEntry" Keyboard="Text" BackgroundColor="Transparent"
+                            <Entry x:Name="ManualAppIdEntry" Keyboard="Plain" BackgroundColor="Transparent"
                                    Placeholder="{l:Localize lblToolboxManualPlaceholder}" />
                         </Border>
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
@@ -245,7 +245,7 @@
                                             <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
                                                 <Label Style="{StaticResource RowTitle}" Text="{Binding Name}" />
                                                 <Label Style="{StaticResource RowSub}" Text="{Binding Description}" />
-                                                <Label FontSize="12" TextColor="{DynamicResource MutedColor}" Text="{Binding AppId}" FontFamily="monospace" />
+                                                <Label FontSize="12" TextColor="{DynamicResource MutedColor}" Text="{Binding AppId}" FontFamily="{StaticResource MonoFont}" />
                                                 <Label FontSize="12" TextColor="{DynamicResource WarnColor}" LineBreakMode="WordWrap"
                                                        Text="{l:Localize lblToolboxSystemAppCaution}" IsVisible="{Binding IsCaution}" />
                                             </VerticalStackLayout>
@@ -332,7 +332,7 @@
                                         <Grid Style="{StaticResource Row}" ColumnDefinitions="*,Auto">
                                             <VerticalStackLayout Grid.Column="0" Spacing="2">
                                                 <Label Style="{StaticResource RowTitle}" Text="{Binding Name}" />
-                                                <Label FontSize="13" FontFamily="monospace" Text="{Binding Keys}" />
+                                                <Label FontSize="13" FontFamily="{StaticResource MonoFont}" Text="{Binding Keys}" />
                                                 <Label Style="{StaticResource RowSub}" Text="{Binding Description}" />
                                                 <Label FontSize="12" TextColor="{DynamicResource WarnColor}" LineBreakMode="WordWrap"
                                                        Text="{Binding Caveat}" IsVisible="{Binding HasCaveat}" />
@@ -350,7 +350,7 @@
                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Margin="0,4,0,0">
                             <Label Grid.Column="0" Style="{StaticResource RowSub}" VerticalOptions="Center" Text="{l:Localize lblToolboxGap}" />
                             <Slider Grid.Column="1" x:Name="GapSlider" Minimum="100" Maximum="600" Value="250" VerticalOptions="Center" />
-                            <Label Grid.Column="2" FontSize="13" VerticalOptions="Center" FontFamily="monospace"
+                            <Label Grid.Column="2" FontSize="13" VerticalOptions="Center" FontFamily="{StaticResource MonoFont}"
                                    Text="{Binding Source={x:Reference GapSlider}, Path=Value, StringFormat='{0:0} ms'}" />
                         </Grid>
                         <Label Style="{StaticResource Hint}" Text="{l:Localize lblToolboxGapHint}" />
@@ -372,7 +372,7 @@
                                         <BoxView Style="{StaticResource Hairline}" />
                                         <VerticalStackLayout Spacing="2" Padding="0,10">
                                             <Label Style="{StaticResource RowTitle}" Text="{Binding Name}" />
-                                            <Label FontSize="13" FontFamily="monospace" Text="{Binding Keys}" />
+                                            <Label FontSize="13" FontFamily="{StaticResource MonoFont}" Text="{Binding Keys}" />
                                             <Label Style="{StaticResource RowSub}" Text="{Binding Description}" />
                                         </VerticalStackLayout>
                                     </VerticalStackLayout>

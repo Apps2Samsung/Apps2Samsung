@@ -41,7 +41,7 @@
 
             <Border x:Name="LogCard" IsVisible="False" StrokeThickness="0" StrokeShape="RoundRectangle 12"
                     BackgroundColor="{DynamicResource SurfaceColor}" Padding="14,12">
-                <Label x:Name="LogLabel" FontSize="12" FontFamily="monospace" TextColor="{DynamicResource MutedColor}"
+                <Label x:Name="LogLabel" FontSize="12" FontFamily="{StaticResource MonoFont}" TextColor="{DynamicResource MutedColor}"
                        LineBreakMode="WordWrap" />
             </Border>
 

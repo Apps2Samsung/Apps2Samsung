@@ -40,7 +40,10 @@ public static class TvPicker
 		var input = await page.DisplayPromptAsync(
 			L10n.Get("lblManualTvIpTitle"),
 			L10n.Get("lblManualTvIpPrompt"),
-			accept: L10n.Get("lblAdd"), cancel: L10n.Get("lblCancel"), placeholder: "192.168.1.50");
+			accept: L10n.Get("lblAdd"), cancel: L10n.Get("lblCancel"), placeholder: "192.168.1.50",
+			// No autocorrect and the dot on the first layer (#1127). Not the numeric keyboard: Android's
+			// takes one decimal point only, and the iPhone's shows a comma in Dutch and German.
+			keyboard: Keyboard.Url);
 		await tv.AddManualAsync(input);
 	}
 }

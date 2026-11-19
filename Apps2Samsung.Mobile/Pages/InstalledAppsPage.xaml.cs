@@ -572,7 +572,10 @@ public partial class InstalledAppsPage : ContentPage
 	{
 		Busy.IsVisible = busy;
 		Busy.IsRunning = busy;
-		AppsList.IsVisible = !busy;
+		// Dimmed and untappable, not hidden (#1127): a Launch or Stop blanked the whole list and
+		// lost the place in it.
+		AppsList.IsEnabled = !busy;
+		AppsList.Opacity = busy ? 0.45 : 1;
 		if (busy && status is not null)
 		{
 			TopBar.Subtitle = status;

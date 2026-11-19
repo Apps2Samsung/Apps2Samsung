@@ -56,8 +56,12 @@ public partial class JellyfinSettingsPage : ContentPage
 		MobileSettings.JellyfinCustomCss = css;
 	}
 
-	private void OnClearCss(object? sender, EventArgs e)
+	private async void OnClearCss(object? sender, EventArgs e)
 	{
+		// Typed CSS is gone for good, so ask first (#1127); nothing to ask about an empty box.
+		if (!string.IsNullOrWhiteSpace(CssEditor.Text)
+			&& !await DisplayAlert(L10n.Get("lblClearCss"), L10n.Get("lblClearCssAsk"), L10n.Get("lblClearCss"), L10n.Get("lblCancel")))
+			return;
 		CssEditor.Text = string.Empty;
 		MobileSettings.JellyfinCustomCss = string.Empty;
 		ThemePicker.SelectedIndex = -1;
@@ -212,6 +216,8 @@ public partial class JellyfinSettingsPage : ContentPage
 
 	private async void OnSignOutClicked(object? sender, EventArgs e)
 	{
+		if (!await DisplayAlert(L10n.Get("lblClearSavedSignIn"), L10n.Get("lblClearSavedSignInAsk"), L10n.Get("lblClearSavedSignIn"), L10n.Get("lblCancel")))
+			return;
 		await MobileSettings.SetJellyfinAccessTokenAsync(null);
 		MobileSettings.JellyfinUserId = string.Empty;
 		MobileSettings.JellyfinServerId = string.Empty;

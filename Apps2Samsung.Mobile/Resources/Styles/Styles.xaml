@@ -3,6 +3,14 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
+    <!-- A fixed-width family for both platforms (#1127): "monospace" is an Android alias, on the
+         iPhone it fell back to the proportional system font, so the certificate countdown, key
+         fingerprints and logs did not line up. -->
+    <OnPlatform x:Key="MonoFont" x:TypeArguments="x:String">
+        <On Platform="iOS, MacCatalyst" Value="Menlo" />
+        <On Platform="Android" Value="monospace" />
+    </OnPlatform>
+
     <!-- Every colour here is a design token (Apps2Samsung.Core/Design/DesignTokens.cs), registered
          as {Name}Color / {Name}Brush by Resources/Styles/DesignTheme.cs for the theme in effect and
          rewritten when the OS theme flips - which is why these are DynamicResource and there is no

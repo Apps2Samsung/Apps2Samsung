@@ -27,10 +27,10 @@
                     <Label x:Name="BodyLabel" FontSize="15" LineBreakMode="WordWrap" />
                     <Grid ColumnDefinitions="52,*" RowDefinitions="Auto,Auto" RowSpacing="8" ColumnSpacing="10">
                         <Label Text="{l:Localize lblRepoKeyWas}" FontSize="13" TextColor="{DynamicResource MutedColor}" />
-                        <Label Grid.Column="1" x:Name="WasLabel" FontSize="13" FontFamily="monospace" LineBreakMode="WordWrap"
+                        <Label Grid.Column="1" x:Name="WasLabel" FontSize="13" FontFamily="{StaticResource MonoFont}" LineBreakMode="WordWrap"
                                TextColor="{DynamicResource MutedColor}" TextDecorations="Strikethrough" />
                         <Label Grid.Row="1" Text="{l:Localize lblRepoKeyNow}" FontSize="13" TextColor="{DynamicResource MutedColor}" />
-                        <Label Grid.Row="1" Grid.Column="1" x:Name="NowLabel" FontSize="13" FontFamily="monospace" LineBreakMode="WordWrap" />
+                        <Label Grid.Row="1" Grid.Column="1" x:Name="NowLabel" FontSize="13" FontFamily="{StaticResource MonoFont}" LineBreakMode="WordWrap" />
                     </Grid>
                     <Label x:Name="ErrorLabel" FontSize="13" TextColor="{DynamicResource BadColor}" LineBreakMode="WordWrap" IsVisible="False" />
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
