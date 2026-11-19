@@ -16,7 +16,7 @@
                     StrokeShape="RoundRectangle 8" Padding="10,5" BackgroundColor="{DynamicResource AccentSoftColor}">
                 <Label Text="{l:Localize lblOpenedFromLink}" FontSize="13" FontAttributes="Bold" TextColor="{DynamicResource AccentColor}" />
             </Border>
-            <Grid ColumnDefinitions="Auto,*,32,32" RowDefinitions="Auto,Auto" ColumnSpacing="8" Margin="0,6,0,0">
+            <Grid ColumnDefinitions="Auto,*,44,44" RowDefinitions="Auto,Auto" ColumnSpacing="8" Margin="0,6,0,0">
                 <!-- the letter tile, or the app's icon from the catalog (#1000); filled in from code -->
                 <ContentView x:Name="TileSlot" VerticalOptions="Center" />
                 <Label Grid.Column="1" x:Name="TitleLabel" FontSize="20" FontAttributes="Bold" LineBreakMode="WordWrap" VerticalOptions="Center" />
@@ -51,11 +51,11 @@
                     </Border>
                 </FlexLayout>
                 <!-- the star: a favorite leads the Install tab's list -->
-                <Button Grid.Column="2" x:Name="FavoriteBtn" Text="☆" FontSize="18" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
-                        MinimumWidthRequest="32" MinimumHeightRequest="32"
+                <Button Grid.Column="2" x:Name="FavoriteBtn" Text="☆" FontSize="18" WidthRequest="44" HeightRequest="44" CornerRadius="22" Padding="0"
+                        MinimumWidthRequest="44" MinimumHeightRequest="44"
                         BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnFavoriteClicked" />
-                <Button Grid.Column="3" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
-                        MinimumWidthRequest="32" MinimumHeightRequest="32"
+                <Button Grid.Column="3" Text="✕" FontSize="13" SemanticProperties.Description="{l:Localize btn_Close}" WidthRequest="44" HeightRequest="44" CornerRadius="22" Padding="0"
+                        MinimumWidthRequest="44" MinimumHeightRequest="44"
                         BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnCloseClicked" />
             </Grid>
             <!-- where the app comes from (#1018): a signed repository, an unverified source, or one that
