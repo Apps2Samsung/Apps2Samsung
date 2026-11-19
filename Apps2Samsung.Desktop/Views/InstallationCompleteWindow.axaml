@@ -9,7 +9,7 @@
         Icon="{x:Static appicon:AppIcon.Current}"
         x:DataType="viewModels:InstallationCompleteViewModel"
         Title="{Binding Title}"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="CenterOwner"
         CanResize="False"
         SizeToContent="WidthAndHeight"
 		ExtendClientAreaToDecorationsHint="True"
@@ -106,7 +106,9 @@
                         BorderThickness="0"
                         CornerRadius="6"
                         Padding="15,8"
-                        Width="90"
+                        MinWidth="90"
+                        HorizontalContentAlignment="Center"
+                        IsDefault="True"
                         FontWeight="Medium"
                         Cursor="Hand"/>
 			</StackPanel>

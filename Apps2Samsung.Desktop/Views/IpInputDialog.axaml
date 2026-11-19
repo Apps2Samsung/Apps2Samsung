@@ -12,7 +12,7 @@
         Icon="{x:Static appicon:AppIcon.Current}"
         x:DataType="viewModels:IpInputDialogViewModel"
         Width="420"
-        Height="250"
+        SizeToContent="Height"
 		Title="{Binding Title}"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
@@ -54,7 +54,7 @@
                        Margin="0,0,0,8"/>
 
 			<!-- IP Input -->
-			<TextBox Text="{Binding EnteredIp}"
+			<TextBox x:Name="IpBox" Text="{Binding EnteredIp}"
                      Watermark="{l:Localize lblEnterIpAddress}"
                      SelectionBrush="{DynamicResource AccentBrush}"
                      BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
@@ -75,6 +75,7 @@
                         CornerRadius="8"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
+                        IsDefault="True"
                         Command="{Binding OkCommand}"/>
 				<Button Content="{Binding CancelText}"
                         MinWidth="90"
@@ -84,6 +85,7 @@
                         CornerRadius="8"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
+                        IsCancel="True"
                         Command="{Binding CancelCommand}"/>
 			</StackPanel>
 		</StackPanel>

@@ -11,6 +11,7 @@ namespace Apps2Samsung.Views
         public AppDetailWindow()
         {
             InitializeComponent();
+            Apps2Samsung.Helpers.DialogKeys.CloseOnEscape(this);
         }
 
         public AppDetailWindow(AppDetailViewModel viewModel) : this()

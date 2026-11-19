@@ -56,7 +56,7 @@
 		</Border>
 
 		<StackPanel Spacing="8">
-			<Button Classes="primary" Content="{Binding InstallText}" Click="OnInstallClick"
+			<Button Classes="primary" Content="{Binding InstallText}" Click="OnInstallClick" IsDefault="True"
 			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12"/>
 			<Button Classes="link" Content="{Binding CancelText}" Click="OnCancelClick" HorizontalAlignment="Center"/>
 		</StackPanel>
