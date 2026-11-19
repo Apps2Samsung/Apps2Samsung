@@ -28,6 +28,7 @@ namespace Apps2Samsung.Views
         public TvPickerWindow()
         {
             InitializeComponent();
+            Apps2Samsung.Helpers.DialogKeys.CloseOnEscape(this);
         }
 
         /// <param name="localIps">This machine's addresses, for the readiness verdict per row (the card's own, <see cref="Apps2Samsung.Design.TvCardStates.RowStatus"/>).</param>

@@ -16,6 +16,7 @@ namespace Apps2Samsung.Views
         public DevModeGuideWindow()
         {
             InitializeComponent();
+            Apps2Samsung.Helpers.DialogKeys.CloseOnEscape(this);
         }
 
         public DevModeGuideWindow(DevModeGuideViewModel model) : this()

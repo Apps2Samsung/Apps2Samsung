@@ -8,6 +8,7 @@ namespace Apps2Samsung.Views
         public DeviceInfoWindow(DeviceInfoViewModel vm)
         {
             InitializeComponent();
+            Apps2Samsung.Helpers.DialogKeys.CloseOnEscape(this);
             DataContext = vm;
             vm.OnRequestClose += Close;
             // Kick off the initial load once the window is shown.

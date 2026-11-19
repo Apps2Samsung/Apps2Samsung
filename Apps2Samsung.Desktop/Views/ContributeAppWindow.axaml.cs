@@ -43,6 +43,7 @@ namespace Apps2Samsung.Views
         public ContributeAppWindow()
         {
             InitializeComponent();
+            Apps2Samsung.Helpers.DialogKeys.CloseOnEscape(this);
         }
 
         public ContributeAppWindow(Func<string, string> localize) : this()
