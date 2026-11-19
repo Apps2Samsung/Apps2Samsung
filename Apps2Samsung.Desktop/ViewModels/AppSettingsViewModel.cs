@@ -962,7 +962,8 @@ namespace Apps2Samsung.ViewModels
                 _localizationService.GetString("lblRemoveSourceTitle"),
                 string.Format(_localizationService.GetString("lblRemoveSourceBody"), row.Name),
                 _localizationService.GetString("lblRemove"),
-                _localizationService.GetString("lblCancel"));
+                _localizationService.GetString("lblCancel"),
+                destructive: true);
             if (!ok)
                 return;
             var sources = Apps2Samsung.Catalog.UserSources.Parse(AppSettings.Default.UserSourcesJson);

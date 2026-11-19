@@ -9,8 +9,7 @@ namespace Apps2Samsung.Interfaces
         Task ShowMessageAsync(string title, string message);
         Task ShowErrorAsync(string message);
         /// <summary>Confirmation prompt. Null button labels fall back to the localized Yes/No.</summary>
-        Task<bool> ShowConfirmationAsync(string title, string message, string? yes = null, string? no = null, Window? owner = null);
-        Task<string?> PromptForIpAsync();
+        Task<bool> ShowConfirmationAsync(string title, string message, string? yes = null, string? no = null, Window? owner = null, bool destructive = false);
 
         /// <summary>
         /// A message dialog whose primary button opens <paramref name="url"/> in the system browser

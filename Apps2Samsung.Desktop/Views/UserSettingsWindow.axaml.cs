@@ -31,6 +31,7 @@ namespace Apps2Samsung.Views
         public UserSettingsWindow()
         {
             InitializeComponent();
+            Apps2Samsung.Helpers.DialogKeys.CloseOnEscape(this);
         }
 
         public UserSettingsWindow(string appName, UserSettingsSpec spec, IReadOnlyDictionary<string, string> current, Func<string, string> localize) : this()
