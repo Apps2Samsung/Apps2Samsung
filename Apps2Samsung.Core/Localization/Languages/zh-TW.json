@@ -703,6 +703,7 @@
   "statusImportedDesktop": "已匯入設定與 {0} 個憑證檔案。請重新啟動應用程式以套用。",
   "statusImportFailed": "匯入失敗：{0}",
   "lblOk": "確定",
+  "lblErrorTitle": "錯誤",
   "lblDownload": "下載",
   "lblLater": "稍後",
   "statusSetIconFailed": "無法設定圖示：{0}",
