@@ -37,7 +37,13 @@ public static class InstallCommand
         GitHubRelease? release = null;
         Asset? asset = null;
         string? localFile = null;
-        if (link is null && File.Exists(target) && (target.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) || target.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase)))
+        var namesPackage = target.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) || target.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase);
+        // A path to a package that is not there (#1128): said at once, not after a catalog load
+        // that ends in "No catalog app matches". A bare name still goes to the catalog.
+        var isPath = target.Contains('/') || target.Contains('\\') || Path.IsPathRooted(target);
+        if (link is null && namesPackage && isPath && !File.Exists(target))
+            return s.Out.Fail($"No such file: {Path.GetFullPath(target)}");
+        if (link is null && namesPackage && File.Exists(target))
         {
             localFile = Path.GetFullPath(target);
         }
@@ -78,7 +84,9 @@ public static class InstallCommand
                         Output.Failed, new { removed = why });
                 }
                 return candidates.Count == 0
-                    ? s.Out.Fail($"No catalog app matches '{target}'. `apps2samsung-cli catalog {target}` searches descriptions too.")
+                    ? s.Out.Fail(namesPackage
+                        ? $"No file {Path.GetFullPath(target)}, and no catalog app is called '{target}'."
+                        : $"No catalog app matches '{target}'. `apps2samsung-cli catalog {target}` searches descriptions too.")
                     : s.Out.Fail($"'{target}' matches several apps; use the exact name: {string.Join(" | ", candidates.Select(c => c.Name))}",
                         details: new { candidates = candidates.Select(c => c.Name) });
             }
@@ -220,8 +228,9 @@ public static class InstallCommand
         else
         {
             packagePath = Path.Combine(CliPaths.Downloads, asset!.FileName);
-            s.Out.Progress($"Downloading {asset.FileName} ({asset.DisplayText})…");
-            await DownloadAsync(s, asset.DownloadUrl, packagePath, ct);
+            var downloading = $"Downloading {asset.FileName} ({asset.DisplayText})…";
+            s.Out.Progress(downloading);
+            await DownloadAsync(s, asset.DownloadUrl, packagePath, ct, downloading);
             // A signed repository's file installs only when its bytes are the ones it signed for (#1018).
             if (release!.Source.Kind == CatalogSourceKind.Repository)
             {
@@ -496,7 +505,7 @@ public static class InstallCommand
         catch { return Array.Empty<string>(); }
     }
 
-    private static async Task DownloadAsync(CliServices s, string url, string dest, CancellationToken ct)
+    private static async Task DownloadAsync(CliServices s, string url, string dest, CancellationToken ct, string? step = null)
     {
         using var req = new HttpRequestMessage(HttpMethod.Get, url);
         if (!string.IsNullOrWhiteSpace(s.Options.GitHubToken) && new Uri(url).Host.Contains("github", StringComparison.OrdinalIgnoreCase))
@@ -510,9 +519,32 @@ public static class InstallCommand
         var part = dest + ".part";
         try
         {
+            var total = resp.Content.Headers.ContentLength;
+            // The same words as the step that is already on screen, so the percentage lands on that line.
+            var label = step ?? $"Downloading {Path.GetFileName(dest)}";
             await using (var src = await resp.Content.ReadAsStreamAsync(ct))
             await using (var dst = File.Create(part))
-                await src.CopyToAsync(dst, ct);
+            {
+                // On a terminal the step line shows how far it is (#1128); piped, the one line the
+                // caller already printed is all, a line per percent would flood a log.
+                if (s.Out.Rich && total is > 0)
+                {
+                    var buffer = new byte[81920];
+                    long done = 0;
+                    var shown = -1;
+                    int read;
+                    while ((read = await src.ReadAsync(buffer, ct)) > 0)
+                    {
+                        await dst.WriteAsync(buffer.AsMemory(0, read), ct);
+                        done += read;
+                        var percent = (int)(done * 100 / total.Value);
+                        if (percent != shown)
+                            s.Out.Progress($"{label} {shown = percent}%");
+                    }
+                }
+                else
+                    await src.CopyToAsync(dst, ct);
+            }
 
             var expected = resp.Content.Headers.ContentLength;
             var actual = new FileInfo(part).Length;

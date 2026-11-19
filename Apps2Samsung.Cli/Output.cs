@@ -122,7 +122,8 @@ public sealed class Output : IDisposable
 
     private static bool TerminalWantsRich()
     {
-        if (Console.IsOutputRedirected || Console.IsErrorRedirected)
+        // stdin too (#1128): a prompt that cannot read a key throws instead of asking.
+        if (Console.IsOutputRedirected || Console.IsErrorRedirected || Console.IsInputRedirected)
             return false;
         if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("NO_COLOR")))
             return false;
@@ -176,6 +177,28 @@ public sealed class Output : IDisposable
         {
             CloseStep(Glyph.Done);
             _stderr!.MarkupLine(markup);
+        }
+    }
+
+    /// <summary>
+    /// A line the user has to read and copy whole, such as a sign-in address (stderr). Never silenced
+    /// by <c>--quiet</c> and never the live step line, which is cut to the terminal's width and
+    /// redrawn ten times a second (#1128).
+    /// </summary>
+    public void Notice(string message)
+    {
+        Trace.WriteLine($"[cli] {message}");
+        if (!Rich)
+        {
+            StdErr.WriteLine(message);
+            return;
+        }
+        lock (_gate)
+        {
+            CloseStep(Glyph.Done);
+            // Plain, unwrapped and unstyled: an address that is cut or broken across lines by a
+            // renderer cannot be copied.
+            StdErr.WriteLine(message);
         }
     }
 

@@ -23,6 +23,8 @@ public static class LogsCommand
             {
                 return Task.FromResult(s.Out.Fail($"Could not read {newest.FullName}: {ex.Message}"));
             }
+            if (s.Out.AsJson)
+                return Task.FromResult(s.Out.Result(new { ok = true, file = newest.FullName, text }, Array.Empty<string>()));
             // As it is, never as a card: the point is a file to attach.
             Output.StdOut.Write(text);
             return Task.FromResult(Output.Ok);

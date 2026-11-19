@@ -16,8 +16,8 @@ public static class UninstallCommand
         s.Out.Progress($"Removing {id} from {ip}…");
         var result = await s.Sdb.UninstallAsync(ip, id);
         // "failed[132]" = not installed: already gone, treat as success (as both heads do).
-        var ok = result.ExitCode == 0 ||
-                 (result.Output?.Contains("failed[132]", StringComparison.OrdinalIgnoreCase) ?? false);
+        var notInstalled = result.Output?.Contains("failed[132]", StringComparison.OrdinalIgnoreCase) ?? false;
+        var ok = result.ExitCode == 0 || notInstalled;
         if (!ok)
             return s.Out.Fail($"The TV did not remove {id}: {(string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() : result.Error)}");
 
@@ -29,6 +29,12 @@ public static class UninstallCommand
         if (apps.Any(a => string.Equals(a.TizenId, id, StringComparison.OrdinalIgnoreCase)))
             return s.Out.Fail($"The TV refused to remove {id}: store and preinstalled apps can only be removed from the TV's own Apps settings.");
 
-        return s.Out.Result(new { ok = true, tv = ip, appId = id }, new[] { $"Removed {id}." });
+        // Still a success for a script that only wants the app gone, but not "Removed": a mistyped id,
+        // or a catalog name where the app id belongs, used to read as a removal (#1128).
+        if (notInstalled)
+            return s.Out.Result(new { ok = true, tv = ip, appId = id, removed = false },
+                new[] { $"{id} is not installed on {ip}, nothing was removed. `apps2samsung-cli installed --tv {ip}` prints the app ids." });
+
+        return s.Out.Result(new { ok = true, tv = ip, appId = id, removed = true }, new[] { $"Removed {id}." });
     }
 }

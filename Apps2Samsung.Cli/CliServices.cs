@@ -87,7 +87,7 @@ public sealed class CliServices : IAsyncDisposable
         Repositories = new Apps2Samsung.Catalog.Repositories.SignedRepositories(Http, Path.Combine(CliPaths.CliDir, "repositories"));
         Strings = new LocalizationCatalog();
 
-        var login = new BrowserSamsungLogin(!options.NoBrowser, TimeSpan.FromSeconds(options.LoginTimeoutSeconds), Out.Progress);
+        var login = new BrowserSamsungLogin(!options.NoBrowser, TimeSpan.FromSeconds(options.LoginTimeoutSeconds), Out.Progress, Out.Notice);
         var certService = new TizenCertificateService(Http, CertificateEndpoints.Default);
         Provisioning = new CertificateProvisioningService(certService, login);
 

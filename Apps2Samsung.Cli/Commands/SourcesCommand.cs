@@ -79,7 +79,7 @@ public static class SourcesCommand
             if (!string.Equals(e.Url, e.Fetches, StringComparison.OrdinalIgnoreCase))
                 text.Add($"    reads {e.Fetches}");
         }
-        return s.Out.Result(new { sources = entries }, text, rich: Views.Sources(text, s.Out.Unicode));
+        return s.Out.Result(new { ok = true, sources = entries }, text, rich: Views.Sources(text, s.Out.Unicode));
     }
 
     private static async Task<int> AddAsync(CliServices s, CancellationToken ct)
@@ -111,7 +111,7 @@ public static class SourcesCommand
         sources.Add(source);
         s.Desktop.UserSourcesJson = UserSources.Serialize(sources);
         var entry = ToEntry(source);
-        return s.Out.Result(new { added = entry },
+        return s.Out.Result(new { ok = true, added = entry },
             new[] { $"Added {entry.Name} ({entry.Kind}). `catalog` lists it from now on, here and in the desktop app." });
     }
 
@@ -135,7 +135,7 @@ public static class SourcesCommand
         sources.Remove(matches[0]);
         s.Desktop.UserSourcesJson = UserSources.Serialize(sources);
         var entry = ToEntry(matches[0]);
-        return s.Out.Result(new { removed = entry }, new[] { $"Removed {entry.Name}. Apps installed from it stay on the TV." });
+        return s.Out.Result(new { ok = true, removed = entry }, new[] { $"Removed {entry.Name}. Apps installed from it stay on the TV." });
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ public static class SourcesCommand
         var existing = sources.FirstOrDefault(src => string.Equals(src.Url.Trim(), url, StringComparison.OrdinalIgnoreCase)
             || (src.RepositoryId is not null && string.Equals(src.RepositoryId, m.Repository.Id, StringComparison.Ordinal)));
         if (existing is not null && string.Equals(existing.Fingerprint, fingerprint, StringComparison.Ordinal))
-            return s.Out.Result(new { added = ToEntry(existing), unchanged = true }, new[] { $"{m.Repository.Name} is already in the list with this key." });
+            return s.Out.Result(new { ok = true, added = ToEntry(existing), unchanged = true }, new[] { $"{m.Repository.Name} is already in the list with this key." });
         if (existing?.Fingerprint is { } old)
             lines.Insert(0, $"The publisher's key changed: it was {RepositoryVerifier.FormatFingerprint(old)}. Approve the new one only if the publisher announced the change.");
 
@@ -209,7 +209,7 @@ public static class SourcesCommand
                 ? $"Added {entry.Name}. `catalog` lists its apps from now on, labelled with its name."
                 : $"Approved the new key for {entry.Name}.",
         };
-        return s.Out.Result(new { added = entry, fingerprint, keyChanged = existing is not null }, done);
+        return s.Out.Result(new { ok = true, added = entry, fingerprint, keyChanged = existing is not null }, done);
     }
 
     public static Entry ToEntry(UserSource source) => new(

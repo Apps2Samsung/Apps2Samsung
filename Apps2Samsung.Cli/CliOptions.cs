@@ -120,9 +120,11 @@ public sealed class CliOptions
                 continue;
             }
 
+            // The value after an option. Another option is not a value (#1128): `install x --tv --yes`
+            // used to set the TV to "--yes".
             string? Next(string name)
             {
-                if (i + 1 >= args.Length)
+                if (i + 1 >= args.Length || args[i + 1].StartsWith("--", StringComparison.Ordinal))
                     return null;
                 return args[++i];
             }
@@ -131,7 +133,9 @@ public sealed class CliOptions
             switch (arg)
             {
                 case "-h" or "--help": o.Help = true; break;
-                case "-V" or "--version" when o.Command.Length == 0: o.ShowVersion = true; break;
+                case "--version" when o.Command.Length == 0: o.ShowVersion = true; break;
+                // -V has one meaning wherever it stands; --version after a verb is a release tag.
+                case "-V": o.ShowVersion = true; break;
                 case "--json": o.Json = true; break;
                 case "-q" or "--quiet": o.Quiet = true; break;
                 case "--plain": o.Plain = true; break;
@@ -149,7 +153,7 @@ public sealed class CliOptions
                 case "--all": o.All = true; break;
                 case "--adult": o.Adult = true; break;
                 case "--popular": o.Popular = true; break;
-                case "--github-token": o.GitHubToken = Next(arg) ?? string.Empty; break;
+                case "--github-token": { var t = Next(arg); if (t is null) return (o, "--github-token needs a token"); o.GitHubToken = t; break; }
                 case "--source":
                 {
                     var link = Next(arg);
@@ -209,7 +213,7 @@ public sealed class CliOptions
                     o.LoginTimeoutSeconds = seconds;
                     break;
                 }
-                case "--duids": o.ManualDuids = Next(arg) ?? string.Empty; break;
+                case "--duids": { var d = Next(arg); if (d is null) return (o, "--duids needs one or more DUIDs, comma-separated"); o.ManualDuids = d; break; }
                 case "--export": o.ExportPath = Next(arg); if (o.ExportPath is null) return (o, "--export needs a file to write"); break;
                 case "--import": o.ImportPath = Next(arg); if (o.ImportPath is null) return (o, "--import needs a file to read"); break;
                 case "-o" or "--output": o.OutputPath = Next(arg); if (o.OutputPath is null) return (o, "-o needs the file to write"); break;
@@ -239,5 +243,20 @@ public sealed class CliOptions
                 o.Passthrough.AddRange(args[start..(i + 1)]);
         }
         return (o, null);
+    }
+
+    /// <summary>
+    /// <paramref name="args"/> with the value of every secret option replaced by a placeholder, for
+    /// a command line that is shown on screen (#1128): the menu's "The same as:" line ends up in
+    /// screenshots for bug reports.
+    /// </summary>
+    public static IEnumerable<string> WithoutSecrets(IEnumerable<string> args)
+    {
+        var hide = false;
+        foreach (var arg in args)
+        {
+            yield return hide ? "<token>" : arg;
+            hide = arg == "--github-token";
+        }
     }
 }
