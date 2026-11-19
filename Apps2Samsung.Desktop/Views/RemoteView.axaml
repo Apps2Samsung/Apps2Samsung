@@ -130,7 +130,10 @@
     </UserControl.Styles>
 
     <ScrollViewer>
+        <!-- At most 920 wide (#1129): on a maximized window the two panels stretched into very wide,
+             mostly empty keys. -->
         <Grid ColumnDefinitions="*,*" ColumnSpacing="14" Margin="0,0,0,16" VerticalAlignment="Top"
+              MaxWidth="920"
               Classes="keys" IsEnabled="{Binding IsConnected}">
 
             <!-- Navigation -->
@@ -208,12 +211,16 @@
 
                     <!-- Transport: previous, rewind, stop, fast-forward, next -->
                     <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="6">
-                        <Button Grid.Column="0" Classes="key small" Content="⏮" Command="{Binding SendKeyCommand}" CommandParameter="KEY_REWIND_"/>
-                        <Button Grid.Column="1" Classes="key small" Content="⏪" Command="{Binding SendKeyCommand}" CommandParameter="KEY_REWIND"/>
+                        <Button Grid.Column="0" Classes="key small" Content="⏮" Command="{Binding SendKeyCommand}" CommandParameter="KEY_REWIND_"
+                                ToolTip.Tip="{l:Localize lblRemotePrevious}" AutomationProperties.Name="{l:Localize lblRemotePrevious}"/>
+                        <Button Grid.Column="1" Classes="key small" Content="⏪" Command="{Binding SendKeyCommand}" CommandParameter="KEY_REWIND"
+                                ToolTip.Tip="{l:Localize lblRemoteRewind}" AutomationProperties.Name="{l:Localize lblRemoteRewind}"/>
                         <Button Grid.Column="2" Classes="key small" Content="⏹" Command="{Binding SendKeyCommand}" CommandParameter="KEY_STOP"
                                 ToolTip.Tip="{l:Localize lblRemoteStop}"/>
-                        <Button Grid.Column="3" Classes="key small" Content="⏩" Command="{Binding SendKeyCommand}" CommandParameter="KEY_FF"/>
-                        <Button Grid.Column="4" Classes="key small" Content="⏭" Command="{Binding SendKeyCommand}" CommandParameter="KEY_FF_"/>
+                        <Button Grid.Column="3" Classes="key small" Content="⏩" Command="{Binding SendKeyCommand}" CommandParameter="KEY_FF"
+                                ToolTip.Tip="{l:Localize lblRemoteFastForward}" AutomationProperties.Name="{l:Localize lblRemoteFastForward}"/>
+                        <Button Grid.Column="4" Classes="key small" Content="⏭" Command="{Binding SendKeyCommand}" CommandParameter="KEY_FF_"
+                                ToolTip.Tip="{l:Localize lblRemoteNext}" AutomationProperties.Name="{l:Localize lblRemoteNext}"/>
                     </Grid>
 
                     <!-- The number keys -->

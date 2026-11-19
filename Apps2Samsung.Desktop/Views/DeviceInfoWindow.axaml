@@ -19,7 +19,7 @@
         <StyleInclude Source="avares://Apps2Samsung/Styles/TextBlocks.axaml"/>
     </Window.Styles>
 
-    <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" Padding="16">
+    <Border Background="{DynamicResource SurfaceBrush}" Padding="16">
         <DockPanel LastChildFill="True">
 
             <!-- Header -->
@@ -30,7 +30,7 @@
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
                     <Button Content="↻" Command="{Binding LoadCommand}" ToolTip.Tip="{l:Localize lblRefresh}"/>
-                    <Button Content="✕" Command="{Binding CloseCommand}"/>
+                    <Button Content="✕" Command="{Binding CloseCommand}" ToolTip.Tip="{l:Localize btn_Close}" AutomationProperties.Name="{l:Localize btn_Close}"/>
                 </StackPanel>
             </Grid>
 
@@ -44,7 +44,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="models:DeviceInfoRow">
                             <Border Margin="0,3" Padding="12,10"
-                                    Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                                    Background="{DynamicResource FillBrush}"
                                     CornerRadius="8">
                                 <Grid ColumnDefinitions="150,*" ColumnSpacing="12">
                                     <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="13" Opacity="0.6"

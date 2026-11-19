@@ -25,11 +25,11 @@
 		<StyleInclude Source="avares://Apps2Samsung/Styles/ComboBoxes.axaml"/>
 	</Window.Styles>
 
-	<Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+	<Border Background="{DynamicResource SurfaceBrush}"
             Padding="10"
             CornerRadius="8"
             Margin="20"
-		    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+		    BorderBrush="{DynamicResource HairBrush}"
             BorderThickness="1">
 		<Border.Effect>
 			<DropShadowEffect BlurRadius="15"

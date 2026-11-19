@@ -9,6 +9,9 @@
         x:DataType="viewModels:TvLogsViewModel"
         Width="900"
         Height="650"
+        MinWidth="560"
+        MinHeight="360"
+        Background="{DynamicResource BgBrush}"
         Title="{l:Localize lblTvLogOutput}"
         WindowStartupLocation="CenterOwner">
 
@@ -50,13 +53,14 @@
 	<!-- ========================= -->
 	<!-- Layout -->
 	<!-- ========================= -->
-	<Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+	<Border Background="{DynamicResource SurfaceBrush}"
 			Padding="16"
 			CornerRadius="8"
 			Margin="12"
-			BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+			BorderBrush="{DynamicResource HairBrush}"
 			BorderThickness="1">
-		<StackPanel Spacing="16">
+		<!-- The log row takes whatever height is left (#1129): it was a fixed 450 px in a stack. -->
+		<Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="16">
 
 			<!-- Header -->
 			<TextBlock Text="{l:Localize lblTvLogOutput}"
@@ -65,7 +69,7 @@
                        Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
 
 			<!-- Status + Endpoint -->
-			<StackPanel Orientation="Horizontal"
+			<StackPanel Grid.Row="1" Orientation="Horizontal"
                         Spacing="12"
                         VerticalAlignment="Center">
 
@@ -88,17 +92,16 @@
 			</StackPanel>
 
 			<!-- Log output -->
-			<Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+			<Border Grid.Row="2" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                     BorderThickness="1"
                     Background="{DynamicResource GlassBrush}"
                     CornerRadius="4"
-                    Padding="6"
-                    Height="450">
+                    Padding="6">
 
 				<ScrollViewer x:Name="LogScrollViewer"
                               VerticalScrollBarVisibility="Auto">
 					<TextBlock Text="{Binding Logs}"
-                               FontFamily="Consolas"
+                               FontFamily="Consolas, Menlo, DejaVu Sans Mono, monospace"
                                FontSize="13"
                                Foreground="{DynamicResource GlassInkBrush}"
                                TextWrapping="Wrap"/>
@@ -107,34 +110,35 @@
 			</Border>
 
 			<!-- Buttons -->
-			<StackPanel Orientation="Horizontal"
+			<StackPanel Grid.Row="3" Orientation="Horizontal"
                         HorizontalAlignment="Right"
                         Spacing="10">
 
 				<Button Content="{Binding StartLog}"
-                        Width="100"
+                        MinWidth="100"
                         Classes="primary"
                         IsEnabled="{Binding CanStart}"
                         Command="{Binding StartCommand}" />
 
 				<Button Content="{Binding StopLog}"
-                        Width="100"
+                        MinWidth="100"
                         Classes="primary"
                         IsEnabled="{Binding CanStop}"
                         Command="{Binding StopCommand}" />
 
 				<Button Content="{Binding SaveLogFile}"
-                        Width="120"
+                        MinWidth="120"
                         Classes="primary"
                         Command="{Binding SaveLogsCommand}" />
 
 				<Button Content="{Binding Close}"
-                        Width="100"
-                        Classes="primary"
+                        MinWidth="100"
+                        Classes="plain"
+                        IsCancel="True"
                         Click="OnCloseClick" />
 
 			</StackPanel>
 
-		</StackPanel>
+		</Grid>
 	</Border>
 </Window>

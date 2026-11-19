@@ -19,7 +19,7 @@
         <StyleInclude Source="avares://Apps2Samsung/Styles/TextBlocks.axaml"/>
     </Window.Styles>
 
-    <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" Padding="16">
+    <Border Background="{DynamicResource SurfaceBrush}" Padding="16">
         <DockPanel LastChildFill="True">
 
             <!-- Header: title, status pill, which page is being inspected -->

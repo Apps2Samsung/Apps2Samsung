@@ -10,6 +10,9 @@ namespace Apps2Samsung.Views
         public MainWindow()
         {
             InitializeComponent();
+            RestorePlacement();
+            Closing += (_, _) => SavePlacement();
+            KeyDown += OnShortcutKeyDown;
             this.Opened += async (_, __) =>
             {
                 if (DataContext is MainWindowViewModel vm)
@@ -32,6 +35,89 @@ namespace Apps2Samsung.Views
             // While the Remote section is up the keyboard is the remote: tunnel, so the arrows and
             // Enter reach the TV before a focused sidebar or toolbar button takes them.
             AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
+        }
+
+        /// <summary>
+        /// Opens where it was closed (#1129). The size always; the position only while that spot is
+        /// still on a screen, so a window left on a monitor that is gone opens centred as before.
+        /// </summary>
+        private void RestorePlacement()
+        {
+            var settings = Helpers.AppSettings.Default;
+            if (settings.WindowWidth is { } width && settings.WindowHeight is { } height
+                && width >= MinWidth && height >= MinHeight)
+            {
+                Width = width;
+                Height = height;
+            }
+            if (settings.WindowX is { } x && settings.WindowY is { } y)
+            {
+                var corner = new Avalonia.PixelPoint(x, y);
+                // The title bar has to be reachable: its left end, a little in from the corner.
+                var grip = new Avalonia.PixelPoint(x + 40, y + 10);
+                foreach (var screen in Screens.All)
+                {
+                    if (!screen.WorkingArea.Contains(grip))
+                        continue;
+                    WindowStartupLocation = WindowStartupLocation.Manual;
+                    Position = corner;
+                    break;
+                }
+            }
+            if (settings.WindowMaximized)
+                WindowState = WindowState.Maximized;
+        }
+
+        private void SavePlacement()
+        {
+            var settings = Helpers.AppSettings.Default;
+            settings.WindowMaximized = WindowState == WindowState.Maximized;
+            // A maximized or minimized window keeps the size and place it had before that.
+            if (WindowState == WindowState.Normal)
+            {
+                settings.WindowWidth = Width;
+                settings.WindowHeight = Height;
+                settings.WindowX = Position.X;
+                settings.WindowY = Position.Y;
+            }
+            settings.Save();
+        }
+
+        /// <summary>
+        /// The two shortcuts every list app has (#1129): Ctrl+F (Cmd+F on a Mac) puts the cursor in
+        /// the catalog's search box, F5 or Ctrl+R reads the current section again. Not on Remote,
+        /// where the keyboard belongs to the TV.
+        /// </summary>
+        private void OnShortcutKeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.Handled || DataContext is not MainWindowViewModel vm || vm.IsRemoteSection)
+                return;
+            var command = PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control;
+            var withCommand = e.KeyModifiers == command;
+
+            if (withCommand && e.Key == Key.F)
+            {
+                if (!vm.IsInstallSection)
+                    vm.ShowSectionCommand.Execute("Install");
+                SearchBox.Focus();
+                SearchBox.SelectAll();
+                e.Handled = true;
+            }
+            else if ((e.Key == Key.F5 && e.KeyModifiers == KeyModifiers.None) || (withCommand && e.Key == Key.R))
+            {
+                if (vm.IsOnTheTvSection && vm.InstalledAppsVm is { } apps)
+                {
+                    if (apps.LoadCommand.CanExecute(null))
+                        apps.LoadCommand.Execute(null);
+                    e.Handled = true;
+                }
+                else if (vm.IsInstallSection)
+                {
+                    if (vm.RefreshDevicesCommand.CanExecute(null))
+                        vm.RefreshDevicesCommand.Execute(null);
+                    e.Handled = true;
+                }
+            }
         }
 
         private async void OnPreviewKeyDown(object? sender, KeyEventArgs e)
