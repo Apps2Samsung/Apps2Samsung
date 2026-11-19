@@ -749,7 +749,10 @@ internal sealed class Menu
                 _con.MarkupLine(M($"{E(release.Name)} asks for a few values before it installs."));
                 foreach (var st in settings)
                 {
-                    var value = await AskAsync($"{E(st.Label)}{(st.Required ? "" : M(" (optional)"))}:", allowEmpty: !st.Required, defaultValue: st.Default, hint: st.HelpUrl);
+                    // A required value left empty is the way back (#1128): there was none short of ctrl+c.
+                    var value = await AskAsync($"{E(st.Label)}{M(st.Required ? " (empty goes back)" : " (optional)")}:", allowEmpty: true, defaultValue: st.Default, hint: st.HelpUrl);
+                    if (st.Required && string.IsNullOrWhiteSpace(value))
+                        return;
                     if (!string.IsNullOrWhiteSpace(value))
                         args.AddRange(new[] { "--set", $"{st.Key}={value.Trim()}" });
                 }

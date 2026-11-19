@@ -17,6 +17,15 @@ public static class UpdateCommand
 {
     private sealed record Target(string Name, GitHubRelease Release, Asset Asset, string? From, string? Installed, string? To);
 
+    /// <summary>Every name an installed app answers to on the command line: its own, its id, and the catalog's name for it.</summary>
+    private static IEnumerable<string> Names(InstalledApp app, IReadOnlyList<GitHubRelease> entries, string? renames, string? variants, string ip)
+    {
+        yield return app.DisplayName;
+        yield return app.TizenId;
+        if (InstalledAppUpdates.Find(app, entries, renames, variants, ip) is { } match)
+            yield return match.Release.Name;
+    }
+
     public static async Task<int> RunAsync(CliServices s, CancellationToken ct)
     {
         var ip = s.Options.Tv;
@@ -31,6 +40,14 @@ public static class UpdateCommand
         var removed = catalog.RemovedApps;
         string? variants = null;
         try { variants = s.Desktop.InstalledVariantsJson; } catch (Exception ex) when (ex is IOException or InvalidOperationException or UnauthorizedAccessException) { }
+
+        // A name that is no app on this TV is a mistake to say out loud (#1128), not "No update for":
+        // that reads the same as an app that is simply up to date, and it exited 0.
+        var absent = names.Where(n => !apps.Any(a => Names(a, catalog.Entries, s.Config.PackageIdRenamesJson, variants, ip)
+            .Any(known => string.Equals(known, n, StringComparison.OrdinalIgnoreCase)))).ToList();
+        if (absent.Count > 0)
+            return s.Out.Fail($"Not on {ip}: {string.Join(", ", absent)}. Nothing was updated. `apps2samsung-cli installed --tv {ip}` prints what is there.",
+                details: new { notInstalled = absent });
 
         var targets = new List<Target>();
         var notFound = new List<string>();
@@ -71,7 +88,7 @@ public static class UpdateCommand
         {
             var nothing = new List<string>(desktopLines);
             if (notFound.Count > 0)
-                nothing.Add($"No update for: {string.Join(", ", notFound)}.");
+                nothing.Add($"Up to date, or not in the catalog: {string.Join(", ", notFound)}.");
             if (nothing.Count == 0)
                 nothing.Add($"Every app on {ip} is up to date with the catalog.");
             return s.Out.Result(new { ok = true, tv = ip, updated = Array.Empty<object>(), notFound, leftToDesktop }, nothing);
