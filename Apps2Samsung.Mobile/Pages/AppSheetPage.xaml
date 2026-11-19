@@ -51,7 +51,7 @@
                 <Button Grid.Column="3" x:Name="FavoriteBtn" Text="☆" FontSize="18" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
                         MinimumWidthRequest="32" MinimumHeightRequest="32"
                         BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnFavoriteClicked" />
-                <Button Grid.Column="4" Text="✕" FontSize="13" SemanticProperties.Description="{l:Localize btn_Close}" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
+                <Button Grid.Column="4" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
                         MinimumWidthRequest="32" MinimumHeightRequest="32"
                         BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnCloseClicked" />
             </Grid>
