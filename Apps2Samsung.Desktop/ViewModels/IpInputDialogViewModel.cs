@@ -16,7 +16,7 @@ namespace Apps2Samsung.ViewModels
         public string Title => _localization.GetString("IpWindowTitle");
         public string Message => _localization.GetString("IpWindowDescription");
         public string OkText => _localization.GetString("keyConfirm");
-        public string CancelText => _localization.GetString("keyStop");
+        public string CancelText => _localization.GetString("lblCancel");
         public IRelayCommand OkCommand { get; }
         public IRelayCommand CancelCommand { get; }
 

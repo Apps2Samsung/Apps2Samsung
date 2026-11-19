@@ -25,6 +25,7 @@ namespace Apps2Samsung.Views
         public CertificateWaitWindow()
         {
             InitializeComponent();
+            Apps2Samsung.Helpers.DialogKeys.CloseOnEscape(this);
         }
 
         public CertificateWaitWindow(DateTime validFromLocal, Func<string, string> localize) : this()
