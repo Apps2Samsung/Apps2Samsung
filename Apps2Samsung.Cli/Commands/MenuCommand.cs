@@ -684,6 +684,7 @@ internal sealed class Menu
             .HighlightStyle(new Style(decoration: Decoration.Bold))
             .EnableSearch()
             .SearchPlaceholderText(M("type to search"))
+            .WrapAround()
             .AddChoices(choices);
         var pick = await prompt.ShowAsync(_con, _ct);
 
@@ -734,7 +735,11 @@ internal sealed class Menu
                 var files = FileRows(withFile: true);
                 if (files.Any(i => Views.Cells(Markup.Remove(i.Label)) > _s.Out.Width - 4))
                     files = FileRows(withFile: false);
+                // A way back from here too (#1128): after a wrong app the only exit was ctrl+c.
+                files.Add(new Item(M($"{(_unicode ? "←" : "<-")} Back"), "back"));
                 var picked = await SelectAsync(M("Which file"), files);
+                if (picked.Tag is "back")
+                    return;
                 chosen = (CatalogCommand.FileInfo)picked.Tag!;
                 if (!chosen.Default)
                     args.AddRange(new[] { "--file", chosen.Variant ?? Path.GetFileNameWithoutExtension(chosen.File) });
@@ -744,7 +749,10 @@ internal sealed class Menu
                 _con.MarkupLine(M($"{E(release.Name)} asks for a few values before it installs."));
                 foreach (var st in settings)
                 {
-                    var value = await AskAsync($"{E(st.Label)}{(st.Required ? "" : M(" (optional)"))}:", allowEmpty: !st.Required, defaultValue: st.Default, hint: st.HelpUrl);
+                    // A required value left empty is the way back (#1128): there was none short of ctrl+c.
+                    var value = await AskAsync($"{E(st.Label)}{M(st.Required ? " (empty goes back)" : " (optional)")}:", allowEmpty: true, defaultValue: st.Default, hint: st.HelpUrl);
+                    if (st.Required && string.IsNullOrWhiteSpace(value))
+                        return;
                     if (!string.IsNullOrWhiteSpace(value))
                         args.AddRange(new[] { "--set", $"{st.Key}={value.Trim()}" });
                 }
@@ -942,7 +950,7 @@ internal sealed class Menu
     private void ShowLine(IReadOnlyList<string> args)
     {
         _s.Out.Idle();
-        _con.MarkupLine($"{M("The same as:")} {A("apps2samsung-cli " + E(Shell.Join(args.Concat(_s.Options.Passthrough).ToList())))}");
+        _con.MarkupLine($"{M("The same as:")} {A("apps2samsung-cli " + E(Shell.Join(args.Concat(CliOptions.WithoutSecrets(_s.Options.Passthrough)).ToList())))}");
     }
 
     /// <summary>Runs a command and leaves what it printed on screen until a key is pressed; the next screen clears it.</summary>

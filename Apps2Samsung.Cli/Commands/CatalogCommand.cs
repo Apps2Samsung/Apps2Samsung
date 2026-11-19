@@ -36,6 +36,9 @@ public static class CatalogCommand
         if (!string.IsNullOrWhiteSpace(s.Options.Category))
         {
             var id = AppCategories.Normalize(s.Options.Category);
+            // A typo used to list the "other" category without a word (#1128).
+            if (!AppCategories.Ordered.Contains(AppCategories.Clean(s.Options.Category)))
+                return s.Out.Fail($"unknown category '{s.Options.Category}'. The categories: {string.Join(", ", AppCategories.Ordered)}", Output.Usage);
             entries = CommunityAppList.Filter(entries, id);
         }
         var words = s.Options.Arguments;

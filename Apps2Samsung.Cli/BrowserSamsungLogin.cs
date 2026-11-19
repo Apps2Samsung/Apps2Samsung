@@ -21,12 +21,15 @@ public sealed class BrowserSamsungLogin : ISamsungLoginService
     private readonly bool _openBrowser;
     private readonly TimeSpan _timeout;
     private readonly Action<string> _say;
+    private readonly Action<string> _show;
 
-    public BrowserSamsungLogin(bool openBrowser, TimeSpan timeout, Action<string> say)
+    public BrowserSamsungLogin(bool openBrowser, TimeSpan timeout, Action<string> say, Action<string>? show = null)
     {
         _openBrowser = openBrowser;
         _timeout = timeout;
         _say = say;
+        // What has to be read whatever the output mode: the address to open, when the browser is not opened here.
+        _show = show ?? say;
     }
 
     private static string RedirectUri => $"http://{Constants.Samsung.LoopbackHost}:{SamsungOAuth.CallbackPort}{SamsungOAuth.CallbackPath}";
@@ -53,10 +56,22 @@ public sealed class BrowserSamsungLogin : ISamsungLoginService
         try
         {
             _say("A Samsung account sign-in is needed to create the signing certificate.");
-            _say(_openBrowser ? "Opening the browser; sign in there, then come back here." : "Open this address in a browser on this machine and sign in:");
-            _say(url);
-            if (_openBrowser && !TryOpenBrowser(url))
-                _say("The browser could not be opened; open the address above by hand.");
+            if (_openBrowser)
+            {
+                _say("Opening the browser; sign in there, then come back here.");
+                _say(url);
+                if (!TryOpenBrowser(url))
+                {
+                    _show("The browser could not be opened; open this address by hand and sign in:");
+                    _show(url);
+                }
+            }
+            else
+            {
+                _show("Open this address in a browser on this machine and sign in:");
+                _show(url);
+            }
+            _say("Waiting for the sign-in…");
 
             while (true)
             {

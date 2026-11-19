@@ -21,7 +21,8 @@ public static class Help
                                        `update <app>... --tv <ip>` updates only the named apps
           sign <file> -o <out> --tv <ip>  sign a local .wgt/.tpk for a TV without installing it
           uninstall <appId> --tv <ip>  remove an app; the app id as `installed` prints it
-          launch <appId> --tv <ip>
+          launch <appId> --tv <ip>     start an installed app on the TV
+          menu                         pick a TV and what to do from lists (what runs without a command on a terminal)
           cert [--tv <ip>]             the signing certificates on this machine; --prepare makes one now,
                                        --export / --import move one between devices
           tvstore --tv <ip>            arm the TV-Store app on the TV: hand it the signing certificate once
@@ -40,7 +41,8 @@ public static class Help
           --json                       one JSON document on stdout instead of text (progress stays on stderr)
           -q, --quiet                  no progress lines
           --plain                      text only: no colours, cards or live progress (as when piped, or with NO_COLOR)
-          -y, --yes                    continue past pre-install warnings
+          -y, --yes                    answer yes where a command would stop and ask: pre-install warnings,
+                                       overwriting a file, replacing a certificate, trusting a repository key
           --tv <ip>                    the TV's IP address (from `scan`)
           --local-ip <ip>              this machine's address on the TV's network (default: the desktop app's
                                        network setting, else the default route; set it on a VPN)
@@ -48,10 +50,10 @@ public static class Help
           --github-token <token>       GitHub token for the catalog's API calls (or GITHUB_TOKEN)
           --source <link>              a source for this run only (repeatable): a GitHub repository, a release,
                                        a .wgt/.tpk link or a .json feed, listed as if added with `sources add`
-          -h, --help                   this text, or `<command> --help` for one command
-          --version                    the CLI version
+          -h, --help                   this text, or `<command> --help` (or `help <command>`) for one command
+          -V, --version                the CLI version (after a command, --version <tag> picks a release)
 
-        exit codes: 0 done, 1 failed, 2 usage, 3 stopped at a check (rerun with --yes to continue)
+        exit codes: 0 done, 1 failed, 2 usage, 3 stopped at a check (the message names the flag that continues)
         """;
 
     private const string Catalog = """
@@ -360,8 +362,53 @@ public static class Help
         In the menu: "Update Apps2Samsung" in the list of TVs.
         """;
 
+    public const string Scan = """
+        usage: apps2samsung-cli scan [--virtual] [--json]
+
+        Looks for Samsung TVs on this machine's network and prints each one with what stands in the way
+        of an install, if anything. --virtual includes VPN and virtual adapters; the scan tries that by
+        itself when nothing turns up.
+        A TV that is missing: check that it is on and on the same network. `tv <ip>` asks one address
+        directly.
+        """;
+
+    public const string Installed = """
+        usage: apps2samsung-cli installed --tv <ip> [--json]
+
+        The apps on the TV: name, version and app id, and whether the catalog has a newer version.
+        The app id is what `uninstall` and `launch` take.
+        """;
+
+    public const string Uninstall = """
+        usage: apps2samsung-cli uninstall <appId> --tv <ip> [--json]     (alias: remove)
+
+        Removes an app from the TV. <appId> is the id `installed --tv <ip>` prints, not the catalog name.
+        An id that is not on the TV is reported as such and still exits 0, so a script that only wants
+        the app gone can run it twice. Store and preinstalled apps can only be removed on the TV itself.
+        """;
+
+    public const string Launch = """
+        usage: apps2samsung-cli launch <appId> --tv <ip> [--json]     (alias: open)
+
+        Starts an installed app on the TV. <appId> is the id `installed --tv <ip>` prints.
+        """;
+
+    public const string Menu = """
+        usage: apps2samsung-cli menu [options]
+
+        The same commands from lists: pick a TV, then install, update, remove, sign or look at what is
+        on it. Runs when the CLI is started without a command on a terminal. Every choice shows the
+        command line it runs, for a script. Options given here (--data-dir, --adult, --source ...)
+        carry through to those commands. ctrl+c leaves the menu.
+        """;
+
     public static string For(string command) => command switch
     {
+        "scan" => Scan,
+        "installed" => Installed,
+        "uninstall" or "remove" => Uninstall,
+        "launch" or "open" => Launch,
+        "menu" => Menu,
         "catalog" or "search" or "apps" => Catalog,
         "sources" or "source" => Sources,
         "tv" => Tv,
