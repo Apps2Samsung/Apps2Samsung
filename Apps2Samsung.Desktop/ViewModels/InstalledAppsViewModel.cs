@@ -303,7 +303,9 @@ namespace Apps2Samsung.ViewModels
                 // throws and lands in the catch below.
                 StatusText = apps.Count == 0
                     ? "statusNoInstalledApps".Localized()
-                    : $"{apps.Count} apps · {totalUsed} used · {removable} removable";
+                    : apps.Count == 1
+                        ? string.Format("lblAppsOnTvStatusOne".Localized(), totalUsed, removable)
+                        : string.Format("lblAppsOnTvStatus".Localized(), apps.Count, totalUsed, removable);
             }
             catch (Exception ex)
             {

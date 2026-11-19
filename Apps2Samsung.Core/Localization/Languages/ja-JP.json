@@ -408,7 +408,7 @@
   "lblDebugLog": "デバッグログ",
   "statusNoLogFile": "このセッションで使用できるログファイルはまだありません。",
   "statusLogShareFailed": "ログを共有できませんでした: {0}",
-  "lblRemote": "リモート",
+  "lblRemote": "リモコン",
   "lblRemotePower": "電源を切る（テレビが自動的にスリープ状態になります）",
   "lblRemoteReconnect": "再接続",
   "lblRemoteOk": "OK",

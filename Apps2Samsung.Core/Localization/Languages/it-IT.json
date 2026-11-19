@@ -397,7 +397,7 @@
   "lblDebugLog": "Log di debug",
   "statusNoLogFile": "Non è ancora disponibile alcun file di registro per questa sessione.",
   "statusLogShareFailed": "Impossibile condividere il log: {0}",
-  "lblRemote": "Remoto",
+  "lblRemote": "Telecomando",
   "lblRemotePower": "Alimentazione (spegne la TV; una TV addormentata si sveglia automaticamente)",
   "lblRemoteReconnect": "Riconnetti",
   "lblRemoteOk": "OK",

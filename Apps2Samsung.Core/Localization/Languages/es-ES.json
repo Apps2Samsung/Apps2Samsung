@@ -406,7 +406,7 @@
   "lblDebugLog": "Depurar registro",
   "statusNoLogFile": "Todavía no hay archivo de registro disponible para esta sesión.",
   "statusLogShareFailed": "No se pudo compartir el registro: {0}",
-  "lblRemote": "Remoto",
+  "lblRemote": "Mando",
   "lblRemotePower": "Poder (apaga el televisor; una TV dormida se despierta automáticamente)",
   "lblRemoteReconnect": "Volver a conectar",
   "lblRemoteOk": "Ok",

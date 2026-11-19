@@ -406,7 +406,7 @@
   "lblDebugLog": "Logi debugowania",
   "statusNoLogFile": "Brak pliku dziennika dla tej sesji.",
   "statusLogShareFailed": "Nie można udostępnić wpisu: {0}",
-  "lblRemote": "Zdalny",
+  "lblRemote": "Pilot",
   "lblRemotePower": "Moc (wyłącza telewizor; telewizor uśpiący jest obudzany automatycznie)",
   "lblRemoteReconnect": "Połącz ponownie",
   "lblRemoteOk": "OK",
