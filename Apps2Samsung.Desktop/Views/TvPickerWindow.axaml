@@ -38,7 +38,7 @@
 
 	<StackPanel Margin="16,8,16,16" Spacing="10">
 		<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
-		<TextBlock Text="{Binding TitleText}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
+		<TextBlock Text="{Binding TitleText}" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
 
 		<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
 			<StackPanel>

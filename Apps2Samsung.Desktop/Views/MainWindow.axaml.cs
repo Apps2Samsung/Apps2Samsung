@@ -32,6 +32,19 @@ namespace Apps2Samsung.Views
                     await vm.EnsureReleasesLoadedAsync();
             };
 
+            // The catalog picks its column count from the window's width (#1125).
+            void TellWidth()
+            {
+                if (DataContext is MainWindowViewModel vm)
+                    vm.WindowWidth = ClientSize.Width;
+            }
+            PropertyChanged += (_, e) =>
+            {
+                if (e.Property == ClientSizeProperty)
+                    TellWidth();
+            };
+            DataContextChanged += (_, _) => TellWidth();
+
             // While the Remote section is up the keyboard is the remote: tunnel, so the arrows and
             // Enter reach the TV before a focused sidebar or toolbar button takes them.
             AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);

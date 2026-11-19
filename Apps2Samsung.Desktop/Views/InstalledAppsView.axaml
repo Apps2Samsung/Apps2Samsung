@@ -60,7 +60,7 @@
                     </Canvas>
                 </Viewbox>
                 <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding UpdatesTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
+                    <TextBlock Text="{Binding UpdatesTitle}" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
                     <TextBlock Text="{Binding UpdatesNames}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
                 </StackPanel>
                 <Button Grid.Column="2" Classes="primary" VerticalAlignment="Center" Content="{l:Localize lblUpdateAll}"
@@ -110,7 +110,7 @@
                     </Viewbox>
                 </Border>
                 <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding RestoreCardTitle}" FontSize="19" FontWeight="Bold" Foreground="{DynamicResource GlassInkBrush}"/>
+                    <TextBlock Text="{Binding RestoreCardTitle}" FontSize="19" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource GlassInkBrush}"/>
                     <TextBlock Text="{Binding RestoreCardText}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource GlassMutedBrush}"/>
                 </StackPanel>
                 <Button Grid.Column="2" Classes="chip" VerticalAlignment="Center" Content="{l:Localize lblRestoreNotNow}"

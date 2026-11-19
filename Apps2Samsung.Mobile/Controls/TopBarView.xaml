@@ -31,8 +31,9 @@
         <!-- middle: a page title, or the TV in a pill (status dot, name, ▾ only when there is
              another TV to switch to) over its status line -->
         <VerticalStackLayout Grid.Column="1" Spacing="3" HorizontalOptions="Center" VerticalOptions="Center">
-            <Label x:Name="TitleLabel" FontSize="17" FontAttributes="Bold" LineBreakMode="TailTruncation"
-                   HorizontalOptions="Center" VerticalOptions="Center" />
+            <!-- Up to two lines (#1125): "Sicherung und Diagnose" beside "Einstellungen" was cut. -->
+            <Label x:Name="TitleLabel" FontSize="17" FontAttributes="Bold" LineBreakMode="WordWrap" MaxLines="2"
+                   HorizontalTextAlignment="Center" HorizontalOptions="Center" VerticalOptions="Center" />
             <Border x:Name="TvPill" HeightRequest="34" Padding="10,0,14,0" HorizontalOptions="Center" IsVisible="False"
                     StrokeThickness="1" Stroke="{DynamicResource HairBrush}" StrokeShape="RoundRectangle 17"
                     BackgroundColor="{DynamicResource SurfaceColor}">
@@ -43,7 +44,8 @@
                     <ActivityIndicator x:Name="PillSpinner" WidthRequest="12" HeightRequest="12" IsVisible="False" IsRunning="False"
                                        VerticalOptions="Center" />
                     <shapes:Ellipse x:Name="PillDot" WidthRequest="8" HeightRequest="8" VerticalOptions="Center" IsVisible="False" />
-                    <Label x:Name="PillLabel" FontSize="16" FontAttributes="Bold" LineBreakMode="TailTruncation"
+                    <!-- cut in the middle: with two TVs of one series the end of the name tells them apart -->
+                    <Label x:Name="PillLabel" FontSize="16" FontAttributes="Bold" LineBreakMode="MiddleTruncation"
                            MaximumWidthRequest="200" VerticalOptions="Center" />
                     <shapes:Path x:Name="PickerChevron" Data="M1,1.5 L6,6.5 L11,1.5" Stroke="{DynamicResource AccentBrush}"
                                  StrokeThickness="2.2" StrokeLineCap="Round" WidthRequest="12" HeightRequest="8"

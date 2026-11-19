@@ -7,7 +7,7 @@
 	<!-- One page in the Settings list: the coloured icon tile, the name and a one-line summary. -->
 	<Button Classes="settingsrow" Classes.selected="{Binding IsSelected}"
 	        Command="{Binding $parent[views:SettingsView].((viewModels:SettingsViewModel)DataContext).SelectPageCommand}"
-	        CommandParameter="{Binding}">
+	        CommandParameter="{Binding}" ToolTip.Tip="{Binding Summary}">
 		<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
 			<Border Classes="icontile" Background="{Binding TileBrush}" VerticalAlignment="Center">
 				<Viewbox Width="15" Height="15">
@@ -17,7 +17,7 @@
 				</Viewbox>
 			</Border>
 			<StackPanel Grid.Column="1" VerticalAlignment="Center">
-				<TextBlock Classes="settingsrowlabel" Text="{Binding Label}" FontSize="14" Foreground="{DynamicResource InkBrush}"/>
+				<TextBlock Classes="settingsrowlabel" Text="{Binding Label}" FontSize="14" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
 				<TextBlock Text="{Binding Summary}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"
 				           IsVisible="{Binding Summary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 			</StackPanel>

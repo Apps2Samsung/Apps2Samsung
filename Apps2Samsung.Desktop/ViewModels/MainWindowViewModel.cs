@@ -269,8 +269,32 @@ namespace Apps2Samsung.ViewModels
             RebuildCatalogRows(fromSearch: true);
         }
 
-        /// <summary>The groups sit two across; a search is one flat list, so it gets the full width.</summary>
-        public int CatalogColumns => string.IsNullOrWhiteSpace(SearchText) ? 2 : 1;
+        /// <summary>The groups sit two across, one on a narrow window and three on a wide one (#1125);
+        /// a search is one flat list, so it gets the full width.</summary>
+        public int CatalogColumns => !string.IsNullOrWhiteSpace(SearchText) ? 1
+            : WindowWidth < CatalogOneColumnBelow ? 1
+            : WindowWidth >= CatalogThreeColumnsFrom ? 3 : 2;
+
+        /// <summary>Below this window width two groups side by side cut most app names.</summary>
+        private const double CatalogOneColumnBelow = 860;
+        /// <summary>From this window width a third group fits beside the other two.</summary>
+        private const double CatalogThreeColumnsFrom = 1500;
+
+        private double _windowWidth = CatalogOneColumnBelow;
+        /// <summary>The main window's width, kept up to date by the window itself.</summary>
+        public double WindowWidth
+        {
+            get => _windowWidth;
+            set
+            {
+                if (Math.Abs(_windowWidth - value) < 0.5)
+                    return;
+                var before = CatalogColumns;
+                _windowWidth = value;
+                if (CatalogColumns != before)
+                    OnPropertyChanged(nameof(CatalogColumns));
+            }
+        }
 
         /// <summary>A catalog group as the list shows it: title, count, its rows and the
         /// "Show all" / "Show less" action.</summary>

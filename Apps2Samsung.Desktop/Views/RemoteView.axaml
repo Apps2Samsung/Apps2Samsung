@@ -142,7 +142,9 @@
                     <TextBlock Classes="grouptitle" Margin="0" Text="{l:Localize lblRemoteNavigation}"/>
 
                     <!-- The d-pad: a 220 px ring with a 92 px ink OK in the middle -->
-                    <Panel Width="220" Height="220" HorizontalAlignment="Center">
+                    <!-- Scales down, never up, when the column is narrower than the ring (#1125). -->
+                    <Viewbox MaxWidth="220" StretchDirection="DownOnly" HorizontalAlignment="Center">
+                    <Panel Width="220" Height="220">
                         <Ellipse Fill="{DynamicResource SurfaceBrush}"/>
                         <Button Classes="arrow" Content="▲" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,4,0,0"
                                 Command="{Binding SendKeyCommand}" CommandParameter="KEY_UP"/>
@@ -155,6 +157,7 @@
                         <Button Classes="ok" Width="92" Height="92" CornerRadius="46" Content="{l:Localize lblRemoteOk}"
                                 Command="{Binding SendKeyCommand}" CommandParameter="KEY_ENTER"/>
                     </Panel>
+                    </Viewbox>
 
                     <!-- Back / Home / Menu, Source / Info / Exit -->
                     <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">

@@ -37,6 +37,9 @@
 			<Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
 			<Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
 		</Style>
+		<Style Selector="WrapPanel.badges > Border">
+			<Setter Property="Margin" Value="0,4,6,0"/>
+		</Style>
 	</Window.Styles>
 
 	<ScrollViewer>
@@ -47,7 +50,7 @@
 			        Background="{DynamicResource AccentSoftBrush}">
 				<TextBlock Text="{Binding FromLinkText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
 			</Border>
-			<Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
+			<Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
 				<!-- the letter tile, or the app's icon from the catalog (#1000), as in the list -->
 				<Panel Width="44" Height="44" VerticalAlignment="Center">
 					<Border CornerRadius="11" Background="{Binding TileBrush}" IsVisible="{Binding !HasIcon}">
@@ -58,8 +61,11 @@
 						<Image Source="{Binding Icon}" Stretch="UniformToFill"/>
 					</Border>
 				</Panel>
-				<TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}" VerticalAlignment="Center"/>
-				<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+				<!-- The badges wrap under the name (#1125): beside it, in one row that cannot wrap, they
+				     left a long name a few letters per line. -->
+				<StackPanel Grid.Column="1" VerticalAlignment="Center">
+				<TextBlock Text="{Binding Name}" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+				<WrapPanel Classes="badges" Orientation="Horizontal">
 					<!-- adult-only (#850) -->
 					<Border IsVisible="{Binding IsAdult}" Background="{DynamicResource WarnSoftBrush}" BorderBrush="{DynamicResource WarnBrush}"
 					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" ToolTip.Tip="{l:Localize lblAdultOnly}">
@@ -89,12 +95,13 @@
 					        BorderThickness="1" CornerRadius="7" Padding="7,2" VerticalAlignment="Center">
 						<TextBlock Text="{Binding TizenBadgeText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
 					</Border>
+				</WrapPanel>
 				</StackPanel>
 				<!-- the star: a favorite leads the Install screen's list -->
-				<Button Grid.Column="3" Classes="icon" Content="{Binding FavoriteGlyph}" FontSize="18" ToolTip.Tip="{Binding FavoriteText}"
+				<Button Grid.Column="2" Classes="icon" Content="{Binding FavoriteGlyph}" FontSize="18" ToolTip.Tip="{Binding FavoriteText}"
 				        Command="{Binding ToggleFavoriteCommand}" Width="36" Height="36" CornerRadius="18"/>
 				<!-- ⋯: the app's install link for a README or a chat (#1066) -->
-				<Button Grid.Column="4" Classes="icon" Content="⋯" FontSize="18" ToolTip.Tip="{Binding MoreText}"
+				<Button Grid.Column="3" Classes="icon" Content="⋯" FontSize="18" ToolTip.Tip="{Binding MoreText}"
 				        Width="36" Height="36" CornerRadius="18">
 					<Button.Flyout>
 						<MenuFlyout Placement="BottomEdgeAlignedRight">
