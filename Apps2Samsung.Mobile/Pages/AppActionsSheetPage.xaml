@@ -11,7 +11,7 @@
         <VerticalStackLayout Padding="16,8,16,24" Spacing="10">
             <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
                      Color="{DynamicResource HairColor}" />
-            <Grid ColumnDefinitions="44,*,32" ColumnSpacing="12" Margin="0,6,0,0">
+            <Grid ColumnDefinitions="44,*,44" ColumnSpacing="12" Margin="0,6,0,0">
                 <Grid Grid.Column="0" WidthRequest="44" HeightRequest="44" VerticalOptions="Center">
                     <Border x:Name="LetterTile" StrokeThickness="0" StrokeShape="RoundRectangle 11">
                         <Label x:Name="LetterLabel" TextColor="{DynamicResource OnAccentColor}" FontSize="20" FontAttributes="Bold"
