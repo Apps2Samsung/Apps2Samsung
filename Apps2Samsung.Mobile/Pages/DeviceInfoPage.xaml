@@ -12,7 +12,7 @@
 
         <!-- the top bar (#755): Back, the title, and its own button on the right -->
         <controls:TopBarView Grid.Row="0" Margin="-12,-12,-12,0" Title="{l:Localize lblTvInformation}" BackText="{l:Localize lblNavBack}"
-                             BackTapped="OnBackClicked" Action="Glyph" Glyph="⟳" GlyphTapped="OnRefreshClicked" />
+                             BackTapped="OnBackClicked" Action="Glyph" Glyph="⟳" GlyphDescription="{l:Localize lblRefresh}" GlyphTapped="OnRefreshClicked" />
 
         <!-- Subtitle: which TV / status -->
         <Label Grid.Row="1" x:Name="CountLabel" FontSize="12" Opacity="0.6" Text="{l:Localize lblLoading}" />
@@ -28,6 +28,11 @@
                     <Border Margin="0,4" Padding="12,10" StrokeThickness="1" StrokeShape="RoundRectangle 8"
                             Stroke="{DynamicResource HairBrush}"
                             BackgroundColor="{DynamicResource SurfaceColor}">
+                        <!-- Tap a row to copy its value (#1127): the DUID and the IP are what Settings >
+                             Advanced and a bug report ask for. -->
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnRowTapped" />
+                        </Border.GestureRecognizers>
                         <Grid ColumnDefinitions="140,*" ColumnSpacing="12" VerticalOptions="Center">
                             <Label Grid.Column="0" Text="{Binding Label}" FontSize="13" Opacity="0.6"
                                    VerticalOptions="Center" />

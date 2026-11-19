@@ -12,7 +12,7 @@
 
         <!-- the top bar (#755): Back, the title, and its own button on the right -->
         <controls:TopBarView Grid.Row="0" Margin="-12,-12,-12,0" Title="{l:Localize lblDebugConsole}" BackText="{l:Localize lblNavBack}"
-                             BackTapped="OnBackClicked" Action="Glyph" Glyph="📤" GlyphTapped="OnShareClicked" />
+                             BackTapped="OnBackClicked" Action="Glyph" Glyph="📤" GlyphDescription="{l:Localize lblShare}" GlyphTapped="OnShareClicked" />
 
         <!-- Which app, and whether we're still attached -->
         <Grid Grid.Row="1" ColumnDefinitions="Auto,*" ColumnSpacing="8">
@@ -62,14 +62,14 @@
                     <DataTemplate>
                         <Grid ColumnDefinitions="62,*" ColumnSpacing="8" Padding="8,3">
                             <Label Grid.Column="0" Text="{Binding Clock}" FontSize="10.5"
-                                   FontFamily="monospace" TextColor="{DynamicResource GlassMutedColor}" VerticalOptions="Start" />
+                                   FontFamily="{StaticResource MonoFont}" TextColor="{DynamicResource GlassMutedColor}" VerticalOptions="Start" />
                             <VerticalStackLayout Grid.Column="1" Spacing="1">
-                                <Label Text="{Binding Source}" FontSize="10" FontFamily="monospace"
+                                <Label Text="{Binding Source}" FontSize="10" FontFamily="{StaticResource MonoFont}"
                                        FontAttributes="Bold" TextColor="{DynamicResource GlassInkColor}"
                                        IsVisible="{Binding HasSource}" LineBreakMode="TailTruncation" />
-                                <Label Text="{Binding Text}" FontSize="12.5" FontFamily="monospace"
+                                <Label Text="{Binding Text}" FontSize="12.5" FontFamily="{StaticResource MonoFont}"
                                        TextColor="{Binding Color}" />
-                                <Label Text="{Binding Origin}" FontSize="10" FontFamily="monospace"
+                                <Label Text="{Binding Origin}" FontSize="10" FontFamily="{StaticResource MonoFont}"
                                        TextColor="{DynamicResource GlassMutedColor}" IsVisible="{Binding HasOrigin}"
                                        LineBreakMode="HeadTruncation" />
                             </VerticalStackLayout>
@@ -84,7 +84,7 @@
             <Border Grid.Column="0" StrokeThickness="1" StrokeShape="RoundRectangle 8"
                     Stroke="{DynamicResource HairBrush}"
                     BackgroundColor="{DynamicResource SurfaceColor}" Padding="8,0">
-                <Entry x:Name="EvalEntry" Placeholder="{l:Localize lblDebugEvaluate}" FontFamily="monospace"
+                <Entry x:Name="EvalEntry" Keyboard="Plain" Placeholder="{l:Localize lblDebugEvaluate}" FontFamily="{StaticResource MonoFont}"
                        FontSize="13" BackgroundColor="Transparent" IsEnabled="False"
                        ReturnType="Send" Completed="OnEvaluateClicked" />
             </Border>

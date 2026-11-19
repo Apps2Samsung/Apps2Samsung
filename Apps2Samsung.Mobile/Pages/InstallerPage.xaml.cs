@@ -616,6 +616,7 @@ public partial class InstallerPage : ContentPage
 		entries.Add((new(L10n.Get("lblShowClosedSourceApps"), MoreMenu.IconShow, Checked: MobileSettings.ShowClosedSourceApps), ToggleClosedSourceAppsAsync));
 		// A source of the user's own (a repository, release or file link), listed from the next refresh.
 		entries.Add((new(L10n.Get("lblAddSource"), MoreMenu.IconAdd), AddSourceAsync));
+		entries.Add((new(L10n.Get("lblReloadCatalog"), MoreMenu.IconRescan), ReloadCatalogAsync));
 
 		var chosen = await MoreMenu.ShowAsync(this, entries.Select(entry => entry.Item).ToArray());
 		if (chosen >= 0)
@@ -661,6 +662,19 @@ public partial class InstallerPage : ContentPage
 		MobileSettings.UserSourcesJson = UserSources.Serialize(sources);
 		if (!_catalogLoading)
 			await LoadCatalogAsync();
+	}
+
+	// Reads the catalog again: the way out of an empty list after a failed load (#1127).
+	private async Task ReloadCatalogAsync()
+	{
+		if (!_catalogLoading)
+			await LoadCatalogAsync();
+	}
+
+	private async void OnCatalogPulled(object? sender, EventArgs e)
+	{
+		try { await ReloadCatalogAsync(); }
+		finally { CatalogRefresher.IsRefreshing = false; }
 	}
 
 	private async Task RescanAsync()

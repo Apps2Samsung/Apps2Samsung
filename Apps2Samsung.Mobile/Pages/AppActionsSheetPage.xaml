@@ -27,11 +27,11 @@
                     <Label x:Name="TitleLabel" FontSize="20" FontAttributes="Bold" LineBreakMode="TailTruncation" />
                     <Label x:Name="SubLabel" FontSize="13" TextColor="{DynamicResource MutedColor}" LineBreakMode="TailTruncation" />
                 </VerticalStackLayout>
-                <Button Grid.Column="2" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
+                <Button Grid.Column="2" Text="✕" FontSize="13" SemanticProperties.Description="{l:Localize btn_Close}" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
                         MinimumWidthRequest="32" MinimumHeightRequest="32" VerticalOptions="Center"
                         BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnCloseClicked" />
             </Grid>
-            <Label x:Name="IdLabel" FontSize="12" FontFamily="monospace" TextColor="{DynamicResource MutedColor}" Margin="4,0" />
+            <Label x:Name="IdLabel" FontSize="12" FontFamily="{StaticResource MonoFont}" TextColor="{DynamicResource MutedColor}" Margin="4,0" />
             <!-- removed from the catalogue (#1033): why, since when, and that the copy keeps working; filled in code -->
             <VerticalStackLayout x:Name="RemovedHost" IsVisible="False" />
 

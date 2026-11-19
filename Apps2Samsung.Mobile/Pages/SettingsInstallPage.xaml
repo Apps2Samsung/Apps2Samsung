@@ -45,8 +45,8 @@
         </Style>
         <!-- one third of the certificate switch -->
         <Style x:Key="Segment" TargetType="Button">
-            <Setter Property="HeightRequest" Value="30" />
-            <Setter Property="MinimumHeightRequest" Value="30" />
+            <Setter Property="HeightRequest" Value="36" />
+            <Setter Property="MinimumHeightRequest" Value="36" />
             <Setter Property="CornerRadius" Value="7" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="BorderWidth" Value="0" />

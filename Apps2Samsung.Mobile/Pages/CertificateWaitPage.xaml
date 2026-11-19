@@ -30,7 +30,7 @@
                 <VerticalStackLayout Spacing="4">
                     <Label Text="{l:Localize certValidIn}" FontSize="13" TextColor="{DynamicResource MutedColor}" HorizontalOptions="Center" />
                     <!-- Monospaced so ticking seconds don't reflow the layout. -->
-                    <Label x:Name="CountdownLabel" FontSize="40" FontFamily="monospace" FontAttributes="Bold" HorizontalOptions="Center" />
+                    <Label x:Name="CountdownLabel" FontSize="40" FontFamily="{StaticResource MonoFont}" FontAttributes="Bold" HorizontalOptions="Center" />
                     <Label x:Name="CaptionLabel" Text="{l:Localize certContinuesByItself}" FontSize="13"
                            TextColor="{DynamicResource MutedColor}" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
                 </VerticalStackLayout>

@@ -59,8 +59,8 @@
         </Style>
         <!-- a half of the Navigation | Media switch -->
         <Style x:Key="Segment" TargetType="Button">
-            <Setter Property="HeightRequest" Value="34" />
-            <Setter Property="MinimumHeightRequest" Value="34" />
+            <Setter Property="HeightRequest" Value="36" />
+            <Setter Property="MinimumHeightRequest" Value="36" />
             <Setter Property="CornerRadius" Value="7" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="BorderWidth" Value="0" />
@@ -94,13 +94,13 @@
                     <shapes:Ellipse Fill="{DynamicResource SurfaceBrush}" />
                     <shapes:Ellipse WidthRequest="140" HeightRequest="140" Fill="{DynamicResource BgBrush}"
                                     HorizontalOptions="Center" VerticalOptions="Center" />
-                    <Button Style="{StaticResource Arrow}" Text="▲" HorizontalOptions="Center" VerticalOptions="Start"
+                    <Button Style="{StaticResource Arrow}" Text="▲" SemanticProperties.Description="{l:Localize lblRemoteUp}" HorizontalOptions="Center" VerticalOptions="Start"
                             CommandParameter="KEY_UP" Clicked="OnKeyClicked" />
-                    <Button Style="{StaticResource Arrow}" Text="▼" HorizontalOptions="Center" VerticalOptions="End"
+                    <Button Style="{StaticResource Arrow}" Text="▼" SemanticProperties.Description="{l:Localize lblRemoteDown}" HorizontalOptions="Center" VerticalOptions="End"
                             CommandParameter="KEY_DOWN" Clicked="OnKeyClicked" />
-                    <Button Style="{StaticResource Arrow}" Text="◀" HorizontalOptions="Start" VerticalOptions="Center"
+                    <Button Style="{StaticResource Arrow}" Text="◀" SemanticProperties.Description="{l:Localize lblRemoteLeft}" HorizontalOptions="Start" VerticalOptions="Center"
                             CommandParameter="KEY_LEFT" Clicked="OnKeyClicked" />
-                    <Button Style="{StaticResource Arrow}" Text="▶" HorizontalOptions="End" VerticalOptions="Center"
+                    <Button Style="{StaticResource Arrow}" Text="▶" SemanticProperties.Description="{l:Localize lblRemoteRight}" HorizontalOptions="End" VerticalOptions="Center"
                             CommandParameter="KEY_RIGHT" Clicked="OnKeyClicked" />
                     <Button Text="{l:Localize lblRemoteOk}" WidthRequest="124" HeightRequest="124" CornerRadius="62"
                             MinimumWidthRequest="124" MinimumHeightRequest="124" Padding="0" BorderWidth="0"
@@ -232,7 +232,7 @@
                     <Grid ColumnDefinitions="32,*,32">
                         <Label Grid.Column="1" Text="{l:Localize lblRemoteTypeOnTv}" FontSize="17" FontAttributes="Bold"
                                HorizontalOptions="Center" VerticalOptions="Center" />
-                        <Button Grid.Column="2" Text="✕" FontSize="13" WidthRequest="30" HeightRequest="30" CornerRadius="15" Padding="0"
+                        <Button Grid.Column="2" Text="✕" FontSize="13" SemanticProperties.Description="{l:Localize btn_Close}" WidthRequest="30" HeightRequest="30" CornerRadius="15" Padding="0"
                                 MinimumWidthRequest="30" MinimumHeightRequest="30"
                                 BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource MutedColor}"
                                 Clicked="OnKeyboardCloseClicked" />

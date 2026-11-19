@@ -27,7 +27,7 @@
     <Grid RowDefinitions="Auto,*">
 
         <!-- The top bar (#755): the TV with ▾, what the check found, and ⟳ to check again -->
-        <controls:TopBarView x:Name="TopBar" Grid.Row="0" TvTitle="True" Action="Glyph" Glyph="⟳"
+        <controls:TopBarView x:Name="TopBar" Grid.Row="0" TvTitle="True" Action="Glyph" Glyph="⟳" GlyphDescription="{l:Localize lblRefresh}"
                              TitleTapped="OnChangeTvClicked" GlyphTapped="OnCheckAgainClicked" />
 
         <ScrollView Grid.Row="1">

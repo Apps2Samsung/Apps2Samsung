@@ -11,8 +11,8 @@
     <ContentPage.Resources>
         <!-- one third of the level filter -->
         <Style x:Key="Segment" TargetType="Button">
-            <Setter Property="HeightRequest" Value="32" />
-            <Setter Property="MinimumHeightRequest" Value="32" />
+            <Setter Property="HeightRequest" Value="36" />
+            <Setter Property="MinimumHeightRequest" Value="36" />
             <Setter Property="CornerRadius" Value="7" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="BorderWidth" Value="0" />
@@ -52,8 +52,8 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="pages:LogViewerRow">
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" Padding="12,6" BackgroundColor="{Binding Back}">
-                            <Label Text="{Binding Time}" FontFamily="monospace" FontSize="11" TextColor="{DynamicResource MutedColor}" />
-                            <Label Grid.Column="1" Text="{Binding Message}" FontFamily="monospace" FontSize="11"
+                            <Label Text="{Binding Time}" FontFamily="{StaticResource MonoFont}" FontSize="11" TextColor="{DynamicResource MutedColor}" />
+                            <Label Grid.Column="1" Text="{Binding Message}" FontFamily="{StaticResource MonoFont}" FontSize="11"
                                    TextColor="{Binding Ink}" LineBreakMode="CharacterWrap" />
                         </Grid>
                     </DataTemplate>

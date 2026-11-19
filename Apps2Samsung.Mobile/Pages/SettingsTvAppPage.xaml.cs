@@ -36,7 +36,7 @@ public partial class SettingsTvAppPage : ContentPage
 	private void AddChannelRow(string name, string url)
 	{
 		var nameEntry = new Entry { Text = name, Placeholder = L10n.Get("lblChannelName"), BackgroundColor = Colors.Transparent };
-		var urlEntry = new Entry { Text = url, Placeholder = "https://…/stream.m3u8", BackgroundColor = Colors.Transparent };
+		var urlEntry = new Entry { Text = url, Placeholder = "https://…/stream.m3u8", Keyboard = Keyboard.Url, BackgroundColor = Colors.Transparent };
 		var upBtn = SmallChannelButton("↑", "Accent");
 		var downBtn = SmallChannelButton("↓", "Accent");
 		var removeBtn = SmallChannelButton("✕", "Bad");
@@ -76,8 +76,12 @@ public partial class SettingsTvAppPage : ContentPage
 		// Channels play on the TV in list order, so let the user reorder them (mirrors the desktop head).
 		upBtn.Clicked += (_, _) => MoveChannelRow(row, -1);
 		downBtn.Clicked += (_, _) => MoveChannelRow(row, +1);
-		removeBtn.Clicked += (_, _) =>
+		removeBtn.Clicked += async (_, _) =>
 		{
+			// A filled-in channel is asked about first (#1127).
+			var filled = !string.IsNullOrWhiteSpace(nameEntry.Text) || !string.IsNullOrWhiteSpace(urlEntry.Text);
+			if (filled && !await DisplayAlert(L10n.Get("lblRemove"), L10n.Get("lblRemoveChannelAsk"), L10n.Get("lblRemove"), L10n.Get("lblCancel")))
+				return;
 			ChannelsContainer.Children.Remove(grid);
 			_channelRows.Remove(row);
 			SaveChannels();

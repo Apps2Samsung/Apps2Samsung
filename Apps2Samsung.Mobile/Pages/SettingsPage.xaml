@@ -90,7 +90,7 @@
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
                             <Button Grid.Column="2" x:Name="CheckUpdatesBtn" Text="{l:Localize lblCheck}" Style="{StaticResource SoftButton}"
-                                    CornerRadius="16" HeightRequest="32" MinimumHeightRequest="32" Padding="14,0" FontSize="14"
+                                    CornerRadius="20" HeightRequest="40" MinimumHeightRequest="40" Padding="14,0" FontSize="14"
                                     VerticalOptions="Center" Clicked="OnCheckUpdatesClicked" />
                         </Grid>
                         <BoxView Style="{StaticResource RowDivider}" />

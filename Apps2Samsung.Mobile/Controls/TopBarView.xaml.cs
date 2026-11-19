@@ -54,6 +54,12 @@ public partial class TopBarView : ContentView
 	public bool ShowLogo { get => (bool)GetValue(ShowLogoProperty); set => SetValue(ShowLogoProperty, value); }
 	public string BackText { get => (string)GetValue(BackTextProperty); set => SetValue(BackTextProperty, value); }
 	public TopBarAction Action { get => (TopBarAction)GetValue(ActionProperty); set => SetValue(ActionProperty, value); }
+	public static readonly BindableProperty GlyphDescriptionProperty = BindableProperty.Create(
+		nameof(GlyphDescription), typeof(string), typeof(TopBarView), string.Empty, propertyChanged: Rerender);
+
+	/// <summary>What the glyph button does, for a screen reader: a ⟳ or 📤 alone has no name (#1127).</summary>
+	public string GlyphDescription { get => (string)GetValue(GlyphDescriptionProperty); set => SetValue(GlyphDescriptionProperty, value); }
+
 	/// <summary>The text of the button on the right when <see cref="Action"/> is Glyph (⟳, 📤).</summary>
 	public string Glyph { get => (string)GetValue(GlyphProperty); set => SetValue(GlyphProperty, value); }
 
@@ -127,6 +133,8 @@ public partial class TopBarView : ContentView
 		PowerButton.IsVisible = Action == TopBarAction.Power;
 		GlyphButton.IsVisible = Action == TopBarAction.Glyph;
 		GlyphButton.Text = Glyph;
+		if (!string.IsNullOrEmpty(GlyphDescription))
+			SemanticProperties.SetDescription(GlyphButton, GlyphDescription);
 	}
 
 	private void OnTitleTapped(object? sender, TappedEventArgs e)

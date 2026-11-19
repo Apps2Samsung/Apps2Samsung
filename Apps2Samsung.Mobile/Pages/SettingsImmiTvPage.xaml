@@ -36,7 +36,7 @@
                                 <Entry x:Name="ImmiTvPasswordEntry" IsPassword="True" Placeholder="{l:Localize lblImmiTvPassword}"
                                        BackgroundColor="Transparent" Unfocused="OnImmiTvUnfocused" />
                             </Border>
-                            <Button Grid.Column="1" x:Name="ImmiTvEyeBtn" Text="👁" FontSize="16"
+                            <Button Grid.Column="1" x:Name="ImmiTvEyeBtn" Text="👁" SemanticProperties.Description="{l:Localize lblShowHidePassword}" FontSize="16"
                                     BackgroundColor="Transparent" BorderWidth="1"
                                     BorderColor="{DynamicResource HairColor}"
                                     TextColor="{DynamicResource InkColor}"

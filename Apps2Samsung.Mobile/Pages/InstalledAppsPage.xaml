@@ -109,7 +109,7 @@
                                     </HorizontalStackLayout>
                                 </VerticalStackLayout>
                                 <Button Grid.Column="2" Text="{l:Localize lblUpdate}" IsVisible="{Binding HasUpdate}" Clicked="OnUpdateClicked"
-                                        HeightRequest="32" MinimumHeightRequest="32" CornerRadius="16" Padding="12,0" FontSize="13" FontAttributes="Bold"
+                                        HeightRequest="40" MinimumHeightRequest="40" CornerRadius="20" Padding="14,0" FontSize="13" FontAttributes="Bold"
                                         BackgroundColor="{DynamicResource AccentColor}" TextColor="{DynamicResource OnAccentColor}" VerticalOptions="Center" />
                                 <Path Grid.Column="3" Data="M1,1 L7,6.5 L1,12" Stroke="{DynamicResource InkBrush}" StrokeThickness="2"
                                       Opacity="0.35" WidthRequest="8" HeightRequest="13" VerticalOptions="Center" />

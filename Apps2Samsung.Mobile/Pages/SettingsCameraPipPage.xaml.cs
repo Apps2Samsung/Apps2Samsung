@@ -110,8 +110,12 @@ public partial class SettingsCameraPipPage : ContentPage
 		nameEntry.Unfocused += (_, _) => SaveCameraPip();
 		videoEntry.Unfocused += (_, _) => SaveCameraPip();
 		mjpegEntry.Unfocused += (_, _) => SaveCameraPip();
-		removeBtn.Clicked += (_, _) =>
+		removeBtn.Clicked += async (_, _) =>
 		{
+			// A filled-in camera (a name and two addresses) is asked about first (#1127).
+			var filled = !string.IsNullOrWhiteSpace(nameEntry.Text) || !string.IsNullOrWhiteSpace(videoEntry.Text) || !string.IsNullOrWhiteSpace(mjpegEntry.Text);
+			if (filled && !await DisplayAlert(L10n.Get("lblRemove"), L10n.Get("lblRemoveCameraAsk"), L10n.Get("lblRemove"), L10n.Get("lblCancel")))
+				return;
 			CamerasContainer.Children.Remove(grid);
 			_cameraRows.Remove(row);
 			UpdateAddCameraButton();

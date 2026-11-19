@@ -140,7 +140,7 @@ public partial class UserSourceSheetPage : ContentPage
 				FingerprintGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
 			FingerprintGrid.Add(new Label
 			{
-				Text = groups[i], FontFamily = "monospace", FontSize = 17, CharacterSpacing = 0.6,
+				Text = groups[i], FontFamily = DeviceInfo.Platform == DevicePlatform.Android ? "monospace" : "Menlo", FontSize = 17, CharacterSpacing = 0.6,
 				HorizontalTextAlignment = TextAlignment.Center,
 			}, i % 4, i / 4);
 		}
