@@ -694,6 +694,7 @@
   "statusImportedDesktop": "Instellings en {0} sertifikaatlêer(s) ingevoer. Herbegin die program om dit toe te pas.",
   "statusImportFailed": "Invoer het misluk: {0}",
   "lblOk": "OK",
+  "lblErrorTitle": "Fout",
   "lblDownload": "Laai af",
   "statusSetIconFailed": "Kon nie die ikoon stel nie: {0}",
   "statusSeeDebugLog": "Instellings → Diagnostiek → Deel ontfoutlog het al die besonderhede.",

@@ -702,6 +702,7 @@
   "statusImportedDesktop": "Beállítások és {0} tanúsítványfájl importálva. Indítsa újra az alkalmazást az érvényesítéshez.",
   "statusImportFailed": "Az importálás sikertelen: {0}",
   "lblOk": "OK",
+  "lblErrorTitle": "Hiba",
   "lblDownload": "Letöltés",
   "lblLater": "Később",
   "statusSetIconFailed": "Nem sikerült beállítani az ikont: {0}",

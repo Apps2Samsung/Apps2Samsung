@@ -688,6 +688,7 @@
   "statusImportedDesktop": "Importerede indstillinger + {0} certifikatfil(er). Genstart app'en for at anvende.",
   "statusImportFailed": "Import mislykkedes: {0}",
   "lblOk": "Ok",
+  "lblErrorTitle": "Fejl",
   "lblDownload": "Hent",
   "lblLater": "Senere",
   "statusSetIconFailed": "Kunne ikke indstille ikonet: {0}",

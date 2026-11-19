@@ -698,6 +698,7 @@
   "statusImportedDesktop": "Đã nhập cài đặt + {0} tệp chứng chỉ. Khởi động lại ứng dụng để áp dụng.",
   "statusImportFailed": "Nhập thất bại: {0}",
   "lblOk": "OK",
+  "lblErrorTitle": "Lỗi",
   "lblDownload": "Tải xuống",
   "lblLater": "Để sau",
   "statusSetIconFailed": "Không đặt được biểu tượng: {0}",
