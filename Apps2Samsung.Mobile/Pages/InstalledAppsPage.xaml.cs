@@ -271,9 +271,9 @@ public partial class InstalledAppsPage : ContentPage
 		if (!_tv.HasTv)
 			return;
 		var id = await DisplayPromptAsync(
-			"Remove leftover",
-			"Enter the package id of a leftover/partial install to remove:",
-			"Remove", "Cancel", placeholder: "e.g. HarborTV");
+			L10n.Get("lblRemoveLeftoverTitle"),
+			L10n.Get("statusRemoveLeftoverPrompt"),
+			L10n.Get("lblRemove"), L10n.Get("lblCancel"), placeholder: "e.g. HarborTV");
 		if (string.IsNullOrWhiteSpace(id))
 			return;
 		id = id.Trim();
@@ -285,7 +285,7 @@ public partial class InstalledAppsPage : ContentPage
 		if (!confirm)
 			return;
 
-		SetBusy(true, $"Removing {id}…");
+		SetBusy(true, string.Format(L10n.Get("statusRemoving"), id));
 		try
 		{
 			var result = await _sdb.UninstallAsync(_tvIp, id);
@@ -370,7 +370,9 @@ public partial class InstalledAppsPage : ContentPage
 			else
 			{
 				var totalUsed = InstalledApp.FormatSize(apps.Sum(a => a.SizeBytes));
-				SetSubtitle(string.Format(L10n.Get("lblAppsOnTvCount"), apps.Count, totalUsed), TopBarStatus.Ok);
+				SetSubtitle(apps.Count == 1
+					? string.Format(L10n.Get("lblAppsOnTvCountOne"), totalUsed)
+					: string.Format(L10n.Get("lblAppsOnTvCount"), apps.Count, totalUsed), TopBarStatus.Ok);
 			}
 		}
 		catch (Exception ex)
@@ -460,7 +462,7 @@ public partial class InstalledAppsPage : ContentPage
 		if (!confirm)
 			return;
 
-		SetBusy(true, $"Uninstalling {app.DisplayName}…");
+		SetBusy(true, string.Format(L10n.Get("statusUninstalling"), app.DisplayName));
 		try
 		{
 			var result = await _sdb.UninstallAsync(_tvIp, app.TizenId);
@@ -492,7 +494,7 @@ public partial class InstalledAppsPage : ContentPage
 	private async Task LaunchAsync(InstalledApp app)
 	{
 
-		SetBusy(true, $"Launching {app.DisplayName}…");
+		SetBusy(true, string.Format(L10n.Get("statusLaunching"), app.DisplayName));
 		try
 		{
 			var result = await _sdb.LaunchAsync(_tvIp, app.TizenId);
@@ -530,7 +532,7 @@ public partial class InstalledAppsPage : ContentPage
 	private async Task StopAsync(InstalledApp app)
 	{
 
-		SetBusy(true, $"Stopping {app.DisplayName}…");
+		SetBusy(true, string.Format(L10n.Get("statusStopping"), app.DisplayName));
 		try
 		{
 			var result = await _sdb.ShellAsync(_tvIp, $"0 was_kill {app.TizenId}");
@@ -671,7 +673,9 @@ public partial class InstalledAppsPage : ContentPage
 
 		var date = saved!.Profile.SavedAtUtc.ToLocalTime().ToString("d MMMM");
 		RestoreTitle.Text = missing.Count == 1 ? L10n.Get("lblRestoreMissingOne") : string.Format(L10n.Get("lblRestoreMissingMany"), missing.Count);
-		RestoreText.Text = string.Format(L10n.Get("lblRestoreMissingText"), date, saved.Profile.Apps.Count);
+		RestoreText.Text = saved.Profile.Apps.Count == 1
+			? string.Format(L10n.Get("lblRestoreMissingTextOne"), date)
+			: string.Format(L10n.Get("lblRestoreMissingText"), date, saved.Profile.Apps.Count);
 		var names = missing.Take(4).Select(a => a.Name).ToList();
 		RestoreNames.Text = missing.Count > names.Count
 			? string.Format(L10n.Get("lblRestoreNamesMore"), string.Join(", ", names), missing.Count - names.Count)

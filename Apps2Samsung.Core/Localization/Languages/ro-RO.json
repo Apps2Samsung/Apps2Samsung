@@ -407,7 +407,7 @@
   "lblDebugLog": "Jurnal depanare",
   "statusNoLogFile": "Nu este disponibil niciun fișier jurnal pentru această sesiune.",
   "statusLogShareFailed": "Nu s-a putut distribui jurnalul: {0}",
-  "lblRemote": "Distanta",
+  "lblRemote": "Telecomandă",
   "lblRemotePower": "Putere (opreşte televizorul; un televizor de somn este activat automat)",
   "lblRemoteReconnect": "Reconectare",
   "lblRemoteOk": "Ok",

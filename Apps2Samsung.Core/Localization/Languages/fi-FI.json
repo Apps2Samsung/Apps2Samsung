@@ -408,7 +408,7 @@
   "lblDebugLog": "Vianetsinnän loki",
   "statusNoLogFile": "Tähän istuntoon ei ole vielä saatavilla lokitiedostoa.",
   "statusLogShareFailed": "Lokia ei voitu jakaa: {0}",
-  "lblRemote": "Etä",
+  "lblRemote": "Kaukosäädin",
   "lblRemotePower": "Virta (kääntää television pois päältä; nukkuva tv on herätetty automaattisesti)",
   "lblRemoteReconnect": "Yhdistä Uudelleen",
   "lblRemoteOk": "Ok",

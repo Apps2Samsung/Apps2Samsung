@@ -406,7 +406,7 @@
   "lblDebugLog": "Feilsøk logg",
   "statusNoLogFile": "Ingen loggfil er tilgjengelig i denne økten ennå.",
   "statusLogShareFailed": "Kunne ikke dele loggen: {0}",
-  "lblRemote": "Ekstern",
+  "lblRemote": "Fjernkontroll",
   "lblRemotePower": "Strømtilførsel (slår av TV-en, en sovende TV blir parret automatisk)",
   "lblRemoteReconnect": "Gjenoppkoble",
   "lblRemoteOk": "Ok",

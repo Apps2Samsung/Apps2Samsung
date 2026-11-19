@@ -516,11 +516,11 @@ namespace Apps2Samsung.ViewModels
             // Jellyfin accounts; the server rejects it for password-protected accounts.
             if (string.IsNullOrWhiteSpace(JellyfinUsername))
             {
-                AuthenticationStatus = "Enter username";
+                AuthenticationStatus = "statusJellyfinEnterUsername".Localized();
                 return;
             }
 
-            AuthenticationStatus = "Authenticating...";
+            AuthenticationStatus = "statusJellyfinAuthenticating".Localized();
 
             var (accessToken, userId, isAdmin, error) = await _jellyfinApiClient.AuthenticateAsync(AppSettings.Default.JellyfinFullUrl, JellyfinUsername, JellyfinPassword);
 
@@ -538,7 +538,7 @@ namespace Apps2Samsung.ViewModels
 
                 IsAuthenticated = true;
                 IsJellyfinAdmin = isAdmin;
-                AuthenticationStatus = isAdmin ? "Authenticated (Admin)" : "Authenticated";
+                AuthenticationStatus = (isAdmin ? "statusJellyfinAuthenticatedAdmin" : "statusJellyfinAuthenticated").Localized();
 
                 // If admin, load all Jellyfin users for multi-user selection
                 if (isAdmin)
@@ -552,7 +552,7 @@ namespace Apps2Samsung.ViewModels
             {
                 IsAuthenticated = false;
                 IsJellyfinAdmin = false;
-                AuthenticationStatus = error ?? "Failed";
+                AuthenticationStatus = error ?? "statusJellyfinAuthFailed".Localized();
             }
         }
 
@@ -660,7 +660,7 @@ namespace Apps2Samsung.ViewModels
             // Reset UI state
             IsAuthenticated = false;
             IsJellyfinAdmin = false;
-            AuthenticationStatus = "Logged out";
+            AuthenticationStatus = "statusJellyfinLoggedOut".Localized();
 
             // Clear user collections
             AvailableJellyfinUsers.Clear();
@@ -685,7 +685,7 @@ namespace Apps2Samsung.ViewModels
         [RelayCommand]
         private async Task TestServerAsync()
         {
-            ServerConnectionStatus = "Testing...";
+            ServerConnectionStatus = "statusJellyfinTesting".Localized();
             ServerValidated = false;
             OnPropertyChanged(nameof(CanLogin));
 
@@ -697,12 +697,12 @@ namespace Apps2Samsung.ViewModels
                 // Fetch and store the real server ID for auto-login compatibility
                 await FetchAndStoreServerIdAsync();
 
-                ServerConnectionStatus = "Server OK!";
+                ServerConnectionStatus = "statusJellyfinServerOk".Localized();
                 ServerValidated = true;
             }
             else
             {
-                ServerConnectionStatus = "Connection failed!";
+                ServerConnectionStatus = "statusJellyfinConnectionFailed".Localized();
                 ServerValidated = false;
             }
             OnPropertyChanged(nameof(CanLogin));
@@ -1165,7 +1165,7 @@ namespace Apps2Samsung.ViewModels
             IsJellyfinAdmin = AppSettings.Default.IsJellyfinAdmin;
             if (IsAuthenticated)
             {
-                AuthenticationStatus = IsJellyfinAdmin ? "Previously authenticated (Admin)" : "Previously authenticated";
+                AuthenticationStatus = (IsJellyfinAdmin ? "statusJellyfinPreviouslyAuthenticatedAdmin" : "statusJellyfinPreviouslyAuthenticated").Localized();
 
                 // If admin was previously authenticated, load users
                 if (IsJellyfinAdmin)

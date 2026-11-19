@@ -407,7 +407,7 @@
   "lblDebugLog": "Journal de débogage",
   "statusNoLogFile": "Aucun fichier journal n'est encore disponible pour cette session.",
   "statusLogShareFailed": "Impossible de partager le journal : {0}",
-  "lblRemote": "Distante",
+  "lblRemote": "Télécommande",
   "lblRemotePower": "Alimentation (éteint le téléviseur ; une télévision couchante est réveillée automatiquement)",
   "lblRemoteReconnect": "Reconnecter",
   "lblRemoteOk": "Ok",
