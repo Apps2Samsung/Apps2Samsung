@@ -371,7 +371,7 @@ namespace Apps2Samsung.ViewModels
             var confirm = await _dialogService.ShowConfirmationAsync(
                 "lblUninstallApp".Localized(),
                 string.Format("statusConfirmUninstall".Localized(), app.DisplayName, TvLabel, app.TizenId),
-                "lblUninstall".Localized(), "lblCancel".Localized());
+                "lblUninstall".Localized(), "lblCancel".Localized(), destructive: true);
             if (!confirm)
                 return;
 
@@ -504,7 +504,7 @@ namespace Apps2Samsung.ViewModels
             var confirm = await _dialogService.ShowConfirmationAsync(
                 "lblRemoveLeftoverTitle".Localized(),
                 string.Format("statusConfirmForceRemove".Localized(), id, TvLabel),
-                "lblRemove".Localized(), "lblCancel".Localized());
+                "lblRemove".Localized(), "lblCancel".Localized(), destructive: true);
             if (!confirm)
                 return;
 

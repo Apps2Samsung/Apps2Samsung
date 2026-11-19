@@ -767,6 +767,7 @@
   "statusImportedDesktop": "Imported settings + {0} certificate file(s). Restart the app to apply.",
   "statusImportFailed": "Import failed: {0}",
   "lblOk": "OK",
+  "lblErrorTitle": "Error",
   "lblDownload": "Download",
   "lblLater": "Later",
   "statusSetIconFailed": "Couldn't set the icon: {0}",
