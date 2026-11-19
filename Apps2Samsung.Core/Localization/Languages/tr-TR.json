@@ -703,6 +703,7 @@
   "statusImportedDesktop": "Ayarlar + {0} sertifika dosyası içe aktarıldı. Uygulamak için uygulamayı yeniden başlatın.",
   "statusImportFailed": "İçe aktarma başarısız: {0}",
   "lblOk": "Tamam",
+  "lblErrorTitle": "Hata",
   "lblDownload": "İndir",
   "lblLater": "Daha sonra",
   "statusSetIconFailed": "Simge ayarlanamadı: {0}",
