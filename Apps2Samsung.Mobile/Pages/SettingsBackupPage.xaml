@@ -38,9 +38,9 @@
                         <Label x:Name="CertStatusText" FontSize="13" HorizontalTextAlignment="Center" LineBreakMode="WordWrap" />
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,6,0,0">
                             <Button x:Name="CertBackUpNowButton" Grid.Column="0" Text="{l:Localize lblCertBackupNow}"
-                                    Style="{StaticResource PrimaryButton}" CornerRadius="12" Clicked="OnBackUpNowClicked" />
+                                    Style="{StaticResource PrimaryButton}" CornerRadius="12" Padding="12,10" Clicked="OnBackUpNowClicked" />
                             <Button x:Name="CertShareButton" Grid.Column="1" Text="{l:Localize lblCertBackupShare}"
-                                    Style="{StaticResource PlainButton}" CornerRadius="12" Clicked="OnShareCertBackupClicked" />
+                                    Style="{StaticResource PlainButton}" CornerRadius="12" Padding="12,10" Clicked="OnShareCertBackupClicked" />
                         </Grid>
                     </VerticalStackLayout>
                 </Border>
@@ -68,9 +68,9 @@
                         <Label Style="{StaticResource RowHint}" Text="{l:Localize hintBackup}" />
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                             <Button Grid.Column="0" Text="{l:Localize lblExportBackup}" Style="{StaticResource SoftButton}"
-                                    CornerRadius="12" Clicked="OnExportBackupClicked" />
+                                    CornerRadius="12" Padding="12,10" Clicked="OnExportBackupClicked" />
                             <Button Grid.Column="1" Text="{l:Localize lblImportBackup}" Style="{StaticResource PlainButton}"
-                                    CornerRadius="12" Clicked="OnImportBackupClicked" />
+                                    CornerRadius="12" Padding="12,10" Clicked="OnImportBackupClicked" />
                         </Grid>
                     </VerticalStackLayout>
                 </Border>
@@ -82,9 +82,9 @@
                         <Label Style="{StaticResource RowHint}" Text="{l:Localize hintCertificateArchive}" />
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                             <Button Grid.Column="0" Text="{l:Localize lblExportCertificate}" Style="{StaticResource SoftButton}"
-                                    CornerRadius="12" Clicked="OnExportCertificateClicked" />
+                                    CornerRadius="12" Padding="12,10" Clicked="OnExportCertificateClicked" />
                             <Button Grid.Column="1" Text="{l:Localize lblImportCertificate}" Style="{StaticResource PlainButton}"
-                                    CornerRadius="12" Clicked="OnImportCertificateClicked" />
+                                    CornerRadius="12" Padding="12,10" Clicked="OnImportCertificateClicked" />
                         </Grid>
                     </VerticalStackLayout>
                 </Border>
@@ -95,9 +95,9 @@
                         <Label Style="{StaticResource RowHint}" Text="{l:Localize hintViewDebugLog}" />
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                             <Button Grid.Column="0" Text="{l:Localize lblViewDebugLog}" Style="{StaticResource SoftButton}"
-                                    CornerRadius="12" Clicked="OnViewLogClicked" />
+                                    CornerRadius="12" Padding="12,10" Clicked="OnViewLogClicked" />
                             <Button Grid.Column="1" Text="{l:Localize lblShareDebugLog}" Style="{StaticResource PlainButton}"
-                                    CornerRadius="12" Clicked="OnShareLogClicked" />
+                                    CornerRadius="12" Padding="12,10" Clicked="OnShareLogClicked" />
                         </Grid>
                         <!-- TV-Store's own log from the selected TV (GET :8077/log.txt), handed to the share sheet. -->
                         <Label Style="{StaticResource RowHint}" Text="{l:Localize hintGetTvStoreLog}" Margin="0,6,0,0" />

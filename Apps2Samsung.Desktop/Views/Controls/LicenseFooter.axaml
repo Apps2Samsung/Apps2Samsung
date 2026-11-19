@@ -18,12 +18,16 @@
 			<Setter Property="VerticalAlignment" Value="Center"/>
 		</Style>
 	</UserControl.Styles>
-	<WrapPanel>
-		<TextBlock x:Name="CopyrightText"/>
-		<HyperlinkButton x:Name="LicenseLink" Content="{l:Localize lblLicense}"/>
-		<TextBlock Text=" · "/>
-		<HyperlinkButton x:Name="AuthorLink"/>
-		<TextBlock Text=" · "/>
-		<TextBlock Text="{l:Localize lblSinceMay2025}"/>
-	</WrapPanel>
+	<!-- Two lines of their own (#1123): as one wrapping row the separators ended up alone at a line end. -->
+	<StackPanel>
+		<StackPanel Orientation="Horizontal">
+			<TextBlock x:Name="CopyrightText"/>
+			<HyperlinkButton x:Name="LicenseLink" Content="{l:Localize lblLicense}"/>
+		</StackPanel>
+		<WrapPanel>
+			<HyperlinkButton x:Name="AuthorLink"/>
+			<TextBlock Text=" · "/>
+			<TextBlock Text="{l:Localize lblSinceMay2025}"/>
+		</WrapPanel>
+	</StackPanel>
 </UserControl>

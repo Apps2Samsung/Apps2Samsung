@@ -10,8 +10,8 @@
 		xmlns:helpers="clr-namespace:Apps2Samsung.Helpers.Converters"
 		xmlns:fa="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
 		xmlns:controls="clr-namespace:Apps2Samsung.Views.Controls"
-        Width="820" Height="740"
-        MinWidth="720" MinHeight="600"
+        Width="960" Height="740"
+        MinWidth="780" MinHeight="600"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BgBrush}"
         Title="Apps2Samsung">
@@ -31,7 +31,9 @@
 		<StyleInclude Source="avares://Apps2Samsung/Styles/Sections.axaml"/>
 	</Window.Styles>
 
-	<Grid ColumnDefinitions="188,*">
+	<!-- The sidebar is 232 px (#1123): at 188 the TV name got 104 px and labels such as
+	     "На этом телевизоре" were cut. What still does not fit is trimmed and has its full text as a tooltip. -->
+	<Grid ColumnDefinitions="232,*">
 		<!-- Sidebar (#755, option C): the TV in use on top (its name and status; with more than one
 		     TV found it gets a ▾ and opens the TV picker), the four sections, and the version, licence and theme switch at the foot. -->
 		<Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}"
@@ -39,7 +41,8 @@
 			<DockPanel>
 				<StackPanel DockPanel.Dock="Top" Spacing="4">
 					<Button Classes="settingsrow" Background="{DynamicResource FillBrush}" CornerRadius="10" Padding="10,8" Margin="0,0,0,12"
-					        Command="{Binding ChangeTvCommand}" IsHitTestVisible="{Binding CanSwitchTv}">
+					        Command="{Binding ChangeTvCommand}" IsHitTestVisible="{Binding CanSwitchTv}"
+					        ToolTip.Tip="{Binding TvCard.Name}">
 						<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
 							<Border Classes="icontile" Width="30" Height="30" CornerRadius="8" Background="{DynamicResource AccentBrush}">
 								<Viewbox Width="17" Height="15">
@@ -49,49 +52,49 @@
 								</Viewbox>
 							</Border>
 							<StackPanel Grid.Column="1" VerticalAlignment="Center">
-								<StackPanel Orientation="Horizontal" Spacing="5">
-									<TextBlock Text="{Binding TvCard.Name}" FontSize="14" FontWeight="Bold" MaxWidth="104"
+								<Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
+									<TextBlock Text="{Binding TvCard.Name}" FontSize="14" FontWeight="Bold"
 									           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
-									<PathIcon Width="10" Height="7" Data="M1,1.5 L5,5.5 L9,1.5" Foreground="{DynamicResource AccentBrush}"
+									<PathIcon Grid.Column="1" Width="10" Height="7" Data="M1,1.5 L5,5.5 L9,1.5" Foreground="{DynamicResource AccentBrush}"
 									          VerticalAlignment="Center" IsVisible="{Binding CanSwitchTv}"/>
-								</StackPanel>
-								<StackPanel Orientation="Horizontal" Spacing="5">
+								</Grid>
+								<Grid ColumnDefinitions="Auto,*" ColumnSpacing="5">
 									<Ellipse Width="7" Height="7" Fill="{Binding TvLedBrush}" VerticalAlignment="Center"/>
-									<TextBlock Text="{Binding TvCard.Message}" FontSize="12" MaxWidth="110" TextTrimming="CharacterEllipsis"
+									<TextBlock Grid.Column="1" Text="{Binding TvCard.Message}" FontSize="12" TextTrimming="CharacterEllipsis"
 									           Foreground="{DynamicResource MutedBrush}" ToolTip.Tip="{Binding TvCard.Message}"/>
-								</StackPanel>
+								</Grid>
 							</StackPanel>
 						</Grid>
 					</Button>
 					<ToggleButton Classes="nav" IsChecked="{Binding IsInstallSection, Mode=OneWay}"
 					              Command="{Binding ShowSectionCommand}" CommandParameter="Install">
-						<StackPanel Orientation="Horizontal" Spacing="10">
-							<fa:SymbolIcon Symbol="Download"/><TextBlock Text="{Binding LblInstall}"/>
-						</StackPanel>
+						<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+							<fa:SymbolIcon Symbol="Download"/><TextBlock Grid.Column="1" Text="{Binding LblInstall}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding LblInstall}"/>
+						</Grid>
 					</ToggleButton>
 					<ToggleButton Classes="nav" IsChecked="{Binding IsOnTheTvSection, Mode=OneWay}"
 					              Command="{Binding ShowSectionCommand}" CommandParameter="OnTheTv">
-						<StackPanel Orientation="Horizontal" Spacing="10">
-							<fa:SymbolIcon Symbol="ViewAll"/><TextBlock Text="{Binding LblOnTheTv}"/>
-						</StackPanel>
+						<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+							<fa:SymbolIcon Symbol="ViewAll"/><TextBlock Grid.Column="1" Text="{Binding LblOnTheTv}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding LblOnTheTv}"/>
+						</Grid>
 					</ToggleButton>
 					<ToggleButton Classes="nav" IsChecked="{Binding IsTvStoreSection, Mode=OneWay}"
 					              Command="{Binding ShowSectionCommand}" CommandParameter="TvStore">
-						<StackPanel Orientation="Horizontal" Spacing="10">
-							<fa:SymbolIcon Symbol="Shop"/><TextBlock Text="{Binding LblTvStoreTab}"/>
-						</StackPanel>
+						<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+							<fa:SymbolIcon Symbol="Shop"/><TextBlock Grid.Column="1" Text="{Binding LblTvStoreTab}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding LblTvStoreTab}"/>
+						</Grid>
 					</ToggleButton>
 					<ToggleButton Classes="nav" IsChecked="{Binding IsRemoteSection, Mode=OneWay}"
 					              Command="{Binding ShowSectionCommand}" CommandParameter="Remote">
-						<StackPanel Orientation="Horizontal" Spacing="10">
-							<fa:SymbolIcon Symbol="Play"/><TextBlock Text="{Binding LblRemoteTab}"/>
-						</StackPanel>
+						<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+							<fa:SymbolIcon Symbol="Play"/><TextBlock Grid.Column="1" Text="{Binding LblRemoteTab}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding LblRemoteTab}"/>
+						</Grid>
 					</ToggleButton>
 					<ToggleButton Classes="nav" IsChecked="{Binding IsSettingsSection, Mode=OneWay}"
 					              Command="{Binding ShowSectionCommand}" CommandParameter="Settings">
-						<StackPanel Orientation="Horizontal" Spacing="10">
-							<fa:SymbolIcon Symbol="Settings"/><TextBlock Text="{Binding LblSettingsTab}"/>
-						</StackPanel>
+						<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+							<fa:SymbolIcon Symbol="Settings"/><TextBlock Grid.Column="1" Text="{Binding LblSettingsTab}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding LblSettingsTab}"/>
+						</Grid>
 					</ToggleButton>
 				</StackPanel>
 				<Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" ColumnSpacing="4" Margin="8,0,0,0">
@@ -261,7 +264,7 @@
 																				</Border>
 																			</Panel>
 																			<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-																				<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"/>
+																				<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}" ToolTip.Tip="{Binding Name}"/>
 																				<!-- the tags (18+, root, self-updating, Needs Tizen X, closed source) open the grey line
 																				     (#1041 follow-up, option B): amber for a warning, grey for information. They never
 																				     shorten; the category and downloads after them do. -->
@@ -341,7 +344,7 @@
 				<Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="10" Margin="20,16,20,0" MinHeight="36"
 				      IsVisible="{Binding InstalledAppsVm, Converter={x:Static ObjectConverters.IsNotNull}}">
 					<TextBlock DataContext="{Binding InstalledAppsVm}" x:DataType="viewModels:InstalledAppsViewModel" Text="{Binding StatusText}" FontSize="13" VerticalAlignment="Center"
-					           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
+					           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}" ToolTip.Tip="{Binding StatusText}"/>
 					<Button Grid.Column="1" Classes="tool" Content="{l:Localize lblRefresh}" DataContext="{Binding InstalledAppsVm}" x:DataType="viewModels:InstalledAppsViewModel" Command="{Binding LoadCommand}"
 					        IsVisible="{Binding !IsDebugging}"/>
 					<Button Grid.Column="2" Classes="tool square" ToolTip.Tip="{l:Localize lblStopDebugging}"
@@ -411,7 +414,7 @@
 					<StackPanel Grid.Column="1" VerticalAlignment="Center">
 						<TextBlock Text="{Binding StatusText}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
 						<TextBlock Text="{l:Localize lblRemoteKeyboardHint}" FontSize="12" TextTrimming="CharacterEllipsis"
-						           Foreground="{DynamicResource MutedBrush}"/>
+						           Foreground="{DynamicResource MutedBrush}" ToolTip.Tip="{l:Localize lblRemoteKeyboardHint}"/>
 					</StackPanel>
 					<!-- Live typing: the laptop keyboard is forwarded to the TV. d-pad mode presses every
 					     character on the app's own grid (works where typed text is ignored); direct mode

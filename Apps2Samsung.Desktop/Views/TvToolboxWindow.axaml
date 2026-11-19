@@ -164,7 +164,7 @@
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
                                     <TextBox Grid.Column="0" Text="{Binding AgentExpression}"
                                              Watermark="{l:Localize lblToolboxAgentEvaluatePlaceholder}"/>
-                                    <Button Grid.Column="1" Classes="action" Width="90"
+                                    <Button Grid.Column="1" Classes="action" MinWidth="90"
                                             Content="{l:Localize lblToolboxAgentEvaluate}"
                                             Command="{Binding EvaluateAgentCommand}"/>
                                 </Grid>
@@ -328,11 +328,11 @@
                             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
                                 <TextBox Grid.Column="0" Text="{Binding ManualAppId}"
                                          Watermark="{l:Localize lblToolboxManualPlaceholder}"/>
-                                <Button Grid.Column="1" Classes="action" Width="90"
+                                <Button Grid.Column="1" Classes="action" MinWidth="90"
                                         Content="{l:Localize lblToolboxLaunch}"
                                         Command="{Binding LaunchManualCommand}"
                                         IsEnabled="{Binding IsConnected}"/>
-                                <Button Grid.Column="2" Width="90"
+                                <Button Grid.Column="2" MinWidth="90"
                                         Content="{l:Localize lblToolboxExecute}"
                                         Command="{Binding ExecuteManualCommand}"
                                         IsEnabled="{Binding HasSdb}"
@@ -378,7 +378,7 @@
                                                                Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap"
                                                                IsVisible="{Binding IsCaution}"/>
                                                 </StackPanel>
-                                                <Button Grid.Column="1" Classes="action" Width="90" VerticalAlignment="Center"
+                                                <Button Grid.Column="1" Classes="action" MinWidth="90" VerticalAlignment="Center"
                                                         Content="{l:Localize lblToolboxLaunch}"
                                                         Command="{ReflectionBinding $parent[Window].DataContext.LaunchSystemAppCommand}"
                                                         CommandParameter="{Binding}"/>
@@ -412,7 +412,7 @@
                         <StackPanel Classes="sectionbody" IsVisible="{Binding IsPackageOpen}">
                             <TextBlock Classes="hint" Text="{l:Localize lblToolboxPackageHint}"/>
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                                <Button Grid.Column="0" Classes="action" Width="140"
+                                <Button Grid.Column="0" Classes="action" MinWidth="140"
                                         Content="{l:Localize lblToolboxSignPackage}"
                                         Command="{Binding SignPackageCommand}"
                                         IsEnabled="{Binding HasSdb}"/>
@@ -457,11 +457,11 @@
 
                             <StackPanel Spacing="8" IsVisible="{Binding IsAgentAttached}">
                                 <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
-                                    <Button Grid.Column="0" Classes="action" Width="120"
+                                    <Button Grid.Column="0" Classes="action" MinWidth="120"
                                             Content="{l:Localize lblToolboxStagingClear}"
                                             Command="{Binding ClearStagingCommand}"
                                             IsEnabled="{Binding HasStagedPackages}"/>
-                                    <Button Grid.Column="1" Width="90"
+                                    <Button Grid.Column="1" MinWidth="90"
                                             Content="{l:Localize lblToolboxStagingRefresh}"
                                             Command="{Binding RefreshStagingCommand}"/>
                                     <TextBlock Grid.Column="2" Text="{Binding StagingStatus}" FontSize="12"
@@ -522,7 +522,7 @@
                                                     <TextBlock Text="{Binding Caveat}" FontSize="11"
                                                                TextWrapping="Wrap" IsVisible="{Binding HasCaveat}"/>
                                                 </StackPanel>
-                                                <Button Grid.Column="1" Classes="action" Width="90" VerticalAlignment="Center"
+                                                <Button Grid.Column="1" Classes="action" MinWidth="90" VerticalAlignment="Center"
                                                         Content="{l:Localize lblToolboxSend}"
                                                         Command="{ReflectionBinding $parent[Window].DataContext.SendSequenceCommand}"
                                                         CommandParameter="{Binding}"/>

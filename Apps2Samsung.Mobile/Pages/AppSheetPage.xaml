@@ -16,42 +16,45 @@
                     StrokeShape="RoundRectangle 8" Padding="10,5" BackgroundColor="{DynamicResource AccentSoftColor}">
                 <Label Text="{l:Localize lblOpenedFromLink}" FontSize="13" FontAttributes="Bold" TextColor="{DynamicResource AccentColor}" />
             </Border>
-            <Grid ColumnDefinitions="Auto,*,Auto,32,32" ColumnSpacing="8" Margin="0,6,0,0">
+            <Grid ColumnDefinitions="Auto,*,32,32" RowDefinitions="Auto,Auto" ColumnSpacing="8" Margin="0,6,0,0">
                 <!-- the letter tile, or the app's icon from the catalog (#1000); filled in from code -->
                 <ContentView x:Name="TileSlot" VerticalOptions="Center" />
                 <Label Grid.Column="1" x:Name="TitleLabel" FontSize="20" FontAttributes="Bold" LineBreakMode="WordWrap" VerticalOptions="Center" />
-                <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
+                <!-- The badges wrap in a row of their own under the title (#1125): beside it they left
+                     a long name a few letters per line on a narrow phone. -->
+                <FlexLayout Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Direction="Row" Wrap="Wrap"
+                            JustifyContent="Start" AlignItems="Center" AlignContent="Start">
                     <!-- adult-only (#850) -->
-                    <Border x:Name="AdultBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
+                    <Border x:Name="AdultBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7" Margin="0,6,6,0"
                             Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="7,2" VerticalOptions="Center">
                         <Label Text="{l:Localize lblAdultBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}" />
                     </Border>
                     <!-- gains root on the TV: the install asks first -->
-                    <Border x:Name="RootBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
+                    <Border x:Name="RootBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7" Margin="0,6,6,0"
                             Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="7,2" VerticalOptions="Center">
                         <Label Text="{l:Localize lblRootBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}" />
                     </Border>
                     <!-- downloads and runs newer versions of itself after install (#1016) -->
-                    <Border x:Name="SelfUpdatingBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
+                    <Border x:Name="SelfUpdatingBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7" Margin="0,6,6,0"
                             Stroke="{DynamicResource WarnBrush}" BackgroundColor="{DynamicResource WarnSoftColor}" Padding="7,2" VerticalOptions="Center">
                         <Label Text="{l:Localize lblSelfUpdatingBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource WarnColor}" />
                     </Border>
                     <!-- the source is not in the linked repository (#1016): informational, quiet colours -->
-                    <Border x:Name="ClosedSourceBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
+                    <Border x:Name="ClosedSourceBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7" Margin="0,6,6,0"
                             Stroke="{DynamicResource HairBrush}" BackgroundColor="{DynamicResource FillColor}" Padding="7,2" VerticalOptions="Center">
                         <Label Text="{l:Localize lblClosedSourceBadge}" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource MutedColor}" />
                     </Border>
                     <!-- the Tizen the selected build asks for (TV-Store#47); warning colours when this TV is too old for it -->
-                    <Border x:Name="TizenBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7"
+                    <Border x:Name="TizenBadge" IsVisible="False" StrokeThickness="1" StrokeShape="RoundRectangle 7" Margin="0,6,6,0"
                             Stroke="{DynamicResource HairBrush}" BackgroundColor="{DynamicResource FillColor}" Padding="7,2" VerticalOptions="Center">
                         <Label x:Name="TizenBadgeLabel" FontSize="12" FontAttributes="Bold" TextColor="{DynamicResource MutedColor}" />
                     </Border>
-                </HorizontalStackLayout>
+                </FlexLayout>
                 <!-- the star: a favorite leads the Install tab's list -->
-                <Button Grid.Column="3" x:Name="FavoriteBtn" Text="☆" FontSize="18" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
+                <Button Grid.Column="2" x:Name="FavoriteBtn" Text="☆" FontSize="18" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
                         MinimumWidthRequest="32" MinimumHeightRequest="32"
                         BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnFavoriteClicked" />
-                <Button Grid.Column="4" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
+                <Button Grid.Column="3" Text="✕" FontSize="13" WidthRequest="32" HeightRequest="32" CornerRadius="16" Padding="0"
                         MinimumWidthRequest="32" MinimumHeightRequest="32"
                         BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource InkColor}" Clicked="OnCloseClicked" />
             </Grid>

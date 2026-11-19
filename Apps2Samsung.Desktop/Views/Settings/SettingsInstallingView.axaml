@@ -70,7 +70,7 @@
 					<StackPanel Margin="14,12" Spacing="10">
 						<TextBlock Classes="settinglabel" Text="{Binding LblCertificateLevel}"/>
 						<Border Padding="2" CornerRadius="8" Background="{DynamicResource FillBrush}" HorizontalAlignment="Left">
-							<UniformGrid Rows="1" MinWidth="330">
+							<UniformGrid Rows="1">
 								<RadioButton Classes="segment" GroupName="certificate" Content="{l:Localize lblCertificateAutomatic}" IsChecked="{Binding CertificateAutomatic}"/>
 								<RadioButton Classes="segment" GroupName="certificate" Content="{Binding LblCertificatePublic}" IsChecked="{Binding CertificatePublic}"/>
 								<RadioButton Classes="segment" GroupName="certificate" Content="{Binding LblCertificatePartner}" IsChecked="{Binding CertificatePartner}"/>
@@ -201,10 +201,10 @@
 											</StackPanel>
 										</StackPanel>
 										<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-											<Button Classes="soft" Content="{l:Localize lblRepoReview}" IsVisible="{Binding CanReview}"
+											<Button Classes="soft" Padding="12,8" Content="{l:Localize lblRepoReview}" IsVisible="{Binding CanReview}"
 											        Command="{Binding $parent[ItemsControl].((viewModels:AppSettingsViewModel)DataContext).ReviewUserSourceCommand}"
 											        CommandParameter="{Binding}"/>
-											<Button Classes="soft" Content="{l:Localize lblRemove}"
+											<Button Classes="soft" Padding="12,8" Content="{l:Localize lblRemove}"
 											        Command="{Binding $parent[ItemsControl].((viewModels:AppSettingsViewModel)DataContext).RemoveUserSourceCommand}"
 											        CommandParameter="{Binding}"/>
 										</StackPanel>

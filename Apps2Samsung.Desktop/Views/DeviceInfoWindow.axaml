@@ -47,7 +47,7 @@
                                     Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
                                     CornerRadius="8">
                                 <Grid ColumnDefinitions="150,*" ColumnSpacing="12">
-                                    <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="13" Opacity="0.6"
+                                    <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="13" Opacity="0.6" TextWrapping="Wrap"
                                                VerticalAlignment="Center"/>
                                     <SelectableTextBlock Grid.Column="1" Text="{Binding Value}" FontSize="13"
                                                          FontWeight="SemiBold" TextWrapping="Wrap"

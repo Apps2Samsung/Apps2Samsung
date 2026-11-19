@@ -22,7 +22,7 @@
 	</UserControl.Styles>
 
 	<Panel>
-		<Grid ColumnDefinitions="236,*" IsVisible="{Binding !HasPushedPage}">
+		<Grid ColumnDefinitions="264,*" IsVisible="{Binding !HasPushedPage}">
 
 			<!-- the list -->
 			<Border Grid.Column="0" BorderBrush="{DynamicResource HairBrush}" BorderThickness="0,0,1,0">
@@ -39,13 +39,15 @@
 									           Foreground="{DynamicResource MutedBrush}"
 									           IsVisible="{Binding UpdateStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 								</StackPanel>
-								<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-									<Button Grid.Column="0" Classes="pill" Content="{Binding LblCheckForUpdates}"
-									        Command="{Binding CheckForUpdatesCommand}"/>
-									<TextBlock Grid.Column="1" Text="{Binding LblBetaUpdates}" FontSize="12" HorizontalAlignment="Right"
-									           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}"
+								<!-- The switch has a row of its own (#1125): beside the button its label got no
+								     width at all, so the switch looked unlabelled. -->
+								<Button Classes="pill" Content="{Binding LblCheckForUpdates}" HorizontalAlignment="Left"
+								        Command="{Binding CheckForUpdatesCommand}"/>
+								<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+									<TextBlock Text="{Binding LblBetaUpdates}" FontSize="12" TextWrapping="Wrap"
+									           VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}"
 									           ToolTip.Tip="{l:Localize hintBetaUpdates}"/>
-									<ToggleSwitch Grid.Column="2" IsChecked="{Binding Application.IncludeBetaUpdates}"
+									<ToggleSwitch Grid.Column="1" IsChecked="{Binding Application.IncludeBetaUpdates}"
 									              MinWidth="0" VerticalAlignment="Center" ToolTip.Tip="{l:Localize hintBetaUpdates}"/>
 								</Grid>
 							</StackPanel>

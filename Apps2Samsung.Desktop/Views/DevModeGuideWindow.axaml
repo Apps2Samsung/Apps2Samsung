@@ -45,7 +45,7 @@
 		<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
 
 		<StackPanel Spacing="1">
-			<TextBlock Text="{Binding TitleText}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
+			<TextBlock Text="{Binding TitleText}" FontSize="17" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
 			<TextBlock Text="{Binding SubText}" FontSize="13" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
 		</StackPanel>
 
@@ -69,7 +69,7 @@
 									           FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 								</Border>
 								<StackPanel Grid.Column="1" Spacing="2" Margin="0,3,0,0">
-									<TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
+									<TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
 									<TextBlock Text="{Binding Hint}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
 									<StackPanel Orientation="Horizontal" Spacing="8" Margin="0,6,0,0" IsVisible="{Binding ShowsIp}">
 										<SelectableTextBlock Text="{Binding Ip}" FontSize="22" FontWeight="Bold" VerticalAlignment="Center"

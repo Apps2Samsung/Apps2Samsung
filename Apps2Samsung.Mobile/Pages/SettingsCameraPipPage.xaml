@@ -25,7 +25,7 @@
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                             <Label Grid.Column="0" Text="{l:Localize lblCameraPipMosaicStyle}" VerticalOptions="Center" />
                             <Picker Grid.Column="1" x:Name="CameraPipMosaicPicker" SelectedIndexChanged="OnCameraPipMosaicChanged"
-                                    HorizontalOptions="End" WidthRequest="200" />
+                                    HorizontalOptions="End" MinimumWidthRequest="120" />
                         </Grid>
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                             <Label Grid.Column="0" Text="{l:Localize lblCameraPipSound}" VerticalOptions="Center" />

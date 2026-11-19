@@ -23,7 +23,7 @@
 				<Path Width="22" Height="22" Stretch="Uniform" Stroke="{DynamicResource WarnBrush}" StrokeThickness="2.2"
 				      StrokeLineCap="Round" StrokeJoin="Round" Data="M12,3 A9,9 0 1 0 12.01,3 M12,7 L12,12 L15,14"/>
 			</Border>
-			<TextBlock Grid.Column="1" Text="{Binding TitleText}" FontSize="17" FontWeight="Bold" VerticalAlignment="Center"
+			<TextBlock Grid.Column="1" Text="{Binding TitleText}" FontSize="17" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"
 			           Foreground="{DynamicResource InkBrush}"/>
 		</Grid>
 

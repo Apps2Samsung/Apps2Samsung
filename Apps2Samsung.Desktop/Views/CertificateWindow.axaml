@@ -29,7 +29,7 @@
 				      Data="M12,3 L19,6 L19,11 C19,15.5 16,19 12,21 C8,19 5,15.5 5,11 L5,6 Z M9,12 L11,14 L15,10"/>
 			</Border>
 			<StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
-				<TextBlock Text="{Binding TitleText}" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
+				<TextBlock Text="{Binding TitleText}" FontSize="17" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
 				<TextBlock Text="{Binding SubText}" FontSize="13" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
 			</StackPanel>
 			<Border Grid.Column="2" Padding="10,4" CornerRadius="13" VerticalAlignment="Center" Background="{DynamicResource AccentSoftBrush}">
