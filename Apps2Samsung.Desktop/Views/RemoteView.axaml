@@ -130,7 +130,10 @@
     </UserControl.Styles>
 
     <ScrollViewer>
+        <!-- At most 920 wide (#1129): on a maximized window the two panels stretched into very wide,
+             mostly empty keys. -->
         <Grid ColumnDefinitions="*,*" ColumnSpacing="14" Margin="0,0,0,16" VerticalAlignment="Top"
+              MaxWidth="920" HorizontalAlignment="Left"
               Classes="keys" IsEnabled="{Binding IsConnected}">
 
             <!-- Navigation -->
