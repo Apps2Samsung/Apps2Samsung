@@ -1358,6 +1358,7 @@
   "lblRestoreMissingOne": "1 app is missing on this TV",
   "lblRestoreMissingMany": "{0} apps are missing on this TV",
   "lblRestoreMissingText": "On {0} it had {1} apps from the catalog. Was it reset? They can be installed again in one go.",
+  "lblRestoreMissingTextOne": "On {0} it had 1 app from the catalog. Was it reset? It can be installed again in one go.",
   "lblRestoreAppsOne": "Restore 1 app…",
   "lblRestoreAppsMany": "Restore {0} apps…",
   "lblRestoreWasHere": "Was here on {0} · {1}",

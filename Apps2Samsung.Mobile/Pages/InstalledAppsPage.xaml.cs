@@ -673,7 +673,9 @@ public partial class InstalledAppsPage : ContentPage
 
 		var date = saved!.Profile.SavedAtUtc.ToLocalTime().ToString("d MMMM");
 		RestoreTitle.Text = missing.Count == 1 ? L10n.Get("lblRestoreMissingOne") : string.Format(L10n.Get("lblRestoreMissingMany"), missing.Count);
-		RestoreText.Text = string.Format(L10n.Get("lblRestoreMissingText"), date, saved.Profile.Apps.Count);
+		RestoreText.Text = saved.Profile.Apps.Count == 1
+			? string.Format(L10n.Get("lblRestoreMissingTextOne"), date)
+			: string.Format(L10n.Get("lblRestoreMissingText"), date, saved.Profile.Apps.Count);
 		var names = missing.Take(4).Select(a => a.Name).ToList();
 		RestoreNames.Text = missing.Count > names.Count
 			? string.Format(L10n.Get("lblRestoreNamesMore"), string.Join(", ", names), missing.Count - names.Count)

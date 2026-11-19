@@ -156,7 +156,9 @@ namespace Apps2Samsung.ViewModels
                 .Count(i => i.State == TvRestoreState.Ready && wanted.Contains(SavedTvs.AppKey(i.App)) && i.Release is { IsRoot: false });
 
             RestoreCardTitle = missing.Count == 1 ? "lblRestoreMissingOne".Localized() : string.Format("lblRestoreMissingMany".Localized(), missing.Count);
-            RestoreCardText = string.Format("lblRestoreMissingText".Localized(), date, saved.Profile.Apps.Count);
+            RestoreCardText = saved.Profile.Apps.Count == 1
+                ? string.Format("lblRestoreMissingTextOne".Localized(), date)
+                : string.Format("lblRestoreMissingText".Localized(), date, saved.Profile.Apps.Count);
             RestoreCardButton = ready == 1 ? "lblRestoreAppsOne".Localized() : string.Format("lblRestoreAppsMany".Localized(), ready);
             RestoreCardCanRestore = ready > 0;
             MissingHeader = string.Format("lblRestoreWasHere".Localized(), date, missing.Count);
