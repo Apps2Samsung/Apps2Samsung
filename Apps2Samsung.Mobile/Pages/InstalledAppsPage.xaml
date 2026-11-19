@@ -25,7 +25,7 @@
         <!-- The notices get at most 260 of the height and scroll inside it (#1127): two or three of
              them, or a phone on its side, left the app list a sliver. -->
         <ScrollView Grid.Row="1" MaximumHeightRequest="260" VerticalScrollBarVisibility="Never">
-        <VerticalStackLayout Spacing="8">
+        <VerticalStackLayout Spacing="8" Padding="0,0,0,6">
             <!-- Host PC IP 127.0.0.1 and TV-Store closed: the list comes through TV-Store's relay, so say
                  so and open TV-Store on the TV from here (#1041 follow-up) -->
             <Border x:Name="RelayNotice" IsVisible="False" Margin="16,4,16,0" Padding="14,12" StrokeThickness="1"
