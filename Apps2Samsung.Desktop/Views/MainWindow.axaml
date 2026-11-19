@@ -87,7 +87,14 @@
 					<ToggleButton Classes="nav" IsChecked="{Binding IsRemoteSection, Mode=OneWay}"
 					              Command="{Binding ShowSectionCommand}" CommandParameter="Remote">
 						<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-							<fa:SymbolIcon Symbol="Play"/><TextBlock Grid.Column="1" Text="{Binding LblRemoteTab}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding LblRemoteTab}"/>
+							<!-- a remote control, the phone's tab icon (#1129); "Play" read as a media player -->
+							<Viewbox Width="18" Height="18">
+								<Canvas Width="24" Height="24">
+									<Path Stroke="{Binding $self.(TextElement.Foreground)}" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round"
+									      Data="M12,2 A5,5 0 0 1 17,7 V17 A5,5 0 0 1 7,17 V7 A5,5 0 0 1 12,2 Z M10,8 A2,2 0 1 0 14,8 A2,2 0 1 0 10,8 M10,14 H14 M10,17 H14"/>
+								</Canvas>
+							</Viewbox>
+							<TextBlock Grid.Column="1" Text="{Binding LblRemoteTab}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding LblRemoteTab}"/>
 						</Grid>
 					</ToggleButton>
 					<ToggleButton Classes="nav" IsChecked="{Binding IsSettingsSection, Mode=OneWay}"
