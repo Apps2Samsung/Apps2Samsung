@@ -701,6 +701,7 @@
   "statusImportedDesktop": "Увезена су подешавања и {0} датотека сертификата. Рестартујте апликацију да их примените.",
   "statusImportFailed": "Увоз није успео: {0}",
   "lblOk": "OK",
+  "lblErrorTitle": "Грешка",
   "lblDownload": "Преузми",
   "lblLater": "Касније",
   "statusSetIconFailed": "Икона није постављена: {0}",
