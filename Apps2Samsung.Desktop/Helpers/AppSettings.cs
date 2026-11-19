@@ -172,6 +172,13 @@ namespace Apps2Samsung.Helpers
         public bool PatchYoutubePlugin { get; set; } = false;
         public string CustomCss { get; set; } = "";
         public bool DarkMode { get; set; } = false;
+        // Where the main window was left (#1129): its size, its top-left corner in screen pixels
+        // and whether it was maximized. Null until the window has been closed once.
+        public double? WindowWidth { get; set; }
+        public double? WindowHeight { get; set; }
+        public int? WindowX { get; set; }
+        public int? WindowY { get; set; }
+        public bool WindowMaximized { get; set; }
         public string GitHubToken { get; set; } = "";
         public string LocalYoutubeServer { get; set; } = string.Empty;
         public string TvAppChannelsJson { get; set; } = "";  // JSON array of {name,url} for TVApp

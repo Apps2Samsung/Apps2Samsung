@@ -8,6 +8,16 @@
 		<Setter Property="OnContent" Value="" />
 		<Setter Property="OffContent" Value="" />
 	</Style>
+	<!-- On is the app's accent (#1129): the Fluent default is the system's blue, next to green
+	     buttons and a green selection everywhere else. -->
+	<Style Selector="ToggleSwitch:checked /template/ Border#SwitchKnobBounds">
+		<Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+		<Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+	</Style>
+	<Style Selector="ToggleSwitch:checked:pointerover /template/ Border#SwitchKnobBounds">
+		<Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+		<Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}"/>
+	</Style>
 
 	<Style Selector="Button.primary">
 		<Setter Property="Background" Value="{DynamicResource AccentBrush}"/>

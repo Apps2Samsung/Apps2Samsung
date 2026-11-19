@@ -22,11 +22,11 @@
 		<StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentTheme.xaml"/>
 	</Window.Styles>
 
-	<Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+	<Border Background="{DynamicResource SurfaceBrush}"
             Padding="20"
             CornerRadius="12"
             Margin="10"
-            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+            BorderBrush="{DynamicResource HairBrush}"
             BorderThickness="1">
 		<Border.Effect>
 			<DropShadowEffect BlurRadius="20"

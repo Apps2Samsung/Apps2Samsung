@@ -39,11 +39,11 @@
 		</Style>
 	</Window.Styles>
 
-	<Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+	<Border Background="{DynamicResource SurfaceBrush}"
 			Padding="16"
 			CornerRadius="8"
 			Margin="12"
-			BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+			BorderBrush="{DynamicResource HairBrush}"
 			BorderThickness="1">
 
 		<Border.Effect>
@@ -95,8 +95,8 @@
 
 					<StackPanel Spacing="8">
 						<TextBlock Text="{Binding LblJellyfinBuilds}" Classes="subtitle"/>
-						<Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
-								BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+						<Border Background="{DynamicResource FillBrush}"
+								BorderBrush="{DynamicResource HairBrush}"
 								BorderThickness="1"
 								CornerRadius="8"
 								ClipToBounds="True"
@@ -129,8 +129,8 @@
 
 					<StackPanel Spacing="8">
 						<TextBlock Text="{Binding LblCommunityApps}" Classes="subtitle"/>
-						<Border Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
-								BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+						<Border Background="{DynamicResource FillBrush}"
+								BorderBrush="{DynamicResource HairBrush}"
 								BorderThickness="1"
 								CornerRadius="8"
 								ClipToBounds="True"
@@ -180,8 +180,8 @@
 					<Border Height="360"
 							CornerRadius="12"
 							ClipToBounds="True"
-							Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
-							BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+							Background="{DynamicResource FillBrush}"
+							BorderBrush="{DynamicResource HairBrush}"
 							BorderThickness="1">
 						<Grid>
 							<!-- fallback empty state behind -->

@@ -328,7 +328,7 @@
                                                             Command="{ReflectionBinding $parent[UserControl].DataContext.LaunchCommand}"
                                                             CommandParameter="{Binding App}"/>
                                                     <Button Grid.Column="4" Classes="more" Content="⋯" Margin="0,0,10,0" VerticalAlignment="Center"
-                                                            ToolTip.Tip="{Binding App.TizenId}" Click="OnMoreClick"/>
+                                                            ToolTip.Tip="{l:Localize lblMore}" AutomationProperties.Name="{l:Localize lblMore}" Click="OnMoreClick"/>
                                                 </Grid>
                                                 <Border Classes="rowline" Margin="64,0,0,0"/>
                                             </StackPanel>

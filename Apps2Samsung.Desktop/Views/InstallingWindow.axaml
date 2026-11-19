@@ -21,9 +21,9 @@
 	</Window.Styles>
 
 	<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-		<Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+		<Border Background="{DynamicResource SurfaceBrush}"
                 CornerRadius="4" Padding="10" Margin="5"
-				BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+				BorderBrush="{DynamicResource HairBrush}"
                 BorderThickness="1">
 			<StackPanel>
 				<TextBlock x:Name="StatusTextBlock"

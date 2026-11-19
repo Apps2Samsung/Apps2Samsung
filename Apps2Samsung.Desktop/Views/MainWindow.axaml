@@ -99,7 +99,8 @@
 						<TextBlock Text="{Binding VersionText}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource MutedBrush}"/>
 						<controls:LicenseFooter/>
 					</StackPanel>
-					<ToggleButton Grid.Column="1" Classes="nav" Padding="8" VerticalAlignment="Center" IsChecked="{Binding DarkMode}">
+					<ToggleButton Grid.Column="1" Classes="nav" Padding="8" VerticalAlignment="Center" IsChecked="{Binding DarkMode}"
+					              ToolTip.Tip="{l:Localize lblSwitchTheme}" AutomationProperties.Name="{l:Localize lblSwitchTheme}">
 						<Panel>
 							<TextBlock Text="&#x2600;" FontSize="16" IsVisible="{Binding DarkMode}"/>
 							<TextBlock Text="&#x1F319;" FontSize="14" IsVisible="{Binding !DarkMode}"/>
@@ -116,7 +117,7 @@
 			<!-- Install -->
 			<DockPanel IsVisible="{Binding IsInstallSection}">
 				<Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" Margin="20,16,20,0">
-					<TextBox Classes="search tool" Text="{Binding SearchText, Mode=TwoWay}" Watermark="{Binding LblSearchApps}"/>
+					<TextBox x:Name="SearchBox" Classes="search tool" Text="{Binding SearchText, Mode=TwoWay}" Watermark="{Binding LblSearchApps}"/>
 					<Button Grid.Column="1" Classes="tool" Content="{l:Localize lblInstallAFile}" ToolTip.Tip="{Binding CustomFileSubline}"
 					        Command="{Binding InstallOwnFileCommand}"/>
 					<Button Grid.Column="2" Classes="tool square" Content="⋯" FontSize="18" ToolTip.Tip="{l:Localize lblMore}">
@@ -204,7 +205,8 @@
 						<!-- Cancel a running Samsung sign-in -->
 						<Button Classes="icon" HorizontalAlignment="Center"
 						        IsVisible="{Binding IsSamsungLoginActive}"
-						        Command="{Binding CancelSamsungLoginCommand}">
+						        Command="{Binding CancelSamsungLoginCommand}"
+						        ToolTip.Tip="{l:Localize lblCancelSignIn}" AutomationProperties.Name="{l:Localize lblCancelSignIn}">
 							<fa:SymbolIcon Symbol="Cancel" Width="20" Height="20"/>
 						</Button>
 
