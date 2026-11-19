@@ -717,6 +717,7 @@
   "statusImportedDesktop": "Импортированы настройки + {0} файл (файлы) сертификата. Перезапустите приложение, чтобы применить.",
   "statusImportFailed": "Ошибка импорта: {0}",
   "lblOk": "ОК",
+  "lblErrorTitle": "Ошибка",
   "lblDownload": "Скачать",
   "lblLater": "Позже",
   "statusSetIconFailed": "Не удалось установить иконку: {0}",

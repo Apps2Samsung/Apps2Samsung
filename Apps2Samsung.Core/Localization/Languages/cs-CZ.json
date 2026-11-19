@@ -716,6 +716,7 @@
   "statusImportedDesktop": "Nastavení a {0} souborů certifikátů importováno. Restartujte aplikaci, aby se změny projevily.",
   "statusImportFailed": "Import se nezdařil: {0}",
   "lblOk": "OK",
+  "lblErrorTitle": "Chyba",
   "lblDownload": "Stáhnout",
   "lblLater": "Později",
   "statusSetIconFailed": "Nepodařilo se nastavit ikonu: {0}",

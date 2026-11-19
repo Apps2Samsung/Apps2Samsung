@@ -704,6 +704,7 @@
   "statusImportedDesktop": "导入设置 + {0} 证书文件(s)。重启应用程序。",
   "statusImportFailed": "导入失败: {0}",
   "lblOk": "好的",
+  "lblErrorTitle": "错误",
   "lblDownload": "下载",
   "lblLater": "稍后再说",
   "statusSetIconFailed": "无法设置图标： {0}",

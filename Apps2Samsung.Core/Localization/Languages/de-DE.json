@@ -696,6 +696,7 @@
   "statusImportedDesktop": "Importierte Einstellungen + {0} Zertifikatsdatei(en). Starten Sie die App neu, um sie anzuwenden.",
   "statusImportFailed": "Import fehlgeschlagen: {0}",
   "lblOk": "Ok",
+  "lblErrorTitle": "Fehler",
   "lblLater": "Später",
   "statusSetIconFailed": "Konnte das Symbol nicht setzen: {0}",
   "statusSeeDebugLog": "Einstellungen → Diagnose → Debug-Protokoll teilen enthält die vollständigen Details.",

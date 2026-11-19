@@ -705,6 +705,7 @@
   "statusImportedDesktop": "Configurações importadas + arquivos de certificado {0} . Reinicie o aplicativo para aplicar.",
   "statusImportFailed": "Importação falhou: {0}",
   "lblOk": "Certo",
+  "lblErrorTitle": "Erro",
   "lblDownload": "BAIXAR",
   "lblLater": "Mais tarde",
   "statusSetIconFailed": "Não foi possível definir o ícone: {0}",

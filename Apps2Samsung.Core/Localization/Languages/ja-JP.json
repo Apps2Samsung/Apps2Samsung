@@ -701,6 +701,7 @@
   "statusImportedDesktop": "インポートされた設定 + {0} 証明書ファイル(s). アプリを再起動して適用します。",
   "statusImportFailed": "インポート失敗: {0}",
   "lblOk": "OK",
+  "lblErrorTitle": "エラー",
   "lblDownload": "ダウンロード",
   "lblLater": "後で",
   "statusSetIconFailed": "アイコンを設定できませんでした: {0}",

@@ -701,6 +701,7 @@
   "statusImportedDesktop": "Tuotu asetukset + {0} sertifikaattitiedosto(t). Käynnistä sovellus uudelleen.",
   "statusImportFailed": "Tuonti epäonnistui: {0}",
   "lblOk": "Ok",
+  "lblErrorTitle": "Virhe",
   "lblDownload": "Lataa",
   "lblLater": "Myöhemmin",
   "statusSetIconFailed": "Kuvaketta ei voitu asettaa: {0}",

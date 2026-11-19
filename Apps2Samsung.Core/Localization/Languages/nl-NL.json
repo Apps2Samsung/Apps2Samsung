@@ -704,6 +704,7 @@
   "statusImportedDesktop": "Geïmporteerde instellingen + {0} certificaatbestand(en). Herstart de app om toe te passen.",
   "statusImportFailed": "Importeren mislukt: {0}",
   "lblOk": "Ok",
+  "lblErrorTitle": "Fout",
   "lblDownload": "downloaden",
   "statusSetIconFailed": "Kon het pictogram niet instellen: {0}",
   "statusSeeDebugLog": "Instellingen → Diagnostiek → Debuglogboek delen bevat de volledige details.",

@@ -701,6 +701,7 @@
   "statusImportedDesktop": "설정과 인증서 파일 {0}개를 가져왔습니다. 적용하려면 앱을 다시 시작하세요.",
   "statusImportFailed": "가져오기 실패: {0}",
   "lblOk": "확인",
+  "lblErrorTitle": "오류",
   "lblDownload": "다운로드",
   "lblLater": "나중에",
   "statusSetIconFailed": "아이콘을 설정하지 못했습니다: {0}",

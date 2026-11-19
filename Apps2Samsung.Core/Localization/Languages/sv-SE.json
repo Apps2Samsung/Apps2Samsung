@@ -697,6 +697,7 @@
   "statusImportedDesktop": "Importerade inställningar + {0} certifikatfil(er). Starta om appen för att tillämpa.",
   "statusImportFailed": "Importen misslyckades: {0}",
   "lblOk": "Ok",
+  "lblErrorTitle": "Fel",
   "lblDownload": "Hämta",
   "lblLater": "Senare",
   "statusSetIconFailed": "Kunde inte ange ikonen: {0}",

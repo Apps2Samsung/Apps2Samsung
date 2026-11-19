@@ -726,6 +726,7 @@
   "statusImportedDesktop": "Uvožene nastavitve + {0} datoteka(-e) s certifikatom. Za uporabo ponovno zaženite aplikacijo.",
   "statusImportFailed": "Uvoz ni uspel: {0}",
   "lblOk": "V redu",
+  "lblErrorTitle": "Napaka",
   "lblDownload": "Prenos",
   "lblLater": "Kasneje",
   "statusSetIconFailed": "Ikone ni bilo mogoče nastaviti: {0}",

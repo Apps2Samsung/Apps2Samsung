@@ -700,6 +700,7 @@
   "statusImportedDesktop": "יובאו ההגדרות ו-{0} קובצי אישור. הפעילו מחדש את האפליקציה כדי להחיל.",
   "statusImportFailed": "הייבוא נכשל: {0}",
   "lblOk": "אישור",
+  "lblErrorTitle": "שגיאה",
   "lblDownload": "הורדה",
   "lblLater": "מאוחר יותר",
   "statusSetIconFailed": "לא ניתן להגדיר את הסמל: {0}",

@@ -697,6 +697,7 @@
   "statusImportedDesktop": "Setări importate + fișier certificat {0} . Reporniți aplicația pentru a aplica.",
   "statusImportFailed": "Importul a eșuat: {0}",
   "lblOk": "Ok",
+  "lblErrorTitle": "Eroare",
   "lblDownload": "Descărcare",
   "lblLater": "Mai târziu",
   "statusSetIconFailed": "Nu s-a putut seta pictograma: {0}",

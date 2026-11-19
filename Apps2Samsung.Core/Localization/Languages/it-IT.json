@@ -684,6 +684,7 @@
   "statusImportedDesktop": "Impostazioni importate + file di certificato {0} . Riavviare l'applicazione per applicare.",
   "statusImportFailed": "Importazione non riuscita: {0}",
   "lblOk": "OK",
+  "lblErrorTitle": "Errore",
   "lblDownload": "Scarica",
   "lblLater": "Dopo",
   "statusSetIconFailed": "Impossibile impostare l'icona: {0}",

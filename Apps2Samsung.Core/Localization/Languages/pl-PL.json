@@ -701,6 +701,7 @@
   "statusImportedDesktop": "Zaimportowano ustawienia + {0} plików certyfikatów. Uruchom ponownie aplikację, aby zastosować.",
   "statusImportFailed": "Importowanie nie powiodło się: {0}",
   "lblOk": "OK",
+  "lblErrorTitle": "Błąd",
   "lblDownload": "Pobierz",
   "lblLater": "Później",
   "statusSetIconFailed": "Nie można ustawić ikony: {0}",
