@@ -28,6 +28,7 @@ namespace Apps2Samsung.Views
         public AccountEmailWindow()
         {
             InitializeComponent();
+            Apps2Samsung.Helpers.DialogKeys.CloseOnEscape(this);
         }
 
         public AccountEmailWindow(Func<string, string> localize) : this()

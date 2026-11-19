@@ -126,7 +126,7 @@ namespace Apps2Samsung.ViewModels
             if (row is null)
                 return;
             if (!await _dialogService.ShowConfirmationAsync("lblSavedTvForget".Localized(),
-                    string.Format("lblSavedTvForgetAsk".Localized(), row.Name), "lblSavedTvForget".Localized(), "lblCancel".Localized()))
+                    string.Format("lblSavedTvForgetAsk".Localized(), row.Name), "lblSavedTvForget".Localized(), "lblCancel".Localized(), destructive: true))
                 return;
             SavedTvs.Forget(row.Key);
         }

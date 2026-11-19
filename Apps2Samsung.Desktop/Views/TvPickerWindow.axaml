@@ -42,6 +42,9 @@
 
 		<Border CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfaceBrush}">
 			<StackPanel>
+				<!-- Scrolls from about six TVs on (#1124): the sheet stops at MaxHeight, and the rows
+				     below it, "enter an IP" and Rescan used to fall outside the window. -->
+				<ScrollViewer MaxHeight="340" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
 				<ItemsControl ItemsSource="{Binding Rows}">
 					<ItemsControl.ItemTemplate>
 						<DataTemplate x:DataType="views:TvPickerWindow+Row">
@@ -65,6 +68,7 @@
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
 				</ItemsControl>
+				</ScrollViewer>
 				<Button Classes="row" Click="OnManualClick">
 					<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
 						<Border Classes="tile" Background="{DynamicResource FillBrush}">

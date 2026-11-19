@@ -16,6 +16,7 @@ public partial class UpdateDialog : Window
     public UpdateDialog()
     {
         InitializeComponent();
+        Apps2Samsung.Helpers.DialogKeys.CloseOnEscape(this);
 
         var localizationService = App.Services.GetRequiredService<ILocalizationService>();
         ViewModel = new UpdateDialogViewModel(localizationService);

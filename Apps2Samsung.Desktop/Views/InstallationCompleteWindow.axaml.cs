@@ -9,6 +9,7 @@ public partial class InstallationCompleteWindow : Window
     public InstallationCompleteWindow(InstallationCompleteViewModel vm)
     {
         InitializeComponent();
+        Apps2Samsung.Helpers.DialogKeys.CloseOnEscape(this);
         DataContext = vm;
         vm.RequestClose += OnRequestClose;
     }
