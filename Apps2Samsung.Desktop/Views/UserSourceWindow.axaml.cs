@@ -41,6 +41,7 @@ namespace Apps2Samsung.Views
         public UserSourceWindow()
         {
             InitializeComponent();
+            Apps2Samsung.Helpers.DialogKeys.CloseOnEscape(this);
         }
 
         public UserSourceWindow(Func<string, string> localize, IReadOnlyList<UserSource> existing,

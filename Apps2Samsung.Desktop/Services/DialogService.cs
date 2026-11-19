@@ -58,7 +58,9 @@ namespace Apps2Samsung.Services
             TaskCompletionSource<bool>? tcs = null,
             string yesText = "Yes",
             string noText = "No",
-            Action<Button, Button>? onButtonsCreated = null)
+            Action<Button, Button>? onButtonsCreated = null,
+            string? closeText = null,
+            bool destructive = false)
         {
             // Get theme from AppSettings
             var isDarkMode = AppSettings.Default.DarkMode;
@@ -125,36 +127,46 @@ namespace Apps2Samsung.Services
                     Margin = new Thickness(0, 15, 0, 0)
                 };
 
+                // Sized to the label (#1124): a fixed 90 px cut "Deinstallieren" and "Leave them out".
+                // Enter takes the answer, Escape declines; a destructive answer (uninstall, forget,
+                // remove) is drawn as danger and is not the Enter default.
                 var yesButton = new Button
                 {
                     Content = yesText,
-                    Width = 90,
+                    MinWidth = 90,
                     Height = 35,
-                    Background = DesignTheme.Brush("Accent"),
+                    Padding = new Thickness(16, 0),
+                    Background = DesignTheme.Brush(destructive ? "Bad" : "Accent"),
                     Foreground = DesignTheme.Brush("OnAccent"),
                     CornerRadius = new CornerRadius(8),
                     HorizontalContentAlignment = HorizontalAlignment.Center,
-                    VerticalContentAlignment = VerticalAlignment.Center
+                    VerticalContentAlignment = VerticalAlignment.Center,
+                    IsDefault = !destructive
                 };
 
                 var noButton = new Button
                 {
                     Content = noText,
-                    Width = 90,
+                    MinWidth = 90,
                     Height = 35,
+                    Padding = new Thickness(16, 0),
                     Background = DesignTheme.Brush("Muted"),
                     Foreground = DesignTheme.Brush("OnAccent"),
                     CornerRadius = new CornerRadius(8),
                     HorizontalContentAlignment = HorizontalAlignment.Center,
-                    VerticalContentAlignment = VerticalAlignment.Center
+                    VerticalContentAlignment = VerticalAlignment.Center,
+                    IsCancel = true
                 };
 
                 // Click is raised while the PointerReleased that caused it is still being routed. Closing
                 // the window synchronously here disposes its PlatformImpl mid-route, and the rest of that
                 // input event then lands on a dead window ("[Control] PlatformImpl is null, couldn't
                 // handle input"). Let the event finish first, then close.
-                yesButton.Click += (_, _) => { tcs.SetResult(true); Dispatcher.UIThread.Post(dialog.Close); };
-                noButton.Click += (_, _) => { tcs.SetResult(false); Dispatcher.UIThread.Post(dialog.Close); };
+                yesButton.Click += (_, _) => { tcs.TrySetResult(true); Dispatcher.UIThread.Post(dialog.Close); };
+                noButton.Click += (_, _) => { tcs.TrySetResult(false); Dispatcher.UIThread.Post(dialog.Close); };
+                // The title bar's X (or Alt+F4) is a "no": without this the caller waited forever and
+                // its command stayed running, so its button stayed disabled (#1124).
+                dialog.Closed += (_, _) => tcs.TrySetResult(false);
 
                 buttons.Children.Add(yesButton);
                 buttons.Children.Add(noButton);
@@ -164,6 +176,29 @@ namespace Apps2Samsung.Services
                 // Lets a caller keep hold of the buttons (e.g. to gate "Install now" on a countdown)
                 // instead of hunting for them in the visual tree by their label.
                 onButtonsCreated?.Invoke(yesButton, noButton);
+            }
+            else if (closeText != null)
+            {
+                // A message or an error: one button that Enter and Escape both press (#1124). These
+                // used to have no button at all, the title bar's X was the only way out.
+                var closeButton = new Button
+                {
+                    Content = closeText,
+                    MinWidth = 90,
+                    Height = 35,
+                    Padding = new Thickness(16, 0),
+                    Margin = new Thickness(0, 15, 0, 0),
+                    Background = DesignTheme.Brush("Accent"),
+                    Foreground = DesignTheme.Brush("OnAccent"),
+                    CornerRadius = new CornerRadius(8),
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    HorizontalContentAlignment = HorizontalAlignment.Center,
+                    VerticalContentAlignment = VerticalAlignment.Center,
+                    IsDefault = true,
+                    IsCancel = true
+                };
+                closeButton.Click += (_, _) => Dispatcher.UIThread.Post(dialog.Close);
+                mainPanel.Children.Add(closeButton);
             }
 
             dialog.Content = mainPanel;
@@ -183,7 +218,7 @@ namespace Apps2Samsung.Services
                 Foreground = foregroundBrush,
                 FontSize = 14,
                 Margin = new Thickness(0, 5, 0, 0)
-            });
+            }, closeText: "lblOk".Localized());
 
             if (window != null)
                 await dialog.ShowDialog(window);
@@ -192,6 +227,9 @@ namespace Apps2Samsung.Services
         public async Task ShowErrorAsync(string message)
         {
             var window = GetMainWindow();
+            // The title says it is an error; the text itself is read in the normal ink, a long
+            // message in saturated red was hard to read in both themes (#1124).
+            var foregroundBrush = GetThemeBrush("SystemControlForegroundBaseHighBrush", AppSettings.Default.DarkMode);
             Control contentControl;
             
             var logIndex = message.IndexOf("\n[Log written to:");
@@ -206,7 +244,7 @@ namespace Apps2Samsung.Services
                 {
                     Text = mainMessage,
                     TextWrapping = TextWrapping.Wrap,
-                    Foreground = Brushes.Red,
+                    Foreground = foregroundBrush,
                     FontSize = 14,
                     Margin = new Thickness(0, 5, 0, 0)
                 });
@@ -276,7 +314,7 @@ namespace Apps2Samsung.Services
                 {
                     Text = logMessage,
                     TextWrapping = TextWrapping.Wrap,
-                    Foreground = Brushes.Red,
+                    Foreground = foregroundBrush,
                     FontSize = 14,
                     Margin = new Thickness(0, 5, 0, 0)
                 });
@@ -289,13 +327,13 @@ namespace Apps2Samsung.Services
                 {
                     Text = message,
                     TextWrapping = TextWrapping.Wrap,
-                    Foreground = Brushes.Red,
+                    Foreground = foregroundBrush,
                     FontSize = 14,
                     Margin = new Thickness(0, 5, 0, 0)
                 };
             }
 
-            var dialog = CreateStyledDialog("Error", contentControl);
+            var dialog = CreateStyledDialog("lblErrorTitle".Localized(), contentControl, closeText: "btn_Close".Localized());
 
             if (window != null)
                 await dialog.ShowDialog(window);
@@ -303,7 +341,7 @@ namespace Apps2Samsung.Services
 
         // The defaults have to be compile-time constants, so they are empty here and filled in
         // from the catalog below, otherwise an unlocalized "Yes"/"No" would ship.
-        public async Task<bool> ShowConfirmationAsync(string title, string message, string? yesText = null, string? noText = null, Window? owner = null)
+        public async Task<bool> ShowConfirmationAsync(string title, string message, string? yesText = null, string? noText = null, Window? owner = null, bool destructive = false)
         {
             yesText ??= "keyYes".Localized();
             noText ??= "keyNo".Localized();
@@ -319,10 +357,11 @@ namespace Apps2Samsung.Services
                 Foreground = foregroundBrush,
                 FontSize = 14,
                 Margin = new Thickness(0, 5, 0, 0)
-            }, showButtons: true, tcs: tcs, yesText: yesText, noText: noText);
+            }, showButtons: true, tcs: tcs, yesText: yesText, noText: noText, destructive: destructive);
 
-            if (window != null)
-                await dialog.ShowDialog(window);
+            if (window == null)
+                return false;
+            await dialog.ShowDialog(window);
 
             return await tcs.Task;
         }
@@ -431,6 +470,7 @@ namespace Apps2Samsung.Services
                 var dialog = CreateStyledDialog(title, panel);
                 foreach (var (button, release) in buttons)
                     button.Click += (_, _) => { picked = release; Dispatcher.UIThread.Post(dialog.Close); };
+                cancel.IsCancel = true;
                 cancel.Click += (_, _) => Dispatcher.UIThread.Post(dialog.Close);
                 await dialog.ShowDialog(window);
                 return picked;
@@ -452,6 +492,8 @@ namespace Apps2Samsung.Services
                 row.Children.Add(action);
                 panel.Children.Add(row);
                 var dialog = CreateStyledDialog(title, panel);
+                close.IsCancel = true;
+                action.IsDefault = true;
                 close.Click += (_, _) => Dispatcher.UIThread.Post(dialog.Close);
                 action.Click += (_, _) => { act = true; Dispatcher.UIThread.Post(dialog.Close); };
                 await dialog.ShowDialog(window);
@@ -593,17 +635,6 @@ namespace Apps2Samsung.Services
             }
         }
 
-        public async Task<string?> PromptForIpAsync()
-        {
-            var window = GetMainWindow();
-            var dialog = new IpInputDialog();
-
-            if (window != null)
-                return await dialog.ShowDialog<string?>(window);
-
-            return null;
-        }
-
         public async Task<string?> PromptForTextAsync(string title, string message, string placeholder)
         {
             var window = GetMainWindow();
@@ -635,7 +666,8 @@ namespace Apps2Samsung.Services
             // Reuse the app's styled dialog chrome (same Fluent look as the confirmation/IP prompts),
             // wiring OK/Cancel through a bool TCS and returning the entered text only on OK.
             var tcs = new TaskCompletionSource<bool>();
-            var dialog = CreateStyledDialog(title, panel, showButtons: true, tcs: tcs, yesText: "Remove", noText: "Cancel");
+            var dialog = CreateStyledDialog(title, panel, showButtons: true, tcs: tcs, yesText: "lblRemove".Localized(), noText: "lblCancel".Localized());
+            dialog.Opened += (_, _) => textBox.Focus();
 
             await dialog.ShowDialog(window);
 

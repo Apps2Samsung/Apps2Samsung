@@ -65,6 +65,7 @@ namespace Apps2Samsung.Views
         public CertificateWindow()
         {
             InitializeComponent();
+            Apps2Samsung.Helpers.DialogKeys.CloseOnEscape(this);
         }
 
         public CertificateWindow(string tvName, CertificatePrivilegeLevel level, Func<string, string> localize,
