@@ -31,10 +31,7 @@
     <Grid RowDefinitions="Auto,*">
         <controls:TopBarView Grid.Row="0" Title="{l:Localize lblJellyfinServer}" BackText="{l:Localize lblNavBack}" BackTapped="OnBackClicked" />
         <ScrollView Grid.Row="1">
-            <Border Margin="12" Padding="16" StrokeThickness="1"
-                    StrokeShape="RoundRectangle 8"
-                    Stroke="{DynamicResource HairBrush}"
-                    BackgroundColor="{DynamicResource SurfaceColor}">
+            <Border Style="{StaticResource Card}" Margin="16,4,16,20" Padding="16">
                 <VerticalStackLayout Spacing="14">
 
                     <Label Style="{StaticResource Hint}"
@@ -50,10 +47,8 @@
                            Text="{l:Localize hintServerUrl}" />
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
                         <Button Grid.Column="0" x:Name="TestBtn" Text="{l:Localize lblTestConnection}" Clicked="OnTestConnectionClicked"
-                                BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="14,6"
-                                HorizontalOptions="Start"
-                                BorderColor="{DynamicResource HairColor}"
-                                TextColor="{DynamicResource InkColor}" />
+                                Style="{StaticResource PlainButton}" CornerRadius="12" Padding="14,6"
+                                HorizontalOptions="Start" />
                         <Label Grid.Column="1" x:Name="ServerTestLabel" Style="{StaticResource Hint}"
                                VerticalOptions="Center" IsVisible="False" />
                     </Grid>
@@ -81,14 +76,11 @@
                                 Clicked="OnTogglePasswordVisibility" />
                     </Grid>
                     <Button x:Name="SignInBtn" Text="{l:Localize lblConnectAndSignIn}" Clicked="OnSignInClicked"
-                            HorizontalOptions="Start" BackgroundColor="{DynamicResource AccentColor}" TextColor="{DynamicResource OnAccentColor}"
-                            CornerRadius="6" Padding="16,8" />
+                            HorizontalOptions="Start" CornerRadius="12" Padding="16,8" />
                     <Label x:Name="StatusLabel" Style="{StaticResource Hint}" IsVisible="False" />
                     <Button x:Name="SignOutBtn" Text="{l:Localize lblClearSavedSignIn}" Clicked="OnSignOutClicked"
                             HorizontalOptions="Start" IsVisible="False"
-                            BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,6"
-                            BorderColor="{DynamicResource HairColor}"
-                            TextColor="{DynamicResource BadColor}" />
+                            Style="{StaticResource DangerButton}" CornerRadius="12" Padding="12,6" />
 
                     <BoxView Style="{StaticResource Divider}" />
 
@@ -112,9 +104,7 @@
                                     BackgroundColor="Transparent" SelectedIndexChanged="OnThemeSelected" />
                         </Border>
                         <Button Grid.Column="1" Text="{l:Localize lblClearCss}" Clicked="OnClearCss"
-                                BackgroundColor="Transparent" BorderWidth="1" CornerRadius="6" Padding="12,0" HeightRequest="44"
-                                BorderColor="{DynamicResource HairColor}"
-                                TextColor="{DynamicResource BadColor}" />
+                                Style="{StaticResource DangerButton}" CornerRadius="12" Padding="12,0" HeightRequest="44" />
                     </Grid>
                     <Border Style="{StaticResource Field}" Padding="8,4">
                         <Editor x:Name="CssEditor" HeightRequest="120" Placeholder="/* your CSS here */"

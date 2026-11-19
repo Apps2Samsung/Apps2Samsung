@@ -11,10 +11,7 @@
     <Grid RowDefinitions="Auto,*">
         <controls:TopBarView Grid.Row="0" Title="{l:Localize lblAppIcons}" BackText="{l:Localize lblNavBack}" BackTapped="OnBackClicked" />
         <ScrollView Grid.Row="1">
-            <Border Margin="12" Padding="16" StrokeThickness="1"
-                    StrokeShape="RoundRectangle 8"
-                    Stroke="{DynamicResource HairBrush}"
-                    BackgroundColor="{DynamicResource SurfaceColor}">
+            <Border Style="{StaticResource Card}" Margin="16,4,16,20" Padding="16">
                 <VerticalStackLayout Spacing="14">
 
                     <Label FontSize="12" Opacity="0.6"

@@ -229,11 +229,11 @@
                 <VerticalStackLayout Spacing="12">
                     <BoxView WidthRequest="36" HeightRequest="5" CornerRadius="3" HorizontalOptions="Center"
                              Color="{DynamicResource HairColor}" />
-                    <Grid ColumnDefinitions="32,*,32">
+                    <Grid ColumnDefinitions="44,*,44">
                         <Label Grid.Column="1" Text="{l:Localize lblRemoteTypeOnTv}" FontSize="17" FontAttributes="Bold"
                                HorizontalOptions="Center" VerticalOptions="Center" />
-                        <Button Grid.Column="2" Text="✕" FontSize="13" SemanticProperties.Description="{l:Localize btn_Close}" WidthRequest="30" HeightRequest="30" CornerRadius="15" Padding="0"
-                                MinimumWidthRequest="30" MinimumHeightRequest="30"
+                        <Button Grid.Column="2" Text="✕" FontSize="13" SemanticProperties.Description="{l:Localize btn_Close}" WidthRequest="44" HeightRequest="44" CornerRadius="22" Padding="0"
+                                MinimumWidthRequest="44" MinimumHeightRequest="44"
                                 BackgroundColor="{DynamicResource FillColor}" TextColor="{DynamicResource MutedColor}"
                                 Clicked="OnKeyboardCloseClicked" />
                     </Grid>
