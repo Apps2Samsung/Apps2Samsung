@@ -22,12 +22,12 @@
       "screenshots": [],
       "versions": [
         {
-          "version": "3.3.2",
-          "buildVersion": "11599",
-          "date": "2026-11-19T17:12:28Z",
-          "localizedDescription": "## 📦 v3.3.2-beta: 2026-11-19\n\n\n### 🐛 Bug fixes\n- Desktop dialogs: Cancel cancels, X answers no, errors get a button, Enter and Escape (#1124) (#1130)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.3.1-beta...v3.3.2-beta",
-          "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.3.2-beta/Apps2Samsung-v3.3.2-beta-ios-unsigned.ipa",
-          "size": 44584713,
+          "version": "3.3.3",
+          "buildVersion": "11600",
+          "date": "2026-11-19T17:45:00Z",
+          "localizedDescription": "## 📦 v3.3.3-beta: 2026-11-20\n\n\n### 🐛 Bug fixes\n- Strings: hardcoded English, singular app count, Remote and Back translations (#1126) (#1132)\n- Mobile: reload the catalog, keyboards, confirmations, accessible names, monospace on iOS (#1127) (#1133)\n- CLI: honest uninstall result, token off the screen, one-line errors with a hint, help for every verb (#1128) (#1134)\n- Desktop polish: shortcuts, window placement remembered, accent toggles, older windows on the tokens (#1129) (#1135)\n- Wider sidebar and text that fits, desktop and mobile (#1123, #1125) (#1131)\n### 🌍 Translations\n- i18n: new translations from Crowdin (#1139)\n### 🧰 Maintenance & CI\n- CI: pin the .NET SDK to 10.0, the iOS job broke on a runner image with .NET 11 (#1142)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.3.2-beta...v3.3.3-beta",
+          "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.3.3-beta/Apps2Samsung-v3.3.3-beta-ios-unsigned.ipa",
+          "size": 44618349,
           "minOSVersion": "15.0"
         }
       ],
@@ -37,11 +37,11 @@
           "NSLocalNetworkUsageDescription": "Apps2Samsung looks for Samsung TVs on your Wi-Fi network and talks to the TV you pick to install apps on it."
         }
       },
-      "version": "3.3.2",
-      "versionDate": "2026-11-19T17:12:28Z",
-      "versionDescription": "## 📦 v3.3.2-beta: 2026-11-19\n\n\n### 🐛 Bug fixes\n- Desktop dialogs: Cancel cancels, X answers no, errors get a button, Enter and Escape (#1124) (#1130)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.3.1-beta...v3.3.2-beta",
-      "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.3.2-beta/Apps2Samsung-v3.3.2-beta-ios-unsigned.ipa",
-      "size": 44584713
+      "version": "3.3.3",
+      "versionDate": "2026-11-19T17:45:00Z",
+      "versionDescription": "## 📦 v3.3.3-beta: 2026-11-20\n\n\n### 🐛 Bug fixes\n- Strings: hardcoded English, singular app count, Remote and Back translations (#1126) (#1132)\n- Mobile: reload the catalog, keyboards, confirmations, accessible names, monospace on iOS (#1127) (#1133)\n- CLI: honest uninstall result, token off the screen, one-line errors with a hint, help for every verb (#1128) (#1134)\n- Desktop polish: shortcuts, window placement remembered, accent toggles, older windows on the tokens (#1129) (#1135)\n- Wider sidebar and text that fits, desktop and mobile (#1123, #1125) (#1131)\n### 🌍 Translations\n- i18n: new translations from Crowdin (#1139)\n### 🧰 Maintenance & CI\n- CI: pin the .NET SDK to 10.0, the iOS job broke on a runner image with .NET 11 (#1142)\n\n**Full Changelog**: https://github.com/Apps2Samsung/Apps2Samsung/compare/v3.3.2-beta...v3.3.3-beta",
+      "downloadURL": "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v3.3.3-beta/Apps2Samsung-v3.3.3-beta-ios-unsigned.ipa",
+      "size": 44618349
     }
   ],
   "news": []
