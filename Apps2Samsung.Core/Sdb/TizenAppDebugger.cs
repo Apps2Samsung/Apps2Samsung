@@ -14,10 +14,15 @@ namespace Apps2Samsung.Sdb
     /// </summary>
     public sealed class TizenDebugSession : IAsyncDisposable
     {
-        private readonly IAsyncDisposable _forward;
+        private readonly ISdbEngine _sdb;
+        private readonly string _tvIpAddress;
+        private IAsyncDisposable? _forward;
+        private bool _disposed;
 
-        internal TizenDebugSession(int localPort, int remotePort, IAsyncDisposable forward)
+        internal TizenDebugSession(ISdbEngine sdb, string tvIpAddress, int localPort, int remotePort, IAsyncDisposable forward)
         {
+            _sdb = sdb;
+            _tvIpAddress = tvIpAddress;
             LocalPort = localPort;
             RemotePort = remotePort;
             _forward = forward;
@@ -29,7 +34,44 @@ namespace Apps2Samsung.Sdb
         /// <summary>Port the inspector actually listens on, on the TV.</summary>
         public int RemotePort { get; }
 
-        public ValueTask DisposeAsync() => _forward.DisposeAsync();
+        /// <summary>Whether the tunnel is down for now (see <see cref="SuspendAsync"/>).</summary>
+        public bool IsSuspended => _forward is null;
+
+        /// <summary>
+        /// Closes the tunnel and with it this session's hold on the TV's developer connection, without
+        /// ending the session: the app stays in debug mode and its inspector keeps listening on
+        /// <see cref="RemotePort"/>, so <see cref="ResumeAsync"/> finds it again. Whatever was attached
+        /// through <see cref="LocalPort"/> is cut off and has to reattach after the resume.
+        /// </summary>
+        public async Task SuspendAsync()
+        {
+            var forward = _forward;
+            _forward = null;
+            if (forward is not null)
+                await forward.DisposeAsync();
+        }
+
+        /// <summary>
+        /// Opens the tunnel again on the same two ports. Does nothing when it is up, or when the
+        /// session was disposed in the meantime (the console was closed mid hand-over).
+        /// </summary>
+        public async Task ResumeAsync()
+        {
+            if (_forward is not null || _disposed)
+                return;
+
+            Trace.WriteLine($"[debug] resuming the tunnel to TV port {RemotePort} on local {LocalPort}");
+            _forward = await _sdb.ForwardAsync(_tvIpAddress, LocalPort, RemotePort);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            _disposed = true;
+            var forward = _forward;
+            _forward = null;
+            if (forward is not null)
+                await forward.DisposeAsync();
+        }
     }
 
     /// <summary>
@@ -114,7 +156,68 @@ namespace Apps2Samsung.Sdb
 
             Trace.WriteLine($"[debug] {tizenId} inspector on TV port {remotePort} → local {localPort}");
             var forward = await sdb.ForwardAsync(tvIpAddress, localPort, remotePort);
-            return new TizenDebugSession(localPort, remotePort, forward);
+            return new TizenDebugSession(sdb, tvIpAddress, localPort, remotePort, forward);
+        }
+
+        /// <summary>
+        /// Starts a second debug session (a packaged service's) next to one that is already open
+        /// (the app's), stopping <paramref name="tizenId"/> first so the TV launches it itself.
+        /// </summary>
+        /// <remarks>
+        /// The TV's sdbd takes one developer connection at a time (TV-Store#73) and the open session's
+        /// tunnel is one, so a stop or a `0 debug` sent next to it arrives on a second connection that
+        /// the TV closes without a word (#1140). The open session therefore gives its connection up
+        /// for as long as those commands take and gets its tunnel back afterwards, whether the new
+        /// session came up or not. From then on both tunnels run over one connection: the engine
+        /// shares it between every forward to the same TV (see InProcessSdbEngine.ForwardAsync).
+        ///
+        /// The commands are deliberately not sent over the open session's own connection instead:
+        /// sdbd answers an id it will not stop or launch by closing the whole connection, which would
+        /// take the app's console down over a mistyped service id.
+        ///
+        /// Whatever was attached through <paramref name="alongside"/> is cut off by this and has to
+        /// reattach once it returns or throws.
+        /// </remarks>
+        public static async Task<TizenDebugSession> StartAlongsideAsync(
+            ISdbEngine sdb, string tvIpAddress, string tizenId, TizenDebugSession? alongside, int localPort = 0)
+        {
+            if (alongside is not null)
+                await alongside.SuspendAsync();
+
+            TizenDebugSession? started = null;
+            try
+            {
+                // Debug mode only reports a port for the launch it performs itself. The id may well
+                // not be running, and sdbd may drop the link over it: neither is a failure.
+                try
+                {
+                    await sdb.ShellAsync(tvIpAddress, $"0 was_kill {tizenId}");
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"[debug] pre-stop of {tizenId} failed (continuing): {ex.Message}");
+                }
+
+                started = await StartAsync(sdb, tvIpAddress, tizenId, localPort);
+            }
+            finally
+            {
+                if (alongside is not null)
+                {
+                    try
+                    {
+                        await alongside.ResumeAsync();
+                    }
+                    catch
+                    {
+                        if (started is not null)
+                            await started.DisposeAsync();
+                        throw;
+                    }
+                }
+            }
+
+            return started;
         }
 
         /// <summary>The `0 debug` command for <paramref name="tizenId"/>, in the form this Tizen version takes.</summary>

@@ -1462,12 +1462,16 @@ namespace Apps2Samsung.Services
         // Debug-mode launch + inspector tunnel live in Core (Sdb/TizenAppDebugger), shared with the
         // mobile head. Only what happens with the local port differs: here it is handed to Chrome's
         // inspect page, which looks for 9222 specifically, hence the fixed port rather than a free one.
-        public async Task<(int LocalPort, IAsyncDisposable ForwardSession)> DebugAppAsync(
+        public async Task<(int LocalPort, Apps2Samsung.Sdb.TizenDebugSession ForwardSession)> DebugAppAsync(
             string tvIpAddress, string tizenId, int localPort = 9222)
         {
             var session = await Apps2Samsung.Sdb.TizenAppDebugger.StartAsync(_sdb, tvIpAddress, tizenId, localPort);
             return (session.LocalPort, session);
         }
+
+        public Task<Apps2Samsung.Sdb.TizenDebugSession> DebugServiceAsync(
+            string tvIpAddress, string serviceId, Apps2Samsung.Sdb.TizenDebugSession? appSession) =>
+            Apps2Samsung.Sdb.TizenAppDebugger.StartAlongsideAsync(_sdb, tvIpAddress, serviceId, appSession);
 
         public Task<Apps2Samsung.Diagnostics.ServiceEndpointResult> QueryServiceEndpointAsync(
             string tvIpAddress, int port, string path, CancellationToken cancellationToken = default) =>

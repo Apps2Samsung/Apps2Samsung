@@ -36,6 +36,9 @@ namespace Apps2Samsung.Diagnostics
     public sealed record ConsoleEntry(
         DateTimeOffset Timestamp, ConsoleLevel Level, string Text, string? Origin, string? Source = null);
 
+    /// <summary>The newest inspector timestamp a console has seen, per domain (0 = none yet).</summary>
+    public readonly record struct ConsoleReplayMark(double Runtime, double Log);
+
     /// <summary>
     /// A console attached to an app running on the TV, over the Chrome DevTools Protocol.
     ///
@@ -92,6 +95,27 @@ namespace Apps2Samsung.Diagnostics
 
         /// <summary>Raised once when the connection ends, with the reason (null = closed on request).</summary>
         public event Action<string?>? Disconnected;
+
+        private readonly object _markLock = new();
+        private ConsoleReplayMark _mark;
+
+        /// <summary>
+        /// How far this console has read, in the inspector's own timestamps. Hand it to the next
+        /// console attached to the same page as <see cref="SkipThrough"/>.
+        /// </summary>
+        public ConsoleReplayMark Mark
+        {
+            get { lock (_markLock) return _mark; }
+        }
+
+        /// <summary>
+        /// Entries up to this mark are not raised. An inspector replays the messages it has kept to
+        /// every client that enables its domains, so a console that reattaches to a page (after the
+        /// tunnel was handed over for a service's session, #1140) would otherwise print the whole
+        /// history a second time. Lines logged while nothing was attached are newer than the mark and
+        /// still arrive.
+        /// </summary>
+        public ConsoleReplayMark SkipThrough { get; init; }
 
         /// <summary>Attaches to a target from <see cref="DevToolsInspector.ListTargetsAsync"/>.</summary>
         public async Task ConnectAsync(Uri webSocketUrl, CancellationToken ct = default)
@@ -443,8 +467,48 @@ namespace Apps2Samsung.Diagnostics
             }
 
             var entry = ToEntry(method, message["params"]);
-            if (entry is not null)
-                EntryReceived?.Invoke(entry);
+            if (entry is null)
+                return;
+
+            if (IsReplay(method, message["params"]))
+                return;
+
+            EntryReceived?.Invoke(entry);
+        }
+
+        // The inspector's own time for an entry, in its own clock, or null when it sent none.
+        private static double? RemoteTimestamp(string? method, JsonNode? parameters)
+        {
+            var node = method == "Log.entryAdded" ? parameters?["entry"]?["timestamp"] : parameters?["timestamp"];
+            try
+            {
+                return node?.GetValue<double>();
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or FormatException)
+            {
+                return null;
+            }
+        }
+
+        // Records how far the stream has come and tells an entry a previous console already showed
+        // (see SkipThrough) from a new one. The Runtime and Log domains are kept apart: nothing says
+        // every inspector generation stamps both from the same clock.
+        internal bool IsReplay(string? method, JsonNode? parameters)
+        {
+            if (RemoteTimestamp(method, parameters) is not double stamp)
+                return false;
+
+            bool log = method == "Log.entryAdded";
+            if (stamp <= (log ? SkipThrough.Log : SkipThrough.Runtime))
+                return true;
+
+            lock (_markLock)
+            {
+                _mark = log
+                    ? _mark with { Log = Math.Max(_mark.Log, stamp) }
+                    : _mark with { Runtime = Math.Max(_mark.Runtime, stamp) };
+            }
+            return false;
         }
 
         private ConsoleEntry? ToEntry(string? method, JsonNode? parameters) => method switch

@@ -61,11 +61,19 @@ namespace Apps2Samsung.Interfaces
         Task StopAppAsync(string tvIpAddress, string tizenId);
         /// <summary>
         /// Relaunches an app in debug mode and tunnels its inspector here. The default local port is
-        /// the one Chrome's inspect page looks at; a second session alongside the first (a packaged
-        /// service's console) passes 0 and takes whatever port is free.
+        /// the one Chrome's inspect page looks at.
         /// </summary>
-        Task<(int LocalPort, IAsyncDisposable ForwardSession)> DebugAppAsync(
+        Task<(int LocalPort, Apps2Samsung.Sdb.TizenDebugSession ForwardSession)> DebugAppAsync(
             string tvIpAddress, string tizenId, int localPort = 9222);
+
+        /// <summary>
+        /// Stops a packaged service, relaunches it in debug mode and tunnels its inspector to a free
+        /// local port, next to the app's session. The TV takes one developer connection at a time, so
+        /// <paramref name="appSession"/> gives its tunnel up while this runs and has it back when this
+        /// returns or throws (#1140): whatever is attached through it must reattach afterwards.
+        /// </summary>
+        Task<Apps2Samsung.Sdb.TizenDebugSession> DebugServiceAsync(
+            string tvIpAddress, string serviceId, Apps2Samsung.Sdb.TizenDebugSession? appSession);
 
         /// <summary>
         /// GETs a path from a port on the TV's own loopback address, over an SDB tunnel — the

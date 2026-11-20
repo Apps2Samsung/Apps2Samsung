@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -263,26 +264,86 @@ namespace Apps2Samsung.Sdb
             return await device.ShellCommandAsync(command);
         });
 
+        // The connection the tunnels to one TV run on, and how many of them there are. Guarded by
+        // _tunnelGate.
+        private readonly Dictionary<string, TunnelConnection> _tunnels = new();
+        private readonly SemaphoreSlim _tunnelGate = new(1, 1);
+
+        private sealed class TunnelConnection
+        {
+            public TunnelConnection(SdbTcpDevice device) => Device = device;
+            public SdbTcpDevice Device { get; }
+            public int Forwards { get; set; }
+        }
+
         /// <summary>
         /// Opens a local→TV TCP tunnel (used to attach a debugger to a running app). Unlike every other
-        /// call this gets its OWN connection instead of the pooled one: the tunnel outlives the call that
-        /// created it, and callers routinely <see cref="DisconnectAsync"/> the TV right afterwards —
-        /// which would tear the tunnel down with the pooled connection. Disposing the returned session
-        /// closes the tunnel and its connection.
+        /// call this does not use the pooled connection: the tunnel outlives the call that created it,
+        /// and callers routinely <see cref="DisconnectAsync"/> the TV right afterwards, which would
+        /// tear the tunnel down with the pooled connection.
+        ///
+        /// Every tunnel to the same TV runs over one connection, opened for the first and closed with
+        /// the last. The TV's sdbd takes one developer connection at a time (TV-Store#73), so a second
+        /// tunnel on a connection of its own was closed by the TV while the first was up (#1140); the
+        /// protocol carries any number of streams on one connection, so they share. Disposing the
+        /// returned session closes that tunnel only.
         /// </summary>
         public async Task<IAsyncDisposable> ForwardAsync(string tvIpAddress, int localPort, int remotePort)
         {
             Trace.WriteLine($"[sdb] forward {tvIpAddress} tcp:{localPort} tcp:{remotePort}");
-            var device = await ConnectWithRetryAsync(tvIpAddress);
+
+            await _tunnelGate.WaitAsync().ConfigureAwait(false);
             try
             {
-                var session = await device.ForwardAsync(localPort, remotePort);
-                return new ForwardSession(session, device);
+                if (!_tunnels.TryGetValue(tvIpAddress, out var tunnel))
+                {
+                    tunnel = new TunnelConnection(await ConnectWithRetryAsync(tvIpAddress));
+                    _tunnels[tvIpAddress] = tunnel;
+                }
+                else
+                {
+                    Trace.WriteLine($"[sdb] forward {tvIpAddress}: sharing the connection of {tunnel.Forwards} open tunnel(s)");
+                }
+
+                try
+                {
+                    var session = await tunnel.Device.ForwardAsync(localPort, remotePort);
+                    tunnel.Forwards++;
+                    return new ForwardSession(this, tvIpAddress, tunnel, session);
+                }
+                catch
+                {
+                    if (tunnel.Forwards == 0)
+                    {
+                        _tunnels.Remove(tvIpAddress);
+                        await tunnel.Device.DisposeAsync();
+                    }
+                    throw;
+                }
             }
-            catch
+            finally
             {
-                await device.DisposeAsync();
-                throw;
+                _tunnelGate.Release();
+            }
+        }
+
+        private async Task CloseForwardAsync(string tvIpAddress, TunnelConnection tunnel, IAsyncDisposable session)
+        {
+            await _tunnelGate.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                try { await session.DisposeAsync(); } catch { /* tunnel already down */ }
+
+                if (--tunnel.Forwards > 0)
+                    return;
+
+                if (_tunnels.TryGetValue(tvIpAddress, out var current) && ReferenceEquals(current, tunnel))
+                    _tunnels.Remove(tvIpAddress);
+                try { await tunnel.Device.DisposeAsync(); } catch { /* already torn down */ }
+            }
+            finally
+            {
+                _tunnelGate.Release();
             }
         }
 
@@ -551,6 +612,20 @@ namespace Apps2Samsung.Sdb
                 finally { slot.Gate.Release(); }
             }
             _slots.Clear();
+
+            await _tunnelGate.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                foreach (var tunnel in _tunnels.Values)
+                {
+                    try { await tunnel.Device.DisposeAsync(); } catch { /* already torn down */ }
+                }
+                _tunnels.Clear();
+            }
+            finally
+            {
+                _tunnelGate.Release();
+            }
         }
 
         /// <summary>One TV's reused connection plus the gate that serializes calls to it.</summary>
@@ -682,22 +757,28 @@ namespace Apps2Samsung.Sdb
             }
         }
 
-        /// <summary>Ties a forward tunnel to the dedicated connection it runs on.</summary>
+        /// <summary>One tunnel on the connection the tunnels to its TV share.</summary>
         private sealed class ForwardSession : IAsyncDisposable
         {
+            private readonly InProcessSdbEngine _engine;
+            private readonly string _tvIpAddress;
+            private readonly TunnelConnection _tunnel;
             private readonly IAsyncDisposable _session;
-            private readonly SdbTcpDevice _device;
+            private int _disposed;
 
-            public ForwardSession(IAsyncDisposable session, SdbTcpDevice device)
+            public ForwardSession(InProcessSdbEngine engine, string tvIpAddress, TunnelConnection tunnel, IAsyncDisposable session)
             {
+                _engine = engine;
+                _tvIpAddress = tvIpAddress;
+                _tunnel = tunnel;
                 _session = session;
-                _device = device;
             }
 
             public async ValueTask DisposeAsync()
             {
-                try { await _session.DisposeAsync(); } catch { /* tunnel already down */ }
-                try { await _device.DisposeAsync(); } catch { /* already torn down */ }
+                if (Interlocked.Exchange(ref _disposed, 1) != 0)
+                    return;
+                await _engine.CloseForwardAsync(_tvIpAddress, _tunnel, _session);
             }
         }
     }
