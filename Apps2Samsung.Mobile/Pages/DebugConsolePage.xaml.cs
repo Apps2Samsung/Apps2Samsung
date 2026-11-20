@@ -39,8 +39,11 @@ public partial class DebugConsolePage : ContentPage
     private bool _scrollQueued;
 
     // A packaged service runs in its own process, so its console is its own debug session next to the
-    // app's: a second tunnel, a second protocol connection, one shared transcript.
+    // app's: a second tunnel, a second protocol connection, one shared transcript. Both tunnels run
+    // over the one developer connection the TV allows (#1140).
     private TizenDebugSession? _serviceSession;
+    private DevToolsTarget? _target;
+    private string _serviceSuggestion = string.Empty;
     private DevToolsConsole? _serviceConsole;
     private string _serviceId = string.Empty;
     private bool _serviceBusy;
@@ -85,6 +88,10 @@ public partial class DebugConsolePage : ContentPage
         SetBusy(true);
         try
         {
+            // Asked before the tunnel exists: the TV takes one developer connection at a time, and
+            // from the attach on the tunnel is it, so the app list would not get through.
+            _serviceSuggestion = await FindServiceIdAsync();
+
             // Debug mode only reports an inspector port for the launch it performs itself, so the app
             // has to be down first. It may well not be running — that is not a failure.
             try
@@ -107,19 +114,7 @@ public partial class DebugConsolePage : ContentPage
                 return;
             }
 
-            var console = new DevToolsConsole();
-            console.EntryReceived += OnEntryReceived;
-            console.Disconnected += OnDisconnected;
-            console.NetworkRequestCompleted += OnNetworkRequestCompleted;
-            await console.ConnectAsync(target.WebSocketUrl);
-            _console = console;
-
-            SetStatus(ConsoleStatus.Attached);
-            SubtitleLabel.Text = string.IsNullOrWhiteSpace(target.Title)
-                ? $"{_appName} · {_tizenId}"
-                : $"{_appName} · {target.Title}";
-            EvalEntry.IsEnabled = true;
-            EvalBtn.IsEnabled = true;
+            await ConnectConsoleAsync(target);
 
             // The log is only live while this page is up, so let the screen stay on rather than have
             // the session die under a screen timeout while the user watches the TV.
@@ -157,6 +152,72 @@ public partial class DebugConsolePage : ContentPage
         return index < 0 ? null : targets[index];
     }
 
+    private async Task ConnectConsoleAsync(DevToolsTarget target, ConsoleReplayMark seen = default)
+    {
+        var console = new DevToolsConsole { SkipThrough = seen };
+        console.EntryReceived += OnEntryReceived;
+        console.Disconnected += OnDisconnected;
+        console.NetworkRequestCompleted += OnNetworkRequestCompleted;
+        await console.ConnectAsync(target.WebSocketUrl);
+        _console = console;
+        _target = target;
+
+        SetStatus(ConsoleStatus.Attached);
+        SubtitleLabel.Text = string.IsNullOrWhiteSpace(target.Title)
+            ? $"{_appName} · {_tizenId}"
+            : $"{_appName} · {target.Title}";
+        EvalEntry.IsEnabled = true;
+        EvalBtn.IsEnabled = true;
+    }
+
+    private async Task CloseConsoleAsync()
+    {
+        if (_console is null)
+            return;
+
+        _console.EntryReceived -= OnEntryReceived;
+        _console.Disconnected -= OnDisconnected;
+        _console.NetworkRequestCompleted -= OnNetworkRequestCompleted;
+        try { await _console.DisposeAsync(); } catch (Exception ex) { Trace.WriteLine($"[debug] console teardown: {ex.Message}"); }
+        _console = null;
+    }
+
+    // The app's console after its tunnel was handed over and came back: same page when the TV still
+    // lists it, without the lines it already showed. A failure here is the app's console being gone,
+    // said the way a lost connection is said.
+    private async Task ReattachConsoleAsync(ConsoleReplayMark seen)
+    {
+        if (_session is null || _session.IsSuspended || _detaching)
+            return;
+
+        try
+        {
+            var wanted = _target;
+            var targets = await DevToolsInspector.ListTargetsAsync(_session.LocalPort);
+            var target = targets.FirstOrDefault(t => wanted is not null && t.Url == wanted.Url && t.Title == wanted.Title)
+                ?? targets[0];
+            await ConnectConsoleAsync(target, seen);
+
+            if (_networkEnabled && _console is not null)
+            {
+                try { await _console.SetNetworkEnabledAsync(true); }
+                catch (Exception ex) { Trace.WriteLine($"[debug] network timings after the hand-over: {ex.Message}"); }
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[debug] reattach to {_tizenId} after the hand-over failed: {ex}");
+            SetStatus(ConsoleStatus.Detached);
+            EvalEntry.IsEnabled = false;
+            EvalBtn.IsEnabled = false;
+            Append(new ConsoleEntry(
+                DateTimeOffset.Now,
+                ConsoleLevel.Error,
+                string.Format(L10n.Get("statusDebugConnectionLost"), ex.Message),
+                null));
+        }
+    }
+
     private static string Describe(DevToolsTarget target) =>
         string.IsNullOrWhiteSpace(target.Title) ? target.Url : target.Title;
 
@@ -168,14 +229,7 @@ public partial class DebugConsolePage : ContentPage
 
         DeviceDisplay.Current.KeepScreenOn = false;
 
-        if (_console is not null)
-        {
-            _console.EntryReceived -= OnEntryReceived;
-            _console.Disconnected -= OnDisconnected;
-            _console.NetworkRequestCompleted -= OnNetworkRequestCompleted;
-            try { await _console.DisposeAsync(); } catch (Exception ex) { Trace.WriteLine($"[debug] console teardown: {ex.Message}"); }
-            _console = null;
-        }
+        await CloseConsoleAsync();
 
         if (_session is not null)
         {
@@ -324,7 +378,7 @@ public partial class DebugConsolePage : ContentPage
             return;
         }
 
-        var suggestion = await SuggestServiceIdAsync();
+        var suggestion = _serviceId.Length > 0 ? _serviceId : _serviceSuggestion;
         var id = await DisplayPromptAsync(
             L10n.Get("lblServiceLog"),
             L10n.Get("hintServiceLog"),
@@ -341,17 +395,33 @@ public partial class DebugConsolePage : ContentPage
         SetBusy(true);
         try
         {
-            // Same reason as the app: debug mode only reports a port for the launch it performs.
+            // The TV takes one developer connection at a time and the app's tunnel holds it, so the
+            // stop and the debug launch of the service were turned away on a connection of their own
+            // (#1140). The app's console lets go for the moment those take and reattaches afterwards,
+            // with both tunnels on one connection; what the app logs in between is replayed by its
+            // inspector on the reattach.
+            bool appWasAttached = _console is not null;
+            var seen = _console?.Mark ?? default;
+            TizenDebugSession session;
             try
             {
-                await _sdb.ShellAsync(_tvIp, $"0 was_kill {id}");
+                await CloseConsoleAsync();
+                session = await TizenAppDebugger.StartAlongsideAsync(_sdb, _tvIp, id, _session);
             }
-            catch (Exception ex)
+            finally
             {
-                Trace.WriteLine($"[debug] pre-stop of service {id} failed (continuing): {ex.Message}");
+                if (appWasAttached)
+                    await ReattachConsoleAsync(seen);
             }
 
-            _serviceSession = await TizenAppDebugger.StartAsync(_sdb, _tvIp, id);
+            // The page was left while the TV was being asked: nothing is left to attach to.
+            if (_detaching || _session is null)
+            {
+                await session.DisposeAsync();
+                return;
+            }
+
+            _serviceSession = session;
 
             var targets = await DevToolsInspector.ListTargetsAsync(_serviceSession.LocalPort);
             var console = new DevToolsConsole();
@@ -382,12 +452,9 @@ public partial class DebugConsolePage : ContentPage
     }
 
     // The TV lists what is installed; a packaged service, when it lists one, is an id under the app's
-    // own package. Only ever a suggestion — the prompt takes a typed id just as well.
-    private async Task<string> SuggestServiceIdAsync()
+    // own package. Only ever a suggestion: the prompt takes a typed id just as well.
+    private async Task<string> FindServiceIdAsync()
     {
-        if (_serviceId.Length > 0)
-            return _serviceId;
-
         try
         {
             var listed = await _sdb.AppsAsync(_tvIp);

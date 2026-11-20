@@ -3,6 +3,7 @@ using Apps2Samsung.Styles;
 using Apps2Samsung.Extensions;
 using Apps2Samsung.Interfaces;
 using Apps2Samsung.Models;
+using Apps2Samsung.Sdb;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
@@ -42,15 +43,17 @@ namespace Apps2Samsung.ViewModels
         private readonly string _tvIp;
         private readonly InstalledApp _app;
 
-        private IAsyncDisposable? _session;
+        private TizenDebugSession? _session;
         private int _localPort;
         private DevToolsConsole? _console;
         private bool _switchingTarget;
         private bool _detaching;
 
         // A packaged service runs in its own process, so its console is its own debug session next to
-        // the app's: a second tunnel, a second protocol connection, one shared transcript.
-        private IAsyncDisposable? _serviceSession;
+        // the app's: a second tunnel, a second protocol connection, one shared transcript. Both
+        // tunnels run over the one developer connection the TV allows (#1140).
+        private TizenDebugSession? _serviceSession;
+        private bool _handingOver;
         private DevToolsConsole? _serviceConsole;
         private string _attachedServiceId = string.Empty;
 
@@ -173,6 +176,10 @@ namespace Apps2Samsung.ViewModels
             IsAttaching = true;
             try
             {
+                // Asked before the tunnel exists: the TV takes one developer connection at a time, and
+                // from the attach on the tunnel is it, so the app list would not get through.
+                await LoadServiceSuggestionsAsync();
+
                 // Debug mode only reports an inspector port for the launch it performs itself, so the
                 // app has to be down first. It may well not be running — that is not a failure.
                 try
@@ -196,7 +203,6 @@ namespace Apps2Samsung.ViewModels
                 // first and let the picker in the header switch — no modal question on the way in.
                 await ConnectAsync(targets[0]);
                 Attached?.Invoke(port);
-                _ = LoadServiceSuggestionsAsync();
             }
             catch (Exception ex)
             {
@@ -214,9 +220,9 @@ namespace Apps2Samsung.ViewModels
             }
         }
 
-        private async Task ConnectAsync(DevToolsTarget target)
+        private async Task ConnectAsync(DevToolsTarget target, ConsoleReplayMark seen = default)
         {
-            var console = new DevToolsConsole();
+            var console = new DevToolsConsole { SkipThrough = seen };
             console.EntryReceived += OnEntryReceived;
             console.Disconnected += OnDisconnected;
             console.NetworkRequestCompleted += OnNetworkRequestCompleted;
@@ -253,7 +259,8 @@ namespace Apps2Samsung.ViewModels
 
         partial void OnSelectedTargetChanged(DevToolsTarget? value)
         {
-            if (_switchingTarget || value is null || _session is null || _detaching)
+            // During a hand-over the tunnel is down; the reattach that ends it reads the selection.
+            if (_switchingTarget || value is null || _session is null || _detaching || _handingOver)
                 return;
             _ = SwitchTargetAsync(value);
         }
@@ -348,8 +355,7 @@ namespace Apps2Samsung.ViewModels
         }
 
         // The TV lists what is installed; a packaged service, when it lists one, is an id under the
-        // app's own package. Best-effort and in the background: the console is already streaming, and
-        // the field takes a typed id just as well.
+        // app's own package. Best-effort: the field takes a typed id just as well.
         private async Task LoadServiceSuggestionsAsync()
         {
             try
@@ -380,6 +386,13 @@ namespace Apps2Samsung.ViewModels
         /// inspector port to — so this restarts the service, and with it whatever the app was getting
         /// from it.
         /// </summary>
+        /// <remarks>
+        /// The TV takes one developer connection at a time and the app's tunnel holds it, so the stop
+        /// and the debug launch of the service were turned away on a connection of their own (#1140).
+        /// The app's console therefore lets go for the moment those take and reattaches afterwards,
+        /// with both tunnels on one connection. The app itself keeps running, and what it logs in
+        /// between is replayed by its inspector on the reattach.
+        /// </remarks>
         [RelayCommand]
         private async Task AttachService()
         {
@@ -393,20 +406,32 @@ namespace Apps2Samsung.ViewModels
                 await CloseServiceConsoleAsync();
                 await CloseServiceTunnelAsync();
 
-                // Same reason as the app: debug mode only reports a port for the launch it performs.
+                bool appWasAttached = _console is not null;
+                var seen = _console?.Mark ?? default;
+                _handingOver = true;
+                TizenDebugSession session;
                 try
                 {
-                    await _installer.StopAppAsync(_tvIp, id);
+                    await CloseConsoleAsync();
+                    session = await _installer.DebugServiceAsync(_tvIp, id, _session);
                 }
-                catch (Exception ex)
+                finally
                 {
-                    Trace.WriteLine($"[debug] pre-stop of service {id} failed (continuing): {ex.Message}");
+                    if (appWasAttached)
+                        await ReattachAppConsoleAsync(seen);
+                    _handingOver = false;
                 }
 
-                var (port, session) = await _installer.DebugAppAsync(_tvIp, id, localPort: 0);
+                // The window was closed while the TV was being asked: nothing is left to attach to.
+                if (_detaching || IsDetached)
+                {
+                    await session.DisposeAsync();
+                    return;
+                }
+
                 _serviceSession = session;
 
-                var targets = await DevToolsInspector.ListTargetsAsync(port);
+                var targets = await DevToolsInspector.ListTargetsAsync(session.LocalPort);
                 var console = new DevToolsConsole();
                 console.EntryReceived += OnServiceEntryReceived;
                 console.Disconnected += OnServiceDisconnected;
@@ -434,7 +459,45 @@ namespace Apps2Samsung.ViewModels
             }
         }
 
-        /// <summary>Drops the service console and its tunnel; the app's console is untouched.</summary>
+        // The app's console after its tunnel was handed over and came back: same page when the TV
+        // still lists it, without the lines it already showed. A failure here is the app's console
+        // being gone, said the way a lost connection is said.
+        private async Task ReattachAppConsoleAsync(ConsoleReplayMark seen)
+        {
+            if (_session is null || _session.IsSuspended || _detaching || IsDetached)
+                return;
+
+            try
+            {
+                var wanted = SelectedTarget;
+                var targets = await DevToolsInspector.ListTargetsAsync(_localPort);
+
+                _switchingTarget = true;
+                try
+                {
+                    Targets.Clear();
+                    foreach (var listed in targets)
+                        Targets.Add(listed);
+                }
+                finally
+                {
+                    _switchingTarget = false;
+                }
+
+                var target = targets.FirstOrDefault(t => wanted is not null && t.Url == wanted.Url && t.Title == wanted.Title)
+                    ?? targets[0];
+                await ConnectAsync(target, seen);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[debug] reattach to {_app.TizenId} after the hand-over failed: {ex}");
+                IsAttached = false;
+                SetStatus(ConsoleStatus.Detached);
+                Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Error,
+                    string.Format("statusDebugConnectionLost".Localized(), ex.Message), null));
+            }
+        }
+
         [RelayCommand]
         private async Task DetachService()
         {
