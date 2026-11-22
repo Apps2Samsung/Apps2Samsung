@@ -10,6 +10,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Operators;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Pkcs;
@@ -84,11 +85,34 @@ namespace Apps2Samsung.Certificate
             return generator.GenerateKeyPair();
         }
 
-        /// <summary>The SDK's Tizen Developers CA certificate and private key, from the embedded files.</summary>
-        internal static (X509Certificate Certificate, AsymmetricKeyParameter PrivateKey) LoadDeveloperCa()
+        /// <summary>
+        /// True when a downloaded Tizen Developers CA can sign (#1153): the key opens with the SDK's
+        /// password and is the key of the certificate.
+        /// </summary>
+        internal static bool IsDeveloperCaPair(byte[] certificatePem, byte[] keyPem)
+        {
+            try
+            {
+                var (certificate, key) = LoadDeveloperCa(new MemoryStream(certificatePem), new MemoryStream(keyPem));
+                return key is RsaPrivateCrtKeyParameters rsa
+                       && certificate.GetPublicKey() is RsaKeyParameters publicKey
+                       && rsa.Modulus.Equals(publicKey.Modulus)
+                       && rsa.PublicExponent.Equals(publicKey.Exponent);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>The SDK's Tizen Developers CA certificate and private key: the embedded files, or a downloaded pair (#1153).</summary>
+        internal static (X509Certificate Certificate, AsymmetricKeyParameter PrivateKey) LoadDeveloperCa() =>
+            LoadDeveloperCa(TizenSdkAssets.DeveloperCa(), TizenSdkAssets.DeveloperCaKey());
+
+        private static (X509Certificate Certificate, AsymmetricKeyParameter PrivateKey) LoadDeveloperCa(Stream certificateFile, Stream keyFile)
         {
             X509Certificate cert;
-            using (var reader = new StreamReader(TizenSdkAssets.DeveloperCa()))
+            using (var reader = new StreamReader(certificateFile))
             {
                 // The file is openssl's text dump followed by the PEM block; the reader skips to BEGIN.
                 cert = new PemReader(reader).ReadObject() as X509Certificate
@@ -96,7 +120,7 @@ namespace Apps2Samsung.Certificate
             }
 
             AsymmetricKeyParameter key;
-            using (var reader = new StreamReader(TizenSdkAssets.DeveloperCaKey()))
+            using (var reader = new StreamReader(keyFile))
             {
                 var read = new PemReader(reader, new FixedPassword(TizenSdkAssets.DeveloperCaKeyPassword)).ReadObject();
                 key = read switch

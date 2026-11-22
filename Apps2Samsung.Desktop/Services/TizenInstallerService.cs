@@ -35,6 +35,8 @@ namespace Apps2Samsung.Services
         private readonly ISamsungLoginService _login;
         private readonly CertificateProvisioningService _provisioning;
         private readonly Apps2Samsung.Install.PackageInstaller _installer;
+        // The certificate authorities in use: the shipped ones, or a newer set the user agreed to download (#1153).
+        private readonly AuthorityStore _authorities;
 
         public string? PackageCertificate { get; set; }
 
@@ -56,6 +58,9 @@ namespace Apps2Samsung.Services
             _login = samsungLogin;
             _provisioning = provisioning;
             _installer = new Apps2Samsung.Install.PackageInstaller(sdb, appSettings, packagePatchers);
+            _authorities = new AuthorityStore(
+                Path.Combine(AppSettings.DataFolderPath, "Authorities"),
+                Path.Combine(AppSettings.ProfilePath, "ca"));
         }
 
         #region Package Download
@@ -487,9 +492,15 @@ namespace Apps2Samsung.Services
                     deviceInfo.TizenVersion,
                     Path.GetFileName(packagePath),
                     serverConfigured: !string.IsNullOrEmpty(_appSettings.JellyfinIP),
-                    forceLogin: run.ForceLogin))
+                    forceLogin: run.ForceLogin)
+                && !run.SkipShippedCertificate)
             {
                 var shipped = Path.Combine(AppSettings.BundledCertificatePath, Constants.AppIdentifiers.JellyfinAppName);
+                if (await CheckShippedCertificateAsync(deviceInfo, run) is { } stopped)
+                    return stopped;
+                // "Sign in with Samsung instead": this attempt goes on below, with the certificate from Settings.
+                if (run.SkipShippedCertificate)
+                    return await HandleCertificateAsync(tvIpAddress, deviceInfo, packagePath, progress, cancellationToken, onSamsungLoginStarted, run);
                 Trace.WriteLine("[Cert] Stock Jellyfin build: signing with the shipped certificate.");
                 // Not a profile in the store: there is no older copy of it in the backups to offer.
                 PackageCertificate = null;
@@ -518,9 +529,20 @@ namespace Apps2Samsung.Services
 
             // Intermediate Tizen versions take the shipped certificate, no Samsung sign-in. It is
             // Public only, so a Partner choice or a package that needs Partner skips it (#1107).
-            if (selectedCertificate == Constants.AppIdentifiers.Jelly2SamsDefault &&
+            bool shippedApplies = selectedCertificate == Constants.AppIdentifiers.Jelly2SamsDefault &&
+                !run.SkipShippedCertificate &&
+                !Apps2Samsung.Certificate.CertificateKind.IsTizen(_appSettings.CertificateKind) &&
                 Apps2Samsung.Certificate.CertificatePreference.ShippedCertificateApplies(
-                    deviceInfo.TizenVersion, _appSettings.CertificatePreference, requirePartner))
+                    deviceInfo.TizenVersion, _appSettings.CertificatePreference, requirePartner);
+            if (shippedApplies)
+            {
+                // The shipped certificate has an end date of its own (#1153); "Sign in with Samsung
+                // instead" leaves it out for this attempt.
+                if (await CheckShippedCertificateAsync(deviceInfo, run) is { } stopped)
+                    return stopped;
+                shippedApplies = !run.SkipShippedCertificate;
+            }
+            if (shippedApplies)
             {
                 selectedCertificate = Constants.AppIdentifiers.JellyfinAppName;
                 chosenCertificate = new ExistingCertificates
@@ -536,6 +558,12 @@ namespace Apps2Samsung.Services
             // A Tizen certificate (#988): the SDK's, made here, no account and no DUID. Its sheet's
             // way out is a Samsung certificate: the setting is switched and the Samsung path below
             // runs as if that had been the choice all along.
+            // The authority a Tizen certificate is signed with has an end date (#1153). "Sign in with
+            // Samsung instead" switches the setting, so the Samsung path below runs.
+            if (Apps2Samsung.Certificate.CertificateKind.IsTizen(_appSettings.CertificateKind)
+                && await CheckAuthoritiesAsync(AuthoritySet.Tizen, deviceInfo, cancellationToken) is { } tizenStopped)
+                return tizenStopped;
+
             if (Apps2Samsung.Certificate.CertificateKind.IsTizen(_appSettings.CertificateKind))
             {
                 var tizen = await HandleTizenCertificateAsync(tvIpAddress, deviceInfo, requirePartner, progress, cancellationToken, run);
@@ -567,6 +595,10 @@ namespace Apps2Samsung.Services
             // and is just reused from disk (unless the user forces a fresh login).
             bool isBundledJellyfin = selectedCertificate == Constants.AppIdentifiers.JellyfinAppName;
 
+            // A Samsung certificate chains to Samsung's authorities, which end one day as well (#1153).
+            if (!isBundledJellyfin && await CheckAuthoritiesAsync(AuthoritySet.Samsung, deviceInfo, cancellationToken) is { } samsungStopped)
+                return samsungStopped;
+
             // "Auto" mode = the app drives cert selection itself: no real pick, the "(default)"
             // placeholder, or one of our generated "Jelly2Sams[ - Public/Partner]" profiles. In auto
             // mode we REUSE an existing valid profile for the requested level rather than logging in
@@ -585,7 +617,7 @@ namespace Apps2Samsung.Services
             // below, unchanged.
             if (!isBundledJellyfin && autoMode)
             {
-                var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
+                var caPath = _authorities.SamsungFolder;
                 using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken, deviceInfo.Duid);
                 try
                 {
@@ -681,7 +713,7 @@ namespace Apps2Samsung.Services
                             _appSettings.AuthorEndpoint_V3,
                             _appSettings.DistributorsEndpoint_V1,
                             _appSettings.DistributorsEndpoint_V3));
-                    var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
+                    var caPath = _authorities.SamsungFolder;
                     // Core emits progress as localization keys; the sheet localizes them and moves on.
                     var certProgress = sheet.Progress(progress);
 
@@ -754,6 +786,76 @@ namespace Apps2Samsung.Services
                 P12Password = p12Password
             };
         }
+
+        /// <summary>
+        /// The certificates that come with the app have end dates (#1153). When the set this install
+        /// needs has ended, the user is told which and when, and asked before new ones are downloaded.
+        /// Null to go on (downloaded, or the user wants to try with the old ones, or chose a Samsung
+        /// certificate, which switches the setting); a result when the install stops here.
+        /// </summary>
+        private async Task<CertificateResult?> CheckAuthoritiesAsync(AuthoritySet set, DeviceInfo deviceInfo, CancellationToken cancellationToken)
+        {
+            if (_authorities.Ended(set, DateTimeOffset.UtcNow) is not { } ended)
+                return null;
+
+            Trace.WriteLine($"[Cert] The {set} authority {ended.FileName} ended on {ended.EndsAt:u}; asking before a download.");
+            var (choice, withEnded) = await _dialogService.ShowAuthoritiesEndedAsync(
+                set, ended.EndsAt, deviceInfo.Name, offerSamsung: set == AuthoritySet.Tizen,
+                download: () => _authorities.RefreshAsync(_httpClient, set, DateTimeOffset.UtcNow, cancellationToken));
+            Trace.WriteLine($"[Cert] {set} authorities ended: {choice}{(withEnded ? " (with the ended ones)" : "")}.");
+
+            switch (choice)
+            {
+                case Apps2Samsung.Views.AuthorityChoice.Continue:
+                    if (withEnded)
+                        _authorities.AcceptEnded(set);
+                    return null;
+                case Apps2Samsung.Views.AuthorityChoice.SamsungInstead:
+                    _appSettings.UseSamsungCertificate();
+                    return null;
+                default:
+                    return AuthoritiesStopped();
+            }
+        }
+
+        /// <summary>
+        /// The same question for the certificate shipped for Jellyfin on Tizen 4.1 to 6.x: it ends
+        /// with the Tizen authority and cannot be renewed by a download, so the ways on are a Samsung
+        /// certificate for this install, trying anyway, or stopping.
+        /// </summary>
+        private async Task<CertificateResult?> CheckShippedCertificateAsync(DeviceInfo deviceInfo, InstallRun run)
+        {
+            var shipped = Path.Combine(AppSettings.BundledCertificatePath, Constants.AppIdentifiers.JellyfinAppName);
+            if (CertificateProvisioningService.AuthorValidUntil(shipped) is not { } validUntil || validUntil > DateTime.Now)
+                return null;
+            // Tried anyway earlier in this session: not asked again.
+            if (_authorities.Ended(AuthoritySet.Tizen, DateTimeOffset.UtcNow) is null)
+                return null;
+
+            Trace.WriteLine($"[Cert] The shipped Jellyfin certificate ended on {validUntil:u}; asking how to go on.");
+            var (choice, _) = await _dialogService.ShowAuthoritiesEndedAsync(
+                AuthoritySet.Tizen, new DateTimeOffset(validUntil), deviceInfo.Name, offerSamsung: true,
+                download: null, nothingToFetchBody: "authShippedEndedBody".Localized());
+            Trace.WriteLine($"[Cert] Shipped certificate ended: {choice}.");
+
+            switch (choice)
+            {
+                case Apps2Samsung.Views.AuthorityChoice.Continue:
+                    _authorities.AcceptEnded(AuthoritySet.Tizen);
+                    return null;
+                case Apps2Samsung.Views.AuthorityChoice.SamsungInstead:
+                    run.SkipShippedCertificate = true;
+                    return null;
+                default:
+                    return AuthoritiesStopped();
+            }
+        }
+
+        private static CertificateResult AuthoritiesStopped() => new()
+        {
+            Success = false,
+            InstallResult = InstallResult.CancelledResult("statusAuthoritiesEndedStopped".Localized()),
+        };
 
         /// <summary>
         /// The Tizen certificate for this install (#988): the profile on disk for the level the
@@ -1206,6 +1308,9 @@ namespace Apps2Samsung.Services
             /// <summary>Mint a fresh Samsung profile instead of reusing one (seeded from Force Samsung certificate).</summary>
             public bool ForceLogin { get; set; }
 
+            /// <summary>The shipped certificate has ended and the user chose a Samsung one for this install (#1153).</summary>
+            public bool SkipShippedCertificate { get; set; }
+
             /// <summary>
             /// Whether the user allowed the recovery to remove the installed copy (#825).
             /// Null until asked; seeded true when "Uninstall installed version first" is on.
@@ -1302,7 +1407,7 @@ namespace Apps2Samsung.Services
             // when the caller has a package in hand that needs it (sign only, #979).
             var level = Apps2Samsung.Certificate.CertificatePreference.ResolveLevel(
                 _appSettings.CertificatePreference, _appSettings.RequiresPartnerSigning || requirePartner);
-            var caPath = Path.Combine(AppSettings.ProfilePath, "ca");
+            var caPath = _authorities.SamsungFolder;
             using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken, deviceInfo.Duid);
             try
             {
