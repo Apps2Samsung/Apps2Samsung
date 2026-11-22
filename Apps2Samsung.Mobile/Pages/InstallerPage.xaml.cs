@@ -787,6 +787,8 @@ public partial class InstallerPage : ContentPage
 
 	private async void OnCatalogPulled(object? sender, EventArgs e)
 	{
+		// Asked for by hand (#1162): past the ten minutes a download is otherwise reused for.
+		_catalogWatcher.Invalidate();
 		try { await ReloadCatalogAsync(); }
 		finally { CatalogRefresher.IsRefreshing = false; }
 	}

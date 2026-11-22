@@ -56,6 +56,12 @@ namespace Apps2Samsung.Catalog
             _clock = clock ?? (() => DateTimeOffset.UtcNow);
         }
 
+        /// <summary>
+        /// The user asked for the catalog again (#1162): the next <see cref="GetAsync"/> downloads,
+        /// whatever was fetched a moment ago. The snapshot in memory stays until that answer is in.
+        /// </summary>
+        public void Invalidate() => _fetched = false;
+
         /// <summary>When the snapshot held in memory was generated; null while there is none. No download.</summary>
         public DateTimeOffset? CurrentGeneratedAt => _current?.GeneratedAt;
 

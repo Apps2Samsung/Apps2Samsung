@@ -2052,12 +2052,53 @@ namespace Apps2Samsung.ViewModels
                 return;
             }
 
+            ShowCatalogNews(sayWhenNothing: false);
+        }
+
+        /// <summary>
+        /// "Refresh the catalog" in the menu (#1162): the same refresh, now, past the ten minutes a
+        /// download is otherwise reused for, and it says so when nothing changed.
+        /// </summary>
+        [RelayCommand]
+        private async Task RefreshCatalogAsync()
+        {
+            if (IsLoading || _quietLoading)
+                return;
+            _catalogWatcher.Invalidate();
+            _catalogRefreshPending = false;
+            _lastCatalogChanges = CatalogChanges.None;
+            try
+            {
+                // Before there is a list this is the first load, with its placeholder.
+                await LoadReleasesAsync(quiet: HasRealReleases);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            ShowCatalogNews(sayWhenNothing: true);
+        }
+
+        private void ShowCatalogNews(bool sayWhenNothing)
+        {
             if (_lastCatalogChanges.Any)
             {
                 Trace.WriteLine($"[Catalog] A newer catalog was shown: {_lastCatalogChanges.NewApps.Count} new app(s), {_lastCatalogChanges.NewVersions} new version(s).");
                 // Not a key: the counts are in the text, so a language switch keeps this line as it is.
                 _currentStatusKey = string.Empty;
                 StatusBar = _lastCatalogChanges.Describe(L);
+                // "Update available" on the On the TV section was worked out with the older catalog
+                // (#820): while that section is not the one on screen it starts over the next time it
+                // is shown. On screen it stays as it is; its own Refresh is right there.
+                if (InstalledAppsVm is not null && SelectedSection != Section.OnTheTv)
+                {
+                    InstalledAppsVm.Dispose();
+                    InstalledAppsVm = null;
+                }
+            }
+            else if (sayWhenNothing)
+            {
+                SetStatus("statusCatalogUpToDate");
             }
         }
 
