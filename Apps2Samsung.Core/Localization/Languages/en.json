@@ -400,6 +400,8 @@
   "statusCatalogPartial": "Ready - but {0} of {1} app sources failed (likely GitHub rate limit). Add a GitHub token in Settings.",
   "statusCatalogFailed": "Couldn't load the app list: {0}",
   "statusCatalogUpdated": "Catalog updated: {0}",
+  "statusCatalogUpToDate": "The catalog is up to date.",
+  "lblRefreshCatalog": "Refresh the catalog",
   "lblCatalogNew": "New",
   "lblCatalogNewApp": "1 new app",
   "lblCatalogNewApps": "{0} new apps",

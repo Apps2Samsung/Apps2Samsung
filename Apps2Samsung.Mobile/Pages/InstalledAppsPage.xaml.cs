@@ -78,9 +78,17 @@ public partial class InstalledAppsPage : ContentPage
 		_tvIp = _tv.Ip!;
 		_tvLabel = _tv.Label;
 		_loadedFor = _tv.Ip;
-		if (force || changed || AppsList.ItemsSource is null)
+		// A catalog that arrived since the list was read (#1162): "Update available" was worked out
+		// with the older one, so the TV is read again the next time this tab is shown.
+		bool catalogMoved = _catalogVersion != CatalogStore.Version;
+		if (force || changed || catalogMoved || AppsList.ItemsSource is null)
+		{
+			_catalogVersion = CatalogStore.Version;
 			await LoadAsync();
+		}
 	}
+
+	private int _catalogVersion = CatalogStore.Version;
 
 	/// <summary>
 	/// The icon of every app that came from the catalog (#1000): the store-icon list only knows

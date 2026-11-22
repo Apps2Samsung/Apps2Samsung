@@ -50,8 +50,15 @@ public static class CatalogStore
 	/// <summary>Apps the official catalog stopped distributing (#1033), to flag an installed copy.</summary>
 	public static IReadOnlyList<CommunityCatalogRemoved> Removed { get; private set; } = Array.Empty<CommunityCatalogRemoved>();
 
+	/// <summary>
+	/// Counts every catalog that was taken in (#1162). The On the TV tab remembers the one its
+	/// "Update available" marks were worked out with and reads the TV again when it has moved on.
+	/// </summary>
+	public static int Version { get; private set; }
+
 	public static void Set(IReadOnlyList<GitHubRelease> releases, IReadOnlyList<CommunityCatalogRemoved>? removed = null)
 	{
+		Version++;
 		Releases = releases;
 		Removed = removed ?? Array.Empty<CommunityCatalogRemoved>();
 	}

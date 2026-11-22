@@ -135,6 +135,7 @@
 							<MenuFlyout Placement="BottomEdgeAlignedRight">
 								<MenuItem Header="{l:Localize lblChangeTv}" Command="{Binding ChangeTvCommand}" IsVisible="{Binding CanSwitchTv}"/>
 								<MenuItem Header="{l:Localize lblRescanForTvs}" Command="{Binding RefreshDevicesCommand}"/>
+								<MenuItem Header="{l:Localize lblRefreshCatalog}" Command="{Binding RefreshCatalogCommand}"/>
 								<MenuItem Header="{l:Localize lblAddTvByIp}" Command="{Binding AddTvByIpCommand}"/>
 								<MenuItem Header="{l:Localize lblTvInformation}" Command="{Binding ShowDeviceInfoCommand}"/>
 								<MenuItem Header="{l:Localize lblToolbox}" Command="{Binding ShowTvToolboxCommand}"/>

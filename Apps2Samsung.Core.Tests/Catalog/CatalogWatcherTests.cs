@@ -69,6 +69,22 @@ public class CatalogWatcherTests
         Assert.False(await watcher.HasNewerAsync());
     }
 
+    // A refresh by hand (#1162) does not wait out the ten minutes a download is reused for.
+    [Fact]
+    public async Task A_refresh_asked_for_goes_to_the_server_at_once()
+    {
+        var start = DateTimeOffset.UtcNow;
+        var (watcher, service, server, _) = Setup(start);
+        await service.GetAsync();
+        watcher.MarkShown();
+        server.Body = Snapshot(start.AddMinutes(-1));
+
+        Assert.False(await watcher.HasNewerAsync());
+
+        watcher.Invalidate();
+        Assert.True(await watcher.HasNewerAsync());
+    }
+
     [Fact]
     public async Task A_server_that_is_down_is_not_news()
     {

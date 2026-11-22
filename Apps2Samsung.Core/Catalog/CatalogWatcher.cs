@@ -22,6 +22,9 @@ namespace Apps2Samsung.Catalog
 
         public CatalogWatcher(ResolvedCatalogService catalog) => _catalog = catalog;
 
+        /// <summary>A refresh the user asked for (#1162): the next read of the catalog goes to the server instead of reusing the last download.</summary>
+        public void Invalidate() => _catalog.Invalidate();
+
         /// <summary>The list on screen was just built from what the service holds now.</summary>
         public void MarkShown()
         {
