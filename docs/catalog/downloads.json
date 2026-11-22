@@ -1,36 +1,8 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-21T04:20:01.9220401+00:00",
+  "generatedAt": "2026-11-22T04:21:04.652071+00:00",
   "recentSince": "2026-10-27",
   "providers": {
-    "jellyfin-tizen-builds": {
-      "total": 502532,
-      "recent": 139250
-    },
-    "moonfin": {
-      "total": 38709,
-      "recent": 6595
-    },
-    "litefin": {
-      "total": 15995,
-      "recent": 2593
-    },
-    "tizentube": {
-      "total": 103905,
-      "recent": 50816
-    },
-    "jellyfin-avplay": {
-      "total": 11973,
-      "recent": 1567
-    },
-    "jellyfin-avplay-smarthub": {
-      "total": 5388,
-      "recent": 996
-    },
-    "jellyfin-legacy": {
-      "total": 9281,
-      "recent": 961
-    },
     "tizen-community": {
       "total": 380118,
       "recent": 191527,
@@ -736,6 +708,34 @@
           "recent": 2529
         }
       }
+    },
+    "jellyfin-tizen-builds": {
+      "total": 512529,
+      "recent": 149247
+    },
+    "moonfin": {
+      "total": 39046,
+      "recent": 6932
+    },
+    "litefin": {
+      "total": 16210,
+      "recent": 2808
+    },
+    "tizentube": {
+      "total": 106068,
+      "recent": 52979
+    },
+    "jellyfin-avplay": {
+      "total": 12004,
+      "recent": 1598
+    },
+    "jellyfin-avplay-smarthub": {
+      "total": 5398,
+      "recent": 1006
+    },
+    "jellyfin-legacy": {
+      "total": 9378,
+      "recent": 1058
     }
   }
 }
