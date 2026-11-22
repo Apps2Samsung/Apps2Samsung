@@ -27,11 +27,29 @@ namespace Apps2Samsung.Certificate
 
         private const string Prefix = "Apps2Samsung.Core.TizenSdk.";
 
+        /// <summary>
+        /// Where a newer Tizen Developers CA lives once the user agreed to download one (#1153), set
+        /// by <see cref="AuthorityStore"/>. While both files are there they are used instead of the
+        /// embedded ones; the embedded ones stay the fallback.
+        /// </summary>
+        public static string? DeveloperCaOverrideDirectory { get; set; }
+
         /// <summary>The Tizen Developers CA certificate (PEM).</summary>
-        public static Stream DeveloperCa() => Open("tizen-developer-ca.cer");
+        public static Stream DeveloperCa() => Override("tizen-developer-ca.cer") ?? Open("tizen-developer-ca.cer");
 
         /// <summary>The Tizen Developers CA private key (encrypted PEM, <see cref="DeveloperCaKeyPassword"/>).</summary>
-        public static Stream DeveloperCaKey() => Open("tizen-developer-ca-privatekey.pem");
+        public static Stream DeveloperCaKey() => Override("tizen-developer-ca-privatekey.pem") ?? Open("tizen-developer-ca-privatekey.pem");
+
+        // A downloaded authority counts only as a pair: a certificate without its key signs nothing.
+        private static Stream? Override(string name)
+        {
+            var folder = DeveloperCaOverrideDirectory;
+            if (string.IsNullOrEmpty(folder))
+                return null;
+            var certificate = Path.Combine(folder, "tizen-developer-ca.cer");
+            var key = Path.Combine(folder, "tizen-developer-ca-privatekey.pem");
+            return File.Exists(certificate) && File.Exists(key) ? File.OpenRead(Path.Combine(folder, name)) : null;
+        }
 
         /// <summary>True when the SDK has a signer of that generation for the level: Platform exists only in <see cref="TizenDistributorChain.New"/>.</summary>
         public static bool HasDistributorSigner(TizenDistributorLevel level, TizenDistributorChain chain) =>

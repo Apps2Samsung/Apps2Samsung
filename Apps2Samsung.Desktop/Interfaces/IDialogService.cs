@@ -29,6 +29,15 @@ namespace Apps2Samsung.Interfaces
         Task<bool> ShowCertificateCountdownAsync(DateTime validFromLocal);
 
         /// <summary>
+        /// The certificates that come with the app have ended (#1153): says which and when, and asks
+        /// before <paramref name="download"/> runs. A null download means there is nothing to fetch.
+        /// The second value is true when the user went on with the ended ones (try anyway).
+        /// </summary>
+        Task<(Apps2Samsung.Views.AuthorityChoice Choice, bool WithEnded)> ShowAuthoritiesEndedAsync(
+            Apps2Samsung.Certificate.AuthoritySet set, DateTimeOffset endedAt, string? tvName, bool offerSamsung,
+            Func<Task<(Apps2Samsung.Certificate.AuthorityRefresh Result, string? Detail)>>? download, string? nothingToFetchBody = null);
+
+        /// <summary>
         /// Opens the certificate sheet (not awaited: it stays open while the certificate is made)
         /// for <paramref name="tvName"/>. Null when there is no window to put it on.
         /// </summary>

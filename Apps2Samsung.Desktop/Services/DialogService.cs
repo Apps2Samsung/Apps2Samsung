@@ -366,6 +366,20 @@ namespace Apps2Samsung.Services
             return await tcs.Task;
         }
 
+        public Task<(AuthorityChoice Choice, bool WithEnded)> ShowAuthoritiesEndedAsync(
+            Apps2Samsung.Certificate.AuthoritySet set, DateTimeOffset endedAt, string? tvName, bool offerSamsung,
+            Func<Task<(Apps2Samsung.Certificate.AuthorityRefresh Result, string? Detail)>>? download, string? nothingToFetchBody = null) =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var window = GetMainWindow();
+                if (window == null)
+                    return (AuthorityChoice.Stop, false);
+                var dialog = new AuthorityEndedWindow(set, endedAt, tvName, offerSamsung, download, Localize, nothingToFetchBody);
+                // Closed with the window's X or Escape: the same as Stop.
+                var choice = await dialog.ShowDialog<AuthorityChoice?>(window) ?? AuthorityChoice.Stop;
+                return (choice, choice == AuthorityChoice.Continue && dialog.WentOnWithEnded);
+            });
+
         public Task<bool> ShowCertificateCountdownAsync(DateTime validFromLocal) =>
             Dispatcher.UIThread.InvokeAsync(async () =>
             {

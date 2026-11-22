@@ -1,0 +1,54 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:appicon="using:Apps2Samsung.Helpers"
+        x:Class="Apps2Samsung.Views.AuthorityEndedWindow"
+        Icon="{x:Static appicon:AppIcon.Current}"
+        Width="460" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" CanResize="False"
+        Background="{DynamicResource BgBrush}">
+	<!-- The certificate authorities that come with the app have ended (#1153): which ones and when,
+	     and the question before anything is downloaded. When the server has nothing newer the same
+	     window says so and offers the ways on: a Samsung certificate, trying anyway, or stopping. -->
+	<Window.Styles>
+		<StyleInclude Source="avares://Apps2Samsung/Styles/Buttons.axaml"/>
+	</Window.Styles>
+
+	<StackPanel Margin="16,8,16,16" Spacing="14">
+		<Border Height="5" Width="36" CornerRadius="3" Background="{DynamicResource HairBrush}" HorizontalAlignment="Center"/>
+
+		<Grid ColumnDefinitions="44,*" ColumnSpacing="12">
+			<Border Width="44" Height="44" CornerRadius="11" Background="{DynamicResource WarnBrush}">
+				<Path Width="22" Height="22" Stretch="Uniform" Stroke="{DynamicResource OnAccentBrush}" StrokeThickness="2.2"
+				      StrokeLineCap="Round" StrokeJoin="Round" Data="M12,3 L2,20 L22,20 Z M12,9 L12,14 M12,17 L12,17.5"/>
+			</Border>
+			<StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+				<TextBlock x:Name="TitleBlock" FontSize="17" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+				<TextBlock x:Name="SubBlock" FontSize="13" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
+			</StackPanel>
+		</Grid>
+
+		<TextBlock x:Name="BodyBlock" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+
+		<!-- Nothing newer on the server, or the download did not work. -->
+		<Border x:Name="NoticePanel" IsVisible="False" CornerRadius="12" Padding="14,12" Background="{DynamicResource WarnSoftBrush}">
+			<StackPanel Spacing="4">
+				<TextBlock x:Name="NoticeTitle" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{DynamicResource WarnBrush}"/>
+				<TextBlock x:Name="NoticeBody" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource InkBrush}"/>
+			</StackPanel>
+		</Border>
+
+		<TextBlock x:Name="HintBlock" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+
+		<StackPanel Spacing="8">
+			<Button x:Name="DownloadButton" Classes="primary" Click="OnDownloadClick"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12"/>
+			<Button x:Name="SamsungButton" Classes="primary" IsVisible="False" Click="OnSamsungClick"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="50" CornerRadius="12"/>
+			<TextBlock x:Name="SamsungHint" IsVisible="False" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+			<Button x:Name="TryAnywayButton" Classes="soft" IsVisible="False" Click="OnTryAnywayClick"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" CornerRadius="12"/>
+			<Button x:Name="StopButton" Classes="plain" Click="OnStopClick"
+			        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" CornerRadius="12"/>
+		</StackPanel>
+	</StackPanel>
+</Window>
