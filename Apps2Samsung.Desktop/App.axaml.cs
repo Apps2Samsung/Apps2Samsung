@@ -159,7 +159,6 @@ namespace Apps2Samsung
 
             // Per-app package patchers (edit the .wgt before signing/install).
             services.AddSingleton<IPackagePatcher>(sp => sp.GetRequiredService<JellyfinPackagePatcher>());
-            services.AddSingleton<IPackagePatcher, Apps2Samsung.Helpers.TvApp.TvAppPackagePatcher>();
             // ImmiTV: Immich server + login → js/config.js IMMICH_DEFAULTS at install (shared Core patcher).
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.ImmiTvPackagePatcher>();
             services.AddSingleton<IPackagePatcher, Apps2Samsung.Packaging.TizenTubeProxyPatcher>();

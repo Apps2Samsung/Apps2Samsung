@@ -71,6 +71,9 @@ namespace Apps2Samsung.Install
         /// <summary>The Tizen version the TV runs, when known.</summary>
         public string? TvTizen { get; init; }
 
+        /// <summary>The version of the app the TV lists, when the failure is about what ended up installed.</summary>
+        public string? InstalledVersion { get; init; }
+
         /// <summary>The kind a certificate rejection is reported as.</summary>
         public static InstallFailure For(CertificateRejection rejection) => rejection switch
         {
