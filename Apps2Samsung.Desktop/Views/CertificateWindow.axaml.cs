@@ -157,13 +157,19 @@ namespace Apps2Samsung.Views
 
         public void SetStage(CertificateStage stage)
         {
-            var index = stage == CertificateStage.Done ? Steps.Count : _index[stage];
-            if (index > _index[CertificateStage.SignIn])
+            // The Tizen sheet has no device or sign-in step (#1143): a stage it does not show
+            // changes nothing, and there is no sign-in to wrap up.
+            int index;
+            if (stage == CertificateStage.Done)
+                index = Steps.Count;
+            else if (!_index.TryGetValue(stage, out index))
+                return;
+            if (_index.TryGetValue(CertificateStage.SignIn, out var signIn) && index > signIn)
             {
                 // Signed in: from here Samsung is making the certificate and there is nothing to stop.
                 _signingIn = false;
                 WaitPanel.IsVisible = false;
-                Steps[_index[CertificateStage.SignIn]].Detail = null;
+                Steps[signIn].Detail = null;
             }
             // The Save step names the automatic backup it went into (#1068).
             if (stage == CertificateStage.Done && Apps2Samsung.Certificate.CertificateBackups.LatestBackupDisplayPath() is { } backup)

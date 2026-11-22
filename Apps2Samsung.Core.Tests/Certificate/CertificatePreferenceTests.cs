@@ -45,6 +45,22 @@ public class CertificatePreferenceTests
     }
 
     [Theory]
+    // The stock Jellyfin build keeps its own signature between the two thresholds.
+    [InlineData("6.0", "Jellyfin.wgt", false, false, false, false)]
+    [InlineData("5.5", "jellyfin-prerelease.wgt", false, false, false, false)]
+    // Not once this run edited it: a new package id or a patcher's change (#1143).
+    [InlineData("6.0", "Jellyfin.wgt", false, false, true, true)]
+    [InlineData("6.0", "Jellyfin.wgt", true, false, false, true)]
+    [InlineData("6.0", "Jellyfin.wgt", false, true, false, true)]
+    [InlineData("6.0", "Moonlight.wgt", false, false, false, true)]
+    [InlineData("4.0", "Jellyfin.wgt", false, false, false, true)]
+    [InlineData("7.0", "Jellyfin.wgt", false, false, false, true)]
+    public void RequiresResign(string tizen, string file, bool serverConfigured, bool forceLogin, bool packageEdited, bool expected)
+    {
+        Assert.Equal(expected, CertificatePreference.RequiresResign(new Version(tizen), file, serverConfigured, forceLogin, packageEdited));
+    }
+
+    [Theory]
     [InlineData("Automatic", true, false, true)]
     [InlineData("Public", true, false, true)]
     [InlineData("Partner", true, false, false)]

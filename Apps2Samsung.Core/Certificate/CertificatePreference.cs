@@ -34,6 +34,23 @@ namespace Apps2Samsung.Certificate
                 : CertificatePrivilegeLevel.Public;
 
         /// <summary>
+        /// True when the install has to sign the package itself instead of sending it with the
+        /// signature it came with. Only the stock Jellyfin build on a TV newer than the push
+        /// installs and older than the Tizen that insists on a Samsung certificate may keep its
+        /// own signature, and only while it still is the file that signature was made for: no
+        /// server address patched in, no fresh certificate asked for, and no edit by this run
+        /// (a new package id, a custom icon). An edited package under its old signature is
+        /// refused with [118, -12] and no reason (#1143).
+        /// </summary>
+        public static bool RequiresResign(Version tizenVersion, string packageFileName, bool serverConfigured, bool forceLogin, bool packageEdited) =>
+            tizenVersion >= new Version(Apps2Samsung.Helpers.Core.Constants.TizenVersions.CertificateRequired) ||
+            tizenVersion <= new Version(Apps2Samsung.Helpers.Core.Constants.TizenVersions.PushInstallMax) ||
+            serverConfigured ||
+            forceLogin ||
+            packageEdited ||
+            !packageFileName.Contains(Apps2Samsung.Helpers.Core.Constants.AppIdentifiers.JellyfinAppName, StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
         /// True when an install may sign with the shipped certificate instead of a Samsung one: the TV
         /// is newer than the push installs and older than the Tizen that insists on a Samsung
         /// certificate, and the install signs as Public. The shipped certificate is Public only, so
