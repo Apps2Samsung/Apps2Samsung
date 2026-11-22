@@ -169,9 +169,13 @@ namespace Apps2Samsung.Install
             // back the ambiguous [118, -4] "operation not allowed".
             var requiredVersion = await WgtManifest.ReadRequiredVersionAsync(wgtPath);
             if (WgtManifest.RequiresNewerTizen(version, requiredVersion))
-                throw new InvalidOperationException(
+                throw new InstallFailedException(InstallFailure.NeedsNewerTizen, 
                     $"This app needs Tizen {requiredVersion} or newer, but this TV is Tizen {caps.PlatformVersion}. " +
-                    "Install an older build of the app, or update the TV's firmware.");
+                    "Install an older build of the app, or update the TV's firmware.")
+                {
+                    RequiredTizen = requiredVersion?.ToString(),
+                    TvTizen = caps.PlatformVersion,
+                };
 
             // Was this package already on the TV before we started? The failure cleanup below only
             // clears a partial from a FRESH install and never removes a pre-existing working app.
@@ -203,7 +207,7 @@ namespace Apps2Samsung.Install
             progress?.Invoke("statusResigningPackage");
             var resign = await _sdb.ResignAsync(wgtPath, cert.AuthorP12, cert.DistributorP12, cert.Password);
             if (resign.ExitCode != 0 || resign.Output.Contains("Re-sign failed", StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException($"Re-sign failed: {Detail(resign.Error, resign.Output)}");
+                throw new InstallFailedException(InstallFailure.ResignFailed, $"Re-sign failed: {Detail(resign.Error, resign.Output)}") { Output = resign.Output };
 
             // Last point to stop: from here the TV loses its old copy and gets the new one.
             ct.ThrowIfCancellationRequested();
@@ -228,7 +232,7 @@ namespace Apps2Samsung.Install
                 var expected = (await WgtManifest.ReadPackageInfoAsync(wgtPath)).Version;
                 var restart = await TvStoreSelfUpdate.AwaitRestartAsync(tvIp, appId!, expected, _sdb, progress);
                 if (!restart.CameBack)
-                    throw new InvalidOperationException(TvStoreSelfUpdate.NotBackMessage(restart));
+                    throw new InstallFailedException(InstallFailure.TvStoreNotBack, TvStoreSelfUpdate.NotBackMessage(restart));
                 progress?.Invoke(ProgressText.Key("statusTvStoreRestarted", restart.Version));
                 return TvStoreSelfUpdate.CompletedOutput(restart);
             }
@@ -288,13 +292,13 @@ namespace Apps2Samsung.Install
 
             // Environmental: a broken route to the TV. Retrying the same push can't help.
             if (TizenInstallDiagnostics.IsTransportLost(output))
-                throw new InvalidOperationException(
+                throw new InstallFailedException(InstallFailure.TransportLost, 
                     "Connection to the TV was interrupted. Check Wi-Fi (and that the TV is awake), then try again.");
 
             // [118, -4] "operation not allowed": ambiguous between the app targeting a newer Tizen than
             // this TV and the package needing Partner signing / a privilege the certificate doesn't grant.
             if (TizenInstallDiagnostics.IsApiVersionMismatch(output))
-                throw new InvalidOperationException(
+                throw new InstallFailedException(InstallFailure.OperationNotAllowed, 
                     "The TV refused this package ([118, -4]). Either the app needs a newer Tizen than this TV, or it needs Partner signing / a privilege your certificate doesn't allow. If other apps install fine, turn on Partner signing and retry, or try an older build.");
 
             // [118, -19] "parsing error" (118019 on a 2018 set): the TV could not read the manifest, which
@@ -303,7 +307,7 @@ namespace Apps2Samsung.Install
             {
                 var asksFor = await WgtManifest.ReadRequiredVersionAsync(wgtPath);
                 var tvRuns = TizenVersionCache.TryGet(tvIp);
-                throw new InvalidOperationException(
+                throw new InstallFailedException(InstallFailure.ManifestUnreadable, 
                     "The TV refused this package ([118, -19]): it could not read the package's manifest. " +
                     (asksFor is not null
                         ? $"The app asks for Tizen {asksFor} or newer" + (tvRuns is not null ? $", and this TV runs Tizen {tvRuns}" : "") + ". Try an older build of the app."
@@ -314,7 +318,7 @@ namespace Apps2Samsung.Install
             if (TizenInstallDiagnostics.IsInsufficientSpace(output))
             {
                 await ClearPartialIfFresh();
-                throw new InvalidOperationException(
+                throw new InstallFailedException(InstallFailure.InsufficientSpace, 
                     "Not enough free space on the TV [116]. Remove some apps on the TV (Settings → Support → Device Care → Manage Storage), then install again.");
             }
 
@@ -329,7 +333,11 @@ namespace Apps2Samsung.Install
                 // of a Samsung one, so it is its own type.
                 if (rejection == CertificateRejection.InvalidChain)
                     throw new CertificateChainRejectedException(message, TizenInstallDiagnostics.CertificateRejectionReason(output));
-                throw new InvalidOperationException(message);
+                throw new InstallFailedException(InstallFailedException.For(rejection), message)
+                {
+                    Output = output,
+                    Reason = TizenInstallDiagnostics.CertificateRejectionReason(output),
+                };
             }
 
             bool certMismatch = TizenInstallDiagnostics.IsCertificateMismatch(output);
@@ -360,26 +368,26 @@ namespace Apps2Samsung.Install
 
                 // Still failing after a clean slate: surface the most useful message.
                 if (TizenInstallDiagnostics.IsCertificateMismatch(retry.Output))
-                    throw new InvalidOperationException(
+                    throw new InstallFailedException(InstallFailure.CertificateMismatchAfterRemoval, 
                         "The TV already has this app signed with a different certificate. Remove it on the TV (Apps → delete), then install again.");
 
                 if (TizenInstallDiagnostics.IsPackageIdBlocked(retry.Output))
-                    throw new InvalidOperationException(PackageIdBlockedMessage);
+                    throw new InstallFailedException(InstallFailure.PackageIdBlocked, PackageIdBlockedMessage);
 
                 await ClearPartialIfFresh();
-                throw new InvalidOperationException($"Install failed: {Detail(retry.Error, retry.Output)}");
+                throw new InstallFailedException(InstallFailure.Generic, $"Install failed: {Detail(retry.Error, retry.Output)}") { Output = retry.Output };
             }
 
             // Not retried (recovery off or no package id): the clearest message we can give.
             if (idBlocked)
-                throw new InvalidOperationException(PackageIdBlockedMessage);
+                throw new InstallFailedException(InstallFailure.PackageIdBlocked, PackageIdBlockedMessage);
 
             if (certMismatch)
-                throw new InvalidOperationException(
+                throw new InstallFailedException(InstallFailure.CertificateMismatch, 
                     "The TV already has this app signed with a different certificate. Remove it on the TV (Apps → delete) and install again, or enable \"Override existing app\".");
 
             await ClearPartialIfFresh();
-            throw new InvalidOperationException($"Install failed: {Detail(failed.Error, output)}");
+            throw new InstallFailedException(InstallFailure.Generic, $"Install failed: {Detail(failed.Error, output)}") { Output = output };
         }
 
         private static string Detail(string error, string output) =>
