@@ -260,6 +260,8 @@ def main():
             source = english.get(k)
             if not isinstance(source, str) or not isinstance(translated, str):
                 continue                       # a key en.json no longer has is simply unused
+            if not translated.strip():
+                continue                       # saved empty in Crowdin: not a translation, the app shows English
             want, got = placeholders(source), placeholders(translated)
             if want == got:
                 continue
