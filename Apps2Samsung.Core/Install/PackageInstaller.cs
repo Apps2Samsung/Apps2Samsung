@@ -102,10 +102,19 @@ namespace Apps2Samsung.Install
         /// Null (no UI) installs over it as before.</param>
         /// <param name="renamed">Told the rename applied, if any, so the head can say the app went in as
         /// a separate app (<see cref="PackageIdRename.CollidedWith"/>).</param>
+        /// <param name="alternativeCertificate">Asked when the TV has this app under another certificate
+        /// or refuses the package id ([118, -22]), before anything is removed (#1068): a head that has
+        /// an earlier certificate hands it over, and the package is signed with it and pushed once
+        /// more. Null (or a null answer) goes straight to the remove-and-retry.</param>
+        /// <param name="keepInstalledWhenOverwriteOff">The desktop's reading of "Overwrite existing
+        /// version" off: an app that is already on the TV is not pushed over. It stops before
+        /// signing, unless "Uninstall installed version first" is on and the TV can remove it.</param>
         public async Task<string> InstallAsync(string tvIp, string wgtPath, SigningProfile cert, Action<string>? progress = null,
             Action<InstallStage, int?>? stage = null, CancellationToken ct = default, Func<Task<bool>>? confirmRemove = null,
             PackageIdPolicy? packageId = null, Func<PackageIdCollision, Task<bool>>? confirmReplace = null,
-            Action<PackageIdRename>? renamed = null)
+            Action<PackageIdRename>? renamed = null,
+            Func<InstallFailure, Task<AlternativeCertificate?>>? alternativeCertificate = null,
+            bool keepInstalledWhenOverwriteOff = false)
         {
             stage?.Invoke(InstallStage.Sign, null);
             // Which way in: a TV whose Host PC IP is 127.0.0.1 is reached through TV-Store's relay
@@ -184,6 +193,18 @@ namespace Apps2Samsung.Install
             bool wasInstalledBefore = !string.IsNullOrWhiteSpace(packageIdInFile)
                 && (listing?.Output?.Contains(packageIdInFile!, StringComparison.OrdinalIgnoreCase) ?? false);
 
+            // "Overwrite existing version" off, read the desktop's way (#1147): an installed app is
+            // not pushed over. Said before anything is signed or removed.
+            if (keepInstalledWhenOverwriteOff && !_config.TryOverwrite && wasInstalledBefore && !selfUpdate)
+            {
+                if (!await CanUninstallAsync(tvIp))
+                    throw new InstallFailedException(InstallFailure.InstalledAndTvCannotRemove,
+                        "This app is already installed and the TV does not allow replacing or removing it over the network. Delete it on the TV (Apps list, press and hold, Remove) and try again.");
+                if (!_config.DeletePreviousInstall)
+                    throw new InstallFailedException(InstallFailure.InstalledAndRemovalOff,
+                        "This app is already installed, and removing the installed version is turned off in the settings.");
+            }
+
             // Older TVs (<= 4.0) need the distributor device profile pushed before install; newer TVs
             // carry the authorization in the re-signed package itself.
             if (TizenPermitInstall.IsRequired(version))
@@ -240,7 +261,8 @@ namespace Apps2Samsung.Install
             // itself failed (e.g. "app_id[...] install failed[118]"), so classify the OUTPUT as well
             // and route real failures into recovery.
             if (install.ExitCode != 0 || TizenInstallDiagnostics.IndicatesFailure(install.Output))
-                install = await RecoverInstallAsync(tvIp, wgtPath, sdkToolPath, packageIdInFile, install, progress, wasInstalledBefore, confirmRemove);
+                install = await RecoverInstallAsync(tvIp, wgtPath, sdkToolPath, packageIdInFile, install, progress, wasInstalledBefore, confirmRemove,
+                    cert, packageId, alternativeCertificate, renamed);
 
             if (_config.OpenAfterInstall && !string.IsNullOrWhiteSpace(appId))
             {
@@ -275,7 +297,9 @@ namespace Apps2Samsung.Install
         // Returns the successful result or throws with an actionable message.
         private async Task<ProcessResult> RecoverInstallAsync(
             string tvIp, string wgtPath, string sdkToolPath, string? packageId, ProcessResult failed, Action<string>? progress,
-            bool wasInstalledBefore, Func<Task<bool>>? confirmRemove)
+            bool wasInstalledBefore, Func<Task<bool>>? confirmRemove,
+            SigningProfile cert, PackageIdPolicy? idPolicy,
+            Func<InstallFailure, Task<AlternativeCertificate?>>? alternativeCertificate, Action<PackageIdRename>? renamed)
         {
             var output = failed.Output ?? string.Empty;
 
@@ -346,14 +370,104 @@ namespace Apps2Samsung.Install
             // is the one remedy we can drive from here (#702).
             bool idBlocked = TizenInstallDiagnostics.IsPackageIdBlocked(output);
 
+            bool idConflict = !idBlocked && TizenInstallDiagnostics.IsPackageIdConflict(output);
+
             // Recoverable by removing the old copy first: try exactly one clean reinstall.
             bool recoverable = certMismatch ||
                                idBlocked ||
-                               TizenInstallDiagnostics.IsPackageIdConflict(output) ||
+                               idConflict ||
                                TizenInstallDiagnostics.IsGenericFailure(output);
+
+            async Task SignAsync(SigningProfile profile)
+            {
+                var resign = await _sdb.ResignAsync(wgtPath, profile.AuthorP12, profile.DistributorP12, profile.Password);
+                if (resign.ExitCode != 0 || resign.Output.Contains("Re-sign failed", StringComparison.OrdinalIgnoreCase))
+                    throw new InstallFailedException(InstallFailure.ResignFailed, $"Re-sign failed: {Detail(resign.Error, resign.Output)}") { Output = resign.Output };
+            }
+
+            static bool Succeeded(ProcessResult result) =>
+                result.ExitCode == 0 && !TizenInstallDiagnostics.IndicatesFailure(result.Output);
+
+            // An earlier certificate may be the one the TV knows (#1068): tried before anything is
+            // removed, because it keeps the app's data on the TV. When it does not help, the package
+            // gets the certificate of this install back before the next remedy pushes it again.
+            if ((certMismatch || idBlocked) && alternativeCertificate is not null &&
+                await alternativeCertificate(certMismatch ? InstallFailure.CertificateMismatch : InstallFailure.PackageIdBlocked) is { } other)
+            {
+                progress?.Invoke("statusInstallRetryOtherCertificate");
+                ProcessResult? again = null;
+                try
+                {
+                    await SignAsync(other.Profile);
+                    again = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath, InstallPercentFor(progress, null));
+                }
+                catch (InstallFailedException ex)
+                {
+                    Trace.WriteLine($"[install] {tvIp}: the other certificate could not sign the package: {ex.Message}");
+                }
+
+                bool helped = again is not null && Succeeded(again);
+                Trace.WriteLine($"[install] {tvIp}: the other certificate {(helped ? "was accepted" : "did not help")}");
+                if (other.Done is not null)
+                    await other.Done(helped);
+                if (helped)
+                    return again!;
+                await SignAsync(cert);
+            }
+
+            // The fallback behind a [118] id conflict (#1147): a new id for this TV, remembered like
+            // a requested one (#839), signed again and pushed. Null when there is no TV to remember
+            // it for, the user asked for the package's own id, or the package could not be rewritten.
+            async Task<ProcessResult?> RetryUnderNewIdAsync()
+            {
+                if (idPolicy is null || idPolicy.OwnId || string.IsNullOrWhiteSpace(idPolicy.TvDuid))
+                    return null;
+                var (oldAppId, _) = await WgtManifest.ReadIdsAsync(wgtPath);
+                var rename = await PackageIdRewriter.RandomizeAsync(wgtPath);
+                if (rename is null)
+                    return null;
+
+                Trace.WriteLine($"[install] {tvIp}: renamed package {rename.OldId} -> {rename.NewId} after a [118] conflict");
+                var (newAppId, _) = await WgtManifest.ReadIdsAsync(wgtPath);
+                _config.PackageIdRenamesJson = PackageIdRenameStore.Set(_config.PackageIdRenamesJson, new PackageIdRenameRecord
+                {
+                    TvDuid = idPolicy.TvDuid,
+                    OriginalPackageId = rename.OldId,
+                    NewPackageId = rename.NewId,
+                    OriginalAppId = oldAppId,
+                    NewAppId = newAppId,
+                    PackageFile = Path.GetFileName(wgtPath),
+                    RenamedAtUtc = DateTimeOffset.UtcNow,
+                });
+                progress?.Invoke(ProgressText.Key("statusPackageIdRenamed", rename.OldId, rename.NewId));
+                renamed?.Invoke(rename);
+
+                await SignAsync(cert);
+                return await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath, InstallPercentFor(progress, null));
+            }
 
             if (recoverable && _config.TryOverwrite && !string.IsNullOrWhiteSpace(packageId))
             {
+                // A TV that cannot remove apps over the network (#1147): asking "remove it?" would
+                // promise something that cannot happen, so say what the user has to do on the TV.
+                if (!await CanUninstallAsync(tvIp))
+                {
+                    if (certMismatch)
+                        throw new InstallFailedException(InstallFailure.CertificateMismatchTvCannotRemove,
+                            "The TV already has this app signed with a different certificate, and this TV does not allow removing apps over the network. Delete it on the TV (Apps list, press and hold, Remove), then install again.") { Output = output };
+                    if (idBlocked)
+                        throw new InstallFailedException(InstallFailure.PackageIdBlocked, PackageIdBlockedMessage) { Output = output };
+                    if (idConflict && await RetryUnderNewIdAsync() is { } renamedPush)
+                    {
+                        if (Succeeded(renamedPush))
+                            return renamedPush;
+                        throw new InstallFailedException(InstallFailure.Generic, $"Install failed: {Detail(renamedPush.Error, renamedPush.Output)}") { Output = renamedPush.Output };
+                    }
+
+                    await ClearPartialIfFresh();
+                    throw new InstallFailedException(InstallFailure.Generic, $"Install failed: {Detail(failed.Error, output)}") { Output = output };
+                }
+
                 // Removing the old copy erases its settings, sign-in and local data, so the user decides
                 // first (#825), unless "Uninstall installed version first" already made that choice.
                 if (!_config.DeletePreviousInstall && confirmRemove is not null && !await confirmRemove())
@@ -363,18 +477,29 @@ namespace Apps2Samsung.Install
                 try { await _sdb.UninstallAsync(tvIp, packageId!); } catch { /* best-effort */ }
 
                 var retry = await _sdb.InstallAsync(tvIp, wgtPath, sdkToolPath, InstallPercentFor(progress, null));
-                if (retry.ExitCode == 0 && !TizenInstallDiagnostics.IndicatesFailure(retry.Output))
+                if (Succeeded(retry))
                     return retry;
 
                 // Still failing after a clean slate: surface the most useful message.
                 if (TizenInstallDiagnostics.IsCertificateMismatch(retry.Output))
-                    throw new InstallFailedException(InstallFailure.CertificateMismatchAfterRemoval, 
+                    throw new InstallFailedException(InstallFailure.CertificateMismatchAfterRemoval,
                         "The TV already has this app signed with a different certificate. Remove it on the TV (Apps → delete), then install again.");
 
                 if (TizenInstallDiagnostics.IsPackageIdBlocked(retry.Output))
                     throw new InstallFailedException(InstallFailure.PackageIdBlocked, PackageIdBlockedMessage);
 
-                await ClearPartialIfFresh();
+                // Removing the copy we collide with did not help: the id itself is the problem.
+                if (TizenInstallDiagnostics.IsPackageIdConflict(retry.Output) && await RetryUnderNewIdAsync() is { } underNewId)
+                {
+                    if (Succeeded(underNewId))
+                        return underNewId;
+                    retry = underNewId;
+                }
+                else
+                {
+                    await ClearPartialIfFresh();
+                }
+
                 throw new InstallFailedException(InstallFailure.Generic, $"Install failed: {Detail(retry.Error, retry.Output)}") { Output = retry.Output };
             }
 
@@ -388,6 +513,21 @@ namespace Apps2Samsung.Install
 
             await ClearPartialIfFresh();
             throw new InstallFailedException(InstallFailure.Generic, $"Install failed: {Detail(failed.Error, output)}") { Output = output };
+        }
+
+        // Whether the TV removes apps over the network at all: its own diagnose answer, the check the
+        // desktop has always made. A TV that does not answer is taken to be able to.
+        private async Task<bool> CanUninstallAsync(string tvIp)
+        {
+            try
+            {
+                var diagnose = await _sdb.DiagnoseAsync(tvIp);
+                return !RegexPatterns.TizenCapability.AppUninstallFailed.IsMatch(diagnose.Output ?? string.Empty);
+            }
+            catch
+            {
+                return true;
+            }
         }
 
         private static string Detail(string error, string output) =>
@@ -407,6 +547,13 @@ namespace Apps2Samsung.Install
                 $"The TV rejected the signing certificate ([118, -12]: {TizenInstallDiagnostics.CertificateRejectionReason(output) ?? "check certificate error"}). Removing an installed copy won't help. Make sure the TV has internet access during the install (it verifies the certificate online) and that its date and time are right (Settings → General → System Manager → Time); if both are, create a new certificate and install again.",
         };
     }
+
+    /// <summary>
+    /// Another signing profile a head offers when the TV has the app under a different certificate
+    /// (#1068). <see cref="Done"/> is told whether the TV took it, so the head can keep it or put
+    /// the certificate it replaced back.
+    /// </summary>
+    public sealed record AlternativeCertificate(SigningProfile Profile, Func<bool, Task>? Done = null);
 
     /// <summary>
     /// The user kept the installed copy when the install could only continue by removing it (#825).

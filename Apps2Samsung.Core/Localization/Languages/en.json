@@ -1244,6 +1244,7 @@
   "statusInstallingOnTvPercent": "Installing on TV… {0}%",
   "statusLaunchingOnTv": "Launching on TV…",
   "statusInstallRetryRemoveOld": "Install failed, removing the old copy and retrying…",
+  "statusInstallRetryOtherCertificate": "Install failed, trying the earlier certificate…",
   "infoTvIp": "TV IP",
   "infoDeviceName": "Device name",
   "infoModel": "Model",
