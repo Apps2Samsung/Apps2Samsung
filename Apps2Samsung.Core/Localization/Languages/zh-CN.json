@@ -408,7 +408,7 @@
   "lblDebugLog": "调试日志",
   "statusNoLogFile": "此会话暂无日志文件。",
   "statusLogShareFailed": "无法共享日志: {0}",
-  "lblRemote": "远程",
+  "lblRemote": "遥控器",
   "lblRemotePower": "功率 (关闭电视；自动唤醒睡觉的电视)",
   "lblRemoteReconnect": "重新连接",
   "lblRemoteOk": "好的",

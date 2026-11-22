@@ -413,7 +413,7 @@
   "lblDebugLog": "Журнал отладки",
   "statusNoLogFile": "Для этой сессии пока нет доступных файлов журнала.",
   "statusLogShareFailed": "Не удалось поделиться журналом: {0}",
-  "lblRemote": "Удалённый",
+  "lblRemote": "Пульт",
   "lblRemotePower": "Сила (отключает телевизор, автоматически проснулся спящий телевизор)",
   "lblRemoteReconnect": "Переподключить",
   "lblRemoteOk": "ОК",

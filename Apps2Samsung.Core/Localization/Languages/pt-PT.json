@@ -410,7 +410,7 @@
   "lblDebugLog": "Log de depuração",
   "statusNoLogFile": "Nenhum arquivo de log está disponível para esta sessão ainda.",
   "statusLogShareFailed": "Não foi possível compartilhar o log: {0}",
-  "lblRemote": "Remoto",
+  "lblRemote": "Comando",
   "lblRemotePower": "Liga/Desliga (desliga a TV; uma TV de sono está acordada automaticamente)",
   "lblRemoteReconnect": "Reconectar",
   "lblRemoteOk": "Certo",

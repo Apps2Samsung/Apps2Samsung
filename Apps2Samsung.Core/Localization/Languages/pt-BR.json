@@ -410,7 +410,7 @@
   "lblDebugLog": "Log de depuração",
   "statusNoLogFile": "Ainda não há um arquivo de registro disponível para esta sessão.",
   "statusLogShareFailed": "Não foi possível compartilhar o log: {0}",
-  "lblRemote": "Remoto",
+  "lblRemote": "Controle",
   "lblRemotePower": "Ligar/desligar (desliga a TV; uma TV em espera pode ser ligada automaticamente)",
   "lblRemoteReconnect": "Reconectar",
   "lblRemoteOk": "OK",

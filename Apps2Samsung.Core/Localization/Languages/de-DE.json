@@ -403,7 +403,7 @@
   "lblDebugLog": "Debug-Log",
   "statusNoLogFile": "Für diese Sitzung ist noch keine Protokolldatei verfügbar.",
   "statusLogShareFailed": "Konnte das Log nicht teilen: {0}",
-  "lblRemote": "Entfernt",
+  "lblRemote": "Fernbedienung",
   "lblRemotePower": "Strom (schaltet den Fernseher aus, ein schlafender Fernseher wird automatisch aufgeweckt)",
   "lblRemoteReconnect": "Neu verbinden",
   "lblRemoteOk": "Ok",
