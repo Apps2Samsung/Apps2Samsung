@@ -129,6 +129,9 @@ public static class MauiProgram
 
 		// App catalog (App/Version dropdowns), reuses the shared HttpClient for GitHub calls.
 		builder.Services.AddSingleton<CatalogService>();
+		// A newer catalog while the app is open (#1157).
+		builder.Services.AddSingleton(sp => new Apps2Samsung.Catalog.CatalogWatcher(
+			sp.GetRequiredService<Apps2Samsung.Catalog.ResolvedCatalogService>()));
 
 		// Self-update check (shared Core logic), matches the .apk asset on the latest release.
 		builder.Services.AddSingleton(sp => new GitHubUpdateChecker(sp.GetRequiredService<HttpClient>()));

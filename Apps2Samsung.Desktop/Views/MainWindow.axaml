@@ -273,7 +273,14 @@
 																				</Border>
 																			</Panel>
 																			<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-																				<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}" ToolTip.Tip="{Binding Name}"/>
+																				<!-- the name, and "New" on an app a catalog brought while the app was open (#1157) -->
+																				<Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
+																					<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource InkBrush}" ToolTip.Tip="{Binding Name}"/>
+																					<Border Grid.Column="1" Padding="8,1" CornerRadius="999" VerticalAlignment="Center" Background="{DynamicResource AccentSoftBrush}"
+																					        IsVisible="{Binding IsNew}">
+																						<TextBlock Text="{l:Localize lblCatalogNew}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+																					</Border>
+																				</Grid>
 																				<!-- the tags (18+, root, self-updating, Needs Tizen X, closed source) open the grey line
 																				     (#1041 follow-up, option B): amber for a warning, grey for information. They never
 																				     shorten; the category and downloads after them do. -->

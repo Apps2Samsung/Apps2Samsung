@@ -315,6 +315,8 @@ namespace Apps2Samsung.ViewModels
         {
             /// <summary>The tags at the start of the grey line (#1041 follow-up, Core <c>CatalogTags</c>).</summary>
             public IReadOnlyList<Apps2Samsung.Design.CatalogTag> Tags { get; init; } = Array.Empty<Apps2Samsung.Design.CatalogTag>();
+            /// <summary>Added by a catalog that arrived while the app was open (#1157).</summary>
+            public bool IsNew { get; init; }
             public bool HasSourceLine => Source?.IsVisible == true;
             public bool IsRepositoryLine => Source?.Kind == Apps2Samsung.Catalog.SourceLineKind.Repository;
             public bool IsUnverifiedLine => Source?.Kind == Apps2Samsung.Catalog.SourceLineKind.Unverified;
@@ -380,6 +382,7 @@ namespace Apps2Samsung.ViewModels
                 Apps2Samsung.Catalog.CatalogSourceLabels.Line(release.Source, L))
             {
                 Tags = Apps2Samsung.Design.CatalogTags.For(release, SelectedTvVersion, L),
+                IsNew = _catalogNews.IsNew(release),
             };
             // The icon arrives when it is on disk (a cached one at once); the letter tile holds the place.
             _ = LoadRowIconAsync(row);
@@ -571,6 +574,15 @@ namespace Apps2Samsung.ViewModels
 
         private string _currentStatusKey = string.Empty;
 
+        // A newer catalog while the app is open (#1157): the watcher says when the server has one,
+        // the news is what it brought (the "New" labels stay for the session), and pending means
+        // one arrived while the user was in the middle of something.
+        private readonly CatalogWatcher _catalogWatcher;
+        private CatalogChanges _catalogNews = CatalogChanges.None;
+        private CatalogChanges _lastCatalogChanges = CatalogChanges.None;
+        private bool _catalogRefreshPending;
+        private bool _quietLoading;
+
         /// <summary>
         /// Install percentage sink for a run: shows the bar and puts the number in the status line.
         /// Synchronous on purpose (see <see cref="SyncProgress{T}"/>) so values arrive in the TV's order;
@@ -700,6 +712,7 @@ namespace Apps2Samsung.ViewModels
             // Snapshot-first: the pre-resolved catalog serves the manifest's providers; the GitHub
             // API is only asked for what it lacks.
             _addLatestRelease = new AddLatestRelease(httpClient, snapshot: resolvedCatalog);
+            _catalogWatcher = new CatalogWatcher(resolvedCatalog);
             _downloadStats = downloadStats;
             _providerManifestService = new ProviderManifestService(httpClient);
 
@@ -2007,13 +2020,58 @@ namespace Apps2Samsung.ViewModels
             await LoadReleasesAsync();
         }
 
-        private async Task LoadReleasesAsync(CancellationToken cancellationToken = default)
+        /// <summary>
+        /// Asked on a timer and when the window comes back to the front (#1157): when the server has
+        /// a newer catalog, the list is rebuilt from it without the loading placeholder, and the
+        /// status line says what it brought. While the user is in the middle of something (another
+        /// window on top, an install or a sign-in running, a search typed) it waits for the next ask.
+        /// </summary>
+        public async Task CheckForNewerCatalogAsync(bool windowActive)
         {
-            // Guard against concurrent loads (init vs. the recovery/refresh paths).
-            if (IsLoading)
+            if (!HasRealReleases || IsLoading || _quietLoading)
+                return;
+            if (!_catalogRefreshPending && !await _catalogWatcher.HasNewerAsync())
                 return;
 
-            IsLoading = true;
+            bool busy = !windowActive || IsLoadingDevices || IsInstallProgressVisible || IsSamsungLoginActive
+                        || !string.IsNullOrEmpty(SearchText);
+            if (busy)
+            {
+                _catalogRefreshPending = true;
+                return;
+            }
+
+            _catalogRefreshPending = false;
+            _lastCatalogChanges = CatalogChanges.None;
+            try
+            {
+                await LoadReleasesAsync(quiet: true);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            if (_lastCatalogChanges.Any)
+            {
+                Trace.WriteLine($"[Catalog] A newer catalog was shown: {_lastCatalogChanges.NewApps.Count} new app(s), {_lastCatalogChanges.NewVersions} new version(s).");
+                // Not a key: the counts are in the text, so a language switch keeps this line as it is.
+                _currentStatusKey = string.Empty;
+                StatusBar = _lastCatalogChanges.Describe(L);
+            }
+        }
+
+        private async Task LoadReleasesAsync(CancellationToken cancellationToken = default, bool quiet = false)
+        {
+            // Guard against concurrent loads (init vs. the recovery/refresh paths).
+            if (IsLoading || _quietLoading)
+                return;
+
+            // A quiet load (#1157) swaps the list without the loading placeholder.
+            if (quiet)
+                _quietLoading = true;
+            else
+                IsLoading = true;
             try
             {
                 var list = new List<GitHubRelease>();
@@ -2088,10 +2146,19 @@ namespace Apps2Samsung.ViewModels
                 cancellationToken.ThrowIfCancellationRequested();
                 // Show every app alphabetically (A-Z, 0-9) regardless of manifest/fetch order.
                 list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
+                if (quiet)
+                {
+                    // Nothing came back (offline by now): the list on screen is worth more than an empty one.
+                    if (list.Count == 0)
+                        return;
+                    _lastCatalogChanges = CatalogChanges.Between(_allReleases, list);
+                    _catalogNews = _lastCatalogChanges.After(_catalogNews);
+                }
                 _allReleases = list;
                 _removedApps = removed;
                 RebuildCategories();
                 ApplyCategoryFilter();
+                _catalogWatcher.MarkShown();
             }
             catch (OperationCanceledException)
             {
@@ -2100,7 +2167,9 @@ namespace Apps2Samsung.ViewModels
             catch (Exception ex)
             {
                 Trace.WriteLine(ex);
-                await _dialogService.ShowErrorAsync($"{L(Constants.LocalizationKeys.FailedLoadingReleases)} {ex}");
+                // A refresh nobody asked for does not get to open an error dialog.
+                if (!quiet)
+                    await _dialogService.ShowErrorAsync($"{L(Constants.LocalizationKeys.FailedLoadingReleases)} {ex}");
             }
             finally
             {
@@ -2108,6 +2177,7 @@ namespace Apps2Samsung.ViewModels
                 if (!Releases.Contains(CustomEntry))
                     Releases.Add(CustomEntry);
                 IsLoading = false;
+                _quietLoading = false;
             }
             if (_reloadReleasesWhenDone)
             {

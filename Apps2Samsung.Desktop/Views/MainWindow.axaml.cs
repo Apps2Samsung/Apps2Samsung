@@ -29,8 +29,22 @@ namespace Apps2Samsung.Views
             this.Activated += async (_, __) =>
             {
                 if (DataContext is MainWindowViewModel vm)
+                {
                     await vm.EnsureReleasesLoadedAsync();
+                    // Back at the front: the moment to show a catalog that arrived meanwhile (#1157).
+                    await vm.CheckForNewerCatalogAsync(windowActive: true);
+                }
             };
+
+            // While the app is open the catalog on the server moves on; ask again now and then (#1157).
+            var catalogTimer = new Avalonia.Threading.DispatcherTimer { Interval = Apps2Samsung.Catalog.CatalogWatcher.Interval };
+            catalogTimer.Tick += async (_, _) =>
+            {
+                if (DataContext is MainWindowViewModel vm)
+                    await vm.CheckForNewerCatalogAsync(IsActive);
+            };
+            catalogTimer.Start();
+            Closed += (_, _) => catalogTimer.Stop();
 
             // The catalog picks its column count from the window's width (#1125).
             void TellWidth()

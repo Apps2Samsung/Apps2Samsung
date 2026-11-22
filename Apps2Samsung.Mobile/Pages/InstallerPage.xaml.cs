@@ -55,6 +55,14 @@ public partial class InstallerPage : ContentPage
 	}
 	private bool _catalogLoading;
 	private int _catalogFailed;
+	// A newer catalog while the app is open (#1157): the watcher says when the server has one, the
+	// news is what it brought (the "New" labels stay for the session), and pending means one arrived
+	// while the user was in the middle of something.
+	private readonly CatalogWatcher _catalogWatcher;
+	private CatalogChanges _catalogNews = CatalogChanges.None;
+	private bool _catalogRefreshPending;
+	private bool _catalogRefreshing;
+	private IDispatcherTimer? _catalogTimer;
 	// The provider manifest, for the preview images the app sheet shows; null until it loaded.
 	private ProviderManifest? _manifest;
 
@@ -69,9 +77,11 @@ public partial class InstallerPage : ContentPage
 
 	public InstallerPage(INetworkService networkService, ISamsungLoginService loginService,
 		CertificateFlow certFlow, WgtInstaller installer, CatalogService catalog,
-		UpdateFlow updates, SessionState session, ISdbEngine sdb, TvSelection tv, CatalogIcons icons)
+		UpdateFlow updates, SessionState session, ISdbEngine sdb, TvSelection tv, CatalogIcons icons,
+		CatalogWatcher catalogWatcher)
 	{
 		InitializeComponent();
+		_catalogWatcher = catalogWatcher;
 		_tv = tv;
 		_icons = icons;
 		_networkService = networkService;
@@ -119,9 +129,28 @@ public partial class InstallerPage : ContentPage
 			if (_listedAdult != MobileSettings.ShowAdultApps || _listedRoot != MobileSettings.ShowRootApps
 				|| _listedClosedSource != MobileSettings.ShowClosedSourceApps)
 				RebuildCatalog();
+			// Back on this tab: the moment to show a catalog that arrived meanwhile (#1157).
+			_ = CheckForNewerCatalogAsync();
 			return;
 		}
 		_initialized = true;
+		// While the app is open the catalog on the server moves on; ask again now and then, and
+		// when the app comes back to the front (#1157).
+		_catalogTimer = Dispatcher.CreateTimer();
+		_catalogTimer.Interval = CatalogWatcher.Interval;
+		_catalogTimer.Tick += (_, _) =>
+		{
+			// A page that was replaced (a language change rebuilds it) stops asking.
+			if (Handler is null)
+			{
+				_catalogTimer?.Stop();
+				return;
+			}
+			_ = CheckForNewerCatalogAsync();
+		};
+		_catalogTimer.Start();
+		if (Window is { } window)
+			window.Resumed += (_, _) => _ = CheckForNewerCatalogAsync();
 		CatalogStore.Refresh = async () => { await LoadCatalogAsync(); };
 		// "Update" and "View in catalog" on the On the TV tab (#820, #888): that app's sheet, here
 		// where installs run.
@@ -162,6 +191,60 @@ public partial class InstallerPage : ContentPage
 		catch (Exception ex) { System.Diagnostics.Trace.WriteLine($"[installer] Update check failed: {ex.Message}"); }
 	}
 
+	/// <summary>
+	/// Asked on a timer, when the app comes back to the front and when this tab is shown again
+	/// (#1157): when the server has a newer catalog, the list is rebuilt from it without the loading
+	/// placeholder, and the status line says what it brought. While the user is in the middle of
+	/// something (an install, a sheet on top, a search typed, another tab) it waits for the next ask.
+	/// </summary>
+	private async Task CheckForNewerCatalogAsync()
+	{
+		try
+		{
+			if (!_uiReady || _catalogLoading || _catalogRefreshing || _allReleases.Count == 0)
+				return;
+			if (!_catalogRefreshPending && !await _catalogWatcher.HasNewerAsync())
+				return;
+
+			bool onScreen = Shell.Current?.CurrentPage == this && Navigation.ModalStack.Count == 0;
+			if (_busy || !onScreen || !string.IsNullOrEmpty(_query))
+			{
+				_catalogRefreshPending = true;
+				return;
+			}
+
+			_catalogRefreshPending = false;
+			_catalogRefreshing = true;
+			CatalogService.CatalogResult result;
+			try
+			{
+				result = await _catalog.LoadReleasesAsync();
+			}
+			finally
+			{
+				_catalogRefreshing = false;
+			}
+			// Nothing came back (offline by now): the list on screen is worth more than an empty one.
+			if (result.Releases.Count == 0)
+				return;
+
+			var changes = CatalogChanges.Between(_allReleases, result.Releases);
+			_catalogNews = changes.After(_catalogNews);
+			_allReleases = result.Releases;
+			CatalogStore.Set(_allReleases, result.Removed);
+			_catalogFailed = result.Failed;
+			_catalogWatcher.MarkShown();
+			RebuildCatalog();
+			if (changes.Any)
+				SetStatus(changes.Describe(L10n.Get));
+		}
+		catch (Exception ex)
+		{
+			// A refresh nobody asked for stays quiet when it fails.
+			System.Diagnostics.Trace.WriteLine($"[installer] Catalog refresh failed: {ex.Message}");
+		}
+	}
+
 	private async Task<CatalogService.CatalogResult?> LoadCatalogAsync()
 	{
 		SetStatus(L10n.Get("lblLoadingAppList"));
@@ -175,6 +258,7 @@ public partial class InstallerPage : ContentPage
 			_allReleases = result.Releases;
 			CatalogStore.Set(_allReleases, result.Removed);
 			_catalogFailed = result.Failed;
+			_catalogWatcher.MarkShown();
 		}
 		catch (Exception ex)
 		{
@@ -381,7 +465,7 @@ public partial class InstallerPage : ContentPage
 			Spacing = 1, VerticalOptions = LayoutOptions.Center,
 			Children =
 			{
-				new Label { Text = release.Name, FontAttributes = FontAttributes.Bold, LineBreakMode = LineBreakMode.TailTruncation },
+				NameLine(release),
 				TaggedSubline(release, SelectedTvVersion, subline),
 			},
 		};
@@ -408,6 +492,36 @@ public partial class InstallerPage : ContentPage
 		tap.Tapped += async (_, _) => await OpenAppAsync(release, subline);
 		grid.GestureRecognizers.Add(tap);
 		return grid;
+	}
+
+	// The app's name, with "New" behind it on an app a catalog brought while the app was open (#1157).
+	private View NameLine(GitHubRelease release)
+	{
+		var name = new Label { Text = release.Name, FontAttributes = FontAttributes.Bold, LineBreakMode = LineBreakMode.TailTruncation };
+		if (!_catalogNews.IsNew(release))
+			return name;
+
+		var pill = new Border
+		{
+			StrokeThickness = 0,
+			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 999 },
+			BackgroundColor = DesignTheme.ColorOf("AccentSoft"),
+			Padding = new Thickness(8, 1),
+			VerticalOptions = LayoutOptions.Center,
+			Content = new Label
+			{
+				Text = L10n.Get("lblCatalogNew"), FontSize = 11, FontAttributes = FontAttributes.Bold,
+				TextColor = DesignTheme.ColorOf("Accent"),
+			},
+		};
+		var line = new Grid
+		{
+			ColumnDefinitions = { new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto) },
+			ColumnSpacing = 8,
+		};
+		line.Add(name, 0, 0);
+		line.Add(pill, 1, 0);
+		return line;
 	}
 
 	/// <summary>
