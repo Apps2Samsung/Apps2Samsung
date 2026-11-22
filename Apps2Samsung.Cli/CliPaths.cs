@@ -38,6 +38,9 @@ public static class CliPaths
 
     public static string CaDir => Path.Combine(CliDir, "ca");
 
+    /// <summary>Certificate authorities downloaded after the shipped ones ended (#1153), shared with the desktop.</summary>
+    public static string Authorities => Path.Combine(DataDir, "Authorities");
+
     /// <summary>Downloaded packages: throwaway, so the OS cache location.</summary>
     public static string Downloads => UserPaths.Cache(CliDir, "downloads");
 

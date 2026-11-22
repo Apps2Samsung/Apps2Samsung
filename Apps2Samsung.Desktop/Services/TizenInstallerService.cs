@@ -1373,6 +1373,11 @@ namespace Apps2Samsung.Services
                 return CertificatePreparation.Failed;
             }
 
+            // The shipped authorities have end dates (#1153): the same question as at install time.
+            if (Apps2Samsung.Certificate.CertificateKind.IsTizen(_appSettings.CertificateKind)
+                && await CheckAuthoritiesAsync(AuthoritySet.Tizen, deviceInfo, cancellationToken) is not null)
+                return CertificatePreparation.Failed;
+
             // A Tizen certificate (#988): made here with no sign-in, or already there. Choosing a
             // Samsung certificate on its sheet switches the setting and goes on below.
             if (Apps2Samsung.Certificate.CertificateKind.IsTizen(_appSettings.CertificateKind))
@@ -1407,6 +1412,8 @@ namespace Apps2Samsung.Services
             // when the caller has a package in hand that needs it (sign only, #979).
             var level = Apps2Samsung.Certificate.CertificatePreference.ResolveLevel(
                 _appSettings.CertificatePreference, _appSettings.RequiresPartnerSigning || requirePartner);
+            if (await CheckAuthoritiesAsync(AuthoritySet.Samsung, deviceInfo, cancellationToken) is not null)
+                return CertificatePreparation.Failed;
             var caPath = _authorities.SamsungFolder;
             using var sheet = new CertificateSheetRun(_dialogService, deviceInfo.Name, cancellationToken, deviceInfo.Duid);
             try

@@ -76,6 +76,9 @@ public static class MauiProgram
 		// Shared reuse-aware provisioning: reuses a valid profile covering the TV and only logs in
 		// when it must (re)generate. Depends on the shared cert service + this head's login service.
 		builder.Services.AddSingleton<CertificateProvisioningService>();
+		// The certificate authorities in use (#1153): the shipped ones, or a newer set the user agreed to download.
+		builder.Services.AddSingleton(_ => new AuthorityStore(
+			Path.Combine(FileSystem.AppDataDirectory, "Authorities"), CertificateProvisioner.ShippedCaPath));
 		builder.Services.AddSingleton<CertificateProvisioner>();
 		builder.Services.AddSingleton<CertificateFlow>();
 
