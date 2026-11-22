@@ -59,7 +59,7 @@ namespace Apps2Samsung.Install
         /// Part of <see cref="InstallAsync"/>; on its own for a package that is signed and installed
         /// elsewhere (TV-Store's upload page signs it on the TV).
         /// </summary>
-        public async Task CustomizeAsync(string tvIp, string wgtPath, Action<string>? progress = null)
+        public async Task CustomizeAsync(string tvIp, string wgtPath, Action<string>? progress = null, Version? tizenVersion = null)
         {
             var channels = TvAppChannelInjector.AppliesTo(wgtPath)
                 ? TvAppChannelInjector.ParseChannelsJson(_config.TvAppChannelsJson)
@@ -70,7 +70,7 @@ namespace Apps2Samsung.Install
 
             progress?.Invoke(channels.Count > 0 ? "statusApplyingTvAppChannels" : "statusApplyingCustomizations");
 
-            using var workspace = PackageWorkspace.Extract(wgtPath, tvIp);
+            using var workspace = PackageWorkspace.Extract(wgtPath, tvIp, tizenVersion);
 
             if (channels.Count > 0)
                 await TvAppChannelInjector.InjectChannelsAsync(workspace, channels);
@@ -215,7 +215,7 @@ namespace Apps2Samsung.Install
                 ct.ThrowIfCancellationRequested();
             }
 
-            await CustomizeAsync(tvIp, wgtPath, progress);
+            await CustomizeAsync(tvIp, wgtPath, progress, version);
 
             // The certificate must already be inside its validity window: Tizen checks the signature
             // against the TV's clock and refuses one whose start date is still in the future
@@ -253,7 +253,7 @@ namespace Apps2Samsung.Install
                 var expected = (await WgtManifest.ReadPackageInfoAsync(wgtPath)).Version;
                 var restart = await TvStoreSelfUpdate.AwaitRestartAsync(tvIp, appId!, expected, _sdb, progress);
                 if (!restart.CameBack)
-                    throw new InstallFailedException(InstallFailure.TvStoreNotBack, TvStoreSelfUpdate.NotBackMessage(restart));
+                    throw new InstallFailedException(InstallFailure.TvStoreNotBack, TvStoreSelfUpdate.NotBackMessage(restart)) { InstalledVersion = restart.Version };
                 progress?.Invoke(ProgressText.Key("statusTvStoreRestarted", restart.Version));
                 return TvStoreSelfUpdate.CompletedOutput(restart);
             }
