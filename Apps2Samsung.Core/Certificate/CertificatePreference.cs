@@ -34,21 +34,20 @@ namespace Apps2Samsung.Certificate
                 : CertificatePrivilegeLevel.Public;
 
         /// <summary>
-        /// True when the install has to sign the package itself instead of sending it with the
-        /// signature it came with. Only the stock Jellyfin build on a TV newer than the push
-        /// installs and older than the Tizen that insists on a Samsung certificate may keep its
-        /// own signature, and only while it still is the file that signature was made for: no
-        /// server address patched in, no fresh certificate asked for, and no edit by this run
-        /// (a new package id, a custom icon). An edited package under its old signature is
-        /// refused with [118, -12] and no reason (#1143).
+        /// True when an install is the stock Jellyfin build going to a TV newer than the push
+        /// installs and older than the Tizen that insists on a Samsung certificate, exactly as it
+        /// was built: no server address patched in, no fresh certificate asked for, and no edit by
+        /// this run (a new package id, a custom icon; #1143). That build is made with the shipped
+        /// certificate and is signed with it again, whatever the certificate settings say, so a TV
+        /// that already has it keeps seeing the same author (#1148).
         /// </summary>
-        public static bool RequiresResign(Version tizenVersion, string packageFileName, bool serverConfigured, bool forceLogin, bool packageEdited) =>
-            tizenVersion >= new Version(Apps2Samsung.Helpers.Core.Constants.TizenVersions.CertificateRequired) ||
-            tizenVersion <= new Version(Apps2Samsung.Helpers.Core.Constants.TizenVersions.PushInstallMax) ||
-            serverConfigured ||
-            forceLogin ||
-            packageEdited ||
-            !packageFileName.Contains(Apps2Samsung.Helpers.Core.Constants.AppIdentifiers.JellyfinAppName, StringComparison.OrdinalIgnoreCase);
+        public static bool StockBuildKeepsShippedCertificate(Version tizenVersion, string packageFileName, bool serverConfigured, bool forceLogin, bool packageEdited) =>
+            tizenVersion > new Version(Apps2Samsung.Helpers.Core.Constants.TizenVersions.PushInstallMax) &&
+            tizenVersion < new Version(Apps2Samsung.Helpers.Core.Constants.TizenVersions.CertificateRequired) &&
+            !serverConfigured &&
+            !forceLogin &&
+            !packageEdited &&
+            packageFileName.Contains(Apps2Samsung.Helpers.Core.Constants.AppIdentifiers.JellyfinAppName, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// True when an install may sign with the shipped certificate instead of a Samsung one: the TV

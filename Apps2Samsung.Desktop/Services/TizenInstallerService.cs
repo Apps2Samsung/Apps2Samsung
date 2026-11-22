@@ -429,7 +429,7 @@ namespace Apps2Samsung.Services
                 // install here and count down to the start date instead of pushing a doomed package.
                 // Loops because the certificate is re-checked after the wait: only a genuinely valid
                 // certificate gets past this point.
-                while (certificateResult.RequiresResign)
+                while (true)
                 {
                     var validity = CertificateValidity.CheckSigningProfile(
                         certificateResult.AuthorP12,
@@ -454,8 +454,8 @@ namespace Apps2Samsung.Services
                     }
                 }
 
-                // Step 6: Resign package if needed
-                if (certificateResult.RequiresResign)
+                // Step 6: Sign the package. Always: there is no install that goes out with the
+                // signature the package came with (#1148).
                 {
                     Trace.WriteLine("Resigning package with new certificate");
                     progress?.Invoke(Constants.LocalizationKeys.PackageAndSign.Localized());
@@ -626,19 +626,26 @@ namespace Apps2Samsung.Services
             Action? onSamsungLoginStarted,
             InstallRun run)
         {
-            // A package that is still the file its own signature was made for can go to a TV between
-            // the two thresholds as it is. One this run renamed or patched cannot: the TV checks the
-            // signature against the files and answers [118, -12] with no reason (#1143).
-            bool requiresResign = Apps2Samsung.Certificate.CertificatePreference.RequiresResign(
-                deviceInfo.TizenVersion,
-                Path.GetFileName(packagePath),
-                serverConfigured: !string.IsNullOrEmpty(_appSettings.JellyfinIP),
-                forceLogin: run.ForceLogin,
-                packageEdited: run.PackageEdited);
-
-            if (!requiresResign)
+            // The stock Jellyfin build on a TV between the two thresholds, untouched by this run: it
+            // is built with the shipped certificate, and that is what it is signed with here, whatever
+            // Settings says, so the TV keeps seeing the author it knows. It used to go out with the
+            // signature it came with; now every install signs, as on the phone and the CLI (#1148).
+            if (Apps2Samsung.Certificate.CertificatePreference.StockBuildKeepsShippedCertificate(
+                    deviceInfo.TizenVersion,
+                    Path.GetFileName(packagePath),
+                    serverConfigured: !string.IsNullOrEmpty(_appSettings.JellyfinIP),
+                    forceLogin: run.ForceLogin,
+                    packageEdited: run.PackageEdited))
             {
-                return new CertificateResult { Success = true, RequiresResign = false };
+                var shipped = Path.Combine(AppSettings.BundledCertificatePath, Constants.AppIdentifiers.JellyfinAppName);
+                Trace.WriteLine("[Cert] Stock Jellyfin build: signing with the shipped certificate.");
+                return new CertificateResult
+                {
+                    Success = true,
+                    AuthorP12 = Path.Combine(shipped, Constants.Certificate.AuthorFileName),
+                    DistributorP12 = Path.Combine(shipped, Constants.Certificate.DistributorFileName),
+                    P12Password = (await File.ReadAllTextAsync(Path.Combine(shipped, Constants.Certificate.PasswordFileName))).Trim(),
+                };
             }
 
             string selectedCertificate = _appSettings.Certificate;
@@ -755,7 +762,6 @@ namespace Apps2Samsung.Services
                     return new CertificateResult
                     {
                         Success = true,
-                        RequiresResign = true,
                         AuthorP12 = profile.AuthorP12,
                         DistributorP12 = profile.DistributorP12,
                         P12Password = profile.Password
@@ -889,7 +895,6 @@ namespace Apps2Samsung.Services
             return new CertificateResult
             {
                 Success = true,
-                RequiresResign = true,
                 AuthorP12 = authorp12,
                 DistributorP12 = distributorp12,
                 P12Password = p12Password
@@ -942,7 +947,6 @@ namespace Apps2Samsung.Services
                 return new CertificateResult
                 {
                     Success = true,
-                    RequiresResign = true,
                     AuthorP12 = profile.AuthorP12,
                     DistributorP12 = profile.DistributorP12,
                     P12Password = profile.Password
@@ -2067,7 +2071,6 @@ namespace Apps2Samsung.Services
         private class CertificateResult
         {
             public bool Success { get; init; }
-            public bool RequiresResign { get; init; }
             public string AuthorP12 { get; init; } = string.Empty;
             public string DistributorP12 { get; init; } = string.Empty;
             public string P12Password { get; init; } = string.Empty;
