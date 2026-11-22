@@ -371,6 +371,7 @@ namespace Apps2Samsung.Services
                         progress?.Invoke(string.Format("statusPackageIdSeparateApp".Localized(), rename.NewId, other));
                     if (rename is not null)
                     {
+                        run.PackageEdited = true;
                         progress?.Invoke(string.Format("statusPackageIdRenamed".Localized(), rename.OldId, rename.NewId));
                         // A retry re-applies the remembered rename, which no longer says why; keep the first.
                         if (run.Rename is null || rename.CollidedWith is not null)
@@ -383,6 +384,30 @@ namespace Apps2Samsung.Services
                 var prepareResult = await PrepareDeviceAsync(tvIpAddress, packagePath, progress, run);
                 if (!prepareResult.Success)
                     return prepareResult;
+
+                // Step 3d: Apply package configuration. Every matching patcher runs, in registration
+                // order, so app-specific patchers (channels/oblong) compose with the generic
+                // custom-icon patcher (registered last, so it overrides built-in icons). They share
+                // one workspace: the package is unpacked once here and rezipped once below, instead
+                // of each patcher unpacking and rezipping the whole thing for its own edit. Before the
+                // certificate step, which has to know whether the package still is the file its
+                // signature was made for (#1143).
+                var patchers = _packagePatchers.Where(p => p.CanHandle(packagePath)).ToList();
+                if (patchers.Count > 0)
+                {
+                    using var workspace = PackageWorkspace.Extract(packagePath, tvIpAddress, deviceInfo.TizenVersion);
+
+                    foreach (var patcher in patchers)
+                    {
+                        Trace.WriteLine($"Applying configuration via {patcher.GetType().Name}");
+                        await patcher.ApplyAsync(workspace);
+                    }
+
+                    // A patcher that matched on the file name but found nothing to do leaves the
+                    // package exactly as downloaded rather than as a recompressed copy of itself.
+                    if (workspace.RepackIfChanged())
+                        run.PackageEdited = true;
+                }
 
                 // Step 4: Handle certificate selection/generation
                 var certificateResult = await HandleCertificateAsync(
@@ -427,27 +452,6 @@ namespace Apps2Samsung.Services
                         return InstallResult.CancelledResult(
                             Constants.LocalizationKeys.CertificateWaitCancelled.Localized());
                     }
-                }
-
-                // Step 5: Apply package configuration. Every matching patcher runs, in registration
-                // order, so app-specific patchers (channels/oblong) compose with the generic
-                // custom-icon patcher (registered last, so it overrides built-in icons). They share
-                // one workspace: the package is unpacked once here and rezipped once below, instead
-                // of each patcher unpacking and rezipping the whole thing for its own edit.
-                var patchers = _packagePatchers.Where(p => p.CanHandle(packagePath)).ToList();
-                if (patchers.Count > 0)
-                {
-                    using var workspace = PackageWorkspace.Extract(packagePath, tvIpAddress, deviceInfo.TizenVersion);
-
-                    foreach (var patcher in patchers)
-                    {
-                        Trace.WriteLine($"Applying configuration via {patcher.GetType().Name}");
-                        await patcher.ApplyAsync(workspace);
-                    }
-
-                    // A patcher that matched on the file name but found nothing to do leaves the
-                    // package exactly as downloaded rather than as a recompressed copy of itself.
-                    workspace.RepackIfChanged();
                 }
 
                 // Step 6: Resign package if needed
@@ -622,17 +626,15 @@ namespace Apps2Samsung.Services
             Action? onSamsungLoginStarted,
             InstallRun run)
         {
-            var fileName = Path.GetFileName(packagePath);
-            bool manualResign = !fileName.Contains(Constants.AppIdentifiers.JellyfinAppName, StringComparison.OrdinalIgnoreCase);
-
-            Version certVersion = new(Constants.TizenVersions.CertificateRequired);
-            Version pushVersion = new(Constants.TizenVersions.PushInstallMax);
-
-            bool requiresResign = deviceInfo.TizenVersion >= certVersion ||
-                                  deviceInfo.TizenVersion <= pushVersion ||
-                                  !string.IsNullOrEmpty(_appSettings.JellyfinIP) ||
-                                  run.ForceLogin ||
-                                  manualResign;
+            // A package that is still the file its own signature was made for can go to a TV between
+            // the two thresholds as it is. One this run renamed or patched cannot: the TV checks the
+            // signature against the files and answers [118, -12] with no reason (#1143).
+            bool requiresResign = Apps2Samsung.Certificate.CertificatePreference.RequiresResign(
+                deviceInfo.TizenVersion,
+                Path.GetFileName(packagePath),
+                serverConfigured: !string.IsNullOrEmpty(_appSettings.JellyfinIP),
+                forceLogin: run.ForceLogin,
+                packageEdited: run.PackageEdited);
 
             if (!requiresResign)
             {
@@ -1321,6 +1323,7 @@ namespace Apps2Samsung.Services
                         // The rename lives in this attempt's working copy, so the retry has to keep it
                         // instead of starting over from the source package with the original id.
                         run.KeepWorkingPackage = true;
+                        run.PackageEdited = true;
                         return await RunInstallAsync(tvIpAddress, cancellationToken, progress, onSamsungLoginStarted, run);
                     }
                 }
@@ -1806,6 +1809,13 @@ namespace Apps2Samsung.Services
             /// </summary>
             public bool KeepWorkingPackage { get; set; }
 
+            /// <summary>
+            /// Set when this attempt's working copy no longer is the file its signature was made
+            /// for (a new package id, a patcher that changed something), so it is signed again on
+            /// every TV (#1143). Cleared with each fresh working copy.
+            /// </summary>
+            public bool PackageEdited { get; set; }
+
             /// <summary>The TV's DUID once Step 2 read it; the key of a package-id rename record (#839).</summary>
             public string? TvDuid { get; set; }
 
@@ -1844,6 +1854,7 @@ namespace Apps2Samsung.Services
 
                 Working?.Dispose();
                 Working = StagedPackage.Create(SourcePackage);
+                PackageEdited = false;
                 return Working.FilePath;
             }
 
