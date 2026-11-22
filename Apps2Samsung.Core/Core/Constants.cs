@@ -254,11 +254,7 @@ namespace Apps2Samsung.Helpers.Core
         /// </summary>
         public static class LocalizationKeys
         {
-            public const string DiagnoseTv = "diagnoseTv";
             public const string AlreadyInstalled = "alreadyInstalled";
-            public const string DeleteExistingVersion = "deleteExistingVersion";
-            public const string DeleteExistingFailed = "deleteExistingFailed";
-            public const string DeleteExistingSuccess = "deleteExistingSuccess";
             public const string DeleteExistingNotAllowed = "deleteExistingNotAllowed";
             public const string ConnectingToDevice = "ConnectingToDevice";
             public const string TvNameNotFound = "TvNameNotFound";
@@ -266,7 +262,6 @@ namespace Apps2Samsung.Helpers.Core
             public const string SamsungLogin = "SamsungLogin";
             public const string CreatingCertificateProfile = "CreatingCertificateProfile";
             public const string PartnerSigningAutoEnabled = "partnerSigningAutoEnabled";
-            public const string PackageAndSign = "packageAndSign";
             public const string InstallingPackage = "InstallingPackage";
             public const string InstallingPackageProgress = "InstallingPackageProgress";
             public const string InstallationFailed = "InstallationFailed";
@@ -291,7 +286,6 @@ namespace Apps2Samsung.Helpers.Core
             public const string RemoveAndInstall = "keyRemoveAndInstall";
             public const string RemoveDeclined = "removeDeclined";
             public const string Cancel = "lblCancel";
-            public const string ModifyConfigRequired = "modiyConfigRequired";
             public const string DuidLimitReached = "duidLimitReached";
             public const string ScanningNetwork = "ScanningNetwork";
             public const string InitializationFailed = "InitializationFailed";
@@ -302,7 +296,6 @@ namespace Apps2Samsung.Helpers.Core
             public const string InvalidDeviceIp = "InvalidDeviceIp";
             public const string LblOther = "lblOther";
             public const string IpNotListed = "IpNotListed";
-            public const string IncompatiblePackage = "IncompatiblePackage";
             public const string IncompatiblePackageDetailed = "IncompatiblePackageDetailed";
 
             // Updater localization keys

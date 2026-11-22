@@ -35,18 +35,17 @@ namespace Apps2Samsung.Certificate
 
         /// <summary>
         /// True when an install is the stock Jellyfin build going to a TV newer than the push
-        /// installs and older than the Tizen that insists on a Samsung certificate, exactly as it
-        /// was built: no server address patched in, no fresh certificate asked for, and no edit by
-        /// this run (a new package id, a custom icon; #1143). That build is made with the shipped
-        /// certificate and is signed with it again, whatever the certificate settings say, so a TV
-        /// that already has it keeps seeing the same author (#1148).
+        /// installs and older than the Tizen that insists on a Samsung certificate, with no server
+        /// address patched in and no fresh certificate asked for. That build is made with the
+        /// shipped certificate and is signed with it again, whatever the certificate settings say
+        /// and whatever else the install changes in it (a new package id, an icon), so a TV that
+        /// already has it keeps seeing the same author (#1148, #1149).
         /// </summary>
-        public static bool StockBuildKeepsShippedCertificate(Version tizenVersion, string packageFileName, bool serverConfigured, bool forceLogin, bool packageEdited) =>
+        public static bool StockBuildKeepsShippedCertificate(Version tizenVersion, string packageFileName, bool serverConfigured, bool forceLogin) =>
             tizenVersion > new Version(Apps2Samsung.Helpers.Core.Constants.TizenVersions.PushInstallMax) &&
             tizenVersion < new Version(Apps2Samsung.Helpers.Core.Constants.TizenVersions.CertificateRequired) &&
             !serverConfigured &&
             !forceLogin &&
-            !packageEdited &&
             packageFileName.Contains(Apps2Samsung.Helpers.Core.Constants.AppIdentifiers.JellyfinAppName, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>

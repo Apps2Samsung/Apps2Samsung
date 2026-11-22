@@ -39,6 +39,7 @@ public class ProgressTextTests
 
     [Theory]
     [InlineData("statusConnectingToTv")]
+    [InlineData("statusInstallRetryOtherCertificate")]
     [InlineData("statusConnectingThroughRelay")]
     [InlineData("statusReadingTvCapabilities")]
     [InlineData("statusAuthorizingDevice")]

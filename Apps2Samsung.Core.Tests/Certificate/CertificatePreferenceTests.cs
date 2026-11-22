@@ -46,18 +46,16 @@ public class CertificatePreferenceTests
 
     [Theory]
     // The stock Jellyfin build between the two thresholds is signed with the shipped certificate.
-    [InlineData("6.0", "Jellyfin.wgt", false, false, false, true)]
-    [InlineData("5.5", "jellyfin-prerelease.wgt", false, false, false, true)]
-    // Not once this run edited it: a new package id or a patcher's change (#1143).
-    [InlineData("6.0", "Jellyfin.wgt", false, false, true, false)]
-    [InlineData("6.0", "Jellyfin.wgt", true, false, false, false)]
-    [InlineData("6.0", "Jellyfin.wgt", false, true, false, false)]
-    [InlineData("6.0", "Moonlight.wgt", false, false, false, false)]
-    [InlineData("4.0", "Jellyfin.wgt", false, false, false, false)]
-    [InlineData("7.0", "Jellyfin.wgt", false, false, false, false)]
-    public void StockBuildKeepsShippedCertificate(string tizen, string file, bool serverConfigured, bool forceLogin, bool packageEdited, bool expected)
+    [InlineData("6.0", "Jellyfin.wgt", false, false, true)]
+    [InlineData("5.5", "jellyfin-prerelease.wgt", false, false, true)]
+    [InlineData("6.0", "Jellyfin.wgt", true, false, false)]
+    [InlineData("6.0", "Jellyfin.wgt", false, true, false)]
+    [InlineData("6.0", "Moonlight.wgt", false, false, false)]
+    [InlineData("4.0", "Jellyfin.wgt", false, false, false)]
+    [InlineData("7.0", "Jellyfin.wgt", false, false, false)]
+    public void StockBuildKeepsShippedCertificate(string tizen, string file, bool serverConfigured, bool forceLogin, bool expected)
     {
-        Assert.Equal(expected, CertificatePreference.StockBuildKeepsShippedCertificate(new Version(tizen), file, serverConfigured, forceLogin, packageEdited));
+        Assert.Equal(expected, CertificatePreference.StockBuildKeepsShippedCertificate(new Version(tizen), file, serverConfigured, forceLogin));
     }
 
     [Theory]
