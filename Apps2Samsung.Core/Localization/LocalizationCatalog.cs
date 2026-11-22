@@ -38,6 +38,9 @@ namespace Apps2Samsung.Localization
             LoadEmbeddedLanguages();
         }
 
+        /// <summary>Adds or replaces a language, for tests that need strings no shipped file has.</summary>
+        internal void AddLanguage(string languageCode, Dictionary<string, string> strings) => _languages[languageCode] = strings;
+
         /// <summary>The language in use, as the locale that names its file (e.g. "pt-BR").</summary>
         public string CurrentLanguage { get; private set; } = DefaultLanguage;
 
@@ -56,7 +59,9 @@ namespace Apps2Samsung.Localization
         /// </summary>
         public string GetString(string key)
         {
-            if (_current.TryGetValue(key, out var value))
+            // A translation saved empty in Crowdin is exported as "" and is not a translation: it
+            // would show as a blank line or button. It falls through to English like a missing one.
+            if (_current.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value))
                 return value;
 
             if (_languages.TryGetValue(DefaultLanguage, out var english) &&
