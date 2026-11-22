@@ -25,6 +25,8 @@ public sealed class CliServices : IAsyncDisposable
     /// <summary>Signed repositories (#1018): adding one; the catalog loads them through <see cref="Catalog"/>.</summary>
     public Apps2Samsung.Catalog.Repositories.SignedRepositories Repositories { get; }
     public CertificateProvisioningService Provisioning { get; }
+    /// <summary>The certificate authorities in use: the shipped ones, or a newer set that was downloaded (#1153).</summary>
+    public AuthorityStore Authorities { get; }
     public PackageInstaller Installer { get; }
     /// <summary>English strings for the keys Core reports (guards, certificate steps).</summary>
     public LocalizationCatalog Strings { get; }
@@ -68,6 +70,7 @@ public sealed class CliServices : IAsyncDisposable
 
         Http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
         Http.DefaultRequestHeaders.UserAgent.ParseAdd("Apps2Samsung-CLI");
+        Authorities = new AuthorityStore(CliPaths.Authorities, CliPaths.EnsureCaFiles());
 
         // The engine persists its RSA auth keypair; give it the CLI's own directory.
         SdbTcpDevice.KeyDirectory = CliPaths.CliDir;

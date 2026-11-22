@@ -29,7 +29,8 @@ public static class Certificates
     public static async Task<(SigningProfile Profile, string Duid, CertificateProfile Raw)> EnsureForDuidAsync(
         CliServices s, string duid, CertificatePrivilegeLevel level, CancellationToken ct)
     {
-        var caPath = CliPaths.EnsureCaFiles();
+        await CheckAuthoritiesAsync(s, AuthoritySet.Samsung, ct);
+        var caPath = s.Authorities.SamsungFolder;
 
         var covered = CertificateProvisioningService.HasProfile(CliPaths.CertificateStore, level)
             && CertificateProvisioningService.GetCoveredDuids(Path.Combine(CliPaths.CertificateStore, CertificateProvisioningService.ProfileName(level))).Contains(duid);
@@ -50,6 +51,45 @@ public static class Certificates
             ct: ct);
 
         return (new SigningProfile(profile.AuthorP12, profile.DistributorP12, profile.Password, profile.ProfileDir), duid, profile);
+    }
+
+    /// <summary>
+    /// The certificates that come with the app have end dates (#1153). The CLI asks nothing while it
+    /// runs, so an ended set stops the run with what to do, and <c>--yes</c> is the agreement up
+    /// front: download the new ones from download.tizen.org, and when there is nothing newer go on
+    /// with the old ones, which a TV may still accept.
+    /// </summary>
+    public static async Task CheckAuthoritiesAsync(CliServices s, AuthoritySet set, CancellationToken ct)
+    {
+        var now = DateTimeOffset.UtcNow;
+        if (s.Authorities.Ended(set, now) is not { } ended)
+            return;
+
+        string which = set == AuthoritySet.Samsung ? "The Samsung certificates that come" : "The Tizen certificate that comes";
+        string endedOn = ended.EndsAt.ToLocalTime().ToString("d MMMM yyyy");
+        int megabytes = set == AuthoritySet.Samsung ? AuthorityStore.SamsungDownloadMb : AuthorityStore.TizenDownloadMb;
+        if (!s.Options.Yes)
+            throw new InvalidOperationException(
+                $"{which} with Apps2Samsung ended on {endedOn}. Run this again with --yes to download new ones from download.tizen.org (about {megabytes} MB) " +
+                "and, when nothing newer has been published, to go on with the old ones. Nothing on the TV changes, and your own certificate stays as it is." +
+                (set == AuthoritySet.Tizen ? " A Samsung certificate (--samsung-cert) does not need the Tizen one." : string.Empty));
+
+        s.Out.Warn($"{which} with Apps2Samsung ended on {endedOn}; downloading new ones from download.tizen.org (about {megabytes} MB).");
+        var (result, detail) = await s.Authorities.RefreshAsync(s.Http, set, now, ct);
+        switch (result)
+        {
+            case AuthorityRefresh.Replaced:
+                s.Out.Progress("New certificates downloaded; they are used from now on.");
+                break;
+            case AuthorityRefresh.NothingNewer:
+                s.Out.Warn("Nothing newer has been published, so there is nothing to download. Going on with the old ones; the TV may still accept them.");
+                s.Authorities.AcceptEnded(set);
+                break;
+            default:
+                s.Out.Warn("The download did not work" + (string.IsNullOrWhiteSpace(detail) ? "" : $" ({detail})") + ". Going on with the old ones; the TV may still accept them.");
+                s.Authorities.AcceptEnded(set);
+                break;
+        }
     }
 
     /// <summary>
@@ -98,6 +138,7 @@ public static class Certificates
     /// </summary>
     public static async Task<(SigningProfile Profile, TizenCertificateProfile Raw)> EnsureTizenAsync(CliServices s, TizenDistributorLevel level)
     {
+        await CheckAuthoritiesAsync(s, AuthoritySet.Tizen, CancellationToken.None);
         var chain = TizenChain(s);
         if (chain is { } asked && !TizenSdkAssets.HasDistributorSigner(level, asked))
             throw new InvalidOperationException($"The Tizen SDK has no {asked.ToString().ToLowerInvariant()} distributor signer for {level}; Platform only exists as new.");

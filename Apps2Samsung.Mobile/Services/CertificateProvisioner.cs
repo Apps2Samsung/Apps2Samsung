@@ -24,12 +24,15 @@ public sealed class CertificateProvisioner
 	private readonly ISdbEngine _sdb;
 	private readonly CertificateProvisioningService _provisioning;
 	private readonly IAppConfig _config;
+	// The certificate authorities in use: the shipped ones, or a newer set that was downloaded (#1153).
+	private readonly AuthorityStore _authorities;
 
-	public CertificateProvisioner(ISdbEngine sdb, CertificateProvisioningService provisioning, IAppConfig config)
+	public CertificateProvisioner(ISdbEngine sdb, CertificateProvisioningService provisioning, IAppConfig config, AuthorityStore authorities)
 	{
 		_sdb = sdb;
 		_provisioning = provisioning;
 		_config = config;
+		_authorities = authorities;
 	}
 
 	/// <param name="Tizen">Set when the profile is a Tizen certificate (#988): a [118, -12] chain
@@ -119,7 +122,9 @@ public sealed class CertificateProvisioner
 			duid = await TizenDuidReader.ReadAsync(_sdb, tvIp, progress: progress);
 		}
 
-		var caPath = await MaterializeCaAsync();
+		// The shipped files are written out first; a downloaded set wins when it is complete (#1153).
+		await MaterializeCaAsync();
+		var caPath = _authorities.SamsungFolder;
 
 		// The selected package can only be installed Partner-signed (it declares a Partner-only
 		// privilege such as vpnservice or drminfo) and there is no Partner certificate yet: switch the
@@ -162,8 +167,11 @@ public sealed class CertificateProvisioner
 		return new Result(profile.AuthorP12, profile.DistributorP12, profile.Password, profile.ProfileDir, duid);
 	}
 
+	/// <summary>Where the shipped Samsung authority files are written out; <see cref="AuthorityStore"/> reads them from here.</summary>
+	public static string ShippedCaPath => Path.Combine(FileSystem.AppDataDirectory, "ca");
+
 	// Copies the bundled CA certs to <AppData>/ca once, returning that directory.
-	private static async Task<string> MaterializeCaAsync()
+	internal static async Task<string> MaterializeCaAsync()
 	{
 		var caPath = Path.Combine(FileSystem.AppDataDirectory, "ca");
 		Directory.CreateDirectory(caPath);

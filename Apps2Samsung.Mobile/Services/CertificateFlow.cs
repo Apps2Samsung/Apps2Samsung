@@ -1,5 +1,6 @@
 using Apps2Samsung.Certificate;
 using Apps2Samsung.Interfaces;
+using Apps2Samsung.Mobile.Localization;
 using Apps2Samsung.Mobile.Pages;
 
 namespace Apps2Samsung.Mobile.Services;
@@ -13,10 +14,87 @@ namespace Apps2Samsung.Mobile.Services;
 public sealed class CertificateFlow
 {
 	private readonly CertificateProvisioner _provisioner;
+	private readonly AuthorityStore _authorities;
+	private readonly HttpClient _http;
 
-	public CertificateFlow(CertificateProvisioner provisioner)
+	public CertificateFlow(CertificateProvisioner provisioner, AuthorityStore authorities, HttpClient http)
 	{
 		_provisioner = provisioner;
+		_authorities = authorities;
+		_http = http;
+	}
+
+	/// <summary>
+	/// The certificates that come with the app have end dates (#1153). When the set this run needs
+	/// has ended, the user is told which and when, and asked before new ones are downloaded from
+	/// download.tizen.org. When there is nothing newer, or the download fails, the ways on are a
+	/// Samsung certificate (for the Tizen one, which switches the setting), trying anyway, or stopping.
+	/// Stop cancels <paramref name="cancel"/> and throws <see cref="OperationCanceledException"/>.
+	/// </summary>
+	private async Task CheckAuthoritiesAsync(AuthoritySet set, CancellationTokenSource cancel)
+	{
+		if (set == AuthoritySet.Samsung)
+			await CertificateProvisioner.MaterializeCaAsync();
+		if (_authorities.Ended(set, DateTimeOffset.UtcNow) is not { } ended)
+			return;
+
+		bool samsung = set == AuthoritySet.Samsung;
+		string endedOn = ended.EndsAt.ToLocalTime().ToString("d MMMM yyyy");
+		string title = L10n.Get(samsung ? "authEndedTitleSamsung" : "authEndedTitleTizen");
+		string body = string.Format(L10n.Get(samsung ? "authEndedBodySamsung" : "authEndedBodyTizen"), endedOn)
+			+ "\n\n" + string.Format(L10n.Get("authEndedHint"), samsung ? AuthorityStore.SamsungDownloadMb : AuthorityStore.TizenDownloadMb);
+		System.Diagnostics.Trace.WriteLine($"[cert] The {set} authority {ended.FileName} ended on {ended.EndsAt:u}; asking before a download.");
+
+		void Stop()
+		{
+			cancel.Cancel();
+			throw new OperationCanceledException(cancel.Token);
+		}
+
+		Page? Host() => Application.Current?.Windows.FirstOrDefault()?.Page;
+
+		bool download = await MainThread.InvokeOnMainThreadAsync(async () =>
+			Host() is { } page && await page.DisplayAlert(title, body, L10n.Get("authDownload"), L10n.Get("authStop")));
+		if (!download)
+			Stop();
+
+		while (true)
+		{
+			var (result, detail) = await _authorities.RefreshAsync(_http, set, DateTimeOffset.UtcNow, cancel.Token);
+			if (result == AuthorityRefresh.Replaced)
+				return;
+
+			bool failed = result == AuthorityRefresh.Failed;
+			string notice = failed
+				? L10n.Get("authDownloadFailedTitle") + "\n" + (string.IsNullOrWhiteSpace(detail) ? L10n.Get("authDownloadFailedBody") : detail)
+				: string.Format(L10n.Get("authNothingNewerTitle"), endedOn) + "\n" + L10n.Get("authNothingNewerBody");
+			string samsungInstead = L10n.Get("lblSignInSamsungInstead");
+			string tryAnyway = L10n.Get("authTryAnyway");
+			string tryAgain = L10n.Get("authTryAgain");
+			var ways = new List<string>();
+			if (failed)
+				ways.Add(tryAgain);
+			else if (!samsung)
+				ways.Add(samsungInstead);
+			ways.Add(tryAnyway);
+
+			string? choice = await MainThread.InvokeOnMainThreadAsync(async () =>
+				Host() is { } page ? await page.DisplayActionSheet(notice, L10n.Get("authStop"), null, ways.ToArray()) : null);
+			System.Diagnostics.Trace.WriteLine($"[cert] {set} authorities ended, {result}: '{choice}'.");
+			if (choice == tryAgain)
+				continue;
+			if (choice == tryAnyway)
+			{
+				_authorities.AcceptEnded(set);
+				return;
+			}
+			if (choice == samsungInstead)
+			{
+				MobileSettings.CertificateKind = MobileSettings.CertificateKindSamsung;
+				return;
+			}
+			Stop();
+		}
 	}
 
 	/// <summary>
@@ -37,11 +115,15 @@ public sealed class CertificateFlow
 		// A Tizen certificate (#988) when Settings says so; its sheet's way out is a Samsung one,
 		// the setting is switched by then and the Samsung path below runs as if chosen all along.
 		if (MobileSettings.UsesTizenCertificate)
+			await CheckAuthoritiesAsync(AuthoritySet.Tizen, cancel);
+		if (MobileSettings.UsesTizenCertificate)
 		{
 			var tizen = await RunTizenAsync(navigation, tvName, requirePartner, report, cancel, tvIp);
 			if (tizen is { } made)
 				return made;
 		}
+
+		await CheckAuthoritiesAsync(AuthoritySet.Samsung, cancel);
 
 		CertificateSheetPage? sheet = null;
 
