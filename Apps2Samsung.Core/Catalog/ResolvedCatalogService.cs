@@ -56,6 +56,9 @@ namespace Apps2Samsung.Catalog
             _clock = clock ?? (() => DateTimeOffset.UtcNow);
         }
 
+        /// <summary>When the snapshot held in memory was generated; null while there is none. No download.</summary>
+        public DateTimeOffset? CurrentGeneratedAt => _current?.GeneratedAt;
+
         /// <summary>
         /// The current usable snapshot, or null when there is none (unreachable, stale, unknown
         /// schema, unparsable). Never throws. Concurrent callers share one download.
