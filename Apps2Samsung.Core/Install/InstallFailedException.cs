@@ -38,6 +38,12 @@ namespace Apps2Samsung.Install
         CertificateMismatchAfterRemoval,
         /// <summary>[118, -22]: the TV's security manager refuses the package id.</summary>
         PackageIdBlocked,
+        /// <summary>A different certificate on the installed copy, and the TV cannot remove apps over the network.</summary>
+        CertificateMismatchTvCannotRemove,
+        /// <summary>Already installed, overwriting is off, and the TV cannot remove apps over the network.</summary>
+        InstalledAndTvCannotRemove,
+        /// <summary>Already installed, and both overwriting and removing the installed version are off.</summary>
+        InstalledAndRemovalOff,
     }
 
     /// <summary>
