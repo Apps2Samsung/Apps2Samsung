@@ -87,7 +87,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Fleck" Version="1.2.0" />
     <PackageReference Include="FluentAvaloniaUI" Version="2.5.1" />
-    <PackageReference Include="Jint" Version="4.18.0" />
+    <PackageReference Include="Jint" Version="4.18.1" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.3.14" />
   <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Core" Version="2.3.14" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
