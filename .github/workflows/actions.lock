@@ -6,7 +6,7 @@ workflows:
     '.github/workflows/beta-prerelease.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
-        - 'actions/setup-java@v6.2.0'
+        - 'actions/setup-java@v6.3.0'
         - 'softprops/action-gh-release@v3.0.4'
     '.github/workflows/catalog-snapshot.yml':
         - 'actions/checkout@v7.0.1'
@@ -36,7 +36,7 @@ workflows:
         - 'actions/setup-dotnet@v6.1.0'
     '.github/workflows/fdroid-repo.yml':
         - 'actions/checkout@v7.0.1'
-        - 'actions/setup-java@v6.2.0'
+        - 'actions/setup-java@v6.3.0'
         - 'android-actions/setup-android@v4.0.4'
     '.github/workflows/label-pull-request.yml':
         - 'actions/checkout@v7.0.1'
@@ -51,7 +51,7 @@ workflows:
     '.github/workflows/pr-build.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
-        - 'actions/setup-java@v6.2.0'
+        - 'actions/setup-java@v6.3.0'
     '.github/workflows/require-log-files.yml':
         - 'actions/github-script@v9.0.0'
     '.github/workflows/sidestore-source.yml':
@@ -59,13 +59,13 @@ workflows:
     '.github/workflows/stable-release.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
-        - 'actions/setup-java@v6.2.0'
+        - 'actions/setup-java@v6.3.0'
         - 'ksxgithub/github-actions-deploy-aur@v4.2.0'
         - 'softprops/action-gh-release@v3.0.4'
     '.github/workflows/test-apk.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
-        - 'actions/setup-java@v6.2.0'
+        - 'actions/setup-java@v6.3.0'
         - 'actions/upload-artifact@v7.0.2'
     '.github/workflows/test-ipa.yml':
         - 'actions/checkout@v7.0.1'
@@ -94,9 +94,9 @@ dependencies:
         commit: 'sha1-0f4a354dd5547a28c70b7853dbd95d5b67886e73'
         owner_id: 44036562
         repo_id: 192625306
-    'actions/setup-java@v6.2.0':
-        ref: 'v6.2.0'
-        commit: 'sha1-77dd5b2ce225ea11469928ac317850245a74ae78'
+    'actions/setup-java@v6.3.0':
+        ref: 'v6.3.0'
+        commit: 'sha1-d1374f8ac74474200d16ef8ecee22c7ae7a51880'
         owner_id: 44036562
         repo_id: 196057608
     'actions/setup-python@v7.1.0':
