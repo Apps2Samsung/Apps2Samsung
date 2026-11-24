@@ -113,7 +113,16 @@ public partial class SettingsBackupPage : ContentPage
 			{
 				var safe = string.Concat(title.Select(c => Array.IndexOf(Path.GetInvalidFileNameChars(), c) >= 0 ? '-' : c));
 				var path = Path.Combine(FileSystem.CacheDirectory, $"{safe}-{tv.Profile.SavedAtUtc.ToLocalTime():yyyy-MM-dd}.a2stv");
-				File.WriteAllText(path, Apps2Samsung.Catalog.TvProfiles.Serialize(tv.Profile));
+				// With TV-Store's own backup of this TV (#1179) when this phone has one and the user wants it in.
+				var shared = Apps2Samsung.Catalog.TvProfiles.Parse(Apps2Samsung.Catalog.TvProfiles.Serialize(tv.Profile));
+				if (Apps2Samsung.TvStore.TvStoreBackups.Get(key)?.Backup is { } tvStore &&
+					Apps2Samsung.TvStore.TvStoreBackup.Describe(tvStore) is { } info)
+				{
+					var ask = L10n.Get("lblTvStoreShareAsk") + (info.HasSecrets ? " " + L10n.Get("lblTvStoreRestoreAskSecrets") : string.Empty);
+					if (await DisplayAlert(L10n.Get("lblTvStoreBackupTitle"), ask, L10n.Get("lblTvStoreBackupYes"), L10n.Get("lblTvStoreBackupNo")))
+						Apps2Samsung.Catalog.TvProfiles.SetTvStore(shared, tvStore);
+				}
+				File.WriteAllText(path, Apps2Samsung.Catalog.TvProfiles.Serialize(shared));
 				await Share.Default.RequestAsync(new ShareFileRequest(L10n.Get("lblSavedTvShareTitle"), new ShareFile(path)));
 			}
 			catch (Exception ex)
@@ -124,7 +133,11 @@ public partial class SettingsBackupPage : ContentPage
 		else if (choice == forget)
 		{
 			if (await DisplayAlert(forget, string.Format(L10n.Get("lblSavedTvForgetAsk"), title), forget, L10n.Get("lblCancel")))
+			{
 				Apps2Samsung.Catalog.SavedTvs.Forget(key);
+				// TV-Store's backup of that TV goes with it (#1179).
+				Apps2Samsung.TvStore.TvStoreBackups.Forget(key);
+			}
 		}
 	}
 

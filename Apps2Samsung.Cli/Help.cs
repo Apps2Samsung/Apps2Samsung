@@ -181,8 +181,8 @@ public static class Help
 
     private const string Tv = """
         usage: apps2samsung-cli tv <ip>
-               apps2samsung-cli tv save <file> --tv <ip> [--with-settings] [--yes] [--json]
-               apps2samsung-cli tv restore <file> --tv <ip> [app...] [install options] [--json]
+               apps2samsung-cli tv save <file> --tv <ip> [--with-settings] [--no-tvstore] [--yes] [--json]
+               apps2samsung-cli tv restore <file> --tv <ip> [app...] [--no-tvstore] [install options] [--json]
 
         tv <ip> checks one TV: Developer Mode, debug port, Tizen version, DUID.
 
@@ -192,6 +192,11 @@ public static class Help
         counted. The values typed for packages that ask for some (a server address, an API key) are
         only written with --with-settings; keep such a file private. --yes writes over an existing file.
 
+        When TV-Store is on the TV (a version after 0.3.40), tv save also takes TV-Store's own backup
+        into the file: the pinned apps, its Settings and the sources. TV-Store starts again on the TV
+        for this. Its signing certificates and the settings typed for apps on the TV go in only with
+        --with-settings. --no-tvstore leaves TV-Store's data out.
+
         tv restore installs the profile's apps on a TV, after a factory reset, a Smart Hub reset or
         on a new set. Each app is installed exactly as `install <app> --file <its variant> --from
         <its source>` would, in the catalog's current version. An app the TV has already is skipped;
@@ -200,6 +205,10 @@ public static class Help
         the desktop app saved; without them it is reported with the install line to run. Names
         after the file restore only those apps. A failure does not stop the run. Install options
         such as --yes, --partner, --tizen-cert, --allow-root and --local-ip apply to every app.
+
+        A file with TV-Store's own backup hands it to TV-Store once the apps are back. The TV shows
+        what it holds and asks: press Restore there, the command waits for it (up to ten minutes).
+        Not when apps are named after the file, and not with --no-tvstore.
         """;
 
     private const string Cert = """

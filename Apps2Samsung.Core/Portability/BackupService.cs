@@ -21,6 +21,8 @@ namespace Apps2Samsung.Backup
     ///                             so the Samsung login + already-installed apps' signing survive the move.
     ///   • <c>saved-tvs.json</c>: the app list of each TV (#1069, <see cref="Apps2Samsung.Catalog.SavedTvs"/>),
     ///                             so a TV can be restored from the other device too. No typed values in it.
+    ///   • <c>tvstore-backups.json</c>: TV-Store's own backup of each TV when one was taken (#1179,
+    ///                             <see cref="Apps2Samsung.TvStore.TvStoreBackups"/>).
     /// Both heads store certs under the same relative <c>Certificate/</c> layout, so that half is uniform;
     /// only the settings mapping is head-specific and lives in each head.
     /// </summary>
@@ -29,6 +31,7 @@ namespace Apps2Samsung.Backup
         public const string SettingsEntryName = "settings.json";
         private const string CertPrefix = "Certificate/";
         public const string SavedTvsEntryName = Apps2Samsung.Catalog.SavedTvs.FileName;
+        public const string TvStoreBackupsEntryName = Apps2Samsung.TvStore.TvStoreBackups.FileName;
 
         /// <summary>Write <paramref name="settingsJson"/> and the whole <paramref name="certificateStorePath"/>
         /// tree into <paramref name="zipOutput"/>. The stream is left open for the caller to dispose.</summary>
@@ -51,6 +54,14 @@ namespace Apps2Samsung.Backup
                 writer.Write(savedTvs);
             }
 
+            // TV-Store's own backup of each TV (#1179), when one was taken; it can hold signing keys and
+            // passwords, like the certificates and the settings in this same zip.
+            if (Apps2Samsung.TvStore.TvStoreBackups.ExportJson() is { } tvStoreBackups)
+            {
+                var entry = zip.CreateEntry(TvStoreBackupsEntryName, CompressionLevel.Optimal);
+                using var writer = new StreamWriter(entry.Open());
+                writer.Write(tvStoreBackups);
+            }
             if (Directory.Exists(certificateStorePath))
             {
                 foreach (var file in Directory.EnumerateFiles(certificateStorePath, "*", SearchOption.AllDirectories))
@@ -83,6 +94,12 @@ namespace Apps2Samsung.Backup
                     // Added to what this device has; a list it read more recently itself is kept.
                     using var reader = new StreamReader(entry.Open());
                     Apps2Samsung.Catalog.SavedTvs.Merge(reader.ReadToEnd());
+                }
+                else if (entry.FullName.Equals(TvStoreBackupsEntryName, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Added to what this device has; a backup it took more recently itself is kept.
+                    using var reader = new StreamReader(entry.Open());
+                    Apps2Samsung.TvStore.TvStoreBackups.Merge(reader.ReadToEnd());
                 }
                 else if (entry.FullName.StartsWith(CertPrefix, StringComparison.OrdinalIgnoreCase)
                          && !string.IsNullOrEmpty(entry.Name))

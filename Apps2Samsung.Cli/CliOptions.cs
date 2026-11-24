@@ -95,6 +95,8 @@ public sealed class CliOptions
 
     /// <summary><c>tv save --with-settings</c> (#1069): put the values typed for packages that ask for some (server addresses, API keys) in the profile too.</summary>
     public bool WithSettings { get; set; }
+    /// <summary><c>tv save</c> and <c>tv restore --no-tvstore</c> (#1179): leave TV-Store's own data out, so TV-Store is not started on the TV.</summary>
+    public bool NoTvStore { get; set; }
 
     /// <summary><c>self-update --check</c>: say whether a newer CLI exists, change nothing.</summary>
     public bool Check { get; set; }
@@ -227,6 +229,7 @@ public sealed class CliOptions
                 }
                 case "--clear": o.Clear = true; break;
                 case "--with-settings": o.WithSettings = true; break;
+                case "--no-tvstore": o.NoTvStore = true; break;
                 case "--delete": o.DeleteFile = Next(arg); if (o.DeleteFile is null) return (o, "--delete needs the file's name as `leftovers` lists it"); break;
                 case "--from": o.From = Next(arg); if (o.From is null) return (o, "--from needs a source: official, or a repository's name or id"); break;
                 case "--fingerprint": o.Fingerprint = Next(arg); if (o.Fingerprint is null) return (o, "--fingerprint needs the repository key's fingerprint"); break;

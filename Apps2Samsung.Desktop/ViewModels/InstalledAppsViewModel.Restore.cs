@@ -17,6 +17,7 @@ using Apps2Samsung.Extensions;
 using Apps2Samsung.Helpers;
 using Apps2Samsung.Models;
 using Apps2Samsung.Packaging;
+using Apps2Samsung.TvStore;
 
 namespace Apps2Samsung.ViewModels
 {
@@ -206,6 +207,51 @@ namespace Apps2Samsung.ViewModels
             var picked = sheet.Picked();
             if (picked.Count > 0)
                 await RunRestore(picked);
+            await OfferTvStoreRestoreAsync(profile);
+        }
+
+        // TV-Store's own data (#1179), once the apps are back: from the file when it carries a backup,
+        // else the one this computer kept of that TV. TV-Store has to be on the TV to take it, and the
+        // person at the TV confirms it there.
+        private async Task OfferTvStoreRestoreAsync(TvProfile profile)
+        {
+            var backup = profile.TvStore ?? TvStoreBackups.Get(string.IsNullOrWhiteSpace(profile.TvIp) ? _tvIp : profile.TvIp)?.Backup;
+            if (TvStoreBackup.Describe(backup) is not { } info || IsBusy)
+                return;
+
+            var title = "lblTvStoreBackupTitle".Localized();
+            switch (TvStoreBackup.CheckOnTv(_onTv, AppSettings.Default.PackageIdRenamesJson))
+            {
+                case TvStoreBackupSkipped.NotInstalled:
+                    await _dialogService.ShowMessageAsync(title, "statusTvStoreRestoreNotInstalled".Localized());
+                    return;
+                case TvStoreBackupSkipped.TooOld:
+                    await _dialogService.ShowMessageAsync(title, "statusTvStoreRestoreTooOld".Localized());
+                    return;
+            }
+
+            var made = DateTimeOffset.TryParse(info.MadeAt, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var at)
+                ? at.ToLocalTime().ToString("d MMMM yyyy", CultureInfo.CurrentUICulture)
+                : info.MadeAt ?? "?";
+            var ask = string.Format("lblTvStoreRestoreAsk".Localized(), made);
+            if (info.HasSecrets)
+                ask += " " + "lblTvStoreRestoreAskSecrets".Localized();
+            if (!await _dialogService.ShowConfirmationAsync(title, ask, "lblTvStoreRestoreYes".Localized(), "lblTvStoreRestoreNo".Localized()))
+                return;
+
+            IsBusy = true;
+            string message;
+            try
+            {
+                var progress = new Progress<string>(key => StatusText = key.Localized());
+                (_, message) = await _installer.RestoreTvStoreAsync(_tvIp, backup!.Value, progress);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+            StatusText = string.Empty;
+            await _dialogService.ShowMessageAsync(title, message);
         }
 
         private async Task RunRestore(IReadOnlyList<RestoreTvRow> picked)
@@ -331,9 +377,26 @@ namespace Apps2Samsung.ViewModels
                 await _dialogService.ShowMessageAsync("lblRestoreSaveList".Localized(), "lblRestoreSaveNothing".Localized());
                 return;
             }
-            if (saved.Profile.ContainsSettings && !await _dialogService.ShowConfirmationAsync(
-                    "lblRestoreSaveList".Localized(), "lblRestoreSaveValuesAsk".Localized(),
-                    "lblRestoreSaveValuesYes".Localized(), "lblRestoreSaveValuesNo".Localized()))
+            // TV-Store's own data (#1179): asked for, since taking it starts TV-Store again on the TV.
+            var tvStore = TvStoreBackup.CheckOnTv(_onTv, AppSettings.Default.PackageIdRenamesJson);
+            var includeTvStore = tvStore == TvStoreBackupSkipped.None && await _dialogService.ShowConfirmationAsync(
+                "lblTvStoreBackupTitle".Localized(), "lblTvStoreBackupAsk".Localized(),
+                "lblTvStoreBackupYes".Localized(), "lblTvStoreBackupNo".Localized());
+
+            // One answer for everything private: the values typed here, and TV-Store's certificates
+            // and the settings typed on the TV.
+            var withValues = false;
+            if (saved.Profile.ContainsSettings || includeTvStore)
+            {
+                var asks = new List<string>();
+                if (saved.Profile.ContainsSettings)
+                    asks.Add("lblRestoreSaveValuesAsk".Localized());
+                if (includeTvStore)
+                    asks.Add("lblTvStoreSecretsAsk".Localized());
+                withValues = await _dialogService.ShowConfirmationAsync("lblRestoreSaveList".Localized(), string.Join("\n\n", asks),
+                    "lblRestoreSaveValuesYes".Localized(), "lblRestoreSaveValuesNo".Localized());
+            }
+            if (!withValues)
                 saved = Build(withValues: false);
 
             try
@@ -348,12 +411,37 @@ namespace Apps2Samsung.ViewModels
                 });
                 if (file is null)
                     return;
+
+                // After the file was chosen, so a cancelled save never touched the TV.
+                string? tvStoreMessage = tvStore == TvStoreBackupSkipped.TooOld ? "statusTvStoreBackupTooOld".Localized() : null;
+                if (includeTvStore)
+                {
+                    IsBusy = true;
+                    try
+                    {
+                        var progress = new Progress<string>(key => StatusText = key.Localized());
+                        var (taken, message) = await _installer.BackUpTvStoreAsync(_tvIp, withValues, progress);
+                        if (taken.Backup is { } backup)
+                        {
+                            TvProfiles.SetTvStore(saved.Profile, backup);
+                            TvStoreBackups.Set(_tvIp, backup, DateTimeOffset.UtcNow);
+                        }
+                        tvStoreMessage = message;
+                    }
+                    finally
+                    {
+                        IsBusy = false;
+                    }
+                }
+
                 await using (var stream = await file.OpenWriteAsync())
                 await using (var writer = new StreamWriter(stream))
                     await writer.WriteAsync(TvProfiles.Serialize(saved.Profile));
                 StatusText = saved.LeftOut.Count == 0
                     ? string.Format("statusRestoreSaved".Localized(), saved.Profile.Apps.Count, file.Name)
                     : string.Format("statusRestoreSavedLeftOut".Localized(), saved.Profile.Apps.Count, file.Name, saved.LeftOut.Count);
+                if (tvStoreMessage is not null)
+                    StatusText += " " + tvStoreMessage;
             }
             catch (Exception ex)
             {

@@ -109,9 +109,19 @@ namespace Apps2Samsung.ViewModels
                 });
                 if (file is null)
                     return;
+                // With TV-Store's own backup of this TV (#1179) when this computer has one and the user wants it in.
+                var shared = TvProfiles.Parse(TvProfiles.Serialize(tv.Profile));
+                if (Apps2Samsung.TvStore.TvStoreBackups.Get(row.Key)?.Backup is { } tvStore &&
+                    Apps2Samsung.TvStore.TvStoreBackup.Describe(tvStore) is { } info)
+                {
+                    var ask = "lblTvStoreShareAsk".Localized() + (info.HasSecrets ? " " + "lblTvStoreRestoreAskSecrets".Localized() : string.Empty);
+                    if (await _dialogService.ShowConfirmationAsync("lblTvStoreBackupTitle".Localized(), ask,
+                            "lblTvStoreBackupYes".Localized(), "lblTvStoreBackupNo".Localized()))
+                        TvProfiles.SetTvStore(shared, tvStore);
+                }
                 await using (var stream = await file.OpenWriteAsync())
                 await using (var writer = new StreamWriter(stream))
-                    await writer.WriteAsync(TvProfiles.Serialize(tv.Profile));
+                    await writer.WriteAsync(TvProfiles.Serialize(shared));
                 SavedTvsStatus = string.Format("statusRestoreSaved".Localized(), tv.Profile.Apps.Count, file.Name);
             }
             catch (Exception ex)
@@ -129,6 +139,8 @@ namespace Apps2Samsung.ViewModels
                     string.Format("lblSavedTvForgetAsk".Localized(), row.Name), "lblSavedTvForget".Localized(), "lblCancel".Localized(), destructive: true))
                 return;
             SavedTvs.Forget(row.Key);
+            // TV-Store's backup of that TV goes with it (#1179).
+            Apps2Samsung.TvStore.TvStoreBackups.Forget(row.Key);
         }
     }
 }

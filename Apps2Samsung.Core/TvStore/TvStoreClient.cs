@@ -272,6 +272,54 @@ namespace Apps2Samsung.TvStore
             return results;
         }
 
+        /// <summary>How long the person at the TV may take over the restore question: it shows what the backup holds first.</summary>
+        private static readonly TimeSpan RestoreTimeout = TimeSpan.FromMinutes(10);
+        // The service gathers its files and the page its own state: quick, but more than a status call.
+        private static readonly TimeSpan BackupTimeout = TimeSpan.FromSeconds(30);
+
+        /// <summary>Whether this TV-Store has <c>A2SStore.backup</c> and <c>restore</c> (after 0.3.40, TV-Store#147).</summary>
+        public async Task<bool> SupportsBackupAsync(CancellationToken ct = default)
+        {
+            var node = await CallAsync("typeof A2SStore.backup === 'function' && typeof A2SStore.restore === 'function'", EvaluateTimeout, ct).ConfigureAwait(false);
+            return node?.GetValueKind() == JsonValueKind.True;
+        }
+
+        /// <summary>
+        /// TV-Store's own data as one object (#1179): pinned apps, Settings, sources, and with
+        /// <paramref name="secrets"/> the signing certificates with their keys and the settings typed
+        /// for apps. The object is to be kept as it is.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The service refused or did not answer; the message carries its words.</exception>
+        public async Task<JsonElement> BackupAsync(bool secrets, CancellationToken ct = default)
+        {
+            Trace.WriteLine($"[tvstore] asking {AppId} v{Version} for a backup {(secrets ? "with" : "without")} certificates and app settings");
+            var node = await CallAsync(secrets ? "A2SStore.backup()" : "A2SStore.backup({ secrets: false })", BackupTimeout, ct).ConfigureAwait(false);
+            try
+            {
+                var backup = TvStoreBackup.ParseBackupReply(node);
+                Trace.WriteLine($"[tvstore] backup taken: {backup.GetRawText().Length} characters");
+                return backup;
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new InvalidOperationException($"TV-Store did not make a backup: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Hands a backup back (#1179). The TV shows what it holds and asks, with Don't restore as the
+        /// default; the answer comes when the person at the TV gave theirs. TV-Store starts again
+        /// after a restore, so this client is done afterwards.
+        /// </summary>
+        public async Task<TvStoreRestoreResult> RestoreAsync(JsonElement backup, CancellationToken ct = default)
+        {
+            Trace.WriteLine($"[tvstore] handing a backup to {AppId} v{Version}; waiting for the answer on the TV");
+            var node = await CallAsync($"A2SStore.restore({backup.GetRawText()})", RestoreTimeout, ct).ConfigureAwait(false);
+            var result = TvStoreBackup.ParseRestoreReply(node);
+            Trace.WriteLine($"[tvstore] restore: {result.State}{(result.Error is null ? "" : " (" + result.Error + ")")}");
+            return result;
+        }
+
         /// <summary>The array A2SStore.addSources takes; only approved signed repositories, never an unsigned source.</summary>
         public static string SourcesPayload(System.Collections.Generic.IReadOnlyList<Apps2Samsung.Catalog.UserSource> sources)
         {

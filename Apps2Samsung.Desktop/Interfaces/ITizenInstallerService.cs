@@ -34,6 +34,17 @@ namespace Apps2Samsung.Interfaces
 
         /// <summary>Uninstalls an app from the TV by its Tizen id. Returns the raw SDB result.</summary>
         Task<Apps2Samsung.Models.ProcessResult> UninstallAppAsync(string tvIpAddress, string tizenId);
+        /// <summary>
+        /// Takes TV-Store's own backup off the TV (#1179); <paramref name="secrets"/> false leaves its
+        /// certificates and the settings typed on the TV out. Never throws: the message says, in the
+        /// user's language, what became of it.
+        /// </summary>
+        Task<(Apps2Samsung.TvStore.TvStoreBackupTaken Taken, string Message)> BackUpTvStoreAsync(string tvIpAddress, bool secrets, System.IProgress<string>? progress = null);
+        /// <summary>
+        /// Hands a TV-Store backup back to TV-Store on the TV (#1179) and waits for the answer given
+        /// there. Never throws: the message says what happened.
+        /// </summary>
+        Task<(bool Restored, string Message)> RestoreTvStoreAsync(string tvIpAddress, System.Text.Json.JsonElement backup, System.IProgress<string>? progress = null);
 
         /// <summary>Gathers the TV's details (DUID, Tizen version, developer mode/IP, …) for the
         /// "TV information" view, using the shared Core gatherer.</summary>
