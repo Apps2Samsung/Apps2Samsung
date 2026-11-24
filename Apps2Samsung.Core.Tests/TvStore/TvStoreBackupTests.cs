@@ -20,10 +20,16 @@ public sealed class TvStoreBackupTests : IDisposable
     private const string Tv = "192.168.1.8";
     private static readonly DateTimeOffset T0 = new(2026, 11, 24, 12, 0, 0, TimeSpan.Zero);
 
-    public TvStoreBackupTests() => TvStoreBackups.Configure(Path.Combine(_root, "data", TvStoreBackups.FileName));
+    public TvStoreBackupTests()
+    {
+        TvStoreBackups.Configure(Path.Combine(_root, "data", TvStoreBackups.FileName));
+        // No TV in a test: a copy asks the address for TV-Store's backup unless a test answers for it.
+        TvStorePublicBackup.Silence();
+    }
 
     public void Dispose()
     {
+        TvStorePublicBackup.ResetForTests();
         TvStoreBackups.Reset();
         SavedTvs.Reset();
         Directory.Delete(_root, recursive: true);
@@ -302,5 +308,119 @@ public sealed class TvStoreBackupTests : IDisposable
         zip.Position = 0;
         using var archive = new ZipArchive(zip, ZipArchiveMode.Read);
         Assert.Null(archive.GetEntry(BackupService.TvStoreBackupsEntryName));
+    }
+
+    // ---- The backup TV-Store hands out by itself (TV-Store#149, GET /backup/public) ----
+
+    private const string RelayWithRoute = """{ "ok": true, "relay": { "enabled": false }, "backupPublic": true }""";
+    private const string RelayWithout = """{ "ok": true, "relay": { "enabled": false } }""";
+
+    private static void TvAnswers(string? relay, int status, string? body, Action? asked = null)
+    {
+        TvStorePublicBackup.ReadRelay = (_, _) => Task.FromResult(relay);
+        TvStorePublicBackup.ReadBackup = (_, _) =>
+        {
+            asked?.Invoke();
+            return Task.FromResult<(int Status, string? Body)?>((status, body));
+        };
+    }
+
+    [Fact]
+    public void TheRelayReport_SaysWhetherTheRouteExists()
+    {
+        Assert.True(TvStorePublicBackup.SaysSupported(RelayWithRoute));
+        Assert.False(TvStorePublicBackup.SaysSupported(RelayWithout));
+        Assert.False(TvStorePublicBackup.SaysSupported("""{ "backupPublic": "yes" }"""));
+        Assert.False(TvStorePublicBackup.SaysSupported("not json"));
+        Assert.False(TvStorePublicBackup.SaysSupported(null));
+    }
+
+    [Fact]
+    public void OnlyA200WithABackupWithoutKeys_IsABackup()
+    {
+        Assert.NotNull(TvStorePublicBackup.Parse(200, Backup(secrets: false).GetRawText()));
+        Assert.Null(TvStorePublicBackup.Parse(200, Backup(secrets: true).GetRawText()));
+        Assert.Null(TvStorePublicBackup.Parse(409, """{ "ok": false, "code": "NO_SCREEN_STATE", "error": "not yet" }"""));
+        Assert.Null(TvStorePublicBackup.Parse(403, "192.168.1.20 is not one of the devices picked"));
+        Assert.Null(TvStorePublicBackup.Parse(200, """{ "format": "other" }"""));
+        Assert.Null(TvStorePublicBackup.Parse(200, "<html>"));
+    }
+
+    [Fact]
+    public async Task AnOlderTvStore_IsNotAskedForTheBackup()
+    {
+        var asked = 0;
+        TvAnswers(RelayWithout, 200, Backup(secrets: false).GetRawText(), () => asked++);
+        Assert.Null(await TvStorePublicBackup.FetchAsync(Tv));
+
+        TvAnswers(null, 200, Backup(secrets: false).GetRawText(), () => asked++);
+        Assert.Null(await TvStorePublicBackup.FetchAsync(Tv));
+
+        // A saved list keyed by something that is no address.
+        TvAnswers(RelayWithRoute, 200, Backup(secrets: false).GetRawText(), () => asked++);
+        Assert.Null(await TvStorePublicBackup.FetchAsync("Living room"));
+        Assert.Equal(0, asked);
+
+        Assert.NotNull(await TvStorePublicBackup.FetchAsync(Tv));
+        Assert.Equal(1, asked);
+    }
+
+    [Fact]
+    public void TheBackupFromTheTv_IsKeptApart_AndOnlyWhenItChanged()
+    {
+        TvStoreBackups.Set(Tv, Backup(secrets: true, madeAt: "by hand"), T0);
+
+        Assert.True(TvStoreBackups.KeepFromTv(Tv, Backup(secrets: false, madeAt: "one"), T0.AddHours(1)));
+        Assert.False(TvStoreBackups.KeepFromTv(Tv, Backup(secrets: false, madeAt: "one"), T0.AddHours(2)));
+        Assert.False(TvStoreBackups.KeepFromTv(Tv, Backup(secrets: true, madeAt: "two"), T0.AddHours(3)));
+        Assert.True(TvStoreBackups.KeepFromTv(Tv, Backup(secrets: false, madeAt: "two"), T0.AddHours(4)));
+
+        // The one somebody took, keys and all, is still the one a restore and the zip get.
+        Assert.Equal("by hand", TvStoreBackup.Describe(TvStoreBackups.Get(Tv)!.Backup)!.MadeAt);
+        Assert.Equal("two", TvStoreBackup.Describe(TvStoreBackups.GetFromTv(Tv)!.Backup)!.MadeAt);
+        Assert.DoesNotContain("fromTv", TvStoreBackups.ExportJson());
+
+        TvStoreBackups.Forget(Tv);
+        Assert.Null(TvStoreBackups.Get(Tv));
+        Assert.Null(TvStoreBackups.GetFromTv(Tv));
+    }
+
+    [Fact]
+    public void AnAutomaticCopy_AsksTheTv_AndWritesAgainOnlyWhenTvStoreChanged()
+    {
+        SavedTvs.Configure(Path.Combine(_root, "data", SavedTvs.FileName));
+        TvBackups.Configure(CopiesIndex, Copies);
+        try
+        {
+            // Somebody took a backup with keys before: that one never goes into a copy.
+            TvStoreBackups.Set(Tv, Backup(secrets: true, madeAt: "by hand"), T0);
+            TvAnswers(RelayWithRoute, 200, Backup(secrets: false, madeAt: "one").GetRawText());
+
+            SavedTvs.Remember(Tv, Profile(), T0);
+            TvBackups.WaitForPending(TimeSpan.FromSeconds(10));
+            var first = TvProfiles.Parse(File.ReadAllText(TvBackups.Status()!.LatestFor(Tv)!.Location));
+            Assert.Equal("one", TvStoreBackup.Describe(first.TvStore)!.MadeAt);
+            Assert.False(first.TvStoreHasSecrets);
+            Assert.Single(Directory.GetFiles(CopiesFolder));
+
+            // The same answer, then no answer at all (TV-Store is not running): nothing new.
+            SavedTvs.Remember(Tv, Profile(), T0.AddHours(1));
+            TvBackups.WaitForPending(TimeSpan.FromSeconds(10));
+            TvStorePublicBackup.Silence();
+            SavedTvs.Remember(Tv, Profile(), T0.AddHours(2));
+            TvBackups.WaitForPending(TimeSpan.FromSeconds(10));
+            Assert.Single(Directory.GetFiles(CopiesFolder));
+
+            // A pin changed on the TV.
+            TvAnswers(RelayWithRoute, 200, Backup(secrets: false, madeAt: "two").GetRawText());
+            SavedTvs.Remember(Tv, Profile(), T0.AddHours(3));
+            TvBackups.WaitForPending(TimeSpan.FromSeconds(10));
+            Assert.Equal(2, Directory.GetFiles(CopiesFolder).Length);
+            Assert.Equal("two", TvStoreBackup.Describe(TvProfiles.Parse(File.ReadAllText(TvBackups.Status()!.LatestFor(Tv)!.Location)).TvStore)!.MadeAt);
+        }
+        finally
+        {
+            TvBackups.Reset();
+        }
     }
 }
