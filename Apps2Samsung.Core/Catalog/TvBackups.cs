@@ -48,7 +48,10 @@ namespace Apps2Samsung.Catalog
     /// A copy also carries TV-Store's own backup of that TV (#1179) when this device has one that
     /// was taken without the certificates and the apps' settings
     /// (<see cref="Apps2Samsung.TvStore.TvStoreBackups"/>). One with them stays out: same rule as the
-    /// typed values. Nothing is asked of the TV for this; it is the last backup someone took.
+    /// typed values. A TV-Store that hands its backup out by itself (TV-Store#149, <c>GET
+    /// /backup/public</c>) is asked for it each time the list is written, and that one goes first:
+    /// it has no keys by design and is as fresh as the TV. Without it, it is the last backup
+    /// someone took.
     /// </para>
     /// </summary>
     public static class TvBackups
@@ -156,6 +159,12 @@ namespace Apps2Samsung.Catalog
 
         private static void BackUp(string key, TvProfile profile)
         {
+            // Ask TV-Store on the TV first, outside the lock: it is a request on the network. No
+            // answer changes nothing, the one kept from last time rides along.
+            if (Apps2Samsung.TvStore.TvStorePublicBackup.TryFetch(key) is { } fresh)
+                Apps2Samsung.TvStore.TvStoreBackups.KeepFromTv(key, fresh, DateTimeOffset.UtcNow);
+            var tvStore = (Apps2Samsung.TvStore.TvStoreBackups.GetFromTv(key) ?? Apps2Samsung.TvStore.TvStoreBackups.Get(key))?.Backup;
+
             TvBackupEntry? written;
             lock (Gate)
             {
@@ -163,7 +172,7 @@ namespace Apps2Samsung.Catalog
                     return;
                 try
                 {
-                    written = BackUp(_indexPath, _target, key, profile, DateTime.UtcNow, Apps2Samsung.TvStore.TvStoreBackups.Get(key)?.Backup);
+                    written = BackUp(_indexPath, _target, key, profile, DateTime.UtcNow, tvStore);
                     if (written is null && _lastError is null)
                         return;
                     _lastError = null;

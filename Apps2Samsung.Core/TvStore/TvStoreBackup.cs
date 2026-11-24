@@ -29,7 +29,11 @@ namespace Apps2Samsung.TvStore
     }
 
     /// <summary>How <c>A2SStore.restore</c> ended. The counts are what TV-Store says it took in, null when it did not say.</summary>
-    public sealed record TvStoreRestoreResult(TvStoreRestoreState State, int? Certificates = null, int? Sources = null, int? UserSettings = null, string? Error = null);
+    /// <param name="SourcesToReenter">The sources TV-Store did not add because the backup held only
+    /// the host of their address (one handed out without a code, TV-Store#149), as "name (host)"
+    /// joined with commas; null when there is none.</param>
+    public sealed record TvStoreRestoreResult(TvStoreRestoreState State, int? Certificates = null, int? Sources = null, int? UserSettings = null, string? Error = null,
+        string? SourcesToReenter = null);
 
     /// <summary>Why a head came back without a TV-Store backup. Not errors: the profile is saved without it.</summary>
     public enum TvStoreBackupSkipped
@@ -90,7 +94,27 @@ namespace Apps2Samsung.TvStore
             if (reply["restored"]?.GetValueKind() != JsonValueKind.True)
                 return new TvStoreRestoreResult(TvStoreRestoreState.Declined, Error: error);
             var applied = reply["applied"];
-            return new TvStoreRestoreResult(TvStoreRestoreState.Restored, Count(applied?["certificates"]), Count(applied?["sources"]), Count(applied?["userSettings"]));
+            return new TvStoreRestoreResult(TvStoreRestoreState.Restored, Count(applied?["certificates"]), Count(applied?["sources"]), Count(applied?["userSettings"]),
+                SourcesToReenter: Reenter(applied?["sourcesReenter"]));
+        }
+
+        // [{ "name": "Private", "domain": "private.example.net" }] as "Private (private.example.net)".
+        private static string? Reenter(JsonNode? node)
+        {
+            if (node is not JsonArray list)
+                return null;
+            var names = list
+                .Select(source =>
+                {
+                    var name = (source as JsonObject)?["name"]?.ToString()?.Trim();
+                    var domain = (source as JsonObject)?["domain"]?.ToString()?.Trim();
+                    return string.IsNullOrEmpty(name) ? domain
+                        : string.IsNullOrEmpty(domain) || string.Equals(name, domain, StringComparison.OrdinalIgnoreCase) ? name
+                        : $"{name} ({domain})";
+                })
+                .Where(text => !string.IsNullOrEmpty(text))
+                .ToList();
+            return names.Count == 0 ? null : string.Join(", ", names);
         }
 
         /// <summary>
@@ -217,7 +241,15 @@ namespace Apps2Samsung.TvStore
         }
 
         /// <summary>How a restore ended, in the user's language.</summary>
-        public static string RestoreMessage(TvStoreRestoreResult result, Func<string, string> localize) => result.State switch
+        public static string RestoreMessage(TvStoreRestoreResult result, Func<string, string> localize)
+        {
+            var message = RestoreOutcome(result, localize);
+            return result is { State: TvStoreRestoreState.Restored, SourcesToReenter: { } sources }
+                ? message + " " + string.Format(localize("statusTvStoreRestoreReenter"), sources)
+                : message;
+        }
+
+        private static string RestoreOutcome(TvStoreRestoreResult result, Func<string, string> localize) => result.State switch
         {
             TvStoreRestoreState.Restored when result.Certificates is { } c && result.Sources is { } s && result.UserSettings is { } u =>
                 localize("statusTvStoreRestoreDone") + " " + string.Format(localize("statusTvStoreRestoreApplied"), c, s, u),
@@ -301,7 +333,7 @@ namespace Apps2Samsung.TvStore
                 var all = Read();
                 all.RemoveAll(b => string.Equals(b.Key, key.Trim(), StringComparison.OrdinalIgnoreCase));
                 all.Add(new SavedTvStoreBackup { Key = key.Trim(), SavedAtUtc = now, Backup = backup.Clone() });
-                Write(all);
+                Write(all, ReadFromTv());
             }
             // The automatic copy of this TV's app list carries the backup when it holds no keys (#1177):
             // write that file again now, not at the next change of the apps.
@@ -315,9 +347,48 @@ namespace Apps2Samsung.TvStore
                 if (_path is null)
                     return;
                 var all = Read();
-                if (all.RemoveAll(b => string.Equals(b.Key, key?.Trim(), StringComparison.OrdinalIgnoreCase)) > 0)
-                    Write(all);
+                var fromTv = ReadFromTv();
+                var gone = all.RemoveAll(b => string.Equals(b.Key, key?.Trim(), StringComparison.OrdinalIgnoreCase))
+                    + fromTv.RemoveAll(b => string.Equals(b.Key, key?.Trim(), StringComparison.OrdinalIgnoreCase));
+                if (gone > 0)
+                    Write(all, fromTv);
             }
+        }
+
+        /// <summary>
+        /// The backup without keys this TV's TV-Store last handed out by itself (TV-Store#149), kept
+        /// apart from the one somebody took: that one can hold the keys and is never replaced by this.
+        /// </summary>
+        public static SavedTvStoreBackup? GetFromTv(string? key)
+        {
+            lock (Gate)
+                return Find(ReadFromTv(), key);
+        }
+
+        /// <summary>
+        /// Keeps what <c>GET /backup/public</c> returned. One with keys is refused (that route never
+        /// sends one), and so is one that says the same <c>madeAt</c> as the one kept: TV-Store moves
+        /// that only when the content changed. True when it was kept.
+        /// </summary>
+        public static bool KeepFromTv(string? key, JsonElement backup, DateTimeOffset now)
+        {
+            if (string.IsNullOrWhiteSpace(key) || TvStoreBackup.Describe(backup) is not { HasSecrets: false } info)
+                return false;
+            lock (Gate)
+            {
+                if (_path is null)
+                    return false;
+                var fromTv = ReadFromTv();
+                var known = Find(fromTv, key);
+                if (known is not null && info.MadeAt is not null &&
+                    string.Equals(TvStoreBackup.Describe(known.Backup)?.MadeAt, info.MadeAt, StringComparison.Ordinal))
+                    return false;
+                if (known is not null)
+                    fromTv.Remove(known);
+                fromTv.Add(new SavedTvStoreBackup { Key = key.Trim(), SavedAtUtc = now, Backup = backup.Clone() });
+                Write(Read(), fromTv);
+            }
+            return true;
         }
 
         /// <summary>Every kept backup as one JSON text, for the zip; null when there is none or no head configured the store.</summary>
@@ -368,7 +439,7 @@ namespace Apps2Samsung.TvStore
                     taken++;
                 }
                 if (taken > 0)
-                    Write(all);
+                    Write(all, ReadFromTv());
             }
             return taken;
         }
@@ -380,15 +451,25 @@ namespace Apps2Samsung.TvStore
         {
             [JsonPropertyName("tvs")]
             public List<SavedTvStoreBackup> Tvs { get; set; } = new();
+
+            /// <summary>What each TV's TV-Store handed out by itself, without keys (TV-Store#149). Not in the zip: the TV has it.</summary>
+            [JsonPropertyName("fromTv")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public List<SavedTvStoreBackup>? FromTv { get; set; }
         }
 
-        private static List<SavedTvStoreBackup> Read()
+        private static List<SavedTvStoreBackup> Read() => ReadList(store => store.Tvs);
+
+        private static List<SavedTvStoreBackup> ReadFromTv() => ReadList(store => store.FromTv);
+
+        private static List<SavedTvStoreBackup> ReadList(Func<Store, List<SavedTvStoreBackup>?> pick)
         {
             if (_path is null || !File.Exists(_path))
                 return new List<SavedTvStoreBackup>();
             try
             {
-                var tvs = JsonSerializer.Deserialize<Store>(File.ReadAllText(_path), Json)?.Tvs ?? new List<SavedTvStoreBackup>();
+                var store = JsonSerializer.Deserialize<Store>(File.ReadAllText(_path), Json);
+                var tvs = (store is null ? null : pick(store)) ?? new List<SavedTvStoreBackup>();
                 tvs.RemoveAll(b => b is null || string.IsNullOrWhiteSpace(b.Key) || TvStoreBackup.Describe(b.Backup) is null);
                 return tvs;
             }
@@ -399,7 +480,7 @@ namespace Apps2Samsung.TvStore
             }
         }
 
-        private static void Write(List<SavedTvStoreBackup> all)
+        private static void Write(List<SavedTvStoreBackup> all, List<SavedTvStoreBackup> fromTv)
         {
             try
             {
@@ -407,7 +488,7 @@ namespace Apps2Samsung.TvStore
                 if (!string.IsNullOrEmpty(dir))
                     Directory.CreateDirectory(dir);
                 var temp = _path + ".tmp";
-                File.WriteAllText(temp, JsonSerializer.Serialize(new Store { Tvs = all }, Json));
+                File.WriteAllText(temp, JsonSerializer.Serialize(new Store { Tvs = all, FromTv = fromTv.Count == 0 ? null : fromTv }, Json));
                 File.Move(temp, _path!, overwrite: true);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)

@@ -18,7 +18,11 @@ public sealed class TvBackupsTests : IDisposable
     private static readonly DateTime T0 = new(2026, 11, 24, 12, 0, 0, DateTimeKind.Utc);
     private const string Tv = "192.168.1.8";
 
-    public void Dispose() => Directory.Delete(_root, recursive: true);
+    public void Dispose()
+    {
+        Apps2Samsung.TvStore.TvStorePublicBackup.ResetForTests();
+        Directory.Delete(_root, recursive: true);
+    }
 
     private static TvProfileApp App(string name, string version = "1.0", string? variant = null, string source = "official") => new()
     {
@@ -154,6 +158,8 @@ public sealed class TvBackupsTests : IDisposable
     public void Remember_CopiesTheListOut_ByItself()
     {
         SavedTvs.Configure(Path.Combine(_root, "data", SavedTvs.FileName));
+        // No TV in a test: without this the copy would ask the address for TV-Store's backup.
+        Apps2Samsung.TvStore.TvStorePublicBackup.Silence();
         TvBackups.Configure(Index, Target);
         try
         {
