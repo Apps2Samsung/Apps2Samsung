@@ -455,6 +455,15 @@ namespace Apps2Samsung.ViewModels
         {
             if (app is null || IsBusy || IsDebugging) return;
 
+            // A native app has no web inspector: said here, before the app is restarted and the
+            // console waits out an answer the TV will not give.
+            if (Apps2Samsung.Catalog.NativeApps.IsKnownNative(app, _catalog?.Invoke(), Apps2Samsung.Helpers.AppSettings.Default.PackageIdRenamesJson,
+                    Apps2Samsung.Helpers.AppSettings.Default.InstalledVariantsJson, _tvIp))
+            {
+                await _dialogService.ShowMessageAsync("lblDebugConsole".Localized(), string.Format("statusDebugNativeApp".Localized(), app.DisplayName));
+                return;
+            }
+
             var console = new DebugConsoleViewModel(_installer, _dialogService, _tvIp, app);
             console.Attached += port =>
                 StatusText = string.Format("statusDebugging".Localized(), app.DisplayName, port);

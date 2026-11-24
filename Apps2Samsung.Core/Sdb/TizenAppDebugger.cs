@@ -75,6 +75,15 @@ namespace Apps2Samsung.Sdb
     }
 
     /// <summary>
+    /// The TV took `0 debug` and never reported an inspector port. Its own type so a head can say
+    /// what that usually means (a native app) in the user's language.
+    /// </summary>
+    public sealed class DebugNoAnswerException : InvalidOperationException
+    {
+        public DebugNoAnswerException(string message) : base(message) { }
+    }
+
+    /// <summary>
     /// Puts an installed app into web-inspector debug mode and tunnels the inspector back to this
     /// device, so a DevTools client can attach to it.
     ///
@@ -110,6 +119,21 @@ namespace Apps2Samsung.Sdb
         public static readonly TimeSpan DebugAnswerTimeout = TimeSpan.FromSeconds(20);
         public static readonly TimeSpan LegacyDebugAnswerTimeout = TimeSpan.FromSeconds(LegacyDebugWait + 10);
 
+        // What a native app looks like from here: the TV launches it on `0 debug` and has no
+        // inspector to report, so the request simply goes unanswered (a .NET .tpk on a 2018 set
+        // that attached to every web app). The heads turn away the apps they know are native
+        // before asking (Apps2Samsung.Catalog.NativeApps); for the ones they cannot know they add
+        // this string (en.json) to the error, see <see cref="DebugNoAnswerException"/>.
+        public const string NativeAppHintKey = "statusDebugNativeHint";
+
+        /// <summary>
+        /// The text of an attach failure for the user: the error, and after an unanswered request
+        /// the hint that a native app answers like that. <paramref name="localize"/> is the head's
+        /// string lookup.
+        /// </summary>
+        public static string FailureText(Exception ex, Func<string, string> localize) =>
+            ex is DebugNoAnswerException ? $"{ex.Message} {localize(NativeAppHintKey)}" : ex.Message;
+
         /// <summary>
         /// Relaunches <paramref name="tizenId"/> in debug mode and tunnels its inspector to
         /// <paramref name="localPort"/> (0 picks a free one — prefer that over a fixed port unless a
@@ -137,7 +161,7 @@ namespace Apps2Samsung.Sdb
                     // debug mode, it has said nothing at all, and the two want different next steps.
                     if (SdbTransportErrors.IsNoAnswer(result))
                     {
-                        throw new InvalidOperationException(
+                        throw new DebugNoAnswerException(
                             $"The TV took the request to start debug mode for {tizenId} but never reported an " +
                             $"inspector port, so there is nothing to attach to. {error}");
                     }
