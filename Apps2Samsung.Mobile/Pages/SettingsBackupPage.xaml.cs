@@ -25,6 +25,7 @@ public partial class SettingsBackupPage : ContentPage
 		CertificateBackups.StatusChanged += OnBackupStatusChanged;
 		ShowCertificateBackups();
 		Apps2Samsung.Catalog.SavedTvs.Changed += OnSavedTvsChanged;
+		Apps2Samsung.Catalog.TvBackups.StatusChanged += OnSavedTvsChanged;
 		ShowSavedTvs();
 	}
 
@@ -32,6 +33,7 @@ public partial class SettingsBackupPage : ContentPage
 	{
 		CertificateBackups.StatusChanged -= OnBackupStatusChanged;
 		Apps2Samsung.Catalog.SavedTvs.Changed -= OnSavedTvsChanged;
+		Apps2Samsung.Catalog.TvBackups.StatusChanged -= OnSavedTvsChanged;
 		base.OnDisappearing();
 	}
 
@@ -39,8 +41,24 @@ public partial class SettingsBackupPage : ContentPage
 
 	private void OnSavedTvsChanged() => MainThread.BeginInvokeOnMainThread(ShowSavedTvs);
 
+	// Where the automatic copies of the lists go (#1177), and the last failure when there was one.
+	private void ShowTvBackups()
+	{
+		Apps2Samsung.Catalog.TvBackupStatus? status;
+		try { status = Apps2Samsung.Catalog.TvBackups.Status(); }
+		catch { status = null; }
+		TvBackupHint.IsVisible = status is not null;
+		if (status is null)
+			return;
+		var text = string.Format(L10n.Get("hintTvBackupGoesTo"), status.DisplayLocation, Apps2Samsung.Catalog.TvBackups.Keep);
+		if (status.LastError is { } error)
+			text += "\n" + string.Format(L10n.Get("lblTvBackupFailed"), error);
+		TvBackupHint.Text = text;
+	}
+
 	private void ShowSavedTvs()
 	{
+		ShowTvBackups();
 		var tvs = Apps2Samsung.Catalog.SavedTvs.All().OrderByDescending(t => t.LastSeenUtc).ToList();
 		SavedTvsNoneCard.IsVisible = tvs.Count == 0;
 		SavedTvsCard.IsVisible = tvs.Count > 0;

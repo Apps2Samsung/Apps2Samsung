@@ -84,6 +84,25 @@ public static class InstalledCommand
             s.Out.Warn($"the installed variants could not be read, comparing with each app's default file: {ex.Message}");
         }
 
+        // The list is written down by itself, as the desktop and mobile apps do when they read a TV
+        // (#1069), with a copy as a file when its apps changed (#1177). Not without a catalog: every
+        // app would look like one the catalog does not have.
+        if (catalog.Count > 0)
+        {
+            try
+            {
+                var fresh = TvProfiles.Save(apps, catalog, removed, s.Config.PackageIdRenamesJson, variants, ip, null, null,
+                    includeSettings: false, DateTimeOffset.UtcNow, tvName: SavedTvs.Get(ip)?.Profile.TvName);
+                SavedTvs.Remember(ip, fresh.Profile, DateTimeOffset.UtcNow);
+                // The copy is written off this thread; a command that ends here would cut it short.
+                TvBackups.WaitForPending(TimeSpan.FromSeconds(5));
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                s.Out.Warn($"the app list of {ip} could not be saved: {ex.Message}");
+            }
+        }
+
         // An app the catalog removed (#1033) gets no catalog comparison: no update is coming for it.
         var gone = apps.Select(a => RemovedApps.Find(a, removed, catalog, s.Config.PackageIdRenamesJson)).ToList();
         var matches = apps.Select((a, i) => catalog.Count == 0 || gone[i] is not null ? null : InstalledAppUpdates.Find(a, catalog, s.Config.PackageIdRenamesJson, variants, ip)).ToList();

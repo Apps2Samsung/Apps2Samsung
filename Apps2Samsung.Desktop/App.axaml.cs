@@ -88,6 +88,10 @@ namespace Apps2Samsung
             Apps2Samsung.Catalog.SavedTvs.Configure(System.IO.Path.Combine(AppSettings.DataFolderPath, Apps2Samsung.Catalog.SavedTvs.FileName));
             // TV-Store's own backup of each TV, when one was taken (#1179).
             Apps2Samsung.TvStore.TvStoreBackups.Configure(System.IO.Path.Combine(AppSettings.DataFolderPath, Apps2Samsung.TvStore.TvStoreBackups.FileName));
+            // A copy of each list outside the data folder, next to the certificate backups (#1177).
+            Apps2Samsung.Catalog.TvBackups.Configure(
+                System.IO.Path.Combine(AppSettings.DataFolderPath, Apps2Samsung.Catalog.TvBackups.IndexFileName),
+                new Apps2Samsung.Certificate.FolderBackupTarget(Apps2Samsung.Catalog.TvBackups.DefaultFolder(AppSettings.DataFolderPath)));
         }
 
         private void ConfigureServices()

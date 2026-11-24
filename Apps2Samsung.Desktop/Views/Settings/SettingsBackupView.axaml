@@ -148,6 +148,8 @@
 				</StackPanel>
 			</Border>
 			<TextBlock Classes="hint" Margin="4,0" Text="{l:Localize hintSavedTvs}" TextWrapping="Wrap"/>
+			<TextBlock Classes="hint" Margin="4,0" Text="{Binding SavedTvsBackupHint}" TextWrapping="Wrap"
+			           IsVisible="{Binding SavedTvsBackupHint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 		</StackPanel>
 
 		<StackPanel Spacing="6">

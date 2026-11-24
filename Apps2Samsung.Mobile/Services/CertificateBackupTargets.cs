@@ -16,24 +16,33 @@ public static class CertificateBackupTargets
 	{
 		var store = new MobileAppConfig().CertificateStorePath;
 		var index = Path.Combine(FileSystem.AppDataDirectory, CertificateBackups.IndexFileName);
-		CertificateBackups.Configure(store, index, Create());
+		CertificateBackups.Configure(store, index, Create("Certificate backups"));
 		// A certificate made before this existed is backed up on the first start.
 		Task.Run(CertificateBackups.Changed);
 	}
 
-	private static ICertificateBackupTarget Create()
+	/// <summary>
+	/// The copies of each TV's app list (#1177) go to the same kind of place: they are what is left
+	/// when the app and its saved lists are gone.
+	/// </summary>
+	public static void ConfigureTvBackups() =>
+		Apps2Samsung.Catalog.TvBackups.Configure(
+			Path.Combine(FileSystem.AppDataDirectory, Apps2Samsung.Catalog.TvBackups.IndexFileName),
+			Create("TV backups"));
+
+	private static ICertificateBackupTarget Create(string folderName)
 	{
 #if ANDROID
 		if (OperatingSystem.IsAndroidVersionAtLeast(29))
 			return new AndroidDownloadsTarget();
 		var own = Android.App.Application.Context.GetExternalFilesDir(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath
-		          ?? Path.Combine(FileSystem.AppDataDirectory, "Certificate backups");
+		          ?? Path.Combine(FileSystem.AppDataDirectory, folderName);
 		return new FolderBackupTarget(own);
 #elif IOS
 		var documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-		return new FolderBackupTarget(Path.Combine(documents, "Certificate backups"), "Files › On My iPhone › Apps2Samsung › Certificate backups");
+		return new FolderBackupTarget(Path.Combine(documents, folderName), $"Files › On My iPhone › Apps2Samsung › {folderName}");
 #else
-		return new FolderBackupTarget(Path.Combine(FileSystem.AppDataDirectory, "Certificate backups"));
+		return new FolderBackupTarget(Path.Combine(FileSystem.AppDataDirectory, folderName));
 #endif
 	}
 

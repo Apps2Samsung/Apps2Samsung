@@ -167,6 +167,8 @@ public static class MauiProgram
 		Apps2Samsung.Catalog.SavedTvs.Configure(Path.Combine(FileSystem.AppDataDirectory, Apps2Samsung.Catalog.SavedTvs.FileName));
 		// TV-Store's own backup of each TV, when one was taken (#1179).
 		Apps2Samsung.TvStore.TvStoreBackups.Configure(Path.Combine(FileSystem.AppDataDirectory, Apps2Samsung.TvStore.TvStoreBackups.FileName));
+		// A copy of each list where the certificate backups go (#1177).
+		CertificateBackupTargets.ConfigureTvBackups();
 
 		return builder.Build();
 	}

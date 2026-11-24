@@ -226,6 +226,73 @@ public sealed class TvStoreBackupTests : IDisposable
         Assert.Equal("second tv", TvStoreBackup.Describe(TvStoreBackups.Get("192.168.1.9")!.Backup)!.MadeAt);
     }
 
+    // The automatic copies of a TV's app list (#1177) carry the last backup taken, when it holds no keys.
+    private string CopiesFolder => Path.Combine(_root, "copies");
+    private string CopiesIndex => Path.Combine(_root, "data", TvBackups.IndexFileName);
+    private Apps2Samsung.Certificate.FolderBackupTarget Copies => new(CopiesFolder);
+
+    [Fact]
+    public void AnAutomaticCopy_CarriesABackupWithoutSecrets_AndNeverOneWithThem()
+    {
+        var lean = TvBackups.BackUp(CopiesIndex, Copies, Tv, Profile(), T0.UtcDateTime, Backup(secrets: false))!;
+        var read = TvProfiles.Parse(File.ReadAllText(Path.Combine(CopiesFolder, lean.FileName)));
+        Assert.NotNull(read.TvStore);
+        Assert.False(read.IsPrivate);
+
+        var full = TvBackups.BackUp(CopiesIndex, Copies, "192.168.1.9", Profile(), T0.UtcDateTime, Backup(secrets: true))!;
+        var text = File.ReadAllText(Path.Combine(CopiesFolder, full.FileName));
+        Assert.DoesNotContain("a2s-tvstore-backup", text);
+        Assert.Null(TvProfiles.Parse(text).TvStore);
+    }
+
+    [Fact]
+    public void ANewerBackup_IsANewCopy_TheSameOneIsNot()
+    {
+        Assert.NotNull(TvBackups.BackUp(CopiesIndex, Copies, Tv, Profile(), T0.UtcDateTime));
+        Assert.NotNull(TvBackups.BackUp(CopiesIndex, Copies, Tv, Profile(), T0.UtcDateTime.AddHours(1), Backup(secrets: false, madeAt: "one")));
+        Assert.Null(TvBackups.BackUp(CopiesIndex, Copies, Tv, Profile(), T0.UtcDateTime.AddHours(2), Backup(secrets: false, madeAt: "one")));
+        Assert.NotNull(TvBackups.BackUp(CopiesIndex, Copies, Tv, Profile(), T0.UtcDateTime.AddHours(3), Backup(secrets: false, madeAt: "two")));
+        // A backup with keys changes nothing about the file: it is as if there were none.
+        Assert.Null(TvBackups.BackUp(CopiesIndex, Copies, Tv, Profile(), T0.UtcDateTime.AddHours(4), Backup(secrets: false, madeAt: "two")));
+        Assert.Equal(3, Directory.GetFiles(CopiesFolder).Length);
+    }
+
+    // A list handed in with a backup of its own does not smuggle it into the file.
+    [Fact]
+    public void AnAutomaticCopy_TakesTheBackupOnlyFromTheStore()
+    {
+        var profile = Profile();
+        TvProfiles.SetTvStore(profile, Backup(secrets: true));
+
+        var entry = TvBackups.BackUp(CopiesIndex, Copies, Tv, profile, T0.UtcDateTime)!;
+
+        Assert.DoesNotContain("a2s-tvstore-backup", File.ReadAllText(Path.Combine(CopiesFolder, entry.FileName)));
+    }
+
+    [Fact]
+    public void TakingABackup_WritesTheAutomaticCopyAgain()
+    {
+        SavedTvs.Configure(Path.Combine(_root, "data", SavedTvs.FileName));
+        TvBackups.Configure(CopiesIndex, Copies);
+        try
+        {
+            SavedTvs.Remember(Tv, Profile(), T0);
+            TvBackups.WaitForPending(TimeSpan.FromSeconds(10));
+            Assert.Single(Directory.GetFiles(CopiesFolder));
+
+            TvStoreBackups.Set(Tv, Backup(secrets: false), T0.AddHours(1));
+            TvBackups.WaitForPending(TimeSpan.FromSeconds(10));
+
+            var newest = TvBackups.Status()!.LatestFor(Tv)!;
+            Assert.Equal(2, Directory.GetFiles(CopiesFolder).Length);
+            Assert.NotNull(TvProfiles.Parse(File.ReadAllText(newest.Location)).TvStore);
+        }
+        finally
+        {
+            TvBackups.Reset();
+        }
+    }
+
     [Fact]
     public void WithoutABackup_TheZipHasNoEntryForIt()
     {

@@ -303,6 +303,9 @@ namespace Apps2Samsung.TvStore
                 all.Add(new SavedTvStoreBackup { Key = key.Trim(), SavedAtUtc = now, Backup = backup.Clone() });
                 Write(all);
             }
+            // The automatic copy of this TV's app list carries the backup when it holds no keys (#1177):
+            // write that file again now, not at the next change of the apps.
+            Apps2Samsung.Catalog.TvBackups.Changed(Apps2Samsung.Catalog.SavedTvs.Get(key));
         }
 
         public static void Forget(string? key)
