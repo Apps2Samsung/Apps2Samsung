@@ -1,7 +1,7 @@
-oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1PLusC1AcGXqlbkjj5VELham9A0EqyulnkaQru8YilV79F/q4j4cGtBH73BfoB/PrgtBQ2aagwlTxbA6wXyGxqwDgjHiBQJ8MupMx0zCKT8Xq3TjVcD7/PTu3LrRC/RfvmPUqL+gB8m2WW6CJnxxGyY1L2yZhBRg/AUMQeCw2UiiyEMvdyEB1v9aOjiFPwkKe8e6YiV0LteEvSM+l+ACWRLd9CiZmuNgmatm58/zJLlowknFWXrhOyT5FbxyQ8+m/ax7QHqAgOPj6CGEQdxAIGsnUrwSLJTPhvwhwQNvCe/JPeW+7BsllbDlGYzQYPEKY07V+fjVi/1TwaBhyR79RSCulSZotIawFzpxBJ+LPRq7V5ldGLRSgvZhQ/Co6QfiRjTkLPzVmF4oE6TSkR+Epm6YKWl/Woxcz1apTuQR8nwMBt1dJ0
+VWzpEBFcRF8D2DMtNf27ls5AahL5uez7eKvsymW8Q+mAoPbQjoM8XW+43rh47pTYHSLJ/38gQHJGcUIHP+gb4Jy54o3KJtWM8TRKBzqgbLg9APQTVTtACeB5mSnisyPWbLCtpDLy6fchk4DnApfVftlGzRF9/gSpHBDfWd6o2GiU/MOPsqfpPhhm3YGzvYtbg0b4Y75gnKA+8Ckm5O8J3EEvuhNK3iKk771ACQe5zBWfA5AtG5H0iSLcdPBIwE/3e1w16dQEz8yX2u2REMphuK/l0KkulQPTQkqBRpwkVOM1wXlT7WPQS8XEZYu+1r2K9bVU8xaNsyw+8YSz/8DLNVIKRR8W7e/p9fdMEjkTO1qv1Lul/Y8g/L6iimVMm66CSacFcaUFfHpof7/DK5RsHGdBjkN8SWvAGpNc364AwyzeG/TPmZPDpz9S2B8Yt0hd7uwbsgs2lOPOd+aPZ8OpuKTFoddfopbYcFBShtVjGuaw4NaeooGXRSLtkiIUwnvd
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-24T09:54:52.3093424+00:00",
+  "generatedAt": "2026-11-24T10:00:30.565518+00:00",
   "manifestSchemaVersion": 2,
   "providers": [
     {
@@ -3254,18 +3254,18 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
       "id": "tizen-community",
       "url": "https://api.github.com/repos/Apps2Samsung/tizen-community-packages/releases",
       "ok": true,
-      "latestTag": "community-922",
+      "latestTag": "community-923",
       "releases": [
         {
-          "url": "https://api.github.com/repos/Apps2Samsung/tizen-community-packages/releases/456566963",
+          "url": "https://api.github.com/repos/Apps2Samsung/tizen-community-packages/releases/456572842",
           "name": "Tizen Community",
-          "tag_name": "community-922",
-          "published_at": "2026-11-24T09:54:00Z",
+          "tag_name": "community-923",
+          "published_at": "2026-11-24T09:59:55Z",
           "draft": false,
           "assets": [
             {
               "name": "AerialScreensaver.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/AerialScreensaver.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/AerialScreensaver.wgt",
               "size": 10718832,
               "digest": "sha256:3696daad6b96ea6c24e7d016d177ea34b7883555c79090365fa90db5c82da13b",
               "package_version": "1.0.5",
@@ -3277,7 +3277,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "AIOStreams-Official.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/AIOStreams-Official.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/AIOStreams-Official.wgt",
               "size": 8321105,
               "digest": "sha256:e0d7e4327dd5f290c0289399f82a93d0572d010ee747196ab6ea49df4dfabb0c",
               "package_version": "0.13.0",
@@ -3289,7 +3289,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "AIOStreams-tizen6.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/AIOStreams-tizen6.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/AIOStreams-tizen6.wgt",
               "size": 2054925,
               "digest": "sha256:ed9ff91f1c820a9d0443eb5f682d8609373cee34dbba2c03230566fe352bbbb8",
               "package_version": "0.7.0",
@@ -3301,7 +3301,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "AirTizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/AirTizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/AirTizen.wgt",
               "size": 3731579,
               "digest": "sha256:26c38fed140763ed4f7c3b2298c708f599006f25db275bc8a3f97c9140f14c45",
               "package_version": "2.2.34",
@@ -3313,7 +3313,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "AmbientTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/AmbientTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/AmbientTV.wgt",
               "size": 5431264,
               "digest": "sha256:848c2fa46c3e29b1f349583c6d8aeccfdfbc4e2ef638dbe9020fd06deefd1408",
               "package_version": "1.0.0",
@@ -3325,7 +3325,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "AmorecoFlix.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/AmorecoFlix.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/AmorecoFlix.wgt",
               "size": 456254,
               "digest": "sha256:9db8a6d27c29dc490bf101cb4828e13fd2ca49b6e9072a7195fe6cc9bb09a3a8",
               "package_version": "2.0.0",
@@ -3337,7 +3337,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "AniUltimatiumLite.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/AniUltimatiumLite.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/AniUltimatiumLite.wgt",
               "size": 345089,
               "digest": "sha256:eb558b5bc591114092c919166ee62a7d668840de41bfeca14e108f98dd7b0f40",
               "package_version": "2.14.0",
@@ -3349,7 +3349,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Apex-TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Apex-TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Apex-TV.wgt",
               "size": 715884,
               "digest": "sha256:217af790323663ac57d292f4b17c2d6e7d8210bbefc585e0fa02205fabd0792e",
               "package_version": "0.5.14",
@@ -3361,7 +3361,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "APLLauncher-Tizen6.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/APLLauncher-Tizen6.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/APLLauncher-Tizen6.wgt",
               "size": 8410255,
               "digest": "sha256:3fe88625449130e7949587e7c58e07bfcb008a82146ab820ce23c4478cda5106",
               "package_version": "1.3.10",
@@ -3373,7 +3373,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "APLLauncher.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/APLLauncher.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/APLLauncher.wgt",
               "size": 8693190,
               "digest": "sha256:df8989cc19a9c232e9bce8b4befdd0a7cd20ca0eb83630bbdfe8397376a4d5da",
               "package_version": "1.3.10",
@@ -3385,7 +3385,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "APLTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/APLTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/APLTV.wgt",
               "size": 1096246,
               "digest": "sha256:23e294dd172657a4e3de6f5aa56b2d2210643421c0c9e876e7c915e6ff50a393",
               "package_version": "1.4.14",
@@ -3397,7 +3397,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "AppManager.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/AppManager.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/AppManager.wgt",
               "size": 12004,
               "digest": "sha256:15f66a82b7b61cf16838d09b3574b51d5f4efe2826cbffbfe5866ef4f6a2a15a",
               "package_version": "1.0.3",
@@ -3409,7 +3409,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "AquaPlay-IPTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/AquaPlay-IPTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/AquaPlay-IPTV.wgt",
               "size": 2134211,
               "digest": "sha256:0daacb78dc2271fb04b64bd8bcd89f0120bffc095639131b3fb343e6553d3e88",
               "package_version": "1.0.53",
@@ -3421,7 +3421,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Arn0Launcher.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Arn0Launcher.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Arn0Launcher.wgt",
               "size": 7945310,
               "digest": "sha256:b8873924ad72c2ee0d6ef4bbde1bcf21109b8ea1c71dbe9eb9930a41cdce28b2",
               "package_version": "0.6.12",
@@ -3433,7 +3433,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Arn0Plus.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Arn0Plus.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Arn0Plus.wgt",
               "size": 4134327,
               "digest": "sha256:29d1af8af5145d879b47c5e495040aa917bee3f55cf5ffa68b80cefa3fd33d72",
               "package_version": "0.6.20",
@@ -3445,7 +3445,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "AthanTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/AthanTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/AthanTV.wgt",
               "size": 222406,
               "digest": "sha256:5e7127c2e8959b33c7e99b9f172f6698cad82c83336c5b275e962dd79e1c4cf5",
               "package_version": "0.1.0",
@@ -3457,7 +3457,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "AudioRecorder.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/AudioRecorder.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/AudioRecorder.wgt",
               "size": 29724428,
               "digest": "sha256:1eb8429cd8efbbf3d5f39a31d8f2b19e08f9df8bf4c6c7fb7dbc18163788180b",
               "package_version": "1.0.0",
@@ -3468,8 +3468,20 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
               "icon_digest": "sha256:d5dd281191ea3e7f90ccdcc6207c23f4e0dbcbac7d82016cf6e3ac6afea33cdb"
             },
             {
+              "name": "Auger.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Auger.wgt",
+              "size": 1626597,
+              "digest": "sha256:df0e691b2e7131b53604a58bd7de3ee3675b031831ca0b9cab2a71cf7e2d96d8",
+              "package_version": "0.2.0",
+              "app_id": "AugerTv001.Auger",
+              "package_id": "AugerTv001",
+              "required_version": "8.0",
+              "icon": "https://apps2samsung.com/catalog/icons/680b5205cc409a85f58cfe45cc95ff543d8e02bd64ee625f9ddac0c4f1548cb9.png",
+              "icon_digest": "sha256:680b5205cc409a85f58cfe45cc95ff543d8e02bd64ee625f9ddac0c4f1548cb9"
+            },
+            {
               "name": "Baobab.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Baobab.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Baobab.wgt",
               "size": 125438,
               "digest": "sha256:020466ef569f846399743222e9ae9559ebf000ba78e9094ae5f4085469daa50a",
               "package_version": "0.1.0",
@@ -3479,7 +3491,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Beam-TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Beam-TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Beam-TV.wgt",
               "size": 275493,
               "digest": "sha256:b5b32946c894e723bed908734ac47ccd545ed32aa7ff6a224ba76a397aec492f",
               "package_version": "1.0.1",
@@ -3491,7 +3503,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Bilibili.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Bilibili.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Bilibili.wgt",
               "size": 659953,
               "digest": "sha256:54f515d4afa066e2e6f67c80bbe95481d62d747a0db135a1c4ad59e32bc94ce2",
               "package_version": "1.6.0",
@@ -3503,7 +3515,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "BiliTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/BiliTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/BiliTV.wgt",
               "size": 63035,
               "digest": "sha256:0020f0e1b19c27afcaeff206d082b6b12c005b14ddfbc7646339c7d69241e4ec",
               "package_version": "0.4.8",
@@ -3515,7 +3527,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "CameraPip.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/CameraPip.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/CameraPip.wgt",
               "size": 41743,
               "digest": "sha256:9e63a81db93fe11345e9c1af7b737aa0b96d2e8c92490e399c8fa56e0ea9a663",
               "package_version": "1.0.0",
@@ -3527,7 +3539,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Chiaki-Tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Chiaki-Tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Chiaki-Tizen.wgt",
               "size": 1846734,
               "digest": "sha256:05a5e63d711fb06644ea30a4e6315581dd508fddec4dd9f0a1986b380edb0473",
               "package_version": "0.2.0",
@@ -3539,7 +3551,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Chouette-TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Chouette-TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Chouette-TV.wgt",
               "size": 552684,
               "digest": "sha256:80491063c8f6d922fdf46675c7c58b09333645afe9fa4c1850793e810f5f74ed",
               "package_version": "0.1.1",
@@ -3551,7 +3563,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Copenhagen-Weather.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Copenhagen-Weather.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Copenhagen-Weather.wgt",
               "size": 84458,
               "digest": "sha256:29a8a94c0d0db7c5323ff5a8b82df2db3990b2dc16c936fa5529c8458a906f93",
               "package_version": "1.0.0",
@@ -3563,7 +3575,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Crunchyroll.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Crunchyroll.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Crunchyroll.wgt",
               "size": 978485,
               "digest": "sha256:6c26f7d2b13fcf31507f5b33b7bb6198839de4b6521b1eb500d7a00e9930ab56",
               "package_version": "1.0.0",
@@ -3575,7 +3587,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "DevNull-TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/DevNull-TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/DevNull-TV.wgt",
               "size": 745080,
               "digest": "sha256:e5f8499dc8070ad2184671cf2474d045dfb23e7e511443d825ed7d5752721f49",
               "package_version": "1.4.0",
@@ -3587,7 +3599,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Doom-tizen55.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Doom-tizen55.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Doom-tizen55.wgt",
               "size": 2933058,
               "digest": "sha256:7b0853065be62a1f60ed598d388361ea4f16c9a2b28108e145de5e26011b5b00",
               "package_version": "1.21",
@@ -3599,7 +3611,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Doom.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Doom.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Doom.wgt",
               "size": 2907034,
               "digest": "sha256:6f7c9b7c5be5121684924ae12f8a9e245f19de4be8cdcb485fec4abefd735a61",
               "package_version": "1.21",
@@ -3611,7 +3623,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Douyin.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Douyin.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Douyin.wgt",
               "size": 284806,
               "digest": "sha256:da164a593f93424688bd828f10ee64f516c11e2ac30136665e47ddf07b15b891",
               "package_version": "1.4.9",
@@ -3623,7 +3635,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "DuoBeam.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/DuoBeam.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/DuoBeam.wgt",
               "size": 374723,
               "digest": "sha256:2322a629e07277cd7c1fcd57f6396a86361db190484b3a372ea9fa96c95be287",
               "package_version": "0.8.9",
@@ -3635,7 +3647,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "EDuke32.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/EDuke32.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/EDuke32.wgt",
               "size": 13640578,
               "digest": "sha256:c5a4c606bf117859d2b8be161ad5e367dbe0f7c8f4d553519aa95796b46498ff",
               "package_version": "0.11",
@@ -3645,7 +3657,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "EN-IPTV_Player.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/EN-IPTV_Player.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/EN-IPTV_Player.wgt",
               "size": 479660,
               "digest": "sha256:caa1579fb5fc6ba94528e3381eaccea5c64c9f8d5b64a733b9e3c1af024150f3",
               "package_version": "3.2.0",
@@ -3657,7 +3669,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "F1TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/F1TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/F1TV.wgt",
               "size": 969020,
               "digest": "sha256:54898d1b912f53080189daacf4dd3387cb8a417664b111ac72f3b84a7200373e",
               "package_version": "1.1.0",
@@ -3669,7 +3681,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "FCastReceiver.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/FCastReceiver.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/FCastReceiver.wgt",
               "size": 6669120,
               "digest": "sha256:cd8c8d9fbfea5c37ec541a7f91a6f2c761c2687b1a191dc32d1ddae095dd553c",
               "package_version": "1.0.0",
@@ -3681,7 +3693,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Film-Merkezi.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Film-Merkezi.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Film-Merkezi.wgt",
               "size": 4039187,
               "digest": "sha256:8e91d259eab9c8b2cbe107b9ebcd04791bca6c2835eb68d47ae15d88da639bd2",
               "package_version": "2.0.3",
@@ -3693,7 +3705,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Fladder.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Fladder.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Fladder.tpk",
               "size": 22763668,
               "digest": "sha256:104a080103316e5bad569b20cb0ed551622995190fee7b8828fafcc79efe6da4",
               "package_version": "0.8.1",
@@ -3705,7 +3717,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "FLOH-IPTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/FLOH-IPTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/FLOH-IPTV.wgt",
               "size": 680155,
               "digest": "sha256:b6f144fa49f358c409d4b581bababd6d33f9b00daf1f67ee05f3eaf7cfab330d",
               "package_version": "1.7.0",
@@ -3717,7 +3729,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "FnTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/FnTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/FnTV.wgt",
               "size": 59955,
               "digest": "sha256:0bf25b5fdf05c946fd9388b6bf2188b7cc0afc5528ada379e68df03439f4aebb",
               "package_version": "1.6.0",
@@ -3729,7 +3741,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Frame-Dashboard.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Frame-Dashboard.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Frame-Dashboard.wgt",
               "size": 25004,
               "digest": "sha256:c1bf9852516f6a13374c6b296089cde5134941fc2bb8d64a35f7bbc7970e93fc",
               "package_version": "0.1.0",
@@ -3741,7 +3753,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "FreeMyTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/FreeMyTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/FreeMyTV.wgt",
               "size": 1551687,
               "digest": "sha256:2b0215ca6e0776106e71a983cf63023e726bf83c1dc337e6e0102b0b15e1cae9",
               "package_version": "1.5.0",
@@ -3753,7 +3765,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "FreeSerf.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/FreeSerf.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/FreeSerf.wgt",
               "size": 2059698,
               "digest": "sha256:77f4fdd9d448d8664bae9aef57d4dce83be8414beafedaf4b005f48ce239e1c0",
               "package_version": "1.0.0",
@@ -3765,7 +3777,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "GameBoy-Emulator.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/GameBoy-Emulator.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/GameBoy-Emulator.wgt",
               "size": 151207,
               "digest": "sha256:9522e11954ce99e2c86468b27ce2c1ff377906cf862ad329168c5424a9054079",
               "package_version": "1.2.1",
@@ -3777,7 +3789,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "go2rtc-tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/go2rtc-tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/go2rtc-tizen.wgt",
               "size": 55332,
               "digest": "sha256:9c1ef0b817fad2141c43f09162b691e942e316141510cab55c3df52649c0fbc5",
               "package_version": "0.1.0",
@@ -3789,7 +3801,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "HackTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/HackTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/HackTV.wgt",
               "size": 67434,
               "digest": "sha256:63ad31826296a2d9a8580691a4d011929569730612cf8fd7153bcc05d2679cb0",
               "package_version": "0.0.0",
@@ -3801,7 +3813,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Haven.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Haven.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Haven.wgt",
               "size": 2180302,
               "digest": "sha256:9826b21385c0019b7c72cd55ab5a46cc96fb166cc633fb9bbe99ecd5f7a63065",
               "package_version": "1.0.0",
@@ -3813,7 +3825,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "HyperTizen.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/HyperTizen.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/HyperTizen.tpk",
               "size": 6216432,
               "digest": "sha256:369196cf4d43baec0ead66183a6d07292c8ecb5b6a91d9876f20679891b8c1a8",
               "package_version": "1.0.0",
@@ -3825,7 +3837,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "ImmichTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/ImmichTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/ImmichTV.wgt",
               "size": 1070090,
               "digest": "sha256:e1fcb03553774b144c5d7732bdfc0989cd47a4506f764f9255c5d57ba269fb50",
               "package_version": "0.1.2",
@@ -3837,7 +3849,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "ImmiTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/ImmiTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/ImmiTV.wgt",
               "size": 129566,
               "digest": "sha256:9656e2d40455730014a64e7c7b5f587c45c476097e02f0bade64eb619b41626e",
               "package_version": "1.0.0",
@@ -3849,7 +3861,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "inet-speed-old-tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/inet-speed-old-tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/inet-speed-old-tizen.wgt",
               "size": 150204,
               "digest": "sha256:6507b6d4a48ec9a1d5f3bf1730317d7ffef90ae613dbabc9d9ff9332bd24abe9",
               "package_version": "1.1.1",
@@ -3861,7 +3873,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "iperf3-TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/iperf3-TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/iperf3-TV.wgt",
               "size": 60796,
               "digest": "sha256:79f6f09e8fe4488bfb07998df2911bdc6cd798990bbd7495b47ce8c89b949269",
               "package_version": "1.0.0",
@@ -3873,7 +3885,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "IPTV-Manager.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/IPTV-Manager.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/IPTV-Manager.wgt",
               "size": 331832,
               "digest": "sha256:e1b6c86bcbafe85ae08509087bb45e4319ee7d34345276b99420a7ecb6b16580",
               "package_version": "1.0.0",
@@ -3885,7 +3897,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Jellyfin-Bonfire.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Jellyfin-Bonfire.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Jellyfin-Bonfire.wgt",
               "size": 21145750,
               "digest": "sha256:885819249a7edd354d18904d601a0ccb186774d291f9ecd10338618830858be2",
               "package_version": "0.1.0",
@@ -3898,7 +3910,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "JellyLean.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/JellyLean.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/JellyLean.wgt",
               "size": 596089,
               "digest": "sha256:f0209edf71d3e1910569a6974599da2a46fd5716af6f1d8382868b0dc0eee4b6",
               "package_version": "1.0.12",
@@ -3910,7 +3922,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Kick.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Kick.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Kick.wgt",
               "size": 2258528,
               "digest": "sha256:51b8e548db6281f845e83d6fa60d372874d9b61877b918bb3618f24f9842f2f6",
               "package_version": "1.3.4",
@@ -3922,7 +3934,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "KickTV-TR.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/KickTV-TR.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/KickTV-TR.wgt",
               "size": 183319,
               "digest": "sha256:b56aa66bd0c4429137387edbbc1eb1f1a6ac12fa25d848a5aa0e462ce74a3699",
               "package_version": "2.4.0",
@@ -3934,7 +3946,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "KickTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/KickTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/KickTV.wgt",
               "size": 257866,
               "digest": "sha256:f8e792344868217e5f52b0dc9edbf51c952dde2885bc0891cfae260f2b41b7c4",
               "package_version": "2.4.2",
@@ -3946,7 +3958,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "KickTV20.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/KickTV20.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/KickTV20.wgt",
               "size": 167828,
               "digest": "sha256:fb4e1c6eecedf0adc5f30aea9f92e7a51c2f7ff50b5e159de9596014ba7dc874",
               "package_version": "2.0.1",
@@ -3958,7 +3970,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Kodi-Chorus.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Kodi-Chorus.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Kodi-Chorus.wgt",
               "size": 2023846,
               "digest": "sha256:65b0512a4b3e29780a307cc2caa51e4b6f8c0c7d56a91f82c62125fa79447e39",
               "package_version": "1.0.0",
@@ -3970,7 +3982,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Kodi-Samsung.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Kodi-Samsung.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Kodi-Samsung.wgt",
               "size": 83306236,
               "digest": "sha256:472320f171231bde1dac6f1625b691991abb992757599ae8083659964e2d4034",
               "package_version": "23.0.0",
@@ -3982,7 +3994,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Kodi-TeX.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Kodi-TeX.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Kodi-TeX.wgt",
               "size": 2746767,
               "digest": "sha256:0a52da7d2dba3a365310ee7d6c4d799d1dbbaeb548584a8344d686f6be66f047",
               "package_version": "1.0.0",
@@ -3994,7 +4006,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "KROMA.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/KROMA.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/KROMA.wgt",
               "size": 10199496,
               "digest": "sha256:fdfddfe6a58abb655b4730d26cd4817e3ee8b4c7bf65be6c96fe313ef13b78cf",
               "package_version": "0.1.38",
@@ -4006,7 +4018,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Lampa.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Lampa.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Lampa.wgt",
               "size": 5722539,
               "digest": "sha256:15965947790a66dc63638f51b553b8347f801072ded62bf4f77054e7bd2bff91",
               "package_version": "1.9.1",
@@ -4018,7 +4030,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "LightKickTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/LightKickTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/LightKickTV.wgt",
               "size": 235569,
               "digest": "sha256:add7cc64205b5b6646419d07b8a91ffd3aaf89bd708f4f49d05b16af164317f5",
               "package_version": "1.0.3",
@@ -4030,7 +4042,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Lobby.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Lobby.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Lobby.wgt",
               "size": 32138162,
               "digest": "sha256:ff72d2e31bcc10b54d57a0de9ae701cd5ff4531554dda2723ebef571818bb7fe",
               "package_version": "0.9.24",
@@ -4042,7 +4054,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "LumenTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/LumenTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/LumenTV.wgt",
               "size": 1586131,
               "digest": "sha256:c1a6b1ef0a158004269b42ca9d565f3f3ab7cd7ffe5de04fcb0f56f2fa53ea17",
               "package_version": "1.17.1",
@@ -4054,7 +4066,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Lumio-IPTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Lumio-IPTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Lumio-IPTV.wgt",
               "size": 7542606,
               "digest": "sha256:eeca76221b7dc5001b01320c35140e271ccab227f23eb3df016a8ad4303eabe1",
               "package_version": "3.1.0",
@@ -4066,7 +4078,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "MonoServer.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/MonoServer.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/MonoServer.wgt",
               "size": 1377343,
               "digest": "sha256:59056889d22c8d55d19ce423acb22b73843457423cd890efb5cd846bbbacb19f",
               "package_version": "1.0.38",
@@ -4078,7 +4090,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Moonfin-Lica-Fork.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Moonfin-Lica-Fork.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Moonfin-Lica-Fork.wgt",
               "size": 9516857,
               "digest": "sha256:3a87729e30d4823d454aeff14b64d866077142d9d7edc44ac85ced07b7a13aa8",
               "package_version": "2.1.6",
@@ -4090,7 +4102,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Moonlight-AC3-fidoboy.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Moonlight-AC3-fidoboy.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Moonlight-AC3-fidoboy.wgt",
               "size": 4615364,
               "digest": "sha256:08e0135ed147c1f40d59418d843e8b31c1dbad49e2ae778f77199cac292cfe50",
               "package_version": "1.3.0",
@@ -4102,7 +4114,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Moonlight-Chrome-NoGame.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Moonlight-Chrome-NoGame.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Moonlight-Chrome-NoGame.wgt",
               "size": 1291214,
               "digest": "sha256:1c73e8f6895be39f10ac36d83e00c4c095801ec4ad89d23d9d5630a16fc6c056",
               "package_version": "1.2.1",
@@ -4112,7 +4124,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Moonlight-Chrome-ToypoodleGaming.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Moonlight-Chrome-ToypoodleGaming.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Moonlight-Chrome-ToypoodleGaming.wgt",
               "size": 1294679,
               "digest": "sha256:02a687d3d6d34770f3fd0f1ec3ace653128c0d92a84b8eb47a899ef4159fd7ec",
               "package_version": "1.2.1",
@@ -4122,7 +4134,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Moonlight-Chrome.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Moonlight-Chrome.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Moonlight-Chrome.wgt",
               "size": 1289417,
               "digest": "sha256:00c20f3bea765890fa8fb6816aebbc0ae1f3195c6ed9d95a5a8ce7368f31ffd6",
               "package_version": "1.2.1",
@@ -4132,7 +4144,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Moonlight-ForceGM-Tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Moonlight-ForceGM-Tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Moonlight-ForceGM-Tizen.wgt",
               "size": 2382799,
               "digest": "sha256:5b6967c1e405016c70637632769b7f5f3187987cb37cdc133b8098e19244871f",
               "package_version": "1.20.0",
@@ -4144,7 +4156,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Moonlight-Tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Moonlight-Tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Moonlight-Tizen.wgt",
               "size": 2382796,
               "digest": "sha256:1792975033be111c5f958b06dd659fc3f5a212d821df457a34a67ae2cb4febc4",
               "package_version": "1.20.0",
@@ -4156,7 +4168,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "NativeAIO.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/NativeAIO.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/NativeAIO.tpk",
               "size": 1500170,
               "digest": "sha256:92dff294cae5d428a138b673d1b2488e855f50a09ad00ae46efd29e2a95a06e3",
               "package_version": "1.1.2",
@@ -4168,7 +4180,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "NhaMinh.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/NhaMinh.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/NhaMinh.wgt",
               "size": 12981250,
               "digest": "sha256:90fcfec546f843b3c2bab51d79124f6a64fced82a1ac480eb227127e132ba7ee",
               "package_version": "1.4.0",
@@ -4180,7 +4192,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Nuvio-Legacy-tizen4.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Nuvio-Legacy-tizen4.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Nuvio-Legacy-tizen4.tpk",
               "size": 37478878,
               "digest": "sha256:b910f86f24135df01786085aa891da92be72361fb7f13bd8417e77bcc3d08c95",
               "package_version": "2.0.8",
@@ -4192,7 +4204,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Nuvio-Legacy-tizen6.5.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Nuvio-Legacy-tizen6.5.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Nuvio-Legacy-tizen6.5.tpk",
               "size": 41411262,
               "digest": "sha256:d0007320e0e9cb69037420b155ffeb908c95da6264c09d05175c525c6b6f9fb7",
               "package_version": "2.0.8",
@@ -4204,7 +4216,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Nuvio-Legacy-tizen6.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Nuvio-Legacy-tizen6.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Nuvio-Legacy-tizen6.tpk",
               "size": 41411178,
               "digest": "sha256:de1590f1414212e386a88e4a43672136971314b239456812a925dcda7a813aef",
               "package_version": "2.0.8",
@@ -4216,7 +4228,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Nuvio-Legacy-tizen8.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Nuvio-Legacy-tizen8.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Nuvio-Legacy-tizen8.tpk",
               "size": 41412122,
               "digest": "sha256:5184fb3cccbfbb8b9399d209b4a5948dfea457246674f567c12345a6691c21d9",
               "package_version": "2.0.8",
@@ -4228,7 +4240,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Nuvio-Legacy.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Nuvio-Legacy.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Nuvio-Legacy.wgt",
               "size": 36586972,
               "digest": "sha256:455af423eeedec619e52ef433d57427f9c57f5cbfe9d1f557cdb5913d904107a",
               "package_version": "2.0.8",
@@ -4240,7 +4252,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "NuvioTV-Official.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/NuvioTV-Official.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/NuvioTV-Official.wgt",
               "size": 8244435,
               "digest": "sha256:746b51875504c5da0edbd53e9a07cf213eebb464cee72de8387d112a7d814201",
               "package_version": "1.4.6",
@@ -4252,7 +4264,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Nyx.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Nyx.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Nyx.wgt",
               "size": 125965,
               "digest": "sha256:bf4c7ce6340a7835447b2f3f7f8094fc16729e09711f200143045152eb98d028",
               "package_version": "1.10.0",
@@ -4264,7 +4276,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "OmegaTube.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/OmegaTube.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/OmegaTube.tpk",
               "size": 2256130,
               "digest": "sha256:3a72a8060e16c60ba2e69488376119f769825f842429610846d707ab17808ea2",
               "package_version": "1.6.0",
@@ -4276,7 +4288,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "opencream-tv.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/opencream-tv.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/opencream-tv.wgt",
               "size": 2247236,
               "digest": "sha256:7320c2d421965ae943caa611fcfbc5bf35cb7716f372d34cb59618c93a8b422e",
               "package_version": "0.1.5",
@@ -4288,7 +4300,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "OpenIPTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/OpenIPTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/OpenIPTV.wgt",
               "size": 14898131,
               "digest": "sha256:68c6ab6158df5838b57a650286a786836f44e5f4aedf90a49451a401bd52ebd4",
               "package_version": "1.9.3",
@@ -4300,7 +4312,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "OsmTwich.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/OsmTwich.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/OsmTwich.wgt",
               "size": 395507,
               "digest": "sha256:84492c441818d5b4af5564c541b844b4c743c531ebecd31158fba8154f29a442",
               "package_version": "2.7.3",
@@ -4312,7 +4324,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "OTTplay-FOSS.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/OTTplay-FOSS.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/OTTplay-FOSS.wgt",
               "size": 10090,
               "digest": "sha256:9a178eedbf7bfef37c62cff399e0ae417c37e2db95ad8b76d1a5f2f6075badc9",
               "package_version": "1.1.0",
@@ -4324,7 +4336,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "OverscanForHue.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/OverscanForHue.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/OverscanForHue.tpk",
               "size": 3652983,
               "digest": "sha256:39d2c1b36e467d7559403423453282f34c74c26c9c3618cae18267b264576960",
               "package_version": "1.2.5",
@@ -4336,7 +4348,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Padthru.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Padthru.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Padthru.wgt",
               "size": 15049,
               "digest": "sha256:c7fc0fb667c6ec31e410d20d86b89f2d7a796c869fb806ec03637151d60e9957",
               "package_version": "0.5.0",
@@ -4348,7 +4360,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "pelagica-tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/pelagica-tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/pelagica-tizen.wgt",
               "size": 2820340,
               "digest": "sha256:3f46f518abee545e35c605a155a30d9ff9befc43f293208690d106ba22e3a11b",
               "package_version": "4.17.0",
@@ -4360,7 +4372,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Phlix.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Phlix.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Phlix.wgt",
               "size": 753516,
               "digest": "sha256:19c8191d10545522b35591660f35dba928c1d6b9d29d30243467c66fc3b6ab38",
               "package_version": "1.0.0",
@@ -4372,7 +4384,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "PlayerAVPlay.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/PlayerAVPlay.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/PlayerAVPlay.wgt",
               "size": 32385,
               "digest": "sha256:f282742691b83118fad6498948947b039d8e26dc36c39442e180559c3c5d354d",
               "package_version": "0.2.1",
@@ -4384,7 +4396,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Plex-Flixor.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Plex-Flixor.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Plex-Flixor.wgt",
               "size": 837692,
               "digest": "sha256:d51d2f9b1afa142ddaadc03e3b6b12c9a31be399d5a83d7ee6d859879bcab9c7",
               "package_version": "1.0.1",
@@ -4396,7 +4408,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Pley.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Pley.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Pley.wgt",
               "size": 761762,
               "digest": "sha256:743221b5735674e63282d291d49e4302f12208c1558fe0325cec23ddf97d75f0",
               "package_version": "0.0.1",
@@ -4408,7 +4420,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Prairie.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Prairie.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Prairie.tpk",
               "size": 10438087,
               "digest": "sha256:48f6af5f724a931c4c5055bb6a138b9737a79b2986b217355316b200cc3e7916",
               "package_version": "0.5.4",
@@ -4420,7 +4432,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "reel-samsung-tv.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/reel-samsung-tv.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/reel-samsung-tv.wgt",
               "size": 17388931,
               "digest": "sha256:29ec1fa625df8c1029bcb4da0413324bb07c78ddf8fdaeaa4f105da8e4c2d3fe",
               "package_version": "0.7.2",
@@ -4432,7 +4444,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Reelo.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Reelo.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Reelo.wgt",
               "size": 12839846,
               "digest": "sha256:14c7487e7128a1ff7be193b984f418c9f72bf332bad584aa883039201d4f558a",
               "package_version": "0.17.18",
@@ -4444,7 +4456,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Reiverr.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Reiverr.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Reiverr.wgt",
               "size": 7656286,
               "digest": "sha256:faf2ef23fa73d527ee3e8d581952051016e543f61d0b7b44d6b87fd6dfd92239",
               "package_version": "1.0.0",
@@ -4456,7 +4468,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Reolink2Samsung.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Reolink2Samsung.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Reolink2Samsung.wgt",
               "size": 174374,
               "digest": "sha256:b621b603ea751b0fec9032d27c37b16166cd32cff370eed02a58ca9307eb1578",
               "package_version": "1.1.0",
@@ -4468,7 +4480,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "ReolinkViewer-legacy.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/ReolinkViewer-legacy.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/ReolinkViewer-legacy.wgt",
               "size": 77774,
               "digest": "sha256:f4cba0e5fbd03e9748563be762cc6f5a96434e4546c19f19526faace81055e29",
               "package_version": "1.1.0",
@@ -4480,7 +4492,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "ReolinkViewer.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/ReolinkViewer.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/ReolinkViewer.wgt",
               "size": 95544,
               "digest": "sha256:c80d562718b1a8fa09b71e12190b81b53aee269172bdb49dec2a59f6807150ff",
               "package_version": "1.1.0",
@@ -4492,7 +4504,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "RetroArch.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/RetroArch.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/RetroArch.wgt",
               "size": 116285,
               "digest": "sha256:4c20a26f6e79c7da40afec2107addf274022285768334c92530d3626551f9813",
               "package_version": "0.3.2",
@@ -4504,7 +4516,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "RetroArch_dust-7.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/RetroArch_dust-7.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/RetroArch_dust-7.wgt",
               "size": 28719406,
               "digest": "sha256:b357ed2c63bbf2c5bfec455736e5dd3e8c2c8c261cce4aecaae11cb8015a40ee",
               "package_version": "0.1.1",
@@ -4516,7 +4528,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "RetroTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/RetroTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/RetroTV.wgt",
               "size": 43492,
               "digest": "sha256:87d0bd355ca42a45385da9d204687454834474e0ed17838ed4e2e4f373222f49",
               "package_version": "0.1.0",
@@ -4528,7 +4540,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "RTSP-Camera-Viewer.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/RTSP-Camera-Viewer.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/RTSP-Camera-Viewer.wgt",
               "size": 97191,
               "digest": "sha256:4113c8617d693f0ed45d5a8185ca13871f4aad23d255432aba2c879fd3a1756b",
               "package_version": "1.0.0",
@@ -4540,7 +4552,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "RTSPViewer-legacy.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/RTSPViewer-legacy.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/RTSPViewer-legacy.wgt",
               "size": 136528,
               "digest": "sha256:1ffc7f46e30058fc0fa92f8c619a01252db4cd14363f16aab7cbed3ad9bbac8a",
               "package_version": "1.0.0",
@@ -4552,7 +4564,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "RTSPViewer.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/RTSPViewer.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/RTSPViewer.wgt",
               "size": 154895,
               "digest": "sha256:48bffe5ac1823d7e412320b08948cfb50d04e953155519a9383940c8c408ea7e",
               "package_version": "1.0.0",
@@ -4564,7 +4576,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "RUVKids.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/RUVKids.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/RUVKids.wgt",
               "size": 714463,
               "digest": "sha256:697ccc915c85e80d5a18d77966c739a43d054eb8f09a802a98c81003d8a3d70a",
               "package_version": "1.2.0",
@@ -4576,7 +4588,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "RUVLive.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/RUVLive.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/RUVLive.wgt",
               "size": 447181,
               "digest": "sha256:62ced405c97a0feb9920accb7545ef292e0ec7bf49bb2215f9eb974f269c36ff",
               "package_version": "5.0.0",
@@ -4588,7 +4600,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "RUVMennta.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/RUVMennta.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/RUVMennta.wgt",
               "size": 659600,
               "digest": "sha256:ae0483e2bd22295050e160b6197a10ce1d6364b44b7670da367922d6ea9eb507",
               "package_version": "1.0.0",
@@ -4600,7 +4612,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "RUVUng.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/RUVUng.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/RUVUng.wgt",
               "size": 663925,
               "digest": "sha256:3447d4bf60c95b553a29040f11768b812d177bf2e4a1ac2a0b69f41d726d4e20",
               "package_version": "1.0.0",
@@ -4612,7 +4624,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "RUVUtvarp.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/RUVUtvarp.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/RUVUtvarp.wgt",
               "size": 690285,
               "digest": "sha256:265960ea45e92e95963ec6155e6cd0c70aff4baf50bf570170935bfd098d7423",
               "package_version": "1.0.0",
@@ -4624,7 +4636,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "RUVVod.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/RUVVod.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/RUVVod.wgt",
               "size": 670098,
               "digest": "sha256:87cb240650c139314bad866a9e7a57fc725379069791adedb3cc3ad62c14c208",
               "package_version": "3.0.0",
@@ -4636,7 +4648,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "SalahLauncher.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/SalahLauncher.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/SalahLauncher.wgt",
               "size": 16044381,
               "digest": "sha256:ed0b46da10b270eea93b7c274c82b60064f9348bf2ed7a602a48a9b87f795e16",
               "package_version": "8.7.20",
@@ -4648,7 +4660,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "SamSUCKS.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/SamSUCKS.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/SamSUCKS.wgt",
               "size": 1213808,
               "digest": "sha256:1ff07c9b825e475ce8950c66b1ce89ea53a68be11d716e509cabc09284fef8ed",
               "package_version": "0.1.0",
@@ -4660,7 +4672,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "sard-samsung.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/sard-samsung.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/sard-samsung.wgt",
               "size": 695184,
               "digest": "sha256:6fb65aed63343984b29bce06c49470de1a5d397ede32e9be8abd59997ad7ddea",
               "package_version": "0.1.8",
@@ -4672,7 +4684,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "SeanimeTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/SeanimeTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/SeanimeTV.wgt",
               "size": 227156,
               "digest": "sha256:b6dc4a0a14d41c64c83ec2b505d82fb4b4b02e5ffc374a90762442cf318a0e1a",
               "package_version": "1.0.0",
@@ -4684,7 +4696,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Sendspin-Cinema.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Sendspin-Cinema.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Sendspin-Cinema.wgt",
               "size": 2030146,
               "digest": "sha256:e4fb8e5db12a540e4af069696581b494454eed0a55316c74b53ee5e800e0d23f",
               "package_version": "1.0.0",
@@ -4696,7 +4708,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Settle.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Settle.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Settle.wgt",
               "size": 247661,
               "digest": "sha256:37325a2687b9a2292f473bb28d68bfcec7b80e8b039a4b140cb7d01ca894eb72",
               "package_version": "1.1.1",
@@ -4708,7 +4720,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "ShmupCup.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/ShmupCup.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/ShmupCup.wgt",
               "size": 1079662,
               "digest": "sha256:13672354891620546100cff9f1e9f076f1cd79d7f7ba66ffbab6d9f47377de5f",
               "package_version": "1.0.1",
@@ -4720,7 +4732,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Shutter.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Shutter.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Shutter.wgt",
               "size": 116572,
               "digest": "sha256:e50f18b9c12f88390b7b0e7ea383133cf5192ea4b3e83bccba4e17bb638affa5",
               "package_version": "1.0.0",
@@ -4732,7 +4744,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "SKY-IPTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/SKY-IPTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/SKY-IPTV.wgt",
               "size": 77368,
               "digest": "sha256:24301701ab27c4f9e648ddd8e267ce888ee361f79603328206afa985a3809923",
               "package_version": "1.0.0",
@@ -4744,7 +4756,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "SmartTV_Twitch.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/SmartTV_Twitch.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/SmartTV_Twitch.wgt",
               "size": 424747,
               "digest": "sha256:25d121f5b4fa448101e02a9d0f10473a19c8882877821d2425043b94be916fed",
               "package_version": "4.0.1",
@@ -4756,7 +4768,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Snake-Game.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Snake-Game.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Snake-Game.wgt",
               "size": 46266,
               "digest": "sha256:4a6894447124f4e44b37306ce906e7a7da1765a7d61715a6c2008710f0dd5581",
               "package_version": "1.2.0",
@@ -4768,7 +4780,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Sonance3-Oblong.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Sonance3-Oblong.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Sonance3-Oblong.wgt",
               "size": 164002,
               "digest": "sha256:bac36304bcc8e14fc51d1f66b466718cf55bcd9bb246bb56c360dabf65c96d10",
               "package_version": "3.14.0",
@@ -4780,7 +4792,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Sonance3.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Sonance3.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Sonance3.wgt",
               "size": 108631,
               "digest": "sha256:f4d52649e3941e62d11697a71822b6f6507a6da709a08de44b54fed66355ca5c",
               "package_version": "3.14.0",
@@ -4792,7 +4804,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "SOVideoPlayer.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/SOVideoPlayer.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/SOVideoPlayer.wgt",
               "size": 26831,
               "digest": "sha256:962455cc04f39de3dc86f5b396d54bd0072c275fdb754ad57cb3c9a31aa49e89",
               "package_version": "1.3.0",
@@ -4804,7 +4816,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Spelunkr.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Spelunkr.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Spelunkr.wgt",
               "size": 4809,
               "digest": "sha256:9bc399106f4aff99aa6ba4f769669496eed3e0924ed3beabd5d4283ff9650862",
               "package_version": "1.1.0",
@@ -4816,7 +4828,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Sportlink-Club-Viewer.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Sportlink-Club-Viewer.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Sportlink-Club-Viewer.wgt",
               "size": 3682129,
               "digest": "sha256:691a9ae63e7a094d52f39dd2693a928402613553d2f7b1c2c06a20aed2e1c925",
               "package_version": "1.1.0",
@@ -4828,7 +4840,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "StashZen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/StashZen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/StashZen.wgt",
               "size": 314390,
               "digest": "sha256:0548034a29ccd7759d5b31de9c75d59f8256ad8b3db58ac7a76bd3ded0c47909",
               "package_version": "0.45.0",
@@ -4840,7 +4852,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "StreamixTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/StreamixTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/StreamixTV.wgt",
               "size": 3322262,
               "digest": "sha256:0c8b44096b59c253f150767ca49770c7a459be6e311370c6a39ca9f09e56e4ec",
               "package_version": "1.0.027",
@@ -4852,7 +4864,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "StreamVault-tizen5.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/StreamVault-tizen5.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/StreamVault-tizen5.wgt",
               "size": 537010,
               "digest": "sha256:4458db46a0f6625d114b8cd1909da0a07fff7f14369d1c4922c2bc66efb2ea19",
               "package_version": "1.0.0",
@@ -4864,7 +4876,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "StreamVault.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/StreamVault.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/StreamVault.wgt",
               "size": 448733,
               "digest": "sha256:4b81deb61d4bf1c8d54a5db1467e28822d1be210bbbbf9d23f12ae567a393c54",
               "package_version": "1.0.0",
@@ -4876,7 +4888,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Stremio-Tizen4.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Stremio-Tizen4.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Stremio-Tizen4.wgt",
               "size": 3130441,
               "digest": "sha256:37375e1315fd9fe215d9e96984c2eadbe1aff4a1ae6d01edf7f688cf0c212d31",
               "package_version": "1.5.0",
@@ -4888,7 +4900,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "StremioK.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/StremioK.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/StremioK.wgt",
               "size": 3158453,
               "digest": "sha256:41cb2065b3dd02974826688fee730f299c553fafb35c9917abc85ee76b2bfe28",
               "package_version": "2.4.9",
@@ -4900,7 +4912,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "SubTizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/SubTizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/SubTizen.wgt",
               "size": 71808,
               "digest": "sha256:06ec952b654de9266df5802bcd75eb1bf1f75f11e632d3c0c28c3e198fa4daed",
               "package_version": "1.1",
@@ -4912,7 +4924,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "tacplayer.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/tacplayer.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/tacplayer.wgt",
               "size": 13844074,
               "digest": "sha256:db85db6ff7e05658f7d3666ec0b6794d5fb8e542ebfd7572ae550ea4040a40e1",
               "package_version": "0.1.0",
@@ -4924,7 +4936,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Tailscale.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Tailscale.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Tailscale.tpk",
               "size": 9903069,
               "digest": "sha256:6ee4ace2566650aaa42a42d07dc10601171b50e26eda9c76b14ce0214a995f77",
               "package_version": "0.1.0",
@@ -4936,7 +4948,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Telegram-Videos.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Telegram-Videos.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Telegram-Videos.wgt",
               "size": 1921630,
               "digest": "sha256:24d9864878e53ef91b4e182c821b6705de3e998f1685ba2038904bcdf8709cef",
               "package_version": "1.2.9",
@@ -4948,7 +4960,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Tessel.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Tessel.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Tessel.wgt",
               "size": 657513,
               "digest": "sha256:68d8ed9dfa2f5d035dbff983a47aba4899f65fac08311d4f721887a97c298760",
               "package_version": "1.37.6",
@@ -4960,7 +4972,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Tizen-IPTV-Player.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Tizen-IPTV-Player.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Tizen-IPTV-Player.wgt",
               "size": 67715,
               "digest": "sha256:112bc2fa2d3668abb8d7d3ad82aa8994407103ad56c692c7f66fffbb396ce765",
               "package_version": "1.0.0",
@@ -4972,7 +4984,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "tizen-youtube-tizen-5.0.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/tizen-youtube-tizen-5.0.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/tizen-youtube-tizen-5.0.wgt",
               "size": 795032,
               "digest": "sha256:fd54d2fa908919f2a03dcbf805d7d95027124f369851dc22b3080d89e216f45a",
               "package_version": "1.6.0",
@@ -4984,7 +4996,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "tizen-youtube-tizen-5.5.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/tizen-youtube-tizen-5.5.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/tizen-youtube-tizen-5.5.wgt",
               "size": 715172,
               "digest": "sha256:09cde0f5d6ee562b210d90a83978f9f4546fc3b80ee17199aff4558d350d9093",
               "package_version": "1.6.0",
@@ -4996,7 +5008,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TizenAmbilight.tpk",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TizenAmbilight.tpk",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TizenAmbilight.tpk",
               "size": 60478,
               "digest": "sha256:22caa912a8df6be98b178e33ed336c4debee791be0bbdd483a5a37127f4018c7",
               "package_version": "1.0.2",
@@ -5008,7 +5020,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TizenBrew.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TizenBrew.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TizenBrew.wgt",
               "size": 914982,
               "digest": "sha256:4ff4f1d7e400b13ab40e56d928c714e0a0858a818ada180f6c90719398503fbc",
               "package_version": "2.0.5",
@@ -5020,7 +5032,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TizenDebugApp-tizen3.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TizenDebugApp-tizen3.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TizenDebugApp-tizen3.wgt",
               "size": 26841,
               "digest": "sha256:a35f863a61062c3a775e75d738af71b35e7839d90f1114bbe77043ce56026fd3",
               "package_version": "1.0.0",
@@ -5032,7 +5044,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TizenDebugApp.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TizenDebugApp.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TizenDebugApp.wgt",
               "size": 37413,
               "digest": "sha256:626f49042c37d5fd725cddde48d990e8333dc6e6add4e015fdef3b1decd1b2c0",
               "package_version": "1.0.0",
@@ -5044,7 +5056,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TizenOsAmbilight.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TizenOsAmbilight.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TizenOsAmbilight.wgt",
               "size": 129429,
               "digest": "sha256:3d4d01325e5037d2074ad6d5d2dc52ff41d8b93ef0fb3a7f38aa87046ab23dbd",
               "package_version": "1.3.0",
@@ -5056,7 +5068,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TizenSteamLink.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TizenSteamLink.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TizenSteamLink.wgt",
               "size": 403479,
               "digest": "sha256:50ab5cacfafdeb9d9db9bc13d0ee30de1304825861632ab862911abf39d71e23",
               "package_version": "0.4.0",
@@ -5068,7 +5080,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TizenTube-2.4-Native.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TizenTube-2.4-Native.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TizenTube-2.4-Native.wgt",
               "size": 1248691,
               "digest": "sha256:56d05db89ff3f4437686647caea5d6f782beeb91b18c9875518083053611b0ea",
               "package_version": "1.0.2",
@@ -5080,7 +5092,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TizenTube-old-tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TizenTube-old-tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TizenTube-old-tizen.wgt",
               "size": 995205,
               "digest": "sha256:2aa259a2cc63e49c741b0bc70e677af55d21f8dc260499d678ad4d4482f1acb5",
               "package_version": "2.5.0",
@@ -5092,7 +5104,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TizenUtility.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TizenUtility.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TizenUtility.wgt",
               "size": 14497,
               "digest": "sha256:2f5a0d9eca16d285bd154637267ac5be7c6fc9a8400e57677ac14bcf094b9ad1",
               "package_version": "1.1.1",
@@ -5104,7 +5116,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TorrStream-ffprobe.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TorrStream-ffprobe.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TorrStream-ffprobe.wgt",
               "size": 19306139,
               "digest": "sha256:8a9423f4a53f4a3690e9dca1ece2964cbbe50f178048e0311db1a1398eae0137",
               "package_version": "1.2.0",
@@ -5116,7 +5128,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TorrStream.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TorrStream.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TorrStream.wgt",
               "size": 297391,
               "digest": "sha256:8f60af72717e362def4bb68fde1e036d8d90342079ffbdec8e2c9310e0008d0c",
               "package_version": "1.2.0",
@@ -5128,7 +5140,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TorrStreaming.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TorrStreaming.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TorrStreaming.wgt",
               "size": 21655759,
               "digest": "sha256:6d76e5bb8604661a81dbb228e504eef2e58d1effa2f8dcc37716532431083bfc",
               "package_version": "1.0.0",
@@ -5140,7 +5152,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TransportTycoonDeluxe.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TransportTycoonDeluxe.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TransportTycoonDeluxe.wgt",
               "size": 4621391,
               "digest": "sha256:d2e9f2d46d1b6702c049e40e8cb799277e8a747436d3d8f60151242db2350ade",
               "package_version": "15.3",
@@ -5152,7 +5164,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TubeArchivist-TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TubeArchivist-TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TubeArchivist-TV.wgt",
               "size": 71578,
               "digest": "sha256:cae5e73aec5cdbc96a68801e2cb32f37e06e741164746a283b4e792a807094d6",
               "package_version": "1.0.0",
@@ -5164,7 +5176,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TV-Clock.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TV-Clock.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TV-Clock.wgt",
               "size": 59410,
               "digest": "sha256:766e3dfea9325aacd8c4c235cbe173dcb55783b3471a8abdc29544892b46faab",
               "package_version": "1.2.1",
@@ -5176,7 +5188,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TV-Dashboard.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TV-Dashboard.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TV-Dashboard.wgt",
               "size": 635632,
               "digest": "sha256:61344f345978964388ac4b855a3f97d73f06dd412ea70cd8925e88f699263564",
               "package_version": "1.6.0",
@@ -5188,7 +5200,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TV-Store.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TV-Store.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TV-Store.wgt",
               "size": 269190,
               "digest": "sha256:1a1758b2ee087f90dcdac366e3f892975e364f48277d1400ad6581095f035ebb",
               "package_version": "0.3.39",
@@ -5200,7 +5212,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "TVApp.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/TVApp.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/TVApp.wgt",
               "size": 979034,
               "digest": "sha256:65d6db96b3a9bbf266c372e4e57b21e644942eb0f1bf4fcec3ea20cf9452957e",
               "package_version": "1.0.0",
@@ -5212,7 +5224,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Twitch-Old-Tizen.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Twitch-Old-Tizen.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Twitch-Old-Tizen.wgt",
               "size": 428212,
               "digest": "sha256:057440c7c8b85f4ff325019195e21599c11c33ab6ecf93b95b3a8f2b5a5ab967",
               "package_version": "4.1.5",
@@ -5224,7 +5236,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "UltimatiumTube-Tizen50.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/UltimatiumTube-Tizen50.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/UltimatiumTube-Tizen50.wgt",
               "size": 2138898,
               "digest": "sha256:ad1c3d06ddf1b5a7bce6e51a7e3f83c4f67f8211d1578112bf4ba8b41c73e40f",
               "package_version": "1.17.0",
@@ -5236,7 +5248,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "UltimatiumTube-Tizen55.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/UltimatiumTube-Tizen55.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/UltimatiumTube-Tizen55.wgt",
               "size": 2057249,
               "digest": "sha256:f2f73774263323647640c5dcac7d997be79f2bcf8c71438c77203a795643395a",
               "package_version": "1.17.0",
@@ -5248,7 +5260,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "UniFi-Cameras.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/UniFi-Cameras.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/UniFi-Cameras.wgt",
               "size": 23892,
               "digest": "sha256:1ae260fddece8ee00071684a239b766fc6ab81d7cb8577fa98d409daf2e06c98",
               "package_version": "1.0.0",
@@ -5260,7 +5272,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "VeloVistrix.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/VeloVistrix.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/VeloVistrix.wgt",
               "size": 438566,
               "digest": "sha256:190b39b409198b948980a1f531690f0d0d57c5a8786a31c46cbe4129c0c0a340",
               "package_version": "0.1.0",
@@ -5272,7 +5284,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "velox.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/velox.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/velox.wgt",
               "size": 400955,
               "digest": "sha256:755e98327934371e656eab8371bb74a460b092698cef0dab5e0de87fcd021ce7",
               "package_version": "1.3.1",
@@ -5284,7 +5296,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Velvet-TV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Velvet-TV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Velvet-TV.wgt",
               "size": 188680,
               "digest": "sha256:803dedc9c131ef4b66ca72e0fb382813515e7682fc575fc149ac7d8b2210ce39",
               "package_version": "__VELVET_TV_VERSION__",
@@ -5296,7 +5308,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Vemm.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Vemm.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Vemm.wgt",
               "size": 291215,
               "digest": "sha256:5bd0e7dda46567a36f287a796e734ad57d6776e6859869465489af14307ff761",
               "package_version": "0.10.0",
@@ -5308,7 +5320,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Vetro.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Vetro.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Vetro.wgt",
               "size": 2009764,
               "digest": "sha256:e52ac8761d76b00b0181ff31a6b227b607aef426f41646d1455a354bc5ca99a0",
               "package_version": "0.7.0",
@@ -5320,7 +5332,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "VexonTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/VexonTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/VexonTV.wgt",
               "size": 11629864,
               "digest": "sha256:8f75f982d4d680b2b23cc7cd8a8cd3511a6a5344b357b8514fc1e4fc163aa51d",
               "package_version": "1.0.0",
@@ -5332,7 +5344,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "VideoPlayer.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/VideoPlayer.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/VideoPlayer.wgt",
               "size": 61404893,
               "digest": "sha256:04345240c0e6ed017041520cb84e68fb2a2b0bc77a6ed55263abe8df67e61f2b",
               "package_version": "1.0.0",
@@ -5344,7 +5356,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "VortixTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/VortixTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/VortixTV.wgt",
               "size": 1346922,
               "digest": "sha256:1f941ad4f539f2e94bdd46f2077e7a87437eae879509bc5d84567858da36c502",
               "package_version": "2.2.0",
@@ -5356,7 +5368,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Wall.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Wall.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Wall.wgt",
               "size": 9543,
               "digest": "sha256:020f05379b40b8a2604a8fb6ba2048cc97035d9b9ec5734b7f129c3f74c938bd",
               "package_version": "1.0.0",
@@ -5368,7 +5380,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "Xtivio-IPTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/Xtivio-IPTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/Xtivio-IPTV.wgt",
               "size": 2752078,
               "digest": "sha256:771c45ae9e31a258a2de8de4e08225b3b160259ed9aa2fb63379d814c2ae3dd8",
               "package_version": "1.0.12",
@@ -5380,7 +5392,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "XtreamIPTV.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/XtreamIPTV.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/XtreamIPTV.wgt",
               "size": 44596,
               "digest": "sha256:375f402aee4100acc5042db152a8dff448ee683e46c0fa98bf26a444c34f258e",
               "package_version": "1.0.0",
@@ -5390,7 +5402,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             },
             {
               "name": "youtube-dummy.wgt",
-              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/youtube-dummy.wgt",
+              "browser_download_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/youtube-dummy.wgt",
               "size": 20385,
               "digest": "sha256:68f5d13d1e7723c5ace1ddb1bbbd6c12628340cbccfa07a9133dc61d18aac12a",
               "package_version": "1.0.0",
@@ -5401,7 +5413,7 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
               "icon_digest": "sha256:d5dd281191ea3e7f90ccdcc6207c23f4e0dbcbac7d82016cf6e3ac6afea33cdb"
             }
           ],
-          "catalog_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-922/catalog.json"
+          "catalog_url": "https://github.com/Apps2Samsung/tizen-community-packages/releases/download/community-923/catalog.json"
         }
       ],
       "catalog": {
@@ -5760,6 +5772,19 @@ oaLJJrH957w7VZhMc967S/SxMJP+Ox7G4MzOEfvrPPGRqBETgSG8YZT+wUY1LsSkS0HLvI8N6NVGLl1P
             "app_id": "yKdEw6j88z.TizenTVAudioRecorder",
             "package_id": "yKdEw6j88z",
             "required_version": "2.3"
+          },
+          {
+            "file": "Auger.wgt",
+            "name": "Auger",
+            "description": "Third-party Samsung TV client for Silo self-hosted media servers (Tizen 8.0\u002B).",
+            "category": "media",
+            "variant": "Auger",
+            "repo": "Artic0din/Auger-Tizen",
+            "host": "github",
+            "version": "0.2.0",
+            "app_id": "AugerTv001.Auger",
+            "package_id": "AugerTv001",
+            "required_version": "8.0"
           },
           {
             "file": "Baobab.wgt",
