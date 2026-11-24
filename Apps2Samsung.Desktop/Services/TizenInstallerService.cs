@@ -1087,6 +1087,18 @@ namespace Apps2Samsung.Services
             }
         }
 
+        public async Task<Apps2Samsung.Sdb.UninstallVerdict> UninstallAndCheckAsync(string tvIpAddress, string tizenId)
+        {
+            try
+            {
+                return await Apps2Samsung.Sdb.AppUninstall.RunAsync(_sdb, tvIpAddress, tizenId);
+            }
+            finally
+            {
+                await _sdb.DisconnectAsync(tvIpAddress);
+            }
+        }
+
         public async Task LaunchAppAsync(string tvIpAddress, string tizenId)
         {
             try

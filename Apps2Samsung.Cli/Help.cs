@@ -42,7 +42,8 @@ public static class Help
           -q, --quiet                  no progress lines
           --plain                      text only: no colours, cards or live progress (as when piped, or with NO_COLOR)
           -y, --yes                    answer yes where a command would stop and ask: pre-install warnings,
-                                       overwriting a file, replacing a certificate, trusting a repository key
+                                       overwriting a file, replacing a certificate, trusting a repository key,
+                                       removing one of the TV's own apps
           --tv <ip>                    the TV's IP address (from `scan`)
           --local-ip <ip>              this machine's address on the TV's network (default: the desktop app's
                                        network setting, else the default route; set it on a VPN)
@@ -393,11 +394,15 @@ public static class Help
         """;
 
     public const string Uninstall = """
-        usage: apps2samsung-cli uninstall <appId> --tv <ip> [--json]     (alias: remove)
+        usage: apps2samsung-cli uninstall <appId> --tv <ip> [--yes] [--json]     (alias: remove)
 
         Removes an app from the TV. <appId> is the id `installed --tv <ip>` prints, not the catalog name.
         An id that is not on the TV is reported as such and still exits 0, so a script that only wants
-        the app gone can run it twice. Store and preinstalled apps can only be removed on the TV itself.
+        the app gone can run it twice. Whether the app is gone is read off the TV's app list afterwards.
+
+        An app the TV lists as one of its own (not removable in `installed`) stops with exit code 3
+        unless --yes is given. The TV may refuse to remove it, and its answer is then printed. If it
+        does remove it, the app has to come from the TV's own Apps store again.
         """;
 
     public const string Launch = """

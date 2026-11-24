@@ -260,7 +260,7 @@
                                                             <MenuItem Header="{l:Localize lblDebug}"
                                                                       Command="{ReflectionBinding $parent[UserControl].DataContext.DebugCommand}"
                                                                       CommandParameter="{Binding App}"/>
-                                                            <MenuItem Header="{l:Localize lblUninstall}" IsVisible="{Binding App.IsRemovable}"
+                                                            <MenuItem Header="{l:Localize lblUninstall}"
                                                                       Foreground="{DynamicResource BadBrush}"
                                                                       Command="{ReflectionBinding $parent[UserControl].DataContext.UninstallCommand}"
                                                                       CommandParameter="{Binding App}"/>

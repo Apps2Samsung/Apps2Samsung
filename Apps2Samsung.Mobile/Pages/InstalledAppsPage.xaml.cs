@@ -12,8 +12,8 @@ namespace Apps2Samsung.Mobile.Pages;
 
 /// <summary>
 /// A quick overview of the apps installed on a TV (parsed from the shared <c>vd_applist</c> query via
-/// <see cref="TizenInstalledApps"/>), with a per-app uninstall for user-removable apps. Read-only for
-/// system apps.
+/// <see cref="TizenInstalledApps"/>), with a per-app uninstall. The TV's own apps get a
+/// warning first and the TV's refusal when it keeps them (#1175).
 /// </summary>
 public partial class InstalledAppsPage : ContentPage
 {
@@ -552,9 +552,13 @@ public partial class InstalledAppsPage : ContentPage
 	private async Task UninstallAsync(InstalledApp app)
 	{
 
+		// An app the TV lists as one of its own (#1175) gets a question of its own: the TV may well
+		// keep it, and one it does remove cannot be installed again from here.
 		var confirm = await DisplayAlert(
 			L10n.Get("lblUninstallApp"),
-			string.Format(L10n.Get("statusConfirmUninstall"), app.DisplayName, _tvLabel, app.TizenId),
+			app.IsRemovable
+				? string.Format(L10n.Get("statusConfirmUninstall"), app.DisplayName, _tvLabel, app.TizenId)
+				: string.Format(L10n.Get(AppUninstall.ConfirmBuiltInKey), app.DisplayName, app.TizenId),
 			L10n.Get("lblUninstall"), L10n.Get("lblCancel"));
 		if (!confirm)
 			return;
@@ -562,15 +566,17 @@ public partial class InstalledAppsPage : ContentPage
 		SetBusy(true, string.Format(L10n.Get("statusUninstalling"), app.DisplayName));
 		try
 		{
-			var result = await _sdb.UninstallAsync(_tvIp, app.TizenId);
-			// The TV reports a not-installed code when the app is already gone - treat that as success.
-			var ok = result.ExitCode == 0 ||
-					 (result.Output?.Contains("failed[132]", StringComparison.OrdinalIgnoreCase) ?? false);
-			if (!ok)
+			// Gone means gone from the TV's list read again, not what the answer said: a set can
+			// refuse without a word, and the not-installed code is "was not there".
+			var verdict = await AppUninstall.RunAsync(_sdb, _tvIp, app.TizenId);
+			if (verdict.Outcome == UninstallOutcome.Kept)
 			{
 				SetBusy(false);
 				await DisplayAlert(L10n.Get("lblUninstallFailed"),
-					string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() : result.Error, L10n.Get("lblOk"));
+					app.IsRemovable
+						? verdict.Reply ?? L10n.Get("lblUninstallFailed")
+						: AppUninstall.KeptBuiltInMessage(app.DisplayName, verdict.Reply, L10n.Get),
+					L10n.Get("lblOk"));
 				return;
 			}
 		}
@@ -615,6 +621,14 @@ public partial class InstalledAppsPage : ContentPage
 	// restarts and whatever the user was watching goes away.
 	private async Task DebugAsync(InstalledApp app)
 	{
+		// A native app has no web inspector: said here, before the app is restarted and the console
+		// waits out an answer the TV will not give.
+		if (Apps2Samsung.Catalog.NativeApps.IsKnownNative(app, CatalogStore.Releases, MobileSettings.PackageIdRenamesJson,
+				MobileSettings.InstalledVariantsJson, _tvIp))
+		{
+			await DisplayAlert(L10n.Get("lblDebugConsole"), string.Format(L10n.Get("statusDebugNativeApp"), app.DisplayName), L10n.Get("lblOk"));
+			return;
+		}
 
 		var confirm = await DisplayAlert(
 			L10n.Get("lblDebugConsole"),

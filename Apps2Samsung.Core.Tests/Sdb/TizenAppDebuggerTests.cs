@@ -121,10 +121,15 @@ public class TizenAppDebuggerTests
     {
         var sdb = new RecordingSdb { Silent = command => command.StartsWith("0 debug ", StringComparison.Ordinal) };
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+        var ex = await Assert.ThrowsAnyAsync<InvalidOperationException>(
             () => TizenAppDebugger.StartAsync(sdb, "10.114.0.5", "Pkg.App", localPort: 41007));
 
         Assert.Contains("never reported an inspector port", ex.Message);
+        // A native app answers exactly like this, and the head cannot always know it is one: the
+        // failure text gets the head's own (translated) hint, other failures do not.
+        Assert.IsType<DebugNoAnswerException>(ex);
+        Assert.EndsWith(" [hint]", TizenAppDebugger.FailureText(ex, key => key == TizenAppDebugger.NativeAppHintKey ? "[hint]" : key));
+        Assert.Equal("refused", TizenAppDebugger.FailureText(new InvalidOperationException("refused"), key => "[hint]"));
         Assert.Equal(2, sdb.Calls.Count(call => call.StartsWith("shell 0 debug ", StringComparison.Ordinal)));
         Assert.DoesNotContain(sdb.Calls, call => call.StartsWith("forward ", StringComparison.Ordinal));
     }
@@ -140,7 +145,7 @@ public class TizenAppDebuggerTests
             Refuse = $"Pkg.App {TizenAppDebugger.LegacyDebugWait}",
         };
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+        var ex = await Assert.ThrowsAnyAsync<InvalidOperationException>(
             () => TizenAppDebugger.StartAsync(sdb, "10.114.0.6", "Pkg.App", localPort: 41008));
 
         Assert.Contains("never reported an inspector port", ex.Message);

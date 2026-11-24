@@ -45,6 +45,8 @@ namespace Apps2Samsung.Interfaces
         /// there. Never throws: the message says what happened.
         /// </summary>
         Task<(bool Restored, string Message)> RestoreTvStoreAsync(string tvIpAddress, System.Text.Json.JsonElement backup, System.IProgress<string>? progress = null);
+        /// <summary>Removes an app and reads the TV's app list again for what became of it (#1175).</summary>
+        Task<Apps2Samsung.Sdb.UninstallVerdict> UninstallAndCheckAsync(string tvIpAddress, string tizenId);
 
         /// <summary>Gathers the TV's details (DUID, Tizen version, developer mode/IP, …) for the
         /// "TV information" view, using the shared Core gatherer.</summary>
