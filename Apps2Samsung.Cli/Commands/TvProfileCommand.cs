@@ -76,6 +76,9 @@ public static class TvProfileCommand
                     {
                         TvProfiles.SetTvStore(profile, backup);
                         TvStoreBackups.Set(ip, backup, DateTimeOffset.UtcNow);
+                        // The automatic copy of this TV is written again off this thread; a command
+                        // that ends here would cut it short.
+                        TvBackups.WaitForPending(TimeSpan.FromSeconds(5));
                     }
                     tvStoreLine = message;
                     break;
