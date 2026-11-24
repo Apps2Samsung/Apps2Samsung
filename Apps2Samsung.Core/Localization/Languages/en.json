@@ -1441,6 +1441,8 @@
   "lblSavedTvAppsOne": "1 app",
   "lblSavedTvAppsMany": "{0} apps",
   "lblSavedTvSavedOn": "saved {0}",
+  "hintTvBackupGoesTo": "A copy of each list is also saved by itself as a file: {0} \u00b7 the last {1} per TV are kept. Restore a TV from a file reads it, on this device or another one.",
+  "lblTvBackupFailed": "The last automatic copy of a TV's app list failed: {0}",
   "lblSavedTvMissingOne": "1 app missing",
   "lblSavedTvMissingMany": "{0} apps missing",
   "lblSavedTvRestore": "Restore…",

@@ -52,6 +52,12 @@ public sealed class CliServices : IAsyncDisposable
             Path.Combine(CliPaths.DataDir, Apps2Samsung.Certificate.CertificateBackups.IndexFileName),
             new Apps2Samsung.Certificate.FolderBackupTarget(Apps2Samsung.Certificate.CertificateBackups.DefaultFolder(CliPaths.DataDir)));
         Apps2Samsung.Certificate.CertificateBackups.Changed();
+        // The app list of each TV, kept by itself (#1069), with a copy next to the certificate backups
+        // (#1177): the desktop's files, as the CLI shares its data folder.
+        Apps2Samsung.Catalog.SavedTvs.Configure(Path.Combine(CliPaths.DataDir, Apps2Samsung.Catalog.SavedTvs.FileName));
+        Apps2Samsung.Catalog.TvBackups.Configure(
+            Path.Combine(CliPaths.DataDir, Apps2Samsung.Catalog.TvBackups.IndexFileName),
+            new Apps2Samsung.Certificate.FolderBackupTarget(Apps2Samsung.Catalog.TvBackups.DefaultFolder(CliPaths.DataDir)));
         // The session log (#975), except for `logs` itself, which would only list its own new file.
         if (options.Command is not ("logs" or "log"))
             CliLog.Start(Out, options);

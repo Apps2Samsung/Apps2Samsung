@@ -137,6 +137,8 @@ namespace Apps2Samsung.Catalog
                 Write(all);
                 result = saved;
             }
+            // A copy outside this device's data folder, when the apps in the list changed (#1177).
+            TvBackups.Changed(result);
             Changed?.Invoke();
             return result;
         }

@@ -61,6 +61,7 @@
                 <Button Text="{l:Localize lblSavedTvPick}" Style="{StaticResource PlainButton}" CornerRadius="12"
                         Clicked="OnRestoreTvFromFileClicked" />
                 <Label Style="{StaticResource RowHint}" Margin="4,0" Text="{l:Localize hintSavedTvsPhone}" />
+                <Label x:Name="TvBackupHint" Style="{StaticResource RowHint}" Margin="4,0" IsVisible="False" />
 
                 <Label Text="{l:Localize lblBackup}" Style="{StaticResource GroupTitle}" Margin="4,16,4,0" />
                 <Border Style="{StaticResource Card}" Padding="16,12">
