@@ -101,16 +101,6 @@ namespace Apps2Samsung.Helpers.Core
         }
 
         /// <summary>
-        /// Gets the ARP command arguments for the current platform.
-        /// </summary>
-        /// <param name="ipAddress">The IP address to query.</param>
-        /// <returns>The ARP command arguments.</returns>
-        public static string GetArpArguments(string ipAddress)
-        {
-            return IsWindows ? $"-a {ipAddress}" : $"-n {ipAddress}";
-        }
-
-        /// <summary>
         /// Gets the appropriate X509KeyStorageFlags for the current platform.
         /// </summary>
         /// <returns>The platform-appropriate key storage flags.</returns>
