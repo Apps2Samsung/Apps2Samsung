@@ -34,6 +34,19 @@ public class AppUninstallTests
         Assert.Null(verdict.Reply);
     }
 
+    // What the Tizen 10.0 emulator answers for an id it will not remove: three lines, the last one
+    // the timing every Samsung verb ends on.
+    [Fact]
+    public void TheReply_IsOneLine_WithoutTheTimingLine()
+    {
+        var verdict = AppUninstall.Judge(
+            Answer("uninstall org.tizen.netflix-app\nwas get app info failed\r\nspend time for wascmd is [3]ms\n"),
+            new[] { App("org.tizen.netflix-app") }, "org.tizen.netflix-app");
+
+        Assert.Equal("uninstall org.tizen.netflix-app, was get app info failed", verdict.Reply);
+        Assert.Null(AppUninstall.Judge(Answer("spend time for wascmd is [3]ms"), null, Id).Reply);
+    }
+
     [Fact]
     public void NoLongerListed_IsRemoved_EvenWhenTheAnswerReadsAsAFailure()
     {
@@ -75,13 +88,16 @@ public class AppUninstallTests
     [Fact]
     public void KeptBuiltInMessage_QuotesTheTv_OrSaysItWasSilent()
     {
-        Assert.Equal(
-            "The TV did not remove YouTube. It lists the app as one of its own, and those it keeps (it answered: uninstall failed[-3]).",
-            AppUninstall.KeptBuiltInMessage("YouTube", "uninstall failed[-3]"));
-        Assert.Equal(
-            "The TV did not remove YouTube. It lists the app as one of its own, and those it keeps. It gave no answer.",
-            AppUninstall.KeptBuiltInMessage("YouTube", null));
-        Assert.Equal("kept YouTube: no", AppUninstall.KeptBuiltInMessage("YouTube", "no", "kept {0}: {1}", "kept {0}"));
+        // The wording comes from en.json through the head's lookup, never from Core.
+        var strings = new Dictionary<string, string>
+        {
+            [AppUninstall.KeptBuiltInKey] = "kept {0}: {1}",
+            [AppUninstall.KeptBuiltInSilentKey] = "kept {0}, silently",
+        };
+
+        Assert.Equal("kept YouTube: uninstall failed[-3]", AppUninstall.KeptBuiltInMessage("YouTube", "uninstall failed[-3]", key => strings[key]));
+        Assert.Equal("kept YouTube, silently", AppUninstall.KeptBuiltInMessage("YouTube", null, key => strings[key]));
+        Assert.Equal("kept YouTube, silently", AppUninstall.KeptBuiltInMessage("YouTube", "  ", key => strings[key]));
     }
 
     [Fact]

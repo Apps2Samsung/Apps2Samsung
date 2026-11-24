@@ -38,18 +38,13 @@ namespace Apps2Samsung.Sdb
         /// <summary>The TV's code for "this app is not installed".</summary>
         public const string NotInstalledCode = "failed[132]";
 
-        /// <summary>The question before removing an app the TV lists as one of its own ({0} = its name).</summary>
-        public const string ConfirmBuiltIn =
-            "The TV lists {0} as one of its own apps. It may refuse to remove it. If it does remove it, " +
-            "Apps2Samsung cannot put it back: it would have to come from the TV's own Apps store again.";
-
+        // The wording lives in en.json, one set for every head: these are its keys.
+        /// <summary>The question before removing an app the TV lists as one of its own ({0} = its name, {1} = its id).</summary>
+        public const string ConfirmBuiltInKey = "statusConfirmUninstallBuiltIn";
         /// <summary>The TV kept one of its own apps ({0} = its name, {1} = the TV's answer).</summary>
-        public const string KeptBuiltIn =
-            "The TV did not remove {0}. It lists the app as one of its own, and those it keeps (it answered: {1}).";
-
-        /// <summary>As <see cref="KeptBuiltIn"/>, for a TV that answered nothing.</summary>
-        public const string KeptBuiltInSilent =
-            "The TV did not remove {0}. It lists the app as one of its own, and those it keeps. It gave no answer.";
+        public const string KeptBuiltInKey = "statusUninstallKeptBuiltIn";
+        /// <summary>As <see cref="KeptBuiltInKey"/>, for a TV that answered nothing ({0} = its name).</summary>
+        public const string KeptBuiltInSilentKey = "statusUninstallKeptBuiltInSilent";
 
         /// <summary>
         /// Asks the TV to remove <paramref name="tizenId"/> and reads its app list again for the outcome.
@@ -96,18 +91,29 @@ namespace Apps2Samsung.Sdb
         }
 
         /// <summary>
-        /// What to tell the user when the TV kept an app it lists as one of its own, from the two
-        /// templates a head supplies (its translations of <see cref="KeptBuiltIn"/> and
-        /// <see cref="KeptBuiltInSilent"/>).
+        /// What to tell the user when the TV kept an app it lists as one of its own.
+        /// <paramref name="localize"/> is the head's string lookup (<see cref="KeptBuiltInKey"/>,
+        /// <see cref="KeptBuiltInSilentKey"/>).
         /// </summary>
-        public static string KeptBuiltInMessage(string appName, string? reply, string withReply = KeptBuiltIn, string silent = KeptBuiltInSilent) =>
-            string.IsNullOrWhiteSpace(reply) ? string.Format(silent, appName) : string.Format(withReply, appName, reply);
+        public static string KeptBuiltInMessage(string appName, string? reply, Func<string, string> localize) =>
+            string.IsNullOrWhiteSpace(reply)
+                ? string.Format(localize(KeptBuiltInSilentKey), appName)
+                : string.Format(localize(KeptBuiltInKey), appName, reply);
 
         // The answer in the TV's words: the error when the engine reported one, else what it printed.
+        // On one line, as it is quoted inside a sentence, and without the timing line every Samsung
+        // verb ends on ("spend time for wascmd is [3]ms"), which says nothing about the outcome.
         private static string? ReplyOf(ProcessResult result)
         {
             var text = string.IsNullOrWhiteSpace(result.Error) ? result.Output : result.Error;
-            return string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+            if (string.IsNullOrWhiteSpace(text))
+                return null;
+
+            var lines = text.Split('\n')
+                .Select(line => line.Trim())
+                .Where(line => line.Length > 0 && !line.StartsWith("spend time for wascmd", StringComparison.OrdinalIgnoreCase));
+            var reply = string.Join(", ", lines);
+            return reply.Length == 0 ? null : reply;
         }
     }
 }

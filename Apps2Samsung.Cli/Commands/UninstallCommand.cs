@@ -31,7 +31,7 @@ public static class UninstallCommand
         var name = listed?.DisplayName ?? id;
         if (builtIn && !s.Options.Yes)
             return s.Out.Result(new { ok = false, tv = ip, appId = id, removed = false, builtIn = true },
-                new[] { BuiltInQuestion(name), "Nothing was removed: add --yes to ask the TV to remove it." }, Output.Stopped);
+                BuiltInQuestion(s.Strings.GetString, name, id).Append("Nothing was removed: add --yes to ask the TV to remove it."), Output.Stopped);
 
         // The id goes to the TV as given, the same as the desktop and mobile Installed apps views do:
         // cutting it at the first dot broke ids such as org.tizen.netflix-app (#855).
@@ -43,7 +43,7 @@ public static class UninstallCommand
         switch (verdict.Outcome)
         {
             case UninstallOutcome.Kept when builtIn:
-                return s.Out.Fail(AppUninstall.KeptBuiltInMessage(name, verdict.Reply));
+                return s.Out.Fail(AppUninstall.KeptBuiltInMessage(name, verdict.Reply, s.Strings.GetString));
             case UninstallOutcome.Kept when verdict.Verified:
                 return s.Out.Fail($"The TV refused to remove {id}{(verdict.Reply is null ? "" : $" (it answered: {verdict.Reply})")}: " +
                     "it is still in the TV's app list.");
@@ -59,6 +59,11 @@ public static class UninstallCommand
         }
     }
 
-    /// <summary>The warning before removing an app the TV lists as one of its own, as every head words it.</summary>
-    public static string BuiltInQuestion(string appName) => string.Format(AppUninstall.ConfirmBuiltIn, appName);
+    /// <summary>
+    /// The warning before removing an app the TV lists as one of its own, in the words every head
+    /// uses (en.json), one line of text per element.
+    /// </summary>
+    public static IEnumerable<string> BuiltInQuestion(Func<string, string> localize, string appName, string appId) =>
+        string.Format(localize(AppUninstall.ConfirmBuiltInKey), appName, appId)
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 }

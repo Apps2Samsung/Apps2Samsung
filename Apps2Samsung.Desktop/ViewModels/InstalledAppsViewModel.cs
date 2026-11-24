@@ -374,7 +374,7 @@ namespace Apps2Samsung.ViewModels
                 "lblUninstallApp".Localized(),
                 app.IsRemovable
                     ? string.Format("statusConfirmUninstall".Localized(), app.DisplayName, TvLabel, app.TizenId)
-                    : string.Format("statusConfirmUninstallBuiltIn".Localized(), app.DisplayName, app.TizenId),
+                    : string.Format(Apps2Samsung.Sdb.AppUninstall.ConfirmBuiltInKey.Localized(), app.DisplayName, app.TizenId),
                 "lblUninstall".Localized(), "lblCancel".Localized(), destructive: true);
             if (!confirm)
                 return;
@@ -391,8 +391,7 @@ namespace Apps2Samsung.ViewModels
                     IsBusy = false;
                     await _dialogService.ShowErrorAsync(app.IsRemovable
                         ? verdict.Reply ?? "lblUninstallFailed".Localized()
-                        : Apps2Samsung.Sdb.AppUninstall.KeptBuiltInMessage(app.DisplayName, verdict.Reply,
-                            "statusUninstallKeptBuiltIn".Localized(), "statusUninstallKeptBuiltInSilent".Localized()));
+                        : Apps2Samsung.Sdb.AppUninstall.KeptBuiltInMessage(app.DisplayName, verdict.Reply, key => key.Localized()));
                     return;
                 }
                 // Removed on purpose: not an app to offer again after the next read (#1069).

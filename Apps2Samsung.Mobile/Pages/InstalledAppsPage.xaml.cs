@@ -469,7 +469,7 @@ public partial class InstalledAppsPage : ContentPage
 			L10n.Get("lblUninstallApp"),
 			app.IsRemovable
 				? string.Format(L10n.Get("statusConfirmUninstall"), app.DisplayName, _tvLabel, app.TizenId)
-				: string.Format(L10n.Get("statusConfirmUninstallBuiltIn"), app.DisplayName, app.TizenId),
+				: string.Format(L10n.Get(AppUninstall.ConfirmBuiltInKey), app.DisplayName, app.TizenId),
 			L10n.Get("lblUninstall"), L10n.Get("lblCancel"));
 		if (!confirm)
 			return;
@@ -486,8 +486,7 @@ public partial class InstalledAppsPage : ContentPage
 				await DisplayAlert(L10n.Get("lblUninstallFailed"),
 					app.IsRemovable
 						? verdict.Reply ?? L10n.Get("lblUninstallFailed")
-						: AppUninstall.KeptBuiltInMessage(app.DisplayName, verdict.Reply,
-							L10n.Get("statusUninstallKeptBuiltIn"), L10n.Get("statusUninstallKeptBuiltInSilent")),
+						: AppUninstall.KeptBuiltInMessage(app.DisplayName, verdict.Reply, L10n.Get),
 					L10n.Get("lblOk"));
 				return;
 			}

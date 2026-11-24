@@ -845,7 +845,8 @@ internal sealed class Menu
                     var args = new List<string> { "uninstall", app.AppId, "--tv", ip };
                     if (!app.Removable)
                     {
-                        _con.MarkupLine($"[{Views.WarnHex}]{E(UninstallCommand.BuiltInQuestion(app.Title))}[/]");
+                        foreach (var line in UninstallCommand.BuiltInQuestion(_s.Strings.GetString, app.Title, app.AppId))
+                            _con.MarkupLine($"[{Views.WarnHex}]{E(line)}[/]");
                         args.Add("--yes");
                     }
                     ShowLine(args.ToArray());
