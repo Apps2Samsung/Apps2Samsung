@@ -312,6 +312,22 @@ public sealed class TvStoreBackupTests : IDisposable
 
     // ---- The backup TV-Store hands out by itself (TV-Store#149, GET /backup/public) ----
 
+    [Fact]
+    public void ARestore_NamesTheSourcesToAddAgain()
+    {
+        var restored = TvStoreBackup.ParseRestoreReply(JsonNode.Parse("""
+            { "ok": true, "restored": true, "applied": { "certificates": 0, "sources": 1, "userSettings": 0,
+              "sourcesReenter": [ { "name": "Private", "domain": "private.example.net" }, { "name": "plain.example.org", "domain": "plain.example.org" } ] } }
+            """));
+        Assert.Equal("Private (private.example.net), plain.example.org", restored.SourcesToReenter);
+        Assert.Equal("statusTvStoreRestoreDone statusTvStoreRestoreApplied statusTvStoreRestoreReenter", TvStoreBackup.RestoreMessage(restored, Keys));
+        Assert.Contains("Private (private.example.net)", TvStoreBackup.RestoreMessage(restored, key => key == "statusTvStoreRestoreReenter" ? "again: {0}" : key));
+
+        var none = TvStoreBackup.ParseRestoreReply(JsonNode.Parse("""{ "ok": true, "restored": true, "applied": { "certificates": 0, "sources": 1, "userSettings": 0, "sourcesReenter": [] } }"""));
+        Assert.Null(none.SourcesToReenter);
+        Assert.DoesNotContain("Reenter", TvStoreBackup.RestoreMessage(none, Keys));
+    }
+
     private const string RelayWithRoute = """{ "ok": true, "relay": { "enabled": false }, "backupPublic": true }""";
     private const string RelayWithout = """{ "ok": true, "relay": { "enabled": false } }""";
 

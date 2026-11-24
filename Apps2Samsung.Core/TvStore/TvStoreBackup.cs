@@ -29,7 +29,11 @@ namespace Apps2Samsung.TvStore
     }
 
     /// <summary>How <c>A2SStore.restore</c> ended. The counts are what TV-Store says it took in, null when it did not say.</summary>
-    public sealed record TvStoreRestoreResult(TvStoreRestoreState State, int? Certificates = null, int? Sources = null, int? UserSettings = null, string? Error = null);
+    /// <param name="SourcesToReenter">The sources TV-Store did not add because the backup held only
+    /// the host of their address (one handed out without a code, TV-Store#149), as "name (host)"
+    /// joined with commas; null when there is none.</param>
+    public sealed record TvStoreRestoreResult(TvStoreRestoreState State, int? Certificates = null, int? Sources = null, int? UserSettings = null, string? Error = null,
+        string? SourcesToReenter = null);
 
     /// <summary>Why a head came back without a TV-Store backup. Not errors: the profile is saved without it.</summary>
     public enum TvStoreBackupSkipped
@@ -90,7 +94,27 @@ namespace Apps2Samsung.TvStore
             if (reply["restored"]?.GetValueKind() != JsonValueKind.True)
                 return new TvStoreRestoreResult(TvStoreRestoreState.Declined, Error: error);
             var applied = reply["applied"];
-            return new TvStoreRestoreResult(TvStoreRestoreState.Restored, Count(applied?["certificates"]), Count(applied?["sources"]), Count(applied?["userSettings"]));
+            return new TvStoreRestoreResult(TvStoreRestoreState.Restored, Count(applied?["certificates"]), Count(applied?["sources"]), Count(applied?["userSettings"]),
+                SourcesToReenter: Reenter(applied?["sourcesReenter"]));
+        }
+
+        // [{ "name": "Private", "domain": "private.example.net" }] as "Private (private.example.net)".
+        private static string? Reenter(JsonNode? node)
+        {
+            if (node is not JsonArray list)
+                return null;
+            var names = list
+                .Select(source =>
+                {
+                    var name = (source as JsonObject)?["name"]?.ToString()?.Trim();
+                    var domain = (source as JsonObject)?["domain"]?.ToString()?.Trim();
+                    return string.IsNullOrEmpty(name) ? domain
+                        : string.IsNullOrEmpty(domain) || string.Equals(name, domain, StringComparison.OrdinalIgnoreCase) ? name
+                        : $"{name} ({domain})";
+                })
+                .Where(text => !string.IsNullOrEmpty(text))
+                .ToList();
+            return names.Count == 0 ? null : string.Join(", ", names);
         }
 
         /// <summary>
@@ -217,7 +241,15 @@ namespace Apps2Samsung.TvStore
         }
 
         /// <summary>How a restore ended, in the user's language.</summary>
-        public static string RestoreMessage(TvStoreRestoreResult result, Func<string, string> localize) => result.State switch
+        public static string RestoreMessage(TvStoreRestoreResult result, Func<string, string> localize)
+        {
+            var message = RestoreOutcome(result, localize);
+            return result is { State: TvStoreRestoreState.Restored, SourcesToReenter: { } sources }
+                ? message + " " + string.Format(localize("statusTvStoreRestoreReenter"), sources)
+                : message;
+        }
+
+        private static string RestoreOutcome(TvStoreRestoreResult result, Func<string, string> localize) => result.State switch
         {
             TvStoreRestoreState.Restored when result.Certificates is { } c && result.Sources is { } s && result.UserSettings is { } u =>
                 localize("statusTvStoreRestoreDone") + " " + string.Format(localize("statusTvStoreRestoreApplied"), c, s, u),

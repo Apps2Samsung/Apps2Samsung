@@ -1471,6 +1471,7 @@
   "statusTvStoreRestoreApplied": "Certificates: {0} \u00b7 sources: {1} \u00b7 app settings: {2}.",
   "statusTvStoreRestoreDeclined": "TV-Store's data was not restored: Don't restore was chosen on the TV, or the question went unanswered.",
   "statusTvStoreRestoreRefused": "TV-Store did not take the backup: {0}",
+  "statusTvStoreRestoreReenter": "Not added, because the backup held only part of their address: {0}. Add these sources again in TV-Store on the TV.",
   "statusTvStoreRestoreNotInstalled": "TV-Store's data was not restored: TV-Store is not on the TV. Install TV-Store and restore again.",
   "statusTvStoreRestoreTooOld": "TV-Store's data was not restored: the TV-Store on this TV cannot take a backup yet. Update TV-Store first.",
   "statusTvStoreRestoreFailed": "TV-Store's data was not restored: {0}",
