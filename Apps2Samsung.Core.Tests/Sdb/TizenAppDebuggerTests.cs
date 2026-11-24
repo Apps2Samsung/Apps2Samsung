@@ -125,6 +125,8 @@ public class TizenAppDebuggerTests
             () => TizenAppDebugger.StartAsync(sdb, "10.114.0.5", "Pkg.App", localPort: 41007));
 
         Assert.Contains("never reported an inspector port", ex.Message);
+        // A native app answers exactly like this, and the head cannot always know it is one.
+        Assert.Contains(TizenAppDebugger.NativeAppHint, ex.Message);
         Assert.Equal(2, sdb.Calls.Count(call => call.StartsWith("shell 0 debug ", StringComparison.Ordinal)));
         Assert.DoesNotContain(sdb.Calls, call => call.StartsWith("forward ", StringComparison.Ordinal));
     }

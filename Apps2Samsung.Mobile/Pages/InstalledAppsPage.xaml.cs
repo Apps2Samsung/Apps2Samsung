@@ -526,6 +526,14 @@ public partial class InstalledAppsPage : ContentPage
 	// restarts and whatever the user was watching goes away.
 	private async Task DebugAsync(InstalledApp app)
 	{
+		// A native app has no web inspector: said here, before the app is restarted and the console
+		// waits out an answer the TV will not give.
+		if (Apps2Samsung.Catalog.NativeApps.IsKnownNative(app, CatalogStore.Releases, MobileSettings.PackageIdRenamesJson,
+				MobileSettings.InstalledVariantsJson, _tvIp))
+		{
+			await DisplayAlert(L10n.Get("lblDebugConsole"), string.Format(L10n.Get("statusDebugNativeApp"), app.DisplayName), L10n.Get("lblOk"));
+			return;
+		}
 
 		var confirm = await DisplayAlert(
 			L10n.Get("lblDebugConsole"),

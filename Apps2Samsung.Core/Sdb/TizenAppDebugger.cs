@@ -110,6 +110,14 @@ namespace Apps2Samsung.Sdb
         public static readonly TimeSpan DebugAnswerTimeout = TimeSpan.FromSeconds(20);
         public static readonly TimeSpan LegacyDebugAnswerTimeout = TimeSpan.FromSeconds(LegacyDebugWait + 10);
 
+        // What a native app looks like from here: the TV launches it on `0 debug` and has no
+        // inspector to report, so the request simply goes unanswered (a .NET .tpk on a 2018 set
+        // that attached to every web app). The heads turn away the apps they know are native
+        // before asking (Apps2Samsung.Catalog.NativeApps); this is for the ones they cannot know.
+        public const string NativeAppHint =
+            "This is what a native app (a .tpk: C, C++ or .NET) does: only web apps (.wgt) have the web " +
+            "inspector the debug console attaches to.";
+
         /// <summary>
         /// Relaunches <paramref name="tizenId"/> in debug mode and tunnels its inspector to
         /// <paramref name="localPort"/> (0 picks a free one — prefer that over a fixed port unless a
@@ -139,7 +147,7 @@ namespace Apps2Samsung.Sdb
                     {
                         throw new InvalidOperationException(
                             $"The TV took the request to start debug mode for {tizenId} but never reported an " +
-                            $"inspector port, so there is nothing to attach to. {error}");
+                            $"inspector port, so there is nothing to attach to. {NativeAppHint} {error}");
                     }
 
                     throw new InvalidOperationException(SdbTransportErrors.IsTransient(result)

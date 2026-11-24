@@ -698,6 +698,7 @@
   "statusDebugStarted": "The app is now running in debug mode on the TV, with the debugger forwarded to localhost:{0}.\n\nThe inspector couldn't be opened for you - open 'chrome://inspect' or 'edge://inspect' in your browser to attach to the TV.",
   "lblDebugConsole": "Debug console",
   "statusDebugConfirmRestart": "Debug mode has to restart \"{0}\" on the TV so its inspector can attach. Continue?",
+  "statusDebugNativeApp": "\"{0}\" is a native app (a .tpk). The debug console attaches to the web inspector, which only web apps (.wgt) have, so there is nothing to attach to here.",
   "statusDebugAttaching": "Attaching to {0}...",
   "statusDebugAttached": "Attached",
   "statusDebugDetached": "Detached",
