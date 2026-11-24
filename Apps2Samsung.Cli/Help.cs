@@ -378,6 +378,10 @@ public static class Help
 
         The apps on the TV: name, version and app id, and whether the catalog has a newer version.
         The app id is what `uninstall` and `launch` take.
+
+        Reading a TV also writes its catalog apps down, as the desktop app does: the saved list is
+        shared with it, and a copy goes to Documents/Apps2Samsung/TV backups as a file `tv restore`
+        reads whenever the apps changed (the last 5 per TV are kept, no typed values in it).
         """;
 
     public const string Uninstall = """

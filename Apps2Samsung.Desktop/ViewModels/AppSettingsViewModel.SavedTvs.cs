@@ -25,6 +25,8 @@ namespace Apps2Samsung.ViewModels
 
         [ObservableProperty] private bool hasSavedTvs;
         [ObservableProperty] private string savedTvsStatus = string.Empty;
+        /// <summary>Where the automatic copies of the lists go (#1177), and the last failure when there was one.</summary>
+        [ObservableProperty] private string savedTvsBackupHint = string.Empty;
 
         /// <summary>Set by the main window: opens the restore sheet for a list against the selected TV.</summary>
         public Func<TvProfile, Task>? RestoreProfile { get; set; }
@@ -32,7 +34,24 @@ namespace Apps2Samsung.ViewModels
         private void InitSavedTvs()
         {
             SavedTvs.Changed += () => Dispatcher.UIThread.Post(RefreshSavedTvs);
+            TvBackups.StatusChanged += () => Dispatcher.UIThread.Post(RefreshTvBackups);
             RefreshSavedTvs();
+        }
+
+        private void RefreshTvBackups()
+        {
+            TvBackupStatus? status;
+            try { status = TvBackups.Status(); }
+            catch { status = null; }
+            if (status is null)
+            {
+                SavedTvsBackupHint = string.Empty;
+                return;
+            }
+            var text = string.Format("hintTvBackupGoesTo".Localized(), status.DisplayLocation, TvBackups.Keep);
+            if (status.LastError is { } error)
+                text += "\n" + string.Format("lblTvBackupFailed".Localized(), error);
+            SavedTvsBackupHint = text;
         }
 
         /// <summary>Re-reads the saved lists. Also called when the Backup page is opened.</summary>
@@ -62,6 +81,7 @@ namespace Apps2Samsung.ViewModels
                     tv.Missing.Count > 0, (isSelected ? "lblSavedTvRestore" : "lblSavedTvRestoreOther").Localized(), isSelected));
             }
             HasSavedTvs = SavedTvRows.Count > 0;
+            RefreshTvBackups();
         }
 
         [RelayCommand]
