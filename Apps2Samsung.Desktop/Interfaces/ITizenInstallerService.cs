@@ -34,6 +34,8 @@ namespace Apps2Samsung.Interfaces
 
         /// <summary>Uninstalls an app from the TV by its Tizen id. Returns the raw SDB result.</summary>
         Task<Apps2Samsung.Models.ProcessResult> UninstallAppAsync(string tvIpAddress, string tizenId);
+        /// <summary>Removes an app and reads the TV's app list again for what became of it (#1175).</summary>
+        Task<Apps2Samsung.Sdb.UninstallVerdict> UninstallAndCheckAsync(string tvIpAddress, string tizenId);
 
         /// <summary>Gathers the TV's details (DUID, Tizen version, developer mode/IP, …) for the
         /// "TV information" view, using the shared Core gatherer.</summary>

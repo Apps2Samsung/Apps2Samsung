@@ -838,12 +838,21 @@ internal sealed class Menu
                 }
                 case "remove":
                 {
-                    var app = await PickAppAsync(rows.Where(r => r.Removable).ToList(), "Which app to remove");
+                    // The TV's own apps are in the list too (#1175), after the ones it calls
+                    // removable, and asked about with a warning of their own.
+                    var app = await PickAppAsync(rows.OrderByDescending(r => r.Removable).ToList(), "Which app to remove");
                     if (app is null) break;
-                    var args = new[] { "uninstall", app.AppId, "--tv", ip };
-                    ShowLine(args);
-                    if (await ConfirmAsync($"Remove {E(app.Title)} from the TV? Its data on the TV goes with it.", defaultValue: false))
-                        await RunAsync(args);
+                    var args = new List<string> { "uninstall", app.AppId, "--tv", ip };
+                    if (!app.Removable)
+                    {
+                        _con.MarkupLine($"[{Views.WarnHex}]{E(UninstallCommand.BuiltInQuestion(app.Title))}[/]");
+                        args.Add("--yes");
+                    }
+                    ShowLine(args.ToArray());
+                    if (await ConfirmAsync(app.Removable
+                            ? $"Remove {E(app.Title)} from the TV? Its data on the TV goes with it."
+                            : $"Ask the TV to remove {E(app.Title)}?", defaultValue: false))
+                        await RunAsync(args.ToArray());
                     return;
                 }
                 default:

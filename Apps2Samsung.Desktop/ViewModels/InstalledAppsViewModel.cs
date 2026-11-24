@@ -368,9 +368,13 @@ namespace Apps2Samsung.ViewModels
             if (app is null || IsBusy)
                 return;
 
+            // An app the TV lists as one of its own (#1175) gets a question of its own: the TV may
+            // well keep it, and one it does remove cannot be installed again from here.
             var confirm = await _dialogService.ShowConfirmationAsync(
                 "lblUninstallApp".Localized(),
-                string.Format("statusConfirmUninstall".Localized(), app.DisplayName, TvLabel, app.TizenId),
+                app.IsRemovable
+                    ? string.Format("statusConfirmUninstall".Localized(), app.DisplayName, TvLabel, app.TizenId)
+                    : string.Format("statusConfirmUninstallBuiltIn".Localized(), app.DisplayName, app.TizenId),
                 "lblUninstall".Localized(), "lblCancel".Localized(), destructive: true);
             if (!confirm)
                 return;
@@ -379,15 +383,16 @@ namespace Apps2Samsung.ViewModels
             StatusText = string.Format("statusUninstalling".Localized(), app.DisplayName);
             try
             {
-                var result = await _installer.UninstallAppAsync(_tvIp, app.TizenId);
-                // "failed[132]" = not installed - already gone, treat as success.
-                var ok = result.ExitCode == 0 ||
-                         (result.Output?.Contains("failed[132]", StringComparison.OrdinalIgnoreCase) ?? false);
-                if (!ok)
+                // Gone means gone from the TV's list read again, not what the answer said: a set
+                // can refuse without a word, and "failed[132]" is "was not there".
+                var verdict = await _installer.UninstallAndCheckAsync(_tvIp, app.TizenId);
+                if (verdict.Outcome == Apps2Samsung.Sdb.UninstallOutcome.Kept)
                 {
                     IsBusy = false;
-                    await _dialogService.ShowErrorAsync(
-                        string.IsNullOrWhiteSpace(result.Error) ? result.Output?.Trim() ?? "lblUninstallFailed".Localized() : result.Error);
+                    await _dialogService.ShowErrorAsync(app.IsRemovable
+                        ? verdict.Reply ?? "lblUninstallFailed".Localized()
+                        : Apps2Samsung.Sdb.AppUninstall.KeptBuiltInMessage(app.DisplayName, verdict.Reply,
+                            "statusUninstallKeptBuiltIn".Localized(), "statusUninstallKeptBuiltInSilent".Localized()));
                     return;
                 }
                 // Removed on purpose: not an app to offer again after the next read (#1069).
