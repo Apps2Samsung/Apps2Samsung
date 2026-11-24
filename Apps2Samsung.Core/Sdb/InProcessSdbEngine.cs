@@ -264,6 +264,90 @@ namespace Apps2Samsung.Sdb
             return await device.ShellCommandAsync(command);
         });
 
+        // How long reading goes on after the answer was recognised: the TV may deliver it in pieces
+        // (a port number cut in two), and a TV that closes the channel by itself gets the time to.
+        private static readonly TimeSpan AnswerSettle = TimeSpan.FromMilliseconds(500);
+
+        public async Task<ProcessResult> ShellUntilAsync(
+            string tvIpAddress, string command, Func<string, bool> answered, TimeSpan timeout) =>
+            await WithDevice(tvIpAddress, $"shell {tvIpAddress} {command}", async device =>
+            {
+                using var stop = new CancellationTokenSource(timeout);
+                using var reply = new ReplyStream(answered, () => stop.CancelAfter(AnswerSettle));
+                try
+                {
+                    await device.ShellCommandAsync(command, reply, stop.Token);
+                }
+                catch (OperationCanceledException) when (reply.Answered)
+                {
+                    // The answer is in and the TV is still holding the channel: stop waiting for the
+                    // close. Disposing the channel on the way out of ShellCommandAsync sent ours.
+                    Trace.WriteLine($"[sdb] {command}: answered, the TV left the channel open");
+                }
+                catch (OperationCanceledException)
+                {
+                    var sent = reply.Text.Trim();
+                    var message =
+                        $"The TV {SdbTransportErrors.NoAnswerMarker} `{command}` for {timeout.TotalSeconds:0} s. " +
+                        (sent.Length == 0 ? "It sent nothing." : $"It sent: {sent}");
+                    return new ProcessResult { ExitCode = 1, Output = message, Error = message };
+                }
+
+                return Ok(reply.Text);
+            });
+
+        /// <summary>
+        /// Collects a shell reply as it arrives and reports, once, the moment the caller's test accepts
+        /// it. Bytes are kept and decoded as a whole each time, so a character cut across two frames
+        /// is never decoded in halves; these replies are a few hundred bytes.
+        /// </summary>
+        private sealed class ReplyStream : Stream
+        {
+            private readonly MemoryStream _bytes = new();
+            private readonly Func<string, bool> _answered;
+            private readonly Action _onAnswered;
+
+            public ReplyStream(Func<string, bool> answered, Action onAnswered)
+            {
+                _answered = answered;
+                _onAnswered = onAnswered;
+            }
+
+            public bool Answered { get; private set; }
+
+            public string Text
+            {
+                get { lock (_bytes) return Encoding.UTF8.GetString(_bytes.GetBuffer(), 0, (int)_bytes.Length); }
+            }
+
+            public override void Write(byte[] buffer, int offset, int count)
+            {
+                lock (_bytes) _bytes.Write(buffer, offset, count);
+                if (Answered || !_answered(Text))
+                    return;
+
+                Answered = true;
+                _onAnswered();
+            }
+
+            public override bool CanRead => false;
+            public override bool CanSeek => false;
+            public override bool CanWrite => true;
+            public override long Length => _bytes.Length;
+            public override long Position { get => _bytes.Length; set => throw new NotSupportedException(); }
+            public override void Flush() { }
+            public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+            public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+            public override void SetLength(long value) => throw new NotSupportedException();
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                    _bytes.Dispose();
+                base.Dispose(disposing);
+            }
+        }
+
         // The connection the tunnels to one TV run on, and how many of them there are. Guarded by
         // _tunnelGate.
         private readonly Dictionary<string, TunnelConnection> _tunnels = new();

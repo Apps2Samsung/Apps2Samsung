@@ -36,6 +36,18 @@ namespace Apps2Samsung.Sdb
         public static bool IsTransient(ProcessResult? result) =>
             result is not null && result.ExitCode != 0 && IsTransient($"{result.Error} {result.Output}");
 
+        /// <summary>
+        /// What a result says when the TV took a command and then neither answered it nor closed the
+        /// channel (see <see cref="Apps2Samsung.Interfaces.ISdbEngine.ShellUntilAsync"/>). Not a
+        /// transport failure: the link is fine, the TV is just not saying anything.
+        /// </summary>
+        public const string NoAnswerMarker = "kept the channel open without answering";
+
+        /// <summary>Whether <paramref name="result"/> failed because the TV kept the channel open without answering.</summary>
+        public static bool IsNoAnswer(ProcessResult? result) =>
+            result is not null && result.ExitCode != 0 &&
+            $"{result.Error} {result.Output}".Contains(NoAnswerMarker, StringComparison.Ordinal);
+
         /// <summary>Whether <paramref name="text"/> carries a transport failure's wording.</summary>
         public static bool IsTransient(string? text) =>
             !string.IsNullOrWhiteSpace(text) &&

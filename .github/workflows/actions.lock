@@ -52,6 +52,7 @@ workflows:
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
         - 'actions/setup-java@v6.3.0'
+        - 'actions/upload-artifact@v7.0.2'
     '.github/workflows/require-log-files.yml':
         - 'actions/github-script@v9.0.0'
     '.github/workflows/sidestore-source.yml':

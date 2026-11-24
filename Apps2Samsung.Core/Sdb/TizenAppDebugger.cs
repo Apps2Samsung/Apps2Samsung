@@ -102,6 +102,14 @@ namespace Apps2Samsung.Sdb
         public static readonly Version LegacyDebugFormBelow = new(4, 0);
         public const int LegacyDebugWait = 30;
 
+        // How long the TV gets to report the inspector port. A set normally answers within a second
+        // or two (the app's launch) and closes the channel; one that does neither left the console
+        // on "attaching" for good, with nothing in the window or the log (a 2018 Tizen 4.0 set that
+        // launched every app and never answered). The suffixed form gets its own wait on top, in
+        // case the number is how long that TV holds the answer back.
+        public static readonly TimeSpan DebugAnswerTimeout = TimeSpan.FromSeconds(20);
+        public static readonly TimeSpan LegacyDebugAnswerTimeout = TimeSpan.FromSeconds(LegacyDebugWait + 10);
+
         /// <summary>
         /// Relaunches <paramref name="tizenId"/> in debug mode and tunnels its inspector to
         /// <paramref name="localPort"/> (0 picks a free one — prefer that over a fixed port unless a
@@ -127,6 +135,13 @@ namespace Apps2Samsung.Sdb
 
                     // Distinguished on purpose: a TV that keeps dropping the link has not said no to
                     // debug mode, it has said nothing at all, and the two want different next steps.
+                    if (SdbTransportErrors.IsNoAnswer(result))
+                    {
+                        throw new InvalidOperationException(
+                            $"The TV took the request to start debug mode for {tizenId} but never reported an " +
+                            $"inspector port, so there is nothing to attach to. {error}");
+                    }
+
                     throw new InvalidOperationException(SdbTransportErrors.IsTransient(result)
                         ? $"The TV closed the connection instead of answering the request to start debug mode " +
                           $"for {tizenId} (`{command}`), on {DebugAttempts} fresh connections in a row. Its sdbd " +
@@ -220,6 +235,22 @@ namespace Apps2Samsung.Sdb
             return started;
         }
 
+        // The whole reply is "... port: 43287"; anything after the number is not waited for.
+        private static bool ReportsPort(string reply) => PortPattern.IsMatch(reply);
+
+        // When the bare form went unanswered and the suffixed one failed as well, the first is the
+        // finding and the second the footnote: report both, as "no answer", so the user is not told
+        // the TV refused an id it had in fact just launched.
+        private static ProcessResult WithUnanswered(ProcessResult? unanswered, ProcessResult result, string command)
+        {
+            if (unanswered is null || result.ExitCode == 0 || SdbTransportErrors.IsNoAnswer(result))
+                return result;
+
+            var error = string.IsNullOrWhiteSpace(result.Error) ? result.Output : result.Error;
+            var message = $"{unanswered.Error} The pre-4.0 form (`{command}`) did not work either: {error}";
+            return new ProcessResult { ExitCode = result.ExitCode, Output = message, Error = message };
+        }
+
         /// <summary>The `0 debug` command for <paramref name="tizenId"/>, in the form this Tizen version takes.</summary>
         public static string DebugCommand(string tizenId, bool legacyForm) =>
             legacyForm ? $"0 debug {tizenId} {LegacyDebugWait}" : $"0 debug {tizenId}";
@@ -243,6 +274,13 @@ namespace Apps2Samsung.Sdb
         /// round-trip when it is not known yet). A TV whose version could not be read gets the bare
         /// form first and the suffixed one on the retries: a dropped channel is also how an old set
         /// answers the bare form, so the retry asks the other way rather than the same way again.
+        ///
+        /// The reply is read until it names the port, not until the TV closes the channel: a TV that
+        /// reports the port and keeps the channel open is answered, and one that reports nothing gets
+        /// <see cref="DebugAnswerTimeout"/> instead of forever. After a bare form that went unanswered
+        /// the suffixed one is tried once, whatever the version says, with the app stopped again
+        /// first: the unanswered request may well have launched it, and a port is only handed out for
+        /// the launch `0 debug` performs itself.
         /// </remarks>
         private static async Task<(ProcessResult Result, string Command)> AskForDebugPortAsync(
             ISdbEngine sdb, string tvIpAddress, string tizenId)
@@ -251,6 +289,7 @@ namespace Apps2Samsung.Sdb
             var legacyForm = UsesLegacyDebugForm(version);
 
             ProcessResult result;
+            ProcessResult? unanswered = null;
             string command;
             for (int attempt = 1; ; attempt++)
             {
@@ -259,9 +298,30 @@ namespace Apps2Samsung.Sdb
                 await sdb.DisconnectAsync(tvIpAddress);
 
                 command = DebugCommand(tizenId, legacyForm);
-                result = await sdb.ShellAsync(tvIpAddress, command);
+                result = await sdb.ShellUntilAsync(
+                    tvIpAddress, command, ReportsPort, legacyForm ? LegacyDebugAnswerTimeout : DebugAnswerTimeout);
+
+                if (SdbTransportErrors.IsNoAnswer(result) && !legacyForm)
+                {
+                    Trace.WriteLine($"[debug] {tizenId}: no answer to `{command}`, stopping the app and asking with the pre-4.0 form");
+                    unanswered = result;
+                    legacyForm = true;
+                    attempt = 0;
+
+                    await sdb.DisconnectAsync(tvIpAddress);
+                    try
+                    {
+                        await sdb.ShellAsync(tvIpAddress, $"0 was_kill {tizenId}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.WriteLine($"[debug] stop of {tizenId} after the unanswered request failed (continuing): {ex.Message}");
+                    }
+                    continue;
+                }
+
                 if (attempt >= DebugAttempts || !SdbTransportErrors.IsTransient(result))
-                    return (result, command);
+                    return (WithUnanswered(unanswered, result, command), command);
 
                 if (version is null && !legacyForm)
                 {
