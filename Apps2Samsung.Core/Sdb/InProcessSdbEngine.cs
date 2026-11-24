@@ -223,11 +223,17 @@ namespace Apps2Samsung.Sdb
 
         public async Task<ProcessResult> UninstallAsync(string tvIpAddress, string packageId) => await RunWithRetry(tvIpAddress, $"uninstall {tvIpAddress} {packageId}", async device =>
         {
+            // The TV's refusal in its own words (#1175): what the user is shown when the fallback
+            // below has nothing better to say, which on a retail set (no shell) is always.
+            string? refusal = null;
             try
             {
                 var result = await device.ShellCommandAsync($"0 vd_appuninstall {packageId}");
                 if (result.Contains("fail", StringComparison.OrdinalIgnoreCase) || result.Contains("error", StringComparison.OrdinalIgnoreCase))
+                {
+                    refusal = result.Trim();
                     throw new Exception("Uninstallation failed");
+                }
                 return result;
             }
             catch (Exception ex) when (SdbTransportErrors.IsTransient(ex.Message))
@@ -241,7 +247,18 @@ namespace Apps2Samsung.Sdb
             {
                 // A real refusal (not a dropped link): fall back to pkgcmd, matching the CLI.
                 var pkgName = packageId.Split('.')[0];
-                return await device.ShellCommandAsync($"pkgcmd -u -n {pkgName} -q");
+                string fallback;
+                try
+                {
+                    fallback = await device.ShellCommandAsync($"pkgcmd -u -n {pkgName} -q");
+                }
+                catch when (!string.IsNullOrEmpty(refusal))
+                {
+                    // The TV answered the uninstall and then dropped the shell command: the answer
+                    // is the finding, not the dropped channel, and asking again changes nothing.
+                    throw new InvalidOperationException(refusal);
+                }
+                return string.IsNullOrWhiteSpace(fallback) && !string.IsNullOrEmpty(refusal) ? refusal : fallback;
             }
         });
 
