@@ -67,6 +67,17 @@ A free Apple ID signs apps for 7 days (SideStore refreshes them; if the app stop
 there) and allows 3 sideloaded apps at once. Keep the app in front during an install, iOS pauses it
 in the background.
 
+## Code signing
+
+The Windows builds will be signed once the SignPath Foundation application is approved. Until
+then Windows Smart App Control blocks them, see the
+[FAQ](../../wiki/FAQ#windows-smart-app-control-blocks-apps2samsung).
+
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by
+[SignPath Foundation](https://signpath.org).
+
+See the [code signing policy](CODE_SIGNING_POLICY.md) and the [privacy policy](PRIVACY.md).
+
 ## How it works
 
 1. Put the TV in Developer Mode: [how to](https://github.com/Apps2Samsung/Apps2Samsung/wiki/FAQ#-how-to-enable-developer-mode-on-your-tv).

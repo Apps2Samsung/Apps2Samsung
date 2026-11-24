@@ -180,6 +180,10 @@ jobs:
             echo ""
             echo "### 🛡️ Security Notice"
             echo "Antivirus warnings may occur and are likely **false positives**."
+            echo ""
+            # SignPath Foundation looks for this line on the download page; see CODE_SIGNING_POLICY.md.
+            echo "### ✍️ Code signing"
+            echo "Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org). The Windows builds will be signed once the application is approved, see the [code signing policy](https://github.com/${GITHUB_REPOSITORY}/blob/HEAD/CODE_SIGNING_POLICY.md)."
           } > RELEASE_NOTES.md
 
       - uses: actions/setup-dotnet@v6.1.0
