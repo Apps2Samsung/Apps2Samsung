@@ -64,6 +64,22 @@ namespace Apps2Samsung.Interfaces
         /// <summary>Executes a generic shell command on the TV.</summary>
         Task<ProcessResult> ShellAsync(string tvIpAddress, string command);
 
+        /// <summary>
+        /// As <see cref="ShellAsync"/>, for a command whose answer is complete before the TV closes the
+        /// channel, or that the TV may never close the channel for. Reading stops shortly after
+        /// <paramref name="answered"/> accepts what has arrived so far, or when the TV closes the
+        /// channel, whichever comes first. A TV that does neither within <paramref name="timeout"/>
+        /// gives a failed result that <see cref="Apps2Samsung.Sdb.SdbTransportErrors.IsNoAnswer"/>
+        /// recognises and that carries whatever the TV did send.
+        /// </summary>
+        /// <remarks>
+        /// The connection is left with a channel that was closed from this side, so callers drop it
+        /// (<see cref="DisconnectAsync"/>) before the next command. An engine without a way to stop
+        /// reading early falls back to <see cref="ShellAsync"/>.
+        /// </remarks>
+        Task<ProcessResult> ShellUntilAsync(string tvIpAddress, string command, Func<string, bool> answered, TimeSpan timeout) =>
+            ShellAsync(tvIpAddress, command);
+
         /// <summary>Forwards a local TCP port to a remote TCP port on the TV.</summary>
         Task<IAsyncDisposable> ForwardAsync(string tvIpAddress, int localPort, int remotePort);
     }

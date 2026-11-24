@@ -150,6 +150,22 @@ jobs:
       - name: Test the CLI
         run: dotnet test Apps2Samsung.Cli.Tests/Apps2Samsung.Cli.Tests.csproj -c Release
 
+      # A build of the pull request that someone can run. A reporter asked to try a fix before the
+      # merge had nothing to download: the beta only exists after it, and test-apk.yml covers the
+      # phone only. Same publish as the beta release's Windows zip; the artifact is the folder,
+      # which GitHub hands out zipped (signed-in users only, 14 days).
+      - name: Publish the Windows build
+        run: >
+          dotnet publish Apps2Samsung.Desktop/Apps2Samsung.csproj
+          -c Release -r win-x64 -p:SelfContained=true -o publish/win-x64
+
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: Apps2Samsung-pr-${{ github.event.pull_request.number || github.run_number }}-win-x64
+          path: publish/win-x64
+          retention-days: 14
+          if-no-files-found: error
+
   android:
     name: Mobile (Android)
     needs: scope
@@ -306,6 +322,15 @@ jobs:
           test -x squashfs-root/usr/bin/Apps2Samsung
           test "$(stat -c%s squashfs-root/usr/bin/Apps2Samsung)" = "$(stat -c%s publish/linux-x64/Apps2Samsung)"
           echo "deb, rpm and AppImage carry the whole app, for both architectures"
+
+      # The Linux twin of the Windows build the desktop job uploads: the x64 tarball this job has
+      # just packaged and checked, for a reporter who tries the pull request on Linux.
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: Apps2Samsung-pr-${{ github.event.pull_request.number || github.run_number }}-linux-x64
+          path: dist/*-linux-x64.tar.gz
+          retention-days: 14
+          if-no-files-found: error
 
       # The AUR package is rendered from .github/aur/PKGBUILD by the stable release and built by
       # makepkg on every Arch user's machine. Prove here that the template still renders and builds,

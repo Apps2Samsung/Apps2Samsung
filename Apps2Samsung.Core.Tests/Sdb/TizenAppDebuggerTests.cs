@@ -95,6 +95,71 @@ public class TizenAppDebuggerTests
         Assert.True(app.IsSuspended);
     }
 
+    // A TV that launches the app for the bare form and then says nothing, without closing the
+    // channel: the console used to wait on that for good. The app is stopped again and the
+    // suffixed form asked, once.
+    [Fact]
+    public async Task Start_UnansweredBareForm_StopsTheAppAndAsksWithTheSuffixedForm()
+    {
+        var sdb = new RecordingSdb { Silent = command => command == "0 debug Pkg.App" };
+
+        await using var app = await TizenAppDebugger.StartAsync(sdb, "10.114.0.4", "Pkg.App", localPort: 41006);
+
+        Assert.Equal(
+            new[]
+            {
+                "shell 0 debug Pkg.App",
+                "shell 0 was_kill Pkg.App",
+                $"shell 0 debug Pkg.App {TizenAppDebugger.LegacyDebugWait}",
+                "forward 41006>5001",
+            },
+            sdb.Calls);
+    }
+
+    [Fact]
+    public async Task Start_NoFormAnswered_SaysTheTvNeverReportedAPort()
+    {
+        var sdb = new RecordingSdb { Silent = command => command.StartsWith("0 debug ", StringComparison.Ordinal) };
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => TizenAppDebugger.StartAsync(sdb, "10.114.0.5", "Pkg.App", localPort: 41007));
+
+        Assert.Contains("never reported an inspector port", ex.Message);
+        Assert.Equal(2, sdb.Calls.Count(call => call.StartsWith("shell 0 debug ", StringComparison.Ordinal)));
+        Assert.DoesNotContain(sdb.Calls, call => call.StartsWith("forward ", StringComparison.Ordinal));
+    }
+
+    // The suffixed form being turned away after an unanswered bare one must not read as a refusal:
+    // the TV had just launched the app.
+    [Fact]
+    public async Task Start_UnansweredBareForm_ThenARefusal_StillReportsNoAnswer()
+    {
+        var sdb = new RecordingSdb
+        {
+            Silent = command => command == "0 debug Pkg.App",
+            Refuse = $"Pkg.App {TizenAppDebugger.LegacyDebugWait}",
+        };
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => TizenAppDebugger.StartAsync(sdb, "10.114.0.6", "Pkg.App", localPort: 41008));
+
+        Assert.Contains("never reported an inspector port", ex.Message);
+        Assert.Contains("no such application", ex.Message);
+    }
+
+    // The test the debugger hands the engine: the reply is complete once it names the port.
+    [Fact]
+    public async Task Start_StopsReadingOnceThePortIsNamed()
+    {
+        var sdb = new RecordingSdb();
+
+        await using var app = await TizenAppDebugger.StartAsync(sdb, "10.114.0.7", "Pkg.App", localPort: 41009);
+
+        Assert.NotNull(sdb.Answered);
+        Assert.False(sdb.Answered!("... successfully launched pid = 12 with debug 1"));
+        Assert.True(sdb.Answered("... successfully launched pid = 12 with debug 1 port: 5001"));
+    }
+
     // Answers the stop and the debug launch, hands out an inspector port per id, and writes down
     // every command and every tunnel that opens or closes, in order.
     private sealed class RecordingSdb : ISdbEngine
@@ -103,6 +168,23 @@ public class TizenAppDebuggerTests
 
         public List<string> Calls { get; } = new();
         public string? Refuse { get; set; }
+
+        /// <summary>Commands the TV takes without ever answering or closing the channel.</summary>
+        public Func<string, bool>? Silent { get; set; }
+
+        /// <summary>The "reply is complete" test the last early-stopping shell call was given.</summary>
+        public Func<string, bool>? Answered { get; private set; }
+
+        public Task<ProcessResult> ShellUntilAsync(string tvIpAddress, string command, Func<string, bool> answered, TimeSpan timeout)
+        {
+            Answered = answered;
+            if (Silent?.Invoke(command) != true)
+                return ShellAsync(tvIpAddress, command);
+
+            Calls.Add($"shell {command}");
+            var message = $"The TV {SdbTransportErrors.NoAnswerMarker} `{command}` for {timeout.TotalSeconds:0} s. It sent nothing.";
+            return Task.FromResult(new ProcessResult { ExitCode = 1, Output = message, Error = message });
+        }
 
         public Task<ProcessResult> ShellAsync(string tvIpAddress, string command)
         {
