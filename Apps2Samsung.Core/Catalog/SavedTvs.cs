@@ -255,6 +255,9 @@ namespace Apps2Samsung.Catalog
             foreach (var app in copy.Apps)
                 app.Settings = null;
             copy.ContainsSettings = false;
+            // TV-Store's backup has a store of its own (TvStoreBackups, #1179): it can hold keys.
+            copy.TvStore = null;
+            copy.TvStoreHasSecrets = false;
             return copy;
         }
 

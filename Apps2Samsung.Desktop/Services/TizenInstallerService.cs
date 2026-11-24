@@ -1063,6 +1063,30 @@ namespace Apps2Samsung.Services
             }
         }
 
+        public async Task<(Apps2Samsung.TvStore.TvStoreBackupTaken Taken, string Message)> BackUpTvStoreAsync(string tvIpAddress, bool secrets, IProgress<string>? progress = null)
+        {
+            try
+            {
+                return await Apps2Samsung.TvStore.TvStoreBackup.TryTakeAsync(_sdb, tvIpAddress, secrets, key => key.Localized(), progress, AppSettings.Default.PackageIdRenamesJson);
+            }
+            finally
+            {
+                await _sdb.DisconnectAsync(tvIpAddress);
+            }
+        }
+
+        public async Task<(bool Restored, string Message)> RestoreTvStoreAsync(string tvIpAddress, JsonElement backup, IProgress<string>? progress = null)
+        {
+            try
+            {
+                return await Apps2Samsung.TvStore.TvStoreBackup.TryRestoreAsync(_sdb, tvIpAddress, backup, key => key.Localized(), progress, AppSettings.Default.PackageIdRenamesJson);
+            }
+            finally
+            {
+                await _sdb.DisconnectAsync(tvIpAddress);
+            }
+        }
+
         public async Task<Apps2Samsung.Sdb.UninstallVerdict> UninstallAndCheckAsync(string tvIpAddress, string tizenId)
         {
             try

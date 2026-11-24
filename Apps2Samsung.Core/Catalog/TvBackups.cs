@@ -44,6 +44,12 @@ namespace Apps2Samsung.Catalog
     /// A TV that lost its apps does not get a smaller copy: <see cref="SavedTvs"/> keeps the missing
     /// apps in the saved list, so the list, its fingerprint and the newest file stay as they were.
     /// </para>
+    /// <para>
+    /// A copy also carries TV-Store's own backup of that TV (#1179) when this device has one that
+    /// was taken without the certificates and the apps' settings
+    /// (<see cref="Apps2Samsung.TvStore.TvStoreBackups"/>). One with them stays out: same rule as the
+    /// typed values. Nothing is asked of the TV for this; it is the last backup someone took.
+    /// </para>
     /// </summary>
     public static class TvBackups
     {
@@ -157,7 +163,7 @@ namespace Apps2Samsung.Catalog
                     return;
                 try
                 {
-                    written = BackUp(_indexPath, _target, key, profile, DateTime.UtcNow);
+                    written = BackUp(_indexPath, _target, key, profile, DateTime.UtcNow, Apps2Samsung.TvStore.TvStoreBackups.Get(key)?.Backup);
                     if (written is null && _lastError is null)
                         return;
                     _lastError = null;
@@ -181,14 +187,22 @@ namespace Apps2Samsung.Catalog
         /// (or there is none), records it in the index and prunes. Null when there was nothing to do:
         /// an empty list, or the same apps as last time.
         /// </summary>
-        public static TvBackupEntry? BackUp(string indexPath, ICertificateBackupTarget target, string key, TvProfile profile, DateTime nowUtc)
+        /// <param name="tvStore">TV-Store's own backup of this TV as the device keeps it (#1179). It goes
+        /// into the file only when it holds no certificates or app settings; a newer one is a reason
+        /// for a new file.</param>
+        public static TvBackupEntry? BackUp(string indexPath, ICertificateBackupTarget target, string key, TvProfile profile, DateTime nowUtc,
+            System.Text.Json.JsonElement? tvStore = null)
         {
             if (string.IsNullOrWhiteSpace(key) || profile?.Apps is null || profile.Apps.Count == 0)
                 return null;
             key = key.Trim();
 
             var index = LoadIndex(indexPath, target);
-            var fingerprint = Fingerprint(profile);
+            var tvStoreInfo = Apps2Samsung.TvStore.TvStoreBackup.Describe(tvStore);
+            if (tvStoreInfo is { HasSecrets: true })
+                tvStoreInfo = null;
+            // The apps, and which TV-Store backup rides along: either changing is a new file.
+            var fingerprint = Fingerprint(profile) + (tvStoreInfo is null ? string.Empty : "+tvstore:" + (tvStoreInfo.MadeAt ?? "?"));
             var newest = index
                 .Where(e => string.Equals(e.Key, key, StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(e => e.CreatedUtc)
@@ -197,6 +211,8 @@ namespace Apps2Samsung.Catalog
                 return null;
 
             var copy = Without(profile);
+            if (tvStoreInfo is not null)
+                TvProfiles.SetTvStore(copy, tvStore);
             var name = string.IsNullOrWhiteSpace(copy.TvName) ? key : copy.TvName!.Trim();
             var stem = $"{FilePrefix}{SafeName(name)}-{nowUtc.ToLocalTime():yyyy-MM-dd-HHmmss}";
             var fileName = stem + FileExtension;
@@ -246,6 +262,9 @@ namespace Apps2Samsung.Catalog
             foreach (var app in copy.Apps)
                 app.Settings = null;
             copy.ContainsSettings = false;
+            // Whatever the caller's list carried: only BackUp decides what of TV-Store's goes in.
+            copy.TvStore = null;
+            copy.TvStoreHasSecrets = false;
             return copy;
         }
 

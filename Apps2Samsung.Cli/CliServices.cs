@@ -52,6 +52,8 @@ public sealed class CliServices : IAsyncDisposable
             Path.Combine(CliPaths.DataDir, Apps2Samsung.Certificate.CertificateBackups.IndexFileName),
             new Apps2Samsung.Certificate.FolderBackupTarget(Apps2Samsung.Certificate.CertificateBackups.DefaultFolder(CliPaths.DataDir)));
         Apps2Samsung.Certificate.CertificateBackups.Changed();
+        // TV-Store's own backup of each TV (#1179), the desktop's file as the CLI shares its data folder.
+        Apps2Samsung.TvStore.TvStoreBackups.Configure(Path.Combine(CliPaths.DataDir, Apps2Samsung.TvStore.TvStoreBackups.FileName));
         // The app list of each TV, kept by itself (#1069), with a copy next to the certificate backups
         // (#1177): the desktop's files, as the CLI shares its data folder.
         Apps2Samsung.Catalog.SavedTvs.Configure(Path.Combine(CliPaths.DataDir, Apps2Samsung.Catalog.SavedTvs.FileName));

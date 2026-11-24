@@ -3,6 +3,7 @@ using Apps2Samsung.Catalog;
 using Apps2Samsung.Models;
 using Apps2Samsung.Packaging;
 using Apps2Samsung.Sdb;
+using Apps2Samsung.TvStore;
 
 namespace Apps2Samsung.Cli.Commands;
 
@@ -61,6 +62,32 @@ public static class TvProfileCommand
             return s.Out.Fail($"None of the {apps.Count} apps on {ip} is in the catalog or a source, so there is nothing to save.",
                 details: new { tv = ip, leftOut = saved.LeftOut });
 
+        // TV-Store's own data (#1179), when the TV-Store on the TV can hand it over. Its certificates
+        // and the settings typed on the TV follow the same switch as the values above.
+        string? tvStoreLine = null;
+        if (!s.Options.NoTvStore)
+        {
+            switch (TvStoreBackup.CheckOnTv(apps, s.Config.PackageIdRenamesJson))
+            {
+                case TvStoreBackupSkipped.None:
+                    var progress = new Progress<string>(key => s.Out.Progress(s.Strings.GetString(key)));
+                    var (taken, message) = await TvStoreBackup.TryTakeAsync(s.Sdb, ip, s.Options.WithSettings, s.Strings.GetString, progress, s.Config.PackageIdRenamesJson, ct);
+                    if (taken.Backup is { } backup)
+                    {
+                        TvProfiles.SetTvStore(profile, backup);
+                        TvStoreBackups.Set(ip, backup, DateTimeOffset.UtcNow);
+                        // The automatic copy of this TV is written again off this thread; a command
+                        // that ends here would cut it short.
+                        TvBackups.WaitForPending(TimeSpan.FromSeconds(5));
+                    }
+                    tvStoreLine = message;
+                    break;
+                case TvStoreBackupSkipped.TooOld:
+                    tvStoreLine = s.Strings.GetString("statusTvStoreBackupTooOld");
+                    break;
+            }
+        }
+
         await File.WriteAllTextAsync(path, TvProfiles.Serialize(profile), ct);
 
         var lines = new List<string> { $"Saved {profile.Apps.Count} app(s) on {ip} to {path}." };
@@ -79,7 +106,10 @@ public static class TvProfileCommand
         else if (!s.Options.WithSettings && Build(true).Profile.Apps.Count(a => a.Settings is not null) is > 0 and var withValues)
             lines.Add($"{withValues} app(s) have values saved on this machine (server address, API key). They are not in the file; add --with-settings to include them.");
 
-        return s.Out.Result(new { ok = true, tv = ip, file = path, count = profile.Apps.Count, profile, leftOut = saved.LeftOut }, lines);
+        if (tvStoreLine is not null)
+            lines.Add(tvStoreLine);
+        return s.Out.Result(new { ok = true, tv = ip, file = path, count = profile.Apps.Count, profile, leftOut = saved.LeftOut,
+            tvStore = profile.TvStore is null ? null : new { included = true, secrets = profile.TvStoreHasSecrets } }, lines);
     }
 
     private static async Task<int> RestoreAsync(CliServices s, string file, string ip, CancellationToken ct)
@@ -175,11 +205,38 @@ public static class TvProfileCommand
             results.Add(new { app = app.Name, state = exit == Output.Ok ? "installed" : "failed", ok = exit == Output.Ok, exit, file = item.Asset.FileName, install = answer });
         }
 
+        // TV-Store's own data (#1179), once the apps are back: TV-Store has to be on the TV to take it.
+        // Not when only some apps were named: that is a restore of those apps.
+        object? tvStore = null;
+        if (profile.TvStore is { } backup && !s.Options.NoTvStore && names.Count == 0)
+        {
+            string message;
+            var restored = false;
+            IReadOnlyList<InstalledApp> now;
+            try { now = TizenInstalledApps.ParseOrThrow(await s.Sdb.AppsAsync(ip)); }
+            catch (Exception ex) when (ex is not OperationCanceledException) { now = onTv; }
+            switch (TvStoreBackup.CheckOnTv(now, s.Config.PackageIdRenamesJson))
+            {
+                case TvStoreBackupSkipped.NotInstalled:
+                    message = s.Strings.GetString("statusTvStoreRestoreNotInstalled");
+                    break;
+                case TvStoreBackupSkipped.TooOld:
+                    message = s.Strings.GetString("statusTvStoreRestoreTooOld");
+                    break;
+                default:
+                    var progress = new Progress<string>(key => s.Out.Progress(s.Strings.GetString(key)));
+                    (restored, message) = await TvStoreBackup.TryRestoreAsync(s.Sdb, ip, backup, s.Strings.GetString, progress, s.Config.PackageIdRenamesJson, ct);
+                    break;
+            }
+            lines.Add(message);
+            tvStore = new { restored, message };
+        }
+
         var summary = $"{installed} installed on {ip}";
         if (skipped > 0) summary += $", {skipped} already there";
         if (failed > 0) summary += $", {failed} not installed";
         lines.Insert(0, summary + ".");
-        return s.Out.Result(new { ok = failed == 0, tv = ip, file = path, installed, skipped, failed, apps = results }, lines,
+        return s.Out.Result(new { ok = failed == 0, tv = ip, file = path, installed, skipped, failed, apps = results, tvStore }, lines,
             failed == 0 ? Output.Ok : Output.Failed);
     }
 

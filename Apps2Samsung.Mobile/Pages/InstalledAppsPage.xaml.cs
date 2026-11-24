@@ -171,6 +171,8 @@ public partial class InstalledAppsPage : ContentPage
 			new MoreMenuItem(L10n.Get("lblTvInformation"), MoreMenu.IconInfo),
 			// Restore a TV (#1069): this TV's saved list, also after "Not now".
 			new MoreMenuItem(L10n.Get("lblRestoreApps"), MoreMenu.IconRescan),
+			// TV-Store's own data (#1179): kept on this phone, for the zip and a shared list.
+			new MoreMenuItem(L10n.Get("lblTvStoreBackupMenu"), MoreMenu.IconInfo),
 			new MoreMenuItem(L10n.Get("lblRemoveLeftover"), MoreMenu.IconDelete, Destructive: true));
 		if (choice == 4)
 		{
@@ -181,6 +183,11 @@ public partial class InstalledAppsPage : ContentPage
 			return;
 		}
 		if (choice == 5)
+		{
+			await BackUpTvStoreAsync();
+			return;
+		}
+		if (choice == 6)
 			choice = 4;
 		if (choice == 2)
 		{
@@ -200,6 +207,88 @@ public partial class InstalledAppsPage : ContentPage
 		}
 		else if (choice == 3)
 			await RemoveLeftoverAsync();
+	}
+
+	// TV-Store's own data (#1179): asked from TV-Store on the TV and kept on this phone. From there
+	// it goes into the Settings backup and, when asked, into a shared list.
+	private async Task BackUpTvStoreAsync()
+	{
+		var title = L10n.Get("lblTvStoreBackupTitle");
+		if (!_tv.HasTv || _onTv is null)
+		{
+			await DisplayAlert(title, L10n.Get(_tv.HasTv ? "errRestoreNoList" : "statusSelectTvFirst"), L10n.Get("lblOk"));
+			return;
+		}
+		switch (Apps2Samsung.TvStore.TvStoreBackup.CheckOnTv(_onTv, MobileSettings.PackageIdRenamesJson))
+		{
+			case Apps2Samsung.TvStore.TvStoreBackupSkipped.NotInstalled:
+				await DisplayAlert(title, L10n.Get("statusTvStoreBackupNotInstalled"), L10n.Get("lblOk"));
+				return;
+			case Apps2Samsung.TvStore.TvStoreBackupSkipped.TooOld:
+				await DisplayAlert(title, L10n.Get("statusTvStoreBackupTooOld"), L10n.Get("lblOk"));
+				return;
+		}
+		if (!await DisplayAlert(title, L10n.Get("lblTvStoreBackupPhoneAsk"), L10n.Get("lblOk"), L10n.Get("lblCancel")))
+			return;
+		var secrets = await DisplayAlert(title, L10n.Get("lblTvStoreSecretsAsk"), L10n.Get("lblTvStoreSecretsYes"), L10n.Get("lblTvStoreSecretsNo"));
+
+		string message;
+		SetBusy(true, L10n.Get(Apps2Samsung.TvStore.TvStoreBackup.TakingKey));
+		try
+		{
+			var progress = new Progress<string>(key => MainThread.BeginInvokeOnMainThread(() => SetBusy(true, L10n.Get(key))));
+			var (taken, text) = await Apps2Samsung.TvStore.TvStoreBackup.TryTakeAsync(_sdb, _tvIp, secrets, L10n.Get, progress, MobileSettings.PackageIdRenamesJson);
+			if (taken.Backup is { } backup)
+				Apps2Samsung.TvStore.TvStoreBackups.Set(_tvIp, backup, DateTimeOffset.UtcNow);
+			message = text;
+		}
+		finally
+		{
+			SetBusy(false);
+		}
+		await DisplayAlert(title, message, L10n.Get("lblOk"));
+	}
+
+	// TV-Store's own data back onto the TV (#1179), once the apps are: from the list when it carries
+	// a backup, else the one this phone kept of that TV. The person at the TV confirms it there.
+	private async Task OfferTvStoreRestoreAsync(Apps2Samsung.Catalog.TvProfile profile)
+	{
+		var backup = profile.TvStore ?? Apps2Samsung.TvStore.TvStoreBackups.Get(string.IsNullOrWhiteSpace(profile.TvIp) ? _tvIp : profile.TvIp)?.Backup;
+		if (Apps2Samsung.TvStore.TvStoreBackup.Describe(backup) is not { } info || _onTv is null)
+			return;
+
+		var title = L10n.Get("lblTvStoreBackupTitle");
+		switch (Apps2Samsung.TvStore.TvStoreBackup.CheckOnTv(_onTv, MobileSettings.PackageIdRenamesJson))
+		{
+			case Apps2Samsung.TvStore.TvStoreBackupSkipped.NotInstalled:
+				await DisplayAlert(title, L10n.Get("statusTvStoreRestoreNotInstalled"), L10n.Get("lblOk"));
+				return;
+			case Apps2Samsung.TvStore.TvStoreBackupSkipped.TooOld:
+				await DisplayAlert(title, L10n.Get("statusTvStoreRestoreTooOld"), L10n.Get("lblOk"));
+				return;
+		}
+
+		var made = DateTimeOffset.TryParse(info.MadeAt, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal, out var at)
+			? at.ToLocalTime().ToString("d MMMM yyyy")
+			: info.MadeAt ?? "?";
+		var ask = string.Format(L10n.Get("lblTvStoreRestoreAsk"), made);
+		if (info.HasSecrets)
+			ask += " " + L10n.Get("lblTvStoreRestoreAskSecrets");
+		if (!await DisplayAlert(title, ask, L10n.Get("lblTvStoreRestoreYes"), L10n.Get("lblTvStoreRestoreNo")))
+			return;
+
+		string message;
+		SetBusy(true, L10n.Get("lblToolboxTvStoreStarting"));
+		try
+		{
+			var progress = new Progress<string>(key => MainThread.BeginInvokeOnMainThread(() => SetBusy(true, L10n.Get(key))));
+			(_, message) = await Apps2Samsung.TvStore.TvStoreBackup.TryRestoreAsync(_sdb, _tvIp, backup!.Value, L10n.Get, progress, MobileSettings.PackageIdRenamesJson);
+		}
+		finally
+		{
+			SetBusy(false);
+		}
+		await DisplayAlert(title, message, L10n.Get("lblOk"));
 	}
 
 	// A fresh catalog, then the TV's list again: the subtitle says how many apps can be updated (#820).
@@ -764,5 +853,6 @@ public partial class InstalledAppsPage : ContentPage
 		await restore(picked.Select(p => (p.Release, p.Asset)).ToList());
 		await Shell.Current.GoToAsync("//apps");
 		await LoadAsync();
+		await OfferTvStoreRestoreAsync(profile);
 	}
 }

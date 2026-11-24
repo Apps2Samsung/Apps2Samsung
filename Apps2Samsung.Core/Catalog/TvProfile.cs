@@ -37,6 +37,25 @@ namespace Apps2Samsung.Catalog
         public bool ContainsSettings { get; set; }
         [JsonPropertyName("apps")]
         public List<TvProfileApp> Apps { get; set; } = new();
+
+        /// <summary>
+        /// TV-Store's own backup of this TV (#1179), the object <c>A2SStore.backup()</c> made, untouched:
+        /// pinned apps, its Settings, sources, and when the user asked for them the signing
+        /// certificates and the settings typed on the TV (then <see cref="TvStoreHasSecrets"/>).
+        /// Null when TV-Store was not on the TV, too old, or left out.
+        /// </summary>
+        [JsonPropertyName("tvStore")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public JsonElement? TvStore { get; set; }
+
+        /// <summary>True when <see cref="TvStore"/> holds signing keys and passwords, so a reader can say so before the file is shared.</summary>
+        [JsonPropertyName("tvStoreHasSecrets")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool TvStoreHasSecrets { get; set; }
+
+        /// <summary>The file holds something to keep private: typed values, or TV-Store's certificates and app settings.</summary>
+        [JsonIgnore]
+        public bool IsPrivate => ContainsSettings || TvStoreHasSecrets;
     }
 
     /// <summary>One app of a <see cref="TvProfile"/>: enough to find the same file in the catalog again.</summary>
@@ -110,6 +129,17 @@ namespace Apps2Samsung.Catalog
         };
 
         public static string Serialize(TvProfile profile) => JsonSerializer.Serialize(profile, Json);
+
+        /// <summary>
+        /// Puts TV-Store's backup into <paramref name="profile"/> (#1179), or takes it out with null.
+        /// Something that is not a TV-Store backup is not carried.
+        /// </summary>
+        public static void SetTvStore(TvProfile profile, JsonElement? backup)
+        {
+            var info = Apps2Samsung.TvStore.TvStoreBackup.Describe(backup);
+            profile.TvStore = info is null ? null : backup!.Value.Clone();
+            profile.TvStoreHasSecrets = info?.HasSecrets ?? false;
+        }
 
         /// <summary>
         /// Reads a profile file. Throws <see cref="FormatException"/> with a sentence for the user
