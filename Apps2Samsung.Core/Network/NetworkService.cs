@@ -21,7 +21,6 @@ namespace Apps2Samsung.Services
         private const int NetworkScanTimeoutMs = 1000;
 
         private readonly ITvNameResolver? _tvNameResolver;
-        private readonly IMacVendorLookup? _macVendorLookup;
         private readonly Func<string?>? _customIpProvider;
         private readonly Func<IEnumerable<LocalNetwork>>? _localNetworksProvider;
         private readonly int? _maxConcurrentHosts;
@@ -34,7 +33,6 @@ namespace Apps2Samsung.Services
         public bool LastScanBlockedByOs { get; private set; }
 
         /// <param name="tvNameResolver">Resolves a found TV's friendly name (SDB-backed). Optional.</param>
-        /// <param name="macVendorLookup">Enriches a found device with its manufacturer. Optional; desktop-only in practice.</param>
         /// <param name="customIpProvider">Supplies a user-configured extra IP to fold into the scan. Optional.</param>
         /// <param name="maxConcurrentHosts">How many hosts the sweep probes at once (two sockets each).
         /// Null probes the whole range in one go, as the desktop always has; a phone sets a cap so a
@@ -45,13 +43,11 @@ namespace Apps2Samsung.Services
         /// enumeration finds; read fresh on every scan. Optional.</param>
         public NetworkService(
             ITvNameResolver? tvNameResolver = null,
-            IMacVendorLookup? macVendorLookup = null,
             Func<string?>? customIpProvider = null,
             int? maxConcurrentHosts = null,
             Func<IEnumerable<LocalNetwork>>? localNetworksProvider = null)
         {
             _tvNameResolver = tvNameResolver;
-            _macVendorLookup = macVendorLookup;
             _customIpProvider = customIpProvider;
             _maxConcurrentHosts = maxConcurrentHosts;
             _localNetworksProvider = localNetworksProvider;
@@ -93,11 +89,23 @@ namespace Apps2Samsung.Services
             return LocalNetwork.Containing(networks, remote)?.Address.ToString();
         }
 
-        private Task<string?> GetManufacturerFromIp(string ip) =>
-            _macVendorLookup is null ? Task.FromResult<string?>(null) : _macVendorLookup.GetManufacturerFromIpAsync(ip);
-
-        private Task<string> GetTvNameAsync(string ip) =>
-            _tvNameResolver is null ? Task.FromResult(string.Empty) : _tvNameResolver.GetTvNameAsync(ip);
+        // Null when no head resolves names (phone, CLI) or the TV gave none: an empty name would
+        // show as one.
+        private async Task<string?> GetTvNameAsync(string ip)
+        {
+            if (_tvNameResolver is null)
+                return null;
+            try
+            {
+                var name = await _tvNameResolver.GetTvNameAsync(ip);
+                return string.IsNullOrWhiteSpace(name) ? null : name;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"[NetworkService] No name from {ip}: {ex.Message}");
+                return null;
+            }
+        }
 
         public async Task<IEnumerable<NetworkDevice>> GetLocalTizenAddresses(CancellationToken cancellationToken = default, bool virtualScan = false)
         {
@@ -111,10 +119,10 @@ namespace Apps2Samsung.Services
                 // Same bar as the network scan (see FindTizenTvsAsync), so the manual and the
                 // discovered paths always agree on a TV (#523): a TV on the SDB debug port (26101)
                 // is ready to install to; a TV that answers only on the 8001 REST API is listed as
-                // "not ready" — it's a real Samsung TV, just without (active) Developer Mode. The
+                // "not ready", it's a real Samsung TV, just without (active) Developer Mode. The
                 // manual path used to accept 26101 only, so a Developer-Mode-off TV that the scan
-                // missed could not be rescued by typing its IP either, and the Remote / TV toolbox
-                // — which don't need Developer Mode at all — were unreachable (#663).
+                // missed could not be rescued by typing its IP either, and the Remote / TV toolbox,
+                // which don't need Developer Mode at all, were unreachable (#663).
                 var ports = await ProbeTvPortsAsync(ip, cancellationToken);
                 if (!ports.DebugPortOpen && !ports.ApiPortOpen)
                     return null;
@@ -125,12 +133,11 @@ namespace Apps2Samsung.Services
                     DebugPortOpen = ports.DebugPortOpen
                 };
 
+                // The open debug port is what says it is a TV. The name used to be asked only of a
+                // device whose network card an internet lookup called Samsung's; nothing about the
+                // network leaves it now, so every device on that port is asked.
                 if (ports.DebugPortOpen)
-                {
-                    device.Manufacturer = await GetManufacturerFromIp(ip);
-                    if (device.Manufacturer?.Contains("Samsung", StringComparison.OrdinalIgnoreCase) == true)
-                        device.DeviceName = await GetTvNameAsync(ip);
-                }
+                    device.DeviceName = await GetTvNameAsync(ip);
 
                 return device;
             }
@@ -176,25 +183,22 @@ namespace Apps2Samsung.Services
                             var ports = await ProbeTvPortsAsync(ip, cancellationToken);
                             if (ports.DebugPortOpen)
                             {
-                                var manufacturer = await GetManufacturerFromIp(ip);
                                 var device = new NetworkDevice
                                 {
-                                    IpAddress = ip,
-                                    Manufacturer = manufacturer
+                                    IpAddress = ip
                                 };
                                 lock (lockObject)
                                 {
                                     foundDevices.Add(device);
                                 }
-                                if (manufacturer?.Contains("Samsung", StringComparison.OrdinalIgnoreCase) == true)
-                                {
-                                    device.DeviceName = await GetTvNameAsync(ip);
-                                }
+                                // Every device on the debug port is asked its name, see
+                                // ValidateManualTizenAddress.
+                                device.DeviceName = await GetTvNameAsync(ip);
                             }
                             // Debug port closed, but the TV REST API (8001) answers: the TV is
                             // there but not ready (Developer Mode off or not fully active). Surface
                             // it as "not ready" so the user gets an actionable hint instead of "no
-                            // devices" — and so the Remote / TV toolbox, which don't need Developer
+                            // devices", and so the Remote / TV toolbox, which don't need Developer
                             // Mode, can reach it. TizenDeveloperInfo enriches it via /api/v2/
                             // (name, developerMode, developerIP).
                             else if (ports.ApiPortOpen)
@@ -214,7 +218,7 @@ namespace Apps2Samsung.Services
                         catch (Exception ex)
                         {
                             // Don't let one host's failure abort the sweep, but no longer swallow it
-                            // silently — log so a systematic failure (e.g. an OS-level block) is visible.
+                            // silently, log so a systematic failure (e.g. an OS-level block) is visible.
                             Trace.WriteLine($"[Scan] host probe failed: {ex.GetType().Name}: {ex.Message}");
                         }
                         finally
@@ -274,8 +278,8 @@ namespace Apps2Samsung.Services
                 .Select(IPAddress.Parse); // Convert back to IPAddress
         }
         /// <summary>
-        /// Probes the two ports that identify a Samsung TV — the SDB debug port (26101) and the REST
-        /// API (8001) — for one host. The probes run concurrently and each gets its OWN
+        /// Probes the two ports that identify a Samsung TV, the SDB debug port (26101) and the REST
+        /// API (8001), for one host. The probes run concurrently and each gets its OWN
         /// <see cref="NetworkScanTimeoutMs"/> budget.
         ///
         /// They used to run one after the other under a single shared 1 s budget, which silently
@@ -283,7 +287,7 @@ namespace Apps2Samsung.Services
         /// ~1.03 s to send the RST for the closed 26101, so the shared token was already cancelled
         /// by the time the 8001 probe started, and that probe "failed" via
         /// OperationCanceledException although the port answers in ~30 ms. The TV then never showed
-        /// up at all — not even as "not ready" — and the manual-IP path rejected it too (#663).
+        /// up at all, not even as "not ready", and the manual-IP path rejected it too (#663).
         /// Running both probes side by side keeps the per-host scan time at one budget instead of two.
         /// </summary>
         private async Task<(bool DebugPortOpen, bool ApiPortOpen)> ProbeTvPortsAsync(string ip, CancellationToken cancellationToken)
@@ -310,10 +314,10 @@ namespace Apps2Samsung.Services
             {
                 using var client = new TcpClient();
                 // ConnectAsync honours the caller's cancellation token (a linked timeout CTS), so a
-                // closed/filtered port cancels to false. It returns a ValueTask — await it EXACTLY
+                // closed/filtered port cancels to false. It returns a ValueTask, await it EXACTLY
                 // once. The previous code called .AsTask() on the ValueTask twice (plus a trailing
                 // await), which on Android/MonoVM faults ("a ValueTask may be consumed only once")
-                // and made every probe return false — so no TV was ever detected despite the
+                // and made every probe return false, so no TV was ever detected despite the
                 // connects actually happening. Desktop's runtime tolerated the double-consumption.
                 await client.ConnectAsync(ip, port, ct);
                 return true;
@@ -325,7 +329,7 @@ namespace Apps2Samsung.Services
             catch (Exception ex)
             {
                 // A subnet sweep expects most probes to fail with refused/timeout/unreachable, so keep
-                // those quiet. Anything else is surfaced instead of silently swallowed — notably macOS
+                // those quiet. Anything else is surfaced instead of silently swallowed, notably macOS
                 // Local Network privacy, which blocks the connect with "Operation not permitted"
                 // (SocketError.AccessDenied). That log line is what tells us a connect was denied by
                 // the OS rather than the host simply being absent (see #498).
@@ -553,7 +557,7 @@ namespace Apps2Samsung.Services
         }
 
         // Looks up the subnet mask assigned to a local interface IP. Returns null when it can't be
-        // determined — including on Android, where IPv4Mask isn't implemented and throws; callers
+        // determined, including on Android, where IPv4Mask isn't implemented and throws; callers
         // fall back to /24 rather than losing the comparison entirely.
         private static IPAddress? GetMaskForLocalIp(IPAddress target)
         {
