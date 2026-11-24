@@ -209,10 +209,10 @@ namespace Apps2Samsung.ViewModels
                 Trace.WriteLine($"[debug] attach to {_app.TizenId} failed: {ex}");
                 SetStatus(ConsoleStatus.Detached);
                 Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Error,
-                    string.Format("statusDebugAttachFailed".Localized(), _app.DisplayName, ex.Message), null));
+                    string.Format("statusDebugAttachFailed".Localized(), _app.DisplayName, Apps2Samsung.Sdb.TizenAppDebugger.FailureText(ex, key => key.Localized())), null));
                 await DetachAsync();
                 await _dialogService.ShowErrorAsync(
-                    string.Format("statusDebugAttachFailed".Localized(), _app.DisplayName, ex.Message));
+                    string.Format("statusDebugAttachFailed".Localized(), _app.DisplayName, Apps2Samsung.Sdb.TizenAppDebugger.FailureText(ex, key => key.Localized())));
             }
             finally
             {
@@ -279,7 +279,7 @@ namespace Apps2Samsung.ViewModels
                 SetStatus(ConsoleStatus.Detached);
                 IsAttached = false;
                 Append(new ConsoleEntry(DateTimeOffset.Now, ConsoleLevel.Error,
-                    string.Format("statusDebugAttachFailed".Localized(), _app.DisplayName, ex.Message), null));
+                    string.Format("statusDebugAttachFailed".Localized(), _app.DisplayName, Apps2Samsung.Sdb.TizenAppDebugger.FailureText(ex, key => key.Localized())), null));
             }
             finally
             {

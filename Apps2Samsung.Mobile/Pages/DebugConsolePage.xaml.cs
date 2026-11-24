@@ -127,7 +127,7 @@ public partial class DebugConsolePage : ContentPage
             await DetachAsync();
             await DisplayAlert(
                 L10n.Get("lblDebugConsole"),
-                string.Format(L10n.Get("statusDebugAttachFailed"), _appName, ex.Message),
+                string.Format(L10n.Get("statusDebugAttachFailed"), _appName, TizenAppDebugger.FailureText(ex, L10n.Get)),
                 L10n.Get("lblOk"));
             await Navigation.PopAsync();
         }
