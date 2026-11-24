@@ -32,7 +32,6 @@ As with any download, the host sees your IP address.
 | At start, then every 15 minutes while the app is open | `apps2samsung.com` (the project's site, hosted on GitHub Pages) | The app catalog and the public download counts |
 | At start | `github.com`, `api.github.com`, `raw.githubusercontent.com` | The update check, the catalog's list of sources, and the release lists of catalog apps when the catalog file is out of date |
 | When the catalog is shown | The hosts the catalog names for app icons, mostly `apps2samsung.com` and GitHub | App icons |
-| At start, on the desktop app | `api.macvendors.com` | For a device found on your network with the TV's developer port open, the first half of its network address (the part that names the manufacturer) is looked up, to show the brand. No other part of the address is sent. |
 | At start | Sources and repositories you added yourself | Their app lists |
 
 If you set a GitHub token in Settings, or have one in the `GITHUB_TOKEN` environment variable
@@ -43,7 +42,7 @@ rate limit.
 
 - The app looks for TVs by trying to connect to every address on your own network, on the
   TV's developer port (26101) and its control port (8001). Nothing about what it finds leaves
-  your network, apart from the manufacturer lookup above.
+  your network.
 - It talks to the TV you pick: to install and remove apps, read its information, act as a
   remote control and wake it up. With TV-Store on the TV it also talks to TV-Store there.
 - While you sign in to Samsung, and while the TV logs window is open, the app listens on a
@@ -71,7 +70,7 @@ is sent anywhere but to Samsung.
 
 These services have their own privacy policies: [GitHub](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement),
 [Samsung account](https://account.samsung.com/membership/policy/privacy),
-[macvendors.com](https://macvendors.com), [jsDelivr](https://www.jsdelivr.com/terms/privacy-policy-jsdelivr-net).
+[jsDelivr](https://www.jsdelivr.com/terms/privacy-policy-jsdelivr-net).
 Apps from the catalog are other projects' software. What they do on your TV is up to them.
 
 ## Turning things off
