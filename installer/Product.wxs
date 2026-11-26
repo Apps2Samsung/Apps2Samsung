@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The Windows installer (.msi) that `winget install Apps2Samsung.Apps2Samsung` downloads. Built by
+  .github/actions/windows-build from the published desktop files, with WiX 6:
+
+    wix build installer/Product.wxs -arch x64 -ext WixToolset.Util.wixext -d PublishDir=<publish folder> -o <msi>
+
+  VERSION in the environment is the release version (digits and dots). The UpgradeCode must
+  never change: it is what lets a new version replace an installed one.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+  <Package
+    Name="Apps2Samsung"
+    Manufacturer="Apps2Samsung"
+    Version="$(env.VERSION)"
+    UpgradeCode="6f3e2a1b-4c5d-4e6f-a7b8-9c0d1e2f3a4b"
+    Scope="perMachine">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Feature Id="MainFeature" Level="1">
+      <ComponentGroupRef Id="MainComponents" />
+      <ComponentGroupRef Id="Shortcuts" />
+      <ComponentGroupRef Id="InstallFolderPermissions" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Apps2Samsung" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AppMenuFolder" Name="Apps2Samsung" />
+    </StandardDirectory>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="MainComponents" Directory="INSTALLFOLDER">
+      <Files Include="$(PublishDir)\**\*.*" />
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="InstallFolderPermissions" Directory="INSTALLFOLDER">
+      <Component Id="InstallFolderPermission">
+        <CreateFolder>
+          <util:PermissionEx User="Users" GenericWrite="yes" />
+        </CreateFolder>
+        <RegistryValue Root="HKLM"
+                       Key="Software\Apps2Samsung"
+                       Name="permissions"
+                       Type="integer"
+                       Value="1"
+                       KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="Shortcuts" Directory="AppMenuFolder">
+      <Component Id="AppShortcut">
+        <Shortcut Id="StartMenuShortcut"
+                  Name="Apps2Samsung"
+                  Target="[INSTALLFOLDER]Apps2Samsung.exe"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RemoveFolder Id="RemoveAppMenuFolder" Directory="AppMenuFolder" On="uninstall" />
+        <RegistryValue Root="HKLM"
+                       Key="Software\Apps2Samsung"
+                       Name="installed"
+                       Type="integer"
+                       Value="1"
+                       KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

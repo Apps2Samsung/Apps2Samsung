@@ -1,10 +1,10 @@
 name: Build the Windows release files
 description: >-
-  The Windows desktop zip and the two Windows CLI zips of a release, shared by the stable release
-  and Test Windows signing so the two can't drift. With a signing policy the three executables go
-  to SignPath in one signing request (one approval covers the release) and the zips are made from
-  the signed files; without one the zips hold the unsigned files. Needs a Windows runner and a
-  checkout. See CODE_SIGNING_POLICY.md.
+  The Windows desktop zip, the installer (.msi) for WinGet and the two Windows CLI zips of a
+  release, shared by the stable release and Test Windows signing so the two can't drift. With a
+  signing policy the three executables and the installer go to SignPath in one signing request
+  (one approval covers the release) and the zips are made from the signed files; without one
+  everything is unsigned. Needs a Windows runner and a checkout. See CODE_SIGNING_POLICY.md.
 
 inputs:
   version:
@@ -28,7 +28,7 @@ inputs:
     required: false
     default: '14400'
   output:
-    description: Directory the three zips are written to, relative to the workspace.
+    description: Directory the three zips and the installer are written to, relative to the workspace.
     required: false
     default: dist
 
@@ -84,14 +84,36 @@ runs:
           }
         }
 
-    # Only the three executables travel to SignPath, under the paths the artifact configuration
-    # names (.github/signpath/artifact-configuration.xml).
+    # The installer WinGet downloads (installer/Product.wxs): the published desktop files under
+    # Program Files plus a Start menu shortcut. It is built from the unsigned files; SignPath
+    # signs the Apps2Samsung.exe inside it and then the installer itself. The extension is added
+    # for the user (-g), not into the checkout.
+    - name: Build the installer
+      shell: pwsh
+      env:
+        VERSION: ${{ inputs.version }}
+        WIX_VERSION: '6.0.2'
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $PSNativeCommandUseErrorActionPreference = $true
+        $wix = Join-Path $env:RUNNER_TEMP 'wix'
+        dotnet tool install wix --version $env:WIX_VERSION --tool-path $wix
+        & "$wix/wix.exe" extension add -g "WixToolset.Util.wixext/$env:WIX_VERSION"
+        & "$wix/wix.exe" build installer/Product.wxs `
+          -arch x64 `
+          -ext WixToolset.Util.wixext `
+          -d "PublishDir=$((Resolve-Path publish/win-x64).Path)" `
+          -o installer-build/Apps2Samsung-win-x64.msi
+
+    # Only the three executables and the installer travel to SignPath, under the paths the
+    # artifact configuration names (.github/signpath/artifact-configuration.xml).
     - name: Collect the files to sign
       if: inputs.signing-policy != ''
       shell: pwsh
       run: |
         $ErrorActionPreference = 'Stop'
-        New-Item -ItemType Directory -Force unsigned/desktop/win-x64, unsigned/cli/win-x64, unsigned/cli/win-arm64 | Out-Null
+        New-Item -ItemType Directory -Force unsigned/desktop/win-x64, unsigned/cli/win-x64, unsigned/cli/win-arm64, unsigned/installer | Out-Null
+        Copy-Item installer-build/Apps2Samsung-win-x64.msi unsigned/installer/
         Copy-Item publish/win-x64/Apps2Samsung.exe unsigned/desktop/win-x64/
         Copy-Item publish/cli/win-x64/apps2samsung-cli.exe unsigned/cli/win-x64/
         Copy-Item publish/cli/win-arm64/apps2samsung-cli.exe unsigned/cli/win-arm64/
@@ -134,8 +156,10 @@ runs:
         output-artifact-directory: signed
 
     # The test certificate is self-signed, so "not trusted" is a pass here: what must never get
-    # through is a file that came back without a signature or with a broken one. The x64 CLI is
-    # then run once, which proves a single-file executable still starts after signing.
+    # through is a file that came back without a signature or with a broken one. The installer is
+    # unpacked (an administrative install, nothing is installed) to look at the Apps2Samsung.exe
+    # inside it. The x64 CLI is then run once, which proves a single-file executable still starts
+    # after signing.
     - name: Put the signed files back
       if: inputs.signing-policy != ''
       shell: pwsh
@@ -144,20 +168,33 @@ runs:
       run: |
         $ErrorActionPreference = 'Stop'
         $PSNativeCommandUseErrorActionPreference = $true
+        function Assert-Signed([string] $file) {
+          $signature = Get-AuthenticodeSignature $file
+          $subject = if ($signature.SignerCertificate) { $signature.SignerCertificate.Subject } else { 'none' }
+          Write-Host "${file}: $($signature.Status), signer $subject"
+          if (-not $signature.SignerCertificate -or $signature.Status -in 'NotSigned', 'HashMismatch', 'NotSupportedFileFormat', 'Incompatible') {
+            throw "$file is not signed ($($signature.Status))"
+          }
+        }
+
         $files = @{
           'signed/desktop/win-x64/Apps2Samsung.exe'     = 'publish/win-x64/Apps2Samsung.exe'
           'signed/cli/win-x64/apps2samsung-cli.exe'     = 'publish/cli/win-x64/apps2samsung-cli.exe'
           'signed/cli/win-arm64/apps2samsung-cli.exe'   = 'publish/cli/win-arm64/apps2samsung-cli.exe'
+          'signed/installer/Apps2Samsung-win-x64.msi'   = 'installer-build/Apps2Samsung-win-x64.msi'
         }
         foreach ($signed in $files.Keys) {
-          $signature = Get-AuthenticodeSignature $signed
-          $subject = if ($signature.SignerCertificate) { $signature.SignerCertificate.Subject } else { 'none' }
-          Write-Host "${signed}: $($signature.Status), signer $subject"
-          if (-not $signature.SignerCertificate -or $signature.Status -in 'NotSigned', 'HashMismatch', 'NotSupportedFileFormat', 'Incompatible') {
-            throw "$signed is not signed ($($signature.Status))"
-          }
+          Assert-Signed $signed
           Copy-Item $signed $files[$signed] -Force
         }
+
+        $msi = (Resolve-Path installer-build/Apps2Samsung-win-x64.msi).Path
+        $unpacked = Join-Path $env:RUNNER_TEMP 'msi-unpacked'
+        $unpack = Start-Process msiexec -ArgumentList "/a `"$msi`" /qn TARGETDIR=`"$unpacked`"" -Wait -PassThru
+        if ($unpack.ExitCode -ne 0) { throw "msiexec could not unpack the installer (exit $($unpack.ExitCode))" }
+        $inner = Get-ChildItem $unpacked -Recurse -Filter Apps2Samsung.exe | Select-Object -First 1
+        if (-not $inner) { throw "No Apps2Samsung.exe inside the installer" }
+        Assert-Signed $inner.FullName
 
         $reported = (& publish/cli/win-x64/apps2samsung-cli.exe --version | Select-Object -First 1)
         Write-Host "apps2samsung-cli --version: $reported"
@@ -167,7 +204,7 @@ runs:
 
     # "Apps2Samsung.Cli-", not "Apps2Samsung-cli-": GitHub lists assets by name, and the desktop
     # updater of 3.2.1 and older takes the first archive that names its platform.
-    - name: Zip
+    - name: Zip and name the installer
       shell: pwsh
       env:
         VERSION_TAG: ${{ inputs.version-tag }}
@@ -187,4 +224,5 @@ runs:
           Push-Location $dir
           try { 7z a -tzip -bso0 $zip * } finally { Pop-Location }
         }
+        Copy-Item installer-build/Apps2Samsung-win-x64.msi (Join-Path $out "Apps2Samsung-$env:VERSION_TAG-win-x64.msi") -Force
         Get-ChildItem $out | Format-Table Name, Length

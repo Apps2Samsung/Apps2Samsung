@@ -33,7 +33,7 @@ env:
 
 jobs:
 # ======================================================
-# WINDOWS (desktop + CLI, signed through SignPath)
+# WINDOWS (desktop + installer + CLI, signed through SignPath)
 # ======================================================
 # First on purpose: the release is only created once the Windows files are there. A release
 # that is online without its Windows zip makes the desktop updater on Windows pick another
@@ -77,8 +77,8 @@ jobs:
 
       # Signing is switched on with the WINDOWS_SIGNING repository variable (Settings, Secrets and
       # variables, Actions, Variables), like IOS_PUBLISH and AUR_PUBLISH: until SignPath has issued
-      # the production certificate there is nothing to sign a release with, and the zips ship
-      # unsigned as before. Test Windows signing tries the route without a release.
+      # the production certificate there is nothing to sign a release with, and the zips and the
+      # installer ship unsigned as before. Test Windows signing tries the route without a release.
       - name: Build and sign
         uses: $/.github/actions/windows-build
         with:
@@ -91,7 +91,9 @@ jobs:
       - uses: actions/upload-artifact@v7.0.2
         with:
           name: windows-release
-          path: dist/*.zip
+          path: |
+            dist/*.zip
+            dist/*.msi
           retention-days: 7
           if-no-files-found: error
 
@@ -248,7 +250,7 @@ jobs:
             # SignPath Foundation looks for this line on the download page; see CODE_SIGNING_POLICY.md.
             echo "### ✍️ Code signing"
             if [ "${{ vars.WINDOWS_SIGNING }}" = "true" ]; then
-              echo "Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org). \`Apps2Samsung.exe\` and \`apps2samsung-cli.exe\` in the Windows zips are signed, see the [code signing policy](https://github.com/${GITHUB_REPOSITORY}/blob/HEAD/CODE_SIGNING_POLICY.md)."
+              echo "Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org). \`Apps2Samsung.exe\` and \`apps2samsung-cli.exe\` in the Windows zips and the \`.msi\` installer are signed, see the [code signing policy](https://github.com/${GITHUB_REPOSITORY}/blob/HEAD/CODE_SIGNING_POLICY.md)."
             else
               echo "Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org). The Windows builds will be signed once the application is approved, see the [code signing policy](https://github.com/${GITHUB_REPOSITORY}/blob/HEAD/CODE_SIGNING_POLICY.md)."
             fi
@@ -259,7 +261,7 @@ jobs:
           dotnet-version: 10.0.x
 
       # ---------------- WINDOWS ----------------
-      # The desktop zip and the two CLI zips, built (and signed) by the windows job.
+      # The desktop zip, the installer and the two CLI zips, built (and signed) by the windows job.
       - name: Fetch the Windows files
         uses: actions/download-artifact@v8.0.2
         with:
@@ -307,8 +309,8 @@ jobs:
           body_path: RELEASE_NOTES.md
 
       # ---------------- WINGET ----------------
-      # winget-apps2samsung builds the MSI from the Windows zip that is on the release by now and
-      # opens the microsoft/winget-pkgs PR. Without this nudge it only has a daily cron, which
+      # winget-apps2samsung takes the MSI that is on the release by now, writes the manifest for
+      # it and opens the microsoft/winget-pkgs PR. Without this nudge it only has a daily cron, which
       # GitHub runs hours late, so a stable could sit a day without a WinGet update. Same pattern
       # as tizen-community-packages -> catalog-snapshot.yml. Deliberately absent from
       # beta-prerelease.yml: WinGet only ever gets stable releases.

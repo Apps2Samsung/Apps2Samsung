@@ -63,6 +63,8 @@ jobs:
       - uses: actions/upload-artifact@v7.0.2
         with:
           name: Apps2Samsung-${{ inputs.signing_policy }}-${{ github.run_number }}-windows
-          path: dist/*.zip
+          path: |
+            dist/*.zip
+            dist/*.msi
           retention-days: 7
           if-no-files-found: error
