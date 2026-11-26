@@ -3,9 +3,9 @@
 Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by
 [SignPath Foundation](https://signpath.org).
 
-The application to SignPath Foundation is being prepared. Until it is approved and the first
-signed release is out, the Windows builds are not signed. This page describes how signing works
-from then on.
+SignPath Foundation has approved the project, and the certificate is being issued. Until the
+first signed release is out, the Windows builds are not signed. This page describes how signing
+works from then on.
 
 This policy applies to the official stable Windows builds of Apps2Samsung published at
 https://github.com/Apps2Samsung/Apps2Samsung/releases.
