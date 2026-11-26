@@ -308,29 +308,63 @@ jobs:
           files: dist/*
           body_path: RELEASE_NOTES.md
 
-      # ---------------- WINGET ----------------
-      # winget-apps2samsung takes the MSI that is on the release by now, writes the manifest for
-      # it and opens the microsoft/winget-pkgs PR. Without this nudge it only has a daily cron, which
-      # GitHub runs hours late, so a stable could sit a day without a WinGet update. Same pattern
-      # as tizen-community-packages -> catalog-snapshot.yml. Deliberately absent from
-      # beta-prerelease.yml: WinGet only ever gets stable releases.
-      - name: Notify winget-apps2samsung
+# ======================================================
+# WINGET (microsoft/winget-pkgs pull request)
+# ======================================================
+  winget:
+    name: WinGet
+    runs-on: ubuntu-latest
+    # The MSI is on the release once the stable-release job is done, so this only reads the
+    # release. It opens the pull request on microsoft/winget-pkgs that makes
+    # `winget install Apps2Samsung.Apps2Samsung` offer this version: Komac downloads the MSI,
+    # takes its hash and writes the manifest from the previous version's. Deliberately absent
+    # from beta-prerelease.yml: WinGet only ever gets stable releases. This used to live in the
+    # winget-apps2samsung repository, which also built the MSI.
+    needs: stable-release
+    if: needs.stable-release.result == 'success'
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ needs.stable-release.outputs.VERSION }}
+      VERSION_TAG: ${{ needs.stable-release.outputs.VERSION_TAG }}
+      # https://github.com/russellbanks/Komac/releases, the x86_64-unknown-linux-gnu tarball.
+      # Bump the version and the checksum together.
+      KOMAC_VERSION: '2.17.2'
+      KOMAC_SHA256: b03b020eec98acfb0b53e284a6e21815b884be33de6785b97e7a120f0e748966
+
+    steps:
+      - name: Submit to WinGet
         env:
-          # Fine-grained PAT, Contents read/write on Apps2Samsung/winget-apps2samsung only
-          # (Settings -> Secrets and variables -> Actions). Missing token = warning, never a red
-          # release: the winget repo's cron picks the release up later.
-          GH_TOKEN: ${{ secrets.WINGET_DISPATCH_TOKEN }}
+          # Classic PAT with the public_repo and workflow scopes, of an account that can push to
+          # the Apps2Samsung/winget-pkgs fork (Settings -> Secrets and variables -> Actions).
+          # Fine-grained tokens do not work for this. Missing token = warning, never a red
+          # release: WinGet then stays on the previous version until it is submitted by hand.
+          GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
+          KOMAC_FORK_OWNER: Apps2Samsung
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${GH_TOKEN:-}" ]; then
-            echo "::warning::WINGET_DISPATCH_TOKEN is not set; winget-apps2samsung picks up $VERSION_TAG on its next scheduled run instead."
+          if [ -z "${GITHUB_TOKEN:-}" ]; then
+            echo "::warning::WINGET_TOKEN is not set; $VERSION_TAG was not submitted to WinGet."
             exit 0
           fi
-          gh api --method POST repos/Apps2Samsung/winget-apps2samsung/dispatches \
-            -f event_type=stable-release \
-            -f "client_payload[tag]=${VERSION_TAG}"
-          echo "Dispatched stable-release for $VERSION_TAG to winget-apps2samsung."
+
+          curl -fsSL --retry 5 --retry-all-errors --retry-delay 10 -o komac.tar.gz \
+            "https://github.com/russellbanks/Komac/releases/download/v${KOMAC_VERSION}/komac-${KOMAC_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          echo "${KOMAC_SHA256}  komac.tar.gz" | sha256sum -c -
+          tar -xzf komac.tar.gz
+          KOMAC=$(find . -type f -name komac | head -n 1)
+          chmod +x "$KOMAC"
+
+          # The fork has to be level with microsoft/winget-pkgs before a branch is cut from it.
+          "$KOMAC" sync-fork
+          "$KOMAC" update Apps2Samsung.Apps2Samsung \
+            --version "$VERSION" \
+            --urls "https://github.com/${GITHUB_REPOSITORY}/releases/download/${VERSION_TAG}/${PRODUCT_NAME}-${VERSION_TAG}-win-x64.msi" \
+            --release-notes-url "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${VERSION_TAG}" \
+            --submit
+          # Branches in the fork whose pull request has been merged.
+          "$KOMAC" cleanup --only-merged
 
 # ======================================================
 # CLI (ONE SELF-CONTAINED BINARY PER PLATFORM, #836)
