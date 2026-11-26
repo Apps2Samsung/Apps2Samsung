@@ -69,8 +69,9 @@ in the background.
 
 ## Code signing
 
-The Windows builds will be signed once the SignPath Foundation application is approved. Until
-then Windows Smart App Control blocks them, see the
+SignPath Foundation has approved Apps2Samsung, and the release workflow is ready to sign the
+Windows builds. Signing starts with the first stable release after the certificate is issued.
+Until then Windows Smart App Control blocks them, see the
 [FAQ](../../wiki/FAQ#windows-smart-app-control-blocks-apps2samsung).
 
 Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by
