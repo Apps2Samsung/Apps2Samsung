@@ -1,0 +1,190 @@
+name: Build the Windows release files
+description: >-
+  The Windows desktop zip and the two Windows CLI zips of a release, shared by the stable release
+  and Test Windows signing so the two can't drift. With a signing policy the three executables go
+  to SignPath in one signing request (one approval covers the release) and the zips are made from
+  the signed files; without one the zips hold the unsigned files. Needs a Windows runner and a
+  checkout. See CODE_SIGNING_POLICY.md.
+
+inputs:
+  version:
+    description: The release version without the v, digits and dots only (e.g. 3.3.3).
+    required: true
+  version-tag:
+    description: The release tag (e.g. v3.3.3), used in the zip names.
+    required: true
+  signing-policy:
+    description: >-
+      SignPath signing policy slug: test-signing or release-signing. Empty builds the zips
+      without signing anything.
+    required: false
+    default: ''
+  api-token:
+    description: API token of the SignPath CI user (the SIGNPATH_API_TOKEN secret). Only read when signing.
+    required: false
+    default: ''
+  approval-timeout-seconds:
+    description: How long to wait for the signing request to be approved by hand in SignPath.
+    required: false
+    default: '14400'
+  output:
+    description: Directory the three zips are written to, relative to the workspace.
+    required: false
+    default: dist
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-dotnet@v6.1.0
+      with:
+        dotnet-version: 10.0.x
+
+    # The desktop gets the file and product version only: its assembly version stays as it is
+    # because the Jellyfin client identity reports it. The CLI takes the whole version, as on
+    # every other platform (`apps2samsung-cli --version` prints it).
+    - name: Publish
+      shell: pwsh
+      env:
+        VERSION: ${{ inputs.version }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $PSNativeCommandUseErrorActionPreference = $true
+
+        dotnet publish Apps2Samsung.Desktop/Apps2Samsung.csproj `
+          -c Release -r win-x64 -p:SelfContained=true `
+          "-p:FileVersion=$env:VERSION" "-p:InformationalVersion=$env:VERSION" `
+          -o publish/win-x64
+
+        foreach ($rid in 'win-x64', 'win-arm64') {
+          dotnet publish Apps2Samsung.Cli/Apps2Samsung.Cli.csproj `
+            -c Release -r $rid -p:SelfContained=true -p:PublishSingleFile=true `
+            -p:DebugType=none "-p:Version=$env:VERSION" -o "publish/cli/$rid"
+        }
+
+    # SignPath refuses a file whose product name is not the project's, and the signing request is
+    # approved by hand on what these fields say. A wrong one fails here, before anything is sent.
+    - name: Check the version details of the executables
+      shell: pwsh
+      env:
+        VERSION: ${{ inputs.version }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $files = 'publish/win-x64/Apps2Samsung.exe',
+                 'publish/cli/win-x64/apps2samsung-cli.exe',
+                 'publish/cli/win-arm64/apps2samsung-cli.exe'
+        foreach ($file in $files) {
+          $info = (Get-Item $file).VersionInfo
+          Write-Host "${file}: product '$($info.ProductName)', product version '$($info.ProductVersion)', file version '$($info.FileVersion)'"
+          if ($info.ProductName -ne 'Apps2Samsung') {
+            throw "${file}: product name is '$($info.ProductName)', expected 'Apps2Samsung'"
+          }
+          # The product version may carry the commit after a plus sign (3.3.3+0123abc).
+          if (($info.ProductVersion -split '\+')[0] -ne $env:VERSION) {
+            throw "${file}: product version is '$($info.ProductVersion)', expected $env:VERSION"
+          }
+        }
+
+    # Only the three executables travel to SignPath, under the paths the artifact configuration
+    # names (.github/signpath/artifact-configuration.xml).
+    - name: Collect the files to sign
+      if: inputs.signing-policy != ''
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        New-Item -ItemType Directory -Force unsigned/desktop/win-x64, unsigned/cli/win-x64, unsigned/cli/win-arm64 | Out-Null
+        Copy-Item publish/win-x64/Apps2Samsung.exe unsigned/desktop/win-x64/
+        Copy-Item publish/cli/win-x64/apps2samsung-cli.exe unsigned/cli/win-x64/
+        Copy-Item publish/cli/win-arm64/apps2samsung-cli.exe unsigned/cli/win-arm64/
+
+    # SignPath takes the files from the workflow artifact itself, not from this job, which is how
+    # it knows they come from this run.
+    - name: Upload the unsigned files
+      id: unsigned
+      if: inputs.signing-policy != ''
+      uses: actions/upload-artifact@v7.0.2
+      with:
+        name: windows-unsigned-${{ inputs.version-tag }}
+        path: unsigned
+        retention-days: 7
+        if-no-files-found: error
+
+    - name: Check the SignPath token
+      if: inputs.signing-policy != ''
+      shell: pwsh
+      env:
+        SIGNPATH_API_TOKEN: ${{ inputs.api-token }}
+      run: |
+        if (-not $env:SIGNPATH_API_TOKEN) {
+          Write-Host "::error::SIGNPATH_API_TOKEN is not set. Add the API token of the SignPath CI user under Settings, Secrets and variables, Actions."
+          exit 1
+        }
+
+    # Waits for the approval: every signing request is approved by hand in SignPath.
+    - name: Sign with SignPath
+      if: inputs.signing-policy != ''
+      uses: signpath/github-action-submit-signing-request@v3.2
+      with:
+        api-token: ${{ inputs.api-token }}
+        organization-id: acc50d2c-0a93-4ede-984c-fe5fc37f0a44
+        project-slug: Apps2Samsung
+        signing-policy-slug: ${{ inputs.signing-policy }}
+        github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+        wait-for-completion: true
+        wait-for-completion-timeout-in-seconds: ${{ inputs.approval-timeout-seconds }}
+        output-artifact-directory: signed
+
+    # The test certificate is self-signed, so "not trusted" is a pass here: what must never get
+    # through is a file that came back without a signature or with a broken one. The x64 CLI is
+    # then run once, which proves a single-file executable still starts after signing.
+    - name: Put the signed files back
+      if: inputs.signing-policy != ''
+      shell: pwsh
+      env:
+        VERSION: ${{ inputs.version }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $PSNativeCommandUseErrorActionPreference = $true
+        $files = @{
+          'signed/desktop/win-x64/Apps2Samsung.exe'     = 'publish/win-x64/Apps2Samsung.exe'
+          'signed/cli/win-x64/apps2samsung-cli.exe'     = 'publish/cli/win-x64/apps2samsung-cli.exe'
+          'signed/cli/win-arm64/apps2samsung-cli.exe'   = 'publish/cli/win-arm64/apps2samsung-cli.exe'
+        }
+        foreach ($signed in $files.Keys) {
+          $signature = Get-AuthenticodeSignature $signed
+          $subject = if ($signature.SignerCertificate) { $signature.SignerCertificate.Subject } else { 'none' }
+          Write-Host "${signed}: $($signature.Status), signer $subject"
+          if (-not $signature.SignerCertificate -or $signature.Status -in 'NotSigned', 'HashMismatch', 'NotSupportedFileFormat', 'Incompatible') {
+            throw "$signed is not signed ($($signature.Status))"
+          }
+          Copy-Item $signed $files[$signed] -Force
+        }
+
+        $reported = (& publish/cli/win-x64/apps2samsung-cli.exe --version | Select-Object -First 1)
+        Write-Host "apps2samsung-cli --version: $reported"
+        if (($reported -split '\+')[0] -ne $env:VERSION) {
+          throw "The signed CLI reports '$reported', expected $env:VERSION"
+        }
+
+    # "Apps2Samsung.Cli-", not "Apps2Samsung-cli-": GitHub lists assets by name, and the desktop
+    # updater of 3.2.1 and older takes the first archive that names its platform.
+    - name: Zip
+      shell: pwsh
+      env:
+        VERSION_TAG: ${{ inputs.version-tag }}
+        OUTPUT: ${{ inputs.output }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $PSNativeCommandUseErrorActionPreference = $true
+        $out = (New-Item -ItemType Directory -Force $env:OUTPUT).FullName
+        $zips = @{
+          'publish/win-x64'       = "Apps2Samsung-$env:VERSION_TAG-win-x64.zip"
+          'publish/cli/win-x64'   = "Apps2Samsung.Cli-$env:VERSION_TAG-win-x64.zip"
+          'publish/cli/win-arm64' = "Apps2Samsung.Cli-$env:VERSION_TAG-win-arm64.zip"
+        }
+        foreach ($dir in $zips.Keys) {
+          $zip = Join-Path $out $zips[$dir]
+          if (Test-Path $zip) { Remove-Item $zip }
+          Push-Location $dir
+          try { 7z a -tzip -bso0 $zip * } finally { Pop-Location }
+        }
+        Get-ChildItem $out | Format-Table Name, Length

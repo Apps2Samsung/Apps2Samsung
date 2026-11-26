@@ -7,6 +7,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <AssemblyName>Apps2Samsung</AssemblyName>
+    <!-- Product name in the Windows file details; SignPath only signs files that carry it. -->
+    <Product>Apps2Samsung</Product>
 	<PublishSingleFile>true</PublishSingleFile>
 	<SelfContained>true</SelfContained>
 	<!-- Windows icon -->

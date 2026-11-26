@@ -52,10 +52,11 @@ use multi-factor authentication.
 1. Work is merged into the `beta` branch through pull requests.
 2. A stable release starts when the release pull request from `beta` into `master` is merged.
 3. The [Stable Release workflow](.github/workflows/stable-release.yml) builds every artifact
-   from that merge commit on GitHub-hosted runners and tags the commit with the version.
-4. The workflow submits the Windows artifacts to SignPath.
+   from that merge commit on GitHub-hosted runners.
+4. The workflow submits the Windows executables to SignPath, before anything is published.
 5. An approver reviews and approves the signing request.
-6. The signed artifacts are attached to the GitHub release.
+6. The workflow tags the commit with the version and attaches the signed files to the GitHub
+   release. A request that is not approved stops the release.
 
 ## Privacy
 
