@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The artifact configuration of the Apps2Samsung project in SignPath. SignPath reads the copy
+  that is saved in its own project settings, not this file: after a change here, paste the file
+  into the project's artifact configuration again.
+
+  The root is a zip because GitHub hands a workflow artifact over as one. Its paths are the ones
+  .github/actions/windows-build/action.yml collects the files under. An executable with another
+  product name is refused. In the installer the Apps2Samsung.exe it installs is signed first,
+  then the installer itself.
+-->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <zip-file>
+    <pe-file path="desktop/win-x64/Apps2Samsung.exe" product-name="Apps2Samsung">
+      <authenticode-sign />
+    </pe-file>
+    <pe-file path="cli/win-x64/apps2samsung-cli.exe" product-name="Apps2Samsung">
+      <authenticode-sign />
+    </pe-file>
+    <pe-file path="cli/win-arm64/apps2samsung-cli.exe" product-name="Apps2Samsung">
+      <authenticode-sign />
+    </pe-file>
+    <msi-file path="installer/Apps2Samsung-win-x64.msi">
+      <pe-file path="**/Apps2Samsung.exe" product-name="Apps2Samsung">
+        <authenticode-sign />
+      </pe-file>
+      <authenticode-sign />
+    </msi-file>
+  </zip-file>
+</artifact-configuration>

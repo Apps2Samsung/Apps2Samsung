@@ -10,6 +10,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Apps2Samsung.Cli</RootNamespace>
     <AssemblyName>apps2samsung-cli</AssemblyName>
+    <!-- Product name in the Windows file details; SignPath only signs files that carry it. -->
+    <Product>Apps2Samsung</Product>
     <InvariantGlobalization>true</InvariantGlobalization>
     <!-- The release workflows pass the real version (-p:Version=); a local build reports 0.0.0-dev. -->
     <Version Condition="'$(Version)' == ''">0.0.0-dev</Version>
